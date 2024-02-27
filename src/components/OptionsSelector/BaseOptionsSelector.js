@@ -11,6 +11,7 @@ import OptionsList from '@components/OptionsList';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ShowMoreButton from '@components/ShowMoreButton';
 import TextInput from '@components/TextInput';
+import useActiveElementRole from '@hooks/useActiveElementRole';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
@@ -59,13 +60,11 @@ function BaseOptionsSelector(props) {
     const themeStyles = useThemeStyles();
 
     const isWebOrDesktop = [CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform());
-    const accessibilityRoles = _.values(CONST.ROLE);
 
     const [disabledOptionsIndexes, setDisabledOptionsIndexes] = useState([]);
     const [errorMessage, setErrorMessage] = useState('');
     const [value, setValue] = useState('');
     const [paginationPage, setPaginationPage] = useState(1);
-    const [disableEnterShortCut, setDisableEnterShortCut] = useState(false);
 
     const shouldDisableRowSelection = useRef(false);
     const relatedTarget = useRef(null);
@@ -211,23 +210,6 @@ function BaseOptionsSelector(props) {
         [props.canSelectMultipleOptions, focusedIndex, allOptions, isFocused, selectRow],
     );
 
-    const handleFocusIn = () => {
-        const activeElement = document.activeElement;
-        setDisableEnterShortCut(activeElement && accessibilityRoles.includes(activeElement.role) && activeElement.role !== CONST.ROLE.PRESENTATION);
-    };
-
-    const handleFocusOut = () => {
-        setDisableEnterShortCut(false);
-    };
-
-    const subscribeActiveElement = () => {
-        if (!isWebOrDesktop) {
-            return;
-        }
-        document.addEventListener('focusin', handleFocusIn);
-        document.addEventListener('focusout', handleFocusOut);
-    };
-
     const selectOptions = useCallback(() => {
         if (props.canSelectMultipleOptions) {
             props.onConfirmSelection();
@@ -244,10 +226,11 @@ function BaseOptionsSelector(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [allOptions, focusedIndex, props.canSelectMultipleOptions, props.onConfirmSelection, selectRow]);
 
+    const activeElementRole = useActiveElementRole();
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         shouldBubble: !allOptions[focusedIndex],
         captureOnInputs: true,
-        isActive: !disableEnterShortCut,
+        isActive: !activeElementRole || activeElementRole === CONST.ROLE.PRESENTATION,
     });
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, selectOptions, {
         captureOnInputs: true,
@@ -290,8 +273,6 @@ function BaseOptionsSelector(props) {
     );
 
     useEffect(() => {
-        subscribeActiveElement();
-
         if (isFocused && props.autoFocus && textInputRef.current) {
             focusTimeout.current = setTimeout(() => {
                 textInputRef.current.focus();
@@ -301,9 +282,10 @@ function BaseOptionsSelector(props) {
         scrollToIndex(props.selectedOptions.length ? 0 : focusedIndex, false);
 
         return () => {
-            if (focusTimeout.current) {
-                clearTimeout(focusTimeout.current);
+            if (!focusTimeout.current) {
+                return;
             }
+            clearTimeout(focusTimeout.current);
         };
         // we want to run this effect only once, when the component is mounted
         // eslint-disable-next-line react-hooks/exhaustive-deps
