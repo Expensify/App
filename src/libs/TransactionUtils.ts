@@ -139,11 +139,11 @@ function hasReceipt(transaction: Transaction | undefined | null): boolean {
     return !!transaction?.receipt?.state || hasEReceipt(transaction);
 }
 
-function isMerchantMissing(transaction: Transaction) {
-    if (transaction.modifiedMerchant && transaction.modifiedMerchant !== '') {
+function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
+    if (transaction?.modifiedMerchant && transaction.modifiedMerchant !== '') {
         return transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     }
-    const isMerchantEmpty = transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.merchant === '';
+    const isMerchantEmpty = transaction?.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction?.merchant === '';
 
     return isMerchantEmpty;
 }

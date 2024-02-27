@@ -24,7 +24,6 @@ import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as IOUUtils from '@libs/IOUUtils';
-import * as Localize from '@libs/Localize';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -94,22 +93,22 @@ function MoneyRequestPreviewContent({
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const isSettled = ReportUtils.isSettled(iouReport?.reportID);
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const shouldShowAmount = isScanning || !TransactionUtils.isAmountMissing(transaction);
+    const showMissingMerchant = !isSettled && hasFieldErrors && TransactionUtils.isMerchantMissing(transaction);
+    const isRoutePending = isFetchingWaypointsFromServer && !requestAmount;
 
     /*
      Show the merchant for IOUs and expenses only if:
      - the merchant is not empty, is custom, or is not related to scanning smartscan;
      - the request is not a distance request with a pending route and amount = 0 - in this case,
        the merchant says: "Route pending...", which is already shown in the amount field;
+     - the merchant field is required, but it is missing
     */
     const shouldShowMerchant =
-        !!requestMerchant &&
-        requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT &&
-        requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT &&
-        !(isFetchingWaypointsFromServer && !requestAmount);
+        ((!!requestMerchant && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT) || showMissingMerchant) &&
+        !isRoutePending;
     const shouldShowDescription = !!description && !shouldShowMerchant && !isScanning;
 
-    let merchantOrDescription = requestMerchant;
+    let merchantOrDescription = showMissingMerchant ? translate('iou.missingMerchant') : requestMerchant;
     if (!shouldShowMerchant) {
         merchantOrDescription = description || '';
     }
@@ -152,7 +151,11 @@ function MoneyRequestPreviewContent({
         }
 
         let message = translate('iou.cash');
-        if (hasViolations && transaction) {
+        if (shouldShowRBR && transaction) {
+            if (hasFieldErrors) {
+                return `${message} • ${translate('violations.reviewRequired')}`;
+            }
+
             const violations = TransactionUtils.getTransactionViolations(transaction.transactionID, transactionViolations);
             if (violations?.[0]) {
                 const violationMessage = ViolationsUtils.getViolationTranslation(violations[0], translate);
@@ -174,8 +177,12 @@ function MoneyRequestPreviewContent({
             return translate('iou.receiptScanning');
         }
 
-        if (isFetchingWaypointsFromServer && !requestAmount) {
+        if (isRoutePending) {
             return translate('iou.routePending');
+        }
+
+        if (!isSettled && hasFieldErrors && TransactionUtils.isAmountMissing(transaction)) {
+            return translate('iou.missingAmount');
         }
 
         return CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency);
@@ -236,19 +243,16 @@ function MoneyRequestPreviewContent({
                             </View>
                             <View style={[styles.flexRow]}>
                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                    {shouldShowAmount && (
-                                        <Text
-                                            style={[
-                                                styles.textHeadline,
-                                                isBillSplit &&
-                                                    StyleUtils.getAmountFontSizeAndLineHeight(isSmallScreenWidth, windowWidth, displayAmount.length, sortedParticipantAvatars.length),
-                                                isDeleted && styles.lineThrough,
-                                            ]}
-                                            numberOfLines={1}
-                                        >
-                                            {displayAmount}
-                                        </Text>
-                                    )}
+                                    <Text
+                                        style={[
+                                            styles.textHeadline,
+                                            isBillSplit && StyleUtils.getAmountFontSizeAndLineHeight(isSmallScreenWidth, windowWidth, displayAmount.length, sortedParticipantAvatars.length),
+                                            isDeleted && styles.lineThrough,
+                                        ]}
+                                        numberOfLines={1}
+                                    >
+                                        {displayAmount}
+                                    </Text>
                                     {ReportUtils.isSettled(iouReport?.reportID) && !isBillSplit && (
                                         <View style={styles.defaultCheckmarkWrapper}>
                                             <Icon
@@ -270,18 +274,7 @@ function MoneyRequestPreviewContent({
                                     </View>
                                 )}
                             </View>
-                            {hasFieldErrors && (
-                                <View style={[styles.flexRow]}>
-                                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                        <Text
-                                            style={styles.textHeadline}
-                                            numberOfLines={1}
-                                        >
-                                            {Localize.translateLocal('iou.receiptMissingDetails')}
-                                        </Text>
-                                    </View>
-                                </View>
-                            )}
+
                             <View style={[styles.flexRow, styles.mt1]}>
                                 <View style={[styles.flex1]}>
                                     {!isCurrentUserManager && shouldShowPendingConversionMessage && (
