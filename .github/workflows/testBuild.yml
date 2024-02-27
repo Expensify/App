@@ -154,6 +154,7 @@ jobs:
           echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - name: Setup Node
+        id: setup-node
         uses: ./.github/actions/composite/setupNode
 
       - name: Setup XCode
