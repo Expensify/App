@@ -2977,5 +2977,5 @@ export {
     updateReportName,
     resolveActionableMentionWhisper,
     updateRoomVisibility,
-    saveReportDraftLastMention
+    saveReportDraftLastMention,
 };

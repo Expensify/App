@@ -16,7 +16,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as SuggestionProps from './suggestionProps';
 
-
 /**
  * Check if this piece of string looks like a mention
  * @param {String} str
