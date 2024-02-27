@@ -2,32 +2,38 @@ import {createStackNavigator} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
+import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import ModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/ModalNavigatorScreenOptions';
+import OnboardingModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/OnboardingModalNavigatorScreenOptions';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
 import OnboardingPurpose from '@pages/OnboardingPurpose';
 import SCREENS from '@src/SCREENS';
+import Overlay from './Overlay';
 
 const Stack = createStackNavigator<OnboardingModalNavigatorParamList>();
 
 function OnboardingModalNavigator() {
     const styles = useThemeStyles();
-    const screenOptions = useMemo(() => ModalNavigatorScreenOptions(styles), [styles]);
+    const screenOptions = useMemo(() => OnboardingModalNavigatorScreenOptions(styles), [styles]);
+    const {shouldUseNarrowLayout} = useOnboardingLayout();
 
     return (
         <NoDropZone>
-            <View>
-                <Stack.Navigator screenOptions={{...screenOptions}}>
-                    <Stack.Screen
-                        name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
-                        component={OnboardingPersonalDetails}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.ONBOARDING.PURPOSE}
-                        component={OnboardingPurpose}
-                    />
-                </Stack.Navigator>
+            <Overlay onPress={() => {}} />
+            <View style={styles.onboardingNavigatorOuterView}>
+                <View style={styles.OnboardingNavigatorInnerView(shouldUseNarrowLayout)}>
+                    <Stack.Navigator screenOptions={screenOptions}>
+                        <Stack.Screen
+                            name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
+                            component={OnboardingPersonalDetails}
+                        />
+                        <Stack.Screen
+                            name={SCREENS.ONBOARDING.PURPOSE}
+                            component={OnboardingPurpose}
+                        />
+                    </Stack.Navigator>
+                </View>
             </View>
         </NoDropZone>
     );

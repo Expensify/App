@@ -42,12 +42,17 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
         const navigationState = navigation.getState();
         const routes = navigationState.routes;
         const currentRoute = routes[navigationState.index];
-
-        if (currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && currentRoute.name !== NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
+        const bottomTabRoute = getTopmostBottomTabRoute(navigationState);
+        if (
+            // When we are redirected to the Settings tab from the OldDot, we don't want to call the Welcome.isOnboardingFlowCompleted() method.
+            // To prevent this, the value of the bottomTabRoute?.name is checked here
+            bottomTabRoute?.name === SCREENS.WORKSPACE.INITIAL ||
+            (currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && currentRoute.name !== NAVIGATORS.CENTRAL_PANE_NAVIGATOR)
+        ) {
             return;
         }
 
-        Welcome.show(routes, () => Navigation.navigate(ROUTES.ONBOARD));
+        Welcome.isOnboardingFlowCompleted({onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARD)});
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingApp]);
 

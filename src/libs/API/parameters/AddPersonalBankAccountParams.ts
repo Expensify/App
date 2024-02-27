@@ -1,8 +1,8 @@
 type AddPersonalBankAccountParams = {
-    addressName: string;
+    addressName?: string;
     routingNumber: string;
     accountNumber: string;
-    isSavings: boolean;
+    isSavings?: boolean;
     setupType: string;
     bank?: string;
     plaidAccountID: string;

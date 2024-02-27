@@ -1,7 +1,6 @@
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import {getStateFromPath} from '@react-navigation/native';
 import {isAnonymousUser} from '@libs/actions/Session';
-import Log from '@libs/Log';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getTopmostNestedRHPRoute from '@libs/Navigation/getTopmostNestedRHPRoute';
 import type {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
@@ -71,14 +70,16 @@ function createCentralPaneNavigator(route: NavigationPartialRoute<CentralPaneNam
     };
 }
 
-function createFullScreenNavigator(route: NavigationPartialRoute<FullScreenName>): NavigationPartialRoute<typeof NAVIGATORS.FULL_SCREEN_NAVIGATOR> {
+function createFullScreenNavigator(route?: NavigationPartialRoute<FullScreenName>): NavigationPartialRoute<typeof NAVIGATORS.FULL_SCREEN_NAVIGATOR> {
     const routes = [];
 
     routes.push({name: SCREENS.SETTINGS.ROOT});
-    routes.push({
-        name: SCREENS.SETTINGS_CENTRAL_PANE,
-        state: getRoutesWithIndex([route]),
-    });
+    if (route) {
+        routes.push({
+            name: SCREENS.SETTINGS_CENTRAL_PANE,
+            state: getRoutesWithIndex([route]),
+        });
+    }
 
     return {
         name: NAVIGATORS.FULL_SCREEN_NAVIGATOR,
@@ -129,6 +130,11 @@ function getMatchingRootRouteForRHPRoute(
         if (RHPNames && RHPNames.includes(route.name)) {
             return createFullScreenNavigator({name: fullScreenName as FullScreenName, params: route.params});
         }
+    }
+
+    // This screen is opened from the LHN of the FullStackNavigator, so in this case we shouldn't push any CentralPane screen
+    if (route.name === SCREENS.SETTINGS.SHARE_CODE) {
+        return createFullScreenNavigator();
     }
 }
 
@@ -303,16 +309,13 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options) => {
     const policyID = isAnonymous ? undefined : extractPolicyIDFromPath(path);
 
     const state = getStateFromPath(pathWithoutPolicyID, options) as PartialState<NavigationState<RootStackParamList>>;
-    Log.info('STATE FROM PATH');
-    Log.info(JSON.stringify(state));
     replacePathInNestedState(state, path);
 
     if (state === undefined) {
         throw new Error('Unable to parse path');
     }
 
-    const tmp = getAdaptedState(state, policyID);
-    return tmp;
+    return getAdaptedState(state, policyID);
 };
 
 export default getAdaptedStateFromPath;

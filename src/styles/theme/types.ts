@@ -87,9 +87,10 @@ type ThemeColors = {
     skeletonLHNOut: Color;
     QRLogo: Color;
     starDefaultBG: Color;
-    loungeAccessOverlay: Color;
     mapAttributionText: Color;
     white: Color;
+    progressBarBackground: Color;
+    progressBarFill: Color;
     videoPlayerBG: Color;
     transparentWhite: Color;
 

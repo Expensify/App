@@ -1,36 +1,26 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Modal from '@components/Modal';
+import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Report from '@userActions/Report';
-import CONST from '@src/CONST';
 
 function OnboardingPurpose() {
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
-    const [isModalOpen, setIsModalOpen] = useState(true);
+    const {shouldUseNarrowLayout} = useOnboardingLayout();
     const theme = useTheme();
 
     const closeModal = useCallback(() => {
         Report.dismissEngagementModal();
         Navigation.goBack();
-        setIsModalOpen(false);
     }, []);
 
     return (
-        <Modal
-            type={CONST.MODAL.MODAL_TYPE.ONBOARDING}
-            isVisible={isModalOpen}
-            onClose={closeModal}
-            innerContainerStyle={styles.pt0}
-            shouldUseCustomBackdrop
-            // This prevents stacking of transparent overlays
-            shouldForceHideBackdrop
-        >
+        <View style={[styles.defaultModalContainer, styles.h100, styles.w100, !shouldUseNarrowLayout && styles.pt8]}>
             <View style={{maxHeight: windowHeight}}>
                 <HeaderWithBackButton
                     shouldShowCloseButton
@@ -40,7 +30,7 @@ function OnboardingPurpose() {
                     iconFill={theme.iconColorfulBackground}
                 />
             </View>
-        </Modal>
+        </View>
     );
 }
 

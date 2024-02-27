@@ -179,10 +179,9 @@ const webViewStyles = (theme: ThemeColors) =>
 
             pre: {
                 ...baseCodeTagStyles(theme),
-                paddingTop: 12,
-                paddingBottom: 12,
-                paddingRight: 8,
-                paddingLeft: 8,
+                paddingVertical: 8,
+                paddingHorizontal: 12,
+                fontSize: 13,
                 fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
                 marginTop: 0,
                 marginBottom: 0,
@@ -827,6 +826,8 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 1,
             borderRadius: variables.componentBorderRadiusSmall,
             borderColor: theme.border,
+            paddingHorizontal: 12,
+            minHeight: 28,
         },
 
         badgeText: {
@@ -834,6 +835,10 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeSmall,
             ...lineHeightBadge,
             ...whiteSpace.noWrap,
+        },
+
+        activeItemBadge: {
+            borderColor: theme.buttonHoveredBG,
         },
 
         border: {
@@ -1510,6 +1515,20 @@ const styles = (theme: ThemeColors) =>
                 right: 0,
             } satisfies ViewStyle),
 
+        onboardingNavigatorOuterView: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+
+        OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>
+            ({
+                width: shouldUseNarrowLayout ? 500 : '100%',
+                height: shouldUseNarrowLayout ? 712 : '100%',
+                borderRadius: shouldUseNarrowLayout ? 16 : 0,
+                overflow: 'hidden',
+            } satisfies ViewStyle),
+
         onlyEmojisText: {
             fontSize: variables.fontSizeOnlyEmojis,
             lineHeight: variables.fontSizeOnlyEmojisHeight,
@@ -1746,6 +1765,7 @@ const styles = (theme: ThemeColors) =>
 
         nativeOverlayStyles: (current: OverlayStylesParams) =>
             ({
+                position: 'absolute',
                 backgroundColor: theme.overlay,
                 width: '100%',
                 height: '100%',
@@ -2721,6 +2741,12 @@ const styles = (theme: ThemeColors) =>
             height: '100%',
         },
 
+        navigationOnboardingScreenCardStyle: {
+            backgroundColor: 'transparent',
+            width: '100%',
+            height: '100%',
+        },
+
         invisible: {
             position: 'absolute',
             opacity: 0,
@@ -3072,6 +3098,20 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             right: -8,
             bottom: -8,
+        },
+
+        primaryMediumIcon: {
+            alignItems: 'center',
+            backgroundColor: theme.buttonDefaultBG,
+            borderRadius: 20,
+            color: theme.textReversed,
+            height: 40,
+            width: 40,
+            justifyContent: 'center',
+        },
+
+        primaryMediumText: {
+            fontSize: variables.iconSizeNormal,
         },
 
         workspaceOwnerAvatarWrapper: {
@@ -4372,6 +4412,21 @@ const styles = (theme: ThemeColors) =>
 
         singleOptionSelectorCircle: {
             borderColor: theme.icon,
+        },
+
+        progressBarWrapper: {
+            position: 'absolute',
+            width: variables.componentSizeMedium,
+            height: 4,
+            borderRadius: variables.componentBorderRadiusRounded,
+            backgroundColor: theme.progressBarBackground,
+            alignSelf: 'center',
+        },
+
+        progressBar: {
+            borderRadius: variables.componentBorderRadiusRounded,
+            height: '100%',
+            backgroundColor: theme.progressBarFill,
         },
 
         interactiveStepHeaderContainer: {
