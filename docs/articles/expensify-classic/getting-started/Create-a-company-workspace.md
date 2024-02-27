@@ -116,17 +116,17 @@ Determine the basic guidelines that apply to all submitted expenses. If a submit
            <li>Determine if expenses can be re-billed to someone else as an invoice.</li> 
            <li>Determine if eRecipts can be submitted as proof of an expense.</li> 
          
-           {% include info.html %}
-           If eReceipts are enabled, imported credit card expenses of $75 USD or less will be tracked automatically—no paper receipt is necessary. 
+{% include info.html %}
+If eReceipts are enabled, imported credit card expenses of $75 USD or less will be tracked automatically—no paper receipt is necessary. 
 
-           eReceipts meet IRS documentation requirements as per Publication 463; However, the IRS will not accept an eReceipt for lodging purchases (for example, hotel expenses will require a paper receipt).
-           {% include end-info.html %}
+eReceipts meet IRS documentation requirements as per Publication 463; However, the IRS will not accept an eReceipt for lodging purchases (for example, hotel expenses will require a paper receipt).
+{% include end-info.html %}
            
            <li>Determine if receipts are visible to anyone with the URL.</li> 
 
-           {% include info.html %}
-           If disabled, receipts can be seen only by admins for the workspace or someone who has been sent the report that the receipts are related to. 
-           {% include end-info.html %}
+{% include info.html %}
+If disabled, receipts can be seen only by admins for the workspace or someone who has been sent the report that the receipts are related to. 
+{% include end-info.html %}
 
            <li>Set your mileage rates for distance expenses.</li> 
            <li>Determine if time expenses can be submitted as an hourly rate.</li> 
