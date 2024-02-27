@@ -17,7 +17,7 @@ function ButtonWithDropdownMenu<IValueType>({
     isLoading = false,
     isDisabled = false,
     pressOnEnter = false,
-    alwaysShowDropdownMenu = false,
+    shouldAlwaysShowDropdownMenu = false,
     menuHeaderText = '',
     customText,
     style,
