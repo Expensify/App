@@ -2289,6 +2289,7 @@ function getReportPreviewMessage(
     isPreviewMessageForParentChatReport = false,
     policy: OnyxEntry<Policy> = null,
     isForListPreview = false,
+    originalReportAction: OnyxEntry<ReportAction> | EmptyObject = reportAction,
 ): string {
     const reportActionMessage = reportAction?.message?.[0].html ?? '';
 
@@ -2387,7 +2388,9 @@ function getReportPreviewMessage(
     if (isEmptyObject(linkedTransaction) && !isEmptyObject(reportAction)) {
         linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
     }
-    const comment = !isEmptyObject(linkedTransaction) ? TransactionUtils.getDescription(linkedTransaction) : undefined;
+    const hideComment =
+        !isEmptyObject(originalReportAction) && ReportActionsUtils.isReportPreviewAction(originalReportAction) && ReportActionsUtils.getNumberOfMoneyRequests(originalReportAction) !== 1;
+    const comment = !isEmptyObject(linkedTransaction) && !hideComment ? TransactionUtils.getDescription(linkedTransaction) : undefined;
 
     // if we have the amount in the originalMessage and lastActorID, we can use that to display the preview message for the latest request
     if (amount !== undefined && lastActorID && !isPreviewMessageForParentChatReport) {

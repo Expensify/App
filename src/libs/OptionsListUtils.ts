@@ -561,6 +561,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
             ReportUtils.isChatReport(report),
             null,
             true,
+            lastReportAction,
         );
     } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
