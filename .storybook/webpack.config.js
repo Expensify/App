@@ -41,6 +41,10 @@ module.exports = ({config}) => {
     const babelRule = custom.module.rules[babelRulesIndex];
     config.module.rules.push(babelRule);
 
+    const lottieRulesIndex = _.findIndex(custom.module.rules, (rule) => rule.type === 'asset/resource');
+    const lottielRule = custom.module.rules[lottieRulesIndex];
+    config.module.rules.push(lottielRule);
+
     // Allows loading SVG - more context here https://github.com/storybookjs/storybook/issues/6188
     const fileLoaderRule = _.find(config.module.rules, (rule) => rule.test && rule.test.test('.svg'));
     fileLoaderRule.exclude = /\.svg$/;
