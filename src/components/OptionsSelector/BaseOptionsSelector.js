@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import _ from 'underscore';
-import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -12,6 +11,7 @@ import OptionsList from '@components/OptionsList';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ShowMoreButton from '@components/ShowMoreButton';
 import TextInput from '@components/TextInput';
+import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -57,27 +57,6 @@ function BaseOptionsSelector(props) {
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
     const themeStyles = useThemeStyles();
-
-    const getInitiallyFocusedIndex = useCallback(
-        (allOptions) => {
-            let defaultIndex;
-            if (props.shouldTextInputAppearBelowOptions) {
-                defaultIndex = allOptions.length;
-            } else if (props.focusedIndex >= 0) {
-                defaultIndex = props.focusedIndex;
-            } else {
-                defaultIndex = props.selectedOptions.length;
-            }
-            if (_.isUndefined(props.initiallyFocusedOptionKey)) {
-                return defaultIndex;
-            }
-
-            const indexOfInitiallyFocusedOption = _.findIndex(allOptions, (option) => option.keyForList === props.initiallyFocusedOptionKey);
-
-            return indexOfInitiallyFocusedOption;
-        },
-        [props.shouldTextInputAppearBelowOptions, props.initiallyFocusedOptionKey, props.selectedOptions.length, props.focusedIndex],
-    );
 
     const isWebOrDesktop = [CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform());
     const accessibilityRoles = _.values(CONST.ROLE);
@@ -137,7 +116,31 @@ function BaseOptionsSelector(props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const initialAllOptions = useMemo(() => flattenSections(), []);
     const [allOptions, setAllOptions] = useState(initialAllOptions);
-    const [focusedIndex, setFocusedIndex] = useState(getInitiallyFocusedIndex(initialAllOptions));
+
+    const initialFocusedIndex = useMemo(() => {
+        if (!_.isUndefined(props.initiallyFocusedOptionKey)) {
+            return _.findIndex(allOptions, (option) => option.keyForList === props.initiallyFocusedOptionKey);
+        }
+
+        let defaultIndex;
+        if (props.shouldTextInputAppearBelowOptions) {
+            defaultIndex = allOptions.length;
+        } else if (props.focusedIndex >= 0) {
+            defaultIndex = props.focusedIndex;
+        } else {
+            defaultIndex = props.selectedOptions.length;
+        }
+        return defaultIndex;
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- this value is only used to initialize state so only ever needs to be computed on the first render
+    }, []);
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
+        initialFocusedIndex,
+        disabledIndexes: disabledOptionsIndexes,
+        maxIndex: allOptions.length - 1,
+        isActive: !props.disableArrowKeysActions,
+        disableHorizontalKeys: true,
+    });
+
     const [focusedOption, setFocusedOption] = useState(allOptions[focusedIndex]);
 
     /**
@@ -473,29 +476,6 @@ function BaseOptionsSelector(props) {
     const debouncedUpdateSearchValue = _.debounce(updateSearchValue, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
 
     /**
-     * Calculates all currently visible options based on the sections that are currently being shown
-     * and the number of items of those sections.
-     *
-     * @returns {Number}
-     */
-    const calculateAllVisibleOptionsCount = useCallback(() => {
-        let count = 0;
-
-        _.forEach(sections, (section) => {
-            count += lodashGet(section, 'data.length', 0);
-        });
-
-        return count;
-    }, [sections]);
-
-    /**
-     * @param {Number} index
-     */
-    const updateFocusedIndex = useCallback((index) => {
-        setFocusedIndex(index);
-    }, []);
-
-    /**
      * Completes the follow-up action after clicking on multiple select button
      * @param {Object} option
      */
@@ -619,13 +599,7 @@ function BaseOptionsSelector(props) {
     );
 
     return (
-        <ArrowKeyFocusManager
-            disabledIndexes={disabledOptionsIndexes}
-            focusedIndex={focusedIndex}
-            maxIndex={calculateAllVisibleOptionsCount() - 1}
-            onFocusedIndexChanged={props.disableArrowKeysActions ? () => {} : updateFocusedIndex}
-            shouldResetIndexOnEndReached={false}
-        >
+        <>
             <View style={[themeStyles.flexGrow1, themeStyles.flexShrink1, themeStyles.flexBasisAuto]}>
                 {/*
                  * The OptionsList component uses a SectionList which uses a VirtualizedList internally.
@@ -684,7 +658,7 @@ function BaseOptionsSelector(props) {
                     {props.footerContent}
                 </FixedFooter>
             )}
-        </ArrowKeyFocusManager>
+        </>
     );
 }
 
