@@ -687,13 +687,16 @@ function ReportActionItem({
                     <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
                         <AnimatedEmptyStateBackground />
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
-                            <ReportActionItemSingle
-                                action={parentReportAction}
-                                showHeader={draftMessage === undefined}
-                                report={report}
-                            >
-                                <RenderHTML html={`<comment>${translate('parentReportAction.deletedTask')}</comment>`} />
-                            </ReportActionItemSingle>
+                            <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction}>
+                                <ReportActionItemSingle
+                                    action={parentReportAction}
+                                    showHeader={draftMessage === undefined}
+                                    report={report}
+                                >
+                                    <RenderHTML html={`<comment>${translate('parentReportAction.deletedTask')}</comment>`} />
+                                </ReportActionItemSingle>
+                            </OfflineWithFeedback>
+                            <View style={styles.reportHorizontalRule} />
                         </View>
                     </View>
                 );
