@@ -2235,8 +2235,7 @@ function areAllRequestsBeingSmartScanned(iouReportID: string, reportPreviewActio
  *
  */
 function hasMissingSmartscanFields(iouReportID: string): boolean {
-    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
-    return transactionsWithReceipts.some((transaction) => TransactionUtils.hasMissingSmartscanFields(transaction));
+    return TransactionUtils.getAllReportTransactions(iouReportID).some((transaction) => TransactionUtils.hasMissingSmartscanFields(transaction));
 }
 
 /**
