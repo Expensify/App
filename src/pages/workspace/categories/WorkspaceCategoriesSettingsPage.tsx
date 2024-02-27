@@ -33,7 +33,6 @@ function WorkspaceCategoriesSettingsPage({route}: WorkspaceCategoriesSettingsPag
                         includeSafeAreaPaddingBottom={false}
                         style={[styles.defaultModalContainer]}
                         testID={WorkspaceCategoriesSettingsPage.displayName}
-                        shouldShowOfflineIndicatorInWideScreen
                     >
                         <HeaderWithBackButton title={translate('common.settings')} />
                         <OfflineWithFeedback
