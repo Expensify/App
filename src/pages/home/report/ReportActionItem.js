@@ -701,20 +701,31 @@ function ReportActionItem(props) {
         if (ReportUtils.isExpenseReport(props.report) || ReportUtils.isIOUReport(props.report)) {
             return (
                 <OfflineWithFeedback pendingAction={props.action.pendingAction}>
-                    <MoneyReportView
-                        report={props.report}
-                        policy={props.policy}
-                        policyReportFields={_.values(props.policyReportFields)}
-                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                    />
-                    {props.transactionThreadReport && !isEmptyObject(props.transactionThreadReport) && (
-                        <ShowContextMenuContext.Provider value={contextValue}>
-                            <MoneyRequestView
-                                report={props.transactionThreadReport}
-                                shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                                shouldShowAnimatedBackground={false}
-                            />
-                        </ShowContextMenuContext.Provider>
+                    {props.transactionThreadReport && !isEmptyObject(props.transactionThreadReport) ? (
+                        <>
+                            {props.transactionThreadReport.currency !== props.report.currency && (
+                                <MoneyReportView
+                                    report={props.report}
+                                    policy={props.policy}
+                                    policyReportFields={_.values(props.policyReportFields)}
+                                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                                />
+                            )}
+                            <ShowContextMenuContext.Provider value={contextValue}>
+                                <MoneyRequestView
+                                    report={props.transactionThreadReport}
+                                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                                    shouldShowAnimatedBackground={props.transactionThreadReport.currency === props.report.currency}
+                                />
+                            </ShowContextMenuContext.Provider>
+                        </>
+                        ) : (
+                        <MoneyReportView
+                            report={props.report}
+                            policy={props.policy}
+                            policyReportFields={_.values(props.policyReportFields)}
+                            shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                        />
                     )}
                 </OfflineWithFeedback>
             );

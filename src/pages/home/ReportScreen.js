@@ -250,6 +250,7 @@ function ReportScreen({
             reportProp.policyName,
             reportProp.isOptimisticReport,
             reportProp.lastMentionedTime,
+            reportProp.transactionThreadReportID,
         ],
     );
 
