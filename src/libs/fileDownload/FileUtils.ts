@@ -80,14 +80,14 @@ function showCameraPermissionsAlert() {
  * Extracts a filename from a given URL and sanitizes it for file system usage.
  *
  * This function takes a URL as input and performs the following operations:
- * 1. Extracts the last segment of the URL, which could be a file name, a path segment,
- *    or a query string parameter.
+ * 1. Extracts the last segment of the URL.
  * 2. Decodes the extracted segment from URL encoding to a plain string for better readability.
  * 3. Replaces any characters in the decoded string that are illegal in file names
  *    with underscores.
  */
 function getFileName(url: string): string {
-    const fileName = url.split(/[#?/]/).pop() ?? '';
+    const fileName = url.split('/').pop()?.split('?')[0].split('#')[0] ?? '';
+
     if (!fileName) {
         Log.warn('[FileUtils] Could not get attachment name', {url});
     }
@@ -111,7 +111,7 @@ function getFileType(fileUrl: string): string | undefined {
         return;
     }
 
-    const fileName = fileUrl.split('/').pop()?.split('?')[0].split('#')[0];
+    const fileName = getFileName(fileUrl);
 
     if (!fileName) {
         return;
