@@ -97,6 +97,8 @@ function Checkbox(
             aria-checked={isChecked}
             accessibilityLabel={accessibilityLabel}
             pressDimmingValue={1}
+            // Explicitly need to add this because getCheckboxPressableStyle returns `cursorPointer` which will override disabled cursor style determined by `disabled` prop
+            disabledStyle={styles.cursorDisabled}
         >
             {children ?? (
                 <View
