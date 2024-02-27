@@ -487,7 +487,7 @@ const ROUTES = {
         getRoute: (policyID: string) => `workspace/${policyID}/workflows` as const,
     },
     WORKSPACE_WORKFLOWS_APPROVER: {
-        route: 'workspace/:policyId/workflows/approver',
+        route: 'workspace/:policyID/workflows/approver',
         getRoute: (policyId: string) => `workspace/${policyId}/workflows/approver` as const,
     },
     WORKSPACE_CARD: {
