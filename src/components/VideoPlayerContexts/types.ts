@@ -10,7 +10,7 @@ type PlaybackContext = {
     originalParent: View | null;
     sharedElement: View | null;
     currentVideoPlayerRef: MutableRefObject<Video | null>;
-    shareVideoPlayerElements: (ref: Video, parent: View, child: View) => void;
+    shareVideoPlayerElements: (ref: Video, parent: View, child: View, isUploading: boolean) => void;
     playVideo: () => void;
     pauseVideo: () => void;
     checkVideoPlaying: (statusCallback: (isPlaying: boolean) => void) => void;
@@ -35,7 +35,7 @@ type MenuItem = {
 };
 
 type VideoPopoverMenuContext = {
-    menuItems: [SingularMenuItem, MenuItem];
+    menuItems: Array<SingularMenuItem | MenuItem>;
     updatePlaybackSpeed: (speed: number) => void;
 };
 
