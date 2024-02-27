@@ -1,3 +1,4 @@
+import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import _ from 'underscore';
@@ -80,7 +81,7 @@ function SuggestionMention({
             }
             // If the emails are not in the same private domain, we also return the displayText
             if (!LoginUtils.areEmailsFromSamePrivateDomain(displayText, currentUserPersonalDetails.login)) {
-                return displayText;
+                return Str.removeSMSDomain(displayText);
             }
 
             // Otherwise, the emails must be of the same private domain, so we should remove the domain part
@@ -191,7 +192,7 @@ function SuggestionMention({
             _.each(_.first(sortedPersonalDetails, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length), (detail) => {
                 suggestions.push({
                     text: formatLoginPrivateDomain(PersonalDetailsUtils.getDisplayNameOrDefault(detail), detail.login),
-                    alternateText: `@${formatLoginPrivateDomain(formatPhoneNumber(detail.login), detail.login)}`,
+                    alternateText: `@${formatLoginPrivateDomain(detail.login, detail.login)}`,
                     login: detail.login,
                     icons: [
                         {

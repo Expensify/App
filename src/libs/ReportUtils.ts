@@ -61,6 +61,7 @@ import Navigation from './Navigation/Navigation';
 import * as NumberUtils from './NumberUtils';
 import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import * as PhoneNumber from './PhoneNumber';
 import * as PolicyUtils from './PolicyUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
@@ -2687,11 +2688,20 @@ function getParsedComment(text: string): string {
     const parser = new ExpensiMark();
     const textWithMention = text.replace(CONST.REGEX.SHORT_MENTION, (match) => {
         const mention = match.substring(1);
-        const mentionWithDomain = `${mention}@${currentUserPrivateDomain}`;
 
-        if (!Str.isValidEmail(mention) && currentUserPrivateDomain && allPersonalDetailLogins.includes(mentionWithDomain)) {
-            return `@${mentionWithDomain}`;
+        if (!Str.isValidEmail(mention) && currentUserPrivateDomain) {
+            const mentionWithEmailDomain = `${mention}@${currentUserPrivateDomain}`;
+            if (allPersonalDetailLogins.includes(mentionWithEmailDomain)) {
+                return `@${mentionWithEmailDomain}`;
+            }
         }
+        if (Str.isValidPhone(mention)) {
+            const mentionWithSmsDomain = PhoneNumber.addSMSDomainIfPhoneNumber(mention);
+            if (allPersonalDetailLogins.includes(mentionWithSmsDomain)) {
+                return `@${mentionWithSmsDomain}`;
+            }
+        }
+
         return match;
     });
 
