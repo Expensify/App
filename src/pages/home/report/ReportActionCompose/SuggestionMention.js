@@ -39,6 +39,9 @@ const propTypes = {
     // eslint-disable-next-line react/require-default-props
     lastSelectedMentionSuggestion: PropTypes.string,
 
+    /** The reportID of the report */
+    reportID: PropTypes.string.isRequired,
+
     ...SuggestionProps.implementationBaseProps,
 };
 
