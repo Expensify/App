@@ -1,9 +1,14 @@
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+
+type AriaRole = ValueOf<typeof CONST.ROLE>;
+
 type ActiveElementRoleContextValue = {
-    role: string | null;
+    role: AriaRole | null;
 };
 
 type ActiveElementRoleProps = {
     children: React.ReactNode;
 };
 
-export type {ActiveElementRoleContextValue, ActiveElementRoleProps};
+export type {AriaRole, ActiveElementRoleContextValue, ActiveElementRoleProps};

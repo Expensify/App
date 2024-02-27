@@ -1,15 +1,15 @@
 import React, {useEffect, useState} from 'react';
-import type {ActiveElementRoleContextValue, ActiveElementRoleProps} from './types';
+import type {ActiveElementRoleContextValue, ActiveElementRoleProps, AriaRole} from './types';
 
 const ActiveElementRoleContext = React.createContext<ActiveElementRoleContextValue>({
     role: null,
 });
 
 function ActiveElementRoleProvider({children}: ActiveElementRoleProps) {
-    const [activeRoleRef, setRole] = useState<string | null>(document?.activeElement?.role ?? null);
+    const [activeRoleRef, setRole] = useState<AriaRole | null>((document?.activeElement?.role as AriaRole) ?? null);
 
     const handleFocusIn = () => {
-        setRole(document?.activeElement?.role ?? null);
+        setRole((document?.activeElement?.role as AriaRole) ?? null);
     };
 
     const handleFocusOut = () => {
