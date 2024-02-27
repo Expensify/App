@@ -804,8 +804,8 @@ function getMoneyRequestInformation(
         // If the scheduled submit is turned off on the policy, user needs to manually submit the report which is indicated by GBR in LHN
         needsToBeManuallySubmitted = isFromPaidPolicy && !policy?.harvesting?.enabled;
 
-        // If the linked expense report on paid policy is not draft, we need to create a new draft expense report
-        if (iouReport && isFromPaidPolicy && !ReportUtils.isDraftExpenseReport(iouReport)) {
+        // If the linked expense report on paid policy is not draft and not instantly submitted, we need to create a new draft expense report
+        if (iouReport && isFromPaidPolicy && !ReportUtils.isDraftExpenseReport(iouReport) && !ReportUtils.isExpenseReportWithInstantSubmittedState(iouReport)) {
             iouReport = null;
         }
     }
@@ -814,7 +814,7 @@ function getMoneyRequestInformation(
         if (isPolicyExpenseChat) {
             iouReport = {...iouReport};
             if (iouReport?.currency === currency && typeof iouReport.total === 'number') {
-                // Because of the Expense reports are stored as negative values, we substract the total from the amount
+                // Because of the Expense reports are stored as negative values, we subtract the total from the amount
                 iouReport.total -= amount;
             }
         } else {

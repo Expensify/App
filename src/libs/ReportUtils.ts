@@ -956,6 +956,14 @@ function isProcessingReport(report: OnyxEntry<Report> | EmptyObject): boolean {
 }
 
 /**
+ * Returns true if the policy has `instant` reporting frequency and if the report is still being processed (i.e. submitted state)
+ */
+function isExpenseReportWithInstantSubmittedState(report: OnyxEntry<Report> | EmptyObject): boolean {
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? null;
+    return isExpenseReport(report) && isProcessingReport(report) && PolicyUtils.isInstantSubmitEnabled(policy);
+}
+
+/**
  * Check if the report is a single chat report that isn't a thread
  * and personal detail of participant is optimistic data
  */
@@ -1264,8 +1272,8 @@ function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: 
 
         if (isActionOwner) {
             if (!isEmptyObject(report) && isPaidGroupPolicyExpenseReport(report)) {
-                // If it's a paid policy expense report, only allow deleting the request if it's not submitted or the user is the policy admin
-                return isDraftExpenseReport(report) || PolicyUtils.isPolicyAdmin(policy);
+                // If it's a paid policy expense report, only allow deleting the request if it's a draft or is instantly submitted or the user is the policy admin
+                return isDraftExpenseReport(report) || isExpenseReportWithInstantSubmittedState(report) || PolicyUtils.isPolicyAdmin(policy);
             }
             return true;
         }
@@ -4238,7 +4246,7 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
     if (isMoneyRequestReport(report)) {
         const isOwnExpenseReport = isExpenseReport(report) && isOwnPolicyExpenseChat;
         if (isOwnExpenseReport && PolicyUtils.isPaidGroupPolicy(policy)) {
-            return isDraftExpenseReport(report);
+            return isDraftExpenseReport(report) || isExpenseReportWithInstantSubmittedState(report);
         }
 
         return (isOwnExpenseReport || isIOUReport(report)) && !isReportApproved(report) && !isSettled(report?.reportID);
@@ -5040,6 +5048,7 @@ export {
     isPublicAnnounceRoom,
     isConciergeChatReport,
     isProcessingReport,
+    isExpenseReportWithInstantSubmittedState,
     isCurrentUserTheOnlyParticipant,
     hasAutomatedExpensifyAccountIDs,
     hasExpensifyGuidesEmails,
