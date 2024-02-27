@@ -26,6 +26,7 @@ import type {
     UpdateWorkspaceCustomUnitAndRateParams,
     UpdateWorkspaceDescriptionParams,
     UpdateWorkspaceGeneralSettingsParams,
+    UpdateWorkspaceMembersRoleParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
@@ -681,7 +682,7 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
         },
     ];
 
-    const params = {
+    const params: UpdateWorkspaceMembersRoleParams = {
         policyID,
         employees: JSON.stringify(data.map((item) => ({email: item.email, role: item.role}))),
     };
