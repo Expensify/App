@@ -84,7 +84,7 @@ type OptimisticCustomUnits = {
     outputCurrency: string;
 };
 
-type PoliciesRecord = Record<string, Policy | null>;
+type PoliciesRecord = Record<string, OnyxEntry<Policy>>;
 
 type NewCustomUnit = {
     customUnitID: string;

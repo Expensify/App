@@ -64,9 +64,9 @@ function compareStringDates(a: string, b: string): 0 | 1 | -1 {
  */
 function getOrderedReportIDs(
     currentReportId: string | null,
-    allReports: OnyxEntry<Record<string, Report>>,
+    allReports: OnyxCollection<Report>,
     betas: OnyxEntry<Beta[]>,
-    policies: OnyxEntry<Record<string, Policy>>,
+    policies: OnyxCollection<Policy>,
     priorityMode: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>,
     allReportActions: OnyxCollection<ReportAction[]>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
@@ -83,7 +83,7 @@ function getOrderedReportIDs(
         const parentReportActions = allReportActions?.[parentReportActionsKey];
         const parentReportAction = parentReportActions?.find((action) => action && report && action?.reportActionID === report?.parentReportActionID);
         const doesReportHaveViolations =
-            betas?.includes(CONST.BETAS.VIOLATIONS) && !!parentReportAction && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
+            !!betas?.includes(CONST.BETAS.VIOLATIONS) && !!parentReportAction && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
         return ReportUtils.shouldReportBeInOptionList({
             report,
             currentReportId: currentReportId ?? '',
@@ -91,7 +91,7 @@ function getOrderedReportIDs(
             betas,
             policies,
             excludeEmptyChats: true,
-            doesReportHaveViolations: !!doesReportHaveViolations,
+            doesReportHaveViolations,
         });
     });
 
@@ -114,7 +114,7 @@ function getOrderedReportIDs(
     //      - Sorted by reportDisplayName in GSD (focus) view mode
     const pinnedAndGBRReports: Report[] = [];
     const draftReports: Report[] = [];
-    const nonArchivedReports: Report[] = [];
+    const nonArchivedReports: Array<OnyxEntry<Report>> = [];
     const archivedReports: Report[] = [];
 
     if (currentPolicyID || policyMemberAccountIDs.length > 0) {
@@ -125,16 +125,18 @@ function getOrderedReportIDs(
         // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
         // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
         // the reportDisplayName property to the report object directly.
-        // eslint-disable-next-line no-param-reassign
-        report.displayName = ReportUtils.getReportName(report);
+        if (report) {
+            // eslint-disable-next-line no-param-reassign
+            report.displayName = ReportUtils.getReportName(report);
+        }
 
-        const isPinned = report.isPinned ?? false;
-        const reportAction = ReportActionsUtils.getReportAction(report.parentReportID ?? '', report.parentReportActionID ?? '');
-        if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report, reportAction)) {
+        const isPinned = report?.isPinned ?? false;
+        const reportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+        if ((isPinned || ReportUtils.requiresAttentionFromCurrentUser(report, reportAction)) && report) {
             pinnedAndGBRReports.push(report);
-        } else if (report.hasDraft) {
+        } else if (report?.hasDraft) {
             draftReports.push(report);
-        } else if (ReportUtils.isArchivedRoom(report)) {
+        } else if (ReportUtils.isArchivedRoom(report) && report) {
             archivedReports.push(report);
         } else {
             nonArchivedReports.push(report);
@@ -160,7 +162,7 @@ function getOrderedReportIDs(
 
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
-    const LHNReports = [...pinnedAndGBRReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report.reportID);
+    const LHNReports = [...pinnedAndGBRReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID ?? '');
     return LHNReports;
 }
 

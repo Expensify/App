@@ -26,19 +26,30 @@ type SidebarLinksOnyxProps = {
 };
 
 type SidebarLinksProps = SidebarLinksOnyxProps & {
+    /** Toggles the navigation menu open and closed */
     onLinkClick: () => void;
-    insets: EdgeInsets | undefined;
-    optionListItems: string[] | null;
-    isLoading: OnyxEntry<boolean>;
-    priorityMode?: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>;
-    isActiveReport: (reportID: string) => boolean;
-    isCreateMenuOpen?: boolean;
 
+    /** Safe area insets required for mobile devices margins */
+    insets: EdgeInsets;
+
+    /** List of options to display */
+    optionListItems: string[];
+
+    /** Wheather the reports are loading. When false it means they are ready to be used. */
+    isLoading: OnyxEntry<boolean>;
+
+    /** The chat priority mode */
+    priorityMode?: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>;
+
+    /** Method to change currently active report */
+    isActiveReport: (reportID: string) => boolean;
+
+    /** ID of currently active workspace */
     // eslint-disable-next-line react/no-unused-prop-types -- its used in withOnyx
     activeWorkspaceID: string | undefined;
 };
 
-function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport, isCreateMenuOpen, activePolicy}: SidebarLinksProps) {
+function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport, activePolicy}: SidebarLinksProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const modal = useRef<Modal>({});
@@ -105,17 +116,13 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
             // or when continuously clicking different LHNs, only apply to small screen
             // since getTopmostReportId always returns on other devices
             const reportActionID = Navigation.getTopmostReportActionId();
-            if (
-                !!isCreateMenuOpen ||
-                (option.reportID === Navigation.getTopmostReportId() && !reportActionID) ||
-                (isSmallScreenWidth && isActiveReport(option.reportID) && !reportActionID)
-            ) {
+            if ((option.reportID === Navigation.getTopmostReportId() && !reportActionID) || (isSmallScreenWidth && isActiveReport(option.reportID) && !reportActionID)) {
                 return;
             }
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));
             onLinkClick();
         },
-        [isCreateMenuOpen, isSmallScreenWidth, isActiveReport, onLinkClick],
+        [isSmallScreenWidth, isActiveReport, onLinkClick],
     );
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;

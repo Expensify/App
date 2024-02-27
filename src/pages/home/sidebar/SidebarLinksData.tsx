@@ -24,43 +24,13 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportAction';
 import SidebarLinks from './SidebarLinks';
 
-type PickedReport = Pick<
-    OnyxTypes.Report,
-    | 'reportID'
-    | 'participantAccountIDs'
-    | 'hasDraft'
-    | 'isPinned'
-    | 'isHidden'
-    | 'notificationPreference'
-    | 'errorFields'
-    | 'lastMessageText'
-    | 'lastVisibleActionCreated'
-    | 'iouReportID'
-    | 'total'
-    | 'nonReimbursableTotal'
-    | 'hasOutstandingChildRequest'
-    | 'isWaitingOnBankAccount'
-    | 'statusNum'
-    | 'stateNum'
-    | 'chatType'
-    | 'type'
-    | 'policyID'
-    | 'visibility'
-    | 'lastReadTime'
-    | 'reportName'
-    | 'policyName'
-    | 'oldPolicyName'
-    | 'ownerAccountID'
-    | 'currency'
-    | 'managerID'
-    | 'parentReportActionID'
-    | 'parentReportID'
-    | 'isDeletedParentAction'
->;
+type ChatReportSelector = ReturnType<typeof chatReportSelector> & {isUnreadWithMention: boolean};
+type PolicySelector = ReturnType<typeof policySelector>;
+type ReportActionsSelector = ReturnType<typeof reportActionsSelector>;
 
 type SidebarLinksDataOnyxProps = {
     /** List of reports */
-    chatReports: OnyxCollection<PickedReport & {isUnreadWithMention: boolean}>;
+    chatReports: OnyxCollection<ChatReportSelector>;
 
     /** Wheather the reports are loading. When false it means they are ready to be used. */
     isLoadingApp: OnyxEntry<boolean>;
@@ -72,10 +42,10 @@ type SidebarLinksDataOnyxProps = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
 
     /** All report actions for all reports */
-    allReportActions: OnyxEntry<Array<Pick<OnyxTypes.ReportAction, 'reportActionID' | 'actionName' | 'errors' | 'message'>>>;
+    allReportActions: OnyxEntry<ReportActionsSelector>;
 
     /** The policies which the user has access to */
-    policies: OnyxCollection<Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatar'>>;
+    policies: OnyxCollection<PolicySelector>;
 
     /** All of the transaction violations */
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
@@ -90,7 +60,7 @@ type SidebarLinksDataProps = CurrentReportIDContextValue &
         onLinkClick: () => void;
 
         /** Safe area insets required for mobile devices margins */
-        insets: EdgeInsets | undefined;
+        insets: EdgeInsets;
     };
 
 function SidebarLinksData({
@@ -120,7 +90,7 @@ function SidebarLinksData({
 
     const reportIDsRef = useRef<string[] | null>(null);
     const isLoading = isLoadingApp;
-    const optionListItems: string[] | null = useMemo(() => {
+    const optionListItems: string[] = useMemo(() => {
         const reportIDs = SidebarUtils.getOrderedReportIDs(
             null,
             chatReports as OnyxEntry<Record<string, OnyxTypes.Report>>,
@@ -133,7 +103,7 @@ function SidebarLinksData({
             policyMemberAccountIDs,
         );
 
-        if (deepEqual(reportIDsRef.current, reportIDs)) {
+        if (reportIDsRef.current && deepEqual(reportIDsRef.current, reportIDs)) {
             return reportIDsRef.current;
         }
 
@@ -170,7 +140,7 @@ function SidebarLinksData({
 
     const currentReportIDRef = useRef(currentReportID);
     currentReportIDRef.current = currentReportID;
-    const isActiveReport = useCallback((reportID: string) => currentReportIDRef.current === reportID, []);
+    const isActiveReport = useCallback((reportID: string): boolean => currentReportIDRef.current === reportID, []);
 
     return (
         <View
@@ -198,7 +168,6 @@ SidebarLinksData.displayName = 'SidebarLinksData';
 /**
  * This function (and the few below it), narrow down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
  * and makes the entire component more performant because it's not re-rendering when a bunch of properties change which aren't ever used in the UI.
- * @param [report]
  */
 const chatReportSelector = (report: OnyxEntry<OnyxTypes.Report>) =>
     report && {
@@ -270,7 +239,8 @@ export default withCurrentReportID(
     withOnyx<SidebarLinksDataProps, SidebarLinksDataOnyxProps>({
         chatReports: {
             key: ONYXKEYS.COLLECTION.REPORT,
-            selector: chatReportSelector as unknown as (report: OnyxEntry<OnyxTypes.Report>) => OnyxCollection<PickedReport & {isUnreadWithMention: boolean}>,
+            // This assertion is needed because the selector in withOnyx expects that the return type will be the same as type in ONYXKEYS but in this case it's not, this is a bug in withOnyx but it's impossible to fix it, when useOnyx will be introduce it will be fixed.
+            selector: chatReportSelector as unknown as (report: OnyxEntry<OnyxTypes.Report>) => OnyxCollection<ChatReportSelector>,
             initialValue: {},
         },
         isLoadingApp: {
@@ -291,7 +261,8 @@ export default withCurrentReportID(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-            selector: policySelector as unknown as (policy: OnyxEntry<OnyxTypes.Policy>) => OnyxCollection<Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatar'>>,
+            // This assertion is needed because the selector in withOnyx expects that the return type will be the same as type in ONYXKEYS but in this case it's not, this is a bug in withOnyx but it's impossible to fix it, when useOnyx will be introduce it will be fixed.
+            selector: policySelector as unknown as (policy: OnyxEntry<OnyxTypes.Policy>) => OnyxCollection<PolicySelector>,
             initialValue: {},
         },
         policyMembers: {
@@ -303,3 +274,5 @@ export default withCurrentReportID(
         },
     })(SidebarLinksData),
 );
+
+export type {PolicySelector};

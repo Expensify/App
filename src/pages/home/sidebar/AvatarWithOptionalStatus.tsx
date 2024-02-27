@@ -12,10 +12,10 @@ import PressableAvatarWithIndicator from './PressableAvatarWithIndicator';
 
 type AvatarWithOptionalStatusProps = {
     /** Whether the create menu is open or not */
-    isCreateMenuOpen: boolean;
+    isCreateMenuOpen?: boolean;
 
     /** Emoji status */
-    emojiStatus: string;
+    emojiStatus?: string;
 };
 
 function AvatarWithOptionalStatus({emojiStatus = '', isCreateMenuOpen = false}: AvatarWithOptionalStatusProps) {

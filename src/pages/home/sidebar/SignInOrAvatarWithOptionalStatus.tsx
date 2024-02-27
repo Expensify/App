@@ -6,6 +6,7 @@ import PressableAvatarWithIndicator from './PressableAvatarWithIndicator';
 import SignInButton from './SignInButton';
 
 type SignInOrAvatarWithOptionalStatusProps = {
+    /** Whether the create menu is open or not */
     isCreateMenuOpen?: boolean;
 };
 

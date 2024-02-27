@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FloatingActionButton from '@components/FloatingActionButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -14,6 +14,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
+import type {PolicySelector} from '@pages/home/sidebar/SidebarLinksData';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
@@ -25,7 +26,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 type FloatingActionButtonAndPopoverOnyxProps = {
     /** The list of policies the user has access to. */
-    allPolicies: OnyxEntry<Record<string, Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction'>>>;
+    allPolicies: OnyxCollection<PolicySelector>;
 
     /** Wheater app is in loading state */
     isLoading: OnyxEntry<boolean>;
@@ -36,7 +37,7 @@ type FloatingActionButtonAndPopoverProps = FloatingActionButtonAndPopoverOnyxPro
     onShowCreateMenu?: () => void;
 
     /* Callback function before the menu is hidden */
-    onHideCreateMenu: () => void;
+    onHideCreateMenu?: () => void;
 };
 
 type FloatingActionButtonAndPopoverRef = {
@@ -48,7 +49,7 @@ type FloatingActionButtonAndPopoverRef = {
  * FAB that can open or close the menu.
  */
 function FloatingActionButtonAndPopover(
-    {onHideCreateMenu = () => {}, onShowCreateMenu = () => {}, isLoading, allPolicies}: FloatingActionButtonAndPopoverProps,
+    {onHideCreateMenu, onShowCreateMenu, isLoading, allPolicies}: FloatingActionButtonAndPopoverProps,
     ref: ForwardedRef<FloatingActionButtonAndPopoverRef>,
 ) {
     const styles = useThemeStyles();
@@ -80,7 +81,7 @@ function FloatingActionButtonAndPopover(
                 return;
             }
             setIsCreateMenuActive(true);
-            onShowCreateMenu();
+            onShowCreateMenu?.();
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [isFocused, isSmallScreenWidth],
@@ -97,7 +98,7 @@ function FloatingActionButtonAndPopover(
                 return;
             }
             setIsCreateMenuActive(false);
-            onHideCreateMenu();
+            onHideCreateMenu?.();
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [isCreateMenuActive],
@@ -170,7 +171,7 @@ function FloatingActionButtonAndPopover(
                         text: translate('sidebarScreen.saveTheWorld'),
                         onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TEACHERS_UNITE)),
                     },
-                    ...(!isLoading && !Policy.hasActiveFreePolicy(allPolicies as Record<string, OnyxTypes.Policy>)
+                    ...(!isLoading && !Policy.hasActiveFreePolicy(allPolicies as OnyxEntry<Record<string, OnyxTypes.Policy>>)
                         ? [
                               {
                                   displayInDefaultIconColor: true,
@@ -214,9 +215,7 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>) =>
 export default withOnyx<FloatingActionButtonAndPopoverProps & RefAttributes<FloatingActionButtonAndPopoverRef>, FloatingActionButtonAndPopoverOnyxProps>({
     allPolicies: {
         key: ONYXKEYS.COLLECTION.POLICY,
-        selector: policySelector as unknown as (
-            policy: OnyxEntry<OnyxTypes.Policy>,
-        ) => OnyxEntry<Record<string, Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction'>>>,
+        selector: policySelector as unknown as (policy: OnyxEntry<OnyxTypes.Policy>) => OnyxCollection<PolicySelector>,
     },
     isLoading: {
         key: ONYXKEYS.IS_LOADING_APP,
