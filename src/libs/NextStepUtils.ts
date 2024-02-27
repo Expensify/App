@@ -242,32 +242,29 @@ function buildNextStep(
                         text: ' %expenses.',
                     },
                 ];
-            }
 
-            // Prevented self approval
-            if ((isPreventSelfApprovalEnabled ?? preventSelfApprovalEnabled) && isSelfApproval) {
-                optimisticNextStep.message = [
-                    {
-                        text: "Oops! Looks like you're ",
-                    },
-                    {
-                        text: isManager ? 'reviewing' : 'approving',
-                    },
-                    {
-                        text: ' your own report. ',
-                        type: 'strong',
-                    },
-                    {
-                        text: 'Approving your own reports is ',
-                    },
-                    {
-                        text: 'forbidden',
-                        type: 'strong',
-                    },
-                    {
-                        text: ' by your policy.',
-                    },
-                ];
+                // Prevented self approval
+                if ((isPreventSelfApprovalEnabled ?? preventSelfApprovalEnabled) && isSelfApproval) {
+                    optimisticNextStep.message = [
+                        {
+                            text: "Oops! Looks like you're reviewing",
+                        },
+                        {
+                            text: ' your own report. ',
+                            type: 'strong',
+                        },
+                        {
+                            text: 'Approving your own reports is ',
+                        },
+                        {
+                            text: 'forbidden',
+                            type: 'strong',
+                        },
+                        {
+                            text: ' by your policy.',
+                        },
+                    ];
+                }
             }
 
             break;

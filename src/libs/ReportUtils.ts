@@ -5020,6 +5020,16 @@ function isAllowedToSubmitDraftExpenseReport(report: OnyxEntry<Report>): boolean
     return !((isPreventSelfApprovalEnabled ?? preventSelfApprovalEnabled) && isSelfApproval);
 }
 
+function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>): boolean {
+    const policy = getPolicy(report?.policyID);
+    const {ownerAccountID, submitsTo, isPreventSelfApprovalEnabled, preventSelfApprovalEnabled} = policy;
+
+    const isOwner = currentUserAccountID === ownerAccountID;
+    const isSelfApproval = currentUserAccountID === submitsTo;
+
+    return !((isPreventSelfApprovalEnabled ?? preventSelfApprovalEnabled) && isOwner && isSelfApproval);
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -5221,6 +5231,7 @@ export {
     canEditPolicyDescription,
     getPolicyDescriptionText,
     isAllowedToSubmitDraftExpenseReport,
+    isAllowedToApproveExpenseReport,
 };
 
 export type {
