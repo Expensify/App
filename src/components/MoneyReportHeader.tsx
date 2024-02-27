@@ -100,7 +100,8 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
-    const shouldDisableSettlementButton = !canAllowSettlement || (shouldShowSettlementButton && shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(moneyRequestReport));
+    const shouldDisableSettlementButton =
+        shouldShowSettlementButton && ((shouldShowPayButton && !canAllowSettlement) || (shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(moneyRequestReport)));
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
     const shouldShowNextStep = isFromPaidPolicy && !!nextStep?.message?.length;
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep;
