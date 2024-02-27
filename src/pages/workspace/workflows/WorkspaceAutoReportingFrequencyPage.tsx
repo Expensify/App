@@ -13,16 +13,17 @@ import {translate as globalTranslate} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';
-import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type AutoReportingFrequencyKey = Exclude<ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, 'instant'>;
 
-type WorkspaceAutoReportingFrequencyPageProps = WithPolicyAndFullscreenLoadingProps;
+type WorkspaceAutoReportingFrequencyPageProps = WithPolicyOnyxProps;
 
-type WorkspaceAutoReportingFrequencyPageSectionItem = {
+type WorkspaceAutoReportingFrequencyPageItem = {
     text: string;
     keyForList: string;
     isSelected: boolean;
@@ -39,14 +40,14 @@ const getAutoReportingFrequencyDisplayNames = (locale: 'en' | 'es' | 'es-ES' | '
     [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: globalTranslate(locale, 'workflowsPage.frequencies.manually'),
 });
 
-const DAYS_OF_MONTH = 28;
+const FIRST_DAY_OF_MONTH = '1st';
 
 function WorkspaceAutoReportingFrequencyPage({policy}: WorkspaceAutoReportingFrequencyPageProps) {
     const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const [isMonthlyFrequency, setIsMonthlyFrequency] = useState(policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY);
 
-    const autoReportingFrequencyItems: WorkspaceAutoReportingFrequencyPageSectionItem[] = Object.keys(getAutoReportingFrequencyDisplayNames(preferredLocale)).map((frequencyKey) => {
+    const autoReportingFrequencyItems: WorkspaceAutoReportingFrequencyPageItem[] = Object.keys(getAutoReportingFrequencyDisplayNames(preferredLocale)).map((frequencyKey) => {
         const isSelected = policy?.autoReportingFrequency === frequencyKey;
 
         return {
@@ -56,7 +57,7 @@ function WorkspaceAutoReportingFrequencyPage({policy}: WorkspaceAutoReportingFre
         };
     });
 
-    const onSelectAutoReportingFrequency = (item: WorkspaceAutoReportingFrequencyPageSectionItem) => {
+    const onSelectAutoReportingFrequency = (item: WorkspaceAutoReportingFrequencyPageItem) => {
         Policy.setWorkspaceAutoReportingFrequency(policy?.id ?? '', item.keyForList as AutoReportingFrequencyKey);
         if (item.keyForList !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY) {
             setIsMonthlyFrequency(false);
@@ -66,35 +67,31 @@ function WorkspaceAutoReportingFrequencyPage({policy}: WorkspaceAutoReportingFre
         }
     };
 
-    // Generate days of month for the monthly frequency
-    const daysOfMonth = Array.from({length: DAYS_OF_MONTH}, (value, index) => {
-        const day = index + 1;
-        let suffix = 'th';
-        if (day === 1 || day === 21) {
-            suffix = 'st';
-        } else if (day === 2 || day === 22) {
-            suffix = 'nd';
-        } else if (day === 3 || day === 23) {
-            suffix = 'rd';
+    const getDescriptionText = () => {
+        if (policy?.autoReportingOffset === undefined) {
+            return FIRST_DAY_OF_MONTH;
         }
-
-        return `${day}${suffix}`;
-    }).concat([translate('workflowsPage.frequencies.lastDayOfMonth'), translate('workflowsPage.frequencies.lastBusinessDayOfMonth')]);
+        if (typeof policy?.autoReportingOffset === 'number') {
+            return policy.autoReportingOffset.toString();
+        }
+        return translate(`workflowsPage.frequencies.${policy?.autoReportingOffset}`);
+    };
 
     const monthlyFrequencyDetails = () => (
         <OfflineWithFeedback pendingAction={policy?.pendingFields?.autoReportingOffset}>
             <MenuItem
                 title={translate('workflowsPage.submissionFrequencyDateOfMonth')}
                 titleStyle={styles.textLabelSupportingNormal}
-                description={daysOfMonth[0]}
+                description={getDescriptionText()}
                 descriptionTextStyle={styles.textNormalThemeText}
                 wrapperStyle={styles.pr3}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET.getRoute(policy?.id ?? ''))}
                 shouldShowRightIcon
             />
         </OfflineWithFeedback>
     );
 
-    const renderItem = ({item}: {item: WorkspaceAutoReportingFrequencyPageSectionItem}) => (
+    const renderItem = ({item}: {item: WorkspaceAutoReportingFrequencyPageItem}) => (
         <>
             <RadioListItem
                 item={item}
@@ -128,7 +125,7 @@ function WorkspaceAutoReportingFrequencyPage({policy}: WorkspaceAutoReportingFre
                     <FlatList
                         data={autoReportingFrequencyItems}
                         renderItem={renderItem}
-                        keyExtractor={(item: WorkspaceAutoReportingFrequencyPageSectionItem) => item.text}
+                        keyExtractor={(item: WorkspaceAutoReportingFrequencyPageItem) => item.text}
                     />
                 </FullPageNotFoundView>
             </ScreenWrapper>
