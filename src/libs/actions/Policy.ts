@@ -94,6 +94,12 @@ type NewCustomUnit = {
     rates: Rate;
 };
 
+type WorkspaceMembersRoleData = {
+    accountID: number;
+    email: string;
+    role: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER
+};
+
 const allPolicies: OnyxCollection<Policy> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
@@ -633,7 +639,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
 
 function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newRole: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER) {
     const previousPolicyMembers = {...allPolicyMembers};
-    const data = accountIDs
+    const data: WorkspaceMembersRoleData[] = accountIDs
         .map((accountID) => {
             if (!allPersonalDetails?.[accountID]) {
                 return null;
@@ -645,7 +651,7 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
                 role: newRole,
             };
         })
-        .filter((item): item is {accountID: number; email: string; role: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER} => item !== null);
+        .filter((item): item is WorkspaceMembersRoleData => item !== null);
 
     const optimisticData: OnyxUpdate[] = [
         {
