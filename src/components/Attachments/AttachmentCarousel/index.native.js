@@ -111,7 +111,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     if (page == null) {
         return (
             <View style={containerStyles}>
-                <FullScreenLoadingIndicator />;
+                <FullScreenLoadingIndicator />
             </View>
         );
     }
