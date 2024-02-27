@@ -86,7 +86,7 @@ type Subscription = {
     ownerUserCount?: number;
     totalUserCount?: number;
     endDate?: string;
-}
+};
 
 type ChangeOwnerErrors = {
     changeOwner?: {
@@ -97,8 +97,8 @@ type ChangeOwnerErrors = {
         subscription?: Subscription;
         duplicateSubscription?: string;
         failedToClearBalance?: boolean;
-    }
-}
+    };
+};
 
 type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
