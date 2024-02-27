@@ -152,13 +152,7 @@ function IOURequestStartPage({
                                 id={CONST.TAB.IOU_REQUEST_TYPE}
                                 selectedTab={selectedTab || CONST.IOU.REQUEST_TYPE.SCAN}
                                 onTabSelected={resetIOUTypeIfChanged}
-                                tabBar={({state, navigation, position}) => (
-                                    <TabSelector
-                                        state={state}
-                                        navigation={navigation}
-                                        position={position}
-                                    />
-                                )}
+                                tabBar={TabSelector}
                             >
                                 <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => <IOURequestStepAmount route={route} />}</TopTab.Screen>
                                 <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>{() => <IOURequestStepScan route={route} />}</TopTab.Screen>

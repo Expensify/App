@@ -10,6 +10,7 @@ import * as Logger from './logger';
  * @param {String} path
  * @returns {Promise<void>}
  */
+// eslint-disable-next-line default-param-last
 export default function (platform = 'android', packageName, path) {
     if (platform !== 'android') {
         throw new Error(`installApp() missing implementation for platform: ${platform}`);
