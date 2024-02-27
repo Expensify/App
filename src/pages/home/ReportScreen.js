@@ -162,6 +162,8 @@ function ReportScreen({
     const firstRenderRef = useRef(true);
     const flatListRef = useRef();
     const reactionListRef = useRef();
+    const [isHydrated, setIsHydrated] = useState();
+
     /**
      * Create a lightweight Report so as to keep the re-rendering as light as possible by
      * passing in only the required props.
@@ -386,7 +388,6 @@ function ReportScreen({
         Timing.end(CONST.TIMING.CHAT_RENDER);
         Performance.markEnd(CONST.TIMING.CHAT_RENDER);
 
-        fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
         return () => {
             if (!didSubscribeToReportLeavingEvents) {
@@ -399,6 +400,14 @@ function ReportScreen({
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        if (!isHydrated) {
+            return;
+        }
+
+        fetchReportIfNeeded();
+    }, [isHydrated]);
 
     useEffect(() => {
         // We don't want this effect to run on the first render.
@@ -487,6 +496,7 @@ function ReportScreen({
         }
 
         markReadyForHydration();
+        setIsHydrated(true);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
