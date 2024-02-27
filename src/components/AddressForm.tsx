@@ -19,6 +19,11 @@ import type {FormOnyxValues} from './Form/types';
 import StatePicker from './StatePicker';
 import TextInput from './TextInput';
 
+type CountryZipRegex = {
+    regex?: RegExp;
+    samples?: string;
+};
+
 type AddressFormProps = {
     /** Address city field */
     city?: string;
@@ -70,14 +75,16 @@ function AddressForm({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    let zipSampleFormat = '';
+    // let zipSampleFormat = '';
 
-    if (country) {
-        const countryData = CONST.COUNTRY_ZIP_REGEX_DATA[country];
-        if (countryData && 'samples' in countryData) {
-            zipSampleFormat = countryData.samples;
-        }
-    }
+    // if (country) {
+    //     const countryData = CONST.COUNTRY_ZIP_REGEX_DATA[country];
+    //     if (countryData && 'samples' in countryData) {
+    //         zipSampleFormat = countryData.samples;
+    //     }
+    // }
+
+    const zipSampleFormat = (country && (CONST.COUNTRY_ZIP_REGEX_DATA[country] as CountryZipRegex)?.samples) ?? '';
 
     const zipFormat: MaybePhraseKey = ['common.zipCodeExampleFormat', {zipSampleFormat}];
 
@@ -112,19 +119,11 @@ function AddressForm({
         });
 
         // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
-        const countryRegexDetails = values.country ? CONST.COUNTRY_ZIP_REGEX_DATA?.[values.country as keyof typeof CONST.COUNTRY_ZIP_REGEX_DATA] : {};
+        const countryRegexDetails = (values.country ? CONST.COUNTRY_ZIP_REGEX_DATA?.[values.country] : {}) as CountryZipRegex;
 
         // The postal code system might not exist for a country, so no regex either for them.
-        let countrySpecificZipRegex;
-        let countryZipFormat = '';
-
-        if ('regex' in countryRegexDetails) {
-            countrySpecificZipRegex = countryRegexDetails.regex as RegExp;
-        }
-
-        if ('samples' in countryRegexDetails) {
-            countryZipFormat = countryRegexDetails.samples as string;
-        }
+        const countrySpecificZipRegex = countryRegexDetails?.regex;
+        const countryZipFormat = countryRegexDetails?.samples ?? '';
 
         ErrorUtils.addErrorMessage(errors, 'firstName', 'bankAccount.error.firstName');
 
