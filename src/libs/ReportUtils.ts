@@ -1712,7 +1712,7 @@ function getDisplayNamesWithTooltips(
 }
 
 /**
- * Return the concatenated string of the display name of a list user
+ * Returns the the display names of the given user accountIDs
  */
 function getUserDetailsTooltipText(accountIDs: number[]): string {
     return accountIDs.map((accountID) => getDisplayNameForParticipant(accountID)).join(', ');
