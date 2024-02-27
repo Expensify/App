@@ -386,18 +386,17 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
         </View>
     );
 
-    const handleBulkAction = (action: WorkspaceMemberBulkActionType) => {
-        // TODO: implement make member and make admin
-        switch (action) {
-            case CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE:
-                askForConfirmationToRemove();
-                break;
-            case CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER:
-            case CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN:
-            default:
-                break;
-        }
-    };
+    const handleMakeMemberAction = () => {
+        // TODO: Implement this
+        // eslint-disable-next-line no-console
+        console.log('Make member action');
+    }
+
+    const handleMakeAdminAction = () => {
+        // TODO: Implement this
+        // eslint-disable-next-line no-console
+        console.log('Make admin action');
+    }
 
     const getBulkActionsButtonOptions = () => {
         const iconSettings = {
@@ -409,7 +408,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 text: translate('workspace.people.removeMembersTitle'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
                 icon: Expensicons.RemoveMembers,
-                onSelected: () => handleBulkAction(CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE),
+                onSelected: () => askForConfirmationToRemove,
                 ...iconSettings,
             },
         ];
@@ -419,7 +418,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 text: translate('workspace.people.makeMember'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
                 icon: Expensicons.MakeMember,
-                onSelected: () => handleBulkAction(CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER),
+                onSelected: () => handleMakeMemberAction,
                 ...iconSettings,
             });
         }
@@ -428,7 +427,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 text: translate('workspace.people.makeAdmin'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
                 icon: Expensicons.MakeAdmin,
-                onSelected: () => handleBulkAction(CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN),
+                onSelected: () => handleMakeAdminAction,
                 ...iconSettings,
             });
         }
