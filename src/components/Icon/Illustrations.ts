@@ -70,6 +70,7 @@ import TrashCan from '@assets/images/simple-illustrations/simple-illustration__t
 import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
 import WalletAlt from '@assets/images/simple-illustrations/simple-illustration__wallet-alt.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
+import TeachersUnite from '@assets/images/simple-illustrations/simple-illustration__teachers-unite.svg';
 
 export {
     Abracadabra,
@@ -144,4 +145,5 @@ export {
     WalletAlt,
     Workflows,
     House,
+    TeachersUnite,
 };
