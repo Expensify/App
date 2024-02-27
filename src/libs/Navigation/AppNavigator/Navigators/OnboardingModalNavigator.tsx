@@ -1,5 +1,5 @@
 import {createStackNavigator} from '@react-navigation/stack';
-import React, {useMemo} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
@@ -15,18 +15,30 @@ const Stack = createStackNavigator<OnboardingModalNavigatorParamList>();
 
 function OnboardingModalNavigator() {
     const styles = useThemeStyles();
+    const isModalFocused = useRef(true);
     const screenOptions = useMemo(() => OnboardingModalNavigatorScreenOptions(styles), [styles]);
     const {shouldUseNarrowLayout} = useOnboardingLayout();
 
     return (
         <NoDropZone>
             <Overlay onPress={() => {}} />
-            <View style={styles.onboardingNavigatorOuterView}>
-                <View style={styles.OnboardingNavigatorInnerView(shouldUseNarrowLayout)}>
+            <View
+                onClick={() => {
+                    isModalFocused.current = false;
+                }}
+                style={styles.onboardingNavigatorOuterView}
+            >
+                <View
+                    onClick={(e) => {
+                        isModalFocused.current = true;
+                        e.stopPropagation();
+                    }}
+                    style={styles.OnboardingNavigatorInnerView(shouldUseNarrowLayout)}
+                >
                     <Stack.Navigator screenOptions={screenOptions}>
                         <Stack.Screen
                             name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
-                            component={OnboardingPersonalDetails}
+                            component={() => <OnboardingPersonalDetails isModalFocused={isModalFocused} />}
                         />
                         <Stack.Screen
                             name={SCREENS.ONBOARDING.PURPOSE}
