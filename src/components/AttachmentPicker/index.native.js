@@ -1,3 +1,4 @@
+import Str from 'expensify-common/lib/str';
 import lodashCompact from 'lodash/compact';
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
@@ -248,21 +249,34 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
                 RNImage.getSize(fileData.fileCopyUri || fileData.uri, (width, height) => {
                     fileData.width = width;
                     fileData.height = height;
-                })
-            }
-            
-            if (fileData.width === -1 || fileData.height === -1) {
-                showImageCorruptionAlert();
-                return Promise.resolve();
-            }
-            return getDataForUpload(fileData)
-                .then((result) => {
-                    completeAttachmentSelection.current(result);
-                })
-                .catch((error) => {
-                    showGeneralAlert(error.message);
-                    throw error;
+
+                    if (fileData.width === -1 || fileData.height === -1) {
+                        showImageCorruptionAlert();
+                        return Promise.resolve();
+                    }
+                    return getDataForUpload(fileData)
+                        .then((result) => {
+                            completeAttachmentSelection.current(result);
+                        })
+                        .catch((error) => {
+                            showGeneralAlert(error.message);
+                            throw error;
+                        });
                 });
+            } else {
+                if (fileData.width === -1 || fileData.height === -1) {
+                    showImageCorruptionAlert();
+                    return Promise.resolve();
+                }
+                return getDataForUpload(fileData)
+                    .then((result) => {
+                        completeAttachmentSelection.current(result);
+                    })
+                    .catch((error) => {
+                        showGeneralAlert(error.message);
+                        throw error;
+                    });
+            }
         },
         [showGeneralAlert, showImageCorruptionAlert],
     );
