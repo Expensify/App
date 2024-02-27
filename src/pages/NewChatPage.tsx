@@ -1,6 +1,8 @@
 import {useFocusEffect} from '@react-navigation/native';
-import _ from 'lodash';
+import isEmpty from 'lodash/isEmpty';
+import reject from 'lodash/reject';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import type {SectionListData} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -12,6 +14,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
+import type {ListItem, Section} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -43,11 +46,13 @@ type NewChatPageProps = NewChatPageWithOnyxProps & {
 
 const excludedGroupEmails = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
 
+const EMPTY_ARRAY: Array<SectionListData<ListItem, Section<ListItem>>> = [];
+
 function useOptions({reports, isGroupChat}: Omit<NewChatPageProps, 'isSearchingForReports'>) {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const personalDetails = usePersonalDetails();
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
-    const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
+    const [selectedOptions, setSelectedOptions] = useState<Array<ListItem & OptionData>>([]);
     const betas = useBetas();
 
     const options = useMemo(() => {
@@ -116,8 +121,8 @@ function NewChatPage({isGroupChat, reports, isSearchingForReports}: NewChatPageP
         isGroupChat,
     });
 
-    const sections = useMemo((): OptionsListUtils.CategorySection[] => {
-        const sectionsList: OptionsListUtils.CategorySection[] = [];
+    const sections = useMemo(() => {
+        const sectionsList = [];
         let indexOffset = 0;
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(debouncedSearchTerm, selectedOptions, recentReports, personalDetails, true, indexOffset);
@@ -125,13 +130,13 @@ function NewChatPage({isGroupChat, reports, isSearchingForReports}: NewChatPageP
         indexOffset = formatResults.newIndexOffset;
 
         if (maxParticipantsReached) {
-            return sectionsList;
+            return sectionsList as unknown as Array<SectionListData<ListItem, Section<ListItem>>>;
         }
 
         sectionsList.push({
             title: translate('common.recents'),
             data: recentReports,
-            shouldShow: !_.isEmpty(recentReports),
+            shouldShow: !isEmpty(recentReports),
             indexOffset,
         });
         indexOffset += recentReports.length;
@@ -139,7 +144,7 @@ function NewChatPage({isGroupChat, reports, isSearchingForReports}: NewChatPageP
         sectionsList.push({
             title: translate('common.contacts'),
             data: personalDetails,
-            shouldShow: !_.isEmpty(personalDetails),
+            shouldShow: !isEmpty(personalDetails),
             indexOffset,
         });
         indexOffset += personalDetails.length;
@@ -153,20 +158,24 @@ function NewChatPage({isGroupChat, reports, isSearchingForReports}: NewChatPageP
             });
         }
 
-        return sectionsList;
+        return sectionsList as unknown as Array<SectionListData<ListItem, Section<ListItem>>>;
     }, [debouncedSearchTerm, selectedOptions, recentReports, personalDetails, maxParticipantsReached, translate, userToInvite]);
 
     /**
      * Creates a new 1:1 chat with the option and the current user,
      * or navigates to the existing chat if one with those participants already exists.
      */
-    const createChat = (option: OptionData) => {
+    const createChat = (option: ListItem) => {
         if (!option.login) {
             return;
         }
         Report.navigateToAndOpenReport([option.login]);
     };
 
+    /**
+     *  This hook is used to set the state of didScreenTransitionEnd to true after the screen has transitioned.
+     *  This is used to prevent the screen from rendering sections until transition has ended.
+     */
     useFocusEffect(
         React.useCallback(() => {
             const task = InteractionManager.runAfterInteractions(() => {
@@ -178,18 +187,19 @@ function NewChatPage({isGroupChat, reports, isSearchingForReports}: NewChatPageP
     );
 
     const itemRightSideComponent = useCallback(
-        (item: OptionData) => {
+        (listItem: ListItem) => {
+            const item = listItem as ListItem & OptionData;
             /**
              * Removes a selected option from list if already selected. If not already selected add this option to the list.
              * @param  option
              */
-            function toggleOption(option: OptionData) {
+            function toggleOption(option: ListItem & OptionData) {
                 const isOptionInList = !!option.isSelected;
 
-                let newSelectedOptions;
+                let newSelectedOptions: Array<ListItem & OptionData>;
 
                 if (isOptionInList) {
-                    newSelectedOptions = _.reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
+                    newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
                 } else {
                     newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true}];
                 }
@@ -272,7 +282,7 @@ function NewChatPage({isGroupChat, reports, isSearchingForReports}: NewChatPageP
                 <View style={[styles.flex1, styles.w100, styles.pRelative, selectedOptions.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
                     <SelectionList
                         ListItem={UserListItem}
-                        sections={isOptionsDataReady && didScreenTransitionEnd ? sections : CONST.EMPTY_ARRAY}
+                        sections={isOptionsDataReady && didScreenTransitionEnd ? sections : EMPTY_ARRAY}
                         textInputValue={searchTerm}
                         textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                         onChangeText={setSearchTerm}
