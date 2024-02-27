@@ -274,7 +274,7 @@ function MoneyRequestConfirmationList({
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction?.taxAmount, iouCurrencyCode);
 
     const defaultTaxKey = taxRates?.defaultExternalID;
-    const defaultTaxName = (defaultTaxKey && `${taxRates?.taxes[defaultTaxKey].name} (${taxRates?.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
+    const defaultTaxName = (defaultTaxKey && `${taxRates?.taxes[defaultTaxKey].name} (${taxRates?.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) ?? '';
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const taxRateTitle = transaction?.taxRate?.text || defaultTaxName;
 
