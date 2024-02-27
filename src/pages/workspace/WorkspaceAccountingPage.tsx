@@ -96,7 +96,7 @@ function WorkspaceAccountingPage({
                         >
                         <View style={[styles.flexRow]}> 
                             <Icon 
-                                src={Expensicons.NewExpensify}
+                                src={Expensicons.ExpensifyLogoNew}
                                 width={variables.appModalAppIconSize}
                                 height={variables.appModalAppIconSize}
                                 fill={theme.success}

@@ -42,7 +42,7 @@ function IntegrationSyncProgress({syncStatus, onClose}: IntegrationSyncProgressP
             <View style={[styles.screenCenteredContainer, styles.alignItemsCenter, styles.p4]}>
                 <View style={[styles.flexRow, styles.p1]}>
                     <Icon
-                        src={Expensicons.NewExpensify}
+                        src={Expensicons.ExpensifyLogoNew}
                         width={variables.appModalAppIconSize}
                         height={variables.appModalAppIconSize}
                         fill={theme.success}
@@ -69,7 +69,7 @@ function IntegrationSyncProgress({syncStatus, onClose}: IntegrationSyncProgressP
                         fill={theme.text}
                     />
                     <Icon
-                        src={Expensicons.NewExpensify}
+                        src={Expensicons.ExpensifyLogoNew}
                         width={variables.appModalAppIconSize}
                         height={variables.appModalAppIconSize}
                         fill={theme.success}
