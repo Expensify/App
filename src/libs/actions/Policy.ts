@@ -630,7 +630,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
     API.write(WRITE_COMMANDS.DELETE_MEMBERS_FROM_WORKSPACE, params, {optimisticData, successData, failureData});
 }
 
-function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newRole: 'admin' | 'user') {
+function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newRole: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER) {
     const previousPolicyMembers = {...allPolicyMembers};
     const data = accountIDs
         .map((accountID) => {
@@ -644,7 +644,7 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
                 role: newRole,
             };
         })
-        .filter((item): item is {accountID: number; email: string; role: 'user' | 'admin'} => item !== null);
+        .filter((item): item is {accountID: number; email: string; role: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER} => item !== null);
 
     const optimisticData: OnyxUpdate[] = [
         {
