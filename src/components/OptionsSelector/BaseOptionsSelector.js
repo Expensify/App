@@ -66,12 +66,13 @@ function BaseOptionsSelector(props, textInputRef) {
     const [value, setValue] = useState('');
     const [paginationPage, setPaginationPage] = useState(1);
 
+    const prevSelectedOptions = usePrevious(props.selectedOptions);
+    const prevValue = usePrevious(value);
+
     const shouldDisableRowSelection = useRef(false);
     const relatedTarget = useRef(null);
     const listRef = useRef();
     const focusTimeout = useRef();
-    const prevSelectedOptions = useRef(props.selectedOptions);
-    const prevValue = useRef(value);
 
     /**
      * Paginate props.sections to only allow a certain number of items per section.
@@ -313,9 +314,7 @@ function BaseOptionsSelector(props, textInputRef) {
 
     useEffect(() => {
         // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
-        if (props.selectedOptions.length !== prevSelectedOptions.current.length || (!!prevValue.current && !value)) {
-            prevSelectedOptions.current = props.selectedOptions;
-            prevValue.current = value;
+        if (props.selectedOptions.length !== prevSelectedOptions.length || (!!prevValue && !value)) {
             scrollToIndex(0);
             return;
         }
