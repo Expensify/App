@@ -12,14 +12,14 @@ type Response = ServerResponse<IncomingMessage> & {
     req: IncomingMessage;
 };
 
-type Listener = (args?: unknown) => void;
-
 type PostJSONRequestData = {
     appInstanceId: string;
     cache: Cache;
     actionName: string;
     payload: unknown;
 };
+
+type Listener = (args?: unknown) => void;
 
 // Gets the request data as a string
 const getReqData = (req: IncomingMessage): Promise<string> => {
