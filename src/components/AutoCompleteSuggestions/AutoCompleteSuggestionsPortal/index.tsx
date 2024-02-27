@@ -6,6 +6,7 @@ import BaseAutoCompleteSuggestions from '@components/AutoCompleteSuggestions/Bas
 import useStyleUtils from '@hooks/useStyleUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import type {AutoCompleteSuggestionsPortalProps} from './types';
+import getBottomSuggestionPadding from './getBottomSuggestionPadding';
 
 /**
  * On the mobile-web platform, when long-pressing on auto-complete suggestions,
@@ -46,7 +47,7 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({left = 0, width = 0, bottom
     return (
         !!width &&
         bodyElement &&
-        ReactDOM.createPortal(<View style={StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom - 8})}>{componentToRender}</View>, bodyElement)
+        ReactDOM.createPortal(<View style={StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom - getBottomSuggestionPadding()})}>{componentToRender}</View>, bodyElement)
     );
 }
 
