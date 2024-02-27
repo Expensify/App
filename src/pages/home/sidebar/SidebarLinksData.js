@@ -331,6 +331,12 @@ export default compose(
         },
     }),
 )(
+    /* 
+        While working on audit on the App Start App metric we noticed that by memoizing SidebarLinksData we can avoid 1 additional run of getOrderedReportIDs.
+        With that we can reduce app start up time by ~2.5s on heavy account.
+        After finding and fixing core issues with getOrderedReportIDs performance we might remove the memoization
+        More details - https://github.com/Expensify/App/issues/35234#issuecomment-1926914534
+    */
     memo(
         SidebarLinksData,
         (prevProps, nextProps) =>
