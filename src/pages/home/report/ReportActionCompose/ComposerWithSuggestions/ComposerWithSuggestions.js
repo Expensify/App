@@ -131,7 +131,8 @@ function ComposerWithSuggestions({
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
     const parentReportAction = lodashGet(parentReportActions, [parentReportActionID]);
-    const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction))) && shouldShowComposeInput;
+    const shouldAutoFocus =
+        !modal.isVisible && isFocused && (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction))) && shouldShowComposeInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -483,7 +484,7 @@ function ComposerWithSuggestions({
             }
 
             // if we're typing on another input/text area, do not focus
-            if (['INPUT', 'TEXTAREA', 'DIV'].includes(e.target.nodeName)) {
+            if (['INPUT', 'TEXTAREA'].includes(e.target.nodeName)) {
                 return;
             }
 
@@ -643,12 +644,14 @@ function ComposerWithSuggestions({
                 resetKeyboardInput={resetKeyboardInput}
             />
 
-            <SilentCommentUpdater
-                reportID={reportID}
-                value={value}
-                updateComment={updateComment}
-                commentRef={commentRef}
-            />
+            {ReportUtils.isValidReportIDFromPath(reportID) && (
+                <SilentCommentUpdater
+                    reportID={reportID}
+                    value={value}
+                    updateComment={updateComment}
+                    commentRef={commentRef}
+                />
+            )}
 
             {/* Only used for testing so far */}
             {children}
