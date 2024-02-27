@@ -26,6 +26,10 @@ function canUseViolations(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.VIOLATIONS) || canUseAllBetas(betas);
 }
 
+function canUseTrackExpense(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.TRACK_EXPENSE) || canUseAllBetas(betas);
+}
+
 /**
  * Link previews are temporarily disabled.
  */
@@ -39,5 +43,6 @@ export default {
     canUseCommentLinking,
     canUseLinkPreviews,
     canUseViolations,
+    canUseTrackExpense,
     canUseReportFields,
 };

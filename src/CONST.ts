@@ -307,6 +307,7 @@ const CONST = {
         BETA_COMMENT_LINKING: 'commentLinking',
         VIOLATIONS: 'violations',
         REPORT_FIELDS: 'reportFields',
+        TRACK_EXPENSE: 'trackExpense',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',

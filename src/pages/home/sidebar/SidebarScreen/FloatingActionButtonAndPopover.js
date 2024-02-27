@@ -9,6 +9,7 @@ import withNavigation from '@components/withNavigation';
 import withNavigationFocus from '@components/withNavigationFocus';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
@@ -75,6 +76,7 @@ function FloatingActionButtonAndPopover(props) {
     const {translate} = useLocalize();
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const fabRef = useRef(null);
+    const {canUseTrackExpense} = usePermissions();
 
     const prevIsFocused = usePrevious(props.isFocused);
 
@@ -179,13 +181,20 @@ function FloatingActionButtonAndPopover(props) {
                         text: translate('iou.sendMoney'),
                         onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND)),
                     },
-                    ...[
-                        {
-                            icon: Expensicons.Task,
-                            text: translate('newTaskPage.assignTask'),
-                            onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
-                        },
-                    ],
+                    ...(canUseTrackExpense
+                        ? [
+                              {
+                                  icon: Expensicons.TrackExpense,
+                                  text: 'Track Expense',
+                                  onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND)),
+                              },
+                          ]
+                        : []),
+                    {
+                        icon: Expensicons.Task,
+                        text: translate('newTaskPage.assignTask'),
+                        onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
+                    },
                     {
                         icon: Expensicons.Heart,
                         text: translate('sidebarScreen.saveTheWorld'),
