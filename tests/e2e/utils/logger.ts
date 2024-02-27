@@ -9,7 +9,8 @@ const setLogLevelVerbose = (value: boolean) => {
 
 // On CI systems when using .progressInfo, the current line won't reset but a new line gets added
 // Which can flood the logs. You can increase this rate to mitigate this effect.
-const LOGGER_PROGRESS_REFRESH_RATE = process.env.LOGGER_PROGRESS_REFRESH_RATE ?? 250;
+// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+const LOGGER_PROGRESS_REFRESH_RATE = process.env.LOGGER_PROGRESS_REFRESH_RATE || 250;
 const COLOR_DIM = '\x1b[2m';
 const COLOR_RESET = '\x1b[0m';
 const COLOR_YELLOW = '\x1b[33m';
