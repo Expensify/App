@@ -23,6 +23,7 @@ import * as GooglePlacesUtils from '@libs/GooglePlacesUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import CurrentLocationButton from './CurrentLocationButton';
+import type {CurrentLocationButtonHandle} from './CurrentLocationButton';
 import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
 import type {AddressSearchProps, RenamedInputKeysProps} from './types';
 
@@ -77,11 +78,12 @@ function AddressSearch(
     const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
     const shouldTriggerGeolocationCallbacks = useRef(true);
     const containerRef = useRef<View>(null);
-    const maxIndexRef = useRef(0);
+    const [maxIndex, setMaxIndex] = useState(0);
     const resultRef = useRef();
-    const [focusedIndex] = useArrowKeyFocusManager({
+    const currentLocationButtonRef = useRef<CurrentLocationButtonHandle>(null);
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,
-        maxIndex: maxIndexRef.current > 0 ? maxIndexRef.current - 1 : 0,
+        maxIndex: maxIndex - 1,
         isActive: true,
     });
     const query = useMemo(
@@ -241,6 +243,10 @@ function AddressSearch(
         if (!resultRef.current) {
             return;
         }
+        if (focusedIndex === -1 && shouldShowCurrentLocationButton) {
+            currentLocationButtonRef?.current?.press();
+            return;
+        }
         const data = resultRef?.current[focusedIndex];
         if (!data) {
             return;
@@ -254,7 +260,7 @@ function AddressSearch(
 
         // Clear location error code after address is selected
         setLocationErrorCode(null);
-    }, [focusedIndex, saveLocationDetails]);
+    }, [focusedIndex, saveLocationDetails, shouldShowCurrentLocationButton]);
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption);
 
     /** Gets the user's current location and registers success/error callbacks */
@@ -311,6 +317,7 @@ function AddressSearch(
                         <CurrentLocationButton
                             onPress={getCurrentLocation}
                             isDisabled={isOffline}
+                            innerRef={currentLocationButtonRef}
                         />
                     )}
                     {!value && <Text style={[styles.textLabel, styles.colorMuted, styles.pv2, styles.ph3, styles.overflowAuto]}>{translate('common.recentDestinations')}</Text>}
@@ -417,7 +424,7 @@ function AddressSearch(
                             inputID,
                             shouldSaveDraft,
                             onFocus: () => {
-                                if (maxIndexRef.current > 0) {
+                                if (maxIndex > 0) {
                                     setIsFocused(true);
                                 } else {
                                     setDisplayListViewBorder(false);
@@ -447,6 +454,31 @@ function AddressSearch(
                                     setDisplayListViewBorder(false);
                                 }
                             },
+                            onKeyPress: (e: KeyboardEvent) => {
+                                if (!e) {
+                                    return;
+                                }
+                                if (e.code === 'ArrowUp') {
+                                    if (shouldShowCurrentLocationButton && (focusedIndex === maxIndex - 1 || maxIndex === 0)) {
+                                        if (!currentLocationButtonRef?.current?.isFocused()) {
+                                            setFocusedIndex(-1);
+                                            currentLocationButtonRef?.current?.focus();
+                                        } else {
+                                            currentLocationButtonRef?.current?.blur();
+                                        }
+                                    }
+                                }
+                                if (e.code === 'ArrowDown') {
+                                    if (shouldShowCurrentLocationButton && (focusedIndex === 0 || maxIndex === 0)) {
+                                        if (!currentLocationButtonRef?.current?.isFocused()) {
+                                            setFocusedIndex(-1);
+                                            currentLocationButtonRef?.current?.focus();
+                                        } else {
+                                            currentLocationButtonRef?.current?.blur();
+                                        }
+                                    }
+                                }
+                            },
                             maxLength: maxInputLength,
                             spellCheck: false,
                             selectTextOnFocus: true,
@@ -472,7 +504,7 @@ function AddressSearch(
                             const data = target?.props?.data;
                             if (data) {
                                 resultRef.current = data;
-                                maxIndexRef.current = data.length;
+                                setMaxIndex(data.length);
                             }
                         }}
                         inbetweenCompo={
