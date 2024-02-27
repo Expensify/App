@@ -26,7 +26,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CurrencyList} from '@src/types/onyx';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
@@ -102,11 +101,11 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                 fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                                 style={[styles.mb3, isSmallScreenWidth ? styles.mtn17 : styles.mtn20, styles.alignItemsStart, styles.sectionMenuItemTopDescription]}
                                 isUsingDefaultAvatar={!policy?.avatar ?? null}
-                                onImageSelected={(file: File) => Policy.updateWorkspaceAvatar(policy?.id ?? '', file)}
+                                onImageSelected={(file) => Policy.updateWorkspaceAvatar(policy?.id ?? '', file as File)}
                                 onImageRemoved={() => Policy.deleteWorkspaceAvatar(policy?.id ?? '')}
                                 editorMaskImage={Expensicons.ImageCropSquareMask}
-                                pendingAction={policy?.pendingFields?.avatar ?? null}
-                                errors={policy?.errorFields?.avatar ?? null}
+                                pendingAction={policy?.pendingFields?.avatar}
+                                errors={policy?.errorFields?.avatar}
                                 onErrorClose={() => Policy.clearAvatarErrors(policy?.id ?? '')}
                                 previewSource={UserUtils.getFullSizeAvatar(policy?.avatar ?? '')}
                                 headerTitle={translate('workspace.common.workspaceAvatar')}
@@ -115,7 +114,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                 disabledStyle={styles.cursorDefault}
                                 errorRowStyles={undefined}
                             />
-                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings as OnyxCommon.PendingAction}>
+                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
                                 <MenuItemWithTopDescription
                                     title={policyName}
                                     titleStyle={styles.workspaceTitleStyle}
@@ -129,7 +128,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                 />
                             </OfflineWithFeedback>
                             {(!StringUtils.isEmptyString(policy?.description ?? '') || !readOnly) && (
-                                <OfflineWithFeedback pendingAction={policy?.pendingFields?.description as OnyxCommon.PendingAction}>
+                                <OfflineWithFeedback pendingAction={policy?.pendingFields?.description}>
                                     <MenuItemWithTopDescription
                                         title={policyDescription}
                                         description={translate('workspace.editor.descriptionInputLabel')}
@@ -143,13 +142,13 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                     />
                                 </OfflineWithFeedback>
                             )}
-                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings as OnyxCommon.PendingAction}>
+                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
                                 <View>
                                     <MenuItemWithTopDescription
                                         title={formattedCurrency}
                                         description={translate('workspace.editor.currencyInputLabel')}
                                         shouldShowRightIcon={!readOnly}
-                                        disabled={hasVBA ?? readOnly}
+                                        disabled={hasVBA ? true : readOnly}
                                         wrapperStyle={styles.sectionMenuItemTopDescription}
                                         onPress={onPressCurrency}
                                         shouldGreyOutWhenDisabled={false}
