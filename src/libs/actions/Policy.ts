@@ -22,6 +22,7 @@ import type {
     OpenWorkspaceReimburseViewParams,
     SetWorkspaceApprovalModeParams,
     SetWorkspaceAutoReportingFrequencyParams,
+    SetWorkspaceAutoReportingMonthlyOffsetParams,
     SetWorkspaceAutoReportingParams,
     UpdateWorkspaceAvatarParams,
     UpdateWorkspaceCustomUnitAndRateParams,
@@ -456,6 +457,44 @@ function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf
 
     const params: SetWorkspaceAutoReportingFrequencyParams = {policyID, frequency};
     API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_FREQUENCY, params, {optimisticData, failureData, successData});
+}
+
+function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingOffset: number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>) {
+    const value = JSON.stringify({autoReportingOffset: autoReportingOffset.toString()});
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                autoReportingOffset,
+                pendingFields: {autoReportingOffset: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {autoReportingOffset: null},
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {autoReportingOffset: null},
+            },
+        },
+    ];
+
+    const params: SetWorkspaceAutoReportingMonthlyOffsetParams = {policyID, value};
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET, params, {optimisticData, failureData, successData});
 }
 
 function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>) {
@@ -2258,5 +2297,6 @@ export {
     setWorkspaceAutoReporting,
     setWorkspaceApprovalMode,
     setWorkspaceAutoReportingFrequency,
+    setWorkspaceAutoReportingMonthlyOffset,
     updateWorkspaceDescription,
 };
