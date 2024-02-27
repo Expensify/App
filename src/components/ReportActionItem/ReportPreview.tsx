@@ -239,7 +239,7 @@ function ReportPreview({
         [isPayer, isDraftExpenseReport, iouSettled, reimbursableSpend, iouCanceled, isAutoReimbursable, iouReport, shouldShowApproveButton],
     );
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
-    const shouldDisableSettlementButton = shouldShowSettlementButton && shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(iouReport);
+    const shouldDisableSettlementButton = shouldShowSettlementButton && shouldShowApproveButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(iouReport);
 
     /*
      Show subtitle if at least one of the money requests is not being smart scanned, and either:

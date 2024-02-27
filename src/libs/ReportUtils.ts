@@ -5020,16 +5020,6 @@ function isAllowedToSubmitDraftExpenseReport(report: OnyxEntry<Report>): boolean
     return !((isPreventSelfApprovalEnabled ?? preventSelfApprovalEnabled) && isSelfApproval);
 }
 
-function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>): boolean {
-    const policy = getPolicy(report?.policyID);
-    const {approver, submitsTo, isPreventSelfApprovalEnabled, preventSelfApprovalEnabled} = policy;
-
-    // TODO: check if we should be using "approver" here instead of the same "submitsTo". "approver" is "undefined" currently.
-    const isSelfApproval = currentUserAccountID === (approver ?? submitsTo);
-
-    return !((isPreventSelfApprovalEnabled ?? preventSelfApprovalEnabled) && isSelfApproval);
-}
-
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -5231,7 +5221,6 @@ export {
     canEditPolicyDescription,
     getPolicyDescriptionText,
     isAllowedToSubmitDraftExpenseReport,
-    isAllowedToApproveExpenseReport,
 };
 
 export type {
