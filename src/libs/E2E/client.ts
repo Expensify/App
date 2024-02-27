@@ -113,3 +113,5 @@ export default {
     updateNetworkCache,
     getNetworkCache,
 };
+
+export type {NativeCommand};
