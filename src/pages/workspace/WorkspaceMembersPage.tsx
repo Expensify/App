@@ -46,6 +46,7 @@ import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import variables from '@styles/variables';
 
 type WorkspaceMembersPageOnyxProps = {
     /** Personal details of all users */
@@ -421,7 +422,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 onSelected: () => handleBulkAction(CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER),
                 ...iconSettings,
             });
-        } 
+        }
         if (selectedEmployees.find((employee) => policyMembers?.[employee].role === CONST.POLICY.ROLE.USER)) {
             options.push({
                 text: translate('workspace.people.makeAdmin'),
