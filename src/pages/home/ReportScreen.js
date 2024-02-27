@@ -212,7 +212,7 @@ function ReportScreen({
             policyName: reportProp.policyName,
             isOptimisticReport: reportProp.isOptimisticReport,
             lastMentionedTime: reportProp.lastMentionedTime,
-            transactionThreadReportID: reportProp.transactionThreadReportID
+            transactionThreadReportID: reportProp.transactionThreadReportID,
         }),
         [
             reportProp.lastReadTime,
@@ -564,7 +564,11 @@ function ReportScreen({
                             >
                                 {isReportReadyForDisplay && !isLoadingInitialReportActions && !isLoading && (
                                     <ReportActionsView
-                                        reportActions={_.isEmpty(transactionThreadReportActions) ? reportActions : ReportActionsUtils.getCombinedReportActionsForDisplay(reportActions, transactionThreadReportActions)}
+                                        reportActions={
+                                            _.isEmpty(transactionThreadReportActions)
+                                                ? reportActions
+                                                : ReportActionsUtils.getCombinedReportActionsForDisplay(reportActions, transactionThreadReportActions)
+                                        }
                                         report={report}
                                         isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
                                         isLoadingNewerReportActions={reportMetadata.isLoadingNewerReportActions}

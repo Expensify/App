@@ -172,7 +172,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         reportFields?: Record<string, PolicyReportField>;
 
         /** The ID of the single transaction thread report associated with this report, if one exists */
-        transactionThreadReportID?: string
+        transactionThreadReportID?: string;
     },
     PolicyReportField['fieldID']
 >;

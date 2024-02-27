@@ -533,15 +533,14 @@ function getSortedReportActionsForDisplay(reportActions: ReportActions | ReportA
  * are ready for display in the ReportActionView.
  */
 function getCombinedReportActionsForDisplay(reportActions: ReportAction[], transactionThreadReportActions: ReportAction[]): ReportAction[] {
-
     // Filter out the created action from the transaction thread report actions, since we already have the parent report's created action
-    const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter(action => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
+    const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
 
     // Sort the combined list of parent report actions and transaction thread report actions
     const sortedReportActions = getSortedReportActions([...reportActions, ...filteredTransactionThreadReportActions], true);
 
     // Filter out IOU report actions because we don't want to show any preview actions for one transaction reports
-    return sortedReportActions.filter(action => action.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU);
+    return sortedReportActions.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU);
 }
 
 /**
