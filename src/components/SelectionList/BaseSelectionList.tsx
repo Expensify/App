@@ -78,7 +78,6 @@ function BaseSelectionList<TItem extends ListItem>(
     const isFocused = useIsFocused();
     const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
     const [isInitialSectionListRender, setIsInitialSectionListRender] = useState(true);
-
     const sectionsWithIndexOffset = getSectionsWithIndexOffset(sections);
 
     /**

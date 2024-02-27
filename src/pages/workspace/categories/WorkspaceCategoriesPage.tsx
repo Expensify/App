@@ -128,7 +128,7 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                     {categoryList.length ? (
                         <SelectionList
                             canSelectMultiple
-                            sections={[{data: categoryList, indexOffset: 0, isDisabled: false}]}
+                            sections={[{data: categoryList, isDisabled: false}]}
                             onSelectRow={toggleCategory}
                             onSelectAll={toggleAllCategories}
                             showScrollIndicator
