@@ -105,14 +105,14 @@ function AttachmentView({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [loadComplete, setLoadComplete] = useState(false);
-    const isVideo = Str.isVideo(String(source));
+    const isVideo = (typeof source === 'string' && Str.isVideo(source)) || (file?.name && Str.isVideo(file.name));
 
     useEffect(() => {
-        if (!isFocused) {
+        if (!isFocused && !(file && isUsedInAttachmentModal)) {
             return;
         }
         updateCurrentlyPlayingURL(isVideo ? source : null);
-    }, [isFocused, isVideo, source, updateCurrentlyPlayingURL]);
+    }, [file, isFocused, isUsedInAttachmentModal, isVideo, source, updateCurrentlyPlayingURL]);
 
     const [imageError, setImageError] = useState(false);
 
@@ -201,7 +201,7 @@ function AttachmentView({
         );
     }
 
-    if (isVideo || (file?.name && Str.isVideo(file.name))) {
+    if (isVideo ?? (file?.name && Str.isVideo(file.name))) {
         return (
             <AttachmentViewVideo
                 source={source}
