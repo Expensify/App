@@ -227,7 +227,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                 },
             ],
         }),
-        [styles.pt4, waitForNavigate],
+        [styles.pt4],
     );
 
     /**
