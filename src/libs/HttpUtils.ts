@@ -28,6 +28,9 @@ Onyx.connect({
 // We use the AbortController API to terminate pending request in `cancelPendingRequests`
 let cancellationController = new AbortController();
 
+// Some existing old commands (6+ years) exempted from the auth writes count check
+const exemptedCommandsWithAuthWrites: string[] = ['SetWorkspaceAutoReportingFrequency'];
+
 /**
  * The API commands that require the skew calculation
  */
@@ -120,7 +123,8 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
                     title: CONST.ERROR_TITLE.SOCKET,
                 });
             }
-            if (response.jsonCode === CONST.JSON_CODE.MANY_WRITES_ERROR) {
+
+            if (response.jsonCode === CONST.JSON_CODE.MANY_WRITES_ERROR && !exemptedCommandsWithAuthWrites.includes(response.data?.phpCommandName ?? '')) {
                 if (response.data) {
                     const {phpCommandName, authWriteCommands} = response.data;
                     // eslint-disable-next-line max-len
