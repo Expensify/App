@@ -244,22 +244,25 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
                 return Promise.resolve();
             }
             const fileData = _.first(attachments);
-            RNImage.getSize(fileData.uri, (width, height) => {
-                fileData.width = width;
-                fileData.height = height;
-                if (fileData.width === -1 || fileData.height === -1) {
-                    showImageCorruptionAlert();
-                    return Promise.resolve();
-                }
-                return getDataForUpload(fileData)
-                    .then((result) => {
-                        completeAttachmentSelection.current(result);
-                    })
-                    .catch((error) => {
-                        showGeneralAlert(error.message);
-                        throw error;
-                    });
-            });
+            if (Str.isImage(fileData.fileName || fileData.name)) {
+                RNImage.getSize(fileData.fileCopyUri || fileData.uri, (width, height) => {
+                    fileData.width = width;
+                    fileData.height = height;
+                })
+            }
+            
+            if (fileData.width === -1 || fileData.height === -1) {
+                showImageCorruptionAlert();
+                return Promise.resolve();
+            }
+            return getDataForUpload(fileData)
+                .then((result) => {
+                    completeAttachmentSelection.current(result);
+                })
+                .catch((error) => {
+                    showGeneralAlert(error.message);
+                    throw error;
+                });
         },
         [showGeneralAlert, showImageCorruptionAlert],
     );
