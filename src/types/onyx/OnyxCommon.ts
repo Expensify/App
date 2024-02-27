@@ -3,19 +3,9 @@ import type {MaybePhraseKey} from '@libs/Localize';
 import type {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
 
-type PendingAction = ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION> | null;
+type PendingAction = ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>;
 
-type PendingFields<TKey extends string> = {[key in Exclude<TKey, 'pendingAction' | 'pendingFields' | 'errorFields'>]?: PendingAction};
-
-type OfflineFeedback<TKey extends string> = {
-    /** The type of action that's pending  */
-    pendingAction?: PendingAction;
-
-    /** Field-specific pending states for offline updates */
-    pendingFields?: PendingFields<TKey>;
-};
-
-type OnyxValueWithOfflineFeedback<TOnyx, TKey extends string = never> = keyof TOnyx extends string ? TOnyx & OfflineFeedback<keyof TOnyx | TKey> : never;
+type PendingFields<TKey extends string = string> = Record<TKey, PendingAction | null | undefined>;
 
 type ErrorFields<TKey extends string = string> = Record<TKey, Errors | null | undefined>;
 
@@ -43,4 +33,4 @@ type Icon = {
     fill?: string;
 };
 
-export type {Icon, PendingAction, ErrorFields, Errors, AvatarType, OnyxValueWithOfflineFeedback};
+export type {Icon, PendingAction, PendingFields, ErrorFields, Errors, AvatarType};

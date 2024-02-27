@@ -79,7 +79,7 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
     anchorPosition: AnchorPosition;
 
     /** Ref of the anchor */
-    anchorRef: RefObject<View | HTMLDivElement>;
+    anchorRef: RefObject<HTMLDivElement>;
 
     /** Where the popover should be positioned relative to the anchor points. */
     anchorAlignment?: AnchorAlignment;

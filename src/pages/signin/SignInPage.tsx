@@ -1,10 +1,10 @@
 import Str from 'expensify-common/lib/str';
 import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackground';
-import ScreenWrapper from '@components/ScreenWrapper';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesProvider';
 import useLocalize from '@hooks/useLocalize';
@@ -48,9 +48,7 @@ type SignInPageInnerOnyxProps = {
     preferredLocale: OnyxEntry<Locale>;
 };
 
-type SignInPageInnerProps = SignInPageInnerOnyxProps & {
-    shouldEnableMaxHeight?: boolean;
-};
+type SignInPageInnerProps = SignInPageInnerOnyxProps;
 
 type RenderOption = {
     shouldShowLoginForm: boolean;
@@ -126,7 +124,7 @@ function getRenderOptions({
     };
 }
 
-function SignInPageInner({credentials, account, activeClients = [], preferredLocale, shouldEnableMaxHeight = true}: SignInPageInnerProps) {
+function SignInPageInner({credentials, account, activeClients = [], preferredLocale}: SignInPageInnerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -247,8 +245,7 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
     return (
         // Bottom SafeAreaView is removed so that login screen svg displays correctly on mobile.
         // The SVG should flow under the Home Indicator on iOS.
-        <ScreenWrapper
-            shouldEnableMaxHeight={shouldEnableMaxHeight}
+        <View
             style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInModal ? 0 : safeAreaInsets.top}, 1)]}
             testID={SignInPageInner.displayName}
         >
@@ -283,7 +280,7 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
                     </>
                 )}
             </SignInPageLayout>
-        </ScreenWrapper>
+        </View>
     );
 }
 

@@ -273,15 +273,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.SETTINGS.SHARE_CODE]: {
                             path: ROUTES.SETTINGS_SHARE_CODE,
                         },
-                        [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: {
-                            path: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
-                        },
-                        [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
-                            path: ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.route,
-                        },
-                        [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: {
-                            path: ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route,
-                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: {

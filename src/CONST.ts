@@ -3313,14 +3313,6 @@ const CONST = {
             ADDRESS: 3,
         },
     },
-
-    EXIT_SURVEY: {
-        REASONS: {
-            FEATURE_NOT_AVAILABLE: 'featureNotAvailable',
-            DONT_UNDERSTAND: 'dontUnderstand',
-            PREFER_CLASSIC: 'preferClassic',
-        },
-    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

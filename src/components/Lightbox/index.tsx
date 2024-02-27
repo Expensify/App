@@ -59,7 +59,6 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
         activePage,
         onTap,
         onScaleChanged: onScaleChangedContext,
-        onSwipeDown,
         pagerRef,
     } = useMemo(() => {
         if (attachmentCarouselPagerContext === null) {
@@ -71,7 +70,6 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                 activePage: 0,
                 onTap: () => {},
                 onScaleChanged: () => {},
-                onSwipeDown: () => {},
                 pagerRef: undefined,
             };
         }
@@ -214,7 +212,6 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                                 shouldDisableTransformationGestures={isPagerScrolling}
                                 onTap={onTap}
                                 onScaleChanged={scaleChange}
-                                onSwipeDown={onSwipeDown}
                             >
                                 <Image
                                     source={{uri}}

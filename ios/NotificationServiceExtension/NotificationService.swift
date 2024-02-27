@@ -24,8 +24,6 @@ class NotificationService: UANotificationServiceExtension {
       return
     }
     
-    bestAttemptContent.sound = UNNotificationSound(named: UNNotificationSoundName("receive.mp3"))
-    
     if #available(iOSApplicationExtension 15.0, *) {
       configureCommunicationNotification(notificationContent: bestAttemptContent, contentHandler: contentHandler)
     } else {

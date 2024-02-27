@@ -1,14 +1,12 @@
+import PropTypes from 'prop-types';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import AddressSearch from '@components/AddressSearch';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import StatePicker from '@components/StatePicker';
 import Text from '@components/Text';
@@ -22,31 +20,26 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AddDebitCardForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/AddDebitCardForm';
 
-type DebitCardPageOnyxProps = {
-    /** Form data propTypes */
-    formData: OnyxEntry<AddDebitCardForm>;
+const propTypes = {
+    /* Onyx Props */
+    formData: PropTypes.shape({
+        setupComplete: PropTypes.bool,
+    }),
 };
 
-type DebitCardPageProps = DebitCardPageOnyxProps;
+const defaultProps = {
+    formData: {
+        setupComplete: false,
+    },
+};
 
-const REQUIRED_FIELDS = [
-    INPUT_IDS.NAME_ON_CARD,
-    INPUT_IDS.CARD_NUMBER,
-    INPUT_IDS.EXPIRATION_DATE,
-    INPUT_IDS.SECURITY_CODE,
-    INPUT_IDS.ADDRESS_STREET,
-    INPUT_IDS.ADDRESS_ZIP_CODE,
-    INPUT_IDS.ADDRESS_STATE,
-];
-
-function DebitCardPage({formData}: DebitCardPageProps) {
+function DebitCardPage(props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const prevFormDataSetupComplete = usePrevious(!!formData?.setupComplete);
-    const nameOnCardRef = useRef<AnimatedTextInputRef>(null);
+    const prevFormDataSetupComplete = usePrevious(props.formData.setupComplete);
+    const nameOnCardRef = useRef(null);
 
     /**
      * Reset the form values on the mount and unmount so that old errors don't show when this form is displayed again.
@@ -60,18 +53,20 @@ function DebitCardPage({formData}: DebitCardPageProps) {
     }, []);
 
     useEffect(() => {
-        if (prevFormDataSetupComplete || !formData?.setupComplete) {
+        if (prevFormDataSetupComplete || !props.formData.setupComplete) {
             return;
         }
 
         PaymentMethods.continueSetup();
-    }, [prevFormDataSetupComplete, formData?.setupComplete]);
+    }, [prevFormDataSetupComplete, props.formData.setupComplete]);
 
     /**
-     * @param values - form input values passed by the Form component
+     * @param {Object} values - form input values passed by the Form component
+     * @returns {Boolean}
      */
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM> => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
+    const validate = (values) => {
+        const requiredFields = ['nameOnCard', 'cardNumber', 'expirationDate', 'securityCode', 'addressStreet', 'addressZipCode', 'addressState'];
+        const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
         if (values.nameOnCard && !ValidationUtils.isValidLegalName(values.nameOnCard)) {
             errors.nameOnCard = 'addDebitCardPage.error.invalidName';
@@ -106,7 +101,7 @@ function DebitCardPage({formData}: DebitCardPageProps) {
 
     return (
         <ScreenWrapper
-            onEntryTransitionEnd={() => nameOnCardRef.current?.focus()}
+            onEntryTransitionEnd={() => nameOnCardRef.current && nameOnCardRef.current.focus()}
             includeSafeAreaPaddingBottom={false}
             testID={DebitCardPage.displayName}
         >
@@ -211,9 +206,11 @@ function DebitCardPage({formData}: DebitCardPageProps) {
     );
 }
 
+DebitCardPage.propTypes = propTypes;
+DebitCardPage.defaultProps = defaultProps;
 DebitCardPage.displayName = 'DebitCardPage';
 
-export default withOnyx<DebitCardPageProps, DebitCardPageOnyxProps>({
+export default withOnyx({
     formData: {
         key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
     },

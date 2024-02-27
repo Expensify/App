@@ -48,5 +48,3 @@ export default (command: string, env: NodeJS.ProcessEnv = {}): PromiseWithAbort 
 
     return promise;
 };
-
-export type {PromiseWithAbort};

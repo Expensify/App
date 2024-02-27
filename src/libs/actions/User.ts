@@ -29,7 +29,6 @@ import * as Pusher from '@libs/Pusher/pusher';
 import PusherUtils from '@libs/PusherUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import playSoundExcludingMobile from '@libs/Sound/playSoundExcludingMobile';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -528,12 +527,12 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
 
                     // mention user
                     if ('html' in message && typeof message.html === 'string' && message.html.includes(`<mention-user>@${currentEmail}</mention-user>`)) {
-                        return playSoundExcludingMobile(SOUNDS.ATTENTION);
+                        return playSound(SOUNDS.ATTENTION);
                     }
 
                     // mention @here
                     if ('html' in message && typeof message.html === 'string' && message.html.includes('<mention-here>')) {
-                        return playSoundExcludingMobile(SOUNDS.ATTENTION);
+                        return playSound(SOUNDS.ATTENTION);
                     }
 
                     // assign a task
@@ -553,7 +552,7 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
 
                     // plain message
                     if ('html' in message) {
-                        return playSoundExcludingMobile(SOUNDS.RECEIVE);
+                        return playSound(SOUNDS.RECEIVE);
                     }
                 }
             } catch (e) {
@@ -782,13 +781,6 @@ function setContactMethodAsDefault(newDefaultContactMethod: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                primaryLogin: newDefaultContactMethod,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SESSION,
             value: {
                 email: newDefaultContactMethod,
@@ -833,13 +825,6 @@ function setContactMethodAsDefault(newDefaultContactMethod: string) {
         },
     ];
     const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                primaryLogin: oldDefaultContactMethod,
-            },
-        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SESSION,

@@ -15,7 +15,6 @@ import type CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
 
@@ -181,14 +180,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: undefined;
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: undefined;
     [SCREENS.KEYBOARD_SHORTCUTS]: undefined;
-    [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: undefined;
-    [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
-        [EXIT_SURVEY_REASON_FORM_INPUT_IDS.REASON]: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>;
-        backTo: Routes;
-    };
-    [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: {
-        backTo: Routes;
-    };
 } & ReimbursementAccountNavigatorParamList;
 
 type NewChatNavigatorParamList = {
@@ -502,7 +493,6 @@ type PublicScreensParamList = {
         shortLivedAuthToken?: string;
         shortLivedToken?: string;
         exitTo?: Routes | HybridAppRoute;
-        domain?: Routes;
     };
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;

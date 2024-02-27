@@ -1,20 +1,18 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
+import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
-import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getImageResolution from '@libs/fileDownload/getImageResolution';
-import type {AvatarSource} from '@libs/UserUtils';
+import stylePropTypes from '@styles/stylePropTypes';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type IconAsset from '@src/types/utils/IconAsset';
 import AttachmentModal from './AttachmentModal';
 import AttachmentPicker from './AttachmentPicker';
 import Avatar from './Avatar';
@@ -22,140 +20,167 @@ import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import sourcePropTypes from './Image/sourcePropTypes';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PopoverMenu from './PopoverMenu';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip';
 import withNavigationFocus from './withNavigationFocus';
 
-type ErrorData = {
-    validationError?: TranslationPaths | null | '';
-    phraseParam: Record<string, unknown>;
-};
-
-type OpenPickerParams = {
-    onPicked: (image: File) => void;
-};
-type OpenPicker = (args: OpenPickerParams) => void;
-
-type MenuItem = {
-    icon: IconAsset;
-    text: string;
-    onSelected: () => void;
-};
-
-type AvatarWithImagePickerProps = {
+const propTypes = {
     /** Avatar source to display */
-    source?: AvatarSource;
+    source: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]),
 
     /** Additional style props */
-    style?: StyleProp<ViewStyle>;
+    style: stylePropTypes,
 
     /** Additional style props for disabled picker */
-    disabledStyle?: StyleProp<ViewStyle>;
+    disabledStyle: stylePropTypes,
 
     /** Executed once an image has been selected */
-    onImageSelected?: (file: File | CustomRNImageManipulatorResult) => void;
+    onImageSelected: PropTypes.func,
 
     /** Execute when the user taps "remove" */
-    onImageRemoved?: () => void;
+    onImageRemoved: PropTypes.func,
 
     /** A default avatar component to display when there is no source */
-    DefaultAvatar?: () => React.ReactNode;
+    DefaultAvatar: PropTypes.func,
 
     /** Whether we are using the default avatar */
-    isUsingDefaultAvatar?: boolean;
+    isUsingDefaultAvatar: PropTypes.bool,
 
     /** Size of Indicator */
-    size?: typeof CONST.AVATAR_SIZE.XLARGE | typeof CONST.AVATAR_SIZE.LARGE | typeof CONST.AVATAR_SIZE.DEFAULT;
+    size: PropTypes.oneOf([CONST.AVATAR_SIZE.XLARGE, CONST.AVATAR_SIZE.LARGE, CONST.AVATAR_SIZE.DEFAULT]),
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-    fallbackIcon?: AvatarSource;
+    fallbackIcon: sourcePropTypes,
 
     /** Denotes whether it is an avatar or a workspace avatar */
-    type?: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
+    type: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_WORKSPACE]),
 
     /** Image crop vector mask */
-    editorMaskImage?: IconAsset;
+    editorMaskImage: sourcePropTypes,
 
     /** Additional style object for the error row */
-    errorRowStyles?: StyleProp<ViewStyle>;
+    errorRowStyles: stylePropTypes,
 
     /** A function to run when the X button next to the error is clicked */
-    onErrorClose?: () => void;
+    onErrorClose: PropTypes.func,
 
     /** The type of action that's pending  */
-    pendingAction?: OnyxCommon.PendingAction;
+    pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
 
     /** The errors to display  */
-    errors?: OnyxCommon.Errors | null;
+    // eslint-disable-next-line react/forbid-prop-types
+    errors: PropTypes.object,
 
     /** Title for avatar preview modal */
-    headerTitle?: string;
+    headerTitle: PropTypes.string,
 
     /** Avatar source for avatar preview modal */
-    previewSource?: AvatarSource;
+    previewSource: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]),
 
     /** File name of the avatar */
-    originalFileName?: string;
+    originalFileName: PropTypes.string,
 
     /** Whether navigation is focused */
-    isFocused: boolean;
+    isFocused: PropTypes.bool.isRequired,
 
     /** Style applied to the avatar */
-    avatarStyle: StyleProp<ViewStyle>;
+    avatarStyle: stylePropTypes.isRequired,
 
     /** Indicates if picker feature should be disabled */
-    disabled?: boolean;
+    disabled: PropTypes.bool,
 
     /** Executed once click on view photo option */
-    onViewPhotoPress?: () => void;
+    onViewPhotoPress: PropTypes.func,
+
+    /** Where the popover should be positioned relative to the anchor points. */
+    anchorAlignment: PropTypes.shape({
+        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
+        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
+    }),
 
     /** Allows to open an image without Attachment Picker. */
-    enablePreview?: boolean;
+    enablePreview: PropTypes.bool,
+};
+
+const defaultProps = {
+    source: '',
+    onImageSelected: () => {},
+    onImageRemoved: () => {},
+    style: [],
+    disabledStyle: [],
+    DefaultAvatar: () => {},
+    isUsingDefaultAvatar: false,
+    size: CONST.AVATAR_SIZE.DEFAULT,
+    fallbackIcon: Expensicons.FallbackAvatar,
+    type: CONST.ICON_TYPE_AVATAR,
+    editorMaskImage: undefined,
+    errorRowStyles: [],
+    onErrorClose: () => {},
+    pendingAction: null,
+    errors: null,
+    headerTitle: '',
+    previewSource: '',
+    originalFileName: '',
+    disabled: false,
+    onViewPhotoPress: undefined,
+    anchorAlignment: {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+    },
+    enablePreview: false,
 };
 
 function AvatarWithImagePicker({
     isFocused,
-    DefaultAvatar = () => null,
+    DefaultAvatar,
     style,
     disabledStyle,
     pendingAction,
     errors,
     errorRowStyles,
-    onErrorClose = () => {},
-    source = '',
-    fallbackIcon = Expensicons.FallbackAvatar,
-    size = CONST.AVATAR_SIZE.DEFAULT,
-    type = CONST.ICON_TYPE_AVATAR,
-    headerTitle = '',
-    previewSource = '',
-    originalFileName = '',
-    isUsingDefaultAvatar = false,
-    onImageSelected = () => {},
-    onImageRemoved = () => {},
+    onErrorClose,
+    source,
+    fallbackIcon,
+    size,
+    type,
+    headerTitle,
+    previewSource,
+    originalFileName,
+    isUsingDefaultAvatar,
+    onImageRemoved,
+    onImageSelected,
     editorMaskImage,
     avatarStyle,
-    disabled = false,
+    disabled,
     onViewPhotoPress,
-    enablePreview = false,
-}: AvatarWithImagePickerProps) {
+    enablePreview,
+}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
     const [isMenuVisible, setIsMenuVisible] = useState(false);
-    const [errorData, setErrorData] = useState<ErrorData>({validationError: null, phraseParam: {}});
+    const [errorData, setErrorData] = useState({
+        validationError: null,
+        phraseParam: {},
+    });
     const [isAvatarCropModalOpen, setIsAvatarCropModalOpen] = useState(false);
     const [imageData, setImageData] = useState({
         uri: '',
         name: '',
         type: '',
     });
-    const anchorRef = useRef<View>(null);
+    const anchorRef = useRef();
     const {translate} = useLocalize();
 
-    const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
+    /**
+     * @param {String} error
+     * @param {Object} phraseParam
+     */
+    const setError = (error, phraseParam) => {
         setErrorData({
             validationError: error,
             phraseParam,
@@ -173,29 +198,40 @@ function AvatarWithImagePicker({
 
     /**
      * Check if the attachment extension is allowed.
+     *
+     * @param {Object} image
+     * @returns {Boolean}
      */
-    const isValidExtension = (image: File): boolean => {
-        const {fileExtension} = FileUtils.splitExtensionFromFileName(image?.name ?? '');
-        return CONST.AVATAR_ALLOWED_EXTENSIONS.some((extension) => extension === fileExtension.toLowerCase());
+    const isValidExtension = (image) => {
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(image, 'name', ''));
+        return _.contains(CONST.AVATAR_ALLOWED_EXTENSIONS, fileExtension.toLowerCase());
     };
 
     /**
      * Check if the attachment size is less than allowed size.
+     *
+     * @param {Object} image
+     * @returns {Boolean}
      */
-    const isValidSize = (image: File): boolean => (image?.size ?? 0) < CONST.AVATAR_MAX_ATTACHMENT_SIZE;
+    const isValidSize = (image) => image && lodashGet(image, 'size', 0) < CONST.AVATAR_MAX_ATTACHMENT_SIZE;
 
     /**
      * Check if the attachment resolution matches constraints.
+     *
+     * @param {Object} image
+     * @returns {Promise}
      */
-    const isValidResolution = (image: File): Promise<boolean> =>
+    const isValidResolution = (image) =>
         getImageResolution(image).then(
             ({height, width}) => height >= CONST.AVATAR_MIN_HEIGHT_PX && width >= CONST.AVATAR_MIN_WIDTH_PX && height <= CONST.AVATAR_MAX_HEIGHT_PX && width <= CONST.AVATAR_MAX_WIDTH_PX,
         );
 
     /**
      * Validates if an image has a valid resolution and opens an avatar crop modal
+     *
+     * @param {Object} image
      */
-    const showAvatarCropModal = (image: File) => {
+    const showAvatarCropModal = (image) => {
         if (!isValidExtension(image)) {
             setError('avatarWithImagePicker.notAllowedExtension', {allowedExtensions: CONST.AVATAR_ALLOWED_EXTENSIONS});
             return;
@@ -233,8 +269,11 @@ function AvatarWithImagePicker({
 
     /**
      * Create menu items list for avatar menu
+     *
+     * @param {Function} openPicker
+     * @returns {Array}
      */
-    const createMenuItems = (openPicker: OpenPicker): MenuItem[] => {
+    const createMenuItems = (openPicker) => {
         const menuItems = [
             {
                 icon: Expensicons.Upload,
@@ -279,7 +318,6 @@ function AvatarWithImagePicker({
                 vertical: y + height + variables.spacing2,
             });
         });
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isMenuVisible, windowWidth]);
 
@@ -345,11 +383,7 @@ function AvatarWithImagePicker({
                     maybeIcon={isUsingDefaultAvatar}
                 >
                     {({show}) => (
-                        <AttachmentPicker
-                            // @ts-expect-error TODO: Remove this once AttachmentPicker (https://github.com/Expensify/App/issues/25134) is migrated to TypeScript.
-                            type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}
-                        >
-                            {/* @ts-expect-error TODO: Remove this once AttachmentPicker (https://github.com/Expensify/App/issues/25134) is migrated to TypeScript. */}
+                        <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
                             {({openPicker}) => {
                                 const menuItems = createMenuItems(openPicker);
 
@@ -398,8 +432,7 @@ function AvatarWithImagePicker({
             {errorData.validationError && (
                 <DotIndicatorMessage
                     style={[styles.mt6]}
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    messages={{0: translate(errorData.validationError, errorData.phraseParam as never)}}
+                    messages={{0: [errorData.validationError, errorData.phraseParam]}}
                     type="error"
                 />
             )}
@@ -416,6 +449,8 @@ function AvatarWithImagePicker({
     );
 }
 
+AvatarWithImagePicker.propTypes = propTypes;
+AvatarWithImagePicker.defaultProps = defaultProps;
 AvatarWithImagePicker.displayName = 'AvatarWithImagePicker';
 
 export default withNavigationFocus(AvatarWithImagePicker);

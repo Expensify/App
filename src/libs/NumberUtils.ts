@@ -69,11 +69,4 @@ function parseFloatAnyLocale(value: string): number {
     return parseFloat(value ? value.replace(',', '.') : value);
 }
 
-/**
- * Given an input number p and another number q, returns the largest number that's less than p and divisible by q.
- */
-function roundDownToLargestMultiple(p: number, q: number) {
-    return Math.floor(p / q) * q;
-}
-
-export {rand64, generateHexadecimalValue, generateRandomInt, parseFloatAnyLocale, roundDownToLargestMultiple};
+export {rand64, generateHexadecimalValue, generateRandomInt, parseFloatAnyLocale};

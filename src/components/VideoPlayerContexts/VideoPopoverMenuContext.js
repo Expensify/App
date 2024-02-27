@@ -4,15 +4,15 @@ import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import fileDownload from '@libs/fileDownload';
+import * as Url from '@libs/Url';
 import CONST from '@src/CONST';
 import {usePlaybackContext} from './PlaybackContext';
 
 const VideoPopoverMenuContext = React.createContext(null);
 
 function VideoPopoverMenuContextProvider({children}) {
-    const {currentVideoPlayerRef, currentlyPlayingURL} = usePlaybackContext();
+    const {currentVideoPlayerRef} = usePlaybackContext();
     const {translate} = useLocalize();
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[2]);
     const {isOffline} = useNetwork();
@@ -26,9 +26,11 @@ function VideoPopoverMenuContextProvider({children}) {
     );
 
     const downloadAttachment = useCallback(() => {
-        const sourceURI = currentlyPlayingURL.startsWith('blob:') || currentlyPlayingURL.startsWith('file:') ? currentlyPlayingURL : addEncryptedAuthTokenToURL(currentlyPlayingURL);
-        fileDownload(sourceURI);
-    }, [currentlyPlayingURL]);
+        currentVideoPlayerRef.current.getStatusAsync().then((status) => {
+            const sourceURI = `/${Url.getPathFromURL(status.uri)}`;
+            fileDownload(sourceURI);
+        });
+    }, [currentVideoPlayerRef]);
 
     const menuItems = useMemo(() => {
         const items = [];

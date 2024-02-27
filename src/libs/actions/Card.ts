@@ -178,4 +178,3 @@ function revealVirtualCardDetails(cardID: number): Promise<Response> {
 }
 
 export {requestReplacementExpensifyCard, activatePhysicalExpensifyCard, clearCardListErrors, reportVirtualExpensifyCardFraud, revealVirtualCardDetails};
-export type {ReplacementReason};

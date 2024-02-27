@@ -1,6 +1,4 @@
 import {useFocusEffect} from '@react-navigation/native';
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -38,17 +36,14 @@ const propTypes = {
     transaction: transactionPropTypes,
 
     /* Onyx Props */
-    /** The policy of the report */
-    policy: PropTypes.shape({
-        /** Collection of tax rates attached to a policy */
-        taxRates: taxPropTypes,
-    }),
+    /** Collection of tax rates attached to a policy */
+    policyTaxRates: taxPropTypes,
 };
 
 const defaultProps = {
     report: {},
     transaction: {},
-    policy: {},
+    policyTaxRates: {},
 };
 
 const getTaxAmount = (transaction, defaultTaxValue) => {
@@ -63,7 +58,7 @@ function IOURequestStepTaxAmountPage({
     transaction,
     transaction: {currency},
     report,
-    policy,
+    policyTaxRates,
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -74,7 +69,6 @@ function IOURequestStepTaxAmountPage({
 
     const isSaveButtonPressed = useRef(false);
     const originalCurrency = useRef(null);
-    const taxRates = lodashGet(policy, 'taxRates', {});
 
     useEffect(() => {
         if (transaction.originalCurrency) {
@@ -146,7 +140,7 @@ function IOURequestStepTaxAmountPage({
             isEditing={isEditing}
             currency={currency}
             amount={transaction.taxAmount}
-            taxAmount={getTaxAmount(transaction, taxRates.defaultValue)}
+            taxAmount={getTaxAmount(transaction, policyTaxRates.defaultValue)}
             transaction={transaction}
             ref={(e) => (textInput.current = e)}
             onCurrencyButtonPress={navigateToCurrencySelectionPage}
@@ -183,8 +177,8 @@ export default compose(
     withWritableReportOrNotFound,
     withFullTransactionOrNotFound,
     withOnyx({
-        policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        policyTaxRates: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${report ? report.policyID : '0'}`,
         },
     }),
 )(IOURequestStepTaxAmountPage);

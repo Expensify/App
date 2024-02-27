@@ -4,8 +4,9 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {RecentWaypoint, Report, ReportAction, TaxRate, TaxRates, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {RecentWaypoint, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
+import type {PolicyTaxRate, PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -605,8 +606,8 @@ function calculateTaxAmount(percentage: string, amount: number) {
 /**
  * Calculates count of all tax enabled options
  */
-function getEnabledTaxRateCount(options: TaxRates) {
-    return Object.values(options).filter((option: TaxRate) => !option.isDisabled).length;
+function getEnabledTaxRateCount(options: PolicyTaxRates) {
+    return Object.values(options).filter((option: PolicyTaxRate) => !option.isDisabled).length;
 }
 
 export {

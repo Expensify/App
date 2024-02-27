@@ -25,7 +25,7 @@ type AccountData = {
     bank?: BankName;
 };
 
-type Fund = OnyxCommon.OnyxValueWithOfflineFeedback<{
+type Fund = {
     accountData?: AccountData;
     accountType?: typeof CONST.PAYMENT_METHODS.DEBIT_CARD;
     description?: string;
@@ -34,9 +34,10 @@ type Fund = OnyxCommon.OnyxValueWithOfflineFeedback<{
     title?: string;
     isDefault?: boolean;
     errors?: OnyxCommon.Errors;
-}>;
+    pendingAction?: OnyxCommon.PendingAction;
+};
 
 type FundList = Record<string, Fund>;
 
 export default Fund;
-export type {AccountData, FundList};
+export type {FundList};

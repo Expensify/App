@@ -5,20 +5,6 @@ import _ from 'underscore';
 import OptionsSelector from '@src/components/OptionsSelector';
 import variables from '@src/styles/variables';
 
-jest.mock('@react-navigation/native', () => {
-    const actualNav = jest.requireActual('@react-navigation/native');
-    return {
-        ...actualNav,
-        useNavigation: () => ({
-            navigate: jest.fn(),
-            addListener: () => jest.fn(),
-        }),
-        useIsFocused: () => ({
-            navigate: jest.fn(),
-        }),
-    };
-});
-
 jest.mock('../../src/components/withLocalize', () => (Component) => {
     function WrappedComponent(props) {
         return (

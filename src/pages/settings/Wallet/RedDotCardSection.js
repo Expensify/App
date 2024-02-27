@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
@@ -6,12 +7,12 @@ import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-type RedDotCardSectionProps = {
-    title: string;
-    description: string;
+const propTypes = {
+    title: PropTypes.string.isRequired,
+    description: PropTypes.string.isRequired,
 };
 
-function RedDotCardSection({title, description}: RedDotCardSectionProps) {
+function RedDotCardSection({title, description}) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -26,13 +27,14 @@ function RedDotCardSection({title, description}: RedDotCardSectionProps) {
             <View style={[styles.flexRow, styles.flexShrink1]}>
                 <View style={styles.flexShrink1}>
                     <Text style={[styles.walletRedDotSectionTitle, styles.mb1]}>{title}</Text>
-                    <Text style={styles.walletRedDotSectionText}>{description}</Text>
+                    <Text styles={styles.walletRedDotSectionText}>{description}</Text>
                 </View>
             </View>
         </View>
     );
 }
 
+RedDotCardSection.propTypes = propTypes;
 RedDotCardSection.displayName = 'RedDotCardSection';
 
 export default RedDotCardSection;

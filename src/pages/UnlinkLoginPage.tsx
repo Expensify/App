@@ -8,6 +8,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PublicScreensParamList} from '@navigation/types';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Account} from '@src/types/onyx';
 
@@ -35,7 +36,7 @@ function UnlinkLoginPage({route, account}: UnlinkLoginPageProps) {
             return;
         }
 
-        Navigation.goBack();
+        Navigation.navigate(ROUTES.HOME);
     }, [prevIsLoading, account?.isLoading]);
 
     return <FullScreenLoadingIndicator />;

@@ -7,7 +7,6 @@ import type AmountTextInput from '@components/AmountTextInput';
 import type CheckboxWithLabel from '@components/CheckboxWithLabel';
 import type CountrySelector from '@components/CountrySelector';
 import type Picker from '@components/Picker';
-import type RadioButtons from '@components/RadioButtons';
 import type SingleChoiceQuestion from '@components/SingleChoiceQuestion';
 import type StatePicker from '@components/StatePicker';
 import type TextInput from '@components/TextInput';
@@ -35,8 +34,7 @@ type ValidInputs =
     | typeof AmountForm
     | typeof BusinessTypePicker
     | typeof StatePicker
-    | typeof ValuePicker
-    | typeof RadioButtons;
+    | typeof ValuePicker;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date';
 type ValueTypeMap = {

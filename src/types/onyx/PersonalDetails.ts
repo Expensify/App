@@ -23,7 +23,7 @@ type Status = {
     clearAfter: string; // ISO 8601 format;
 };
 
-type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
+type PersonalDetails = {
     /** ID of the current user from their personal details */
     accountID: number;
 
@@ -74,12 +74,15 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Field-specific server side errors keyed by microtime */
     errorFields?: OnyxCommon.ErrorFields<'avatar'>;
 
+    /** Field-specific pending states for offline UI status */
+    pendingFields?: OnyxCommon.PendingFields<'avatar' | 'originalFileName'>;
+
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon?: string;
 
     /** Status of the current user from their personal details */
     status?: Status;
-}>;
+};
 
 type PersonalDetailsList = Record<string, PersonalDetails | null>;
 

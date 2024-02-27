@@ -8,34 +8,27 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 type KeyboardStateContextValue = {
     /** Whether the keyboard is open */
     isKeyboardShown: boolean;
-
-    /** Height of the keyboard in pixels */
-    keyboardHeight: number;
 };
 
 // TODO: Remove - left for backwards compatibility with existing components (https://github.com/Expensify/App/issues/25151)
 const keyboardStatePropTypes = {
     /** Whether the keyboard is open */
     isKeyboardShown: PropTypes.bool.isRequired,
-
-    /** Height of the keyboard in pixels */
-    keyboardHeight: PropTypes.number.isRequired,
 };
 
 const KeyboardStateContext = createContext<KeyboardStateContextValue>({
     isKeyboardShown: false,
-    keyboardHeight: 0,
 });
 
 function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
-    const [keyboardHeight, setKeyboardHeight] = useState(0);
+    const [isKeyboardShown, setIsKeyboardShown] = useState(false);
 
     useEffect(() => {
-        const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', (e) => {
-            setKeyboardHeight(e.endCoordinates.height);
+        const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+            setIsKeyboardShown(true);
         });
         const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
-            setKeyboardHeight(0);
+            setIsKeyboardShown(false);
         });
 
         return () => {
@@ -46,10 +39,9 @@ function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
 
     const contextValue = useMemo(
         () => ({
-            keyboardHeight,
-            isKeyboardShown: keyboardHeight !== 0,
+            isKeyboardShown,
         }),
-        [keyboardHeight],
+        [isKeyboardShown],
     );
     return <KeyboardStateContext.Provider value={contextValue}>{children}</KeyboardStateContext.Provider>;
 }

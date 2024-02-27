@@ -10,14 +10,14 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import {defaultProps, propTypes} from './taxPickerPropTypes';
 
-function TaxPicker({selectedTaxRate, taxRates, insets, onSubmit}) {
+function TaxPicker({selectedTaxRate, policyTaxRates, insets, onSubmit}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
-    const taxRatesCount = TransactionUtils.getEnabledTaxRateCount(taxRates.taxes);
-    const isTaxRatesCountBelowThreshold = taxRatesCount < CONST.TAX_RATES_LIST_THRESHOLD;
+    const policyTaxRatesCount = TransactionUtils.getEnabledTaxRateCount(policyTaxRates.taxes);
+    const isTaxRatesCountBelowThreshold = policyTaxRatesCount < CONST.TAX_RATES_LIST_THRESHOLD;
 
     const shouldShowTextInput = !isTaxRatesCountBelowThreshold;
 
@@ -36,9 +36,28 @@ function TaxPicker({selectedTaxRate, taxRates, insets, onSubmit}) {
     }, [selectedTaxRate]);
 
     const sections = useMemo(() => {
-        const {taxRatesOptions} = OptionsListUtils.getFilteredOptions({}, {}, [], searchValue, selectedOptions, [], false, false, false, {}, [], false, {}, [], false, false, true, taxRates);
-        return taxRatesOptions;
-    }, [taxRates, searchValue, selectedOptions]);
+        const {policyTaxRatesOptions} = OptionsListUtils.getFilteredOptions(
+            {},
+            {},
+            [],
+            searchValue,
+            selectedOptions,
+            [],
+            false,
+            false,
+            false,
+            {},
+            [],
+            false,
+            {},
+            [],
+            false,
+            false,
+            true,
+            policyTaxRates,
+        );
+        return policyTaxRatesOptions;
+    }, [policyTaxRates, searchValue, selectedOptions]);
 
     const selectedOptionKey = lodashGet(_.filter(lodashGet(sections, '[0].data', []), (taxRate) => taxRate.searchText === selectedTaxRate)[0], 'keyForList');
 

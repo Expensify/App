@@ -26,7 +26,7 @@ function SignInModal() {
             testID={SignInModal.displayName}
         >
             <HeaderWithBackButton onBackButtonPress={() => Navigation.goBack()} />
-            <SignInPage shouldEnableMaxHeight={false} />
+            <SignInPage />
         </ScreenWrapper>
     );
 }

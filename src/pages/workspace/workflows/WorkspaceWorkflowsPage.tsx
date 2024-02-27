@@ -20,6 +20,7 @@ import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSection
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 
@@ -59,7 +60,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     />
                 ),
                 isActive: policy?.harvesting?.enabled ?? false,
-                pendingAction: policy?.pendingFields?.isAutoApprovalEnabled,
+                pendingAction: policy?.pendingFields?.isAutoApprovalEnabled as PendingAction,
             },
             {
                 icon: Illustrations.Approval,
@@ -82,7 +83,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     />
                 ),
                 isActive: policy?.isAutoApprovalEnabled ?? false,
-                pendingAction: policy?.pendingFields?.approvalMode,
+                pendingAction: policy?.pendingFields?.approvalMode as PendingAction,
             },
             {
                 icon: Illustrations.WalletAlt,

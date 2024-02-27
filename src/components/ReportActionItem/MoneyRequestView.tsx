@@ -270,7 +270,7 @@ function MoneyRequestView({
                         </View>
                     </OfflineWithFeedback>
                 )}
-                {!hasReceipt && canEditReceipt && (
+                {!hasReceipt && canEditReceipt && canUseViolations && (
                     <ReceiptEmptyState
                         hasError={hasErrors}
                         onPress={() =>

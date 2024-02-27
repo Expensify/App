@@ -102,10 +102,6 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         [setShouldShowArrows],
     );
 
-    const goBack = useCallback(() => {
-        Navigation.goBack();
-    }, []);
-
     return (
         <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
             {page == null ? (
@@ -137,7 +133,6 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                                 activeSource={activeSource}
                                 onRequestToggleArrows={toggleArrows}
                                 onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
-                                onClose={goBack}
                                 ref={pagerRef}
                             />
                         </>
