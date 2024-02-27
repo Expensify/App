@@ -1,8 +1,9 @@
 import React, {useCallback, useContext, useMemo, useState} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import fileDownload from '@libs/fileDownload';
-import * as Url from '@libs/Url';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {usePlaybackContext} from './PlaybackContext';
@@ -11,9 +12,10 @@ import type {MenuItem, SingularMenuItem, VideoPopoverMenuContext} from './types'
 const Context = React.createContext<VideoPopoverMenuContext | null>(null);
 
 function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
-    const {currentVideoPlayerRef} = usePlaybackContext();
+    const {currentVideoPlayerRef, currentlyPlayingURL} = usePlaybackContext();
     const {translate} = useLocalize();
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState<number>(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[2]);
+    const {isOffline} = useNetwork();
 
     const updatePlaybackSpeed = useCallback(
         (speed: number) => {
@@ -24,37 +26,42 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
     );
 
     const downloadAttachment = useCallback(() => {
-        currentVideoPlayerRef.current?.getStatusAsync().then((status) => {
-            if (!('uri' in status)) {
-                return;
-            }
-            const sourceURI = `/${Url.getPathFromURL(status.uri)}`;
-            fileDownload(sourceURI);
-        });
-    }, [currentVideoPlayerRef]);
+        if (currentlyPlayingURL === null) {
+            return;
+        }
+        const sourceURI =
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
+            currentlyPlayingURL.startsWith('blob:') || currentlyPlayingURL.startsWith('file:') ? currentlyPlayingURL : addEncryptedAuthTokenToURL(currentlyPlayingURL);
+        fileDownload(sourceURI);
+    }, [currentlyPlayingURL]);
 
-    const menuItems = useMemo<[SingularMenuItem, MenuItem]>(
-        () => [
-            {
+    const menuItems = useMemo(() => {
+        const items: Array<SingularMenuItem | MenuItem> = [];
+
+        if (!isOffline) {
+            items.push({
                 icon: Expensicons.Download,
                 text: translate('common.download'),
-                onSelected: downloadAttachment,
-            },
-            {
-                icon: Expensicons.Meter,
-                text: translate('videoPlayer.playbackSpeed'),
-                subMenuItems: CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS.map((speed) => ({
-                    icon: currentPlaybackSpeed === speed ? Expensicons.Checkmark : null,
-                    text: speed.toString(),
-                    onSelected: () => {
-                        updatePlaybackSpeed(speed);
-                    },
-                    shouldPutLeftPaddingWhenNoIcon: true,
-                })),
-            },
-        ],
-        [currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed],
-    );
+                onSelected: () => {
+                    downloadAttachment();
+                },
+            });
+        }
+
+        items.push({
+            icon: Expensicons.Meter,
+            text: translate('videoPlayer.playbackSpeed'),
+            subMenuItems: CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS.map((speed) => ({
+                icon: currentPlaybackSpeed === speed ? Expensicons.Checkmark : null,
+                text: speed.toString(),
+                onSelected: () => {
+                    updatePlaybackSpeed(speed);
+                },
+                shouldPutLeftPaddingWhenNoIcon: true,
+            })),
+        });
+        return items;
+    }, [currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline]);
 
     const contextValue = useMemo(() => ({menuItems, updatePlaybackSpeed}), [menuItems, updatePlaybackSpeed]);
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;

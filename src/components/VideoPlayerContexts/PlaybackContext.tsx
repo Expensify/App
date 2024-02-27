@@ -46,11 +46,14 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     );
 
     const shareVideoPlayerElements = useCallback(
-        (ref: Video, parent: View, child: View) => {
+        (ref: Video, parent: View, child: View, isUploading: boolean) => {
             currentVideoPlayerRef.current = ref;
             setOriginalParent(parent);
             setSharedElement(child);
-            playVideo();
+            // Prevents autoplay when uploading the attachment
+            if (!isUploading) {
+                playVideo();
+            }
         },
         [playVideo],
     );
