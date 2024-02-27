@@ -1,8 +1,9 @@
 import type {ParamListBase} from '@react-navigation/routers';
 import type {StackNavigationOptions} from '@react-navigation/stack';
-import {CardStyleInterpolators, createStackNavigator} from '@react-navigation/stack';
+import {createStackNavigator} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {
     AddPersonalBankAccountNavigatorParamList,
     DetailsNavigatorParamList,
@@ -35,6 +36,7 @@ import type {
 import type {ThemeStyles} from '@styles/index';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
+import subRouteOptions from './modalStackNavigatorOptions';
 
 type Screens = Partial<Record<Screen, () => React.ComponentType>>;
 
@@ -44,38 +46,45 @@ type Screens = Partial<Record<Screen, () => React.ComponentType>>;
  * @param screens key/value pairs where the key is the name of the screen and the value is a functon that returns the lazy-loaded component
  * @param getScreenOptions optional function that returns the screen options, override the default options
  */
-function createModalStackNavigator<TStackParams extends ParamListBase>(screens: Screens, getScreenOptions?: (styles: ThemeStyles) => StackNavigationOptions): React.ComponentType {
-    const ModalStackNavigator = createStackNavigator<TStackParams>();
+function createModalStackNavigatorFactory(factory: typeof createPlatformStackNavigator) {
+    return function createNestedModalStackNavigator<TStackParams extends ParamListBase>(
+        screens: Screens,
+        getScreenOptions?: (styles: ThemeStyles) => StackNavigationOptions,
+    ): React.ComponentType {
+        const ModalStackNavigator = factory<TStackParams>();
 
-    function ModalStack() {
-        const styles = useThemeStyles();
+        function ModalStack() {
+            const styles = useThemeStyles();
 
-        const defaultSubRouteOptions = useMemo(
-            (): StackNavigationOptions => ({
-                cardStyle: styles.navigationScreenCardStyle,
-                headerShown: false,
-                cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-            }),
-            [styles],
-        );
+            const defaultSubRouteOptions = useMemo(
+                (): StackNavigationOptions => ({
+                    ...subRouteOptions,
+                    cardStyle: styles.navigationScreenCardStyle,
+                }),
+                [styles],
+            );
 
-        return (
-            <ModalStackNavigator.Navigator screenOptions={getScreenOptions?.(styles) ?? defaultSubRouteOptions}>
-                {Object.keys(screens as Required<Screens>).map((name) => (
-                    <ModalStackNavigator.Screen
-                        key={name}
-                        name={name}
-                        getComponent={(screens as Required<Screens>)[name as Screen]}
-                    />
-                ))}
-            </ModalStackNavigator.Navigator>
-        );
-    }
+            return (
+                <ModalStackNavigator.Navigator screenOptions={getScreenOptions?.(styles) ?? defaultSubRouteOptions}>
+                    {Object.keys(screens as Required<Screens>).map((name) => (
+                        <ModalStackNavigator.Screen
+                            key={name}
+                            name={name}
+                            getComponent={(screens as Required<Screens>)[name as Screen]}
+                        />
+                    ))}
+                </ModalStackNavigator.Navigator>
+            );
+        }
 
-    ModalStack.displayName = 'ModalStack';
+        ModalStack.displayName = 'ModalStack';
 
-    return ModalStack;
+        return ModalStack;
+    };
 }
+
+const createModalStackNavigator = createModalStackNavigatorFactory(createPlatformStackNavigator);
+const createJSModalStackNavigator = createModalStackNavigatorFactory(createStackNavigator);
 
 const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNavigatorParamList>({
     [SCREENS.MONEY_REQUEST.START]: () => require('../../../pages/iou/request/IOURequestRedirectToStartPage').default as React.ComponentType,
@@ -100,7 +109,6 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.CONFIRMATION]: () => require('../../../pages/iou/steps/MoneyRequestConfirmPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.CURRENCY]: () => require('../../../pages/iou/IOUCurrencySelection').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.HOLD]: () => require('../../../pages/iou/HoldReasonPage').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.CATEGORY]: () => require('../../../pages/iou/MoneyRequestCategoryPage').default as React.ComponentType,
     [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: () => require('../../../pages/AddPersonalBankAccountPage').default as React.ComponentType,
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: () => require('../../../pages/settings/Wallet/AddDebitCardPage').default as React.ComponentType,
     [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: () => require('../../../pages/EnablePayments/EnablePaymentsPage').default as React.ComponentType,
@@ -133,6 +141,7 @@ const ReportSettingsModalStackNavigator = createModalStackNavigator<ReportSettin
     [SCREENS.REPORT_SETTINGS.ROOM_NAME]: () => require('../../../pages/settings/Report/RoomNamePage').default as React.ComponentType,
     [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: () => require('../../../pages/settings/Report/NotificationPreferencePage').default as React.ComponentType,
     [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: () => require('../../../pages/settings/Report/WriteCapabilityPage').default as React.ComponentType,
+    [SCREENS.REPORT_SETTINGS.VISIBILITY]: () => require('../../../pages/settings/Report/VisibilityPage').default as React.ComponentType,
 });
 
 const TaskModalStackNavigator = createModalStackNavigator<TaskDetailsNavigatorParamList>({
@@ -156,7 +165,7 @@ const RoomInviteModalStackNavigator = createModalStackNavigator<RoomInviteNaviga
     [SCREENS.ROOM_INVITE_ROOT]: () => require('../../../pages/RoomInvitePage').default as React.ComponentType,
 });
 
-const SearchModalStackNavigator = createModalStackNavigator<SearchNavigatorParamList>({
+const SearchModalStackNavigator = createJSModalStackNavigator<SearchNavigatorParamList>({
     [SCREENS.SEARCH_ROOT]: () => require('../../../pages/SearchPage').default as React.ComponentType,
 });
 
@@ -191,7 +200,6 @@ const AccountSettingsModalStackNavigator = createModalStackNavigator(
         [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require('../../../pages/settings/Preferences/PreferencesPage').default as React.ComponentType,
         [SCREENS.SETTINGS.SECURITY]: () => require('../../../pages/settings/Security/SecuritySettingsPage').default as React.ComponentType,
         [SCREENS.SETTINGS.PROFILE.ROOT]: () => require('../../../pages/settings/Profile/ProfilePage').default as React.ComponentType,
-        [SCREENS.SETTINGS.SHARE_CODE]: () => require('../../../pages/ShareCodePage').default as React.ComponentType,
         [SCREENS.SETTINGS.WALLET.ROOT]: () => require('../../../pages/settings/Wallet/WalletPage').default as React.ComponentType,
         [SCREENS.SETTINGS.ABOUT]: () => require('../../../pages/settings/AboutPage/AboutPage').default as React.ComponentType,
     },
@@ -203,6 +211,7 @@ const WorkspaceSwitcherModalStackNavigator = createModalStackNavigator<Workspace
 });
 
 const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorParamList>({
+    [SCREENS.SETTINGS.SHARE_CODE]: () => require('../../../pages/ShareCodePage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.PRONOUNS]: () => require('../../../pages/settings/Profile/PronounsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.DISPLAY_NAME]: () => require('../../../pages/settings/Profile/DisplayNamePage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.TIMEZONE]: () => require('../../../pages/settings/Profile/TimezoneInitialPage').default as React.ComponentType,
@@ -246,12 +255,16 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.INVITE_MESSAGE]: () => require('../../../pages/workspace/WorkspaceInviteMessagePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.NAME]: () => require('../../../pages/workspace/WorkspaceNamePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.DESCRIPTION]: () => require('../../../pages/workspace/WorkspaceProfileDescriptionPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.SHARE]: () => require('../../../pages/workspace/WorkspaceProfileSharePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.CURRENCY]: () => require('../../../pages/workspace/WorkspaceProfileCurrencyPage').default as React.ComponentType,
     [SCREENS.REIMBURSEMENT_ACCOUNT]: () => require('../../../pages/ReimbursementAccount/ReimbursementAccountPage').default as React.ComponentType,
     [SCREENS.GET_ASSISTANCE]: () => require('../../../pages/GetAssistancePage').default as React.ComponentType,
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: () => require('../../../pages/settings/Security/TwoFactorAuth/TwoFactorAuthPage').default as React.ComponentType,
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: () => require('../../../pages/settings/Wallet/ReportCardLostPage').default as React.ComponentType,
     [SCREENS.KEYBOARD_SHORTCUTS]: () => require('../../../pages/KeyboardShortcutsPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: () => require('../../../pages/settings/ExitSurvey/ExitSurveyReasonPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: () => require('../../../pages/settings/ExitSurvey/ExitSurveyResponsePage').default as React.ComponentType,
+    [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: () => require('../../../pages/settings/ExitSurvey/ExitSurveyConfirmPage').default as React.ComponentType,
 });
 
 const EnablePaymentsStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
