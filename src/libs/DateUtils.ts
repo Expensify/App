@@ -11,7 +11,6 @@ import {
     formatDistanceToNow,
     getDate,
     getDay,
-    getDayOfYear,
     isAfter,
     isBefore,
     isSameDay,
@@ -21,6 +20,7 @@ import {
     parse,
     set,
     setDefaultOptions,
+    startOfDay,
     startOfWeek,
     subDays,
     subMilliseconds,
@@ -698,9 +698,8 @@ const getDayValidationErrorKey = (inputDate: Date): string => {
     if (!inputDate) {
         return '';
     }
-    const currentYear = getDayOfYear(new Date());
-    const inputYear = getDayOfYear(inputDate);
-    if (inputYear < currentYear) {
+
+    if (isAfter(startOfDay(new Date()), startOfDay(inputDate))) {
         return 'common.error.invalidDateShouldBeFuture';
     }
     return '';

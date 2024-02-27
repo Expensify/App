@@ -1,8 +1,6 @@
 import Onyx from 'react-native-onyx';
-import type {KeyValueMapping, NullishDeep} from 'react-native-onyx';
-import type {OnyxFormKeyWithoutDraft} from '@components/Form/types';
-import FormUtils from '@libs/FormUtils';
-import type {OnyxFormKey} from '@src/ONYXKEYS';
+import type {NullishDeep} from 'react-native-onyx';
+import type {OnyxFormDraftKey, OnyxFormKey, OnyxValue} from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 function setIsLoading(formID: OnyxFormKey, isLoading: boolean) {
@@ -25,12 +23,12 @@ function clearErrorFields(formID: OnyxFormKey) {
     Onyx.merge(formID, {errorFields: null});
 }
 
-function setDraftValues(formID: OnyxFormKeyWithoutDraft, draftValues: NullishDeep<KeyValueMapping[`${OnyxFormKeyWithoutDraft}Draft`]>) {
-    Onyx.merge(FormUtils.getDraftKey(formID), draftValues);
+function setDraftValues(formID: OnyxFormKey, draftValues: NullishDeep<OnyxValue<OnyxFormDraftKey>>) {
+    Onyx.merge(`${formID}Draft`, draftValues);
 }
 
-function clearDraftValues(formID: OnyxFormKeyWithoutDraft) {
-    Onyx.set(FormUtils.getDraftKey(formID), {});
+function clearDraftValues(formID: OnyxFormKey) {
+    Onyx.set(`${formID}Draft`, null);
 }
 
 export {setDraftValues, setErrorFields, setErrors, clearErrors, clearErrorFields, setIsLoading, clearDraftValues};

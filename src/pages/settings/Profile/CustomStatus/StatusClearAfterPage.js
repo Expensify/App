@@ -8,7 +8,7 @@ import FormProvider from '@components/Form/FormProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
-import BaseListItem from '@components/SelectionList/BaseListItem';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps} from '@components/withCurrentUserPersonalDetails';
 import withLocalize from '@components/withLocalize';
@@ -54,21 +54,17 @@ function getSelectedStatusType(data) {
 }
 
 const useValidateCustomDate = (data) => {
-    const {translate} = useLocalize();
     const [customDateError, setCustomDateError] = useState('');
     const [customTimeError, setCustomTimeError] = useState('');
     const validate = () => {
         const {dateValidationErrorKey, timeValidationErrorKey} = ValidationUtils.validateDateTimeIsAtLeastOneMinuteInFuture(data);
 
-        const dateError = dateValidationErrorKey ? translate(dateValidationErrorKey) : '';
-        setCustomDateError(dateError);
-
-        const timeError = timeValidationErrorKey ? translate(timeValidationErrorKey) : '';
-        setCustomTimeError(timeError);
+        setCustomDateError(dateValidationErrorKey);
+        setCustomTimeError(timeValidationErrorKey);
 
         return {
-            dateError,
-            timeError,
+            dateValidationErrorKey,
+            timeValidationErrorKey,
         };
     };
 
@@ -160,10 +156,9 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
 
     const timePeriodOptions = useCallback(
         () =>
-            _.map(statusType, (item, index) => (
-                <BaseListItem
+            _.map(statusType, (item) => (
+                <RadioListItem
                     item={item}
-                    key={`${index}+${item.value}`}
                     onSelectRow={() => updateMode(item)}
                     showTooltip={false}
                     isFocused={item.isSelected}

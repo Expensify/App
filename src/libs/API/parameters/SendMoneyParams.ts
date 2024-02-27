@@ -1,15 +1,16 @@
-import type CONST from '@src/CONST';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 type SendMoneyParams = {
     iouReportID: string;
     chatReportID: string;
     reportActionID: string;
-    paymentMethodType: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+    paymentMethodType: PaymentMethodType;
     transactionID: string;
     newIOUReportDetails: string;
     createdReportActionID: string;
     reportPreviewReportActionID: string;
+    transactionThreadReportID: string;
+    createdReportActionIDForThread: string;
 };
 
 export default SendMoneyParams;
