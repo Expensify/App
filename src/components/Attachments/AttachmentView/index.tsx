@@ -213,7 +213,7 @@ function AttachmentView({
     }
 
     return (
-        <View style={[styles.defaultAttachmentView, ...(containerStyles as [])]}>
+        <View style={[styles.defaultAttachmentView, ...(containerStyles ?? [])]}>
             <View style={styles.mr2}>
                 <Icon
                     fill={theme.icon}
