@@ -1,7 +1,8 @@
 import type {ForwardedRef} from 'react';
-import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Animated, View} from 'react-native';
 import {Directions, Gesture, GestureDetector} from 'react-native-gesture-handler';
+import type {SvgProps} from 'react-native-svg';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Pressables from '@components/Pressable';
@@ -12,7 +13,6 @@ import * as Growl from '@libs/Growl';
 import type {GrowlRef} from '@libs/Growl';
 import useNativeDriver from '@libs/useNativeDriver';
 import CONST from '@src/CONST';
-import type { SvgProps } from 'react-native-svg';
 import GrowlNotificationContainer from './GrowlNotificationContainer';
 
 const INACTIVE_POSITION_Y = -255;
