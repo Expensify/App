@@ -296,7 +296,7 @@ const ONYXKEYS = {
         REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
         REPORT_ACTIONS_REACTIONS: 'reportActionsReactions_',
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
-        REPORT_DRAFT_LAST_MENTION: 'reportDraftLastMention_',
+        LAST_SELECTED_MENTION_SUGGESTION: 'reportDraftLastMention_',
         REPORT_DRAFT_COMMENT_NUMBER_OF_LINES: 'reportDraftCommentNumberOfLines_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
@@ -465,7 +465,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: OnyxTypes.ReportActionsDrafts;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS]: OnyxTypes.ReportActionReactions;
     [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT]: string;
-    [ONYXKEYS.COLLECTION.REPORT_DRAFT_LAST_MENTION]: string;
+    [ONYXKEYS.COLLECTION.LAST_SELECTED_MENTION_SUGGESTION]: string;
     [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES]: number;
     [ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE]: boolean;
     [ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING]: OnyxTypes.ReportUserIsTyping;

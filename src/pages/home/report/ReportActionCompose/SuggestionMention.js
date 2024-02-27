@@ -1,10 +1,10 @@
 import PropTypes from 'prop-types';
-import React, { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { withOnyx } from 'react-native-onyx';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MentionSuggestions from '@components/MentionSuggestions';
-import { usePersonalDetails } from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -35,7 +35,8 @@ const propTypes = {
     /** A ref to this component */
     forwardedRef: PropTypes.shape({current: PropTypes.shape({})}),
 
-    reportDraftLastMentionCollection: PropTypes.object.isRequired,
+    // eslint-disable-next-line react/require-default-props
+    lastSelectedMentionSuggestion: PropTypes.string,
 
     ...SuggestionProps.implementationBaseProps,
 };
@@ -57,7 +58,7 @@ function SuggestionMention({
     measureParentContainer,
     isComposerFocused,
     reportID,
-    reportDraftLastMentionCollection = {},
+    lastSelectedMentionSuggestion = '',
 }) {
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const {translate, formatPhoneNumber} = useLocalize();
@@ -71,8 +72,6 @@ function SuggestionMention({
         maxIndex: suggestionValues.suggestedMentions.length - 1,
         shouldExcludeTextAreaNodes: false,
     });
-
-    const reportDraftLastMention = reportDraftLastMentionCollection[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_LAST_MENTION}${reportID}`] || '';
 
     // Used to decide whether to block the suggestions list from showing to prevent flickering
     const shouldBlockCalc = useRef(false);
@@ -224,7 +223,7 @@ function SuggestionMention({
             let suggestionWord;
             let prefix;
 
-            if (reportDraftLastMention && (lastWord === reportDraftLastMention || !lastWord && secondToLastWord === reportDraftLastMention)) {
+            if (lastSelectedMentionSuggestion && (lastWord === lastSelectedMentionSuggestion || (!lastWord && secondToLastWord === lastSelectedMentionSuggestion))) {
                 resetSuggestions();
                 return;
             }
@@ -265,11 +264,11 @@ function SuggestionMention({
             }));
             setHighlightedMentionIndex(0);
         },
-        [getMentionOptions, personalDetails, resetSuggestions, setHighlightedMentionIndex, value, isComposerFocused, reportDraftLastMention],
+        [getMentionOptions, personalDetails, resetSuggestions, setHighlightedMentionIndex, value, isComposerFocused, lastSelectedMentionSuggestion],
     );
 
     useEffect(() => {
-        if (!value && reportDraftLastMention || !value.includes(reportDraftLastMention)) {
+        if ((!value && lastSelectedMentionSuggestion) || !value.includes(lastSelectedMentionSuggestion)) {
             Report.saveReportDraftLastMention(reportID, '');
         }
         if (value.length < previousValue.length) {
@@ -280,7 +279,7 @@ function SuggestionMention({
         }
 
         calculateMentionSuggestion(selection.end);
-    }, [selection, value, previousValue, calculateMentionSuggestion, reportDraftLastMention]);
+    }, [selection, value, previousValue, calculateMentionSuggestion, lastSelectedMentionSuggestion]);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         setSuggestionValues((prevState) => {
@@ -353,7 +352,7 @@ const SuggestionMentionWithRef = React.forwardRef((props, ref) => (
 SuggestionMentionWithRef.displayName = 'SuggestionMentionWithRef';
 
 export default withOnyx({
-    reportDraftLastMentionCollection: {
-        key: ONYXKEYS.COLLECTION.REPORT_DRAFT_LAST_MENTION,
+    lastSelectedMentionSuggestion: {
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.LAST_SELECTED_MENTION_SUGGESTION}${reportID}`,
     },
 })(SuggestionMentionWithRef);
