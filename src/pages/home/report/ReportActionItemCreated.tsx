@@ -10,7 +10,6 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
 import * as ReportUtils from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -97,7 +96,6 @@ ReportActionItemCreated.displayName = 'ReportActionItemCreated';
 export default withOnyx<ReportActionItemCreatedProps, ReportActionItemCreatedOnyxProps>({
     report: {
         key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        selector: reportWithoutHasDraftSelector,
     },
 
     policy: {
