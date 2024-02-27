@@ -2645,7 +2645,7 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 13,
             fontSize: 13,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
-            fontWeight: 400,
+            fontWeight: '400',
             lineHeight: 16,
             color: theme.textSupporting,
         },
@@ -4332,6 +4332,11 @@ const styles = (theme: ThemeColors) =>
             position: 'relative',
             alignSelf: 'center',
             overflow: 'hidden',
+        },
+
+        walletCardNumber: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
         },
 
         walletCardMenuItem: {
