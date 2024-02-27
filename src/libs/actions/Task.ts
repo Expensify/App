@@ -3,6 +3,8 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as API from '@libs/API';
+import type {CancelTaskParams, CompleteTaskParams, CreateTaskParams, EditTaskAssigneeParams, EditTaskParams, ReopenTaskParams} from '@libs/API/parameters';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
@@ -11,6 +13,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -226,21 +229,7 @@ function createTaskAndNavigate(
 
     clearOutTaskInfo();
 
-    type CreateTaskParameters = {
-        parentReportActionID?: string;
-        parentReportID?: string;
-        taskReportID?: string;
-        createdTaskReportActionID?: string;
-        title?: string;
-        description?: string;
-        assignee?: string;
-        assigneeAccountID?: number;
-        assigneeChatReportID?: string;
-        assigneeChatReportActionID?: string;
-        assigneeChatCreatedReportActionID?: string;
-    };
-
-    const parameters: CreateTaskParameters = {
+    const parameters: CreateTaskParams = {
         parentReportActionID: optimisticAddCommentReport.reportAction.reportActionID,
         parentReportID,
         taskReportID: optimisticTaskReport.reportID,
@@ -254,7 +243,7 @@ function createTaskAndNavigate(
         assigneeChatCreatedReportActionID: assigneeChatReportOnyxData?.optimisticChatCreatedReportAction?.reportActionID,
     };
 
-    API.write('CreateTask', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.CREATE_TASK, parameters, {optimisticData, successData, failureData});
 
     Navigation.dismissModal(parentReportID);
 }
@@ -316,17 +305,13 @@ function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
         },
     ];
 
-    type CompleteTaskParameters = {
-        taskReportID?: string;
-        completedTaskReportActionID?: string;
-    };
-
-    const parameters: CompleteTaskParameters = {
+    const parameters: CompleteTaskParams = {
         taskReportID,
         completedTaskReportActionID: completedTaskReportAction.reportActionID,
     };
 
-    API.write('CompleteTask', parameters, {optimisticData, successData, failureData});
+    playSound(SOUNDS.SUCCESS);
+    API.write(WRITE_COMMANDS.COMPLETE_TASK, parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -388,17 +373,12 @@ function reopenTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
         },
     ];
 
-    type ReopenTaskParameters = {
-        taskReportID?: string;
-        reopenedTaskReportActionID?: string;
-    };
-
-    const parameters: ReopenTaskParameters = {
+    const parameters: ReopenTaskParams = {
         taskReportID,
         reopenedTaskReportActionID: reopenedTaskReportAction.reportActionID,
     };
 
-    API.write('ReopenTask', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.REOPEN_TASK, parameters, {optimisticData, successData, failureData});
 }
 
 function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task) {
@@ -461,21 +441,14 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
         },
     ];
 
-    type EditTaskParameters = {
-        taskReportID?: string;
-        title?: string;
-        description?: string;
-        editedTaskReportActionID?: string;
-    };
-
-    const parameters: EditTaskParameters = {
+    const parameters: EditTaskParams = {
         taskReportID: report.reportID,
         title: reportName,
         description: reportDescription,
         editedTaskReportActionID: editTaskReportAction.reportActionID,
     };
 
-    API.write('EditTask', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.EDIT_TASK, parameters, {optimisticData, successData, failureData});
 }
 
 function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assigneeEmail: string, assigneeAccountID = 0, assigneeChatReport: OnyxEntry<OnyxTypes.Report> = null) {
@@ -555,16 +528,7 @@ function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assi
         failureData.push(...assigneeChatReportOnyxData.failureData);
     }
 
-    type EditTaskAssigneeParameters = {
-        taskReportID?: string;
-        assignee?: string;
-        editedTaskReportActionID?: string;
-        assigneeChatReportID?: string;
-        assigneeChatReportActionID?: string;
-        assigneeChatCreatedReportActionID?: string;
-    };
-
-    const parameters: EditTaskAssigneeParameters = {
+    const parameters: EditTaskAssigneeParams = {
         taskReportID: report.reportID,
         assignee: assigneeEmail,
         editedTaskReportActionID: editTaskReportAction.reportActionID,
@@ -573,7 +537,7 @@ function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assi
         assigneeChatCreatedReportActionID: assigneeChatReportOnyxData?.optimisticChatCreatedReportAction?.reportActionID,
     };
 
-    API.write('EditTaskAssignee', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.EDIT_TASK_ASSIGNEE, parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -718,11 +682,7 @@ function getShareDestination(reportID: string, reports: OnyxCollection<OnyxTypes
 
     const participantAccountIDs = report?.participantAccountIDs ?? [];
     const isMultipleParticipant = participantAccountIDs.length > 1;
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
-        // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
-        OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails),
-        isMultipleParticipant,
-    );
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
 
     let subtitle = '';
     if (ReportUtils.isChatReport(report) && ReportUtils.isDM(report) && ReportUtils.hasSingleParticipant(report)) {
@@ -771,7 +731,6 @@ function deleteTask(taskReportID: string, taskTitle: string, originalStateNum: n
         ],
         errors: undefined,
         linkMetadata: [],
-        reportActionID: '',
     };
     const optimisticReportActions = {
         [parentReportAction.reportActionID]: optimisticReportAction,
@@ -793,8 +752,7 @@ function deleteTask(taskReportID: string, taskTitle: string, originalStateNum: n
             key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`,
             value: {
                 lastMessageText: ReportActionsUtils.getLastVisibleMessage(parentReport?.reportID ?? '', optimisticReportActions as OnyxTypes.ReportActions).lastMessageText ?? '',
-                lastVisibleActionCreated:
-                    ReportActionsUtils.getLastVisibleAction(parentReport?.reportID ?? '', optimisticReportActions as OnyxTypes.ReportActions)?.childLastVisibleActionCreated ?? 'created',
+                lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(parentReport?.reportID ?? '', optimisticReportActions as OnyxTypes.ReportActions)?.created,
             },
         },
         {
@@ -872,17 +830,12 @@ function deleteTask(taskReportID: string, taskTitle: string, originalStateNum: n
         },
     ];
 
-    type CancelTaskParameters = {
-        cancelledTaskReportActionID?: string;
-        taskReportID?: string;
-    };
-
-    const parameters: CancelTaskParameters = {
+    const parameters: CancelTaskParams = {
         cancelledTaskReportActionID: optimisticReportActionID,
         taskReportID,
     };
 
-    API.write('CancelTask', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.CANCEL_TASK, parameters, {optimisticData, successData, failureData});
 
     if (shouldDeleteTaskReport) {
         Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(parentReport?.reportID ?? ''));
@@ -923,8 +876,13 @@ function getTaskOwnerAccountID(taskReport: OnyxEntry<OnyxTypes.Report>): number 
 /**
  * Check if you're allowed to modify the task - anyone that has write access to the report can modify the task
  */
-function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number, policyRole: PolicyValue | undefined): boolean {
+function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number): boolean {
     if (ReportUtils.isCanceledTaskReport(taskReport)) {
+        return false;
+    }
+
+    const parentReport = ReportUtils.getParentReport(taskReport);
+    if (ReportUtils.isArchivedRoom(parentReport)) {
         return false;
     }
 
@@ -932,16 +890,7 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
         return true;
     }
 
-    const parentReport = ReportUtils.getParentReport(taskReport);
-
-    if (policyRole && !isEmptyObject(parentReport) && (ReportUtils.isChatRoom(parentReport) || ReportUtils.isPolicyExpenseChat(parentReport)) && policyRole !== CONST.POLICY.ROLE.ADMIN) {
-        return false;
-    }
-
-    // If you don't have access to the task report (maybe haven't opened it yet), check if you can access the parent report
-    // - If the parent report is an #admins only room
-    // - If you are a policy admin
-    return !isEmptyObject(parentReport) && ReportUtils.isAllowedToComment(parentReport);
+    return !isEmptyObject(taskReport) && ReportUtils.isAllowedToComment(taskReport);
 }
 
 function clearTaskErrors(reportID: string) {

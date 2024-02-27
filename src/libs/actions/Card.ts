@@ -1,7 +1,8 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
-import * as Localize from '@libs/Localize';
+import type {ActivatePhysicalExpensifyCardParams, ReportVirtualExpensifyCardFraudParams, RequestReplacementExpensifyCardParams, RevealExpensifyCardDetailsParams} from '@libs/API/parameters';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Response} from '@src/types/onyx';
@@ -39,15 +40,11 @@ function reportVirtualExpensifyCardFraud(cardID: number) {
         },
     ];
 
-    type ReportVirtualExpensifyCardFraudParams = {
-        cardID: number;
-    };
-
     const parameters: ReportVirtualExpensifyCardFraudParams = {
         cardID,
     };
 
-    API.write('ReportVirtualExpensifyCardFraud', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.REPORT_VIRTUAL_EXPENSIFY_CARD_FRAUD, parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -87,17 +84,12 @@ function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReas
         },
     ];
 
-    type RequestReplacementExpensifyCardParams = {
-        cardID: number;
-        reason: string;
-    };
-
     const parameters: RequestReplacementExpensifyCardParams = {
         cardID,
         reason,
     };
 
-    API.write('RequestReplacementExpensifyCard', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.REQUEST_REPLACEMENT_EXPENSIFY_CARD, parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -141,17 +133,12 @@ function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: numbe
         },
     ];
 
-    type ActivatePhysicalExpensifyCardParams = {
-        cardLastFourDigits: string;
-        cardID: number;
-    };
-
     const parameters: ActivatePhysicalExpensifyCardParams = {
         cardLastFourDigits,
         cardID,
     };
 
-    API.write('ActivatePhysicalExpensifyCard', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD, parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -173,21 +160,22 @@ function clearCardListErrors(cardID: number) {
  */
 function revealVirtualCardDetails(cardID: number): Promise<Response> {
     return new Promise((resolve, reject) => {
-        type RevealExpensifyCardDetailsParams = {cardID: number};
-
         const parameters: RevealExpensifyCardDetailsParams = {cardID};
 
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects('RevealExpensifyCardDetails', parameters)
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_CARD_DETAILS, parameters)
             .then((response) => {
                 if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                    reject(Localize.translateLocal('cardPage.cardDetailsLoadingFailure'));
+                    // eslint-disable-next-line prefer-promise-reject-errors
+                    reject('cardPage.cardDetailsLoadingFailure');
                     return;
                 }
                 resolve(response);
             })
-            .catch(() => reject(Localize.translateLocal('cardPage.cardDetailsLoadingFailure')));
+            // eslint-disable-next-line prefer-promise-reject-errors
+            .catch(() => reject('cardPage.cardDetailsLoadingFailure'));
     });
 }
 
 export {requestReplacementExpensifyCard, activatePhysicalExpensifyCard, clearCardListErrors, reportVirtualExpensifyCardFraud, revealVirtualCardDetails};
+export type {ReplacementReason};

@@ -5,16 +5,20 @@ import type BankAccount from './BankAccount';
 import type Beta from './Beta';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type Card from './Card';
+import type {CardList} from './Card';
+import type Log from './Console';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
+import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type Download from './Download';
-import type {AddDebitCardForm, DateOfBirthForm} from './Form';
-import type Form from './Form';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
+import type IntroSelected from './IntroSelected';
+import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type IOU from './IOU';
+import type LastPaymentMethod from './LastPaymentMethod';
 import type Locale from './Locale';
 import type {LoginList} from './Login';
 import type Login from './Login';
@@ -27,18 +31,18 @@ import type {PersonalDetailsList} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
 import type PlaidData from './PlaidData';
 import type Policy from './Policy';
+import type {TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
 import type {PolicyMembers} from './PolicyMember';
 import type PolicyMember from './PolicyMember';
 import type {PolicyReportField, PolicyReportFields} from './PolicyReportField';
-import type {PolicyTag, PolicyTags} from './PolicyTag';
+import type {PolicyTag, PolicyTagList, PolicyTags} from './PolicyTag';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
 import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
 import type RecentlyUsedTags from './RecentlyUsedTags';
 import type RecentWaypoint from './RecentWaypoint';
 import type ReimbursementAccount from './ReimbursementAccount';
-import type ReimbursementAccountDraft from './ReimbursementAccountDraft';
 import type Report from './Report';
 import type {ReportActions} from './ReportAction';
 import type ReportAction from './ReportAction';
@@ -66,25 +70,26 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
+import type WorkspaceRateAndUnit from './WorkspaceRateAndUnit';
 
 export type {
     Account,
     AccountData,
-    AddDebitCardForm,
     BankAccount,
     BankAccountList,
     Beta,
     BlockedFromConcierge,
     Card,
+    CardList,
     Credentials,
     Currency,
+    CurrencyList,
     CustomStatusDraft,
-    DateOfBirthForm,
     Download,
-    Form,
     FrequentlyUsedEmoji,
     Fund,
     FundList,
+    IntroSelected,
     IOU,
     Locale,
     Login,
@@ -105,12 +110,12 @@ export type {
     PolicyMembers,
     PolicyTag,
     PolicyTags,
+    PolicyTagList,
     PrivatePersonalDetails,
     RecentWaypoint,
     RecentlyUsedCategories,
     RecentlyUsedTags,
     ReimbursementAccount,
-    ReimbursementAccountDraft,
     Report,
     ReportAction,
     ReportActionReactions,
@@ -125,6 +130,9 @@ export type {
     SecurityGroup,
     Session,
     Task,
+    TaxRate,
+    TaxRates,
+    TaxRatesWithDefault,
     Transaction,
     TransactionViolation,
     TransactionViolations,
@@ -138,8 +146,12 @@ export type {
     WalletStatement,
     WalletTerms,
     WalletTransfer,
+    WorkspaceRateAndUnit,
     ReportUserIsTyping,
     PolicyReportField,
     PolicyReportFields,
     RecentlyUsedReportFields,
+    LastPaymentMethod,
+    InvitedEmailsToAccountIDs,
+    Log,
 };

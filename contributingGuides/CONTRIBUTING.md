@@ -123,7 +123,7 @@ Additionally if you want to discuss an idea with the open source community witho
     ```
 11. [Open a pull request](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork), and make sure to fill in the required fields.
 12. An Expensify engineer and a member from the Contributor-Plus team will be assigned to your pull request automatically to review.
-13. Daily updates on weekdays are highly recommended. If you know you won’t be able to provide updates for > 1 week, please comment on the PR or issue how long you plan to be out so that we may plan accordingly. We understand everyone needs a little vacation here and there. Any issue that doesn't receive an update for 1 full week may be considered abandoned and the original contract terminated.
+13. Daily updates on weekdays are highly recommended. If you know you won’t be able to provide updates within 48 hours, please comment on the PR or issue stating how long you plan to be out so that we may plan accordingly. We understand everyone needs a little vacation here and there. Any issue that doesn't receive an update for 5 days (including weekend days) may be considered abandoned and the original contract terminated.
 
 #### Submit your pull request for final review
 14. When you are ready to submit your pull request for final review, make sure the following checks pass:

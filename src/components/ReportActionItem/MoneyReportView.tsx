@@ -1,3 +1,4 @@
+import Str from 'expensify-common/lib/str';
 import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
@@ -8,7 +9,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,11 +19,14 @@ import * as ReportUtils from '@libs/ReportUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
-import type {PolicyReportField, Report} from '@src/types/onyx';
+import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
 
 type MoneyReportViewProps = {
     /** The report currently being looked at */
     report: Report;
+
+    /** Policy that the report belongs to */
+    policy: Policy;
 
     /** Policy report fields */
     policyReportFields: PolicyReportField[];
@@ -32,19 +35,19 @@ type MoneyReportViewProps = {
     shouldShowHorizontalRule: boolean;
 };
 
-function MoneyReportView({report, policyReportFields, shouldShowHorizontalRule}: MoneyReportViewProps) {
+function MoneyReportView({report, policy, policyReportFields, shouldShowHorizontalRule}: MoneyReportViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {canUseReportFields} = usePermissions();
     const isSettled = ReportUtils.isSettled(report.reportID);
+    const isTotalUpdated = ReportUtils.hasUpdatedTotal(report);
 
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(report);
 
     const shouldShowBreakdown = nonReimbursableSpend && reimbursableSpend;
-    const formattedTotalAmount = CurrencyUtils.convertToDisplayString(totalDisplaySpend, report.currency, ReportUtils.hasOnlyDistanceRequestTransactions(report.reportID));
+    const formattedTotalAmount = CurrencyUtils.convertToDisplayString(totalDisplaySpend, report.currency);
     const formattedOutOfPocketAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, report.currency);
     const formattedCompanySpendAmount = CurrencyUtils.convertToDisplayString(nonReimbursableSpend, report.currency);
 
@@ -55,29 +58,34 @@ function MoneyReportView({report, policyReportFields, shouldShowHorizontalRule}:
         StyleUtils.getColorStyle(theme.textSupporting),
     ];
 
-    const sortedPolicyReportFields = useMemo(
-        () => policyReportFields.sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight),
-        [policyReportFields],
-    );
+    const sortedPolicyReportFields = useMemo<PolicyReportField[]>((): PolicyReportField[] => {
+        const fields = ReportUtils.getAvailableReportFields(report, policyReportFields);
+        return fields.sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight);
+    }, [policyReportFields, report]);
 
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>
             <AnimatedEmptyStateBackground />
             <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth, true)]}>
-                {canUseReportFields &&
+                {ReportUtils.reportFieldsEnabled(report) &&
                     sortedPolicyReportFields.map((reportField) => {
-                        const title = ReportUtils.getReportFieldTitle(report, reportField);
+                        const isTitleField = ReportUtils.isReportFieldOfTypeTitle(reportField);
+                        const fieldValue = isTitleField ? report.reportName : reportField.value ?? reportField.defaultValue;
+                        const isFieldDisabled = ReportUtils.isReportFieldDisabled(report, reportField, policy);
+
                         return (
                             <OfflineWithFeedback
                                 pendingAction={report.pendingFields?.[reportField.fieldID]}
+                                errors={report.errorFields?.[reportField.fieldID]}
+                                errorRowStyles={styles.ph5}
                                 key={`menuItem-${reportField.fieldID}`}
                             >
                                 <MenuItemWithTopDescription
-                                    description={reportField.name}
-                                    title={title}
+                                    description={Str.UCFirst(reportField.name)}
+                                    title={fieldValue}
                                     onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '', reportField.fieldID))}
                                     shouldShowRightIcon
-                                    disabled={false}
+                                    disabled={isFieldDisabled}
                                     wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                                     shouldGreyOutWhenDisabled={false}
                                     numberOfLinesTitle={0}
@@ -110,7 +118,7 @@ function MoneyReportView({report, policyReportFields, shouldShowHorizontalRule}:
                         )}
                         <Text
                             numberOfLines={1}
-                            style={[styles.taskTitleMenuItem, styles.alignSelfCenter]}
+                            style={[styles.taskTitleMenuItem, styles.alignSelfCenter, !isTotalUpdated && styles.offlineFeedback.pending]}
                         >
                             {formattedTotalAmount}
                         </Text>
