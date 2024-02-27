@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
@@ -12,20 +11,9 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import VideoPlayerThumbnailProps from './types';
 
-const propTypes = {
-    onPress: PropTypes.func.isRequired,
-
-    accessibilityLabel: PropTypes.string.isRequired,
-
-    thumbnailUrl: PropTypes.string,
-};
-
-const defaultProps = {
-    thumbnailUrl: undefined,
-};
-
-function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel}) {
+function VideoPlayerThumbnail({thumbnailUrl = undefined, onPress, accessibilityLabel}: VideoPlayerThumbnailProps) {
     const styles = useThemeStyles();
 
     return (
@@ -48,9 +36,7 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel}) {
                         onPress={onPress}
                         onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={() => ControlSelection.unblock()}
-                        onLongPress={(event) =>
-                            showContextMenuForReport(event, anchor, (report && report.reportID) || '', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))
-                        }
+                        onLongPress={(event) => showContextMenuForReport(event, anchor, report?.reportID ?? '', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
                     >
                         <View style={[styles.videoThumbnailPlayButton]}>
                             <Icon
@@ -68,8 +54,6 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel}) {
     );
 }
 
-VideoPlayerThumbnail.propTypes = propTypes;
-VideoPlayerThumbnail.defaultProps = defaultProps;
 VideoPlayerThumbnail.displayName = 'VideoPlayerThumbnail';
 
 export default VideoPlayerThumbnail;
