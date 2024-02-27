@@ -1051,6 +1051,16 @@ export default {
         editor: {
             submissionFrequency: 'Choose how long Expensify should wait before sharing error-free spend.',
         },
+        frequencies: {
+            weekly: 'Weekly',
+            monthly: 'Monthly',
+            twiceAMonth: 'Twice a month',
+            byTrip: 'By trip',
+            manually: 'Manually',
+            daily: 'Daily',
+            lastDayOfMonth: 'Last day of the month',
+            lastBusinessDayOfMonth: 'Last business day of the month',
+        },
     },
     reportFraudPage: {
         title: 'Report virtual card fraud',

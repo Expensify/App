@@ -1047,6 +1047,16 @@ export default {
         editor: {
             submissionFrequency: 'Elige cuánto tiempo Expensify debe esperar antes de compartir los gastos sin errores.',
         },
+        frequencies: {
+            weekly: 'Semanal',
+            monthly: 'Mensual',
+            twiceAMonth: 'Dos veces al mes',
+            byTrip: 'Por viaje',
+            manually: 'Manualmente',
+            daily: 'Diario',
+            lastDayOfMonth: 'Último día del mes',
+            lastBusinessDayOfMonth: 'Último día hábil del mes',
+        },
     },
     reportFraudPage: {
         title: 'Reportar fraude con la tarjeta virtual',
