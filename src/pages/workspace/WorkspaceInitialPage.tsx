@@ -205,7 +205,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
     return (
         <ScreenWrapper
             testID={WorkspaceInitialPage.displayName}
-            includePaddingTop={false}
             includeSafeAreaPaddingBottom={false}
             style={[styles.pb0]}
         >
@@ -217,7 +216,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
                 <HeaderWithBackButton
                     // style={[styles.ph5, styles.mb5]}
                     title={policyName}
-                    onBackButtonPress={Navigation.closeFullScreen}
+                    onBackButtonPress={Navigation.dismissModal}
                     policyAvatar={policyAvatar}
                 />
 

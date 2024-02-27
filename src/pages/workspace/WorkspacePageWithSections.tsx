@@ -122,7 +122,7 @@ function WorkspacePageWithSections({
         Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
 
         // Needed when workspace with given policyID does not exist
-        Navigation.navigateWithSwitchPolicyID({route: ROUTES.ALL_SETTINGS});
+        // Navigation.navigateWithSwitchPolicyID({route: ROUTES.ALL_SETTINGS});
     };
 
     useEffect(() => {

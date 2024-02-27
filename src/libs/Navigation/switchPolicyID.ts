@@ -10,7 +10,6 @@ import SCREENS from '@src/SCREENS';
 import getStateFromPath from './getStateFromPath';
 import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
 import linkingConfig from './linkingConfig';
-import TAB_TO_CENTRAL_PANE_MAPPING from './linkingConfig/TAB_TO_CENTRAL_PANE_MAPPING';
 import type {NavigationRoot, RootStackParamList, StackNavigationAction, State, SwitchPolicyIDParams} from './types';
 
 type ActionPayloadParams = {
@@ -110,7 +109,7 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
             });
         } else {
             const topmostCentralPaneRoute = getTopmostCentralPaneRoute(rootState);
-            let screen = topmostCentralPaneRoute?.name;
+            const screen = topmostCentralPaneRoute?.name;
             const params: CentralPaneRouteParams = {...topmostCentralPaneRoute?.params};
             const isWorkspaceScreen = screen && Object.values(SCREENS.WORKSPACE).includes(screen as ValueOf<typeof SCREENS.WORKSPACE>);
 
@@ -123,9 +122,9 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
             }
 
             // We need to redirect non admin users to profile screen, when switching workspace.
-            if (!isPolicyAdmin && isWorkspaceScreen && screen !== SCREENS.WORKSPACE.PROFILE) {
-                screen = SCREENS.WORKSPACE.PROFILE;
-            }
+            // if (!isPolicyAdmin && isWorkspaceScreen && screen !== SCREENS.WORKSPACE.PROFILE) {
+            //     screen = SCREENS.WORKSPACE.PROFILE;
+            // }
 
             // If the user is on the home page and changes the current workspace, then should be displayed a report from the selected workspace.
             // To achieve that, it's necessary to navigate without the reportID param.

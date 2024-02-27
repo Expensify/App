@@ -291,7 +291,6 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options) => {
 
     const state = getStateFromPath(pathWithoutPolicyID, options) as PartialState<NavigationState<RootStackParamList>>;
     replacePathInNestedState(state, path);
-
     if (state === undefined) {
         throw new Error('Unable to parse path');
     }

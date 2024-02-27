@@ -15,12 +15,10 @@ const removePolicyIDParamFromState = (state: State<RootStackParamList>) => {
 };
 
 const customGetPathFromState: typeof getPathFromState = (state, options) => {
-    const stateWithoutPolicyID = removePolicyIDParamFromState(state as State<RootStackParamList>);
     // For the Home page we should remove policyID from the params,
-    const path = getPathFromState(stateWithoutPolicyID, options);
+    const path = getPathFromState(state, options);
     const policyIDFromState = getPolicyIDFromState(state as State<RootStackParamList>);
-    const isWorkspaceSettingsOpened = getTopmostBottomTabRoute(state as State<RootStackParamList>)?.name === SCREENS.WORKSPACE.INITIAL && path.includes('workspace');
-    return `${policyIDFromState && !isWorkspaceSettingsOpened ? `/w/${policyIDFromState}` : ''}${path}`;
+    return `${policyIDFromState ? `/w/${policyIDFromState}` : ''}${path}`;
 };
 
 export default customGetPathFromState;

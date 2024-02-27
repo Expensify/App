@@ -19,17 +19,18 @@ const screenOptions: StackNavigationOptions = {
 
 function BottomTabNavigator() {
     const activeRoute = useNavigationState(getTopmostCentralPaneRoute);
+
     return (
         <ActiveRouteContext.Provider value={activeRoute?.name ?? ''}>
             <Tab.Navigator screenOptions={screenOptions}>
                 <Tab.Screen
+                    name={SCREENS.HOME}
+                    component={SidebarScreen}
+                />
+                <Tab.Screen
                     name={SCREENS.SETTINGS.ROOT}
                     // options={screenOptions.homeScreen}
                     getComponent={loadInitialSettingsPage}
-                />
-                <Tab.Screen
-                    name={SCREENS.HOME}
-                    component={SidebarScreen}
                 />
             </Tab.Navigator>
         </ActiveRouteContext.Provider>
