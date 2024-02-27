@@ -19,11 +19,11 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import setCursorPosition from './setCursorPosition';
 
-type MinHrRefsType = {refHour: TextInput | null; minuteRef: TextInput | null};
+type MinHrRefs = {refHour: TextInput | null; minuteRef: TextInput | null};
 
 type TimePickerProps = {
     /** Refs forwarded to the TextInputWithCurrencySymbol */
-    forwardedRef?: ForwardedRef<{refHour: TextInput | null; minuteRef: TextInput | null}>;
+    forwardedRef?: ForwardedRef<MinHrRefs>;
 
     /** Default value for the inputs */
     defaultValue?: string;
@@ -559,7 +559,7 @@ function TimePicker({forwardedRef, defaultValue = '', onSubmit, onInputChange = 
 
 TimePicker.displayName = 'TimePicker';
 
-const TimePickerWithRef = React.forwardRef((props: Omit<TimePickerProps, 'forwardedRef'>, ref: ForwardedRef<MinHrRefsType>) => (
+const TimePickerWithRef = React.forwardRef((props: Omit<TimePickerProps, 'forwardedRef'>, ref: ForwardedRef<MinHrRefs>) => (
     <TimePicker
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
