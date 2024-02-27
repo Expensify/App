@@ -3,6 +3,7 @@ import React, {useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -67,6 +68,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             textInputLabel={shouldShowTextInput && translate('common.search')}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
+            ListItem={RadioListItem}
             initiallyFocusedOptionKey={selectedOptionKey}
         />
     );

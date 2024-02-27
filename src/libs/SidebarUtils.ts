@@ -234,7 +234,7 @@ function getOptionData({
     result.isExpenseRequest = ReportUtils.isExpenseRequest(report);
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
-    result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : undefined;
+    result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
     result.brickRoadIndicator = hasErrors || hasViolations ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
@@ -242,7 +242,9 @@ function getOptionData({
     result.policyID = report.policyID;
     result.stateNum = report.stateNum;
     result.statusNum = report.statusNum;
-    result.isUnread = ReportUtils.isUnread(report);
+    // When the only message of a report is deleted lastVisibileActionCreated is not reset leading to wrongly
+    // setting it Unread so we add additional condition here to avoid empty chat LHN from being bold.
+    result.isUnread = ReportUtils.isUnread(report) && !!report.lastActorAccountID;
     result.isUnreadWithMention = ReportUtils.isUnreadWithMention(report);
     result.hasDraftComment = report.hasDraft;
     result.isPinned = report.isPinned;
