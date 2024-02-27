@@ -1032,7 +1032,6 @@ export default {
         delaySubmissionDescription: 'Los gastos se comparten de inmediato para una mejor visibilidad del gasto. Establece una cadencia más lenta si es necesario.',
         submissionFrequency: 'Frecuencia de envíos',
         submissionFrequencyDateOfMonth: 'Fecha del mes',
-        submissionFrequencyDayOfMonth: 'Día del mes',
         weeklyFrequency: 'Semanal',
         monthlyFrequency: 'Mensual',
         twiceAMonthFrequency: 'Dos veces al mes',
