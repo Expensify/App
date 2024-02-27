@@ -60,6 +60,7 @@ type CustomLHNOptionsListProps = {
     /** Callback to fire when the list is laid out */
     onFirstItemRendered: () => void;
 
+    /** Report IDs with errors mapping to their corresponding error objects */
     reportIDsWithErrors: Record<string, OnyxCommon.Errors>;
 };
 
