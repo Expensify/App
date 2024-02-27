@@ -72,5 +72,3 @@ jobs:
         # run only when merged to main
         if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'graphite-testing-script'
         run: echo -e "${{ steps.saveGraphiteString.outputs.GRAPHITE_STRING }}" | nc "$GRAPHITE_SERVER" "$GRAPHITE_PORT"
-
-      # Just adding comment to create PR to graphite-testing-script branch to test the github action flow
