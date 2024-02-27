@@ -95,7 +95,16 @@ function IOURequestStepConfirmation({
     const transactionTaxCode = transaction.taxRate && transaction.taxRate.keyForList;
     const transactionTaxAmount = transaction.taxAmount;
     const requestType = TransactionUtils.getRequestType(transaction);
-    const headerTitle = iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.split') : translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
+    const headerTitle = useMemo(() => {
+        if (iouType === CONST.IOU.TYPE.SPLIT) {
+            return translate('iou.splitBill');
+        }
+        if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
+            return 'Track Expense';
+        }
+        return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
+    }
+        , [iouType, transaction, translate]);
     const participants = useMemo(
         () =>
             _.map(transaction.participants, (participant) => {
@@ -407,7 +416,7 @@ function IOURequestStepConfirmation({
                     <HeaderWithBackButton
                         title={headerTitle}
                         onBackButtonPress={navigateBack}
-                        shouldShowThreeDotsButton={requestType === CONST.IOU.REQUEST_TYPE.MANUAL && iouType === CONST.IOU.TYPE.REQUEST}
+                        shouldShowThreeDotsButton={requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.TRACK_EXPENSE)}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                         threeDotsMenuItems={[
                             {
