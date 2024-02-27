@@ -17,7 +17,6 @@ import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
-import KeyboardShortcut from '@libs/KeyboardShortcut';
 import setSelection from '@libs/setSelection';
 import CONST from '@src/CONST';
 import {defaultProps as optionsSelectorDefaultProps, propTypes as optionsSelectorPropTypes} from './optionsSelectorPropTypes';
@@ -72,8 +71,6 @@ function BaseOptionsSelector(props) {
     const relatedTarget = useRef(null);
     const listRef = useRef();
     const textInputRef = useRef();
-    const enterSubscription = useRef();
-    const CTRLEnterSubscription = useRef();
     const focusTimeout = useRef();
     const prevSelectedOptions = useRef(props.selectedOptions);
     const prevValue = useRef(value);
@@ -231,51 +228,6 @@ function BaseOptionsSelector(props) {
         document.addEventListener('focusout', handleFocusOut);
     };
 
-    const subscribeToEnterShortcut = () => {
-        const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
-        enterSubscription.current = KeyboardShortcut.subscribe(
-            enterConfig.shortcutKey,
-            selectFocusedOption,
-            enterConfig.descriptionKey,
-            enterConfig.modifiers,
-            true,
-            () => !allOptions[focusedIndex],
-        );
-    };
-
-    const subscribeToCtrlEnterShortcut = () => {
-        const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
-        CTRLEnterSubscription.current = KeyboardShortcut.subscribe(
-            CTRLEnterConfig.shortcutKey,
-            () => {
-                if (props.canSelectMultipleOptions) {
-                    props.onConfirmSelection();
-                    return;
-                }
-
-                const localFocusedOption = allOptions[focusedIndex];
-                if (!localFocusedOption) {
-                    return;
-                }
-
-                selectRow(localFocusedOption);
-            },
-            CTRLEnterConfig.descriptionKey,
-            CTRLEnterConfig.modifiers,
-            true,
-        );
-    };
-
-    const unSubscribeFromKeyboardShortcut = () => {
-        if (enterSubscription.current) {
-            enterSubscription.current();
-        }
-
-        if (CTRLEnterSubscription.current) {
-            CTRLEnterSubscription.current();
-        }
-    };
-
     const selectOptions = useCallback(() => {
         if (props.canSelectMultipleOptions) {
             props.onConfirmSelection();
@@ -295,8 +247,12 @@ function BaseOptionsSelector(props) {
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         shouldBubble: !allOptions[focusedIndex],
         captureOnInputs: true,
+        isActive: !disableEnterShortCut,
     });
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, selectOptions, {captureOnInputs: true});
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, selectOptions, {
+        captureOnInputs: true,
+        isActive: isFocused,
+    });
 
     /**
      * Scrolls to the focused index within the SectionList
@@ -334,11 +290,9 @@ function BaseOptionsSelector(props) {
     );
 
     useEffect(() => {
-        subscribeToEnterShortcut();
-        subscribeToCtrlEnterShortcut();
         subscribeActiveElement();
 
-        if (props.isFocused && props.autoFocus && textInputRef.current) {
+        if (isFocused && props.autoFocus && textInputRef.current) {
             focusTimeout.current = setTimeout(() => {
                 textInputRef.current.focus();
             }, CONST.ANIMATED_TRANSITION);
@@ -350,31 +304,10 @@ function BaseOptionsSelector(props) {
             if (focusTimeout.current) {
                 clearTimeout(focusTimeout.current);
             }
-
-            unSubscribeFromKeyboardShortcut();
         };
         // we want to run this effect only once, when the component is mounted
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
-    useEffect(() => {
-        // Unregister the shortcut before registering a new one to avoid lingering shortcut listener
-        enterSubscription.current();
-        if (!disableEnterShortCut) {
-            subscribeToEnterShortcut();
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [disableEnterShortCut]);
-
-    useEffect(() => {
-        if (props.isFocused) {
-            subscribeToEnterShortcut();
-            subscribeToCtrlEnterShortcut();
-        } else {
-            unSubscribeFromKeyboardShortcut();
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.isFocused]);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
