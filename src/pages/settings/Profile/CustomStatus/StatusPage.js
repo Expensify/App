@@ -48,7 +48,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
     const [brickRoadIndicator, setBrickRoadIndicator] = useState('');
     const currentUserEmojiCode = lodashGet(currentUserPersonalDetails, 'status.emojiCode', '');
     const currentUserStatusText = lodashGet(currentUserPersonalDetails, 'status.text', '');
-    const currentUserClearAfter = DateUtils.formatUTCToLocal(lodashGet(currentUserPersonalDetails, 'status.clearAfter', ''), false);
+    const currentUserClearAfter = DateUtils.formatUTCToLocal(lodashGet(currentUserPersonalDetails, 'status.clearAfter', ''));
     const draftEmojiCode = lodashGet(draftStatus, 'emojiCode');
     const draftText = lodashGet(draftStatus, 'text');
     const draftClearAfter = lodashGet(draftStatus, 'clearAfter');
