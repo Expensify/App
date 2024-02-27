@@ -396,7 +396,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
 
         Policy.updateWorkspaceMembersRole(route.params.policyID, accountIDsToRemove, role);
         setSelectedEmployees([]);
-    }
+    };
 
     const getBulkActionsButtonOptions = () => {
         const iconSettings = {
