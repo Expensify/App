@@ -6,6 +6,7 @@ import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete'
 import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import LocationErrorMessage from '@components/LocationErrorMessage';
+import type {State} from '@components/StatePicker/StateSelectorModal';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -48,7 +49,7 @@ function AddressSearch(
             street: 'addressStreet',
             street2: 'addressStreet2',
             city: 'addressCity',
-            state: 'addressState',
+            state: 'addressState' as State,
             zipCode: 'addressZipCode',
             lat: 'addressLat',
             lng: 'addressLng',

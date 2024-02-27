@@ -1,8 +1,8 @@
 import type {RefObject} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, View, ViewStyle} from 'react-native';
 import type {Place} from 'react-native-google-places-autocomplete';
+import type {State} from '@components/StatePicker/StateSelectorModal';
 import type {MaybePhraseKey} from '@libs/Localize';
-import {State} from '@libs/Navigation/types';
 import type Locale from '@src/types/onyx/Locale';
 
 type CurrentLocationButtonProps = {

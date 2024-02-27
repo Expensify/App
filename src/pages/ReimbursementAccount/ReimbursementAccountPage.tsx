@@ -21,7 +21,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
-import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
@@ -29,7 +29,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {ACHData} from '@src/types/onyx/ReimbursementAccount';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ACHContractStep from './ACHContractStep';
 import BankAccountStep from './BankAccountStep';
@@ -87,10 +86,10 @@ type ReimbursementAccountDraft = {
 
 type ReimbursementAccountOnyxProps = {
     /** Plaid SDK token to use to initialize the widget */
-    plaidLinkToken?: OnyxEntry<string>;
+    plaidLinkToken: OnyxEntry<string>;
 
     /** Plaid SDK current event */
-    plaidCurrentEvent?: OnyxEntry<string>;
+    plaidCurrentEvent: OnyxEntry<string>;
 
     /** Indicated whether the app is loading */
     isLoadingApp: OnyxEntry<boolean>;
@@ -104,15 +103,12 @@ type ReimbursementAccountOnyxProps = {
     /** ACH data for the withdrawal account actively being set up */
     reimbursementAccount: OnyxEntry<OnyxTypes.ReimbursementAccount>;
 
-    /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
-
     /** The token required to initialize the Onfido SDK */
     onfidoToken: OnyxEntry<string>;
 };
 
-type ReimbursementAccountPageProps = WithPolicyProps & ReimbursementAccountOnyxProps & RouteProp<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
-
+type ReimbursementAccountPageProps = WithPolicyOnyxProps &
+    ReimbursementAccountOnyxProps & {route: RouteProp<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>};
 const ROUTE_NAMES = {
     COMPANY: 'company',
     PERSONAL_INFORMATION: 'personal-information',
@@ -188,7 +184,7 @@ function ReimbursementAccountPage({
     */
     const achData = reimbursementAccount?.achData;
 
-    function getBankAccountFields<T extends keyof ACHData>(fieldNames: T[]): Pick<ACHData, T> {
+    function getBankAccountFields(fieldNames: string[]): string[] {
         // @ts-expect-error -- Pick<ACHData, T> is more acurate type in this case because lodashPick returns Partial<ACHData>
         return {
             ...lodashPick(reimbursementAccount?.achData, ...fieldNames),
@@ -539,11 +535,9 @@ ReimbursementAccountPage.displayName = 'ReimbursementAccountPage';
 
 export default withPolicy(
     withOnyx<ReimbursementAccountPageProps, ReimbursementAccountOnyxProps>({
+        // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-        reimbursementAccountDraft: {
-            key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
         },
         session: {
             key: ONYXKEYS.SESSION,

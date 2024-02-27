@@ -3,10 +3,10 @@ import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
 import InputWrapper from '@components/Form/InputWrapper';
 import StatePicker from '@components/StatePicker';
+import type {State} from '@components/StatePicker/StateSelectorModal';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {State} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
