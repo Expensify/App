@@ -82,8 +82,6 @@ function IOURequestStepWaypoint({
         switch (parsedWaypointIndex) {
             case 0:
                 return 'distance.waypointDescription.start';
-            case waypointCount - 1:
-                return 'distance.waypointDescription.finish';
             default:
                 return 'distance.waypointDescription.stop';
         }
