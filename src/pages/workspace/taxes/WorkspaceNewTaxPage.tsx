@@ -7,7 +7,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-// import TextPicker from '@components/TextPicker';
+import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createWorkspaceTax} from '@libs/actions/TaxRate';
@@ -56,35 +56,35 @@ function WorkspaceNewTaxPage({
     );
 
     return (
-        <ScreenWrapper
-            testID={WorkspaceNewTaxPage.displayName}
-            style={styles.mb5}
-        >
+        <ScreenWrapper testID={WorkspaceNewTaxPage.displayName}>
             <View style={[styles.h100, styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithBackButton title="New rate" />
                 <FormProvider
-                    style={[styles.flexGrow1]}
+                    style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM}
                     onSubmit={submitForm}
                     validate={validate}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >
-                    <InputWrapper
-                        InputComponent={AmountPicker}
-                        inputID={INPUT_IDS.VALUE}
-                        description={translate('workspace.taxes.value')}
-                        rightLabel={translate('common.required')}
-                    />
-                    <InputWrapper
-                        InputComponent={TextPicker}
-                        inputID={INPUT_IDS.NAME}
-                        description={translate('workspace.taxes.name')}
-                        rightLabel={translate('common.required')}
-                        accessibilityLabel={translate('workspace.editor.nameInputLabel')}
-                        maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
-                        autoFocus
-                    />
+                    <View style={styles.mhn5}>
+                        <InputWrapper
+                            InputComponent={AmountPicker}
+                            inputID={INPUT_IDS.VALUE}
+                            description={translate('workspace.taxes.value')}
+                            rightLabel={translate('common.required')}
+                        />
+                        <InputWrapper
+                            InputComponent={TextPicker}
+                            inputID={INPUT_IDS.NAME}
+                            description={translate('workspace.taxes.name')}
+                            rightLabel={translate('common.required')}
+                            accessibilityLabel={translate('workspace.editor.nameInputLabel')}
+                            maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
+                            multiline={false}
+                            autoFocus
+                        />
+                    </View>
                 </FormProvider>
             </View>
         </ScreenWrapper>
