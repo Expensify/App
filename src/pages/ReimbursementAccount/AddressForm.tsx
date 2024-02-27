@@ -24,13 +24,13 @@ type Address = {
     zipCode: string;
 
     /** Address street2 field */
-    street2: string;
+    street2?: string;
 
     /** Address latitude field */
-    lat: string;
+    lat?: string;
 
     /** Address longitude field */
-    lng: string;
+    lng?: string;
 };
 
 type AddressError = Record<keyof Address, boolean>;
@@ -43,7 +43,7 @@ type AddressFormProps = {
     onFieldChange?: <T>(value: T) => void;
 
     /** Default values */
-    defaultValues?: Address;
+    defaultValues?: Partial<Record<keyof Address, string>>;
 
     /** Form values */
     values?: Address;
@@ -52,7 +52,7 @@ type AddressFormProps = {
     errors?: AddressError;
 
     /** The map for inputID of the inputs */
-    inputKeys?: Address;
+    inputKeys?: Partial<Record<keyof Address, string>>;
 
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft?: boolean;
@@ -126,3 +126,5 @@ function AddressForm({shouldSaveDraft = false, defaultValues, values, errors, in
 
 AddressForm.displayName = 'AddressForm';
 export default AddressForm;
+
+export type {Address};

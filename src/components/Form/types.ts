@@ -10,7 +10,6 @@ import type Picker from '@components/Picker';
 import type RadioButtons from '@components/RadioButtons';
 import type SingleChoiceQuestion from '@components/SingleChoiceQuestion';
 import type StatePicker from '@components/StatePicker';
-import type {State} from '@components/StatePicker/StateSelectorModal';
 import type TextInput from '@components/TextInput';
 import type ValuePicker from '@components/ValuePicker';
 import type BusinessTypePicker from '@pages/ReimbursementAccount/BusinessInfo/substeps/TypeBusiness/BusinessTypePicker';
@@ -39,12 +38,11 @@ type ValidInputs =
     | typeof ValuePicker
     | typeof RadioButtons;
 
-type ValueTypeKey = 'string' | 'boolean' | 'date' | 'state';
+type ValueTypeKey = 'string' | 'boolean' | 'date';
 type ValueTypeMap = {
     string: string;
     boolean: boolean;
     date: Date;
-    state: State;
 };
 type FormValue = ValueOf<ValueTypeMap>;
 

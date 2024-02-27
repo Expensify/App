@@ -77,7 +77,6 @@ function AddressUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwn
             <AddressForm
                 inputKeys={inputKeys}
                 shouldSaveDraft={!isEditing}
-                translate={translate}
                 defaultValues={defaultValues}
                 streetTranslationKey="common.streetAddress"
             />
