@@ -43,6 +43,7 @@ function OptionRowLHNData({
             policy,
             parentReportAction,
             hasViolations: !!hasViolations,
+            hasDraftComment: !!comment,
         });
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
