@@ -408,7 +408,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 text: translate('workspace.people.removeMembersTitle'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
                 icon: Expensicons.RemoveMembers,
-                onSelected: () => askForConfirmationToRemove,
+                onSelected: askForConfirmationToRemove,
                 ...iconSettings,
             },
         ];
@@ -418,7 +418,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 text: translate('workspace.people.makeMember'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
                 icon: Expensicons.MakeMember,
-                onSelected: () => handleMakeMemberAction,
+                onSelected: handleMakeMemberAction,
                 ...iconSettings,
             });
         }
@@ -427,7 +427,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 text: translate('workspace.people.makeAdmin'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
                 icon: Expensicons.MakeAdmin,
-                onSelected: () => handleMakeAdminAction,
+                onSelected: handleMakeAdminAction,
                 ...iconSettings,
             });
         }
