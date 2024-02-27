@@ -17,7 +17,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getPlatform from '@libs/getPlatform';
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import setSelection from '@libs/setSelection';
 import CONST from '@src/CONST';
 import {defaultProps as optionsSelectorDefaultProps, propTypes as optionsSelectorPropTypes} from './optionsSelectorPropTypes';
@@ -54,12 +54,12 @@ const defaultProps = {
     ...optionsSelectorDefaultProps,
 };
 
+const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+
 function BaseOptionsSelector(props) {
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
     const themeStyles = useThemeStyles();
-
-    const isWebOrDesktop = [CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform());
 
     const [disabledOptionsIndexes, setDisabledOptionsIndexes] = useState([]);
     const [errorMessage, setErrorMessage] = useState('');
@@ -292,17 +292,16 @@ function BaseOptionsSelector(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
         // Screen coming back into focus, for example
         // when doing Cmd+Shift+K, then Cmd+K, then Cmd+Shift+K.
-        // Only applies to platforms that support keyboard shortcuts
-        if (isWebOrDesktop && isFocused && props.autoFocus && textInputRef.current) {
-            setTimeout(() => {
-                textInputRef.current.focus();
-            }, CONST.ANIMATED_TRANSITION);
+        if (!shouldFocusInputOnScreenFocus || !isFocused || !props.autoFocus || !textInputRef.current) {
+            return;
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
+        setTimeout(() => {
+            textInputRef.current.focus();
+        }, CONST.ANIMATED_TRANSITION);
     }, [isFocused, props.autoFocus]);
 
     useEffect(() => {
