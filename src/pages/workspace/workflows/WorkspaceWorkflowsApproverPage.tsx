@@ -7,9 +7,10 @@ import withPolicy, {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 
 type WorkspaceWorkflowsApproverPageProps = WithPolicyOnyxProps;
 
-function WorkspaceWorkflowsApproverPage({policy}: WorkspaceWorkflowsApproverPageProps) {
+function WorkspaceWorkflowsApproverPage({policy, policyMembers}: WorkspaceWorkflowsApproverPageProps) {
     const {translate} = useLocalize();
     const policyName = policy?.name ?? '';
+    console.log(policy, policyMembers);
 
     return (
         <ScreenWrapper
