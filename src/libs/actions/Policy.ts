@@ -630,6 +630,65 @@ function removeMembers(accountIDs: number[], policyID: string) {
     API.write(WRITE_COMMANDS.DELETE_MEMBERS_FROM_WORKSPACE, params, {optimisticData, successData, failureData});
 }
 
+function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newRole: 'admin' | 'user') {
+    const previousPolicyMembers = {...allPolicyMembers};
+    const data = accountIDs
+        .map((accountID) => {
+            if (!allPersonalDetails?.[accountID]) {
+                return null;
+            }
+
+            return {
+                accountID,
+                email: allPersonalDetails?.[accountID]?.login,
+                role: newRole,
+            };
+        })
+        .filter((item): item is {accountID: number; email: string; role: 'user' | 'admin'} => item !== null);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
+            value: {
+                ...data.reduce((acc: Record<number, {role: string}>, current) => {
+                    acc[current.accountID] = {role: current?.role};
+                    return acc;
+                }, {}),
+                errors: null,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
+            value: {
+                errors: null,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
+            value: {
+                ...(previousPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`] as Record<string, PolicyMember | null>),
+                errors: ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
+            },
+        },
+    ];
+
+    const params = {
+        policyID,
+        employees: JSON.stringify(data.map((item) => ({email: item.email, role: item.role}))),
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData, failureData});
+}
+
 /**
  * Optimistically create a chat for each member of the workspace, creates both optimistic and success data for onyx.
  *
@@ -2180,6 +2239,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
 
 export {
     removeMembers,
+    updateWorkspaceMembersRole,
     addMembersToWorkspace,
     isAdminOfFreePolicy,
     hasActiveFreePolicy,

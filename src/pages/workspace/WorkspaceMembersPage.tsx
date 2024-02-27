@@ -386,17 +386,17 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
         </View>
     );
 
-    const handleMakeMemberAction = () => {
-        // TODO: Implement this
-        // eslint-disable-next-line no-console
-        console.log('Make member action');
-    };
+    const changeUserRole = (role: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER) => {
+        if (!isEmptyObject(errors)) {
+            return;
+        }
 
-    const handleMakeAdminAction = () => {
-        // TODO: Implement this
-        // eslint-disable-next-line no-console
-        console.log('Make admin action');
-    };
+        // Remove the admin from the list
+        const accountIDsToRemove = selectedEmployees.filter((id) => policyMembers?.[id].role !== role);
+
+        Policy.updateWorkspaceMembersRole(route.params.policyID, accountIDsToRemove, role);
+        setSelectedEmployees([]);
+    }
 
     const getBulkActionsButtonOptions = () => {
         const iconSettings = {
@@ -418,7 +418,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 text: translate('workspace.people.makeMember'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
                 icon: Expensicons.MakeMember,
-                onSelected: handleMakeMemberAction,
+                onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
                 ...iconSettings,
             });
         }
@@ -427,7 +427,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 text: translate('workspace.people.makeAdmin'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
                 icon: Expensicons.MakeAdmin,
-                onSelected: handleMakeAdminAction,
+                onSelected: () => changeUserRole(CONST.POLICY.ROLE.ADMIN),
                 ...iconSettings,
             });
         }
