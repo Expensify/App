@@ -1217,10 +1217,6 @@ export default {
             requiredFirstName: 'Please input your first name to continue',
             requiredLasttName: 'Please input your last name to continue',
         },
-        errorAlert: {
-            requiredFirstName: 'Please input your first name to continue',
-            requiredHitContinue: 'Please press continue to get set up',
-        },
     },
     personalDetails: {
         error: {
