@@ -435,7 +435,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     };
 
     const getHeaderButtons = () => (
-        <View style={[styles.w100]}>
+        <View style={styles.w100}>
             {selectedEmployees.length > 0 ? (
                 <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                     shouldAlwaysShowDropdownMenu
