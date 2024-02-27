@@ -217,8 +217,8 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, ...
      * @param {String} pwd Password to send via callback to react-pdf
      */
     const attemptPDFLoad = useCallback((pwd) => {
-        setPassword(pwd);
         setIsCheckingPassword(true);
+        setPassword(pwd);
     }, []);
 
     const renderPDFView = () => {
