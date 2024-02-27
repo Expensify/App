@@ -487,19 +487,19 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         if (iouCategory || !shouldShowCategories || enabledCategories.length !== 1 || !isCategoryRequired) {
             return;
         }
-        IOU.setMoneyRequestCategory_temporaryForRefactor(transaction.transactionID, enabledCategories[0].name);
+        IOU.setMoneyRequestCategory(transaction.transactionID, enabledCategories[0].name);
     }, [iouCategory, shouldShowCategories, policyCategories, transaction, isCategoryRequired]);
 
     // Auto select the tag if there is only one enabled tag and it is required
     useEffect(() => {
-        let updatedTagsString = '';
+        let updatedTagsString = TransactionUtils.getTag(transaction);
         const isMultipleLevelsTags = policyTagLists && policyTagLists.length > 1;
         policyTagLists.forEach((tagList, index) => {
             const enabledTags = _.filter(tagList.tags, (tag) => tag.enabled);
-            if (enabledTags.length !== 1 || isMultipleLevelsTags ? !tagList.required : !isTagRequired || TransactionUtils.getTag(transaction, index)) {
+            if (enabledTags.length !== 1 || (isMultipleLevelsTags ? !tagList.required : !isTagRequired) || TransactionUtils.getTag(transaction, index)) {
                 return;
             }
-            updatedTagsString = IOUUtils.insertTagIntoReportTagsString(updatedTagsString, enabledTags[0].name, index);
+            updatedTagsString = IOUUtils.insertTagIntoTransactionTagsString(updatedTagsString, enabledTags[0] ? enabledTags[0].name : '', index);
         });
         if (updatedTagsString !== TransactionUtils.getTag(transaction) && updatedTagsString) {
             IOU.setMoneyRequestTag(transaction.transactionID, updatedTagsString);
