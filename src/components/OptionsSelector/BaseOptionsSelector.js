@@ -75,8 +75,6 @@ function BaseOptionsSelector(props) {
     const enterSubscription = useRef();
     const CTRLEnterSubscription = useRef();
     const focusTimeout = useRef();
-    const prevLocale = useRef(props.preferredLocale);
-    const prevPaginationPage = useRef(paginationPage);
     const prevSelectedOptions = useRef(props.selectedOptions);
     const prevValue = useRef(value);
 
@@ -392,11 +390,6 @@ function BaseOptionsSelector(props) {
     }, [isFocused, props.autoFocus]);
 
     useEffect(() => {
-        if (prevLocale.current !== props.preferredLocale) {
-            prevLocale.current = props.preferredLocale;
-            return;
-        }
-
         const newFocusedIndex = props.selectedOptions.length;
         const prevFocusedOption = prevOptions[focusedIndex];
         const indexOfPrevFocusedOptionInCurrentList = _.findIndex(allOptions, (option) => prevFocusedOption && option.keyForList === prevFocusedOption.keyForList);
