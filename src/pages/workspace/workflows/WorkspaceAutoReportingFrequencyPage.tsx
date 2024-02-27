@@ -72,7 +72,15 @@ function WorkspaceAutoReportingFrequencyPage({policy}: WorkspaceAutoReportingFre
             return FIRST_DAY_OF_MONTH;
         }
         if (typeof policy?.autoReportingOffset === 'number') {
-            return policy.autoReportingOffset.toString();
+            let suffix = 'th';
+            if (policy.autoReportingOffset === 1 || policy.autoReportingOffset === 21 || policy.autoReportingOffset === 31) {
+                suffix = 'st';
+            } else if (policy.autoReportingOffset === 2 || policy.autoReportingOffset === 22) {
+                suffix = 'nd';
+            } else if (policy.autoReportingOffset === 3 || policy.autoReportingOffset === 23) {
+                suffix = 'rd';
+            }
+            return `${policy.autoReportingOffset}${suffix}`;
         }
         return translate(`workflowsPage.frequencies.${policy?.autoReportingOffset}`);
     };
@@ -103,33 +111,28 @@ function WorkspaceAutoReportingFrequencyPage({policy}: WorkspaceAutoReportingFre
     );
 
     return (
-        <OfflineWithFeedback
-            pendingAction={policy?.pendingFields?.autoReportingFrequency}
-            shouldShowErrorMessages
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={WorkspaceAutoReportingFrequencyPage.displayName}
         >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                testID={WorkspaceAutoReportingFrequencyPage.displayName}
+            <FullPageNotFoundView
+                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
+                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
+                shouldShow={isEmptyObject(policy) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy) || !PolicyUtils.isPaidGroupPolicy(policy)}
+                subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
             >
-                <FullPageNotFoundView
-                    onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
-                    onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
-                    shouldShow={isEmptyObject(policy) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy) || !PolicyUtils.isPaidGroupPolicy(policy)}
-                    subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-                >
-                    <HeaderWithBackButton
-                        title={translate('workflowsPage.submissionFrequency')}
-                        onBackButtonPress={Navigation.goBack}
-                    />
+                <HeaderWithBackButton
+                    title={translate('workflowsPage.submissionFrequency')}
+                    onBackButtonPress={Navigation.goBack}
+                />
 
-                    <FlatList
-                        data={autoReportingFrequencyItems}
-                        renderItem={renderItem}
-                        keyExtractor={(item: WorkspaceAutoReportingFrequencyPageItem) => item.text}
-                    />
-                </FullPageNotFoundView>
-            </ScreenWrapper>
-        </OfflineWithFeedback>
+                <FlatList
+                    data={autoReportingFrequencyItems}
+                    renderItem={renderItem}
+                    keyExtractor={(item: WorkspaceAutoReportingFrequencyPageItem) => item.text}
+                />
+            </FullPageNotFoundView>
+        </ScreenWrapper>
     );
 }
 
