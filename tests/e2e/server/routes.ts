@@ -16,4 +16,4 @@ export default {
 
     // Gets the network cache
     testGetNetworkCache: '/test_get_network_cache',
-};
+} as const;

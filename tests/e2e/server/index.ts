@@ -1,13 +1,28 @@
+import type {IncomingMessage, ServerResponse} from 'http';
 import {createServer} from 'http';
+import type {TestConfig} from '@libs/E2E/types';
 import config from '../config';
 import * as nativeCommands from '../nativeCommands';
 import * as Logger from '../utils/logger';
 import Routes from './routes';
 
-const PORT = process.env.PORT || config.SERVER_PORT;
+const PORT = process.env.PORT ?? config.SERVER_PORT;
+
+type Response = ServerResponse<IncomingMessage> & {
+    req: IncomingMessage;
+};
+
+type Listener = (args?: unknown) => void;
+
+type PostJSONRequestData = {
+    appInstanceId: string;
+    cache: Cache;
+    actionName: string;
+    payload: unknown;
+};
 
 // Gets the request data as a string
-const getReqData = (req) => {
+const getReqData = (req: IncomingMessage): Promise<string> => {
     let data = '';
     req.on('data', (chunk) => {
         data += chunk;
@@ -21,7 +36,7 @@ const getReqData = (req) => {
 };
 
 // Expects a POST request with JSON data. Returns parsed JSON data.
-const getPostJSONRequestData = (req, res) => {
+const getPostJSONRequestData = (req: IncomingMessage, res: Response): Promise<PostJSONRequestData | undefined> | undefined => {
     if (req.method !== 'POST') {
         res.statusCode = 400;
         res.end('Unsupported method');
@@ -30,7 +45,7 @@ const getPostJSONRequestData = (req, res) => {
 
     return getReqData(req).then((data) => {
         try {
-            return JSON.parse(data);
+            return JSON.parse(data) as PostJSONRequestData;
         } catch (e) {
             Logger.info('❌ Failed to parse request data', data);
             res.statusCode = 400;
@@ -39,9 +54,9 @@ const getPostJSONRequestData = (req, res) => {
     });
 };
 
-const createListenerState = () => {
-    const listeners = [];
-    const addListener = (listener) => {
+const createListenerState = (): [Listener[], (listener: Listener) => () => void] => {
+    const listeners: Listener[] = [];
+    const addListener = (listener: Listener) => {
         listeners.push(listener);
         return () => {
             const index = listeners.indexOf(listener);
@@ -83,13 +98,10 @@ const createServerInstance = () => {
     const [testResultListeners, addTestResultListener] = createListenerState();
     const [testDoneListeners, addTestDoneListener] = createListenerState();
 
-    let activeTestConfig;
-    const networkCache = {};
+    let activeTestConfig: TestConfig | null;
+    const networkCache: Record<string, unknown> = {};
 
-    /**
-     * @param {TestConfig} testConfig
-     */
-    const setTestConfig = (testConfig) => {
+    const setTestConfig = (testConfig: TestConfig | null) => {
         activeTestConfig = testConfig;
     };
 
@@ -105,7 +117,7 @@ const createServerInstance = () => {
             }
 
             case Routes.testResults: {
-                getPostJSONRequestData(req, res).then((data) => {
+                getPostJSONRequestData(req, res)?.then((data) => {
                     if (data == null) {
                         // The getPostJSONRequestData function already handled the response
                         return;
@@ -129,8 +141,8 @@ const createServerInstance = () => {
 
             case Routes.testNativeCommand: {
                 getPostJSONRequestData(req, res)
-                    .then((data) =>
-                        nativeCommands.executeFromPayload(data.actionName, data.payload).then((status) => {
+                    ?.then((data) =>
+                        nativeCommands.executeFromPayload(data?.actionName, data?.payload).then((status) => {
                             if (status) {
                                 res.end('ok');
                                 return;
@@ -148,15 +160,15 @@ const createServerInstance = () => {
             }
 
             case Routes.testGetNetworkCache: {
-                getPostJSONRequestData(req, res).then((data) => {
-                    const appInstanceId = data && data.appInstanceId;
+                getPostJSONRequestData(req, res)?.then((data) => {
+                    const appInstanceId = data?.appInstanceId;
                     if (!appInstanceId) {
                         res.statusCode = 400;
                         res.end('Invalid request missing appInstanceId');
                         return;
                     }
 
-                    const cachedData = networkCache[appInstanceId] || {};
+                    const cachedData = networkCache[appInstanceId] ?? {};
                     res.end(JSON.stringify(cachedData));
                 });
 
@@ -164,9 +176,9 @@ const createServerInstance = () => {
             }
 
             case Routes.testUpdateNetworkCache: {
-                getPostJSONRequestData(req, res).then((data) => {
-                    const appInstanceId = data && data.appInstanceId;
-                    const cache = data && data.cache;
+                getPostJSONRequestData(req, res)?.then((data) => {
+                    const appInstanceId = data?.appInstanceId;
+                    const cache = data?.cache;
                     if (!appInstanceId || !cache) {
                         res.statusCode = 400;
                         res.end('Invalid request missing appInstanceId or cache');
@@ -191,7 +203,7 @@ const createServerInstance = () => {
         addTestStartedListener,
         addTestResultListener,
         addTestDoneListener,
-        start: () => new Promise((resolve) => server.listen(PORT, resolve)),
+        start: () => new Promise<void>((resolve) => server.listen(PORT, resolve)),
         stop: () => new Promise((resolve) => server.close(resolve)),
     };
 };
