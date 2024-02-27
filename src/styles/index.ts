@@ -4630,8 +4630,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         workspaceTitleStyle: {
-            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontWeight: '500',
+            ...headlineFont,
             fontSize: variables.workspaceProfileName,
         },
     } satisfies Styles);
