@@ -114,9 +114,7 @@ function BaseOptionsSelector(props) {
         return calcAllOptions;
     }, [props.sections]);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const initialAllOptions = useMemo(() => flattenSections(), []);
-    const [allOptions, setAllOptions] = useState(initialAllOptions);
+    const [allOptions, setAllOptions] = useState(() => flattenSections());
     const prevOptions = usePrevious(allOptions);
 
     const initialFocusedIndex = useMemo(() => {
