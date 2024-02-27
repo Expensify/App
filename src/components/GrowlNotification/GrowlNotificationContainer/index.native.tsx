@@ -3,7 +3,7 @@ import {Animated} from 'react-native';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import GrowlNotificationContainerProps from './types';
+import type GrowlNotificationContainerProps from './types';
 
 function GrowlNotificationContainer({children, translateY}: GrowlNotificationContainerProps) {
     const styles = useThemeStyles();
