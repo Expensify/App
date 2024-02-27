@@ -16,14 +16,11 @@ const baseProps = {
     /** Callback to update the current selection */
     setSelection: PropTypes.func.isRequired,
 
-    /** Whether the composer is expanded */
-    isComposerFullSize: PropTypes.bool.isRequired,
-
     /** Callback to update the comment draft */
     updateComment: PropTypes.func.isRequired,
 
     /** Meaures the parent container's position and dimensions. */
-    measureParentContainer: PropTypes.func.isRequired,
+    measureParentContainerAndReportCursor: PropTypes.func.isRequired,
 
     /** Report composer focus state */
     isComposerFocused: PropTypes.bool,
