@@ -952,6 +952,14 @@ function isProcessingReport(report: OnyxEntry<Report> | EmptyObject): boolean {
 }
 
 /**
+ * Returns true if the policy has `instant` reporting frequency and if the report is still being processed (i.e. submitted state)
+ */
+function isExpenseReportWithInstantSubmittedState(report: OnyxEntry<Report> | EmptyObject): boolean {
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? null;
+    return isExpenseReport(report) && isProcessingReport(report) && PolicyUtils.isInstantSubmitEnabled(policy);
+}
+
+/**
  * Check if the report is a single chat report that isn't a thread
  * and personal detail of participant is optimistic data
  */
@@ -1260,8 +1268,8 @@ function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: 
 
         if (isActionOwner) {
             if (!isEmptyObject(report) && isPaidGroupPolicyExpenseReport(report)) {
-                // If it's a paid policy expense report, only allow deleting the request if it's not submitted or the user is the policy admin
-                return isDraftExpenseReport(report) || PolicyUtils.isPolicyAdmin(policy);
+                // If it's a paid policy expense report, only allow deleting the request if it's a draft or is instantly submitted or the user is the policy admin
+                return isDraftExpenseReport(report) || isExpenseReportWithInstantSubmittedState(report) || PolicyUtils.isPolicyAdmin(policy);
             }
             return true;
         }
@@ -1471,11 +1479,9 @@ function getIconsForParticipants(participants: number[], personalDetails: OnyxCo
  */
 function getWorkspaceIcon(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = null): Icon {
     const workspaceName = getPolicyName(report, false, policy);
-    const rootParentReport = getRootParentReport(report);
-    const hasCustomAvatar =
-        !(isEmptyObject(rootParentReport) || isDefaultRoom(rootParentReport) || isChatRoom(rootParentReport) || isArchivedRoom(rootParentReport)) &&
-        allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatar;
-    const policyExpenseChatAvatarSource = hasCustomAvatar ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatar : getDefaultWorkspaceAvatar(workspaceName);
+    const policyExpenseChatAvatarSource = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatar
+        ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatar
+        : getDefaultWorkspaceAvatar(workspaceName);
 
     const workspaceIcon: Icon = {
         source: policyExpenseChatAvatarSource ?? '',
@@ -2227,8 +2233,7 @@ function areAllRequestsBeingSmartScanned(iouReportID: string, reportPreviewActio
  *
  */
 function hasMissingSmartscanFields(iouReportID: string): boolean {
-    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
-    return transactionsWithReceipts.some((transaction) => TransactionUtils.hasMissingSmartscanFields(transaction));
+    return TransactionUtils.getAllReportTransactions(iouReportID).some((transaction) => TransactionUtils.hasMissingSmartscanFields(transaction));
 }
 
 /**
@@ -3299,7 +3304,6 @@ function updateReportPreview(iouReport: OnyxEntry<Report>, reportPreviewAction: 
     const message = getReportPreviewMessage(iouReport, reportPreviewAction);
     return {
         ...reportPreviewAction,
-        created: DateUtils.getDBTime(),
         message: [
             {
                 html: message,
@@ -4232,7 +4236,7 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
     if (isMoneyRequestReport(report)) {
         const isOwnExpenseReport = isExpenseReport(report) && isOwnPolicyExpenseChat;
         if (isOwnExpenseReport && PolicyUtils.isPaidGroupPolicy(policy)) {
-            return isDraftExpenseReport(report);
+            return isDraftExpenseReport(report) || isExpenseReportWithInstantSubmittedState(report);
         }
 
         return (isOwnExpenseReport || isIOUReport(report)) && !isReportApproved(report) && !isSettled(report?.reportID);
@@ -5034,6 +5038,7 @@ export {
     isPublicAnnounceRoom,
     isConciergeChatReport,
     isProcessingReport,
+    isExpenseReportWithInstantSubmittedState,
     isCurrentUserTheOnlyParticipant,
     hasAutomatedExpensifyAccountIDs,
     hasExpensifyGuidesEmails,
