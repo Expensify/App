@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, Keyboard, PixelRatio, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {Attachment, AttachmentCaraouselOnyxProps, AttachmentCarouselProps, UpdatePageProps} from '@components/Attachments/types';
+import type {Attachment} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
@@ -18,6 +18,7 @@ import CarouselActions from './CarouselActions';
 import CarouselButtons from './CarouselButtons';
 import CarouselItem from './CarouselItem';
 import extractAttachmentsFromReport from './extractAttachmentsFromReport';
+import type {AttachmentCaraouselOnyxProps, AttachmentCarouselProps, UpdatePageProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
 
 const viewabilityConfig = {
@@ -120,7 +121,6 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         ({item}: ListRenderItemInfo<Attachment>) => (
             <CarouselItem
                 item={item}
-                isSingleItem={attachments.length === 1}
                 onPress={
                     canUseTouchScreen
                         ? () => {
@@ -130,7 +130,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                 }
             />
         ),
-        [attachments.length, canUseTouchScreen, setShouldShowArrows],
+        [canUseTouchScreen, setShouldShowArrows],
     );
 
     return (

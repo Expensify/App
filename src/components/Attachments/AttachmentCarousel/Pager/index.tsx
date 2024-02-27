@@ -142,16 +142,12 @@ function AttachmentCarouselPager({items, initialPage, onPageSelected, onRequestT
         [],
     );
 
-    const carouselItems = items.map((item, index) => (
+    const carouselItems = items.map((item) => (
         <View
             key={item.source as string}
             style={styles.flex1}
         >
-            <CarouselItem
-                item={item}
-                isSingleItem={items.length === 1}
-                index={index}
-            />
+            <CarouselItem item={item} />
         </View>
     ));
 

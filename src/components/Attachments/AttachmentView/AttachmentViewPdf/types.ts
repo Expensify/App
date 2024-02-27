@@ -1,21 +1,23 @@
-import type {StyleProp, ViewStyle} from 'react-native';
-import type AttachmentViewBaseProps from '@components/Attachments/AttachmentView/types';
-import type {Attachment} from '@components/Attachments/types';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import type {AttachmentFile} from '@components/Attachments/types';
 
-type AttachmentViewPdfProps = AttachmentViewBaseProps &
-    Attachment & {
-        encryptedSourceUrl: string;
-        onToggleKeyboard?: () => void;
-        onLoadComplete: () => void;
+type AttachmentViewPdfProps = {
+    encryptedSourceUrl: string;
+    onToggleKeyboard?: (shouldFadeOut: boolean) => void;
+    onLoadComplete: () => void;
 
-        /** Additional style props */
-        style?: StyleProp<ViewStyle>;
+    file?: AttachmentFile;
 
-        /** Styles for the error label */
-        errorLabelStyles?: StyleProp<ViewStyle>;
+    /** Additional style props */
+    style?: StyleProp<ViewStyle>;
 
-        /** Whether this view is the active screen  */
-        isFocused?: boolean;
-    };
+    /** Styles for the error label */
+    errorLabelStyles?: StyleProp<ViewStyle>;
+
+    /** Whether this view is the active screen  */
+    isFocused?: boolean;
+
+    onPress?: (e?: GestureResponderEvent | KeyboardEvent) => void;
+};
 
 export default AttachmentViewPdfProps;

@@ -1,10 +1,30 @@
 import React, {memo, useCallback, useContext, useEffect} from 'react';
-import type {GestureResponderEvent} from 'react-native';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import type {AttachmentFile} from '@components/Attachments/types';
 import PDFView from '@components/PDFView';
-import type AttachmentViewPdfProps from './types';
 
-type BaseAttachmentViewPdfProps = AttachmentViewPdfProps & {
+type BaseAttachmentViewPdfProps = {
+    encryptedSourceUrl: string;
+    onToggleKeyboard?: (shouldFadeOut: boolean) => void;
+    onLoadComplete: () => void;
+
+    /** Whether this AttachmentView is shown as part of a AttachmentCarousel */
+    isUsedInCarousel?: boolean;
+
+    file?: AttachmentFile;
+
+    /** Additional style props */
+    style?: StyleProp<ViewStyle>;
+
+    /** Styles for the error label */
+    errorLabelStyles?: StyleProp<ViewStyle>;
+
+    /** Whether this view is the active screen  */
+    isFocused?: boolean;
+
+    onPress?: (e?: GestureResponderEvent | KeyboardEvent) => void;
+
     /** Triggered when the PDF's onScaleChanged event is triggered */
     onScaleChanged: (scale: number) => void;
 };

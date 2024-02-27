@@ -1,5 +1,6 @@
 import React, {memo} from 'react';
-import type AttachmentViewBaseProps from '@components/Attachments/AttachmentView/types';
+import type {GestureResponderEvent} from 'react-native';
+import type {AttachmentFile} from '@components/Attachments/types';
 import ImageView from '@components/ImageView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
@@ -12,7 +13,17 @@ type AttachmentViewImageProps = {
     loadComplete: boolean;
 
     isImage: boolean;
-} & AttachmentViewBaseProps;
+
+    file?: AttachmentFile;
+
+    isAuthTokenRequired?: boolean;
+
+    /** Function for handle on press */
+    onPress?: (e?: GestureResponderEvent | KeyboardEvent) => void;
+
+    /** Function for handle on error */
+    onError?: () => void;
+};
 
 function AttachmentViewImage({url, file, isAuthTokenRequired, loadComplete, onPress, onError, isImage}: AttachmentViewImageProps) {
     const {translate} = useLocalize();

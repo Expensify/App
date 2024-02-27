@@ -16,20 +16,11 @@ type CarouselItemProps = {
     /** Attachment required information such as the source and file name */
     item: Attachment;
 
-    /** Whether there is only one element in the attachment carousel */
-    isSingleItem: boolean;
-
-    /** The index of the carousel item */
-    index?: number;
-
-    /** The index of the currently active carousel item */
-    activeIndex?: number;
-
     /** onPress callback */
     onPress?: () => void;
 };
 
-function CarouselItem({item, index, activeIndex, isSingleItem, onPress}: CarouselItemProps) {
+function CarouselItem({item, onPress}: CarouselItemProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isAttachmentHidden} = useContext(ReportAttachmentsContext);
@@ -80,9 +71,6 @@ function CarouselItem({item, index, activeIndex, isSingleItem, onPress}: Carouse
                     file={item.file}
                     isAuthTokenRequired={item.isAuthTokenRequired}
                     isUsedInCarousel
-                    isSingleCarouselItem={isSingleItem}
-                    carouselItemIndex={index}
-                    carouselActiveItemIndex={activeIndex}
                     onPress={onPress}
                     transactionID={item.transactionID ?? ''}
                 />

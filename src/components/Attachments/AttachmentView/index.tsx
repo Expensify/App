@@ -1,10 +1,11 @@
 import Str from 'expensify-common/lib/str';
 import React, {memo, useEffect, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {ActivityIndicator, ScrollView, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {Attachment, AttachmentSource} from '@components/Attachments/types';
+import type {FileObject} from '@components/AttachmentModal';
+import type {AttachmentSource} from '@components/Attachments/types';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
@@ -26,45 +27,57 @@ import type {Transaction} from '@src/types/onyx';
 import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
 import AttachmentViewVideo from './AttachmentViewVideo';
-import type AttachmentViewBaseProps from './types';
 
 type AttachmentViewOnyxProps = {
     transaction: OnyxEntry<Transaction>;
 };
 
-type AttachmentViewProps = AttachmentViewOnyxProps &
-    AttachmentViewBaseProps &
-    Attachment & {
-        /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
-        source: AttachmentSource;
+type AttachmentViewProps = AttachmentViewOnyxProps & {
+    /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
+    source: AttachmentSource;
 
-        /** Flag to show/hide download icon */
-        shouldShowDownloadIcon?: boolean;
+    file?: FileObject;
 
-        /** Flag to show the loading indicator */
-        shouldShowLoadingSpinnerIcon?: boolean;
+    /** Whether this view is the active screen  */
+    isFocused?: boolean;
 
-        /** Notify parent that the UI should be modified to accommodate keyboard */
-        onToggleKeyboard?: () => void;
+    isAuthTokenRequired?: boolean;
 
-        /** Extra styles to pass to View wrapper */
-        containerStyles?: Array<StyleProp<ViewStyle>>;
+    /** Function for handle on press */
+    onPress?: (e?: GestureResponderEvent | KeyboardEvent) => void;
 
-        /** Denotes whether it is a workspace avatar or not */
-        isWorkspaceAvatar?: boolean;
+    /** Whether this AttachmentView is shown as part of a AttachmentCarousel */
+    isUsedInCarousel?: boolean;
 
-        /** Denotes whether it is an icon (ex: SVG) */
-        maybeIcon?: boolean;
+    isUsedInAttachmentModal?: boolean;
 
-        /** The id of the transaction related to the attachment */
-        transactionID?: string;
+    /** Flag to show/hide download icon */
+    shouldShowDownloadIcon?: boolean;
 
-        fallbackSource?: string | number;
+    /** Flag to show the loading indicator */
+    shouldShowLoadingSpinnerIcon?: boolean;
 
-        isHovered?: boolean;
+    /** Notify parent that the UI should be modified to accommodate keyboard */
+    onToggleKeyboard?: (shouldFadeOut: boolean) => void;
 
-        optionalVideoDuration?: number;
-    };
+    /** Extra styles to pass to View wrapper */
+    containerStyles?: Array<StyleProp<ViewStyle>>;
+
+    /** Denotes whether it is a workspace avatar or not */
+    isWorkspaceAvatar?: boolean;
+
+    /** Denotes whether it is an icon (ex: SVG) */
+    maybeIcon?: boolean;
+
+    /** The id of the transaction related to the attachment */
+    transactionID?: string;
+
+    fallbackSource?: AttachmentSource;
+
+    isHovered?: boolean;
+
+    optionalVideoDuration?: number;
+};
 
 function AttachmentView({
     source,
@@ -111,7 +124,7 @@ function AttachmentView({
         let iconFillColor: ColorValue | undefined = '';
         let additionalStyles: ViewStyle[] = [];
         if (isWorkspaceAvatar && file) {
-            const defaultWorkspaceAvatarColor = StyleUtils.getDefaultWorkspaceAvatarColor(file.name);
+            const defaultWorkspaceAvatarColor = StyleUtils.getDefaultWorkspaceAvatarColor(file.name ?? '');
             iconFillColor = defaultWorkspaceAvatarColor.fill;
             additionalStyles = [defaultWorkspaceAvatarColor];
         }
@@ -142,7 +155,7 @@ function AttachmentView({
 
     // Check both source and file.name since PDFs dragged into the text field
     // will appear with a source that is a blob
-    if ((typeof source === 'string' && Str.isPDF(source)) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename')))) {
+    if ((typeof source === 'string' && Str.isPDF(source)) || (file && Str.isPDF(file.name ?? translate('attachmentView.unknownFilename')))) {
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source as string) : (source as string);
 
         // We need the following View component on android native
@@ -151,17 +164,14 @@ function AttachmentView({
         return (
             <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
                 <AttachmentViewPdf
-                    source={source}
                     file={file}
                     isFocused={isFocused}
-                    isAuthTokenRequired={isAuthTokenRequired}
                     encryptedSourceUrl={encryptedSourceUrl}
                     onPress={onPress}
                     onToggleKeyboard={onToggleKeyboard}
                     onLoadComplete={() => !loadComplete && setLoadComplete(true)}
                     errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [styles.cursorAuto]}
                     style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
-                    isUsedInCarousel={isUsedInCarousel}
                 />
             </View>
         );
@@ -174,15 +184,14 @@ function AttachmentView({
     // For this check we use both source and file.name since temporary file source is a blob
     // both PDFs and images will appear as images when pasted into the text field.
     // We also check for numeric source since this is how static images (used for preview) are represented in RN.
-    const isImage = typeof source === 'number' || Str.isImage(source);
-    if (isImage || (file && Str.isImage(file.name))) {
+    const isImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
+    if (isImage || (file?.name && Str.isImage(file.name))) {
         return (
             <AttachmentViewImage
-                url={imageError && fallbackSource ? fallbackSource : source}
+                url={imageError && fallbackSource ? (fallbackSource as string | number) : (source as string | number)}
                 file={file}
                 isAuthTokenRequired={isAuthTokenRequired}
                 loadComplete={loadComplete}
-                isFocused={isFocused}
                 isImage={isImage}
                 onPress={onPress}
                 onError={() => {
@@ -192,7 +201,7 @@ function AttachmentView({
         );
     }
 
-    if (isVideo || (file && Str.isVideo(file.name))) {
+    if (isVideo || (file?.name && Str.isVideo(file.name))) {
         return (
             <AttachmentViewVideo
                 source={source}
