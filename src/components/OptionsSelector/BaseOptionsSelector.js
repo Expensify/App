@@ -66,14 +66,14 @@ function BaseOptionsSelector(props) {
     const [value, setValue] = useState('');
     const [paginationPage, setPaginationPage] = useState(1);
 
-    const prevSelectedOptions = usePrevious(props.selectedOptions);
-    const prevValue = usePrevious(value);
-
     const shouldDisableRowSelection = useRef(false);
     const relatedTarget = useRef(null);
     const listRef = useRef();
     const textInputRef = useRef();
     const focusTimeout = useRef();
+
+    const prevSelectedOptions = usePrevious(props.selectedOptions);
+    const prevValue = usePrevious(value);
 
     useImperativeHandle(props.forwardedRef, () => textInputRef.current);
 
