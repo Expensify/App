@@ -1243,25 +1243,14 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-cameraroll (7.4.0):
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2022.05.16.00)
+  - react-native-cameraroll (5.4.0):
+    - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
+    - React
     - React-Codegen
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-graphics
-    - React-ImageManager
-    - React-NativeModulesApple
     - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - Yoga
   - react-native-config (1.5.0):
     - react-native-config/App (= 1.5.0)
   - react-native-config/App (1.5.0):
@@ -2546,7 +2535,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: 9ee041e1d7be96da6d76a251f92e72b711c651d6
   react-native-airship: 2ed75ff2278f11ff1c1ab08ed68f5bf02727b971
   react-native-blob-util: a3ee23cfdde79c769c138d505670055de233b07a
-  react-native-cameraroll: 95ce0d1a7d2d1fe55bf627ab806b64de6c3e69e9
+  react-native-cameraroll: 67edd0eec4102eb6a8d6c20f921f696780149095
   react-native-config: 5ce986133b07fc258828b20b9506de0e683efc1c
   react-native-document-picker: 8532b8af7c2c930f9e202aac484ac785b0f4f809
   react-native-geolocation: 015b9e3d428af7e34eed17192efadebb98fe12ee
