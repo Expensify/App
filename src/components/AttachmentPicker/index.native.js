@@ -1,3 +1,4 @@
+import Str from 'expensify-common/lib/str';
 import lodashCompact from 'lodash/compact';
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
@@ -231,6 +232,28 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
     };
 
     /**
+     * @param {Object} fileData
+     * @returns {Promise}
+     */
+    const validateAndCompleteAttachmentSelection = useCallback(
+        (fileData) => {
+            if (fileData.width === -1 || fileData.height === -1) {
+                showImageCorruptionAlert();
+                return Promise.resolve();
+            }
+            return getDataForUpload(fileData)
+                .then((result) => {
+                    completeAttachmentSelection.current(result);
+                })
+                .catch((error) => {
+                    showGeneralAlert(error.message);
+                    throw error;
+                });
+        },
+        [showGeneralAlert, showImageCorruptionAlert],
+    );
+
+    /**
      * Handles the image/document picker result and
      * sends the selected attachment to the caller (parent component)
      *
@@ -244,24 +267,17 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
                 return Promise.resolve();
             }
             const fileData = _.first(attachments);
-            RNImage.getSize(fileData.uri, (width, height) => {
-                fileData.width = width;
-                fileData.height = height;
-                if (fileData.width === -1 || fileData.height === -1) {
-                    showImageCorruptionAlert();
-                    return Promise.resolve();
-                }
-                return getDataForUpload(fileData)
-                    .then((result) => {
-                        completeAttachmentSelection.current(result);
-                    })
-                    .catch((error) => {
-                        showGeneralAlert(error.message);
-                        throw error;
-                    });
-            });
+            if (Str.isImage(fileData.fileName || fileData.name)) {
+                RNImage.getSize(fileData.fileCopyUri || fileData.uri, (width, height) => {
+                    fileData.width = width;
+                    fileData.height = height;
+                    return validateAndCompleteAttachmentSelection(fileData);
+                });
+            } else {
+                return validateAndCompleteAttachmentSelection(fileData);
+            }
         },
-        [showGeneralAlert, showImageCorruptionAlert],
+        [validateAndCompleteAttachmentSelection],
     );
 
     /**

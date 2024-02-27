@@ -6,7 +6,20 @@ module.exports = {
     arrowParens: 'always',
     printWidth: 190,
     singleAttributePerLine: true,
-    importOrder: ['@assets/(.*)$', '@components/(.*)$', '@hooks/(.*)$', '@libs/(.*)$', '@navigation/(.*)$', '@pages/(.*)$', '@styles/(.*)$', '@userActions/(.*)$', '@src/(.*)$', '^[./]'],
+    /** `importOrder` should be defined in an alphabetical order. */
+    importOrder: [
+        '@assets/(.*)$',
+        '@components/(.*)$',
+        '@desktop/(.*)$',
+        '@hooks/(.*)$',
+        '@libs/(.*)$',
+        '@navigation/(.*)$',
+        '@pages/(.*)$',
+        '@styles/(.*)$',
+        '@userActions/(.*)$',
+        '@src/(.*)$',
+        '^[./]',
+    ],
     importOrderSortSpecifiers: true,
     importOrderCaseInsensitive: true,
 };
