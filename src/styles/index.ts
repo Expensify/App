@@ -3166,6 +3166,15 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        emptyLHNAnimation: {
+            width: 180,
+            height: 180,
+        },
+
+        emptyLHNBlockingView: {
+            marginTop: 120,
+        },
+
         locationErrorLinkText: {
             textAlignVertical: 'center',
             fontSize: variables.fontSizeLabel,

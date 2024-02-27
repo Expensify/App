@@ -3,9 +3,17 @@ import type {ReactElement} from 'react';
 import React, {memo, useCallback} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import BlockingView from '@components/BlockingViews/BlockingView';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import LottieAnimations from '@components/LottieAnimations';
+import Text from '@components/Text';
 import withCurrentReportID from '@components/withCurrentReportID';
+import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -33,8 +41,11 @@ function LHNOptionsList({
     transactionViolations = {},
     onFirstItemRendered = () => {},
 }: LHNOptionsListProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {canUseViolations} = usePermissions();
+    const {translate} = useLocalize();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     // When the first item renders we want to call the onFirstItemRendered callback.
     // At this point in time we know that the list is actually displaying items.
@@ -47,6 +58,40 @@ function LHNOptionsList({
 
         onFirstItemRendered();
     }, [onFirstItemRendered]);
+
+    const renderEmptyStateSubtitle = useCallback(
+        () => (
+            <View>
+                <Text
+                    color={theme.placeholderText}
+                    style={[styles.textAlignCenter]}
+                >
+                    {translate('common.emptyLHN.subtitleText1')}
+                    <Icon
+                        src={Expensicons.MagnifyingGlass}
+                        width={variables.emptyLHNIconWidth}
+                        height={variables.emptyLHNIconHeight}
+                        small
+                        inline
+                        fill={theme.icon}
+                        additionalStyles={styles.alignItemsCenter}
+                    />
+                    {translate('common.emptyLHN.subtitleText2')}
+                    <Icon
+                        src={Expensicons.Plus}
+                        width={variables.emptyLHNIconWidth}
+                        height={variables.emptyLHNIconHeight}
+                        small
+                        inline
+                        fill={theme.icon}
+                        additionalStyles={styles.alignItemsCenter}
+                    />
+                    {translate('common.emptyLHN.subtitleText3')}
+                </Text>
+            </View>
+        ),
+        [theme, styles.dFlex, styles.gap1, styles.alignItemsCenter, styles.justifyContentCenter, styles.textAlignCenter, translate],
+    );
 
     /**
      * Function which renders a row in the list
@@ -125,6 +170,19 @@ function LHNOptionsList({
                 estimatedItemSize={optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight}
                 extraData={[currentReportID]}
                 showsVerticalScrollIndicator={false}
+                ListEmptyComponent={
+                    isSmallScreenWidth ? (
+                        <View style={styles.emptyLHNBlockingView}>
+                            <BlockingView
+                                animation={LottieAnimations.Fireworks}
+                                animationStyles={styles.emptyLHNAnimation}
+                                title={translate('common.emptyLHN.title')}
+                                shouldShowLink={false}
+                                renderSubtitle={renderEmptyStateSubtitle}
+                            />
+                        </View>
+                    ) : null
+                }
             />
         </View>
     );

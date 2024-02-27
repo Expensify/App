@@ -1,9 +1,11 @@
 import React from 'react';
-import type {ImageSourcePropType} from 'react-native';
+import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
 import AutoEmailLink from '@components/AutoEmailLink';
 import Icon from '@components/Icon';
+import Lottie from '@components/Lottie';
+import type DotLottieAnimation from '@components/LottieAnimations/types';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
@@ -12,10 +14,29 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
 
-type BlockingViewProps = {
-    /** Expensicon for the page */
-    icon: React.FC<SvgProps> | ImageSourcePropType;
+type RequiredIllustrationProps =
+    | {
+          /** Expensicon for the page */
+          icon: React.FC<SvgProps> | ImageSourcePropType;
 
+          /**
+           * Animation for the page
+           * If icon is provided, animation is not required
+           */
+          animation?: DotLottieAnimation;
+      }
+    | {
+          /** Animation for the page */
+          animation: DotLottieAnimation;
+
+          /**
+           * Expensicon for the page
+           * If animation is provided, icon is not required
+           */
+          icon?: React.FC<SvgProps> | ImageSourcePropType;
+      };
+
+type BlockingViewProps = RequiredIllustrationProps & {
     /** Color for the icon (should be from theme) */
     iconColor?: string;
 
@@ -42,9 +63,16 @@ type BlockingViewProps = {
 
     /** Whether we should embed the link with subtitle */
     shouldEmbedLinkWithSubtitle?: boolean;
+
+    /** Style for the animation */
+    animationStyles?: StyleProp<ViewStyle>;
+
+    /** Render custom subtitle */
+    renderSubtitle?: () => React.ReactElement;
 };
 
 function BlockingView({
+    animation,
     icon,
     iconColor,
     title,
@@ -55,6 +83,8 @@ function BlockingView({
     iconHeight = variables.iconSizeSuperLarge,
     onLinkPress = () => Navigation.dismissModal(),
     shouldEmbedLinkWithSubtitle = false,
+    animationStyles = [],
+    renderSubtitle,
 }: BlockingViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -79,16 +109,27 @@ function BlockingView({
 
     return (
         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
-            <Icon
-                src={icon}
-                fill={iconColor}
-                width={iconWidth}
-                height={iconHeight}
-            />
+            {animation && (
+                <Lottie
+                    source={animation}
+                    autoPlay
+                    style={animationStyles}
+                />
+            )}
+            {icon && (
+                <Icon
+                    src={icon}
+                    fill={iconColor}
+                    width={iconWidth}
+                    height={iconHeight}
+                />
+            )}
             <View>
                 <Text style={[styles.notFoundTextHeader]}>{title}</Text>
 
-                {shouldEmbedLinkWithSubtitle ? (
+                {renderSubtitle ? (
+                    renderSubtitle()
+                ) : shouldEmbedLinkWithSubtitle ? (
                     <Text style={[styles.textAlignCenter]}>{renderContent()}</Text>
                 ) : (
                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>{renderContent()}</View>
