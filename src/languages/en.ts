@@ -1036,6 +1036,7 @@ export default {
         delaySubmissionDescription: 'Expenses are shared right away for better spend visibility. Set a slower cadence if needed.',
         submissionFrequency: 'Submission frequency',
         submissionFrequencyDateOfMonth: 'Date of month',
+        submissionFrequencyDayOfMonth: 'Day of month',
         weeklyFrequency: 'Weekly',
         monthlyFrequency: 'Monthly',
         twiceAMonthFrequency: 'Twice a month',
