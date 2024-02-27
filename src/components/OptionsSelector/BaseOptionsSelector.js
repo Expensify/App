@@ -1,5 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
+import lodashIsEqual from 'lodash/isEqual';
 import PropTypes from 'prop-types';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {ScrollView, View} from 'react-native';
@@ -14,6 +15,7 @@ import ShowMoreButton from '@components/ShowMoreButton';
 import TextInput from '@components/TextInput';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
@@ -100,6 +102,7 @@ function BaseOptionsSelector(props) {
     const prevPaginationPage = useRef(paginationPage);
     const prevSelectedOptions = useRef(props.selectedOptions);
     const prevValue = useRef(value);
+    const previousSections = usePrevious(props.sections);
 
     useImperativeHandle(props.forwardedRef, () => textInputRef.current);
 
@@ -143,7 +146,7 @@ function BaseOptionsSelector(props) {
     /**
      * Maps sections to render only allowed count of them per section.
      *
-     * @returns {Objects[]}
+     * @returns {Object[]}
      */
     const sliceSections = useCallback(
         () =>
@@ -415,6 +418,10 @@ function BaseOptionsSelector(props) {
     }, [isFocused, props.autoFocus]);
 
     useEffect(() => {
+        if (lodashIsEqual(props.sections, previousSections)) {
+            return;
+        }
+
         const newSections = sliceSections();
         const newOptions = flattenSections();
 
@@ -434,7 +441,7 @@ function BaseOptionsSelector(props) {
         setFocusedIndex(prevFocusedOptionIndex || (_.isNumber(props.focusedIndex) ? props.focusedIndex : newFocusedIndex));
         // we want to run this effect only when the sections change
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.sections]);
+    }, [props.sections, previousSections]);
 
     useEffect(() => {
         // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
