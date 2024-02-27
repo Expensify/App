@@ -641,6 +641,7 @@ function BaseOptionsSelector(props) {
                         >
                             {optionsAndInputsBelowThem}
                         </ScrollView>
+                    </ScrollView>
                 )}
 
                 {props.shouldTextInputAppearBelowOptions && !props.shouldAllowScrollingChildren && optionsAndInputsBelowThem}
@@ -664,9 +665,9 @@ function BaseOptionsSelector(props) {
             </View>
             {props.shouldShowReferralCTA && (
                 <ReferralProgramCTA
-                        referralContentType={props.referralContentType}
-                        style={[themeStyles.mh5, themeStyles.mb5, themeStyles.flexShrink0]}
-                    />
+                    referralContentType={props.referralContentType}
+                    style={[themeStyles.mh5, themeStyles.mb5, themeStyles.flexShrink0]}
+                />
             )}
 
             {shouldShowFooter && (
