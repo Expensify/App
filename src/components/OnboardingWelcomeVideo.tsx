@@ -1,4 +1,5 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import type {LayoutChangeEvent, LayoutRectangle} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -6,6 +7,7 @@ import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import Button from './Button';
 import Lottie from './Lottie';
@@ -14,10 +16,9 @@ import Modal from './Modal';
 import Text from './Text';
 import VideoPlayer from './VideoPlayer';
 
-const BASE_VIDEO_WIDTH = 640;
 const BASE_VIDEO_ASPECT_RATIO = 2;
 
-const MODAL_PADDING = 16;
+const MODAL_PADDING = variables.spacing2;
 
 type VideoLoadedEventType = {
     srcElement: {
@@ -35,7 +36,8 @@ type VideoStatus = 'video' | 'animation';
 function OnboardingWelcomeVideo() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isSmallScreenWidth, windowHeight, windowWidth} = useWindowDimensions();
+    const containerDimensions = useRef<LayoutRectangle>({width: 0, height: 0, x: 0, y: 0});
+    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
     const [isModalOpen, setIsModalOpen] = useState(true);
     const [welcomeVideoStatus, setWelcomeVideoStatus] = useState<VideoStatus>('video');
@@ -58,6 +60,10 @@ function OnboardingWelcomeVideo() {
         }
     }, [isOffline, isVideoLoaded, isWelcomeVideoStatusLocked]);
 
+    const storeContainerDimensions = (event: LayoutChangeEvent) => {
+        containerDimensions.current = event.nativeEvent.layout;
+    };
+
     const closeModal = useCallback(() => {
         setIsModalOpen(false);
         Navigation.goBack();
@@ -76,12 +82,13 @@ function OnboardingWelcomeVideo() {
 
     const getWelcomeVideo = () => {
         if (welcomeVideoStatus === 'video') {
-            const videoWidth = 500;
+            const videoWidth = containerDimensions.current.width - 2 * MODAL_PADDING;
 
-            // Temporary file supplied for testing purposes, to be changed when correct one gets uploaded on backend
             return (
                 <View style={styles.pRelative}>
                     <VideoPlayer
+                        // Temporary file supplied for testing purposes, to
+                        // be changed when correct one gets uploaded on backend
                         url="https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4"
                         videoPlayerStyle={[styles.onboardingVideoPlayer, {width: videoWidth, height: videoWidth / videoAspectRatio}]}
                         onVideoLoaded={onVideoLoaded}
@@ -108,8 +115,21 @@ function OnboardingWelcomeVideo() {
     return (
         <View
             style={styles.defaultModalContainer}
+            onLayout={storeContainerDimensions}
         >
-            {getWelcomeVideo()}
+            <View style={{padding: MODAL_PADDING}}>{getWelcomeVideo()}</View>
+            <View style={[shouldUseNarrowLayout ? [styles.mt3, styles.mh5] : [styles.mt5, styles.mh8]]}>
+                <View style={[shouldUseNarrowLayout ? [styles.gap2, styles.mb10] : [styles.gap1, styles.mb8]]}>
+                    <Text style={styles.textHeroSmall}>{translate('onboarding.welcomeVideo.title')}</Text>
+                    <Text style={styles.textSupporting}>{translate('onboarding.welcomeVideo.description')}</Text>
+                </View>
+                <Button
+                    success
+                    pressOnEnter
+                    onPress={closeModal}
+                    text={translate('onboarding.welcomeVideo.button')}
+                />
+            </View>
         </View>
     );
 
