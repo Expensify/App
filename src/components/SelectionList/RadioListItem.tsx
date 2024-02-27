@@ -35,27 +35,30 @@ function RadioListItem({
             rightHandSideComponent={rightHandSideComponent}
             keyForList={item.keyForList}
         >
-            <View style={[styles.flex1, styles.alignItemsStart]}>
-                <TextWithTooltip
-                    shouldShowTooltip={showTooltip}
-                    text={item.text}
-                    textStyles={[
-                        styles.optionDisplayName,
-                        isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                        styles.sidebarLinkTextBold,
-                        styles.pre,
-                        item.alternateText ? styles.mb1 : null,
-                    ]}
-                />
-
-                {!!item.alternateText && (
+            <>
+                <View style={[styles.flex1, styles.alignItemsStart]}>
                     <TextWithTooltip
                         shouldShowTooltip={showTooltip}
-                        text={item.alternateText}
-                        textStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                        text={item.text}
+                        textStyles={[
+                            styles.optionDisplayName,
+                            isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                            styles.sidebarLinkTextBold,
+                            styles.pre,
+                            item.alternateText ? styles.mb1 : null,
+                        ]}
                     />
-                )}
-            </View>
+
+                    {!!item.alternateText && (
+                        <TextWithTooltip
+                            shouldShowTooltip={showTooltip}
+                            text={item.alternateText}
+                            textStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                        />
+                    )}
+                </View>
+                {!!item.rightElement && item.rightElement}
+            </>
         </BaseListItem>
     );
 }
