@@ -1,7 +1,19 @@
 import * as format from './format';
 
+type Stats = {
+    mean: number;
+    stdev: number;
+    runs: number;
+    entries: Record<string, number[]>;
+};
+
 type Entry = {
     name: string;
+    baseline: Stats;
+    current: Stats;
+    diff: number;
+    relativeDurationDiff: number;
+    isDurationDiffOfSignificance: boolean;
 };
 
 type Data = {
@@ -29,3 +41,5 @@ export default (data: Data) => {
 
     console.debug('');
 };
+
+export type {Entry};

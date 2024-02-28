@@ -2,22 +2,7 @@
  * Utility for formatting text for result outputs.
  * from: https://github.com/callstack/reassure/blob/main/packages/reassure-compare/src/utils/format.ts
  */
-
-type Stats = {
-    mean: number;
-    stdev: number;
-    runs: number;
-    entries: Record<string, number[]>;
-};
-
-type CompareEntry = {
-    name: string;
-    baseline: Stats;
-    current: Stats;
-    diff: number;
-    relativeDurationDiff: number;
-    isDurationDiffOfSignificance: boolean;
-};
+import type {Entry} from './console';
 
 const formatPercent = (value: number): string => {
     const valueAsPercent = value * 100;
@@ -57,7 +42,7 @@ const formatChange = (value: number): string => {
     return '0';
 };
 
-const getDurationSymbols = (entry: CompareEntry): string => {
+const getDurationSymbols = (entry: Entry): string => {
     if (!entry.isDurationDiffOfSignificance) {
         if (entry.relativeDurationDiff > 0.15) {
             return '🟡';
@@ -84,7 +69,7 @@ const getDurationSymbols = (entry: CompareEntry): string => {
     return '';
 };
 
-const formatDurationDiffChange = (entry: CompareEntry): string => {
+const formatDurationDiffChange = (entry: Entry): string => {
     const {baseline, current} = entry;
 
     let output = `${formatDuration(baseline.mean)} → ${formatDuration(current.mean)}`;
