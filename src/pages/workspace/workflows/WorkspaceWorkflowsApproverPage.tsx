@@ -106,12 +106,12 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails}
             };
 
             if (policy?.approver === details.login) {
-                formattedApprover.push(formattedMember);
+                approverDetails.push(formattedMember);
             } else {
-                formattedPolicyMembers.push(formattedMember);
+                policyMemberDetails.push(formattedMember);
             }
         });
-        return [formattedPolicyMembers, formattedApprover];
+        return [policyMemberDetails, approverDetails];
     }, [personalDetails, policyMembers, translate, policy?.approver]);
 
     const sections: MembersSection[] = useMemo(() => {
