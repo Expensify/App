@@ -2532,7 +2532,6 @@ function getThreadReportName(parentReportAction: OnyxEntry<ReportAction> | Empty
         return lodashUnescape(Str.stripHTML(threadReportNameHtml));
     }
 
-    // <body></body> is to prevent the redundant body which causes text overflown
     return StringUtils.containsHtml(threadReportNameHtml) ? `<thread-title>${threadReportNameHtml}</thread-title>` : lodashUnescape(threadReportNameHtml);
 }
 
