@@ -215,6 +215,14 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
             }
         });
     }
+    
+    const hasModifiedTaxAmount = reportActionOriginalMessage && 'oldTaxAmount' in reportActionOriginalMessage && 'taxAmount' in reportActionOriginalMessage;
+    if (hasModifiedTaxAmount) {
+        const taxAmount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage?.amount ?? 0);
+        const oldTaxAmountValue = reportActionOriginalMessage?.oldAmount ?? 0;
+        const oldTaxAmount = oldTaxAmountValue > 0 ? CurrencyUtils.convertToDisplayString(reportActionOriginalMessage?.oldTaxAmount ?? 0) : '';
+        buildMessageFragmentForValue(taxAmount, oldTaxAmount, Localize.translateLocal('iou.taxAmount'), true, setFragments, removalFragments, changeFragments);
+    }
 
     const hasModifiedTaxRate = reportActionOriginalMessage && 'oldTaxRate' in reportActionOriginalMessage && 'taxRate' in reportActionOriginalMessage;
     if (hasModifiedTaxRate) {
