@@ -1,4 +1,5 @@
-import deepReplaceKeysAndValues from '../../src/libs/deepReplaceKeysAndValues';
+import deepReplaceKeysAndValues from '@libs/deepReplaceKeysAndValues';
+import type {ReplaceableValue} from '@libs/deepReplaceKeysAndValues';
 
 describe('deepReplaceKeysAndValues', () => {
     test.each([
@@ -121,7 +122,7 @@ describe('deepReplaceKeysAndValues', () => {
                 someOtherKey: 2,
             },
         ],
-    ])('deepReplaceKeysAndValues(%s)', (input, expected) => {
+    ])('deepReplaceKeysAndValues(%s)', (input: ReplaceableValue, expected: ReplaceableValue) => {
         expect(deepReplaceKeysAndValues(input, 'oldVal', 'newVal')).toStrictEqual(expected);
     });
 });
