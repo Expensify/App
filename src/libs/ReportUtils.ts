@@ -2590,19 +2590,19 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>): ParentNavigatio
 
     if (isIOURequest(parentReport)) {
         return {
-            rootReportName: getReportName(parentReport),
+            reportName: getReportName(parentReport),
         };
     }
 
     if (isExpenseRequest(parentReport)) {
         return {
-            rootReportName: getReportName(parentReport),
+            reportName: getReportName(parentReport),
             workspaceName: isIOUReport(parentReport) ? CONST.POLICY.OWNER_EMAIL_FAKE : getPolicyName(parentReport, true),
         };
     }
 
     return {
-        rootReportName: getReportName(parentReport),
+        reportName: getReportName(parentReport),
         workspaceName: getPolicyName(parentReport, true),
     };
 }
