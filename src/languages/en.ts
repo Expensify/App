@@ -1212,6 +1212,11 @@ export default {
     },
     onboarding: {
         welcome: 'Welcome!',
+        welcomeVideo: {
+            title: 'Welcome to Expensify',
+            description: 'Getting paid is as easy as sending a message.',
+            button: "Let's go",
+        },
         whatsYourName: "What's your name?",
         error: {
             requiredFirstName: 'Please input your first name to continue',
@@ -2220,13 +2225,6 @@ export default {
         },
         errors: {
             selectSuggestedAddress: 'Please select a suggested address or use current location',
-        },
-    },
-    onboarding: {
-        welcomeVideo: {
-            title: 'Welcome to Expensify',
-            description: 'Getting paid is as easy as sending a message.',
-            button: "Let's go",
         },
     },
     reportCardLostOrDamaged: {
