@@ -1698,6 +1698,14 @@ function getDisplayNamesWithTooltips(
 }
 
 /**
+ * Returns the the display names of the given user accountIDs
+ */
+function getUserDetailTooltipText(accountID: number, fallbackUserDisplayName = ''): string {
+    const displayNameForParticipant = getDisplayNameForParticipant(accountID);
+    return displayNameForParticipant || fallbackUserDisplayName;
+}
+
+/**
  * For a deleted parent report action within a chat report,
  * let us return the appropriate display message
  *
@@ -5193,6 +5201,7 @@ export {
     buildOptimisticUnHoldReportAction,
     shouldDisplayThreadReplies,
     shouldDisableThread,
+    getUserDetailTooltipText,
     doesReportBelongToWorkspace,
     getChildReportNotificationPreference,
     getAllAncestorReportActions,
