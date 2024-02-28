@@ -88,6 +88,8 @@ type ExpenseOriginalMessage = {
     oldTag?: string;
     billable?: string;
     oldBillable?: string;
+    oldTaxAmount?: number;
+    taxAmount?: number;
     taxRate?: string;
     oldTaxRate?: string;
 };
