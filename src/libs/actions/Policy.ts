@@ -2256,5 +2256,6 @@ export {
     setWorkspaceInviteMessageDraft,
     setWorkspaceAutoReporting,
     setWorkspaceApprovalMode,
+    setWorkspaceApprover,
     updateWorkspaceDescription,
 };
