@@ -229,6 +229,24 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** All the integration connections attached to the policy */
         connections?: Record<string, Connection>;
+
+        /** Whether the Categories feature is enabled */
+        areCategoriesEnabled?: boolean;
+
+        /** Whether the Tags feature is enabled */
+        areTagsEnabled?: boolean;
+
+        /** Whether the Distance Rates feature is enabled */
+        areDistanceRatessEnabled?: boolean;
+
+        /** Whether the workflows feature is enabled */
+        areWorkflowsEnabled?: boolean;
+
+        /** Whether the Report Fields feature is enabled */
+        areReportFieldsEnabled?: boolean;
+
+        /** Whether the Connections feature is enabled */
+        areConnectionsEnabled?: boolean;
     },
     'generalSettings' | 'addWorkspaceRoom'
 >;
