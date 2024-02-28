@@ -53,7 +53,7 @@ function IOURequestStepScan({
     const askForPermissions = (showPermissionsAlert = true) => {
         // There's no way we can check for the BLOCKED status without requesting the permission first
         // https://github.com/zoontek/react-native-permissions/blob/a836e114ce3a180b2b23916292c79841a267d828/README.md?plain=1#L670
-        CameraPermission.requestCameraPermission()
+        CameraPermission.requestCameraPermission?.()
             .then((status: string) => {
                 setCameraPermissionStatus(status);
 
@@ -103,7 +103,7 @@ function IOURequestStepScan({
 
     useEffect(() => {
         const refreshCameraPermissionStatus = (shouldAskForPermission = false) => {
-            CameraPermission.getCameraPermissionStatus()
+            CameraPermission.getCameraPermissionStatus?.()
                 .then((res: string) => {
                     // In android device app data, the status is not set to blocked until denied twice,
                     // due to that the app will ask for permission twice whenever users opens uses the scan tab
