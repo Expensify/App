@@ -248,7 +248,7 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         const taxAmount = CurrencyUtils.convertToDisplayString(getTaxAmount(reportActionOriginalMessage?.taxAmount ?? 0, isFromExpenseReport), currency);
         const oldTaxAmountValue = reportActionOriginalMessage?.oldAmount ?? 0;
         const oldTaxAmount = oldTaxAmountValue > 0 ? CurrencyUtils.convertToDisplayString(getTaxAmount(oldTaxAmountValue, isFromExpenseReport), currency) : '';
-        buildMessageFragmentForValue(taxAmount, oldTaxAmount, Localize.translateLocal('iou.taxAmount'), true, setFragments, removalFragments, changeFragments);
+        buildMessageFragmentForValue(taxAmount, oldTaxAmount, Localize.translateLocal('iou.taxAmount'), false, setFragments, removalFragments, changeFragments);
     }
 
     const hasModifiedTaxRate = reportActionOriginalMessage && 'oldTaxRate' in reportActionOriginalMessage && 'taxRate' in reportActionOriginalMessage;
@@ -257,7 +257,7 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
             reportActionOriginalMessage?.taxRate ?? '',
             reportActionOriginalMessage?.oldTaxRate ?? '',
             Localize.translateLocal('iou.taxRate'),
-            true,
+            false,
             setFragments,
             removalFragments,
             changeFragments,
