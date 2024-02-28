@@ -81,6 +81,7 @@ function getOrderedReportIDs(
     currentPolicyID = '',
     policyMemberAccountIDs: number[] = [],
     reportIDsWithErrors: Record<string, OnyxCommon.Errors> = {},
+    canUseViolations = false,
 ): string[] {
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInGSDMode;
@@ -92,8 +93,7 @@ function getOrderedReportIDs(
     let reportsToDisplay = allReportsDictValues.filter((report) => {
         const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`;
         const parentReportAction = allReportActions?.[parentReportActionsKey]?.[report.parentReportActionID ?? ''];
-        const doesReportHaveViolations =
-            betas.includes(CONST.BETAS.VIOLATIONS) && !!parentReportAction && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
+        const doesReportHaveViolations = canUseViolations && !!parentReportAction && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
         if (doesReportHaveViolations) {
             reportIDsWithViolations.add(report.reportID);
         }

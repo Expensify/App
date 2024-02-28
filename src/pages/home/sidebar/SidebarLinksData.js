@@ -13,6 +13,7 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 import withNavigationFocus from '@components/withNavigationFocus';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
@@ -117,6 +118,7 @@ function SidebarLinksData({
     const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
     const prevPriorityMode = usePrevious(priorityMode);
+    const {canUseViolations} = usePermissions();
 
     const policyMemberAccountIDs = getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, currentUserPersonalDetails.accountID);
 
@@ -154,6 +156,7 @@ function SidebarLinksData({
             activeWorkspaceID,
             policyMemberAccountIDs,
             reportIDsWithErrors,
+            canUseViolations,
         );
 
         if (deepEqual(reportIDsRef.current, reportIDs)) {
@@ -177,6 +180,7 @@ function SidebarLinksData({
         activeWorkspaceID,
         policyMemberAccountIDs,
         reportIDsWithErrors,
+        canUseViolations,
         isLoading,
         network.isOffline,
         prevPriorityMode,
@@ -200,6 +204,7 @@ function SidebarLinksData({
                 activeWorkspaceID,
                 policyMemberAccountIDs,
                 reportIDsWithErrors,
+                canUseViolations,
             );
         }
         return optionListItems;
@@ -215,6 +220,7 @@ function SidebarLinksData({
         activeWorkspaceID,
         policyMemberAccountIDs,
         reportIDsWithErrors,
+        canUseViolations,
     ]);
 
     const currentReportIDRef = useRef(currentReportID);
