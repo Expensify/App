@@ -228,7 +228,7 @@ function BaseOptionsSelector(props) {
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         shouldBubble: !allOptions[focusedIndex],
         captureOnInputs: true,
-        isActive: !activeElementRole || activeElementRole === CONST.ROLE.PRESENTATION,
+        isActive: isFocused && (!activeElementRole || activeElementRole === CONST.ROLE.PRESENTATION),
     });
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, selectOptions, {
         captureOnInputs: true,
