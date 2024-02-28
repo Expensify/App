@@ -8,6 +8,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -94,6 +95,7 @@ function TaskShareDestinationSelectorModal({reports, isSearchingForReports}) {
                     />
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <SelectionList
+                            ListItem={UserListItem}
                             sections={didScreenTransitionEnd ? options.sections : CONST.EMPTY_ARRAY}
                             onSelectRow={selectReportHandler}
                             onChangeText={setSearchValue}
