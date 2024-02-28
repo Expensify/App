@@ -33,7 +33,7 @@ const getTopMostReportIDFromRHP = (state: State): string => {
 
 // Check if the given route has a policyID equal to the id provided in the function params
 function hasRouteMatchingPolicyID(route: NavigationPartialRoute<CentralPaneName>, policyID?: string) {
-    if (!route.params) {
+    if (!route?.params) {
         return false;
     }
 

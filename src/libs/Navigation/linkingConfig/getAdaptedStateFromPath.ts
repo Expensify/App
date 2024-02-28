@@ -160,10 +160,10 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             let matchingRootRoute = getMatchingRootRouteForRHPRoute(topmostNestedRHPRoute, policyID);
 
             // This may happen if this RHP doens't have a route that should be under the overlay defined.
-            if (!matchingRootRoute) {
+            if (!matchingRootRoute || (topmostNestedRHPRoute?.name && [SCREENS.SETTINGS.SHARE_CODE, SCREENS.SETTINGS.PROFILE.STATUS].includes(topmostNestedRHPRoute?.name))) {
                 metainfo.isCentralPaneAndBottomTabMandatory = false;
                 metainfo.isFullScreenNavigatorMandatory = false;
-                matchingRootRoute = createCentralPaneNavigator({name: SCREENS.REPORT});
+                matchingRootRoute = matchingRootRoute ?? createCentralPaneNavigator({name: SCREENS.REPORT});
             }
 
             // If the root route is type of FullScreenNavigator, the default bottom tab will be added.
