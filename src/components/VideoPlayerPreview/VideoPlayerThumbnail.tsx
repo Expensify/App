@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {GestureResponderEvent} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Image from '@components/Image';
@@ -11,9 +12,14 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {VideoPlayerThumbnailProps} from './types';
 
-function VideoPlayerThumbnail({thumbnailUrl = undefined, onPress, accessibilityLabel}: VideoPlayerThumbnailProps) {
+type VideoPlayerThumbnailProps = {
+    thumbnailUrl: string | undefined;
+    onPress: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
+    accessibilityLabel: string;
+};
+
+function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel}: VideoPlayerThumbnailProps) {
     const styles = useThemeStyles();
 
     return (
