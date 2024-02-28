@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
+import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';
@@ -28,24 +29,16 @@ type WorkspaceAutoReportingMonthlyOffsetPageItem = {
 };
 
 function WorkspaceAutoReportingMonthlyOffsetPage({policy}: WorkspaceAutoReportingMonthlyOffsetProps) {
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const offset = policy?.autoReportingOffset ?? 0;
     const [searchText, setSearchText] = useState('');
     const trimmedText = searchText.trim().toLowerCase();
 
     const daysOfMonth: WorkspaceAutoReportingMonthlyOffsetPageItem[] = Array.from({length: DAYS_OF_MONTH}, (value, index) => {
         const day = index + 1;
-        let suffix = 'th';
-        if (day === 1 || day === 21) {
-            suffix = 'st';
-        } else if (day === 2 || day === 22) {
-            suffix = 'nd';
-        } else if (day === 3 || day === 23) {
-            suffix = 'rd';
-        }
 
         return {
-            text: `${day}${suffix}`,
+            text: Localize.toLocaleOrdinal(preferredLocale, day),
             keyForList: day.toString(), // we have to cast it as string for <ListItem> to work
             isSelected: day === offset,
             isNumber: true,

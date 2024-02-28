@@ -9,7 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {translate as globalTranslate} from '@libs/Localize';
+import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';
@@ -20,6 +20,7 @@ import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type AutoReportingFrequencyKey = Exclude<ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, 'instant'>;
+type Locale = ValueOf<typeof CONST.LOCALES>;
 
 type WorkspaceAutoReportingFrequencyPageProps = WithPolicyOnyxProps;
 
@@ -31,16 +32,14 @@ type WorkspaceAutoReportingFrequencyPageItem = {
 
 type AutoReportingFrequencyDisplayNames = Record<AutoReportingFrequencyKey, string>;
 
-const getAutoReportingFrequencyDisplayNames = (locale: 'en' | 'es' | 'es-ES' | 'es_ES'): AutoReportingFrequencyDisplayNames => ({
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: globalTranslate(locale, 'workflowsPage.frequencies.monthly'),
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: globalTranslate(locale, 'workflowsPage.frequencies.daily'),
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: globalTranslate(locale, 'workflowsPage.frequencies.weekly'),
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: globalTranslate(locale, 'workflowsPage.frequencies.twiceAMonth'),
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: globalTranslate(locale, 'workflowsPage.frequencies.byTrip'),
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: globalTranslate(locale, 'workflowsPage.frequencies.manually'),
+const getAutoReportingFrequencyDisplayNames = (locale: Locale): AutoReportingFrequencyDisplayNames => ({
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: Localize.translate(locale, 'workflowsPage.frequencies.monthly'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: Localize.translate(locale, 'workflowsPage.frequencies.daily'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: Localize.translate(locale, 'workflowsPage.frequencies.weekly'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: Localize.translate(locale, 'workflowsPage.frequencies.twiceAMonth'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: Localize.translate(locale, 'workflowsPage.frequencies.byTrip'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: Localize.translate(locale, 'workflowsPage.frequencies.manually'),
 });
-
-const FIRST_DAY_OF_MONTH = '1st';
 
 function WorkspaceAutoReportingFrequencyPage({policy}: WorkspaceAutoReportingFrequencyPageProps) {
     const {translate, preferredLocale} = useLocalize();
@@ -59,29 +58,24 @@ function WorkspaceAutoReportingFrequencyPage({policy}: WorkspaceAutoReportingFre
 
     const onSelectAutoReportingFrequency = (item: WorkspaceAutoReportingFrequencyPageItem) => {
         Policy.setWorkspaceAutoReportingFrequency(policy?.id ?? '', item.keyForList as AutoReportingFrequencyKey);
-        if (item.keyForList !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY) {
-            setIsMonthlyFrequency(false);
-            Navigation.goBack();
-        } else {
+
+        if (item.keyForList === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY) {
             setIsMonthlyFrequency(true);
+            return;
         }
+
+        setIsMonthlyFrequency(false);
+        Navigation.goBack();
     };
 
     const getDescriptionText = () => {
         if (policy?.autoReportingOffset === undefined) {
-            return FIRST_DAY_OF_MONTH;
+            return Localize.toLocaleOrdinal(preferredLocale, 1);
         }
         if (typeof policy?.autoReportingOffset === 'number') {
-            let suffix = 'th';
-            if (policy.autoReportingOffset === 1 || policy.autoReportingOffset === 21 || policy.autoReportingOffset === 31) {
-                suffix = 'st';
-            } else if (policy.autoReportingOffset === 2 || policy.autoReportingOffset === 22) {
-                suffix = 'nd';
-            } else if (policy.autoReportingOffset === 3 || policy.autoReportingOffset === 23) {
-                suffix = 'rd';
-            }
-            return `${policy.autoReportingOffset}${suffix}`;
+            return Localize.toLocaleOrdinal(preferredLocale, policy.autoReportingOffset);
         }
+
         return translate(`workflowsPage.frequencies.${policy?.autoReportingOffset}`);
     };
 
