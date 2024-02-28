@@ -10,7 +10,6 @@ type ApiRequest = ValueOf<typeof CONST.API_REQUEST_TYPE>;
 const WRITE_COMMANDS = {
     SET_WORKSPACE_AUTO_REPORTING: 'SetWorkspaceAutoReporting',
     SET_WORKSPACE_APPROVAL_MODE: 'SetWorkspaceApprovalMode',
-    SET_WORKSPACE_APPROVER: 'SetWorkspaceApprover',
     DISMISS_REFERRAL_BANNER: 'DismissReferralBanner',
     UPDATE_PREFERRED_LOCALE: 'UpdatePreferredLocale',
     OPEN_APP: 'OpenApp',
