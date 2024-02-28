@@ -1,6 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import React, {useMemo, useState} from 'react';
-import {SectionListData} from 'react-native';
+import type {SectionListData} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Badge from '@components/Badge';
