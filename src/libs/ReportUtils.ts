@@ -2892,21 +2892,33 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
     };
 }
 
+function getHumanReadableStatus(statusNum: number): string {
+    const status = Object.keys(CONST.REPORT.STATUS_NUM).find((key) => CONST.REPORT.STATUS_NUM[key as keyof typeof CONST.REPORT.STATUS_NUM] === statusNum);
+    return status ? `${status.charAt(0)}${status.slice(1).toLowerCase()}` : '';
+}
+
 /**
  * Populates the report field formula with the values from the report and policy.
- * Currently, is supports only optimistic expense reports.
+ * Currently, this only supports optimistic expense reports.
  * Each formula field is either replaced with a value, or removed.
  * If after all replacements the formula is empty, the original formula is returned.
+ * See {@link https://help.expensify.com/articles/expensify-classic/insights-and-custom-reporting/Custom-Templates}
  */
 function populateOptimisticReportFormula(formula: string, report: OptimisticExpenseReport, policy: Policy | EmptyObject): string {
+    const createdDate = report.lastVisibleActionCreated ? new Date(report.lastVisibleActionCreated) : undefined;
     const result = formula
         .replaceAll('{report:id}', report.reportID)
         // We don't translate because the server response is always in English
         .replaceAll('{report:type}', 'Expense Report')
-        .replaceAll('{report:startdate}', report.lastVisibleActionCreated ? format(new Date(report.lastVisibleActionCreated), CONST.DATE.FNS_FORMAT_STRING) : '')
+        .replaceAll('{report:startdate}', createdDate ? format(createdDate, CONST.DATE.FNS_FORMAT_STRING) : '')
         .replaceAll('{report:total}', report.total?.toString() ?? '')
         .replaceAll('{report:currency}', report.currency ?? '')
         .replaceAll('{report:policyname}', policy.name ?? '')
+        .replaceAll('{report:created}', createdDate ? format(createdDate, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING) : '')
+        .replaceAll('{report:created:yyyy-MM-dd}', createdDate ? format(createdDate, CONST.DATE.FNS_FORMAT_STRING) : '')
+        .replaceAll('{report:status}', report.statusNum !== undefined ? getHumanReadableStatus(report.statusNum) : '')
+        .replaceAll('{user:email}', currentUserEmail ?? '')
+        .replaceAll('{user:email|frontPart}', currentUserEmail ? currentUserEmail.split('@')[0] : '')
         .replaceAll(/\{report:(.+)}/g, '');
 
     return result.trim().length ? result : formula;
