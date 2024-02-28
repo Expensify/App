@@ -6,7 +6,7 @@ type TextWithTooltipProps = {
 
     /** Whether to show the toolip text */
     shouldShowTooltip: boolean;
-    
+
     /** Additional text styles */
     textStyles?: StyleProp<TextStyle>;
 
