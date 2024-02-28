@@ -39,7 +39,15 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
      */
     const updateCurrentReportID = useCallback(
         (state: NavigationState) => {
-            setCurrentReportID(Navigation.getTopmostReportId(state) ?? '');
+            const reportID = Navigation.getTopmostReportId(state) ?? '';
+            /**
+             * This is to make sure we don't set the undefined as reportID when
+             * switching between chat list and settings->workspaces tab.
+             * and doing so avoid unnecessary re-render of `useOrderedReportIDs`.
+             */
+            if (reportID) {
+                setCurrentReportID(reportID);
+            }
         },
         [setCurrentReportID],
     );
