@@ -1,6 +1,6 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -42,6 +42,7 @@ const parser = new ExpensiMark();
 function NewTaskDescriptionPage(props) {
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
+    const defaultDescriptionValue = useMemo(() => parser.htmlToMarkdown(parser.replace(props.task.description)), [props.task.description]);
 
     const onSubmit = (values) => {
         Task.setDescriptionValue(values.taskDescription);
@@ -85,7 +86,7 @@ function NewTaskDescriptionPage(props) {
                     <View style={styles.mb5}>
                         <InputWrapperWithRef
                             InputComponent={TextInput}
-                            defaultValue={parser.htmlToMarkdown(parser.replace(props.task.description))}
+                            defaultValue={defaultDescriptionValue}
                             inputID={INPUT_IDS.TASK_DESCRIPTION}
                             label={props.translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}

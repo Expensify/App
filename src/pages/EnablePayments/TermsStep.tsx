@@ -7,6 +7,8 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -26,6 +28,30 @@ type TermsStepProps = TermsStepOnyxProps & {
     /** The user's wallet */
     userWallet: OnyxEntry<UserWallet>;
 };
+
+function HaveReadAndAgreeLabel() {
+    const {translate} = useLocalize();
+
+    return (
+        <Text>
+            {`${translate('termsStep.haveReadAndAgree')}`}
+            <TextLink href={CONST.ELECTRONIC_DISCLOSURES_URL}>{`${translate('termsStep.electronicDisclosures')}.`}</TextLink>
+        </Text>
+    );
+}
+
+function AgreeToTheLabel() {
+    const {translate} = useLocalize();
+
+    return (
+        <Text>
+            {`${translate('termsStep.agreeToThe')} `}
+            <TextLink href={CONST.PRIVACY_URL}>{`${translate('common.privacy')} `}</TextLink>
+            {`${translate('common.and')} `}
+            <TextLink href={CONST.WALLET_AGREEMENT_URL}>{`${translate('termsStep.walletAgreement')}.`}</TextLink>
+        </Text>
+    );
+}
 
 function TermsStep(props: TermsStepProps) {
     const styles = useThemeStyles();
@@ -67,28 +93,12 @@ function TermsStep(props: TermsStepProps) {
                     accessibilityLabel={translate('termsStep.haveReadAndAgree')}
                     style={[styles.mb4, styles.mt4]}
                     onInputChange={toggleDisclosure}
-                    LabelComponent={() => (
-                        <Text>
-                            {`${translate('termsStep.haveReadAndAgree')}`}
-
-                            <TextLink href={CONST.ELECTRONIC_DISCLOSURES_URL}>{`${translate('termsStep.electronicDisclosures')}.`}</TextLink>
-                        </Text>
-                    )}
+                    LabelComponent={HaveReadAndAgreeLabel}
                 />
                 <CheckboxWithLabel
                     accessibilityLabel={translate('termsStep.agreeToThe')}
                     onInputChange={togglePrivacyPolicy}
-                    LabelComponent={() => (
-                        <Text>
-                            {`${translate('termsStep.agreeToThe')} `}
-
-                            <TextLink href={CONST.PRIVACY_URL}>{`${translate('common.privacy')} `}</TextLink>
-
-                            {`${translate('common.and')} `}
-
-                            <TextLink href={CONST.WALLET_AGREEMENT_URL}>{`${translate('termsStep.walletAgreement')}.`}</TextLink>
-                        </Text>
-                    )}
+                    LabelComponent={AgreeToTheLabel}
                 />
                 <FormAlertWithSubmitButton
                     buttonText={translate('termsStep.enablePayments')}

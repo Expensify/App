@@ -86,13 +86,14 @@ function MoneyRequestPreviewContent({
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
-    const hasViolations = TransactionUtils.hasViolation(transaction, transactionViolations);
+    const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID ?? '', transactionViolations);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     const shouldShowRBR = hasViolations || hasFieldErrors;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const isFetchingWaypointsFromServer = TransactionUtils.isFetchingWaypointsFromServer(transaction);
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const isSettled = ReportUtils.isSettled(iouReport?.reportID);
+    const isOnHold = TransactionUtils.isOnHold(transaction);
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     /*
@@ -152,18 +153,20 @@ function MoneyRequestPreviewContent({
 
         let message = translate('iou.cash');
         if (hasViolations && transaction) {
-            const violations = TransactionUtils.getTransactionViolations(transaction, transactionViolations);
+            const violations = TransactionUtils.getTransactionViolations(transaction.transactionID, transactionViolations);
             if (violations?.[0]) {
                 const violationMessage = ViolationsUtils.getViolationTranslation(violations[0], translate);
                 const isTooLong = violations.filter((v) => v.type === 'violation').length > 1 || violationMessage.length > 15;
                 message += ` • ${isTooLong ? translate('violations.reviewRequired') : violationMessage}`;
             }
-        } else if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport)) {
+        } else if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID)) {
             message += ` • ${translate('iou.approved')}`;
         } else if (iouReport?.isWaitingOnBankAccount) {
             message += ` • ${translate('iou.pending')}`;
         } else if (iouReport?.isCancelledIOU) {
             message += ` • ${translate('iou.canceled')}`;
+        } else if (isOnHold) {
+            message += ` • ${translate('iou.hold')}`;
         }
         return message;
     };
@@ -275,7 +278,11 @@ function MoneyRequestPreviewContent({
                                     {!isCurrentUserManager && shouldShowPendingConversionMessage && (
                                         <Text style={[styles.textLabel, styles.colorMuted]}>{translate('iou.pendingConversionMessage')}</Text>
                                     )}
-                                    {shouldShowDescription && <RenderHTML html={`<muted-text>${parser.replace(merchantOrDescription)}</muted-text>`} />}
+                                    {shouldShowDescription && (
+                                        <View style={[styles.breakWord, styles.preWrap]}>
+                                            <RenderHTML html={`<muted-text>${parser.replace(merchantOrDescription)}</muted-text>`} />
+                                        </View>
+                                    )}
                                     {shouldShowMerchant && <Text style={[styles.textLabelSupporting, styles.textNormal]}>{merchantOrDescription}</Text>}
                                 </View>
                                 {isBillSplit && participantAccountIDs.length > 0 && !!requestAmount && requestAmount > 0 && (
