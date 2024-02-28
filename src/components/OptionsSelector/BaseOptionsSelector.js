@@ -103,7 +103,7 @@ function BaseOptionsSelector(props) {
         const options = [];
         const calcDisabledOptionIndexes = [];
         let index = 0;
-        _.each(props.sections, (section, sectionIndex) => {
+        _.each(sections, (section, sectionIndex) => {
             _.each(section.data, (option, optionIndex) => {
                 // eslint-disable-next-line no-param-reassign
                 option.sectionIndex = sectionIndex;
@@ -120,7 +120,7 @@ function BaseOptionsSelector(props) {
         });
         setDisabledOptionsIndexes(calcDisabledOptionIndexes);
         return options;
-    }, [props.sections]);
+    }, [sections]);
     const prevOptions = usePrevious(allOptions);
 
     const initialFocusedIndex = useMemo(() => {
