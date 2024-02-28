@@ -177,7 +177,7 @@ function IOURequestStepScan({
     };
 
     const getScreenshot = useCallback(() => {
-        if (!cameraRef.current || !cameraRef.current.getScreenshot) {
+        if (!cameraRef.current) {
             return;
         }
 
