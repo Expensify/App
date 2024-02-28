@@ -27,7 +27,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
         rightModalNavigator: {
             ...commonScreenOptions,
             cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
-            presentation: 'transparentModal',
+            presentation: Platform.OS === 'android' ? 'modal' : 'transparentModal',
 
             // We want pop in RHP since there are some flows that would work weird otherwise
             animationTypeForReplace: 'pop',
