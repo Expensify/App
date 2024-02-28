@@ -3,6 +3,7 @@ import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -16,10 +17,12 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Navigation from '@libs/Navigation/Navigation';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -86,6 +89,22 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
         </View>
     );
 
+    const navigateToCategorySettings = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES_SETTINGS.getRoute(route.params.policyID));
+    };
+
+    const settingsButton = (
+        <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
+            <Button
+                medium
+                onPress={navigateToCategorySettings}
+                icon={Expensicons.Gear}
+                text={translate('common.settings')}
+                style={[isSmallScreenWidth && styles.w50]}
+            />
+        </View>
+    );
+
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
@@ -99,7 +118,10 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                         icon={Illustrations.FolderOpen}
                         title={translate('workspace.common.categories')}
                         shouldShowBackButton={isSmallScreenWidth}
-                    />
+                    >
+                        {!isSmallScreenWidth && settingsButton}
+                    </HeaderWithBackButton>
+                    {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{settingsButton}</View>}
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
                     </View>
