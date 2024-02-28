@@ -392,6 +392,9 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 autoReporting: enabled,
+                harvesting: {
+                    enabled: true,
+                },
                 pendingFields: {isAutoApprovalEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             },
         },
@@ -403,7 +406,7 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 autoReporting: !enabled,
-                pendingFields: {isAutoApprovalEnabled: null},
+                pendingFields: {isAutoApprovalEnabled: null, harvesting: null},
             },
         },
     ];
@@ -413,7 +416,7 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                pendingFields: {isAutoApprovalEnabled: null},
+                pendingFields: {isAutoApprovalEnabled: null, harvesting: null},
             },
         },
     ];

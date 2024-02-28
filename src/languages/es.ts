@@ -2727,7 +2727,6 @@ export default {
         address: 'Dirección',
         waypointDescription: {
             start: 'Comienzo',
-            finish: 'Final',
             stop: 'Parada',
         },
         mapPending: {
