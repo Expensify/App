@@ -247,7 +247,7 @@ function ReimbursementAccountPage({
         which acts similarly to `componentDidUpdate` when the `reimbursementAccount` dependency changes.
      */
     const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(
-        reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps && reimbursementAccount?.achData && 'currentStep' in reimbursementAccount?.achData,
+        reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps && reimbursementAccount?.achData && 'currentStep' in reimbursementAccount.achData,
     );
 
     const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(hasACHDataBeenLoaded ? getShouldShowContinueSetupButtonInitialValue() : false);
@@ -283,6 +283,7 @@ function ReimbursementAccountPage({
         return () => {
             BankAccounts.clearReimbursementAccount();
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // The empty dependency array ensures this runs only once after the component mounts.
 
     useEffect(() => {
@@ -338,6 +339,7 @@ function ReimbursementAccountPage({
         const backTo = route.params?.backTo;
 
         Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyID, backTo));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOffline, reimbursementAccount, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton]);
 
     const continueFunction = () => {
