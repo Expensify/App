@@ -126,7 +126,7 @@ function GenericPressable(
         }
         const {shortcutKey, descriptionKey, modifiers} = keyboardShortcut;
         return KeyboardShortcut.subscribe(shortcutKey, onKeyboardShortcutPressHandler, descriptionKey, modifiers, true, false, 0, false);
-    }, [singleExecution, keyboardShortcut, onKeyboardShortcutPressHandler]);
+    }, [keyboardShortcut, onKeyboardShortcutPressHandler]);
 
     return (
         <Pressable
