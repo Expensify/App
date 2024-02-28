@@ -14,6 +14,8 @@ import getMatchingBottomTabRouteForState from './getMatchingBottomTabRouteForSta
 import getMatchingCentralPaneRouteForState from './getMatchingCentralPaneRouteForState';
 import replacePathInNestedState from './replacePathInNestedState';
 
+const RHP_SCREENS_OPENED_FROM_LHN = [SCREENS.SETTINGS.SHARE_CODE, SCREENS.SETTINGS.PROFILE.STATUS];
+
 type Metainfo = {
     // Sometimes modal screens don't have information about what should be visible under the overlay.
     // That means such screen can have different screens under the overlay depending on what was already in the state.
@@ -158,9 +160,9 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
 
         if (topmostNestedRHPRoute) {
             let matchingRootRoute = getMatchingRootRouteForRHPRoute(topmostNestedRHPRoute, policyID);
-
+            const isRHPScreenOpenedFromLHN = topmostNestedRHPRoute?.name && RHP_SCREENS_OPENED_FROM_LHN.includes(topmostNestedRHPRoute?.name);
             // This may happen if this RHP doens't have a route that should be under the overlay defined.
-            if (!matchingRootRoute || (topmostNestedRHPRoute?.name && [SCREENS.SETTINGS.SHARE_CODE, SCREENS.SETTINGS.PROFILE.STATUS].includes(topmostNestedRHPRoute?.name))) {
+            if (!matchingRootRoute || isRHPScreenOpenedFromLHN) {
                 metainfo.isCentralPaneAndBottomTabMandatory = false;
                 metainfo.isFullScreenNavigatorMandatory = false;
                 matchingRootRoute = matchingRootRoute ?? createCentralPaneNavigator({name: SCREENS.REPORT});
@@ -169,7 +171,9 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             // If the root route is type of FullScreenNavigator, the default bottom tab will be added.
             const matchingBottomTabRoute = getMatchingBottomTabRouteForState({routes: [matchingRootRoute]});
             routes.push(createBottomTabNavigator(matchingBottomTabRoute, policyID));
-            routes.push(matchingRootRoute);
+            if (!isNarrowLayout || !isRHPScreenOpenedFromLHN) {
+                routes.push(matchingRootRoute);
+            }
         }
 
         routes.push(rhpNavigator);
