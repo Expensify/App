@@ -49,3 +49,4 @@ const getStats = (entries: Entries): Stats => {
 };
 
 export default getStats;
+export type {Stats}
