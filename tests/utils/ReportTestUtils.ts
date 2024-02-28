@@ -1,5 +1,5 @@
-import {ReportAction, ReportActions} from '@src/types/onyx';
-import {ActionName} from '@src/types/onyx/OriginalMessage';
+import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {ActionName} from '@src/types/onyx/OriginalMessage';
 import createRandomReportAction from './collections/reportActions';
 
 const actionNames: ActionName[] = ['ADDCOMMENT', 'IOU', 'REPORTPREVIEW', 'CLOSED'];
@@ -48,12 +48,12 @@ const getFakeReportAction = (index: number, actionName?: ActionName): ReportActi
         whisperedToAccountIDs: [],
     } as ReportAction);
 
-const getMockedSortedReportActions = (length = 100): ReportAction[] => Array.from({length}, (__, i): ReportAction => getFakeReportAction(i));
+const getMockedSortedReportActions = (length = 100): ReportAction[] => Array.from({length}, (element, index): ReportAction => getFakeReportAction(index));
 
 const getMockedReportActionsMap = (length = 100): ReportActions => {
-    const mockReports: ReportActions[] = Array.from({length}, (__, i): ReportActions => {
-        const reportID = i + 1;
-        const actionName: ActionName = i === 0 ? 'CREATED' : actionNames[i % actionNames.length];
+    const mockReports: ReportActions[] = Array.from({length}, (element, index): ReportActions => {
+        const reportID = index + 1;
+        const actionName: ActionName = index === 0 ? 'CREATED' : actionNames[index % actionNames.length];
         const reportAction = {
             ...createRandomReportAction(reportID),
             actionName,
@@ -64,7 +64,7 @@ const getMockedReportActionsMap = (length = 100): ReportActions => {
 
         return {[reportID]: reportAction};
     });
-    return Object.assign({}, ...mockReports);
+    return Object.assign({}, ...mockReports) as ReportActions;
 };
 
 export {getFakeReportAction, getMockedSortedReportActions, getMockedReportActionsMap};

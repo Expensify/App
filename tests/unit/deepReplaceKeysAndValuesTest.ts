@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import deepReplaceKeysAndValues from '@libs/deepReplaceKeysAndValues';
 import type {ReplaceableValue} from '@libs/deepReplaceKeysAndValues';
 
