@@ -10,6 +10,7 @@ import * as SessionActions from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Session} from '@src/types/onyx';
+import CONST from '@src/CONST';
 
 type LogOutPreviousUserPageOnyxProps = {
     /** The data about the current session which will be set once the user is authenticated and we return to this component as an AuthScreen */
@@ -32,8 +33,8 @@ function LogOutPreviousUserPage({session, route}: LogOutPreviousUserPageProps) {
                 SessionActions.signOutAndRedirectToSignIn();
             }
 
-            if (route.params.supportAuthToken !== '') {
-                SessionActions.signInWithSupportAuthToken(route.params.supportAuthToken);
+            if (route.params.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT) {
+                SessionActions.signInWithSupportAuthToken(route.params.shortLivedAuthToken ?? '');
                 return;
             }
 

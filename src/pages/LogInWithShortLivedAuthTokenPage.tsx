@@ -19,6 +19,7 @@ import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Account} from '@src/types/onyx';
+import CONST from '@src/CONST';
 
 type LogInWithShortLivedAuthTokenPageOnyxProps = {
     /** The details about the account that the user is signing in with */
@@ -31,7 +32,7 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {email = '', supportAuthToken = '', shortLivedAuthToken = '', shortLivedToken = '', exitTo, error} = route?.params ?? {};
+    const {email = '', shortLivedAuthToken = '', shortLivedToken = '', authTokenType, exitTo, error} = route?.params ?? {};
 
     useEffect(() => {
         // We have to check for both shortLivedAuthToken and shortLivedToken, as the old mobile app uses shortLivedToken, and is not being actively updated.
@@ -44,8 +45,8 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
             return;
         }
 
-        if (!account?.isLoading && supportAuthToken) {
-            Session.signInWithSupportAuthToken(supportAuthToken);
+        if (!account?.isLoading && authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT) {
+            Session.signInWithSupportAuthToken(shortLivedAuthToken);
             return;
         }
 

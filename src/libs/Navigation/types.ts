@@ -503,9 +503,9 @@ type SharedScreensParamList = {
         email: string;
         accountID: number;
         error?: string;
-        supportAuthToken?: string;
         shortLivedAuthToken?: string;
         shortLivedToken?: string;
+        authTokenType?: ValueOf<typeof CONST.AUTH_TOKEN_TYPES>;
         exitTo?: Routes | HybridAppRoute;
         shouldForceLogin: string;
         domain?: Routes;
