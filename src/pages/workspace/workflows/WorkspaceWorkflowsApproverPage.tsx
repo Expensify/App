@@ -54,6 +54,7 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails}
         let sectionsArr: MembersSection[] = [];
 
         let policyUsersSection: MemberOption[] = [];
+        let approverSection: MemberOption[] = [];
 
         Object.entries(policyMembers ?? {}).forEach(([accountIDKey, policyMember]) => {
             const accountID = Number(accountIDKey);
