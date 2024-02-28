@@ -1,13 +1,13 @@
+import {FlashList} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
-import React, {useCallback, memo} from 'react';
-import {FlatList, StyleSheet, View} from 'react-native';
+import React, {memo, useCallback} from 'react';
+import {StyleSheet, View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {OrderedReports} from '@libs/SidebarUtils';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import OptionRowLHNData from './OptionRowLHNData';
 import type {LHNOptionsListProps, RenderItemProps} from './types';
-import { OrderedReports } from '@libs/SidebarUtils';
-import CONST from '@src/CONST';
-import variables from '@styles/variables';
-import { FlashList } from '@shopify/flash-list';
 
 const keyExtractor = (item: OrderedReports) => `report_${item?.reportID}`;
 
@@ -39,29 +39,23 @@ function LHNOptionsList({
      * Function which renders a row in the list
      */
     const renderItem = useCallback(
-        ({item}: RenderItemProps): ReactElement => {
-
-            return (
-                <OptionRowLHNData
-                    reportID={item?.reportID}
-                    isFocused={!shouldDisableFocusOptions && item?.reportID === currentReportID}
-                    onSelectRow={onSelectRow}
-                    comment={item?.comment}
-                    optionItem={item?.optionItem}
-                    onLayout={onLayoutItem}
-                />
-            );
-        },
-        [
-            currentReportID,
-            onSelectRow,
-            onLayoutItem,
-        ],
+        ({item}: RenderItemProps): ReactElement => (
+            <OptionRowLHNData
+                reportID={item?.reportID}
+                isFocused={!shouldDisableFocusOptions && item?.reportID === currentReportID}
+                onSelectRow={onSelectRow}
+                comment={item?.comment}
+                optionItem={item?.optionItem}
+                onLayout={onLayoutItem}
+                viewMode={optionMode}
+            />
+        ),
+        [shouldDisableFocusOptions, currentReportID, onSelectRow, onLayoutItem, optionMode],
     );
 
     return (
         <View style={style ?? styles.flex1}>
-            <FlatList
+            <FlashList
                 indicatorStyle="white"
                 keyboardShouldPersistTaps="always"
                 contentContainerStyle={StyleSheet.flatten(contentContainerStyles)}
@@ -69,8 +63,8 @@ function LHNOptionsList({
                 testID="lhn-options-list"
                 keyExtractor={keyExtractor}
                 renderItem={renderItem}
-                // estimatedItemSize={optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight}
-                // extraData={[currentReportID]}
+                estimatedItemSize={optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight}
+                extraData={[currentReportID]}
                 showsVerticalScrollIndicator={false}
             />
         </View>

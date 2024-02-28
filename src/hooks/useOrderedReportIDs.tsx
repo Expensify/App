@@ -1,4 +1,4 @@
-import React, {createContext, useContext, useMemo} from 'react';
+import React, {createContext, useCallback, useContext, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxProvider';
@@ -32,101 +32,90 @@ type WithOrderedReportIDsContextProviderProps = OnyxProps & {
 
 const OrderedReportIDsContext = createContext({});
 
-function WithOrderedReportIDsContextProvider(props: WithOrderedReportIDsContextProviderProps) {
+function WithOrderedReportIDsContextProvider({
+    children,
+    chatReports,
+    betas,
+    policies,
+    allReportActions,
+    transactionViolations,
+    policyMembers,
+    priorityMode,
+    preferredLocale,
+    draftComments,
+}: WithOrderedReportIDsContextProviderProps) {
     const currentReportIDValue = useCurrentReportID();
-    const {activeWorkspaceID} = useActiveWorkspace();
     const personalDetails = usePersonalDetails();
     const {canUseViolations} = usePermissions();
+    const {activeWorkspaceID} = useActiveWorkspace();
 
-    const policyMemberAccountIDs = useMemo(
-        () => getPolicyMembersByIdWithoutCurrentUser(props.policyMembers, activeWorkspaceID, getCurrentUserAccountID()),
-        [activeWorkspaceID, props.policyMembers],
-    );
+    const policyMemberAccountIDs = useMemo(() => getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, getCurrentUserAccountID()), [activeWorkspaceID, policyMembers]);
 
-    const optionListItems = useMemo(
-        () =>
+    const getOrderedReportIDs = useCallback(
+        (currentReportID?: string) =>
             SidebarUtils.getOrderedReportIDs(
-                null,
-                props.chatReports,
-                props.betas ?? [],
-                props.policies,
-                props.priorityMode,
-                props.allReportActions,
-                props.transactionViolations,
+                currentReportID ?? null,
+                chatReports,
+                betas ?? [],
+                policies,
+                priorityMode,
+                allReportActions,
+                transactionViolations,
                 activeWorkspaceID,
                 policyMemberAccountIDs,
-                personalDetails,
-                props.preferredLocale,
-                canUseViolations,
-                props.draftComments,
             ),
-        [
-            props.chatReports,
-            props.betas,
-            props.policies,
-            props.priorityMode,
-            props.allReportActions,
-            props.transactionViolations,
-            activeWorkspaceID,
-            policyMemberAccountIDs,
-            personalDetails,
-            props.preferredLocale,
-            canUseViolations,
-            props.draftComments,
-        ],
+        [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs],
     );
+
+    const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);
 
     // We need to make sure the current report is in the list of reports, but we do not want
     // to have to re-generate the list every time the currentReportID changes. To do that
     // we first generate the list as if there was no current report, then here we check if
     // the current report is missing from the list, which should very rarely happen. In this
     // case we re-generate the list a 2nd time with the current report included.
-    const optionListItemsWithCurrentReport = useMemo(() => {
-        if (currentReportIDValue?.currentReportID && !optionListItems.includes(currentReportIDValue.currentReportID)) {
-            return SidebarUtils.getOrderedReportIDs(
-                currentReportIDValue.currentReportID,
-                props.chatReports,
-                props.betas ?? [],
-                props.policies,
-                props.priorityMode,
-                props.allReportActions,
-                props.transactionViolations,
-                activeWorkspaceID,
-                policyMemberAccountIDs,
-                personalDetails,
-                props.preferredLocale,
-                canUseViolations,
-                props.draftComments,
-            );
+    const orderedReportIDsWithCurrentReport = useMemo(() => {
+        if (currentReportIDValue?.currentReportID && !orderedReportIDs.includes(currentReportIDValue.currentReportID)) {
+            return getOrderedReportIDs(currentReportIDValue.currentReportID);
         }
-        return optionListItems;
-    }, [
-        activeWorkspaceID,
-        props.chatReports,
-        currentReportIDValue?.currentReportID,
-        optionListItems,
-        policyMemberAccountIDs,
-        props.allReportActions,
-        props.betas,
-        props.policies,
-        props.priorityMode,
-        props.transactionViolations,
-        personalDetails,
-        props.preferredLocale,
-        canUseViolations,
-        props.draftComments,
-    ]);
+        return orderedReportIDs;
+    }, [getOrderedReportIDs, currentReportIDValue?.currentReportID, orderedReportIDs]);
 
-    return <OrderedReportIDsContext.Provider value={optionListItemsWithCurrentReport}>{props.children}</OrderedReportIDsContext.Provider>;
+    const orderedReportListItems = useMemo(
+        () =>
+            orderedReportIDsWithCurrentReport.map((reportID) => {
+                const itemFullReport = chatReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
+                const itemReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? null;
+                const itemParentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport?.parentReportID}`] ?? null;
+                const itemParentReportAction = itemParentReportActions?.[itemFullReport?.parentReportActionID ?? ''] ?? null;
+                const itemPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport?.policyID}`] ?? null;
+                const itemComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] ?? '';
+
+                const hasViolations = canUseViolations && ReportUtils.doesTransactionThreadHaveViolations(itemFullReport, transactionViolations, itemParentReportAction ?? null);
+
+                const item = SidebarUtils.getOptionData({
+                    report: itemFullReport,
+                    reportActions: itemReportActions,
+                    personalDetails,
+                    preferredLocale: preferredLocale ?? CONST.LOCALES.DEFAULT,
+                    policy: itemPolicy,
+                    parentReportAction: itemParentReportAction,
+                    hasViolations: !!hasViolations,
+                });
+
+                return {reportID, optionItem: item, comment: itemComment};
+            }),
+        [orderedReportIDsWithCurrentReport, canUseViolations, personalDetails, draftComments, preferredLocale, chatReports, allReportActions, policies, transactionViolations],
+    );
+
+    return <OrderedReportIDsContext.Provider value={orderedReportListItems}>{children}</OrderedReportIDsContext.Provider>;
 }
 
 /**
  * This function (and the few below it), narrow down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
  * and makes the entire component more performant because it's not re-rendering when a bunch of properties change which aren't ever used in the UI.
- * @param {Object} [report]
- * @returns {Object|undefined}
  */
-const chatReportSelector = (report) =>
+const chatReportSelector = (report: OnyxEntry<Report>) =>
     report && {
         reportID: report.reportID,
         participantAccountIDs: report.participantAccountIDs,
@@ -134,9 +123,7 @@ const chatReportSelector = (report) =>
         isPinned: report.isPinned,
         isHidden: report.isHidden,
         notificationPreference: report.notificationPreference,
-        errorFields: {
-            addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
-        },
+        errorFields: {addWorkspaceRoom: report.errorFields?.addWorkspaceRoom},
         lastMessageText: report.lastMessageText,
         lastVisibleActionCreated: report.lastVisibleActionCreated,
         iouReportID: report.iouReportID,
@@ -188,6 +175,7 @@ const reportActionsSelector = (reportActions: OnyxEntry<ReportActions>) => {
 };
 
 const OrderedReportIDsContextProvider = withOnyx<WithOrderedReportIDsContextProviderProps, OnyxProps>({
+    // @ts-expect-error Need some help in determining the correct type for this selector
     chatReports: {
         key: ONYXKEYS.COLLECTION.REPORT,
         selector: chatReportSelector,

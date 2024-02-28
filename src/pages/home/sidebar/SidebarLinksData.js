@@ -51,22 +51,24 @@ function SidebarLinksData({isFocused, currentReportID, insets, isLoadingApp, onL
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => Policy.openWorkspace(activeWorkspaceID, policyMemberAccountIDs), [activeWorkspaceID]);
 
-    const reportIDsRef = useRef(null);
+    const orderedReportListItemsRef = useRef(null);
     const isLoading = isLoadingApp;
-    const reportIDs = useOrderedReportIDs();
+    const orderedReportListItems = useOrderedReportIDs();
+
     const optionListItems = useMemo(() => {
-        if (deepEqual(reportIDsRef.current, reportIDs)) {
-            return reportIDsRef.current;
+        // this can be very heavy because we are no longer comapring the IDS but the whole objects for the list
+        if (deepEqual(orderedReportListItemsRef.current, orderedReportListItems)) {
+            return orderedReportListItemsRef.current;
         }
 
         // 1. We need to update existing reports only once while loading because they are updated several times during loading and causes this regression: https://github.com/Expensify/App/issues/24596#issuecomment-1681679531
         // 2. If the user is offline, we need to update the reports unconditionally, since the loading of report data might be stuck in this case.
         // 3. Changing priority mode to Most Recent will call OpenApp. If there is an existing reports and the priority mode is updated, we want to immediately update the list instead of waiting the OpenApp request to complete
-        if (!isLoading || !reportIDsRef.current || network.isOffline || (reportIDsRef.current && prevPriorityMode !== priorityMode)) {
-            reportIDsRef.current = reportIDs;
+        if (!isLoading || !orderedReportListItemsRef.current || network.isOffline || (orderedReportListItemsRef.current && prevPriorityMode !== priorityMode)) {
+            orderedReportListItemsRef.current = orderedReportListItems;
         }
-        return reportIDsRef.current || [];
-    }, [reportIDs, isLoading, network.isOffline, prevPriorityMode, priorityMode]);
+        return orderedReportListItemsRef.current || [];
+    }, [orderedReportListItems, isLoading, network.isOffline, prevPriorityMode, priorityMode]);
 
     const currentReportIDRef = useRef(currentReportID);
     currentReportIDRef.current = currentReportID;
