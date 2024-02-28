@@ -81,6 +81,7 @@ const defaultProps = {
     session: {
         authTokenType: '',
     },
+    parentReportAction: {},
 };
 
 function ReportActionsView(props) {

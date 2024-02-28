@@ -82,6 +82,7 @@ const defaultProps = {
     isLoadingNewerReportActions: false,
     ...withCurrentUserPersonalDetailsDefaultProps,
     policy: {},
+    parentReportAction: {},
 };
 
 const VERTICAL_OFFSET_THRESHOLD = 200;
@@ -426,7 +427,7 @@ function ReportActionsList({
                 shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
             />
         ),
-        [report, linkedReportActionID, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker],
+        [report, linkedReportActionID, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker, parentReportAction],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.

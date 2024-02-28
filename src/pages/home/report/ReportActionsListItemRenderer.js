@@ -41,6 +41,7 @@ const propTypes = {
 const defaultProps = {
     mostRecentIOUReportActionID: '',
     linkedReportActionID: '',
+    parentReportAction: {},
 };
 
 function ReportActionsListItemRenderer({
