@@ -1,9 +1,10 @@
 import Onyx from 'react-native-onyx';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {ValueOf} from 'type-fest';
-import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Credentials from '@src/types/onyx/Credentials';
+import CONST from '@src/CONST';
+
 
 let credentials: Credentials | null = null;
 let authToken: string | null = null;
@@ -98,7 +99,7 @@ function getAuthToken(): string | null {
 }
 
 function isSupportRequest(command: string): boolean {
-    return [READ_COMMANDS.OPEN_APP, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT].some((cmd) => cmd === command);
+    return [WRITE_COMMANDS.OPEN_APP, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT].some((cmd) => cmd === command);
 }
 
 function isSupportAuthToken(): boolean {

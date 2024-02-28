@@ -105,7 +105,7 @@ type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
 
-type RequestAmountParams = {amount: number};
+type RequestAmountParams = {amount: string};
 
 type RequestedAmountMessageParams = {formattedAmount: string; comment?: string};
 
@@ -157,7 +157,7 @@ type EnterMagicCodeParams = {contactMethod: string};
 
 type TransferParams = {amount: string};
 
-type InstantSummaryParams = {rate: number; minAmount: number};
+type InstantSummaryParams = {rate: string; minAmount: string};
 
 type NotYouParams = {user: string};
 
@@ -293,6 +293,8 @@ type ElectronicFundsParams = {percentage: string; amount: string};
 
 type LogSizeParams = {size: number};
 
+type HeldRequestParams = {comment: string};
+
 export type {
     AdminCanceledRequestParams,
     ApprovedAmountParams,
@@ -395,4 +397,5 @@ export type {
     WelcomeToRoomParams,
     ZipCodeExampleFormatParams,
     LogSizeParams,
+    HeldRequestParams,
 };

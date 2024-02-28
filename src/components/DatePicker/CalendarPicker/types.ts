@@ -1,8 +1,8 @@
-import type {RadioItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionList/types';
 
-type CalendarPickerRadioItem = RadioItem & {
+type CalendarPickerListItem = ListItem & {
     /** The value representing a year in the CalendarPicker */
     value: number;
 };
 
-export default CalendarPickerRadioItem;
+export default CalendarPickerListItem;
