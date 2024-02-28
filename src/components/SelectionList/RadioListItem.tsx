@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {RadioListItemProps} from './types';
 
@@ -20,6 +21,9 @@ function RadioListItem({
 }: RadioListItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const fullTitle = isMultilineSupported ? item.text.trimStart() : item.text;
+    const indentsLength = item.text.length - fullTitle.length;
+    const paddingLeft = Math.floor(indentsLength / CONST.INDENTS.length) * styles.ml3.marginLeft;
 
     return (
         <BaseListItem
@@ -40,13 +44,14 @@ function RadioListItem({
                 <View style={[styles.flex1, styles.alignItemsStart]}>
                     <TextWithTooltip
                         shouldShowTooltip={showTooltip}
-                        text={item.text}
+                        text={fullTitle}
                         textStyles={[
                             styles.optionDisplayName,
                             isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
                             styles.sidebarLinkTextBold,
                             isMultilineSupported ? styles.preWrap : styles.pre,
                             item.alternateText ? styles.mb1 : null,
+                            isMultilineSupported ? {paddingLeft} : {},
                         ]}
                         numberOfLines={isMultilineSupported ? 2 : 1}
                     />
