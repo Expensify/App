@@ -164,7 +164,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     return onPress && !successToLoadPDF ? (
         <PressableWithoutFeedback
             onPress={onPress}
-            style={[themeStyles.flex1, themeStyles.flexRow, themeStyles.alignSelfStretch]}
+            style={[themeStyles.flex1, themeStyles.alignSelfStretch, !failedToLoadPDF && themeStyles.flexRow]}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
             accessibilityLabel={fileName || translate('attachmentView.unknownFilename')}
         >
