@@ -624,4 +624,5 @@ export type {
     OnboardEngagementNavigatorParamList,
     SwitchPolicyIDParams,
     FullScreenNavigatorParamList,
+    WorkspacesCentralPaneNavigatorParamList,
 };

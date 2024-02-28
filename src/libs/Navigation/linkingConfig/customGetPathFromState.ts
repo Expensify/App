@@ -8,7 +8,7 @@ import SCREENS from '@src/SCREENS';
 const removePolicyIDParamFromState = (state: State<RootStackParamList>) => {
     const stateCopy = _.cloneDeep(state);
     const bottomTabRoute = getTopmostBottomTabRoute(stateCopy);
-    if (bottomTabRoute?.name && [SCREENS.HOME, SCREENS.SETTINGS.ROOT].includes(bottomTabRoute?.name) && bottomTabRoute?.params && 'policyID' in bottomTabRoute?.params) {
+    if (bottomTabRoute?.name && [SCREENS.HOME, SCREENS.SETTINGS.ROOT].includes(bottomTabRoute.name) && bottomTabRoute?.params && 'policyID' in bottomTabRoute.params) {
         delete bottomTabRoute.params.policyID;
     }
     return stateCopy;

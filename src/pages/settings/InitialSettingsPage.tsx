@@ -169,47 +169,47 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
         };
     }, [loginList, fundList, styles.accountSettingsSectionContainer, bankAccountList, userWallet?.errors, walletTerms?.errors]);
 
-    const workspaceMenuItemsData: Menu = useMemo(
-        () => ({
+    const workspaceMenuItemsData: Menu = useMemo(() => {
+        const items: MenuData[] = [
+            {
+                translationKey: 'common.workspaces',
+                icon: Expensicons.Building,
+                routeName: ROUTES.SETTINGS_WORKSPACES,
+                brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies, policyMembers) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            },
+            {
+                translationKey: 'allSettingsScreen.cardsAndDomains',
+                icon: Expensicons.CardsAndDomains,
+                action: () => {
+                    Link.openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL);
+                },
+                shouldShowRightIcon: true,
+                iconRight: Expensicons.NewWindow,
+                link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL),
+            },
+        ];
+
+        if (shouldShowSubscriptionsMenu) {
+            items.splice(1, 0, {
+                translationKey: 'allSettingsScreen.subscriptions',
+                icon: Expensicons.MoneyBag,
+                action: () => {
+                    Link.openOldDotLink(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL);
+                },
+                shouldShowRightIcon: true,
+                iconRight: Expensicons.NewWindow,
+                link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL),
+            });
+        }
+
+        return {
             sectionStyle: {
                 ...styles.pt4,
             },
-            sectionTranslationKey: 'initialSettingsPage.workspaces',
-            items: [
-                {
-                    translationKey: 'initialSettingsPage.workspaces',
-                    icon: Expensicons.Building,
-                    routeName: ROUTES.SETTINGS_WORKSPACES,
-                    brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies, policyMembers) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                },
-                ...(shouldShowSubscriptionsMenu
-                    ? [
-                          {
-                              translationKey: 'allSettingsScreen.subscriptions',
-                              icon: Expensicons.MoneyBag,
-                              action: () => {
-                                  Link.openOldDotLink(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL);
-                              },
-                              shouldShowRightIcon: true,
-                              iconRight: Expensicons.NewWindow,
-                              link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL),
-                          },
-                      ]
-                    : []),
-                {
-                    translationKey: 'allSettingsScreen.cardsAndDomains',
-                    icon: Expensicons.CardsAndDomains,
-                    action: () => {
-                        Link.openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL);
-                    },
-                    shouldShowRightIcon: true,
-                    iconRight: Expensicons.NewWindow,
-                    link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL),
-                },
-            ],
-        }),
-        [policies, policyMembers, styles.pt4],
-    );
+            sectionTranslationKey: 'common.workspaces',
+            items,
+        };
+    }, [policies, policyMembers, styles.pt4]);
 
     /**
      * Retuns a list of menu items data for general section
@@ -271,7 +271,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                 ...defaultMenu.items,
             ].filter((item) => item.translationKey !== 'initialSettingsPage.signOut' && item.translationKey !== 'exitSurvey.goToExpensifyClassic');
 
-            return {sectionStyle: styles.accountSettingsSectionContainer, sectionTranslationKey: 'initialSettingsPage.account', items: hybridAppMenuItems};
+            return {sectionStyle: styles.accountSettingsSectionContainer, sectionTranslationKey: 'initialSettingsPage.general', items: hybridAppMenuItems};
         }
 
         return defaultMenu;

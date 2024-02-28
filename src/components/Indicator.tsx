@@ -86,6 +86,7 @@ export default withOnyx<IndicatorProps, IndicatorOnyxProps>({
     bankAccountList: {
         key: ONYXKEYS.BANK_ACCOUNT_LIST,
     },
+    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },

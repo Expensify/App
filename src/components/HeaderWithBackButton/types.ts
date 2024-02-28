@@ -1,11 +1,10 @@
 import type {ReactNode} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {Action} from '@hooks/useSingleExecution';
-import type {AvatarSource} from '@libs/UserUtils';
 import type {StepCounterParams} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
 import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
-import {Icon} from '@src/types/onyx/OnyxCommon';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 

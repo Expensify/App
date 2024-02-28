@@ -875,7 +875,6 @@ export default {
         accountSettings: 'Account Settings',
         account: 'Account',
         general: 'General',
-        workspaces: 'Workspaces',
     },
     closeAccountPage: {
         closeAccount: 'Close account',

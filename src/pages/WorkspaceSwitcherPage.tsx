@@ -102,7 +102,7 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                 return;
             }
 
-            const {policyID, isPolicyAdmin} = option;
+            const {policyID} = option;
 
             if (policyID) {
                 setSelectedOption(option);
@@ -112,7 +112,7 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
             setActiveWorkspaceID(policyID);
             Navigation.goBack();
             if (policyID !== activeWorkspaceID) {
-                Navigation.navigateWithSwitchPolicyID({policyID, isPolicyAdmin});
+                Navigation.navigateWithSwitchPolicyID({policyID});
             }
         },
         [activeWorkspaceID, setActiveWorkspaceID],
