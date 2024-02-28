@@ -117,6 +117,23 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails}
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArr: MembersSection[] = [];
 
+        if (searchTerm !== '') {
+            const filteredOptions = [...formattedApprover, ...formattedPolicyMembers].filter((option) => {
+                const parsedPhoneNumber = parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchTerm)));
+                const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchTerm.toLowerCase();
+
+                const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
+                return isPartOfSearchTerm;
+            });
+            return [
+                {
+                    title: undefined,
+                    data: filteredOptions,
+                    shouldShow: true,
+                },
+            ];
+        }
+
         sectionsArr.push({
             title: undefined,
             data: formattedApprover,
