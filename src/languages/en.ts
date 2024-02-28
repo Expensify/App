@@ -2238,7 +2238,6 @@ export default {
         address: 'Address',
         waypointDescription: {
             start: 'Start',
-            finish: 'Finish',
             stop: 'Stop',
         },
         mapPending: {
