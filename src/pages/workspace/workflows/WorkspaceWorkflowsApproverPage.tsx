@@ -123,7 +123,7 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails}
                 onBackButtonPress={Navigation.goBack}
             />
             <SelectionList
-                sections={[{data: policyUsers, indexOffset: 0}]}
+                sections={sections}
                 textInputLabel={translate('optionsSelector.findMember')}
                 textInputValue={searchTerm}
                 onChangeText={setSearchTerm}
