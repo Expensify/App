@@ -132,6 +132,7 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails}
             return;
         }
         Policy.setWorkspaceApprover(policy.id, member.accountID);
+        Navigation.goBack();
     };
 
     return (
