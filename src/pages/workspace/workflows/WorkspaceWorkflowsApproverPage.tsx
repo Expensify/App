@@ -100,14 +100,27 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails}
                 ],
                 errors: policyMember.errors,
                 pendingAction: policyMember.pendingAction,
-            });
+            };
+
+            if (policy?.approver === details.login) {
+                approverSection.push(formattedMember);
+            } else {
+                policyUsersSection.push(formattedMember);
+            }
+        });
+
+        sectionsArr.push({
+            title: undefined,
+            data: approverSection,
+            shouldShow: true,
+            indexOffset: 0,
         });
 
         sectionsArr.push({
             title: translate('common.all'),
             data: policyUsersSection,
             shouldShow: true,
-            indexOffset: 0,
+            indexOffset: 1,
         });
 
         return sectionsArr;
