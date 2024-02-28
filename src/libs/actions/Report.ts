@@ -7,6 +7,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-nat
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
+import type {FileObject} from '@components/AttachmentModal';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import type {
@@ -355,7 +356,7 @@ function notifyNewAction(reportID: string, accountID?: number, reportActionID?: 
  * - Adding one attachment
  * - Add both a comment and attachment simultaneously
  */
-function addActions(reportID: string, text = '', file?: File) {
+function addActions(reportID: string, text = '', file?: FileObject) {
     let reportCommentText = '';
     let reportCommentAction: OptimisticAddCommentReportAction | undefined;
     let attachmentAction: OptimisticAddCommentReportAction | undefined;
@@ -514,7 +515,7 @@ function addActions(reportID: string, text = '', file?: File) {
 }
 
 /** Add an attachment and optional comment. */
-function addAttachment(reportID: string, file: File, text = '') {
+function addAttachment(reportID: string, file: FileObject, text = '') {
     addActions(reportID, text, file);
 }
 
