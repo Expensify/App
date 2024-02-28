@@ -1,17 +1,18 @@
 import {cleanup, screen} from '@testing-library/react-native';
-import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
-import CONST from '../../src/CONST';
-import DateUtils from '../../src/libs/DateUtils';
-import * as Localize from '../../src/libs/Localize';
+import DateUtils from '@libs/DateUtils';
+import * as Localize from '@libs/Localize';
+import CONST from '@src/CONST';
+import type {Report} from '@src/types/onyx';
+import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 // Be sure to include the mocked permissions library, as some components that are rendered
 // during the test depend on its methods.
-jest.mock('../../src/libs/Permissions');
-jest.mock('../../src/hooks/usePermissions.ts');
+jest.mock('@libs/Permissions');
+jest.mock('@hooks/usePermissions.ts');
 
 const ONYXKEYS = {
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
@@ -25,14 +26,13 @@ const ONYXKEYS = {
         POLICY: 'policy_',
     },
     NETWORK: 'network',
-};
+} as const;
 
 // We need to fix this test as a follow up. There seems to be some problems with memory after filtering got more complicated.
 xdescribe('Sidebar', () => {
     beforeAll(() =>
         Onyx.init({
             keys: ONYXKEYS,
-            registerStorageEventListener: () => {},
             safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         }),
     );
@@ -57,14 +57,14 @@ xdescribe('Sidebar', () => {
             // Given a report with no participants
             const report = LHNTestUtils.getFakeReport([]);
 
+            const reportCollectionDataSet: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+            };
+
             return (
                 waitForBatchedUpdates()
                     // When Onyx is updated to contain that report
-                    .then(() =>
-                        Onyx.multiSet({
-                            [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
-                        }),
-                    )
+                    .then(() => Onyx.multiSet(reportCollectionDataSet))
 
                     // Then no reports are rendered in the LHN
                     .then(() => {
@@ -79,15 +79,19 @@ xdescribe('Sidebar', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             // Given a new report
-            const report = LHNTestUtils.getFakeReport(['emptychat+1@test.com', 'emptychat+2@test.com'], 0);
+            const report = LHNTestUtils.getFakeReport([1, 2], 0);
+
+            const reportCollectionDataSet: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+            };
 
             return (
                 waitForBatchedUpdates()
                     // When Onyx is updated to contain that report
                     .then(() =>
                         Onyx.multiSet({
-                            [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             [ONYXKEYS.IS_LOADING_APP]: false,
+                            ...reportCollectionDataSet,
                         }),
                     )
 
@@ -104,9 +108,13 @@ xdescribe('Sidebar', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             // Given a new report with a draft text
-            const report = {
+            const report: Report = {
                 ...LHNTestUtils.getFakeReport([1, 2], 0),
                 hasDraft: true,
+            };
+
+            const reportCollectionDataSet: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             };
 
             return (
@@ -114,9 +122,9 @@ xdescribe('Sidebar', () => {
                     // When Onyx is updated to contain that report
                     .then(() =>
                         Onyx.multiSet({
-                            [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
+                            ...reportCollectionDataSet,
                         }),
                     )
 
@@ -134,9 +142,13 @@ xdescribe('Sidebar', () => {
 
             // Given a user created policy room report
             // and the user not being in any betas
-            const report = {
+            const report: Report = {
                 ...LHNTestUtils.getFakeReport(),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+            };
+
+            const reportCollectionDataSet: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             };
 
             return (
@@ -147,7 +159,7 @@ xdescribe('Sidebar', () => {
                             [ONYXKEYS.BETAS]: [],
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                            ...reportCollectionDataSet,
                         }),
                     )
 
@@ -165,17 +177,23 @@ xdescribe('Sidebar', () => {
 
             // Given three reports with the three different types of default policy rooms
             // and the user not being in any betas
-            const report1 = {
+            const report1: Report = {
                 ...LHNTestUtils.getFakeReport(),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
             };
-            const report2 = {
+            const report2: Report = {
                 ...LHNTestUtils.getFakeReport([3, 4]),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
             };
-            const report3 = {
+            const report3: Report = {
                 ...LHNTestUtils.getFakeReport([5, 6]),
                 chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
+            };
+
+            const reportCollectionDataSet: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
             };
 
             return (
@@ -186,9 +204,7 @@ xdescribe('Sidebar', () => {
                             [ONYXKEYS.BETAS]: [],
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
+                            ...reportCollectionDataSet,
                         }),
                     )
 
@@ -224,10 +240,14 @@ xdescribe('Sidebar', () => {
                 policyID: '1',
                 type: CONST.POLICY.TYPE.FREE,
             };
-            const report = {
+            const report: Report = {
                 ...LHNTestUtils.getFakeReport(),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
                 policyID: policy.policyID,
+            };
+
+            const reportCollectionDataSet: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             };
 
             return (
@@ -238,8 +258,8 @@ xdescribe('Sidebar', () => {
                             [ONYXKEYS.BETAS]: [],
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
+                            ...reportCollectionDataSet,
                         }),
                     )
 
@@ -299,7 +319,7 @@ xdescribe('Sidebar', () => {
             const AMOUNT_OF_VARIABLES = 6;
             // eslint-disable-next-line no-bitwise
             for (let i = 0; i < 1 << AMOUNT_OF_VARIABLES; i++) {
-                const boolArr = [];
+                const boolArr: boolean[] = [];
                 for (let j = AMOUNT_OF_VARIABLES - 1; j >= 0; j--) {
                     // eslint-disable-next-line no-bitwise
                     boolArr.push(Boolean(i & (1 << j)));
@@ -309,12 +329,18 @@ xdescribe('Sidebar', () => {
                 // for the specific case that's failing. You can then debug the code to see why the test is not passing.
                 // const boolArr = [false, false, false, false, false];
 
-                it(`the booleans ${boolArr}`, () => {
-                    const report2 = {
-                        ...LHNTestUtils.getAdvancedFakeReport(...boolArr),
+                it(`the booleans ${JSON.stringify(boolArr)}`, () => {
+                    const [isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft] = boolArr;
+                    const report2: Report = {
+                        ...LHNTestUtils.getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft),
                         policyID: policy.policyID,
                     };
                     LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
+
+                    const reportCollectionDataSet: ReportCollectionDataSet = {
+                        [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                        [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                    };
 
                     return (
                         waitForBatchedUpdates()
@@ -325,9 +351,8 @@ xdescribe('Sidebar', () => {
                                     [ONYXKEYS.BETAS]: betas,
                                     [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                                     [ONYXKEYS.IS_LOADING_APP]: false,
-                                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
-                                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                                     [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
+                                    ...reportCollectionDataSet,
                                 }),
                             )
                             // Then depending on the outcome, either one or two reports are visible
@@ -339,7 +364,7 @@ xdescribe('Sidebar', () => {
                                     const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
                                     expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(1);
                                     expect(displayNames).toHaveLength(1);
-                                    expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe('Three, Four');
+                                    expect(displayNames[0].props.children[0]).toBe('Three, Four');
                                 } else {
                                     // Both reports visible
                                     const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
@@ -361,6 +386,12 @@ xdescribe('Sidebar', () => {
             const report3 = LHNTestUtils.getFakeReport([5, 6]);
             LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
 
+            const reportCollectionDataSet: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
+            };
+
             return (
                 waitForBatchedUpdates()
                     // When Onyx is updated to contain that data and the sidebar re-renders
@@ -369,9 +400,7 @@ xdescribe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
+                            ...reportCollectionDataSet,
                         }),
                     )
 
@@ -380,8 +409,8 @@ xdescribe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(2);
-                        expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe('One, Two');
-                        expect(lodashGet(displayNames, [1, 'props', 'children', 0])).toBe('Three, Four');
+                        expect(displayNames[0].props.children[0]).toBe('One, Two');
+                        expect(displayNames[1].props.children[0]).toBe('Three, Four');
                     })
 
                     // When report3 becomes unread
@@ -432,6 +461,11 @@ xdescribe('Sidebar', () => {
             };
             LHNTestUtils.getDefaultRenderedSidebarLinks(draftReport.reportID);
 
+            const reportCollectionDataSet: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${draftReport.reportID}`]: draftReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${pinnedReport.reportID}`]: pinnedReport,
+            };
+
             return (
                 waitForBatchedUpdates()
                     // When Onyx is updated to contain that data and the sidebar re-renders
@@ -440,8 +474,7 @@ xdescribe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${draftReport.reportID}`]: draftReport,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${pinnedReport.reportID}`]: pinnedReport,
+                            ...reportCollectionDataSet,
                         }),
                     )
 
@@ -450,26 +483,26 @@ xdescribe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(2);
-                        expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe('Three, Four');
-                        expect(lodashGet(displayNames, [1, 'props', 'children', 0])).toBe('One, Two');
+                        expect(displayNames[0].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[1].props.children[0]).toBe('One, Two');
                     })
             );
         });
 
         it('archived rooms are displayed only when they have unread messages', () => {
             // Given an archived chat report, an archived default policy room, and an archived user created policy room
-            const archivedReport = {
+            const archivedReport: Report = {
                 ...LHNTestUtils.getFakeReport([1, 2]),
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             };
-            const archivedPolicyRoomReport = {
+            const archivedPolicyRoomReport: Report = {
                 ...LHNTestUtils.getFakeReport([1, 2]),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             };
-            const archivedUserCreatedPolicyRoomReport = {
+            const archivedUserCreatedPolicyRoomReport: Report = {
                 ...LHNTestUtils.getFakeReport([1, 2]),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
@@ -478,6 +511,12 @@ xdescribe('Sidebar', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
+
+            const reportCollectionDataSet: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`]: archivedReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${archivedPolicyRoomReport.reportID}`]: archivedPolicyRoomReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${archivedUserCreatedPolicyRoomReport.reportID}`]: archivedUserCreatedPolicyRoomReport,
+            };
 
             return (
                 waitForBatchedUpdates()
@@ -488,9 +527,7 @@ xdescribe('Sidebar', () => {
                             [ONYXKEYS.BETAS]: betas,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`]: archivedReport,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${archivedPolicyRoomReport.reportID}`]: archivedPolicyRoomReport,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${archivedUserCreatedPolicyRoomReport.reportID}`]: archivedUserCreatedPolicyRoomReport,
+                            ...reportCollectionDataSet,
                         }),
                     )
 
@@ -530,17 +567,22 @@ xdescribe('Sidebar', () => {
 
         it('policy rooms are displayed only when they have unread messages', () => {
             // Given a default policy room and user created policy room
-            const policyRoomReport = {
+            const policyRoomReport: Report = {
                 ...LHNTestUtils.getFakeReport([1, 2]),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
             };
-            const userCreatedPolicyRoomReport = {
+            const userCreatedPolicyRoomReport: Report = {
                 ...LHNTestUtils.getFakeReport([1, 2]),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
             };
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
+
+            const reportCollectionDataSet: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${policyRoomReport.reportID}`]: policyRoomReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${userCreatedPolicyRoomReport.reportID}`]: userCreatedPolicyRoomReport,
+            };
 
             return (
                 waitForBatchedUpdates()
@@ -551,8 +593,7 @@ xdescribe('Sidebar', () => {
                             [ONYXKEYS.BETAS]: betas,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${policyRoomReport.reportID}`]: policyRoomReport,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${userCreatedPolicyRoomReport.reportID}`]: userCreatedPolicyRoomReport,
+                            ...reportCollectionDataSet,
                         }),
                     )
 
@@ -622,7 +663,7 @@ xdescribe('Sidebar', () => {
         const AMOUNT_OF_VARIABLES = 6;
         // eslint-disable-next-line no-bitwise
         for (let i = 0; i < 1 << AMOUNT_OF_VARIABLES; i++) {
-            const boolArr = [];
+            const boolArr: boolean[] = [];
             for (let j = AMOUNT_OF_VARIABLES - 1; j >= 0; j--) {
                 // eslint-disable-next-line no-bitwise
                 boolArr.push(Boolean(i & (1 << j)));
@@ -633,11 +674,17 @@ xdescribe('Sidebar', () => {
             // const boolArr = [false, false, false, true, false, false, false];
 
             it(`the booleans ${JSON.stringify(boolArr)}`, () => {
+                const [isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft] = boolArr;
                 const report2 = {
-                    ...LHNTestUtils.getAdvancedFakeReport(...boolArr),
+                    ...LHNTestUtils.getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft),
                     policyID: policy.policyID,
                 };
                 LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
+
+                const reportCollectionDataSet: ReportCollectionDataSet = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                };
 
                 return (
                     waitForBatchedUpdates()
@@ -648,9 +695,8 @@ xdescribe('Sidebar', () => {
                                 [ONYXKEYS.BETAS]: betas,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                                 [ONYXKEYS.IS_LOADING_APP]: false,
-                                [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
-                                [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                                 [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
+                                ...reportCollectionDataSet,
                             }),
                         )
 
@@ -663,7 +709,7 @@ xdescribe('Sidebar', () => {
                                 const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
                                 expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(1);
                                 expect(displayNames).toHaveLength(1);
-                                expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe('Three, Four');
+                                expect(displayNames[0].props.children[0]).toBe('Three, Four');
                             } else {
                                 // Both reports visible
                                 const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
@@ -681,7 +727,7 @@ xdescribe('Sidebar', () => {
                 LHNTestUtils.getDefaultRenderedSidebarLinks();
 
                 // Given an archived report with no comments
-                const report = {
+                const report: Report = {
                     ...LHNTestUtils.getFakeReport(),
                     lastVisibleActionCreated: '2022-11-22 03:48:27.267',
                     statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
@@ -690,6 +736,10 @@ xdescribe('Sidebar', () => {
 
                 // Given the user is in all betas
                 const betas = [CONST.BETAS.DEFAULT_ROOMS];
+
+                const reportCollectionDataSet: ReportCollectionDataSet = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                };
 
                 return (
                     waitForBatchedUpdates()
@@ -700,7 +750,7 @@ xdescribe('Sidebar', () => {
                                 [ONYXKEYS.BETAS]: betas,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                                 [ONYXKEYS.IS_LOADING_APP]: false,
-                                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                                ...reportCollectionDataSet,
                             }),
                         )
 
@@ -733,7 +783,7 @@ xdescribe('Sidebar', () => {
                 LHNTestUtils.getDefaultRenderedSidebarLinks();
 
                 // Given an archived report that has all comments read
-                const report = {
+                const report: Report = {
                     ...LHNTestUtils.getFakeReport(),
                     statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
@@ -741,6 +791,10 @@ xdescribe('Sidebar', () => {
 
                 // Given the user is in all betas
                 const betas = [CONST.BETAS.DEFAULT_ROOMS];
+
+                const reportCollectionDataSet: ReportCollectionDataSet = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                };
 
                 return (
                     waitForBatchedUpdates()
@@ -751,7 +805,7 @@ xdescribe('Sidebar', () => {
                                 [ONYXKEYS.BETAS]: betas,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                                 [ONYXKEYS.IS_LOADING_APP]: false,
-                                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                                ...reportCollectionDataSet,
                             }),
                         )
 
@@ -781,7 +835,7 @@ xdescribe('Sidebar', () => {
                 LHNTestUtils.getDefaultRenderedSidebarLinks();
 
                 // Given an archived report that is not pinned
-                const report = {
+                const report: Report = {
                     ...LHNTestUtils.getFakeReport(),
                     isPinned: false,
                     statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
@@ -790,6 +844,10 @@ xdescribe('Sidebar', () => {
 
                 // Given the user is in all betas
                 const betas = [CONST.BETAS.DEFAULT_ROOMS];
+
+                const reportCollectionDataSet: ReportCollectionDataSet = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                };
 
                 return (
                     waitForBatchedUpdates()
@@ -800,7 +858,7 @@ xdescribe('Sidebar', () => {
                                 [ONYXKEYS.BETAS]: betas,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                                 [ONYXKEYS.IS_LOADING_APP]: false,
-                                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                                ...reportCollectionDataSet,
                             }),
                         )
 
@@ -827,7 +885,7 @@ xdescribe('Sidebar', () => {
                 LHNTestUtils.getDefaultRenderedSidebarLinks();
 
                 // Given an archived report that is not the active report
-                const report = {
+                const report: Report = {
                     ...LHNTestUtils.getFakeReport(),
                     statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
@@ -835,6 +893,10 @@ xdescribe('Sidebar', () => {
 
                 // Given the user is in all betas
                 const betas = [CONST.BETAS.DEFAULT_ROOMS];
+
+                const reportCollectionDataSet: ReportCollectionDataSet = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                };
 
                 return (
                     waitForBatchedUpdates()
@@ -845,7 +907,7 @@ xdescribe('Sidebar', () => {
                                 [ONYXKEYS.BETAS]: betas,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                                 [ONYXKEYS.IS_LOADING_APP]: false,
-                                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                                ...reportCollectionDataSet,
                             }),
                         )
 
