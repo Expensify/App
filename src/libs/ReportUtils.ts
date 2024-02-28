@@ -4045,7 +4045,10 @@ function chatIncludesChronos(report: OnyxEntry<Report> | EmptyObject): boolean {
  * - It's an ADDCOMMENT that is not an attachment
  */
 function canFlagReportAction(reportAction: OnyxEntry<ReportAction>, reportID: string | undefined): boolean {
-    const report = getReport(reportID);
+    let report = getReport(reportID);
+    if (reportAction?.childReportID && String(reportAction?.childReportID) === String(reportID)) {
+        report = getReport(report?.parentReportID);
+    }
     const isCurrentUserAction = reportAction?.actorAccountID === currentUserAccountID;
     const isOriginalMessageHaveHtml =
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT ||
