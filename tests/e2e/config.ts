@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- if the first value is '' nullish coalescing will return '' so leaving || for safty
 const OUTPUT_DIR = process.env.WORKING_DIRECTORY || './tests/e2e/results';
 
 // add your test name here …
@@ -17,7 +18,7 @@ const TEST_NAMES = {
  * npm run test:e2e -- --config ./path/to/your/config.js
  * ```
  */
-module.exports = {
+const config = {
     MAIN_APP_PACKAGE: 'com.expensify.chat.e2e',
     DELTA_APP_PACKAGE: 'com.expensify.chat.e2edelta',
 
@@ -87,3 +88,7 @@ module.exports = {
         },
     },
 };
+
+export default config;
+
+export {TEST_NAMES};
