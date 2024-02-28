@@ -18,6 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
+import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {PersonalDetailsList, PolicyMember} from '@src/types/onyx';
@@ -126,6 +127,13 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails}
         return sectionsArr;
     }, [personalDetails, policyMembers, searchTerm, translate, policy?.approver]);
 
+    const setPolicyApprover = (member: MemberOption) => {
+        if (!policy) {
+            return;
+        }
+        Policy.setWorkspaceApprover(policy.id, member.accountID);
+    };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -143,7 +151,7 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails}
                 onChangeText={setSearchTerm}
                 headerMessage={headerMessage}
                 ListItem={UserListItem}
-                onSelectRow={() => {}}
+                onSelectRow={setPolicyApprover}
                 // initiallyFocusedOptionKey={0}
                 showScrollIndicator
             />
