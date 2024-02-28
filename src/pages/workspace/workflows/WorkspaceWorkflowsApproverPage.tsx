@@ -22,6 +22,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
