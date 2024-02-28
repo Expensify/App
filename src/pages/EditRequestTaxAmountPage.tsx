@@ -20,12 +20,9 @@ type EditRequestTaxAmountPageProps = {
 
     /** Callback to fire when the Save button is pressed  */
     onSubmit: () => void;
-
-    /** Callback to fire when we press on the currency  */
-    onNavigateToCurrency: () => void;
 };
 
-function EditRequestTaxAmountPage({defaultAmount, defaultTaxAmount, defaultCurrency, onNavigateToCurrency, onSubmit}: EditRequestTaxAmountPageProps) {
+function EditRequestTaxAmountPage({defaultAmount, defaultTaxAmount, defaultCurrency, onSubmit}: EditRequestTaxAmountPageProps) {
     const {translate} = useLocalize();
     const textInput = useRef<BaseTextInputRef>(null);
 
@@ -57,7 +54,6 @@ function EditRequestTaxAmountPage({defaultAmount, defaultTaxAmount, defaultCurre
                 taxAmount={defaultTaxAmount}
                 ref={textInput}
                 isCurrencyPressable={false}
-                onCurrencyButtonPress={onNavigateToCurrency}
                 onSubmitButtonPress={onSubmit}
                 isEditing
             />
