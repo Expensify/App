@@ -48,7 +48,7 @@ type AddPlaidBankAccountProps = AddPlaidBankAccountOnyxProps & {
     text?: string;
 
     /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
-    receivedRedirectURI: string | null;
+    receivedRedirectURI?: string;
 
     /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
     plaidLinkOAuthToken?: string;
@@ -76,7 +76,7 @@ function AddPlaidBankAccount({
     onExitPlaid = () => {},
     onSelect = () => {},
     text = '',
-    receivedRedirectURI = null,
+    receivedRedirectURI,
     plaidLinkOAuthToken = '',
     bankAccountID = 0,
     allowDebit = false,

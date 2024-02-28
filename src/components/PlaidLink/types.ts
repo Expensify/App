@@ -19,7 +19,7 @@ type PlaidLinkProps = {
 
     // The redirect URI with an OAuth state ID. Needed to re-initialize the PlaidLink after directing the
     // user to their respective bank platform
-    receivedRedirectURI?: string | null;
+    receivedRedirectURI?: string;
 };
 
 export default PlaidLinkProps;
