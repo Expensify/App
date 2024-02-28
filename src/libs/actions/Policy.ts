@@ -22,7 +22,6 @@ import type {
     OpenWorkspaceReimburseViewParams,
     SetWorkspaceApprovalModeParams,
     SetWorkspaceAutoReportingParams,
-    SetWorkspaceWorkflowsApproverParams,
     UpdateWorkspaceAvatarParams,
     UpdateWorkspaceCustomUnitAndRateParams,
     UpdateWorkspaceDescriptionParams,
