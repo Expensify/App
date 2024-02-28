@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import type {GestureResponderEvent} from 'react-native';
+import type {GestureResponderEvent, ViewStyle} from 'react-native';
 import {ActivityIndicator, Dimensions, ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
@@ -42,7 +42,13 @@ import type {WalletPageOnyxProps, WalletPageProps} from './types';
 
 type FormattedSelectedPaymentMethod = {
     title: string;
-    icon?: IconAsset;
+    icon?: {
+        icon: IconAsset;
+        iconSize?: number;
+        iconHeight?: number;
+        iconWidth?: number;
+        iconStyles?: ViewStyle[];
+    };
     description?: string;
     type?: string;
 };
