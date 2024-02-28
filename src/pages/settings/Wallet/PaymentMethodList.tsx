@@ -36,8 +36,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type IconAsset from '@src/types/utils/IconAsset';
-import {FormattedSelectedPaymentMethodIcon} from './WalletPage/types';
+import type {FormattedSelectedPaymentMethodIcon} from './WalletPage/types';
 
 type PaymentMethodListOnyxProps = {
     /** List of bank accounts */
