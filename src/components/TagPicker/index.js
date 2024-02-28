@@ -29,15 +29,16 @@ function TagPicker({selectedTag, tag, tagIndex, policyTags, policyRecentlyUsedTa
         if (!selectedTag) {
             return [];
         }
+        const selectedTagInList = _.some(policyTagList.tags, (policyTag) => policyTag.name === selectedTag && policyTag.enabled);
 
         return [
             {
                 name: selectedTag,
-                enabled: true,
+                enabled: selectedTagInList,
                 accountID: null,
             },
         ];
-    }, [selectedTag]);
+    }, [selectedTag, policyTagList.tags]);
 
     const enabledTags = useMemo(() => {
         if (!shouldShowDisabledAndSelectedOption) {

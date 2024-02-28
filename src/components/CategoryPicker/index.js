@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './categoryPickerPropTypes';
 
-function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, onSubmit}) {
+function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, onSubmit, shouldShowDisabledAndSelectedOption}) {
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
@@ -20,15 +20,26 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             return [];
         }
 
+        const isSelectedCateoryEnabled = _.some(policyCategories, (category) => category.name === selectedCategory && category.enabled);
+
         return [
             {
                 name: selectedCategory,
-                enabled: true,
+                enabled: isSelectedCateoryEnabled,
                 accountID: null,
                 isSelected: true,
             },
         ];
-    }, [selectedCategory]);
+    }, [selectedCategory, policyCategories]);
+
+    const enabledCategories = useMemo(() => {
+        if (!shouldShowDisabledAndSelectedOption) {
+            return policyCategories;
+        }
+        const selectedNames = _.map(selectedOptions, (s) => s.name);
+        const catergories = [...selectedOptions, ..._.filter(policyCategories, (category) => category.enabled && !selectedNames.includes(category.name))];
+        return catergories;
+    }, [selectedOptions, policyCategories, shouldShowDisabledAndSelectedOption]);
 
     const [sections, headerMessage, policyCategoriesCount, shouldShowTextInput] = useMemo(() => {
         const validPolicyRecentlyUsedCategories = _.filter(policyRecentlyUsedCategories, (p) => !_.isEmpty(p));
@@ -42,7 +53,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             false,
             false,
             true,
-            policyCategories,
+            enabledCategories,
             validPolicyRecentlyUsedCategories,
             false,
         );
@@ -53,7 +64,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
         const showInput = !isCategoriesCountBelowThreshold;
 
         return [categoryOptions, header, policiesCount, showInput];
-    }, [policyCategories, policyRecentlyUsedCategories, debouncedSearchValue, selectedOptions]);
+    }, [policyCategories, policyRecentlyUsedCategories, debouncedSearchValue, selectedOptions, enabledCategories]);
 
     const selectedOptionKey = useMemo(
         () => lodashGet(_.filter(lodashGet(sections, '[0].data', []), (category) => category.searchText === selectedCategory)[0], 'keyForList'),

@@ -18,6 +18,9 @@ const propTypes = {
 
     /** Callback to fire when a category is pressed */
     onSubmit: PropTypes.func.isRequired,
+
+    /** Should show the selected option that is disabled? */
+    shouldShowDisabledAndSelectedOption: PropTypes.bool,
 };
 
 const defaultProps = {
