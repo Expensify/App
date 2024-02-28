@@ -68,8 +68,6 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
                     <MenuItemWithTopDescription
                         title={policyCategory.name}
                         description={translate(`workspace.categories.categoryName`)}
-                        // TODO: do we want disable menu item if category is disabled?
-                        disabled={!policyCategory.enabled}
                     />
                 </ScreenWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
