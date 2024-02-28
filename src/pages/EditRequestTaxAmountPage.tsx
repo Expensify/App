@@ -56,6 +56,7 @@ function EditRequestTaxAmountPage({defaultAmount, defaultTaxAmount, defaultCurre
                 amount={defaultAmount}
                 taxAmount={defaultTaxAmount}
                 ref={textInput}
+                isCurrencyPressable={false}
                 onCurrencyButtonPress={onNavigateToCurrency}
                 onSubmitButtonPress={onSubmit}
                 isEditing
