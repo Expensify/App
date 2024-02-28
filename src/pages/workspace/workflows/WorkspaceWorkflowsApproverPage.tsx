@@ -148,6 +148,10 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails,
         return sectionsArr;
     }, [formattedPolicyMembers, formattedApprover, searchTerm]);
 
+    const headerMessage = useMemo(() => {
+        return !sections.length ? translate('workspace.common.memberNotFound') : '';
+    }, [translate, sections]);
+
     const setPolicyApprover = (member: MemberOption) => {
         if (!policy || !policy.approvalMode || !personalDetails?.[member.accountID]?.login) {
             return;
