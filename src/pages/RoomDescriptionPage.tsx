@@ -19,7 +19,6 @@ import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReportDescriptionForm';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -71,7 +70,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
             <FullPageNotFoundView shouldShow={!ReportUtils.canEditReportDescription(report, policy)}>
                 <HeaderWithBackButton
                     title={translate('reportDescriptionPage.roomDescription')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID))}
+                    onBackButtonPress={() => Navigation.goBack()}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
