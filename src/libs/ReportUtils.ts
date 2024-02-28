@@ -2585,12 +2585,6 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>): ParentNavigatio
         return {};
     }
 
-    if (isIOURequest(parentReport)) {
-        return {
-            reportName: getReportName(parentReport),
-        };
-    }
-
     return {
         reportName: getReportName(parentReport),
         workspaceName: getPolicyName(parentReport, true),
