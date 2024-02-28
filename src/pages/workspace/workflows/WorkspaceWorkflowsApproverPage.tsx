@@ -129,10 +129,12 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails}
     }, [personalDetails, policyMembers, searchTerm, translate, policy?.approver]);
 
     const setPolicyApprover = (member: MemberOption) => {
-        if (!policy) {
+        if (!policy || !policy.approvalMode || !personalDetails?.[member.accountID]?.login) {
             return;
         }
-        Policy.setWorkspaceApprover(policy.id, member.accountID);
+        const approver: string = personalDetails?.[member.accountID]?.login || policy.approver || '';
+        console.log(approver);
+        Policy.setWorkspaceApprovalMode(policy.id, approver, policy.approvalMode);
         Navigation.goBack();
     };
 
