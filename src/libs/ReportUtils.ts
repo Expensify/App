@@ -2558,18 +2558,13 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
 }
 
 /**
- * Recursively navigates through thread parents to get the root report and workspace name.
- * The recursion stops when we find a non thread or money request report, whichever comes first.
+ * Get the report name and workspace name for a report based on the type of the report
  */
-function getRootReportAndWorkspaceName(report: OnyxEntry<Report>): ReportAndWorkspaceName {
+function getReportAndWorkspaceName(report: OnyxEntry<Report>): ReportAndWorkspaceName {
     if (!report) {
         return {
             rootReportName: '',
         };
-    }
-    if (isChildReport(report) && !isMoneyRequestReport(report) && !isTaskReport(report)) {
-        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
-        return getRootReportAndWorkspaceName(parentReport);
     }
 
     if (isIOURequest(report)) {
@@ -2617,16 +2612,17 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
  * Gets the parent navigation subtitle for the report
  */
 function getParentNavigationSubtitle(report: OnyxEntry<Report>): ParentNavigationSummaryParams {
-    if (isThread(report)) {
-        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
-        const {rootReportName, workspaceName} = getRootReportAndWorkspaceName(parentReport);
-        if (!rootReportName) {
-            return {};
-        }
-
-        return {rootReportName, workspaceName};
+    if (!isThread(report)) {
+        return {};
     }
-    return {};
+
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
+    const {rootReportName, workspaceName} = getReportAndWorkspaceName(parentReport);
+    if (!rootReportName) {
+        return {};
+    }
+
+    return {rootReportName, workspaceName};
 }
 
 /**
