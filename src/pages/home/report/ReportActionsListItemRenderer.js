@@ -123,7 +123,6 @@ function ReportActionsListItemRenderer({
         ],
     );
 
-
     return shouldDisplayParentAction ? (
         <ReportActionItemParentAction
             shouldHideThreadDividerLine={shouldDisplayParentAction && shouldHideThreadDividerLine}
