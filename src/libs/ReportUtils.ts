@@ -1,3 +1,4 @@
+import {format} from 'date-fns';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import {isEmpty} from 'lodash';
@@ -1982,6 +1983,13 @@ function getFormulaTypeReportField(reportFields: PolicyReportFields) {
 }
 
 /**
+ * Given a set of report fields, return the field that refers to title
+ */
+function getTitleReportField(reportFields: PolicyReportFields) {
+    return Object.values(reportFields).find((field) => isReportFieldOfTypeTitle(field));
+}
+
+/**
  * Get the report fields attached to the policy given policyID
  */
 function getReportFieldsByPolicyID(policyID: string) {
@@ -2854,6 +2862,38 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
     };
 }
 
+function getHumanReadableStatus(statusNum: number): string {
+    const status = Object.keys(CONST.REPORT.STATUS_NUM).find((key) => CONST.REPORT.STATUS_NUM[key as keyof typeof CONST.REPORT.STATUS_NUM] === statusNum);
+    return status ? `${status.charAt(0)}${status.slice(1).toLowerCase()}` : '';
+}
+
+/**
+ * Populates the report field formula with the values from the report and policy.
+ * Currently, this only supports optimistic expense reports.
+ * Each formula field is either replaced with a value, or removed.
+ * If after all replacements the formula is empty, the original formula is returned.
+ * See {@link https://help.expensify.com/articles/expensify-classic/insights-and-custom-reporting/Custom-Templates}
+ */
+function populateOptimisticReportFormula(formula: string, report: OptimisticExpenseReport, policy: Policy | EmptyObject): string {
+    const createdDate = report.lastVisibleActionCreated ? new Date(report.lastVisibleActionCreated) : undefined;
+    const result = formula
+        .replaceAll('{report:id}', report.reportID)
+        // We don't translate because the server response is always in English
+        .replaceAll('{report:type}', 'Expense Report')
+        .replaceAll('{report:startdate}', createdDate ? format(createdDate, CONST.DATE.FNS_FORMAT_STRING) : '')
+        .replaceAll('{report:total}', report.total?.toString() ?? '')
+        .replaceAll('{report:currency}', report.currency ?? '')
+        .replaceAll('{report:policyname}', policy.name ?? '')
+        .replaceAll('{report:created}', createdDate ? format(createdDate, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING) : '')
+        .replaceAll('{report:created:yyyy-MM-dd}', createdDate ? format(createdDate, CONST.DATE.FNS_FORMAT_STRING) : '')
+        .replaceAll('{report:status}', report.statusNum !== undefined ? getHumanReadableStatus(report.statusNum) : '')
+        .replaceAll('{user:email}', currentUserEmail ?? '')
+        .replaceAll('{user:email|frontPart}', currentUserEmail ? currentUserEmail.split('@')[0] : '')
+        .replaceAll(/\{report:(.+)}/g, '');
+
+    return result.trim().length ? result : formula;
+}
+
 /**
  * Builds an optimistic Expense report with a randomly generated reportID
  *
@@ -2863,7 +2903,6 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
  * @param total - Amount in cents
  * @param currency
  */
-
 function buildOptimisticExpenseReport(chatReportID: string, policyID: string, payeeAccountID: number, total: number, currency: string): OptimisticExpenseReport {
     // The amount for Expense reports are stored as negative value in the database
     const storedTotal = total * -1;
@@ -2884,7 +2923,6 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
         type: CONST.REPORT.TYPE.EXPENSE,
         ownerAccountID: payeeAccountID,
         currency,
-
         // We don't translate reportName because the server response is always in English
         reportName: `${policyName} owes ${formattedTotal}`,
         stateNum,
@@ -2898,6 +2936,11 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
     // The account defined in the policy submitsTo field is the approver/ manager for this report
     if (policy?.submitsTo) {
         expenseReport.managerID = policy.submitsTo;
+    }
+
+    const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
+    if (!!titleReportField && reportFieldsEnabled(expenseReport)) {
+        expenseReport.reportName = populateOptimisticReportFormula(titleReportField.defaultValue, expenseReport, policy);
     }
 
     return expenseReport;
