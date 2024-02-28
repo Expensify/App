@@ -64,7 +64,7 @@ function useViolations(violations: TransactionViolation[]) {
             const currentViolations = violationsByField.get(field) ?? [];
 
             // tagListIndex can be 0 so we compare with undefined
-            if (data?.tagListIndex !== undefined && currentViolations[0]?.name === 'someTagLevelsRequired' && Array.isArray(currentViolations[0]?.data?.errorIndexes)) {
+            if (currentViolations[0]?.name === 'someTagLevelsRequired' && data?.tagListIndex !== undefined && Array.isArray(currentViolations[0]?.data?.errorIndexes)) {
                 return currentViolations
                     .filter((violation) => violation.data?.errorIndexes?.includes(data?.tagListIndex ?? -1))
                     .map((violation) => ({
