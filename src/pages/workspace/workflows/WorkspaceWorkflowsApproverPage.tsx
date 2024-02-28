@@ -153,7 +153,6 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails}
                 headerMessage={headerMessage}
                 ListItem={UserListItem}
                 onSelectRow={setPolicyApprover}
-                // initiallyFocusedOptionKey={0}
                 showScrollIndicator
             />
         </ScreenWrapper>
