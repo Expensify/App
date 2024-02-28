@@ -50,8 +50,11 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails}
     const isDeletedPolicyMember = (policyMember: PolicyMember): boolean =>
         !isOffline && policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyMember.errors);
 
-    const policyUsers: MemberOption[] = useMemo(() => {
-        let result: MemberOption[] = [];
+    const sections: MembersSection[] = useMemo(() => {
+        let sectionsArr: MembersSection[] = [];
+
+        let policyUsersSection: MemberOption[] = [];
+
         Object.entries(policyMembers ?? {}).forEach(([accountIDKey, policyMember]) => {
             const accountID = Number(accountIDKey);
             if (isDeletedPolicyMember(policyMember)) {
