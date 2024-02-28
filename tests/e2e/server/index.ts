@@ -201,8 +201,14 @@ const createServerInstance = (): ServerInstance => {
         addTestStartedListener,
         addTestResultListener,
         addTestDoneListener,
-        start: () => new Promise<void>((resolve) => server.listen(PORT, resolve)),
-        stop: () => new Promise<Error | undefined>((resolve) => server.close(resolve)),
+        start: () =>
+            new Promise<void>((resolve) => {
+                server.listen(PORT, resolve);
+            }),
+        stop: () =>
+            new Promise<Error | undefined>((resolve) => {
+                server.close(resolve);
+            }),
     };
 };
 

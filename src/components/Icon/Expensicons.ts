@@ -68,6 +68,7 @@ import Flag from '@assets/images/flag.svg';
 import FlagLevelOne from '@assets/images/flag_level_01.svg';
 import FlagLevelTwo from '@assets/images/flag_level_02.svg';
 import FlagLevelThree from '@assets/images/flag_level_03.svg';
+import Folder from '@assets/images/folder.svg';
 import Fullscreen from '@assets/images/fullscreen.svg';
 import Gallery from '@assets/images/gallery.svg';
 import Gear from '@assets/images/gear.svg';
@@ -144,6 +145,7 @@ import Users from '@assets/images/users.svg';
 import VolumeHigh from '@assets/images/volume-high.svg';
 import VolumeLow from '@assets/images/volume-low.svg';
 import Wallet from '@assets/images/wallet.svg';
+import Workflows from '@assets/images/workflows.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Wrench from '@assets/images/wrench.svg';
 import Zoom from '@assets/images/zoom.svg';
@@ -216,6 +218,7 @@ export {
     FlagLevelTwo,
     FlagLevelThree,
     Fullscreen,
+    Folder,
     Gallery,
     Gear,
     Globe,
@@ -287,6 +290,7 @@ export {
     VolumeHigh,
     VolumeLow,
     Wallet,
+    Workflows,
     Workspace,
     Zoom,
     Twitter,
