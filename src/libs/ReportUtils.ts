@@ -2921,7 +2921,7 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
     const formattedTotal = CurrencyUtils.convertToDisplayString(storedTotal, currency);
     const policy = getPolicy(policyID);
 
-    const isInstantSubmitEnabled = policy?.type === CONST.POLICY.TYPE.FREE || (PolicyUtils.isPaidGroupPolicy(policy) && PolicyUtils.isInstantSubmitEnabled(policy));
+    const isInstantSubmitEnabled = PolicyUtils.isInstantSubmitEnabled(policy);
 
     // Define the state and status of the report based on whether the policy is free or paid
     const stateNum = isInstantSubmitEnabled ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.OPEN;
@@ -4216,6 +4216,26 @@ function hasIOUWaitingOnCurrentUserBankAccount(chatReport: OnyxEntry<Report>): b
 }
 
 /**
+ * Checks whether the supplied report supports adding more transactions to it.
+ */
+function canAddTransactionsToExpenseReport(report: OnyxEntry<Report>) {
+    if (!isExpenseReport(report)) {
+        return false;
+    }
+
+    if (isReportApproved(report) || isSettled(report)) {
+        return false;
+    }
+
+    if (isProcessingReport(report) && !PolicyUtils.isInstantSubmitEnabled(getPolicy(report?.policyID))) {
+        return false;
+    }
+
+    // We've narrowed it down to reports that are either drafts, or submitted under a policy with Instant Submit
+    return true;
+}
+
+/**
  * Users can request money:
  * - in policy expense chats only if they are in a role of a member in the chat (in other words, if it's their policy expense chat)
  * - in an open or submitted expense report tied to a policy expense chat the user owns
@@ -5226,6 +5246,7 @@ export {
     canEditRoomVisibility,
     canEditPolicyDescription,
     getPolicyDescriptionText,
+    canAddTransactionsToExpenseReport,
 };
 
 export type {
