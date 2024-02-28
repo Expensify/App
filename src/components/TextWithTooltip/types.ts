@@ -10,7 +10,7 @@ type TextWithTooltipProps = {
     /** Additional text styles */
     textStyles?: StyleProp<TextStyle>;
 
-    /** Custom number of lines for Text */
+    /** Custom number of lines for text wrapping */
     numberOfLines?: number;
 };
 
