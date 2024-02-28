@@ -167,21 +167,28 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails,
             includeSafeAreaPaddingBottom={false}
             testID={WorkspaceWorkflowsApproverPage.displayName}
         >
-            <HeaderWithBackButton
-                title={translate('workflowsPage.approver')}
-                subtitle={policyName}
-                onBackButtonPress={Navigation.goBack}
-            />
-            <SelectionList
-                sections={sections}
-                textInputLabel={translate('optionsSelector.findMember')}
-                textInputValue={searchTerm}
-                onChangeText={setSearchTerm}
-                headerMessage={headerMessage}
-                ListItem={UserListItem}
-                onSelectRow={setPolicyApprover}
-                showScrollIndicator
-            />
+            <FullPageNotFoundView
+                shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
+                subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
+                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
+                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
+            >
+                <HeaderWithBackButton
+                    title={translate('workflowsPage.approver')}
+                    subtitle={policyName}
+                    onBackButtonPress={Navigation.goBack}
+                />
+                <SelectionList
+                    sections={sections}
+                    textInputLabel={translate('optionsSelector.findMember')}
+                    textInputValue={searchTerm}
+                    onChangeText={setSearchTerm}
+                    headerMessage={headerMessage}
+                    ListItem={UserListItem}
+                    onSelectRow={setPolicyApprover}
+                    showScrollIndicator
+                />
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
