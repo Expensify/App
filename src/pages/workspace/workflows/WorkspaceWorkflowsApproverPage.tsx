@@ -32,6 +32,7 @@ type WorkspaceWorkflowsApproverPageOnyxProps = {
 
 type WorkspaceWorkflowsApproverPageProps = WorkspaceWorkflowsApproverPageOnyxProps & WithPolicyAndFullscreenLoadingProps;
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
+type MembersSection = SectionListData<MemberOption, Section<MemberOption>>;
 
 function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails}: WorkspaceWorkflowsApproverPageProps) {
     const {translate} = useLocalize();
