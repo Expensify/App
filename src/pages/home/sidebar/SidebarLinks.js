@@ -15,7 +15,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Navigation from '@libs/Navigation/Navigation';
 import onyxSubscribe from '@libs/onyxSubscribe';
-import SidebarUtils from '@libs/SidebarUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import safeAreaInsetPropTypes from '@pages/safeAreaInsetPropTypes';
 import * as App from '@userActions/App';
@@ -52,15 +51,10 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
     const {isSmallScreenWidth} = useWindowDimensions();
 
     useEffect(() => {
-        if (!isSmallScreenWidth) {
-            return;
-        }
         App.confirmReadyToOpenApp();
-    }, [isSmallScreenWidth]);
+    }, []);
 
     useEffect(() => {
-        SidebarUtils.setIsSidebarLoadedReady();
-
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
                 updateLocale();
@@ -96,7 +90,6 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
         ReportActionContextMenu.hideContextMenu(false);
 
         return () => {
-            SidebarUtils.resetIsSidebarLoadedReadyPromise();
             if (unsubscribeEscapeKey) {
                 unsubscribeEscapeKey();
             }

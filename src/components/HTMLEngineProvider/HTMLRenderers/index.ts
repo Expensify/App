@@ -7,6 +7,7 @@ import MentionHereRenderer from './MentionHereRenderer';
 import MentionUserRenderer from './MentionUserRenderer';
 import NextStepEmailRenderer from './NextStepEmailRenderer';
 import PreRenderer from './PreRenderer';
+import VideoRenderer from './VideoRenderer';
 
 /**
  * This collection defines our custom renderers. It is a mapping from HTML tag type to the corresponding component.
@@ -16,7 +17,7 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     a: AnchorRenderer,
     code: CodeRenderer,
     img: ImageRenderer,
-    video: AnchorRenderer, // temporary until we have a video player component
+    video: VideoRenderer,
 
     // Custom tag renderers
     edited: EditedRenderer,

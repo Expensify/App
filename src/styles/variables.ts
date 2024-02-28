@@ -188,6 +188,7 @@ export default {
     reportActionItemImagesMoreCornerTriangleWidth: 40,
     bankCardWidth: 40,
     bankCardHeight: 26,
+    popoverzIndex: 10000,
     workspaceTypeIconWidth: 34,
     sectionMargin: 16,
     workspaceSectionMaxWidth: 680,
@@ -215,4 +216,7 @@ export default {
     updateAnimationH: 240,
     updateTextViewContainerWidth: 310,
     updateViewHeaderHeight: 70,
+
+    mushroomTopHatWidth: 138,
+    mushroomTopHatHeight: 128,
 } as const;

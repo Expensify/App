@@ -25,6 +25,9 @@ type TextInputWithCurrencySymbolProps = {
 
     /** Function to call to handle key presses in the text input */
     onKeyPress?: (event: NativeSyntheticEvent<KeyboardEvent>) => void;
+
+    /** Whether the currency symbol is pressable */
+    isCurrencyPressable: boolean;
 };
 
 export default TextInputWithCurrencySymbolProps;

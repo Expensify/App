@@ -27,7 +27,7 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import ReportActionItemDate from './ReportActionItemDate';
 import ReportActionItemFragment from './ReportActionItemFragment';
 
-type ReportActionItemSingleProps = ChildrenProps & {
+type ReportActionItemSingleProps = Partial<ChildrenProps> & {
     /** All the data of the action */
     action: ReportAction;
 
@@ -161,7 +161,7 @@ function ReportActionItemSingle({
 
     const shouldDisableDetailPage = useMemo(
         () =>
-            actorAccountID === CONST.ACCOUNT_ID.NOTIFICATIONS ||
+            CONST.RESTRICTED_ACCOUNT_IDS.includes(actorAccountID ?? 0) ||
             (!isWorkspaceActor && ReportUtils.isOptimisticPersonalDetail(action.delegateAccountID ? Number(action.delegateAccountID) : actorAccountID ?? -1)),
         [action, isWorkspaceActor, actorAccountID],
     );

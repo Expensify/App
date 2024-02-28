@@ -103,7 +103,7 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
     };
 
     return (
-        <Tooltip text={translate('common.new')}>
+        <Tooltip text={translate('common.create')}>
             <PressableWithoutFeedback
                 style={styles.h100}
                 accessibilityLabel={accessibilityLabel}

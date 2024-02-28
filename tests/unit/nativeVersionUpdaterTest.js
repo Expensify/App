@@ -1,7 +1,8 @@
-const fs = require('fs');
-const path = require('path');
-const {vol} = require('memfs');
-const {updateAndroidVersion, generateAndroidVersionCode} = require('../../.github/libs/nativeVersionUpdater');
+import fs from 'fs';
+import {vol} from 'memfs';
+import path from 'path';
+// eslint-disable-next-line rulesdir/prefer-import-module-contents
+import {generateAndroidVersionCode, updateAndroidVersion} from '../../.github/libs/nativeVersionUpdater';
 
 const BUILD_GRADLE_PATH = path.resolve(__dirname, '../../android/app/build.gradle');
 
