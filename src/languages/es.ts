@@ -1764,6 +1764,7 @@ export default {
         },
         categories: {
             categoryName: 'Nombre de la categoría',
+            requiresCategory: 'Los miembros deben categorizar todos los gastos',
             enableCategory: 'Activar categoría',
             subtitle: 'Obtén una visión general de dónde te gastas el dinero. Utiliza las categorías predeterminadas o añade las tuyas propias.',
             emptyCategories: {

@@ -265,6 +265,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 categoryName: (categoryName: string) => decodeURI(categoryName),
                             },
                         },
+                        [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_CATEGORIES_SETTINGS.route,
+                        },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
                             exact: true,

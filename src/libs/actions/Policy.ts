@@ -2230,6 +2230,60 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
     API.write('SetWorkspaceCategoriesEnabled', parameters, onyxData);
 }
 
+const setWorkspaceRequiresCategory = (policyID: string, requiresCategory: boolean) => {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    requiresCategory,
+                    errors: {
+                        requiresCategory: null,
+                    },
+                    pendingFields: {
+                        requiresCategory: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    errors: {
+                        requiresCategory: null,
+                    },
+                    pendingFields: {
+                        requiresCategory: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    requiresCategory: !requiresCategory,
+                    errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.genericFailureMessage'),
+                    pendingFields: {
+                        requiresCategory: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        requiresCategory,
+    };
+
+    API.write('SetWorkspaceRequiresCategory', parameters, onyxData);
+};
+
 export {
     removeMembers,
     addMembersToWorkspace,
@@ -2274,4 +2328,5 @@ export {
     setWorkspaceApprovalMode,
     updateWorkspaceDescription,
     setWorkspaceCategoryEnabled,
+    setWorkspaceRequiresCategory,
 };

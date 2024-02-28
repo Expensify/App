@@ -1740,6 +1740,7 @@ export default {
         },
         categories: {
             categoryName: 'Category name',
+            requiresCategory: 'Members must categorize all spend',
             enableCategory: 'Enable category',
             subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
             emptyCategories: {
