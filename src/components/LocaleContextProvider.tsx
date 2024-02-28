@@ -132,4 +132,4 @@ Provider.displayName = 'withOnyx(LocaleContextProvider)';
 
 export {Provider as LocaleContextProvider, LocaleContext};
 
-export type {LocaleContextProps};
+export type {LocaleContextProps, Locale};
