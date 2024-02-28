@@ -29,7 +29,7 @@ function TableListItem({
     return (
         <BaseListItem
             item={item}
-            pressableStyle={[[styles.selectionListPressableItemWrapper, isFocused && styles.activeComponentBG]]}
+            pressableStyle={[[styles.selectionListPressableItemWrapper, item.isSelected && styles.activeComponentBG, isFocused && styles.activeComponentBG]]}
             wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter, isFocused && styles.sidebarLinkActive]}
             selectMultipleStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
             isFocused={isFocused}
