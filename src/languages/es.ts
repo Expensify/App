@@ -2138,12 +2138,6 @@ export default {
         genericUpdateReportFieldFailureMessage: 'Error inesperado al actualizar el campo. Por favor, inténtalo más tarde',
         genericUpdateReporNameEditFailureMessage: 'Error inesperado al cambiar el nombre del informe. Vuelva a intentarlo más tarde.',
         noActivityYet: 'Sin actividad todavía',
-        people: {
-            error: {
-                genericAdd: 'Hubo un problema al agregar este miembro de la sala de chat.',
-                genericRemove: 'Hubo un problema al eliminar a ese miembro de la sala de chat.',
-            },
-        },
     },
     chronos: {
         oooEventSummaryFullDay: ({summary, dayCount, date}: OOOEventSummaryFullDayParams) => `${summary} por ${dayCount} ${dayCount === 1 ? 'día' : 'días'} hasta el ${date}`,

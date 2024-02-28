@@ -2110,12 +2110,6 @@ export default {
         genericUpdateReportFieldFailureMessage: 'Unexpected error while updating the field, please try again later',
         genericUpdateReporNameEditFailureMessage: 'Unexpected error while renaming the report, please try again later',
         noActivityYet: 'No activity yet',
-        people: {
-            error: {
-                genericAdd: 'There was a problem adding this member to the room.',
-                genericRemove: 'There was a problem removing this member from the room.',
-            },
-        },
     },
     chronos: {
         oooEventSummaryFullDay: ({summary, dayCount, date}: OOOEventSummaryFullDayParams) => `${summary} for ${dayCount} ${dayCount === 1 ? 'day' : 'days'} until ${date}`,

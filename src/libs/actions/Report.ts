@@ -2386,7 +2386,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
         optimisticPendingAccounts[accountID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
         successPendingAccounts[accountID] = {pendingAction: null};
         failurePendingAccounts[accountID] = {
-            errors: ErrorUtils.getMicroSecondOnyxError('report.people.error.genericAdd'),
+            errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericAdd'),
         };
     });
 
@@ -2449,7 +2449,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
         optimisticPendingAccounts[accountID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
         successPendingAccounts[accountID] = {pendingAction: null};
         failurePendingAccounts[accountID] = {
-            errors: ErrorUtils.getMicroSecondOnyxError('report.people.error.genericRemove'),
+            errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove'),
         };
     });
 
