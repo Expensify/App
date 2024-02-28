@@ -938,7 +938,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             )}
             {shouldShowAllFields && supplementaryFields}
             <ConfirmModal
-                title={translate('attachmentPicker.attachmentError')}
+                title={translate('attachmentPicker.wrongFileType')}
                 onConfirm={hideRecieptModal}
                 onCancel={hideRecieptModal}
                 isVisible={isAttachmentInvalid}
