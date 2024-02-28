@@ -98,7 +98,7 @@ function TaskShareDestinationSelectorModal(props) {
                 shouldShow: true,
                 indexOffset,
             });
-            indexOffset += filteredRecentReports?.length;
+            indexOffset += filteredRecentReports.length;
         }
 
         return sections;
