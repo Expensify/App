@@ -29,7 +29,7 @@ import {KeyboardStateProvider} from './components/withKeyboardState';
 import {WindowDimensionsProvider} from './components/withWindowDimensions';
 import Expensify from './Expensify';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
-import {OrderedReportIDsContextProvider} from './hooks/useOrderedReportIDs';
+import {OrderedReportListItemsContextProvider} from './hooks/useOrderedReportListItems';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import InitialUrlContext from './libs/InitialUrlContext';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
@@ -76,7 +76,7 @@ function App({url}: AppProps) {
                         CustomStatusBarAndBackgroundContextProvider,
                         ActiveElementRoleProvider,
                         ActiveWorkspaceContextProvider,
-                        OrderedReportIDsContextProvider,
+                        OrderedReportListItemsContextProvider,
                         PlaybackContextProvider,
                         VolumeContextProvider,
                         VideoPopoverMenuContextProvider,

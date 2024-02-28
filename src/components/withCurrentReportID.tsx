@@ -43,7 +43,7 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
             /**
              * This is to make sure we don't set the undefined as reportID when
              * switching between chat list and settings->workspaces tab.
-             * and doing so avoid unnecessary re-render of `useOrderedReportIDs`.
+             * and doing so avoid unnecessary re-render of `useOrderedReportListItems`.
              */
             if (reportID) {
                 setCurrentReportID(reportID);

@@ -26,13 +26,13 @@ type OnyxProps = {
     draftComments: OnyxCollection<string>;
 };
 
-type WithOrderedReportIDsContextProviderProps = OnyxProps & {
+type WithOrderedReportListItemsContextProviderProps = OnyxProps & {
     children: React.ReactNode;
 };
 
-const OrderedReportIDsContext = createContext({});
+const OrderedReportListItemsContext = createContext({});
 
-function WithOrderedReportIDsContextProvider({
+function WithOrderedReportListItemsContextProvider({
     children,
     chatReports,
     betas,
@@ -43,7 +43,7 @@ function WithOrderedReportIDsContextProvider({
     priorityMode,
     preferredLocale,
     draftComments,
-}: WithOrderedReportIDsContextProviderProps) {
+}: WithOrderedReportListItemsContextProviderProps) {
     const currentReportIDValue = useCurrentReportID();
     const personalDetails = usePersonalDetails();
     const {canUseViolations} = usePermissions();
@@ -108,7 +108,7 @@ function WithOrderedReportIDsContextProvider({
         [orderedReportIDsWithCurrentReport, canUseViolations, personalDetails, draftComments, preferredLocale, chatReports, allReportActions, policies, transactionViolations],
     );
 
-    return <OrderedReportIDsContext.Provider value={orderedReportListItems}>{children}</OrderedReportIDsContext.Provider>;
+    return <OrderedReportListItemsContext.Provider value={orderedReportListItems}>{children}</OrderedReportListItemsContext.Provider>;
 }
 
 /**
@@ -174,7 +174,7 @@ const reportActionsSelector = (reportActions: OnyxEntry<ReportActions>) => {
     });
 };
 
-const OrderedReportIDsContextProvider = withOnyx<WithOrderedReportIDsContextProviderProps, OnyxProps>({
+const OrderedReportListItemsContextProvider = withOnyx<WithOrderedReportListItemsContextProviderProps, OnyxProps>({
     // @ts-expect-error Need some help in determining the correct type for this selector
     chatReports: {
         key: ONYXKEYS.COLLECTION.REPORT,
@@ -213,10 +213,10 @@ const OrderedReportIDsContextProvider = withOnyx<WithOrderedReportIDsContextProv
     preferredLocale: {
         key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     },
-})(WithOrderedReportIDsContextProvider);
+})(WithOrderedReportListItemsContextProvider);
 
-function useOrderedReportIDs() {
-    return useContext(OrderedReportIDsContext);
+function useOrderedReportListItems() {
+    return useContext(OrderedReportListItemsContext);
 }
 
-export {OrderedReportIDsContextProvider, OrderedReportIDsContext, useOrderedReportIDs};
+export {OrderedReportListItemsContextProvider, OrderedReportListItemsContext, useOrderedReportListItems};
