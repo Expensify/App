@@ -4,34 +4,32 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import RadioListItem from './RadioListItem';
 import type {BaseListItemProps, ListItem} from './types';
-import UserListItem from './UserListItem';
 
 function BaseListItem<TItem extends ListItem>({
     item,
-    isFocused = false,
+    pressableStyle,
+    wrapperStyle,
+    selectMultipleStyle,
     isDisabled = false,
-    showTooltip,
     shouldPreventDefaultFocusOnSelectRow = false,
     canSelectMultiple = false,
     onSelectRow,
     onDismissError = () => {},
     rightHandSideComponent,
     keyForList,
+    errors,
+    pendingAction,
+    FooterComponent,
+    children,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
-    const isUserItem = 'icons' in item && item?.icons?.length && item.icons.length > 0;
-    const ListItem = isUserItem ? UserListItem : RadioListItem;
 
     const rightHandSideComponentRender = () => {
         if (canSelectMultiple || !rightHandSideComponent) {
@@ -48,8 +46,8 @@ function BaseListItem<TItem extends ListItem>({
     return (
         <OfflineWithFeedback
             onClose={() => onDismissError(item)}
-            pendingAction={isUserItem ? item.pendingAction : undefined}
-            errors={isUserItem ? item.errors : undefined}
+            pendingAction={pendingAction}
+            errors={errors}
             errorRowStyles={styles.ph5}
         >
             <PressableWithFeedback
@@ -62,34 +60,17 @@ function BaseListItem<TItem extends ListItem>({
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
                 nativeID={keyForList}
+                style={pressableStyle}
             >
                 {({hovered}) => (
                     <>
-                        <View
-                            style={[
-                                styles.flex1,
-                                styles.justifyContentBetween,
-                                styles.sidebarLinkInner,
-                                styles.userSelectNone,
-                                isUserItem ? styles.peopleRow : styles.optionRow,
-                                isFocused && styles.sidebarLinkActive,
-                            ]}
-                        >
+                        <View style={wrapperStyle}>
                             {canSelectMultiple && (
                                 <View
-                                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                    role={CONST.ROLE.BUTTON}
                                     style={StyleUtils.getCheckboxPressableStyle()}
                                 >
-                                    <View
-                                        style={[
-                                            StyleUtils.getCheckboxContainerStyle(20),
-                                            styles.mr3,
-                                            item.isSelected && styles.checkedContainer,
-                                            item.isSelected && styles.borderColorFocus,
-                                            item.isDisabled && styles.cursorDisabled,
-                                            item.isDisabled && styles.buttonOpacityDisabled,
-                                        ]}
-                                    >
+                                    <View style={selectMultipleStyle}>
                                         {item.isSelected && (
                                             <Icon
                                                 src={Expensicons.Checkmark}
@@ -102,22 +83,7 @@ function BaseListItem<TItem extends ListItem>({
                                 </View>
                             )}
 
-                            <ListItem
-                                item={item}
-                                textStyles={[
-                                    styles.optionDisplayName,
-                                    isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                    styles.sidebarLinkTextBold,
-                                    styles.pre,
-                                    item.alternateText ? styles.mb1 : null,
-                                ]}
-                                alternateTextStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                                isDisabled={isDisabled}
-                                onSelectRow={() => onSelectRow(item)}
-                                showTooltip={showTooltip}
-                                isFocused={isFocused}
-                                isHovered={hovered}
-                            />
+                            {typeof children === 'function' ? children(hovered) : children}
 
                             {!canSelectMultiple && item.isSelected && !rightHandSideComponent && (
                                 <View
@@ -134,11 +100,7 @@ function BaseListItem<TItem extends ListItem>({
                             )}
                             {rightHandSideComponentRender()}
                         </View>
-                        {isUserItem && item.invitedSecondaryLogin && (
-                            <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>
-                                {translate('workspace.people.invitedBySecondaryLogin', {secondaryLogin: item.invitedSecondaryLogin})}
-                            </Text>
-                        )}
+                        {FooterComponent}
                     </>
                 )}
             </PressableWithFeedback>
