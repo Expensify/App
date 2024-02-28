@@ -77,6 +77,7 @@ import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/Rep
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Modal from './Modal';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
@@ -1224,6 +1225,7 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
         reportActionID,
     };
 
+    CachedPDFPaths.clearByKey(reportActionID);
     API.write(WRITE_COMMANDS.DELETE_COMMENT, parameters, {optimisticData, successData, failureData});
 }
 
