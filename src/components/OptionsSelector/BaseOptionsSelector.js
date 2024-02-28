@@ -287,6 +287,7 @@ class BaseOptionsSelector extends Component {
         document.addEventListener('focusout', this.handleFocusOut);
     }
 
+    // eslint-disable-next-line react/no-unused-class-component-methods
     unSubscribeActiveElement() {
         if (!this.isWebOrDesktop) {
             return;
@@ -366,6 +367,7 @@ class BaseOptionsSelector extends Component {
         }
     }
 
+    // eslint-disable-next-line react/no-unused-class-component-methods
     focus() {
         if (!this.textInput) {
             return;
