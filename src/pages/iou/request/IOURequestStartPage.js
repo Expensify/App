@@ -121,13 +121,13 @@ function IOURequestStartPage({
             if (newIouType === previousIOURequestType) {
                 return;
             }
-            if (iouType === CONST.IOU.TYPE.SPLIT) {
+            if (iouType === CONST.IOU.TYPE.SPLIT && transaction.isFromGlobalCreate) {
                 IOU.updateMoneyRequestTypeParams(navigation.getState().routes, CONST.IOU.TYPE.REQUEST, newIouType);
             }
             IOU.initMoneyRequest(reportID, isFromGlobalCreate, newIouType);
             transactionRequestType.current = newIouType;
         },
-        [previousIOURequestType, reportID, isFromGlobalCreate, iouType, navigation],
+        [previousIOURequestType, reportID, isFromGlobalCreate, iouType, navigation, transaction.isFromGlobalCreate],
     );
 
     if (!transaction.transactionID) {
