@@ -235,21 +235,17 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         }
     }
 
-    if (action && 'payload' in action && action.payload && 'name' in action.payload) {
-        if (isModalNavigator(action.payload.name)) {
-            const minimalAction = getMinimalAction(action, navigation.getRootState());
-            if (minimalAction) {
-                // There are situations where a route already exists on the current navigation stack
-                // But we want to push the same route instead of going back in the stack
-                // Which would break the user navigation history
-                if (!isActiveRoute && type === CONST.NAVIGATION.ACTION_TYPE.PUSH) {
-                    minimalAction.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
-                }
-                root.dispatch(minimalAction);
-                return;
+    if (action && 'payload' in action && action.payload && 'name' in action.payload && isModalNavigator(action.payload.name)) {
+        const minimalAction = getMinimalAction(action, navigation.getRootState());
+        if (minimalAction) {
+            // There are situations where a route already exists on the current navigation stack
+            // But we want to push the same route instead of going back in the stack
+            // Which would break the user navigation history
+            if (!isActiveRoute && type === CONST.NAVIGATION.ACTION_TYPE.PUSH) {
+                minimalAction.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
             }
-        } else if (action.payload.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR) {
-            dismissModal(navigation);
+            root.dispatch(minimalAction);
+            return;
         }
     }
 
