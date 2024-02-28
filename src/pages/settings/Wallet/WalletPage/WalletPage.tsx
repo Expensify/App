@@ -154,7 +154,6 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
         isDefault?: boolean,
         methodID?: string | number,
     ) => {
-        console.log(icon);
         if (shouldShowAddPaymentMenu) {
             setShouldShowAddPaymentMenu(false);
             return;
@@ -345,7 +344,6 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
     const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100, styles.ph5];
 
-    console.log(paymentMethod.formattedSelectedPaymentMethod.icon);
     return (
         <>
             {shouldShowEmptyState ? (
