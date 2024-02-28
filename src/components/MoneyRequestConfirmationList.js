@@ -282,7 +282,7 @@ function MoneyRequestConfirmationList(props) {
     }, [props.isEditingSplitBill, props.hasSmartScanFailed, transaction, didConfirmSplit]);
 
     const isMerchantEmpty = !props.iouMerchant || props.iouMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
-    const shouldDisplayMerchantError = props.isPolicyExpenseChat && !props.isScanRequest && isMerchantEmpty;
+    const shouldDisplayMerchantError = props.isPolicyExpenseChat && shouldDisplayFieldError && isMerchantEmpty;
 
     useEffect(() => {
         if (shouldDisplayFieldError && didConfirmSplit) {
@@ -750,14 +750,8 @@ function MoneyRequestConfirmationList(props) {
                             }}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
-                            brickRoadIndicator={
-                                props.isPolicyExpenseChat && shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''
-                            }
-                            error={
-                                shouldDisplayMerchantError || (props.isPolicyExpenseChat && shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction))
-                                    ? translate('common.error.enterMerchant')
-                                    : ''
-                            }
+                            brickRoadIndicator={shouldDisplayMerchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            error={shouldDisplayMerchantError ? translate('common.error.enterMerchant') : ''}
                         />
                     )}
                     {shouldShowCategories && (
