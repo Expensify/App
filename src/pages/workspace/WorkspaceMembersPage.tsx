@@ -398,17 +398,12 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     };
 
     const getBulkActionsButtonOptions = () => {
-        const iconSettings = {
-            iconWidth: variables.iconSizeExtraLarge,
-            iconHeight: variables.iconSizeExtraLarge,
-        };
         const options: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [
             {
                 text: translate('workspace.people.removeMembersTitle'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
                 icon: Expensicons.RemoveMembers,
                 onSelected: askForConfirmationToRemove,
-                // ...iconSettings,
             },
         ];
 
@@ -418,7 +413,6 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
                 icon: Expensicons.User,
                 onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
-                // ...iconSettings,
             });
         }
 
@@ -428,7 +422,6 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
                 icon: Expensicons.MakeAdmin,
                 onSelected: () => changeUserRole(CONST.POLICY.ROLE.ADMIN),
-                // ...iconSettings,
             });
         }
 
