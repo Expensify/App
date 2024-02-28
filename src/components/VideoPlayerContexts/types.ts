@@ -2,7 +2,8 @@ import type {Video} from 'expo-av';
 import type {MutableRefObject} from 'react';
 import type {View} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
+import type CONST from '@src/CONST';
 
 type PlaybackContext = {
     updateCurrentlyPlayingURL: (url: string) => void;
@@ -13,7 +14,7 @@ type PlaybackContext = {
     shareVideoPlayerElements: (ref: Video, parent: View, child: View, isUploading: boolean) => void;
     playVideo: () => void;
     pauseVideo: () => void;
-    checkVideoPlaying: (statusCallback: (isPlaying: boolean) => void) => void;
+    checkVideoPlaying: (statusCallback: StatusCallback) => void;
 };
 
 type VolumeContext = {
@@ -21,22 +22,13 @@ type VolumeContext = {
     volume: SharedValue<number>;
 };
 
-type SingularMenuItem = {
-    icon: IconAsset | null;
-    text: string;
-    onSelected: () => void;
-    shouldPutLeftPaddingWhenNoIcon?: boolean;
-};
-
-type MenuItem = {
-    icon: IconAsset;
-    text: string;
-    subMenuItems: SingularMenuItem[];
-};
-
 type VideoPopoverMenuContext = {
-    menuItems: Array<SingularMenuItem | MenuItem>;
-    updatePlaybackSpeed: (speed: number) => void;
+    menuItems: PopoverMenuItem[];
+    updatePlaybackSpeed: (speed: PlaybackSpeed) => void;
 };
 
-export type {PlaybackContext, VolumeContext, VideoPopoverMenuContext, MenuItem, SingularMenuItem};
+type StatusCallback = (isPlaying: boolean) => void;
+
+type PlaybackSpeed = (typeof CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS)[number];
+
+export type {PlaybackContext, VolumeContext, VideoPopoverMenuContext, StatusCallback, PlaybackSpeed};
