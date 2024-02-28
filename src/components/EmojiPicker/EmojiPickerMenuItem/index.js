@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {PureComponent} from 'react';
+import React, {PureComponent, useEffect, useRef, useState} from 'react';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import withStyleUtils, {withStyleUtilsPropTypes} from '@components/withStyleUtils';
@@ -37,23 +37,35 @@ const propTypes = {
     ...withStyleUtilsPropTypes,
 };
 
-class EmojiPickerMenuItem extends PureComponent {
-    constructor(props) {
-        super(props);
+function EmojiPickerMenuItem(props) {
 
-        this.ref = null;
-        this.focusAndScroll = this.focusAndScroll.bind(this);
-        this.state = {
-            isHovered: false,
-        };
-    }
+// class EmojiPickerMenuItem extends PureComponent {
+    // constructor(props) {
+    //     super(props);
 
-    componentDidMount() {
-        if (!this.props.isFocused) {
+    //     this.ref = null;
+    //     this.focusAndScroll = this.focusAndScroll.bind(this);
+    //     this.state = {
+    //         isHovered: false,
+    //     };
+    // }
+    const [isHovered, setIsHovered] = useState(false);
+    const ref = useRef(null);
+
+    // componentDidMount() {
+    //     if (!this.props.isFocused) {
+    //         return;
+    //     }
+    //     this.focusAndScroll();
+    // }
+
+    useEffect(() => {
+        if(!props.isFocused) {
             return;
         }
-        this.focusAndScroll();
-    }
+        focusAndScroll();
+    }, [props.isFocused])
+
 
     componentDidUpdate(prevProps) {
         if (prevProps.isFocused === this.props.isFocused) {

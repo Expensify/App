@@ -57,7 +57,7 @@ function EmojiSkinToneList() {
             )}
             {isSkinToneListVisible && (
                 <View style={[styles.flexRow, styles.flex1]}>
-                    {_.map(Emojis.skinTones, (skinToneEmoji) => (
+                    {Emojis.skinTones.map((skinToneEmoji) => (
                         <EmojiPickerMenuItem
                             onPress={() => updateSelectedSkinTone(skinToneEmoji)}
                             onHoverIn={() => setHighlightedIndex(skinToneEmoji.skinTone)}
