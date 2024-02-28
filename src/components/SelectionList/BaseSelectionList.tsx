@@ -294,6 +294,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList}
+                isMultilineSupported={isRowMultilineSupported}
             />
         );
     };
