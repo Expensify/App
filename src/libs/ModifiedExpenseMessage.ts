@@ -243,8 +243,9 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         const transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
         const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
         const isFromExpenseReport = ReportUtils.isExpenseReport(iouReport);
+        const currency = iouReport?.currency ?? '';
 
-        const taxAmount = CurrencyUtils.convertToDisplayString(getTaxAmount(reportActionOriginalMessage?.taxAmount ?? 0, isFromExpenseReport));
+        const taxAmount = CurrencyUtils.convertToDisplayString(getTaxAmount(reportActionOriginalMessage?.taxAmount ?? 0, isFromExpenseReport), currency);
         const oldTaxAmountValue = reportActionOriginalMessage?.oldAmount ?? 0;
         const oldTaxAmount = oldTaxAmountValue > 0 ? CurrencyUtils.convertToDisplayString(getTaxAmount(oldTaxAmountValue, isFromExpenseReport)) : '';
         buildMessageFragmentForValue(taxAmount, oldTaxAmount, Localize.translateLocal('iou.taxAmount'), true, setFragments, removalFragments, changeFragments);
