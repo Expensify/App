@@ -11,28 +11,6 @@ Onyx.connect({
 });
 
 /**
- * Checks whether the given string contains any numbers.
- * It uses indexOf instead of regex and includes for performance reasons.
- *
- * @param text
- * @returns boolean
- */
-function containsNumbers(text: string) {
-    return (
-        text.indexOf('0') !== -1 ||
-        text.indexOf('1') !== -1 ||
-        text.indexOf('2') !== -1 ||
-        text.indexOf('3') !== -1 ||
-        text.indexOf('4') !== -1 ||
-        text.indexOf('5') !== -1 ||
-        text.indexOf('6') !== -1 ||
-        text.indexOf('7') !== -1 ||
-        text.indexOf('8') !== -1 ||
-        text.indexOf('9') !== -1
-    );
-}
-
-/**
  * Returns a locally converted phone number for numbers from the same region
  * and an internationally converted phone number with the country code for numbers from other regions
  */
@@ -41,8 +19,8 @@ function formatPhoneNumber(number: string): string {
         return '';
     }
 
-    // do not parse the string, if it's not a phone number
-    if (number.indexOf(CONST.SMS_DOMAIN_PATTERN) === -1 && !containsNumbers(number)) {
+    // do not parse the string, if it doesn't contain the SMS domain and it's not a phone number
+    if (number.indexOf(CONST.SMS.DOMAIN) === -1 && !CONST.REGEX.DIGITS_AND_PLUS.test(number)) {
         return number;
     }
     const numberWithoutSMSDomain = Str.removeSMSDomain(number);

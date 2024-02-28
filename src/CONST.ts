@@ -42,7 +42,6 @@ const cardActiveStates: number[] = [2, 3, 4, 7];
 
 const CONST = {
     MERGED_ACCOUNT_PREFIX: 'MERGED_',
-    SMS_DOMAIN_PATTERN: 'expensify.sms',
     ANDROID_PACKAGE_NAME,
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
