@@ -267,6 +267,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
+    // Check if it is the multiple levels tags or not
+    const isMultipleLevelsTags = policyTagLists && policyTagLists.length > 1;
+
     // A flag for showing the tags field
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
 
@@ -762,7 +765,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             shouldShow: shouldShowCategories,
             isSupplementary: !isCategoryRequired,
         },
-        ..._.map(policyTagLists, ({name}, index) => ({
+        ..._.map(policyTagLists, ({name, required}, index) => ({
             item: (
                 <MenuItemWithTopDescription
                     key={name}
@@ -778,7 +781,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem]}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
-                    rightLabel={isTagRequired ? translate('common.required') : ''}
+                    rightLabel={(isMultipleLevelsTags ? required : isTagRequired) ? translate('common.required') : ''}
                 />
             ),
             shouldShow: shouldShowTags,
@@ -924,17 +927,17 @@ export default compose(
             key: ONYXKEYS.SESSION,
         },
         policyCategories: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${'BD2590A6E1619441'}`,
         },
         policyTags: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${'BD2590A6E1619441'}`,
         },
         mileageRate: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             selector: DistanceRequestUtils.getDefaultMileageRate,
         },
         policy: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${'BD2590A6E1619441'}`,
         },
     }),
 )(MoneyTemporaryForRefactorRequestConfirmationList);
