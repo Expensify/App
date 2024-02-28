@@ -1,11 +1,13 @@
+import Str from 'expensify-common/lib/str';
 import React, {useMemo, useState} from 'react';
 import {SectionListData} from 'react-native';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import type {Section} from '@components/SelectionList/types';
+import type {ListItem, Section} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,17 +25,17 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import withPolicy, {WithPolicyProps} from '@pages/workspace/withPolicy';
 import * as Policy from '@userActions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Beta, InvitedEmailsToAccountIDs, PersonalDetailsList} from '@src/types/onyx';
+import {Beta, InvitedEmailsToAccountIDs, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import withPolicyAndFullscreenLoading from '../withPolicyAndFullscreenLoading';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import type {WithPolicyAndFullscreenLoadingProps} from '../withPolicyAndFullscreenLoading';
 
 type WorkspaceWorkflowsApproverPageOnyxProps = {
     /** All of the personal details for everyone */
     personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
-type WorkspaceWorkflowsApproverPageProps = WorkspaceWorkflowsApproverPageOnyxProps & WithPolicyProps;
-type MembersSection = SectionListData<OptionsListUtils.MemberForList, Section<MemberForList>>;
+type WorkspaceWorkflowsApproverPageProps = WorkspaceWorkflowsApproverPageOnyxProps & WithPolicyAndFullscreenLoadingProps;
+type MembersSection = SectionListData<MemberForList, Section<MemberForList>>;
 
 function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails}: WorkspaceWorkflowsApproverPageProps) {
     const {translate} = useLocalize();
@@ -43,16 +45,15 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails}
         const searchValue = searchTerm.trim().toLowerCase();
         return OptionsListUtils.getHeaderMessage(true, false, searchValue);
     }, [translate, searchTerm, policyName]);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const policyMemberAccountIDs = Object.keys(policyMembers ?? {}).map((accountId) => parseInt(accountId));
-    const workspaceMembers = PersonalDetailsUtils.getPersonalDetailsByIDs(policyMemberAccountIDs, currentUserPersonalDetails.accountID);
-    console.log('[workspaceMembers]: ', workspaceMembers);
+    const policyMemberAccountIDs = Object.keys(policyMembers ?? {}).map((accountId) => accountId);
+    const policyMemberDetails = policyMemberAccountIDs.filter((accountID) => !!personalDetails?.[accountID]).map((accountID) => personalDetails?.[accountID]);
 
-    // const sections: MembersSection[] = () => {
-    //     const sectionsArr: MembersSection[] = [];
+    const sections: MembersSection[] = useMemo(() => {
+        let result: MembersSection[] = [];
 
-    // };
+        return result;
+    }, [personalDetails, searchTerm, translate]);
 
     return (
         <ScreenWrapper
@@ -65,8 +66,8 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails}
                 onBackButtonPress={Navigation.goBack}
             />
             <SelectionList
-                sections={[]}
-                textInputLabel={translate('common.all')}
+                sections={sections}
+                textInputLabel={translate('optionsSelector.findMember')}
                 textInputValue={searchTerm}
                 onChangeText={setSearchTerm}
                 headerMessage={headerMessage}
@@ -87,5 +88,5 @@ export default compose(
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     }),
-    withPolicy,
+    withPolicyAndFullscreenLoading,
 )(WorkspaceWorkflowsApproverPage);
