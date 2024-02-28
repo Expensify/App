@@ -14,7 +14,7 @@ type PlaybackContext = {
     shareVideoPlayerElements: (ref: Video, parent: View, child: View, isUploading: boolean) => void;
     playVideo: () => void;
     pauseVideo: () => void;
-    checkVideoPlaying: (statusCallback: (isPlaying: boolean) => void) => void;
+    checkVideoPlaying: (statusCallback: StatusCallback) => void;
 };
 
 type VolumeContext = {
