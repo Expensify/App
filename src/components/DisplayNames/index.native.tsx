@@ -1,5 +1,4 @@
 import React from 'react';
-import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
@@ -16,7 +15,7 @@ function DisplayNames({accessibilityLabel, fullTitle, textStyles = [], numberOfL
     const containsHtml = StringUtils.containsHtml(fullTitle);
     if (containsHtml) {
         return (
-            <View style={[textStyles as ViewStyle, styles.renderHTMLThreadTitle]}>
+            <View style={styles.renderHTMLThreadTitle}>
                 <RenderHTML html={fullTitle} />
             </View>
         );
