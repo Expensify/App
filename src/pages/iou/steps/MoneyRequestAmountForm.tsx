@@ -37,7 +37,7 @@ type MoneyRequestAmountFormProps = {
     isCurrencyPressable?: boolean;
 
     /** Fired when back button pressed, navigates to currency selection page */
-    onCurrencyButtonPress: () => void;
+    onCurrencyButtonPress?: () => void;
 
     /** Fired when submit button pressed, saves the given amount and navigates to the next page */
     onSubmitButtonPress: ({amount, currency}: {amount: string; currency: string}) => void;
