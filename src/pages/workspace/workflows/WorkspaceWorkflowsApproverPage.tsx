@@ -1,3 +1,4 @@
+import Str from 'expensify-common/lib/str';
 import React, {useMemo, useState} from 'react';
 import {SectionListData} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
