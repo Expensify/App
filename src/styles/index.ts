@@ -4410,8 +4410,8 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 1,
             borderRadius: variables.componentBorderRadiusSmall,
             borderColor: theme.border,
-            backgroundColor:theme.componentBG,
-            paddingHorizontal:12,
+            backgroundColor: theme.componentBG,
+            paddingHorizontal: 12,
         },
 
         chatItemDateIndicatorText: {

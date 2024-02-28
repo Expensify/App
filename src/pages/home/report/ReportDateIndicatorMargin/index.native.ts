@@ -1,7 +1,5 @@
-import type ReportDateIndicatorMargin from "./types";
+import type ReportDateIndicatorMargin from './types';
 
+const reportDateIndicatorMargin: ReportDateIndicatorMargin = () => 0;
 
-const reportDateIndicatorMargin: ReportDateIndicatorMargin = () => 0
-
-
-export default reportDateIndicatorMargin
+export default reportDateIndicatorMargin;
