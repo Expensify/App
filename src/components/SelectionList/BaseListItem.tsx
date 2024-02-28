@@ -19,6 +19,7 @@ function BaseListItem<TItem extends ListItem>({
     shouldPreventDefaultFocusOnSelectRow = false,
     canSelectMultiple = false,
     onSelectRow,
+    onCheckboxPress,
     onDismissError = () => {},
     rightHandSideComponent,
     keyForList,
@@ -41,6 +42,15 @@ function BaseListItem<TItem extends ListItem>({
         }
 
         return rightHandSideComponent;
+    };
+
+    const handleCheckboxPress = () => {
+        if (onCheckboxPress) {
+            onCheckboxPress(item);
+        } else {
+            // If base list show checkbox, but there is no onCheckboxPress, then onSelectRow should be called as primary action for the entire row
+            onSelectRow(item);
+        }
     };
 
     return (
@@ -66,8 +76,11 @@ function BaseListItem<TItem extends ListItem>({
                     <>
                         <View style={wrapperStyle}>
                             {canSelectMultiple && (
-                                <View
+                                <PressableWithFeedback
+                                    accessible={!!onCheckboxPress}
+                                    accessibilityLabel={item.text}
                                     role={CONST.ROLE.BUTTON}
+                                    onPress={handleCheckboxPress}
                                     style={StyleUtils.getCheckboxPressableStyle()}
                                 >
                                     <View style={selectMultipleStyle}>
@@ -80,7 +93,7 @@ function BaseListItem<TItem extends ListItem>({
                                             />
                                         )}
                                     </View>
-                                </View>
+                                </PressableWithFeedback>
                             )}
 
                             {typeof children === 'function' ? children(hovered) : children}
