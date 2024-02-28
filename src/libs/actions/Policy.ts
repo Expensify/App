@@ -1402,6 +1402,12 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 customUnits,
+                areCategoriesEnabled: true,
+                areTagsEnabled: false,
+                areDistanceRatessEnabled: false,
+                areWorkflowsEnabled: false,
+                areReportFieldsEnabled: false,
+                areConnectionsEnabled: false,
             },
         },
         {
@@ -1803,6 +1809,12 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
         outputCurrency: CONST.CURRENCY.USD,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         customUnits,
+        areCategoriesEnabled: true,
+        areTagsEnabled: false,
+        areDistanceRatessEnabled: false,
+        areWorkflowsEnabled: false,
+        areReportFieldsEnabled: false,
+        areConnectionsEnabled: false,
     };
 
     const optimisticData: OnyxUpdate[] = [
