@@ -43,6 +43,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(report, isUserPolicyAdmin);
     const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, policy, participantAccountIDs);
     const additionalText = moneyRequestOptions.map((item) => translate(`reportActionsView.iouTypes.${item}`)).join(', ');
+    const canEditPolicyDescription = ReportUtils.canEditPolicyDescription(policy);
 
     const navigateToReport = () => {
         if (!report?.reportID) {
@@ -60,48 +61,59 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                 </Text>
             </View>
             <View style={[styles.mt3, styles.mw100]}>
-                {isPolicyExpenseChat && (
-                    <Text>
-                        <Text>{translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne')}</Text>
-                        <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)}</Text>
-                        <Text>{translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo')}</Text>
-                        <Text style={[styles.textStrong]}>{ReportUtils.getPolicyName(report)}</Text>
-                        <Text>{translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree')}</Text>
-                    </Text>
-                )}
-                {isChatRoom && (
-                    <>
-                        {report?.description ? (
-                            <PressableWithoutFeedback
-                                onPress={() => {
-                                    if (ReportUtils.canEditReportDescription(report, policy)) {
-                                        Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID));
-                                        return;
-                                    }
-                                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
-                                }}
-                                style={styles.renderHTML}
-                                accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
-                            >
-                                <RenderHTML html={report.description} />
-                            </PressableWithoutFeedback>
-                        ) : (
-                            <Text>
-                                <Text>{roomWelcomeMessage.phrase1}</Text>
-                                {roomWelcomeMessage.showReportName && (
-                                    <Text
-                                        style={[styles.textStrong]}
-                                        onPress={navigateToReport}
-                                        suppressHighlighting
-                                    >
-                                        {ReportUtils.getReportName(report)}
-                                    </Text>
-                                )}
-                                {roomWelcomeMessage.phrase2 !== undefined && <Text>{roomWelcomeMessage.phrase2}</Text>}
-                            </Text>
-                        )}
-                    </>
-                )}
+                {isPolicyExpenseChat &&
+                    (policy?.description ? (
+                        <PressableWithoutFeedback
+                            onPress={() => {
+                                if (!canEditPolicyDescription) {
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(policy.id));
+                            }}
+                            style={[styles.renderHTML, canEditPolicyDescription ? styles.cursorPointer : styles.cursorText]}
+                            accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
+                        >
+                            <RenderHTML html={policy.description} />
+                        </PressableWithoutFeedback>
+                    ) : (
+                        <Text>
+                            <Text>{translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne')}</Text>
+                            <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)}</Text>
+                            <Text>{translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo')}</Text>
+                            <Text style={[styles.textStrong]}>{ReportUtils.getPolicyName(report)}</Text>
+                            <Text>{translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree')}</Text>
+                        </Text>
+                    ))}
+                {isChatRoom &&
+                    (report?.description ? (
+                        <PressableWithoutFeedback
+                            onPress={() => {
+                                if (ReportUtils.canEditReportDescription(report, policy)) {
+                                    Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID));
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
+                            }}
+                            style={styles.renderHTML}
+                            accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
+                        >
+                            <RenderHTML html={report.description} />
+                        </PressableWithoutFeedback>
+                    ) : (
+                        <Text>
+                            <Text>{roomWelcomeMessage.phrase1}</Text>
+                            {roomWelcomeMessage.showReportName && (
+                                <Text
+                                    style={[styles.textStrong]}
+                                    onPress={navigateToReport}
+                                    suppressHighlighting
+                                >
+                                    {ReportUtils.getReportName(report)}
+                                </Text>
+                            )}
+                            {roomWelcomeMessage.phrase2 !== undefined && <Text>{roomWelcomeMessage.phrase2}</Text>}
+                        </Text>
+                    ))}
                 {isDefault && (
                     <Text>
                         <Text>{translate('reportActionsView.beginningOfChatHistory')}</Text>

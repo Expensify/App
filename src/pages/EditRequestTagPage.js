@@ -16,13 +16,20 @@ const propTypes = {
     policyID: PropTypes.string.isRequired,
 
     /** The tag name to which the default tag belongs to */
-    tagName: PropTypes.string.isRequired,
+    tagName: PropTypes.string,
+
+    /** The index of a tag list */
+    tagIndex: PropTypes.number.isRequired,
 
     /** Callback to fire when the Save button is pressed  */
     onSubmit: PropTypes.func.isRequired,
 };
 
-function EditRequestTagPage({defaultTag, policyID, tagName, onSubmit}) {
+const defaultProps = {
+    tagName: '',
+};
+
+function EditRequestTagPage({defaultTag, policyID, tagName, tagIndex, onSubmit}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -46,6 +53,7 @@ function EditRequestTagPage({defaultTag, policyID, tagName, onSubmit}) {
                     <TagPicker
                         selectedTag={defaultTag}
                         tag={tagName}
+                        tagIndex={tagIndex}
                         policyID={policyID}
                         shouldShowDisabledAndSelectedOption
                         insets={insets}
@@ -58,6 +66,7 @@ function EditRequestTagPage({defaultTag, policyID, tagName, onSubmit}) {
 }
 
 EditRequestTagPage.propTypes = propTypes;
+EditRequestTagPage.defaultProps = defaultProps;
 EditRequestTagPage.displayName = 'EditRequestTagPage';
 
 export default EditRequestTagPage;

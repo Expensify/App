@@ -1,7 +1,7 @@
 import type {RouterConfigOptions, StackNavigationState} from '@react-navigation/native';
 import {getPathFromState, StackRouter} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
-import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import linkingConfig from '@libs/Navigation/linkingConfig';
@@ -38,10 +38,10 @@ function compareAndAdaptState(state: StackNavigationState<RootStackParamList>) {
 
     // We need to be sure that the bottom tab state is defined.
     const topmostBottomTabRoute = getTopmostBottomTabRoute(state);
-    const isSmallScreenWidth = getIsSmallScreenWidth();
+    const isNarrowLayout = getIsNarrowLayout();
 
     // This solutions is heuristics and will work for our cases. We may need to improve it in the future if we will have more cases to handle.
-    if (topmostBottomTabRoute && !isSmallScreenWidth) {
+    if (topmostBottomTabRoute && !isNarrowLayout) {
         const fullScreenRoute = state.routes.find((route) => route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR);
 
         // If there is fullScreenRoute we don't need to add anything.

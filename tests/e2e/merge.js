@@ -1,19 +1,19 @@
-const compare = require('./compare/compare');
-const {OUTPUT_DIR} = require('./config');
+import compare from './compare/compare';
+import CONFIG from './config';
 
 const args = process.argv.slice(2);
 
-let mainPath = `${OUTPUT_DIR}/main.json`;
+let mainPath = `${CONFIG.OUTPUT_DIR}/main.json`;
 if (args.includes('--mainPath')) {
     mainPath = args[args.indexOf('--mainPath') + 1];
 }
 
-let deltaPath = `${OUTPUT_DIR}/delta.json`;
+let deltaPath = `${CONFIG.OUTPUT_DIR}/delta.json`;
 if (args.includes('--deltaPath')) {
     deltaPath = args[args.indexOf('--deltaPath') + 1];
 }
 
-let outputPath = `${OUTPUT_DIR}/output.md`;
+let outputPath = `${CONFIG.OUTPUT_DIR}/output.md`;
 if (args.includes('--outputPath')) {
     outputPath = args[args.indexOf('--outputPath') + 1];
 }

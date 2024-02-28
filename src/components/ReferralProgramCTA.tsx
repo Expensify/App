@@ -33,7 +33,7 @@ function ReferralProgramCTA({referralContentType, dismissedReferralBanners}: Ref
     const theme = useTheme();
 
     const handleDismissCallToAction = () => {
-        User.dismissReferralBanner(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND);
+        User.dismissReferralBanner(referralContentType);
     };
 
     if (!referralContentType || dismissedReferralBanners[referralContentType]) {
@@ -43,7 +43,7 @@ function ReferralProgramCTA({referralContentType, dismissedReferralBanners}: Ref
     return (
         <PressableWithoutFeedback
             onPress={() => {
-                Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(referralContentType));
+                Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(referralContentType, Navigation.getActiveRouteWithoutParams()));
             }}
             style={[styles.w100, styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10, padding: 10}, styles.pl5]}
             accessibilityLabel="referral"

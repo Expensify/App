@@ -45,7 +45,7 @@ type LocaleContextProps = {
 
     /** Returns a locally converted phone number for numbers from the same region
      * and an internationally converted phone number with the country code for numbers from other regions */
-    formatPhoneNumber: (phoneNumber: string | undefined) => string;
+    formatPhoneNumber: (phoneNumber: string) => string;
 
     /** Gets the locale digit corresponding to a standard digit */
     toLocaleDigit: (digit: string) => string;

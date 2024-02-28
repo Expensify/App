@@ -436,7 +436,7 @@ function AttachmentModal({
                 },
             });
         }
-        if (!isOffline) {
+        if (!isOffline && allowDownload) {
             menuItems.push({
                 icon: Expensicons.Download,
                 text: translate('common.download'),

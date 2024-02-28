@@ -20,6 +20,7 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/ReportDescriptionForm';
 import type * as OnyxTypes from '@src/types/onyx';
 
 type RoomDescriptionPageProps = {
@@ -83,7 +84,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
                     <View style={[styles.mb6]}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID="reportDescription"
+                            inputID={INPUT_IDS.REPORT_DESCRIPTION}
                             label={translate('reportDescriptionPage.roomDescription')}
                             accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
                             role={CONST.ROLE.PRESENTATION}

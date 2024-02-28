@@ -13,6 +13,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -309,6 +310,7 @@ function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
         completedTaskReportActionID: completedTaskReportAction.reportActionID,
     };
 
+    playSound(SOUNDS.SUCCESS);
     API.write(WRITE_COMMANDS.COMPLETE_TASK, parameters, {optimisticData, successData, failureData});
 }
 
@@ -384,7 +386,7 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(currentUserEmail);
 
     // Sometimes title or description is undefined, so we need to check for that, and we provide it to multiple functions
-    const reportName = (title ?? report?.reportName).trim();
+    const reportName = (title ?? report?.reportName)?.trim();
 
     // Description can be unset, so we default to an empty string if so
     const reportDescription = (description ?? report.description ?? '').trim();
@@ -876,6 +878,11 @@ function getTaskOwnerAccountID(taskReport: OnyxEntry<OnyxTypes.Report>): number 
  */
 function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number): boolean {
     if (ReportUtils.isCanceledTaskReport(taskReport)) {
+        return false;
+    }
+
+    const parentReport = ReportUtils.getParentReport(taskReport);
+    if (ReportUtils.isArchivedRoom(parentReport)) {
         return false;
     }
 

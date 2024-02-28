@@ -18,7 +18,7 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/DateOfBirthForm';
 
 const propTypes = {
     /* Onyx Props */
@@ -69,7 +69,7 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
         >
             <HeaderWithBackButton
                 title={translate('common.dob')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             {isLoadingPersonalDetails ? (
                 <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
@@ -84,7 +84,7 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
                 >
                     <InputWrapper
                         InputComponent={DatePicker}
-                        inputID="dob"
+                        inputID={INPUT_IDS.DOB}
                         label={translate('common.date')}
                         defaultValue={privatePersonalDetails.dob || ''}
                         minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}

@@ -7,10 +7,9 @@ import ROUTES from '@src/ROUTES';
  * Navigate to a specific step in the VBA flow
  *
  * @param {String} stepID
- * @param {Object} newAchData
  */
-function goToWithdrawalAccountSetupStep(stepID, newAchData) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {...newAchData, currentStep: stepID}});
+function goToWithdrawalAccountSetupStep(stepID) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {currentStep: stepID}});
 }
 
 /**

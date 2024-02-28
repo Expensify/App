@@ -5,7 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {OnyxFormValuesFields} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -21,6 +21,7 @@ import TeachersUnite from '@userActions/TeachersUnite';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/IntroSchoolPrincipalForm';
 import type {LoginList} from '@src/types/onyx';
 
 type IntroSchoolPrincipalPageOnyxProps = {
@@ -37,7 +38,7 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
     /**
      * Submit form to pass firstName, partnerUserID and lastName
      */
-    const onSubmit = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM>) => {
+    const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM>) => {
         const policyID = isProduction ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
         TeachersUnite.addSchoolPrincipal(values.firstName.trim(), values.partnerUserID.trim(), values.lastName.trim(), policyID);
     };
@@ -46,8 +47,8 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
      * @returns - An object containing the errors for each inputID
      */
     const validate = useCallback(
-        (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM>) => {
-            const errors: Partial<Record<keyof OnyxFormValuesFields<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM>, string>> = {};
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM> = {};
 
             if (!values.firstName || !ValidationUtils.isValidPersonName(values.firstName)) {
                 ErrorUtils.addErrorMessage(errors, 'firstName', 'bankAccount.error.firstName');
@@ -94,8 +95,8 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
                 <View>
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID="firstName"
-                        name="firstName"
+                        inputID={INPUT_IDS.FIRST_NAME}
+                        name={INPUT_IDS.FIRST_NAME}
                         label={translate('teachersUnitePage.principalFirstName')}
                         accessibilityLabel={translate('teachersUnitePage.principalFirstName')}
                         role={CONST.ROLE.PRESENTATION}
@@ -106,8 +107,8 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
                 <View style={styles.mv4}>
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID="lastName"
-                        name="lastName"
+                        inputID={INPUT_IDS.LAST_NAME}
+                        name={INPUT_IDS.LAST_NAME}
                         label={translate('teachersUnitePage.principalLastName')}
                         accessibilityLabel={translate('teachersUnitePage.principalLastName')}
                         role={CONST.ROLE.PRESENTATION}
@@ -118,8 +119,8 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
                 <View>
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID="partnerUserID"
-                        name="partnerUserID"
+                        inputID={INPUT_IDS.PARTNER_USER_ID}
+                        name={INPUT_IDS.PARTNER_USER_ID}
                         label={translate('teachersUnitePage.principalWorkEmail')}
                         accessibilityLabel={translate('teachersUnitePage.principalWorkEmail')}
                         role={CONST.ROLE.PRESENTATION}

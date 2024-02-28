@@ -44,11 +44,17 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
      * component will return null to prevent layout from jumping on initial render and when parent width changes. */
     layoutWidth?: ValueOf<typeof CONST.LAYOUT_WIDTH>;
 
-    /** Additional styles applied to the row */
+    /** Custom styles applied to the row */
     rowStyles?: StyleProp<ViewStyle>;
+
+    /** Additional styles from OfflineWithFeedback applied to the row */
+    style?: StyleProp<ViewStyle>;
 
     /** The type of brick road indicator to show. */
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+
+    /** Determines if three dots menu should be shown or not */
+    shouldDisableThreeDotsMenu?: boolean;
 };
 
 type BrickRoadIndicatorIconProps = {
@@ -89,7 +95,9 @@ function WorkspacesListRow({
     currentUserPersonalDetails,
     layoutWidth = CONST.LAYOUT_WIDTH.NONE,
     rowStyles,
+    style,
     brickRoadIndicator,
+    shouldDisableThreeDotsMenu,
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -120,8 +128,10 @@ function WorkspacesListRow({
     const isWide = layoutWidth === CONST.LAYOUT_WIDTH.WIDE;
     const isNarrow = layoutWidth === CONST.LAYOUT_WIDTH.NARROW;
 
+    const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
+
     return (
-        <View style={[isWide ? styles.flexRow : styles.flexColumn, isWide && styles.gap5, styles.highlightBG, styles.br3, styles.pv5, styles.pl5, rowStyles]}>
+        <View style={[isWide ? styles.flexRow : styles.flexColumn, isWide && styles.gap5, styles.highlightBG, styles.br3, styles.pv5, styles.pl5, rowStyles, style]}>
             <View style={[styles.flexRow, isWide && styles.flex1, styles.gap3, isNarrow && [styles.mb3, styles.mr2], styles.alignItemsCenter]}>
                 <Avatar
                     imageStyles={[styles.alignSelfCenter]}
@@ -133,7 +143,7 @@ function WorkspacesListRow({
                 />
                 <Text
                     numberOfLines={1}
-                    style={[styles.flex1, styles.flexGrow1, styles.textStrong]}
+                    style={[styles.flex1, styles.flexGrow1, styles.textStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
                 >
                     {title}
                 </Text>
@@ -143,6 +153,7 @@ function WorkspacesListRow({
                         <ThreeDotsMenu
                             menuItems={menuItems}
                             anchorPosition={{horizontal: 0, vertical: 0}}
+                            disabled={shouldDisableThreeDotsMenu}
                         />
                     </>
                 )}
@@ -158,13 +169,13 @@ function WorkspacesListRow({
                         <View style={styles.flex1}>
                             <Text
                                 numberOfLines={1}
-                                style={[styles.labelStrong]}
+                                style={[styles.labelStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
                             >
                                 {PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails)}
                             </Text>
                             <Text
                                 numberOfLines={1}
-                                style={[styles.textMicro, styles.textSupporting]}
+                                style={[styles.textMicro, styles.textSupporting, isDeleted ? styles.offlineFeedback.deleted : {}]}
                             >
                                 {ownerDetails.login}
                             </Text>
@@ -182,13 +193,13 @@ function WorkspacesListRow({
                 <View style={styles.flex1}>
                     <Text
                         numberOfLines={1}
-                        style={[styles.labelStrong]}
+                        style={[styles.labelStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
                     >
                         {userFriendlyWorkspaceType}
                     </Text>
                     <Text
                         numberOfLines={1}
-                        style={[styles.textMicro, styles.textSupporting]}
+                        style={[styles.textMicro, styles.textSupporting, isDeleted ? styles.offlineFeedback.deleted : {}]}
                     >
                         {translate('workspace.common.plan')}
                     </Text>
@@ -215,6 +226,7 @@ function WorkspacesListRow({
                             anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                             iconStyles={[styles.mr2]}
                             shouldOverlay
+                            disabled={shouldDisableThreeDotsMenu}
                         />
                     </View>
                 </>

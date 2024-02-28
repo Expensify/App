@@ -150,6 +150,10 @@ function SuggestionMention({
                 if (!detail.login || detail.isOptimisticPersonalDetail) {
                     return false;
                 }
+                // We don't want to mention system emails like notifications@expensify.com
+                if (CONST.RESTRICTED_EMAILS.includes(detail.login) || CONST.RESTRICTED_ACCOUNT_IDS.includes(detail.accountID)) {
+                    return false;
+                }
                 const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(detail);
                 const displayText = displayName === formatPhoneNumber(detail.login) ? displayName : `${displayName} ${detail.login}`;
                 if (searchValue && !displayText.toLowerCase().includes(searchValue.toLowerCase())) {
@@ -199,7 +203,8 @@ function SuggestionMention({
                 suggestionEndIndex = indexOfFirstSpecialCharOrEmojiAfterTheCursor + selectionEnd;
             }
 
-            const leftString = value.substring(0, suggestionEndIndex);
+            const afterLastBreakLineIndex = value.lastIndexOf('\n', selectionEnd - 1) + 1;
+            const leftString = value.substring(afterLastBreakLineIndex, suggestionEndIndex);
             const words = leftString.split(CONST.REGEX.SPACE_OR_EMOJI);
             const lastWord = _.last(words);
             const secondToLastWord = words[words.length - 3];
@@ -210,12 +215,12 @@ function SuggestionMention({
 
             // Detect if the last two words contain a mention (two words are needed to detect a mention with a space in it)
             if (lastWord.startsWith('@')) {
-                atSignIndex = leftString.lastIndexOf(lastWord);
+                atSignIndex = leftString.lastIndexOf(lastWord) + afterLastBreakLineIndex;
                 suggestionWord = lastWord;
 
                 prefix = suggestionWord.substring(1);
             } else if (secondToLastWord && secondToLastWord.startsWith('@') && secondToLastWord.length > 1) {
-                atSignIndex = leftString.lastIndexOf(secondToLastWord);
+                atSignIndex = leftString.lastIndexOf(secondToLastWord) + afterLastBreakLineIndex;
                 suggestionWord = `${secondToLastWord} ${lastWord}`;
 
                 prefix = suggestionWord.substring(1);

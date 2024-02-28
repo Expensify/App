@@ -1,14 +1,14 @@
 /**
  * @jest-environment node
  */
-const core = require('@actions/core');
-const fns = require('date-fns');
-const {vol} = require('memfs');
-const path = require('path');
-const CONST = require('../../.github/libs/CONST');
-const GitUtils = require('../../.github/libs/GitUtils');
-const GithubUtils = require('../../.github/libs/GithubUtils');
-const run = require('../../.github/actions/javascript/createOrUpdateStagingDeploy/createOrUpdateStagingDeploy');
+import * as core from '@actions/core';
+import * as fns from 'date-fns';
+import {vol} from 'memfs';
+import path from 'path';
+import run from '../../.github/actions/javascript/createOrUpdateStagingDeploy/createOrUpdateStagingDeploy';
+import CONST from '../../.github/libs/CONST';
+import GithubUtils from '../../.github/libs/GithubUtils';
+import GitUtils from '../../.github/libs/GitUtils';
 
 const PATH_TO_PACKAGE_JSON = path.resolve(__dirname, '../../package.json');
 

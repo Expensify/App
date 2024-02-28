@@ -18,7 +18,7 @@ const TEST_NAMES = {
  * npm run test:e2e -- --config ./path/to/your/config.js
  * ```
  */
-const config = {
+export default {
     MAIN_APP_PACKAGE: 'com.expensify.chat.e2e',
     DELTA_APP_PACKAGE: 'com.expensify.chat.e2edelta',
 
@@ -88,7 +88,5 @@ const config = {
         },
     },
 };
-
-export default config;
 
 export {TEST_NAMES};
