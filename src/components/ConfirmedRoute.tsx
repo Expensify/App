@@ -36,6 +36,18 @@ function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
+    const getMarkerComponent = useCallback(
+        (icon: IconAsset): ReactNode => (
+            <ImageSVG
+                src={icon}
+                width={CONST.MAP_MARKER_SIZE}
+                height={CONST.MAP_MARKER_SIZE}
+                fill={theme.icon}
+            />
+        ),
+        [theme],
+    );
+
     const getWaypointMarkers = useCallback(
         (waypointsData: WaypointCollection): WayPoint[] => {
             const numberOfWaypoints = Object.keys(waypointsData).length;
@@ -60,19 +72,12 @@ function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
                     return {
                         id: `${waypoint.lng},${waypoint.lat},${index}`,
                         coordinate: [waypoint.lng, waypoint.lat] as const,
-                        markerComponent: (): ReactNode => (
-                            <ImageSVG
-                                src={MarkerComponent}
-                                width={CONST.MAP_MARKER_SIZE}
-                                height={CONST.MAP_MARKER_SIZE}
-                                fill={theme.icon}
-                            />
-                        ),
+                        markerComponent: (): ReactNode => getMarkerComponent(MarkerComponent),
                     };
                 })
                 .filter((waypoint): waypoint is WayPoint => !!waypoint);
         },
-        [theme],
+        [getMarkerComponent],
     );
 
     const waypointMarkers = getWaypointMarkers(waypoints);
@@ -82,26 +87,22 @@ function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
         return MapboxToken.stop;
     }, []);
 
-    return (
-        <>
-            {!isOffline && Boolean(mapboxAccessToken?.token) ? (
-                <DistanceMapView
-                    accessToken={mapboxAccessToken?.token ?? ''}
-                    mapPadding={CONST.MAP_PADDING}
-                    pitchEnabled={false}
-                    initialState={{
-                        zoom: CONST.MAPBOX.DEFAULT_ZOOM,
-                        location: waypointMarkers?.[0]?.coordinate ?? (CONST.MAPBOX.DEFAULT_COORDINATE as [number, number]),
-                    }}
-                    directionCoordinates={coordinates as Array<[number, number]>}
-                    style={[styles.mapView, styles.br4]}
-                    waypoints={waypointMarkers}
-                    styleURL={CONST.MAPBOX.STYLE_URL}
-                />
-            ) : (
-                <PendingMapView />
-            )}
-        </>
+    return !isOffline && Boolean(mapboxAccessToken?.token) ? (
+        <DistanceMapView
+            accessToken={mapboxAccessToken?.token ?? ''}
+            mapPadding={CONST.MAP_PADDING}
+            pitchEnabled={false}
+            initialState={{
+                zoom: CONST.MAPBOX.DEFAULT_ZOOM,
+                location: waypointMarkers?.[0]?.coordinate ?? (CONST.MAPBOX.DEFAULT_COORDINATE as [number, number]),
+            }}
+            directionCoordinates={coordinates as Array<[number, number]>}
+            style={[styles.mapView, styles.br4]}
+            waypoints={waypointMarkers}
+            styleURL={CONST.MAPBOX.STYLE_URL}
+        />
+    ) : (
+        <PendingMapView />
     );
 }
 
