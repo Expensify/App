@@ -206,7 +206,6 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError, zoomRan
                     onError={onError}
                     style={style}
                 />
-                {/* {isLoading && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />} */}
             </View>
         );
     }
@@ -229,7 +228,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError, zoomRan
                 accessibilityLabel={fileName}
             >
                 <Image
-                    source={''}
+                    source={{uri: url}}
                     isAuthTokenRequired={isAuthTokenRequired}
                     style={[styles.h100, styles.w100]}
                     resizeMode={RESIZE_MODES.contain}
