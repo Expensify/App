@@ -1,6 +1,6 @@
 import {FlashList} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
-import React, {memo, useCallback} from 'react';
+import React, {memo, useCallback, useMemo} from 'react';
 import {StyleSheet, View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {OrderedReports} from '@libs/SidebarUtils';
@@ -53,6 +53,8 @@ function LHNOptionsList({
         [shouldDisableFocusOptions, currentReportID, onSelectRow, onLayoutItem, optionMode],
     );
 
+    const extraData = useMemo(() => [currentReportID], [currentReportID]);
+
     return (
         <View style={style ?? styles.flex1}>
             <FlashList
@@ -64,7 +66,7 @@ function LHNOptionsList({
                 keyExtractor={keyExtractor}
                 renderItem={renderItem}
                 estimatedItemSize={optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight}
-                extraData={[currentReportID]}
+                extraData={extraData}
                 showsVerticalScrollIndicator={false}
             />
         </View>
