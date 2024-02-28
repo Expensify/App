@@ -1,8 +1,9 @@
-import type {RefObject} from 'react';
+import type {ForwardedRef, RefObject} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, View, ViewStyle} from 'react-native';
 import type {Place} from 'react-native-google-places-autocomplete';
 import type {MaybePhraseKey} from '@libs/Localize';
 import type Locale from '@src/types/onyx/Locale';
+import type {CurrentLocationButtonHandle} from './CurrentLocationButton';
 
 type CurrentLocationButtonProps = {
     /** Callback that is called when the button is clicked */
@@ -10,6 +11,8 @@ type CurrentLocationButtonProps = {
 
     /** Boolean to indicate if the button is clickable */
     isDisabled?: boolean;
+
+    innerRef?: ForwardedRef<CurrentLocationButtonHandle>;
 };
 
 type RenamedInputKeysProps = {
