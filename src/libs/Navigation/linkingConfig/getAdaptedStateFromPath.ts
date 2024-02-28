@@ -229,14 +229,18 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         routes.push(
             createBottomTabNavigator(
                 {
-                    name: SCREENS.HOME,
+                    name: SCREENS.SETTINGS.ROOT,
                 },
                 policyID,
             ),
         );
-        if (!isNarrowLayout) {
-            routes.push(createCentralPaneNavigator({name: SCREENS.REPORT}));
-        }
+
+        routes.push(
+            createCentralPaneNavigator({
+                name: SCREENS.SETTINGS.WORKSPACES,
+            }),
+        );
+
         routes.push(fullScreenNavigator);
 
         return {
