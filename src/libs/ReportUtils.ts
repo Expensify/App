@@ -1071,6 +1071,13 @@ function isArchivedRoom(report: OnyxEntry<Report> | EmptyObject): boolean {
 }
 
 /**
+ * Whether the provided report is closed
+ */
+function isClosed(report: OnyxEntry<Report> | EmptyObject): boolean {
+    return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.type !== CONST.REPORT.TYPE.CHAT;
+}
+
+/**
  * Checks if the current user is allowed to comment on the given report.
  */
 function isAllowedToComment(report: OnyxEntry<Report>): boolean {
