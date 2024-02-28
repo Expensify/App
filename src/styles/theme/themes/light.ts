@@ -28,6 +28,7 @@ const lightTheme = {
     buttonDefaultBG: colors.productLight400,
     buttonHoveredBG: colors.productLight500,
     buttonPressedBG: colors.productLight600,
+    buttonSuccessText: colors.productLight100,
     danger: colors.red,
     dangerHover: colors.redHover,
     dangerPressed: colors.redHover,

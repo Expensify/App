@@ -8,6 +8,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type {ButtonWithDropdownMenuProps} from './types';
@@ -74,13 +75,13 @@ function ButtonWithDropdownMenu<IValueType>({
                         ref={buttonRef}
                         onPress={(event) => onPress(event, selectedItem.value)}
                         text={customText ?? selectedItem.text}
-                        isDisabled={isDisabled || customText !== undefined}
+                        isDisabled={isDisabled}
                         isLoading={isLoading}
                         shouldRemoveRightBorderRadius
                         style={[styles.flex1, styles.pr0]}
                         large={isButtonSizeLarge}
                         medium={!isButtonSizeLarge}
-                        innerStyles={[innerStyleDropButton, customText !== undefined && styles.cursorDefault]}
+                        innerStyles={[innerStyleDropButton, customText !== undefined && styles.cursorDefault, customText !== undefined && styles.pointerEventsNone]}
                         enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     />
 
@@ -97,11 +98,13 @@ function ButtonWithDropdownMenu<IValueType>({
                         enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     >
                         <View style={[styles.dropDownButtonCartIconView, innerStyleDropButton]}>
-                            <View style={[styles.buttonDivider]} />
+                            <View style={[success ? styles.buttonSuccessDivider : styles.buttonDivider]} />
                             <View style={[styles.dropDownButtonArrowContain]}>
                                 <Icon
                                     src={Expensicons.DownArrow}
-                                    fill={theme.textLight}
+                                    fill={success ? theme.buttonSuccessText : theme.icon}
+                                    width={variables.iconSizeSmall}
+                                    height={variables.iconSizeSmall}
                                 />
                             </View>
                         </View>
