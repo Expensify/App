@@ -137,7 +137,7 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails}
         sectionsArr.push({
             title: undefined,
             data: formattedApprover,
-            shouldShow: true,
+            shouldShow: formattedApprover.length > 0,
             indexOffset: 0,
         });
 
