@@ -31,6 +31,9 @@ const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
 
+    /** The report's parentReportAction */
+    parentReportAction: PropTypes.shape(reportActionPropTypes),
+
     /** Sorted actions prepared for display */
     sortedReportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)).isRequired,
 
@@ -123,6 +126,7 @@ function isMessageUnread(message, lastReadTime) {
 
 function ReportActionsList({
     report,
+    parentReportAction,
     isLoadingInitialReportActions,
     isLoadingOlderReportActions,
     isLoadingNewerReportActions,
@@ -412,6 +416,7 @@ function ReportActionsList({
         ({item: reportAction, index}) => (
             <ReportActionsListItemRenderer
                 reportAction={reportAction}
+                parentReportAction={parentReportAction}
                 index={index}
                 report={report}
                 linkedReportActionID={linkedReportActionID}

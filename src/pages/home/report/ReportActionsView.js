@@ -34,6 +34,9 @@ const propTypes = {
     /** Array of report actions for this report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
+    /** The report's parentReportAction */
+    parentReportAction: PropTypes.shape(reportActionPropTypes),
+
     /** The report metadata loading states */
     isLoadingInitialReportActions: PropTypes.bool,
 
@@ -254,6 +257,7 @@ function ReportActionsView(props) {
         <>
             <ReportActionsList
                 report={props.report}
+                parentReportAction={props.parentReportAction}
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={props.reportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
