@@ -1,5 +1,6 @@
 import React, {useCallback, useContext, useMemo, useState} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
@@ -7,7 +8,7 @@ import fileDownload from '@libs/fileDownload';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {usePlaybackContext} from './PlaybackContext';
-import type {MenuItem, PlaybackSpeed, SingularMenuItem, VideoPopoverMenuContext} from './types';
+import type {PlaybackSpeed, VideoPopoverMenuContext} from './types';
 
 const Context = React.createContext<VideoPopoverMenuContext | null>(null);
 
@@ -34,7 +35,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
     }, [currentlyPlayingURL]);
 
     const menuItems = useMemo(() => {
-        const items: Array<SingularMenuItem | MenuItem> = [];
+        const items: PopoverMenuItem[] = [];
 
         if (!isOffline) {
             items.push({
@@ -50,7 +51,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
             icon: Expensicons.Meter,
             text: translate('videoPlayer.playbackSpeed'),
             subMenuItems: CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS.map((speed) => ({
-                icon: currentPlaybackSpeed === speed ? Expensicons.Checkmark : null,
+                icon: currentPlaybackSpeed === speed ? Expensicons.Checkmark : undefined,
                 text: speed.toString(),
                 onSelected: () => {
                     updatePlaybackSpeed(speed);
