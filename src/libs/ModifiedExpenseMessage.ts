@@ -3,6 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagList, ReportAction} from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
@@ -22,6 +23,13 @@ Onyx.connect({
         }
         allPolicyTags = value;
     },
+});
+
+let allReports: OnyxCollection<OnyxTypes.Report> = null;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReports = value),
 });
 
 /**
@@ -215,7 +223,7 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
             }
         });
     }
-    
+
     const hasModifiedTaxAmount = reportActionOriginalMessage && 'oldTaxAmount' in reportActionOriginalMessage && 'taxAmount' in reportActionOriginalMessage;
     if (hasModifiedTaxAmount) {
         const taxAmount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage?.taxAmount ?? 0);
