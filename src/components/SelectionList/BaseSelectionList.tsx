@@ -63,6 +63,7 @@ function BaseSelectionList<TItem extends ListItem>(
         onLayout,
         customListHeader,
         listHeaderWrapperStyle,
+        isRowMultilineSupported = false,
     }: BaseSelectionListProps<TItem>,
     inputRef: ForwardedRef<RNTextInput>,
 ) {

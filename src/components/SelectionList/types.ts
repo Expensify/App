@@ -258,6 +258,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Styles for the list header wrapper */
     listHeaderWrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Whether to wrap large text up to 2 lines */
+    isRowMultilineSupported?: boolean;
 };
 
 type ItemLayout = {
