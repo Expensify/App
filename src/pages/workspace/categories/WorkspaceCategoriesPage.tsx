@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo, useState, useEffect} from 'react';
-import {View} from 'react-native';
+import React, {useEffect, useMemo, useState} from 'react';
+import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -21,12 +21,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import * as Policy from '@userActions/Policy';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import * as Policy from '@userActions/Policy';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
 type PolicyForList = {
     value: string;
@@ -112,10 +112,6 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
         </View>
     );
 
-    if (policyCategories === undefined) {
-        return <FullScreenLoadingIndicator />;
-    }
-
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
@@ -136,7 +132,13 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
                     </View>
-                    {categoryList.length ? (
+                    {policyCategories === undefined ? (
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            style={[styles.flex1]}
+                            color={theme.textSupporting}
+                        />
+                    ) : categoryList.length ? (
                         <SelectionList
                             canSelectMultiple
                             sections={[{data: categoryList, indexOffset: 0, isDisabled: false}]}
