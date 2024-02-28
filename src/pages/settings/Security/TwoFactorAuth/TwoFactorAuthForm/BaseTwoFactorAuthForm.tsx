@@ -31,7 +31,7 @@ type MagicCodeInputHandle = {
 
 type RefType = {
     validateAndSubmitForm: () => void;
-    }
+};
 
 function BaseTwoFactorAuthForm({account, autoComplete}: BaseTwoFactorAuthFormProps, ref: ForwardedRef<RefType>) {
     const [formError, setFormError] = useState<{twoFactorAuthCode?: string}>({});
