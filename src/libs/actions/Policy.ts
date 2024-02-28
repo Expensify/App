@@ -640,20 +640,19 @@ function removeMembers(accountIDs: number[], policyID: string) {
 
 function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newRole: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER) {
     const previousPolicyMembers = {...allPolicyMembers};
-    const memberRoles: WorkspaceMembersRoleData[] = accountIDs
-        .reduce((result: WorkspaceMembersRoleData[], accountID: number) => {
-            if (!allPersonalDetails?.[accountID]?.login) {
-                return result;
-            }
-
-            result.push({
-                accountID,
-                email: allPersonalDetails?.[accountID]?.login ?? '',
-                role: newRole,
-            });
-
+    const memberRoles: WorkspaceMembersRoleData[] = accountIDs.reduce((result: WorkspaceMembersRoleData[], accountID: number) => {
+        if (!allPersonalDetails?.[accountID]?.login) {
             return result;
-        }, []);
+        }
+
+        result.push({
+            accountID,
+            email: allPersonalDetails?.[accountID]?.login ?? '',
+            role: newRole,
+        });
+
+        return result;
+    }, []);
 
     const optimisticData: OnyxUpdate[] = [
         {
