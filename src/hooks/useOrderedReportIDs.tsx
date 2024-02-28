@@ -4,23 +4,26 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {getCurrentUserAccountID} from '@libs/actions/Report';
 import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Policy, PolicyMembers, ReportAction, ReportActions, TransactionViolation} from '@src/types/onyx';
+import type {Beta, Locale, Policy, PolicyMembers, Report, ReportAction, ReportActions, TransactionViolation} from '@src/types/onyx';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
 import useActiveWorkspace from './useActiveWorkspace';
 import useCurrentReportID from './useCurrentReportID';
 import usePermissions from './usePermissions';
-import {useReports} from './useReports';
 
 type OnyxProps = {
+    chatReports: OnyxCollection<Report>;
     betas: OnyxEntry<Beta[]>;
     policies: OnyxCollection<Policy>;
     allReportActions: OnyxCollection<ReportAction[]>;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     policyMembers: OnyxCollection<PolicyMembers>;
     priorityMode: OnyxEntry<PriorityMode>;
+    preferredLocale: OnyxEntry<Locale>;
+    draftComments: OnyxCollection<string>;
 };
 
 type WithOrderedReportIDsContextProviderProps = OnyxProps & {
@@ -30,7 +33,6 @@ type WithOrderedReportIDsContextProviderProps = OnyxProps & {
 const OrderedReportIDsContext = createContext({});
 
 function WithOrderedReportIDsContextProvider(props: WithOrderedReportIDsContextProviderProps) {
-    const chatReports = useReports();
     const currentReportIDValue = useCurrentReportID();
     const {activeWorkspaceID} = useActiveWorkspace();
     const personalDetails = usePersonalDetails();
@@ -45,7 +47,7 @@ function WithOrderedReportIDsContextProvider(props: WithOrderedReportIDsContextP
         () =>
             SidebarUtils.getOrderedReportIDs(
                 null,
-                chatReports,
+                props.chatReports,
                 props.betas ?? [],
                 props.policies,
                 props.priorityMode,
@@ -59,7 +61,7 @@ function WithOrderedReportIDsContextProvider(props: WithOrderedReportIDsContextP
                 props.draftComments,
             ),
         [
-            chatReports,
+            props.chatReports,
             props.betas,
             props.policies,
             props.priorityMode,
@@ -83,7 +85,7 @@ function WithOrderedReportIDsContextProvider(props: WithOrderedReportIDsContextP
         if (currentReportIDValue?.currentReportID && !optionListItems.includes(currentReportIDValue.currentReportID)) {
             return SidebarUtils.getOrderedReportIDs(
                 currentReportIDValue.currentReportID,
-                chatReports,
+                props.chatReports,
                 props.betas ?? [],
                 props.policies,
                 props.priorityMode,
@@ -100,7 +102,7 @@ function WithOrderedReportIDsContextProvider(props: WithOrderedReportIDsContextP
         return optionListItems;
     }, [
         activeWorkspaceID,
-        chatReports,
+        props.chatReports,
         currentReportIDValue?.currentReportID,
         optionListItems,
         policyMemberAccountIDs,
@@ -117,6 +119,52 @@ function WithOrderedReportIDsContextProvider(props: WithOrderedReportIDsContextP
 
     return <OrderedReportIDsContext.Provider value={optionListItemsWithCurrentReport}>{props.children}</OrderedReportIDsContext.Provider>;
 }
+
+/**
+ * This function (and the few below it), narrow down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
+ * and makes the entire component more performant because it's not re-rendering when a bunch of properties change which aren't ever used in the UI.
+ * @param {Object} [report]
+ * @returns {Object|undefined}
+ */
+const chatReportSelector = (report) =>
+    report && {
+        reportID: report.reportID,
+        participantAccountIDs: report.participantAccountIDs,
+        hasDraft: report.hasDraft,
+        isPinned: report.isPinned,
+        isHidden: report.isHidden,
+        notificationPreference: report.notificationPreference,
+        errorFields: {
+            addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
+        },
+        lastMessageText: report.lastMessageText,
+        lastVisibleActionCreated: report.lastVisibleActionCreated,
+        iouReportID: report.iouReportID,
+        total: report.total,
+        nonReimbursableTotal: report.nonReimbursableTotal,
+        hasOutstandingChildRequest: report.hasOutstandingChildRequest,
+        isWaitingOnBankAccount: report.isWaitingOnBankAccount,
+        statusNum: report.statusNum,
+        stateNum: report.stateNum,
+        chatType: report.chatType,
+        type: report.type,
+        policyID: report.policyID,
+        visibility: report.visibility,
+        lastReadTime: report.lastReadTime,
+        // Needed for name sorting:
+        reportName: report.reportName,
+        policyName: report.policyName,
+        oldPolicyName: report.oldPolicyName,
+        // Other less obvious properites considered for sorting:
+        ownerAccountID: report.ownerAccountID,
+        currency: report.currency,
+        managerID: report.managerID,
+        // Other important less obivous properties for filtering:
+        parentReportActionID: report.parentReportActionID,
+        parentReportID: report.parentReportID,
+        isDeletedParentAction: report.isDeletedParentAction,
+        isUnreadWithMention: ReportUtils.isUnreadWithMention(report),
+    };
 
 const reportActionsSelector = (reportActions: OnyxEntry<ReportActions>) => {
     if (!reportActions) {
@@ -140,6 +188,11 @@ const reportActionsSelector = (reportActions: OnyxEntry<ReportActions>) => {
 };
 
 const OrderedReportIDsContextProvider = withOnyx<WithOrderedReportIDsContextProviderProps, OnyxProps>({
+    chatReports: {
+        key: ONYXKEYS.COLLECTION.REPORT,
+        selector: chatReportSelector,
+        initialValue: {},
+    },
     priorityMode: {
         key: ONYXKEYS.NVP_PRIORITY_MODE,
         initialValue: CONST.PRIORITY_MODE.DEFAULT,
@@ -151,7 +204,7 @@ const OrderedReportIDsContextProvider = withOnyx<WithOrderedReportIDsContextProv
     allReportActions: {
         key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
         // @ts-expect-error Need some help in determining the correct type for this selector
-        selector: (actions) => reportActionsSelector(actions),
+        selector: reportActionsSelector,
         initialValue: {},
     },
     policies: {
