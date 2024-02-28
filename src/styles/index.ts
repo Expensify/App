@@ -3171,9 +3171,10 @@ const styles = (theme: ThemeColors) =>
             height: 180,
         },
 
-        emptyLHNBlockingView: {
-            marginTop: 120,
-        },
+        emptyLHNAnimationWeb: (isExtraSmallScreenHeight: boolean) => ({
+            width: isExtraSmallScreenHeight ? 160 : 180,
+            height: isExtraSmallScreenHeight ? 160 : 180,
+        }),
 
         locationErrorLinkText: {
             textAlignVertical: 'center',

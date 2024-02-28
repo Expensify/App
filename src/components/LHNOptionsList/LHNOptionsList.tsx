@@ -45,7 +45,7 @@ function LHNOptionsList({
     const styles = useThemeStyles();
     const {canUseViolations} = usePermissions();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {isExtraSmallScreenHeight, isSmallScreenWidth} = useWindowDimensions();
 
     // When the first item renders we want to call the onFirstItemRendered callback.
     // At this point in time we know that the list is actually displaying items.
@@ -90,7 +90,7 @@ function LHNOptionsList({
                 </Text>
             </View>
         ),
-        [theme, styles.dFlex, styles.gap1, styles.alignItemsCenter, styles.justifyContentCenter, styles.textAlignCenter, translate],
+        [theme, styles.alignItemsCenter, styles.textAlignCenter, translate],
     );
 
     /**
@@ -157,6 +157,19 @@ function LHNOptionsList({
         ],
     );
 
+    if (isSmallScreenWidth && data.length === 0) {
+        return (
+            <BlockingView
+                animation={LottieAnimations.Fireworks}
+                animationStyles={styles.emptyLHNAnimation}
+                animationWebStyle={styles.emptyLHNAnimationWeb(isExtraSmallScreenHeight)}
+                title={translate('common.emptyLHN.title')}
+                shouldShowLink={false}
+                renderSubtitle={renderEmptyStateSubtitle}
+            />
+        );
+    }
+
     return (
         <View style={style ?? styles.flex1}>
             <FlashList
@@ -170,19 +183,6 @@ function LHNOptionsList({
                 estimatedItemSize={optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight}
                 extraData={[currentReportID]}
                 showsVerticalScrollIndicator={false}
-                ListEmptyComponent={
-                    isSmallScreenWidth ? (
-                        <View style={styles.emptyLHNBlockingView}>
-                            <BlockingView
-                                animation={LottieAnimations.Fireworks}
-                                animationStyles={styles.emptyLHNAnimation}
-                                title={translate('common.emptyLHN.title')}
-                                shouldShowLink={false}
-                                renderSubtitle={renderEmptyStateSubtitle}
-                            />
-                        </View>
-                    ) : null
-                }
             />
         </View>
     );

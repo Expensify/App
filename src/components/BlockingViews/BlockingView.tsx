@@ -1,4 +1,5 @@
 import React from 'react';
+import type {CSSProperties} from 'react';
 import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
@@ -67,6 +68,8 @@ type BlockingViewProps = RequiredIllustrationProps & {
     /** Style for the animation */
     animationStyles?: StyleProp<ViewStyle>;
 
+    animationWebStyle?: CSSProperties;
+
     /** Render custom subtitle */
     renderSubtitle?: () => React.ReactElement;
 };
@@ -84,6 +87,7 @@ function BlockingView({
     onLinkPress = () => Navigation.dismissModal(),
     shouldEmbedLinkWithSubtitle = false,
     animationStyles = [],
+    animationWebStyle = {},
     renderSubtitle,
 }: BlockingViewProps) {
     const styles = useThemeStyles();
@@ -112,8 +116,10 @@ function BlockingView({
             {animation && (
                 <Lottie
                     source={animation}
+                    loop
                     autoPlay
                     style={animationStyles}
+                    webStyle={animationWebStyle}
                 />
             )}
             {icon && (
