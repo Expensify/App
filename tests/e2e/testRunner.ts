@@ -127,7 +127,7 @@ const runTests = async () => {
         await launchApp('android', appPackage, config.ACTIVITY_PATH, launchArgs);
 
         await withFailTimeout(
-            new Promise((resolve) => {
+            new Promise<void>((resolve) => {
                 const cleanup = server.addTestDoneListener(() => {
                     Logger.success(iterationText);
                     cleanup();
@@ -181,7 +181,7 @@ const runTests = async () => {
 
         // We run each test multiple time to average out the results
         for (let testIteration = 0; testIteration < config.RUNS; testIteration++) {
-            const onError = (e) => {
+            const onError = (e: string) => {
                 errorCountRef.errorCount += 1;
                 if (testIteration === 0 || errorCountRef.errorCount === errorCountRef.allowedExceptions) {
                     Logger.error("There was an error running the test and we've reached the maximum number of allowed exceptions. Stopping the test run.");
@@ -236,7 +236,7 @@ const run = async () => {
 
         execSync(`cat ${config.LOG_FILE}`);
         try {
-            execSync(`cat ~/.android/avd/${process.env.AVD_NAME || 'test'}.avd/config.ini > ${config.OUTPUT_DIR}/emulator-config.ini`);
+            execSync(`cat ~/.android/avd/${process.env.AVD_NAME ?? 'test'}.avd/config.ini > ${config.OUTPUT_DIR}/emulator-config.ini`);
         } catch (ignoredError) {
             // the error is ignored, as the file might not exist if the test
             // run wasn't started with an emulator
