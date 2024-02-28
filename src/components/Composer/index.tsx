@@ -75,7 +75,7 @@ function Composer(
         shouldContainScroll = false,
         ...props
     }: ComposerProps,
-    ref: ForwardedRef<TextInput>,
+    ref: ForwardedRef<TextInput | HTMLInputElement>,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -278,6 +278,7 @@ function Composer(
             if (!onKeyPress || isEnterWhileComposition(e as unknown as KeyboardEvent)) {
                 return;
             }
+
             onKeyPress(e);
         },
         [onKeyPress],

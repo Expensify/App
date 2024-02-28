@@ -18,7 +18,7 @@ import Text from './Text';
 
 type PopoverMenuItem = {
     /** An icon element displayed on the left side */
-    icon: IconAsset;
+    icon?: IconAsset;
 
     /** Text label */
     text: string;
@@ -79,7 +79,7 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
     anchorPosition: AnchorPosition;
 
     /** Ref of the anchor */
-    anchorRef: RefObject<HTMLDivElement>;
+    anchorRef: RefObject<View | HTMLDivElement>;
 
     /** Where the popover should be positioned relative to the anchor points. */
     anchorAlignment?: AnchorAlignment;

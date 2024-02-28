@@ -632,7 +632,7 @@ export default {
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
         adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager} cancelled the ${amount} payment.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
-            `Canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
+            `canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
         paidElsewhereWithAmount: ({payer, amount}: PaidElsewhereWithAmountParams) => `${payer ? `${payer} ` : ''}paid ${amount} elsewhere`,
@@ -860,7 +860,6 @@ export default {
             noLogsAvailable: 'No logs available',
             logSizeTooLarge: ({size}: LogSizeParams) => `Log size exceeds the limit of ${size} MB. Please use "Save log" to download the log file instead.`,
         },
-        goToExpensifyClassic: 'Go to Expensify Classic',
         security: 'Security',
         signOut: 'Sign out',
         signOutConfirmationText: "You'll lose any offline changes if you sign-out.",
@@ -1740,6 +1739,8 @@ export default {
             collect: 'Collect',
         },
         categories: {
+            requiresCategory: 'Members must categorize all spend',
+            enableCategory: 'Enable category',
             subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
             emptyCategories: {
                 title: "You haven't created any categories",
@@ -2378,5 +2379,29 @@ export default {
         expand: 'Expand',
         mute: 'Mute',
         unmute: 'Unmute',
+    },
+    exitSurvey: {
+        header: 'Before you go',
+        reasonPage: {
+            title: "Please tell us why you're leaving",
+            subtitle: 'Before you go, please tell us why you’d like to switch to Expensify Classic.',
+        },
+        reasons: {
+            [CONST.EXIT_SURVEY.REASONS.FEATURE_NOT_AVAILABLE]: "I need a feature that's only available in Expensify Classic.",
+            [CONST.EXIT_SURVEY.REASONS.DONT_UNDERSTAND]: "I don't understand how to use New Expensify.",
+            [CONST.EXIT_SURVEY.REASONS.PREFER_CLASSIC]: 'I understand how to use New Expensify, but I prefer Expensify Classic.',
+        },
+        prompts: {
+            [CONST.EXIT_SURVEY.REASONS.FEATURE_NOT_AVAILABLE]: "What feature do you need that isn't available in New Expensify?",
+            [CONST.EXIT_SURVEY.REASONS.DONT_UNDERSTAND]: 'What are you trying to do?',
+            [CONST.EXIT_SURVEY.REASONS.PREFER_CLASSIC]: 'Why do you prefer Expensify Classic?',
+        },
+        responsePlaceholder: 'Your response',
+        thankYou: 'Thanks for the feedback!',
+        thankYouSubtitle: 'Your responses will help us build a better product to get stuff done. Thank you so much!',
+        goToExpensifyClassic: 'Switch to Expensify Classic',
+        offlineTitle: "Looks like you're stuck here...",
+        offline:
+            "You appear to be offline. Unfortunately, Expensify Classic doesn't work offline, but New Expensify does. If you prefer to use Expensify Classic, try again when you have an internet connection.",
     },
 } satisfies TranslationBase;
