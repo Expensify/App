@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 import * as core from '@actions/core';
-import asMutable from '@src/types/utils/AsMutable';
+import asMutable from '@src/types/utils/asMutable';
 import run from '../../.github/actions/javascript/checkDeployBlockers/checkDeployBlockers';
 import GithubUtils from '../../.github/libs/GithubUtils';
 
