@@ -48,7 +48,6 @@ function BaseListItem<TItem extends ListItem>({
         if (onCheckboxPress) {
             onCheckboxPress(item);
         } else {
-            // If base list show checkbox, but there is no onCheckboxPress, then onSelectRow should be called as primary action for the entire row
             onSelectRow(item);
         }
     };
@@ -77,7 +76,6 @@ function BaseListItem<TItem extends ListItem>({
                         <View style={wrapperStyle}>
                             {canSelectMultiple && (
                                 <PressableWithFeedback
-                                    accessible={!!onCheckboxPress}
                                     accessibilityLabel={item.text}
                                     role={CONST.ROLE.BUTTON}
                                     onPress={handleCheckboxPress}

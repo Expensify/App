@@ -290,7 +290,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 showTooltip={showTooltip}
                 canSelectMultiple={canSelectMultiple}
                 onSelectRow={() => selectRow(item)}
-                onCheckboxPress={() => onCheckboxPress?.(item)}
+                onCheckboxPress={onCheckboxPress ? () => onCheckboxPress?.(item) : undefined}
                 onDismissError={() => onDismissError?.(item)}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
