@@ -6,28 +6,24 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
+import useLocalize from '@hooks/useLocalize';
 
-const propTypes = {
+type EmojiPickerButtonDropdownProps = {
     /** Flag to disable the emoji picker button */
-    isDisabled: PropTypes.bool,
+    isDisabled?: boolean,
+}
 
-    ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    isDisabled: false,
-};
-
-function EmojiPickerButtonDropdown(props) {
+function EmojiPickerButtonDropdown({isDisabled}: EmojiPickerButtonDropdownProps, ) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
+    const {translate} = useLocalize();
+
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
     const onPress = () => {
         if (EmojiPickerAction.isEmojiPickerVisible()) {
@@ -51,11 +47,11 @@ function EmojiPickerButtonDropdown(props) {
     };
 
     return (
-        <Tooltip text={props.translate('reportActionCompose.emoji')}>
+        <Tooltip text={translate('reportActionCompose.emoji')}>
             <PressableWithoutFeedback
                 ref={emojiPopoverAnchor}
                 style={[styles.emojiPickerButtonDropdown, props.style]}
-                disabled={props.isDisabled}
+                disabled={isDisabled}
                 onPress={onPress}
                 id="emojiDropdownButton"
                 accessibilityLabel="statusEmoji"
@@ -87,18 +83,16 @@ function EmojiPickerButtonDropdown(props) {
     );
 }
 
-EmojiPickerButtonDropdown.propTypes = propTypes;
-EmojiPickerButtonDropdown.defaultProps = defaultProps;
 EmojiPickerButtonDropdown.displayName = 'EmojiPickerButtonDropdown';
 
-const EmojiPickerButtonDropdownWithRef = React.forwardRef((props, ref) => (
-    <EmojiPickerButtonDropdown
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
+// const EmojiPickerButtonDropdownWithRef = React.forwardRef((props, ref) => (
+//     <EmojiPickerButtonDropdown
+//         // eslint-disable-next-line react/jsx-props-no-spreading
+//         {...props}
+//         forwardedRef={ref}
+//     />
+// ));
 
-EmojiPickerButtonDropdownWithRef.displayName = 'EmojiPickerButtonDropdownWithRef';
+// EmojiPickerButtonDropdownWithRef.displayName = 'EmojiPickerButtonDropdownWithRef';
 
-export default withLocalize(EmojiPickerButtonDropdownWithRef);
+export default React.forwardRef(EmojiPickerButtonDropdown);
