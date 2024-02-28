@@ -64,6 +64,7 @@ function BaseSelectionList<TItem extends ListItem>(
         onLayout,
         customListHeader,
         listHeaderWrapperStyle,
+        isRowMultilineSupported = false,
     }: BaseSelectionListProps<TItem>,
     inputRef: ForwardedRef<RNTextInput>,
 ) {
@@ -295,6 +296,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList}
+                isMultilineSupported={isRowMultilineSupported}
             />
         );
     };
