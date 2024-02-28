@@ -254,9 +254,10 @@ function PaymentMethodList({
                         paymentMethod.accountData,
                         {
                             icon: paymentMethod.icon,
-                            iconHeight: paymentMethod.iconHeight,
-                            iconWidth: paymentMethod.iconWidth,
-                            iconStyles: paymentMethod.iconStyles,
+                            iconHeight: paymentMethod?.iconHeight,
+                            iconWidth: paymentMethod?.iconWidth,
+                            iconStyles: paymentMethod?.iconStyles,
+                            iconSize: paymentMethod?.iconSize,
                         },
                         paymentMethod.isDefault,
                         paymentMethod.methodID,

@@ -35,6 +35,7 @@ type FormattedSelectedPaymentMethodIcon = {
     iconHeight?: number;
     iconWidth?: number;
     iconStyles?: ViewStyle[];
+    iconSize?: number;
 };
 
 export type {WalletPageOnyxProps, WalletPageProps, FormattedSelectedPaymentMethodIcon};

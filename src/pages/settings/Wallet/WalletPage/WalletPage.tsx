@@ -154,6 +154,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
         isDefault?: boolean,
         methodID?: string | number,
     ) => {
+        console.log(icon);
         if (shouldShowAddPaymentMenu) {
             setShouldShowAddPaymentMenu(false);
             return;
@@ -343,6 +344,8 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
     const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || isSmallScreenWidth;
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
     const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100, styles.ph5];
+
+    console.log(paymentMethod.formattedSelectedPaymentMethod.icon);
     return (
         <>
             {shouldShowEmptyState ? (
@@ -537,8 +540,8 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                     <MenuItem
                                         title={paymentMethod.formattedSelectedPaymentMethod.title}
                                         icon={paymentMethod.formattedSelectedPaymentMethod.icon?.icon}
-                                        iconHeight={paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight}
-                                        iconWidth={paymentMethod.formattedSelectedPaymentMethod.icon?.iconWidth}
+                                        iconHeight={paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize}
+                                        iconWidth={paymentMethod.formattedSelectedPaymentMethod.icon?.iconWidth ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize}
                                         iconStyles={paymentMethod.formattedSelectedPaymentMethod.icon?.iconStyles}
                                         description={paymentMethod.formattedSelectedPaymentMethod.description}
                                         wrapperStyle={[styles.mb4, styles.ph5, styles.pv0]}
