@@ -1,3 +1,4 @@
+import type {VideoReadyForDisplayEvent} from 'expo-av';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {LayoutChangeEvent, LayoutRectangle} from 'react-native';
 import {View} from 'react-native';
@@ -69,14 +70,20 @@ function OnboardingWelcomeVideo() {
         Navigation.goBack();
     }, []);
 
-    const onVideoLoaded = (e: VideoLoadedEventType) => {
-        setVideoAspectRatio(e.srcElement.videoWidth / e.srcElement.videoHeight);
-    };
-
-    const onPlaybackStatusUpdate = (e: VideoPlaybackStatusEventType) => {
-        if (e.isLoaded === isVideoLoaded) {
+    const onVideoLoaded = (e: VideoReadyForDisplayEvent | VideoLoadedEventType | undefined) => {
+        if (!e) {
             return;
         }
+
+        // TODO: Figure out why on mobile there's e.naturalSize and on web it's e.srcElement
+        if ('naturalSize' in e) {
+            setVideoAspectRatio(e.naturalSize.width / e.naturalSize.height);
+        } else {
+            setVideoAspectRatio(e.srcElement.videoWidth / e.srcElement.videoHeight);
+        }
+    };
+
+    const setVideoStatus = (e: VideoPlaybackStatusEventType) => {
         setIsVideoLoaded(e.isLoaded);
     };
 
@@ -85,14 +92,14 @@ function OnboardingWelcomeVideo() {
             const videoWidth = containerDimensions.current.width - 2 * MODAL_PADDING;
 
             return (
-                <View style={styles.pRelative}>
+                <View style={{width: videoWidth, height: videoWidth / videoAspectRatio}}>
                     <VideoPlayer
                         // Temporary file supplied for testing purposes, to
                         // be changed when correct one gets uploaded on backend
                         url="https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4"
                         videoPlayerStyle={[styles.onboardingVideoPlayer, {width: videoWidth, height: videoWidth / videoAspectRatio}]}
                         onVideoLoaded={onVideoLoaded}
-                        onPlaybackStatusUpdate={onPlaybackStatusUpdate}
+                        onPlaybackStatusUpdate={setVideoStatus}
                         shouldShowProgressVolumeOnly
                         shouldPlay
                         isLooping
@@ -131,32 +138,6 @@ function OnboardingWelcomeVideo() {
                 />
             </View>
         </View>
-    );
-
-    return (
-        <Modal
-            type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
-            isVisible={isModalOpen}
-            onClose={closeModal}
-            innerContainerStyle={styles.pt0}
-            fullscreen
-        >
-            <View style={{maxHeight: windowHeight}}>
-                <View style={[styles.w100, styles.p2, styles.pb5]}>
-                    {getWelcomeVideo()}
-                    <View style={[styles.pt5, isSmallScreenWidth ? styles.ph3 : styles.ph6]}>
-                        <Text style={[styles.textHeadline]}>{translate('onboarding.welcomeVideo.title')}</Text>
-                        <Text style={[styles.textSupporting, styles.pb8]}>{translate('onboarding.welcomeVideo.description')}</Text>
-                        <Button
-                            success
-                            pressOnEnter
-                            onPress={closeModal}
-                            text={translate('onboarding.welcomeVideo.button')}
-                        />
-                    </View>
-                </View>
-            </View>
-        </Modal>
     );
 }
 
