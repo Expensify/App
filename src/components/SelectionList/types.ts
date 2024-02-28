@@ -37,6 +37,9 @@ type CommonListItemProps<TItem> = {
 
     /** Styles for the checkbox wrapper view if select multiple option is on */
     selectMultipleStyle?: StyleProp<ViewStyle>;
+
+    /** Whether to wrap long text up to 2 lines */
+    isMultilineSupported?: boolean;
 };
 
 type ListItem = {
@@ -83,6 +86,9 @@ type ListItem = {
 
     /** Whether this option should show subscript */
     shouldShowSubscript?: boolean;
+
+    /** Whether to wrap long text up to 2 lines */
+    isMultilineSupported?: boolean;
 };
 
 type ListItemProps = CommonListItemProps<ListItem> & {
@@ -258,6 +264,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Styles for the list header wrapper */
     listHeaderWrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Whether to wrap long text up to 2 lines */
+    isRowMultilineSupported?: boolean;
 };
 
 type ItemLayout = {
