@@ -1,4 +1,4 @@
-import PropTypes from 'prop-types';
+import type {VideoReadyForDisplayEvent} from 'expo-av';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -10,32 +10,17 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
+import type {VideoPlayerPreviewProps} from './types';
 import VideoPlayerThumbnail from './VideoPlayerThumbnail';
 
-const propTypes = {
-    videoUrl: PropTypes.string.isRequired,
-
-    videoDimensions: PropTypes.shape({
-        width: PropTypes.number.isRequired,
-        height: PropTypes.number.isRequired,
-    }),
-
-    videoDuration: PropTypes.number,
-
-    thumbnailUrl: PropTypes.string,
-
-    fileName: PropTypes.string.isRequired,
-
-    onShowModalPress: PropTypes.func.isRequired,
-};
-
-const defaultProps = {
-    videoDimensions: CONST.VIDEO_PLAYER.DEFAULT_VIDEO_DIMENSIONS,
-    thumbnailUrl: undefined,
-    videoDuration: 0,
-};
-
-function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, videoDuration, onShowModalPress}) {
+function VideoPlayerPreview({
+    videoUrl,
+    thumbnailUrl = undefined,
+    fileName,
+    videoDimensions = CONST.VIDEO_PLAYER.DEFAULT_VIDEO_DIMENSIONS,
+    videoDuration = 0,
+    onShowModalPress,
+}: VideoPlayerPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
@@ -44,8 +29,8 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
     const [measuredDimensions, setMeasuredDimensions] = useState(videoDimensions);
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(measuredDimensions.width, measuredDimensions.height);
 
-    const onVideoLoaded = (e) => {
-        setMeasuredDimensions({width: e.srcElement.videoWidth, height: e.srcElement.videoHeight});
+    const onVideoLoaded = (event: VideoReadyForDisplayEvent & {srcElement: HTMLVideoElement}) => {
+        setMeasuredDimensions({width: event.srcElement.videoWidth, height: event.srcElement.videoHeight});
     };
 
     const handleOnPress = () => {
@@ -75,7 +60,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
                     <VideoPlayer
                         url={videoUrl}
                         onOpenInModalButtonPress={onShowModalPress}
-                        onVideoLoaded={onVideoLoaded}
+                        onVideoLoaded={onVideoLoaded as (event: VideoReadyForDisplayEvent) => void}
                         videoDuration={videoDuration}
                         shouldUseSmallVideoControls
                         style={[styles.w100, styles.h100]}
@@ -94,8 +79,6 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
     );
 }
 
-VideoPlayerPreview.propTypes = propTypes;
-VideoPlayerPreview.defaultProps = defaultProps;
 VideoPlayerPreview.displayName = 'VideoPlayerPreview';
 
 export default VideoPlayerPreview;

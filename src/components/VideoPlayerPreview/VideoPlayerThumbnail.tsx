@@ -11,7 +11,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import VideoPlayerThumbnailProps from './types';
+import type {VideoPlayerThumbnailProps} from './types';
 
 function VideoPlayerThumbnail({thumbnailUrl = undefined, onPress, accessibilityLabel}: VideoPlayerThumbnailProps) {
     const styles = useThemeStyles();
