@@ -23,13 +23,13 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as UserUtils from '@libs/UserUtils';
+import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, PolicyMember} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import withPolicyAndFullscreenLoading from '../withPolicyAndFullscreenLoading';
-import type {WithPolicyAndFullscreenLoadingProps} from '../withPolicyAndFullscreenLoading';
 
 type WorkspaceWorkflowsApproverPageOnyxProps = {
     /** All of the personal details for everyone */
