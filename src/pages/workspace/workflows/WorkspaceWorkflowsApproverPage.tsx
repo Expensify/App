@@ -103,28 +103,33 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails}
             };
 
             if (policy?.approver === details.login) {
-                approverSection.push(formattedMember);
+                formattedApprover.push(formattedMember);
             } else {
-                policyUsersSection.push(formattedMember);
+                formattedPolicyMembers.push(formattedMember);
             }
         });
+        return [formattedPolicyMembers, formattedApprover];
+    }, [personalDetails, policyMembers, translate, policy?.approver]);
+
+    const sections: MembersSection[] = useMemo(() => {
+        const sectionsArr: MembersSection[] = [];
 
         sectionsArr.push({
             title: undefined,
-            data: approverSection,
+            data: formattedApprover,
             shouldShow: true,
             indexOffset: 0,
         });
 
         sectionsArr.push({
             title: translate('common.all'),
-            data: policyUsersSection,
+            data: formattedPolicyMembers,
             shouldShow: true,
-            indexOffset: approverSection.length,
+            indexOffset: formattedApprover.length,
         });
 
         return sectionsArr;
-    }, [personalDetails, policyMembers, searchTerm, translate, policy?.approver]);
+    }, [formattedPolicyMembers, formattedApprover, searchTerm]);
 
     const setPolicyApprover = (member: MemberOption) => {
         if (!policy || !policy.approvalMode || !personalDetails?.[member.accountID]?.login) {
