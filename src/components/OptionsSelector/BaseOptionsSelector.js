@@ -68,7 +68,6 @@ function BaseOptionsSelector(props) {
     const relatedTarget = useRef(null);
     const listRef = useRef();
     const textInputRef = useRef();
-    const focusTimeout = useRef();
 
     const prevSelectedOptions = usePrevious(props.selectedOptions);
     const prevValue = usePrevious(value);
