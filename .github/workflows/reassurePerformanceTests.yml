@@ -71,4 +71,4 @@ jobs:
       - name: Send graphite data
         # run only when merged to main
         # if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'graphite-testing-script'
-        run: echo -e "${{ steps.saveGraphiteString.outputs.GRAPHITE_STRING }}" | nc $GRAPHITE_SERVER $GRAPHITE_PORT
+        run: echo -e "${{ steps.saveGraphiteString.outputs.GRAPHITE_STRING }}" | nc "$GRAPHITE_SERVER" "$GRAPHITE_PORT"
