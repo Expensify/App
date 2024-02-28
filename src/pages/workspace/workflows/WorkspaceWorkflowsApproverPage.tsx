@@ -21,7 +21,7 @@ import * as UserUtils from '@libs/UserUtils';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PersonalDetailsList, PolicyMember} from '@src/types/onyx';
+import type {PersonalDetailsList, PolicyMember} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import withPolicyAndFullscreenLoading from '../withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '../withPolicyAndFullscreenLoading';
@@ -52,10 +52,10 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails}
         !isOffline && policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyMember.errors);
 
     const sections: MembersSection[] = useMemo(() => {
-        let sectionsArr: MembersSection[] = [];
+        const sectionsArr: MembersSection[] = [];
 
-        let policyUsersSection: MemberOption[] = [];
-        let approverSection: MemberOption[] = [];
+        const policyUsersSection: MemberOption[] = [];
+        const approverSection: MemberOption[] = [];
 
         Object.entries(policyMembers ?? {}).forEach(([accountIDKey, policyMember]) => {
             const accountID = Number(accountIDKey);
