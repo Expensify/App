@@ -1,5 +1,5 @@
 import React, {forwardRef, useCallback, useImperativeHandle, useRef, useState} from 'react';
-import type {RefObject} from 'react';
+import type {ForwardedRef, RefObject} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import MagicCodeInput from '@components/MagicCodeInput';
 import useLocalize from '@hooks/useLocalize';
@@ -19,7 +19,6 @@ type OnyxDataWithErrors = {
 
 type BaseTwoFactorAuthFormProps = TwoFactorAuthStepOnyxProps & {
     autoComplete: AutoCompleteVariant;
-    ref: RefObject<HTMLFormElement> | (() => void);
 };
 
 type MagicCodeInputHandle = {
@@ -30,7 +29,11 @@ type MagicCodeInputHandle = {
     blur: () => void;
 };
 
-function BaseTwoFactorAuthForm({account, autoComplete, ref}: BaseTwoFactorAuthFormProps) {
+type RefType = {
+    validateAndSubmitForm: () => void;
+    }
+
+function BaseTwoFactorAuthForm({account, autoComplete}: BaseTwoFactorAuthFormProps, ref: ForwardedRef<RefType>) {
     const [formError, setFormError] = useState<{twoFactorAuthCode?: string}>({});
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
     const inputRef = useRef<MagicCodeInputHandle | null>(null);
@@ -72,7 +75,7 @@ function BaseTwoFactorAuthForm({account, autoComplete, ref}: BaseTwoFactorAuthFo
         Session.validateTwoFactorAuth(twoFactorAuthCode);
     }, [twoFactorAuthCode]);
 
-    useImperativeHandle(ref as () => void, () => ({
+    useImperativeHandle(ref, () => ({
         validateAndSubmitForm() {
             validateAndSubmitForm();
         },
