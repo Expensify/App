@@ -14,11 +14,7 @@ type Entry = {
     mean?: number;
 };
 
-type Result = {
-    name: string;
-    current?: Entry;
-    baseline?: Entry;
-};
+type Metric = Record<string, number[]>;
 
 /*
  * base implementation from: https://github.com/callstack/reassure/blob/main/packages/reassure-compare/src/compare.ts
@@ -63,13 +59,13 @@ function buildCompareEntry(name: string, compare: Stats, baseline: Stats): Entry
 /**
  * Compare results between baseline and current entries and categorize.
  */
-function compareResults(compareEntries: Record<string, Entry>, baselineEntries: Record<string, Entry>) {
+function compareResults(compareEntries: Metric, baselineEntries: Metric) {
     // Unique test scenario names
-    const names: string[] = [...new Set([...Object(compareEntries).keys(), ...Object(baselineEntries ?? {}).keys()])];
+    const compareKeys = Object.keys(compareEntries);
+    const baselineKeys = baselineEntries ? Object.keys(baselineEntries) : [];
+    const names = Array.from(new Set([...compareKeys, ...baselineKeys]));
 
     const compared: Entry[] = [];
-    const added: Result[] = [];
-    const removed: Result[] = [];
 
     names.forEach((name: string) => {
         const current = compareEntries[name];
@@ -80,16 +76,6 @@ function compareResults(compareEntries: Record<string, Entry>, baselineEntries: 
 
         if (baseline && current) {
             compared.push(buildCompareEntry(name, deltaStats, currentStats));
-        } else if (current) {
-            added.push({
-                name,
-                current,
-            });
-        } else if (baseline) {
-            removed.push({
-                name,
-                baseline,
-            });
         }
     });
 
@@ -97,18 +83,13 @@ function compareResults(compareEntries: Record<string, Entry>, baselineEntries: 
 
     const meaningless = compared.filter((item) => !item.isDurationDiffOfSignificance);
 
-    added.sort((a, b) => (b?.current?.mean ?? 0) - (a.current?.mean ?? 0));
-    removed.sort((a, b) => (b.baseline?.mean ?? 0) - (a.baseline?.mean ?? 0));
-
     return {
         significance,
         meaningless,
-        added,
-        removed,
     };
 }
 
-export default (main: Record<string, Entry>, delta: Record<string, Entry>, outputFile: string, outputFormat = 'all') => {
+export default (main: Metric, delta: Metric, outputFile: string, outputFormat = 'all') => {
     // IMPORTANT NOTE: make sure you are passing the delta/compare results first, then the main/baseline results:
     const outputData = compareResults(delta, main);
 
