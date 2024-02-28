@@ -927,17 +927,17 @@ export default compose(
             key: ONYXKEYS.SESSION,
         },
         policyCategories: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${'BD2590A6E1619441'}`,
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
         },
         policyTags: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${'BD2590A6E1619441'}`,
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
         },
         mileageRate: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             selector: DistanceRequestUtils.getDefaultMileageRate,
         },
         policy: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${'BD2590A6E1619441'}`,
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
         },
     }),
 )(MoneyTemporaryForRefactorRequestConfirmationList);

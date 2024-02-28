@@ -23,7 +23,6 @@ function canUseReportFields(betas: OnyxEntry<Beta[]>): boolean {
 }
 
 function canUseViolations(betas: OnyxEntry<Beta[]>): boolean {
-    return true
     return !!betas?.includes(CONST.BETAS.VIOLATIONS) || canUseAllBetas(betas);
 }
 
