@@ -272,6 +272,7 @@ function MoneyRequestConfirmationList({
               isDistanceRequest ? mileageRate?.currency : iouCurrencyCode,
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction?.taxAmount, iouCurrencyCode);
+    const formattedDistance = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, mileageRate?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, mileageRate?.rate ?? 0, translate);
 
     const defaultTaxKey = taxRates?.defaultExternalID;
     const defaultTaxName = (defaultTaxKey && `${taxRates?.taxes[defaultTaxKey].name} (${taxRates?.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) ?? '';
@@ -597,6 +598,7 @@ function MoneyRequestConfirmationList({
         styles.mb2,
     ]);
 
+    const canEditDistance = isTypeRequest || (canUseP2PDistanceRequests && isSplitBill);
     const receiptData = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction ?? null, receiptPath, receiptFilename) : null;
     return (
         // @ts-expect-error TODO: Remove this once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TypeScript.
@@ -738,13 +740,14 @@ function MoneyRequestConfirmationList({
                     )}
                     {isDistanceRequest && (
                         <MenuItemWithTopDescription
-                            shouldShowRightIcon={!isReadOnly && (canUseP2PDistanceRequests || isTypeRequest)}
-                            title={iouMerchant}
+                            shouldShowRightIcon={!isReadOnly && canEditDistance}
+                            title={formattedDistance}
                             description={translate('common.distance')}
                             style={styles.moneyRequestMenuItem}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DISTANCE.getRoute(iouType, reportID))}
-                            disabled={didConfirm || !(canUseP2PDistanceRequests || isTypeRequest)}
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            disabled={didConfirm || !canEditDistance}
                             interactive={!isReadOnly}
                         />
                     )}

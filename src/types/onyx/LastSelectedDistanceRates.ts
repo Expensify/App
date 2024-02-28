@@ -1,5 +1,3 @@
-import type {Rate} from './Policy';
-
-type LastSelectedDistanceRates = Record<string, Rate>;
+type LastSelectedDistanceRates = Record<string, string>;
 
 export default LastSelectedDistanceRates;

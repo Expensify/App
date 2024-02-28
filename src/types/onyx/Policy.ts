@@ -18,7 +18,7 @@ type Attributes = {
 };
 
 type MileageRate = {
-    rateID?: string;
+    customUnitRateID?: string;
     unit: Unit;
     rate?: number;
     currency: string;

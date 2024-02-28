@@ -32,7 +32,7 @@ function getDefaultMileageRate(policy: OnyxEntry<Policy>): MileageRate | null {
     }
 
     return {
-        rateID: distanceRate.customUnitRateID,
+        customUnitRateID: distanceRate.customUnitRateID,
         rate: distanceRate.rate,
         currency: distanceRate.currency ?? 'USD',
         unit: distanceUnit.attributes.unit,

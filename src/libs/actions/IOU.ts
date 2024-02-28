@@ -255,7 +255,7 @@ function initMoneyRequest(reportID: string, policy: OnyxEntry<OnyxTypes.Policy>,
         const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
         let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
         if (ReportUtils.isPolicyExpenseChat(report)) {
-            customUnitRateID = lastSelectedDistanceRates?.[policy?.id ?? '']?.customUnitRateID ?? DistanceRequestUtils.getDefaultMileageRate(policy)?.rateID ?? '';
+            customUnitRateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID ?? '';
         }
         comment.customUnit = {customUnitRateID};
     }
