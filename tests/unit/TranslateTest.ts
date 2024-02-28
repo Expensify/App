@@ -5,7 +5,7 @@ import * as translations from '@src/languages/translations';
 import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import * as Localize from '@src/libs/Localize';
 import asMutable from '@src/types/utils/asMutable';
-import arrayDifference from '../utils/arrayDifference';
+import arrayDifference from '@src/utils/arrayDifference';
 
 const originalTranslations = {...translations};
 
