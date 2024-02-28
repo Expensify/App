@@ -88,8 +88,8 @@ function OnboardingPersonalDetails({currentUserPersonalDetails}: OnboardingPerso
                     shouldTrimValues={false}
                 >
                     <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                        <Text style={[styles.textHeroSmall]}>{translate('onboarding.welcome')} </Text>
-                        <Text style={[styles.textHeroSmall]}>{translate('onboarding.whatsYourName')}</Text>
+                        <Text style={styles.textHeroSmall}>{translate('onboarding.welcome')} </Text>
+                        <Text style={styles.textHeroSmall}>{translate('onboarding.whatsYourName')}</Text>
                     </View>
                     <View style={styles.mb4}>
                         <InputWrapper
