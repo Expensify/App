@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import React, {useCallback, useContext, useReducer, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
 import Hand from '@assets/images/hand.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
@@ -75,6 +75,8 @@ function IOURequestStepScan({
     const [isTorchAvailable, setIsTorchAvailable] = useState(false);
     const cameraRef = useRef(null);
     const trackRef = useRef(null);
+
+    const getScreenshotTimeoutRef = useRef(null);
 
     const hideRecieptModal = () => {
         setIsAttachmentInvalid(false);
@@ -201,7 +203,7 @@ function IOURequestStepScan({
                     advanced: [{torch: true}],
                 })
                 .then(() => {
-                    setTimeout(() => {
+                    getScreenshotTimeoutRef.current = setTimeout(() => {
                         getScreenshot();
                         trackRef.current.applyConstraints({
                             advanced: [{torch: false}],
@@ -219,6 +221,15 @@ function IOURequestStepScan({
             onPanResponderTerminationRequest: () => false,
         }),
     ).current;
+
+    useEffect(() => {
+        return () => {
+            if (!getScreenshotTimeoutRef.current) {
+                return;
+            }
+            clearTimeout(getScreenshotTimeoutRef.current);
+        };
+    }, []);
 
     const mobileCameraView = () => (
         <>
