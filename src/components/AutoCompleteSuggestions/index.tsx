@@ -23,7 +23,7 @@ const measureHeightOfSuggestionRows = (numRows: number, canBeBig: boolean): numb
     return numRows * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
 };
 function isSuggestionRenderedAbove(isEnoughSpaceAboveForBig: boolean, isEnoughSpaceAboveForSmall: boolean): boolean {
-    return isEnoughSpaceAboveForBig || (!isEnoughSpaceAboveForBig && isEnoughSpaceAboveForSmall);
+    return isEnoughSpaceAboveForBig || isEnoughSpaceAboveForSmall;
 }
 
 /**
