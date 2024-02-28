@@ -99,20 +99,6 @@ function getForDistanceRequest(newDistance: string, oldDistance: string, newAmou
 }
 
 /**
- * Return the tax amount field from the transaction.
- */
-function getTaxAmount(taxAmount: number, isFromExpenseReport: boolean): number {
-    // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
-    if (!isFromExpenseReport) {
-        return Math.abs(taxAmount ?? 0);
-    }
-
-    // To avoid -0 being shown, lets only change the sign if the value is other than 0.
-    const amount = taxAmount ?? 0;
-    return amount ? -amount : 0;
-}
-
-/**
  * Get the report action message when expense has been modified.
  *
  * ModifiedExpense::getNewDotComment in Web-Expensify should match this.
@@ -244,8 +230,8 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         const isFromExpenseReport = ReportUtils.isExpenseReport(iouReport);
         const currency = iouReport?.currency ?? '';
 
-        const taxAmount = CurrencyUtils.convertToDisplayString(getTaxAmount(reportActionOriginalMessage?.taxAmount ?? 0, isFromExpenseReport), currency);
-        const oldTaxAmountValue = getTaxAmount(reportActionOriginalMessage?.oldTaxAmount ?? 0, isFromExpenseReport);
+        const taxAmount = CurrencyUtils.convertToDisplayString(TransactionUtils.getTaxAmount(reportActionOriginalMessage?.taxAmount ?? 0, isFromExpenseReport), currency);
+        const oldTaxAmountValue = TransactionUtils.getTaxAmount(reportActionOriginalMessage?.oldTaxAmount ?? 0, isFromExpenseReport);
         const oldTaxAmount = oldTaxAmountValue > 0 ? CurrencyUtils.convertToDisplayString(oldTaxAmountValue, currency) : '';
 
         buildMessageFragmentForValue(taxAmount, oldTaxAmount, Localize.translateLocal('iou.taxAmount'), false, setFragments, removalFragments, changeFragments);
