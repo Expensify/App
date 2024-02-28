@@ -80,7 +80,7 @@ function ButtonWithDropdownMenu<IValueType>({
                         style={[styles.flex1, styles.pr0]}
                         large={isButtonSizeLarge}
                         medium={!isButtonSizeLarge}
-                        innerStyles={[innerStyleDropButton]}
+                        innerStyles={[innerStyleDropButton, customText !== undefined && styles.cursorDefault]}
                         enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     />
 
