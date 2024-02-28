@@ -167,9 +167,9 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                 },
             ],
         };
-    }, [loginList, fundList, styles.accountSettingsSectionContainer, bankAccountList, userWallet?.errors, walletTerms?.errors, signOut]);
+    }, [loginList, fundList, styles.accountSettingsSectionContainer, bankAccountList, userWallet?.errors, walletTerms?.errors]);
 
-    const workspaceMenuItemsData = useMemo(
+    const workspaceMenuItemsData: Menu = useMemo(
         () => ({
             sectionStyle: {
                 ...styles.pt4,
@@ -177,7 +177,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
             sectionTranslationKey: 'initialSettingsPage.workspaces',
             items: [
                 {
-                    translationKey: 'common.workspaces',
+                    translationKey: 'initialSettingsPage.workspaces',
                     icon: Expensicons.Building,
                     routeName: ROUTES.SETTINGS_WORKSPACES,
                     brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies, policyMembers) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
@@ -215,7 +215,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
      * Retuns a list of menu items data for general section
      * @returns object with translationKey, style and items for the general section
      */
-    const generalMenuItemsData = useMemo(() => {
+    const generalMenuItemsData: Menu = useMemo(() => {
         const defaultMenu: Menu = {
             sectionStyle: {
                 ...styles.pt4,

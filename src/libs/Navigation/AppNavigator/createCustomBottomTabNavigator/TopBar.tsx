@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import SignInButton from '@pages/home/sidebar/SignInButton';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,10 +36,10 @@ function TopBar({policy}: TopBarProps) {
     return (
         <View style={styles.w100}>
             <View
-                style={[styles.flexRow, styles.gap4, styles.ml5, styles.mv5, styles.alignItemsCenter, {justifyContent: 'space-between'}]}
+                style={[styles.flexRow, styles.gap4, styles.mh3, styles.mv5, styles.alignItemsCenter, {justifyContent: 'space-between'}]}
                 dataSet={{dragArea: true}}
             >
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.ml2]}>
                     <WorkspaceSwitcherButton policy={policy} />
 
                     <View style={[styles.ml3, styles.flex1]}>
@@ -55,19 +56,22 @@ function TopBar({policy}: TopBarProps) {
                         />
                     </View>
                 </View>
-
-                <Tooltip text={translate('common.search')}>
-                    <PressableWithoutFeedback
-                        accessibilityLabel={translate('sidebarScreen.buttonSearch')}
-                        style={[styles.flexRow, styles.ph5]}
-                        onPress={Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.SEARCH))}
-                    >
-                        <Icon
-                            src={Expensicons.MagnifyingGlass}
-                            fill={theme.icon}
-                        />
-                    </PressableWithoutFeedback>
-                </Tooltip>
+                {Session.isAnonymousUser() ? (
+                    <SignInButton />
+                ) : (
+                    <Tooltip text={translate('common.search')}>
+                        <PressableWithoutFeedback
+                            accessibilityLabel={translate('sidebarScreen.buttonSearch')}
+                            style={[styles.flexRow, styles.mr2]}
+                            onPress={Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.SEARCH))}
+                        >
+                            <Icon
+                                src={Expensicons.MagnifyingGlass}
+                                fill={theme.icon}
+                            />
+                        </PressableWithoutFeedback>
+                    </Tooltip>
+                )}
             </View>
         </View>
     );

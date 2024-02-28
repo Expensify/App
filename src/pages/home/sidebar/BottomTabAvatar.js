@@ -3,10 +3,8 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import * as Session from '@userActions/Session';
 import AvatarWithOptionalStatus from './AvatarWithOptionalStatus';
 import PressableAvatarWithIndicator from './PressableAvatarWithIndicator';
-import SignInButton from './SignInButton';
 
 const propTypes = {
     /** Whether the create menu is open or not */
@@ -20,13 +18,10 @@ const defaultProps = {
     isSelected: false,
 };
 
-function SignInOrAvatarWithOptionalStatus({isCreateMenuOpen, isSelected}) {
+function BottomTabAvatar({isCreateMenuOpen, isSelected}) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const emojiStatus = lodashGet(currentUserPersonalDetails, 'status.emojiCode', '');
 
-    if (Session.isAnonymousUser()) {
-        return <SignInButton />;
-    }
     if (emojiStatus) {
         return (
             <AvatarWithOptionalStatus
@@ -44,7 +39,7 @@ function SignInOrAvatarWithOptionalStatus({isCreateMenuOpen, isSelected}) {
     );
 }
 
-SignInOrAvatarWithOptionalStatus.propTypes = propTypes;
-SignInOrAvatarWithOptionalStatus.defaultProps = defaultProps;
-SignInOrAvatarWithOptionalStatus.displayName = 'SignInOrAvatarWithOptionalStatus';
-export default SignInOrAvatarWithOptionalStatus;
+BottomTabAvatar.propTypes = propTypes;
+BottomTabAvatar.defaultProps = defaultProps;
+BottomTabAvatar.displayName = 'BottomTabAvatar';
+export default BottomTabAvatar;
