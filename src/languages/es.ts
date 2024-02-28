@@ -1756,6 +1756,7 @@ export default {
             workspaceType: 'Tipo de espacio de trabajo',
             workspaceAvatar: 'Espacio de trabajo avatar',
             mustBeOnlineToViewMembers: 'Debes estar en línea para poder ver los miembros de este espacio de trabajo.',
+            features: 'Características',
         },
         type: {
             free: 'Gratis',

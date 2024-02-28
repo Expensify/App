@@ -1732,6 +1732,7 @@ export default {
             workspaceType: 'Workspace type',
             workspaceAvatar: 'Workspace avatar',
             mustBeOnlineToViewMembers: 'You must be online in order to view members of this workspace.',
+            features: 'Features',
         },
         type: {
             free: 'Free',
