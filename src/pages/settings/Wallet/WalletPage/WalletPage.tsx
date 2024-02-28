@@ -344,7 +344,6 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
     const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || isSmallScreenWidth;
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
     const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100, styles.ph5];
-
     return (
         <>
             {shouldShowEmptyState ? (
@@ -538,10 +537,15 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                 {isPopoverBottomMount && (
                                     <MenuItem
                                         title={paymentMethod.formattedSelectedPaymentMethod.title}
-                                        icon={paymentMethod.formattedSelectedPaymentMethod.icon}
+                                        icon={paymentMethod.formattedSelectedPaymentMethod.icon?.icon}
+                                        iconHeight={paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight}
+                                        iconWidth={paymentMethod.formattedSelectedPaymentMethod.icon?.iconWidth}
+                                        iconStyles={paymentMethod.formattedSelectedPaymentMethod.icon?.iconStyles}
+                                        iconSize={paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize}
                                         description={paymentMethod.formattedSelectedPaymentMethod.description}
                                         wrapperStyle={[styles.mb4, styles.ph5, styles.pv0]}
                                         interactive={false}
+                                        displayInDefaultIconColor
                                     />
                                 )}
                                 {shouldShowMakeDefaultButton && (

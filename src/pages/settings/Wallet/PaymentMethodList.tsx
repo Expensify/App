@@ -236,12 +236,25 @@ function PaymentMethodList({
                 (paymentMethod) => paymentMethod.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(paymentMethod.errors),
             );
         }
-
         combinedPaymentMethods = combinedPaymentMethods.map((paymentMethod) => {
             const isMethodActive = isPaymentMethodActive(actionPaymentMethodType, activePaymentMethodID, paymentMethod);
             return {
                 ...paymentMethod,
-                onPress: (e: GestureResponderEvent) => onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.icon, paymentMethod.isDefault, paymentMethod.methodID),
+                onPress: (e: GestureResponderEvent) =>
+                    onPress(
+                        e,
+                        paymentMethod.accountType,
+                        paymentMethod.accountData,
+                        {
+                            icon: paymentMethod.icon,
+                            iconSize: paymentMethod.iconSize,
+                            iconHeight: paymentMethod.iconHeight,
+                            iconWidth: paymentMethod.iconWidth,
+                            iconStyles: paymentMethod.iconStyles,
+                        },
+                        paymentMethod.isDefault,
+                        paymentMethod.methodID,
+                    ),
                 wrapperStyle: isMethodActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 isMethodActive,
