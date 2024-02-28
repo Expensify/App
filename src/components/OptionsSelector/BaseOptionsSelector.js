@@ -16,6 +16,7 @@ import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import setSelection from '@libs/setSelection';
 import CONST from '@src/CONST';
