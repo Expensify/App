@@ -37,6 +37,7 @@ import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {FormattedSelectedPaymentMethodIcon} from './WalletPage/types';
 
 type PaymentMethodListOnyxProps = {
     /** List of bank accounts */
@@ -99,7 +100,14 @@ type PaymentMethodListProps = PaymentMethodListOnyxProps & {
     shouldShowEmptyListMessage?: boolean;
 
     /** What to do when a menu item is pressed */
-    onPress: (event?: GestureResponderEvent | KeyboardEvent, accountType?: string, accountData?: AccountData, icon?: IconAsset, isDefault?: boolean, methodID?: number) => void;
+    onPress: (
+        event?: GestureResponderEvent | KeyboardEvent,
+        accountType?: string,
+        accountData?: AccountData,
+        icon?: FormattedSelectedPaymentMethodIcon,
+        isDefault?: boolean,
+        methodID?: number,
+    ) => void;
 };
 
 type PaymentMethodItem = PaymentMethod & {
@@ -247,7 +255,6 @@ function PaymentMethodList({
                         paymentMethod.accountData,
                         {
                             icon: paymentMethod.icon,
-                            iconSize: paymentMethod.iconSize,
                             iconHeight: paymentMethod.iconHeight,
                             iconWidth: paymentMethod.iconWidth,
                             iconStyles: paymentMethod.iconStyles,

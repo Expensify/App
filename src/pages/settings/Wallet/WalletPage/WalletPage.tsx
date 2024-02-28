@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import type {GestureResponderEvent, ViewStyle} from 'react-native';
+import type {GestureResponderEvent} from 'react-native';
 import {ActivityIndicator, Dimensions, ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
@@ -37,18 +37,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {AccountData} from '@src/types/onyx';
-import type IconAsset from '@src/types/utils/IconAsset';
-import type {WalletPageOnyxProps, WalletPageProps} from './types';
+import type {FormattedSelectedPaymentMethodIcon, WalletPageOnyxProps, WalletPageProps} from './types';
 
 type FormattedSelectedPaymentMethod = {
     title: string;
-    icon?: {
-        icon: IconAsset;
-        iconSize?: number;
-        iconHeight?: number;
-        iconWidth?: number;
-        iconStyles?: ViewStyle[];
-    };
+    icon?: FormattedSelectedPaymentMethodIcon;
     description?: string;
     type?: string;
 };
@@ -157,7 +150,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
         nativeEvent?: GestureResponderEvent | KeyboardEvent,
         accountType?: string,
         account?: AccountData,
-        icon?: IconAsset,
+        icon?: FormattedSelectedPaymentMethodIcon,
         isDefault?: boolean,
         methodID?: string | number,
     ) => {
@@ -547,7 +540,6 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                         iconHeight={paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight}
                                         iconWidth={paymentMethod.formattedSelectedPaymentMethod.icon?.iconWidth}
                                         iconStyles={paymentMethod.formattedSelectedPaymentMethod.icon?.iconStyles}
-                                        iconSize={paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize}
                                         description={paymentMethod.formattedSelectedPaymentMethod.description}
                                         wrapperStyle={[styles.mb4, styles.ph5, styles.pv0]}
                                         interactive={false}
