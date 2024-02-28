@@ -1367,17 +1367,26 @@ export default {
         letsDoubleCheck: 'Verifiquemos que todo esté correcto.',
         accountEnding: 'Cuenta terminada en',
         thisBankAccount: 'Esta cuenta bancaria se utilizará para pagos comerciales en tu espacio de trabajo',
+        // TODO: change for Spanish transations
+        addBankAccountBodyPt1: 'Add your bank account and we’ll connect it to your Expensify Wallet so you can send and receive money right in the app.',
+        addBankAccountBodyPt2: 'Don’t worry, you’ll be able to withdraw funds from your wallet at any time.',
         accountNumber: 'Número de cuenta',
         routingNumber: 'Número de ruta',
         chooseAnAccountBelow: 'Elige una cuenta a continuación',
         addBankAccount: 'Añadir cuenta bancaria',
+        // TODO: check Spanish translation
+        addYourBankAccount: 'Añadir tu cuenta bancaria',
         chooseAnAccount: 'Elige una cuenta',
+        // TODO: check Spanish translation
+        chooseYourBankAccount: 'Elige tu cuenta bancaria',
         connectOnlineWithPlaid: 'Conéctate a Plaid online',
         connectManually: 'Conectar manualmente',
         desktopConnection: 'Para conectarse con Chase, Wells Fargo, Capital One o Bank of America, haga clic aquí para completar este proceso en un navegador.',
         yourDataIsSecure: 'Tus datos están seguros',
         toGetStarted: 'Añade una cuenta bancaria y emite tarjetas corporativas, reembolsa gastos y cobra y paga facturas, todo desde un mismo lugar.',
         plaidBodyCopy: 'Ofrezca a sus empleados una forma más sencilla de pagar - y recuperar - los gastos de la empresa.',
+        // TODO: change for Spanish translation
+        chooseAccountBody: 'Make sure that you select the right one.',
         checkHelpLine: 'Su número de ruta y número de cuenta se pueden encontrar en un cheque de la cuenta bancaria.',
         validateAccountError: {
             phrase1: '¡Un momento! Primero necesitas validar tu cuenta. Para hacerlo, ',
