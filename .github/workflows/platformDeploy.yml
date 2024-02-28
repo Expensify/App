@@ -198,7 +198,7 @@ jobs:
         id: pods-cache
         with:
           path: ios/Pods
-          key: ${{ runner.os }}-pods-cache-${{ hashFiles('ios/Podfile.lock') }}
+          key: ${{ runner.os }}-pods-cache-${{ hashFiles('ios/Podfile.lock', 'firebase.json') }}
           restore-keys: ${{ runner.os }}-pods-cache-
 
       - name: Compare Podfile.lock and Manifest.lock
