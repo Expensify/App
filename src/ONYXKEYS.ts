@@ -275,6 +275,9 @@ const ONYXKEYS = {
     /** Indicates whether we should store logs or not */
     SHOULD_STORE_LOGS: 'shouldStoreLogs',
 
+    // Paths of PDF file that has been cached during one session
+    CACHED_PDF_PATHS: 'cachedPDFPaths',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -285,7 +288,6 @@ const ONYXKEYS = {
         POLICY_CATEGORIES: 'policyCategories_',
         POLICY_RECENTLY_USED_CATEGORIES: 'policyRecentlyUsedCategories_',
         POLICY_TAGS: 'policyTags_',
-        POLICY_TAX_RATE: 'policyTaxRates_',
         POLICY_RECENTLY_USED_TAGS: 'policyRecentlyUsedTags_',
         POLICY_REPORT_FIELDS: 'policyReportFields_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
@@ -480,7 +482,6 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SELECTED_TAB]: string;
     [ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT]: string;
     [ONYXKEYS.COLLECTION.NEXT_STEP]: OnyxTypes.ReportNextStep;
-    [ONYXKEYS.COLLECTION.POLICY_TAX_RATE]: string[];
 };
 
 type OnyxValuesMapping = {
@@ -570,6 +571,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PLAID_CURRENT_EVENT]: string;
     [ONYXKEYS.LOGS]: Record<number, OnyxTypes.Log>;
     [ONYXKEYS.SHOULD_STORE_LOGS]: boolean;
+    [ONYXKEYS.CACHED_PDF_PATHS]: Record<string, string>;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;
@@ -588,4 +590,4 @@ type MissingOnyxKeysError = `Error: Types don't match, OnyxKey type is missing: 
 type AssertOnyxKeys = AssertTypesEqual<AllOnyxKeys, OnyxKey, MissingOnyxKeysError>;
 
 export default ONYXKEYS;
-export type {OnyxValues, OnyxKey, OnyxCollectionKey, OnyxValue, OnyxValueKey, OnyxFormKey, OnyxFormValuesMapping, OnyxFormDraftKey};
+export type {OnyxValues, OnyxKey, OnyxCollectionKey, OnyxValue, OnyxValueKey, OnyxFormKey, OnyxFormValuesMapping, OnyxFormDraftKey, OnyxCollectionValuesMapping};

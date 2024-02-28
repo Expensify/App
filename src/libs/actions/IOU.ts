@@ -1,3 +1,4 @@
+import type {ParamListBase, StackNavigationState} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import {format} from 'date-fns';
 import fastMerge from 'expensify-common/lib/fastMerge';
@@ -44,20 +45,21 @@ import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUR
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as UserUtils from '@libs/UserUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
-import type {MoneyRequestNavigatorParamList} from '@navigation/types';
+import type {MoneyRequestNavigatorParamList, NavigationPartialRoute} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant, Split} from '@src/types/onyx/IOU';
-import type {ErrorFields, Errors, PendingFields} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, Receipt, ReceiptSource, TaxRate, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Policy from './Policy';
 import * as Report from './Report';
 
@@ -277,6 +279,28 @@ function clearMoneyRequest(transactionID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
 }
 
+/**
+ * Update money request-related pages IOU type params
+ */
+function updateMoneyRequestTypeParams(routes: StackNavigationState<ParamListBase>['routes'] | NavigationPartialRoute[], newIouType: string, tab: string) {
+    routes.forEach((route) => {
+        const tabList = [CONST.TAB_REQUEST.DISTANCE, CONST.TAB_REQUEST.MANUAL, CONST.TAB_REQUEST.SCAN] as string[];
+        if (!route.name.startsWith('Money_Request_') && !tabList.includes(route.name)) {
+            return;
+        }
+        const newParams: Record<string, unknown> = {iouType: newIouType};
+        if (route.name === 'Money_Request_Create') {
+            // Both screen and nested params are needed to properly update the nested tab navigator
+            newParams.params = {...newParams};
+            newParams.screen = tab;
+        }
+        Navigation.setParams(newParams, route.key ?? '');
+
+        // Recursively update nested money request tab params
+        updateMoneyRequestTypeParams(route.state?.routes ?? [], newIouType, tab);
+    });
+}
+
 // eslint-disable-next-line @typescript-eslint/naming-convention
 function startMoneyRequest_temporaryForRefactor(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string) {
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
@@ -319,7 +343,7 @@ function setMoneyRequestMerchant(transactionID: string, merchant: string, isDraf
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {merchant});
 }
 
-function setMoneyRequestPendingFields(transactionID: string, pendingFields: PendingFields) {
+function setMoneyRequestPendingFields(transactionID: string, pendingFields: OnyxTypes.Transaction['pendingFields']) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {pendingFields});
 }
 
@@ -341,9 +365,9 @@ function setMoneyRequestParticipants_temporaryForRefactor(transactionID: string,
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants});
 }
 
-function setMoneyRequestReceipt(transactionID: string, source: string, filename: string, isDraft: boolean) {
+function setMoneyRequestReceipt(transactionID: string, source: string, filename: string, isDraft: boolean, type?: string) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        receipt: {source},
+        receipt: {source, type: type ?? ''},
         filename,
     });
 }
@@ -821,8 +845,8 @@ function getMoneyRequestInformation(
         // If the scheduled submit is turned off on the policy, user needs to manually submit the report which is indicated by GBR in LHN
         needsToBeManuallySubmitted = isFromPaidPolicy && !policy?.harvesting?.enabled;
 
-        // If the linked expense report on paid policy is not draft, we need to create a new draft expense report
-        if (iouReport && isFromPaidPolicy && !ReportUtils.isDraftExpenseReport(iouReport)) {
+        // If the linked expense report on paid policy is not draft and not instantly submitted, we need to create a new draft expense report
+        if (iouReport && isFromPaidPolicy && !ReportUtils.isDraftExpenseReport(iouReport) && !ReportUtils.isExpenseReportWithInstantSubmittedState(iouReport)) {
             iouReport = null;
         }
     }
@@ -831,7 +855,7 @@ function getMoneyRequestInformation(
         if (isPolicyExpenseChat) {
             iouReport = {...iouReport};
             if (iouReport?.currency === currency && typeof iouReport.total === 'number') {
-                // Because of the Expense reports are stored as negative values, we substract the total from the amount
+                // Because of the Expense reports are stored as negative values, we subtract the total from the amount
                 iouReport.total -= amount;
             }
         } else {
@@ -3156,6 +3180,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
 
     // STEP 6: Make the API request
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
+    CachedPDFPaths.clearByKey(transactionID);
 
     // STEP 7: Navigate the user depending on which page they are on and which resources were deleted
     if (iouReport && isSingleTransactionView && shouldDeleteTransactionThread && !shouldDeleteIOUReport) {
@@ -3638,14 +3663,14 @@ function sendMoneyWithWallet(report: OnyxTypes.Report, amount: number, currency:
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 
-function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
-    const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
-    const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(expenseReport.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID);
+function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report> | EmptyObject) {
+    const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport?.reportID}`] ?? null;
+    const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(expenseReport?.total ?? 0, expenseReport?.currency ?? '', expenseReport?.reportID ?? '');
     const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.APPROVED);
 
     const optimisticReportActionsData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
         value: {
             [optimisticApprovedReportAction.reportActionID]: {
                 ...(optimisticApprovedReportAction as OnyxTypes.ReportAction),
@@ -3655,7 +3680,7 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
     };
     const optimisticIOUReportData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.reportID}`,
         value: {
             ...expenseReport,
             lastMessageText: optimisticApprovedReportAction.message?.[0].text,
@@ -3666,7 +3691,7 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
     };
     const optimisticNextStepData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport?.reportID}`,
         value: optimisticNextStep,
     };
     const optimisticData: OnyxUpdate[] = [optimisticIOUReportData, optimisticReportActionsData, optimisticNextStepData];
@@ -3674,7 +3699,7 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
             value: {
                 [optimisticApprovedReportAction.reportActionID]: {
                     pendingAction: null,
@@ -3686,22 +3711,22 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
             value: {
-                [expenseReport.reportActionID ?? '']: {
+                [expenseReport?.reportActionID ?? '']: {
                     errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
                 },
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport?.reportID}`,
             value: currentNextStep,
         },
     ];
 
     const parameters: ApproveMoneyRequestParams = {
-        reportID: expenseReport.reportID,
+        reportID: expenseReport?.reportID ?? '',
         approvedReportActionID: optimisticApprovedReportAction.reportActionID,
     };
 
@@ -4210,6 +4235,7 @@ function navigateToStartStepIfScanFileCannotBeRead(
     iouType: ValueOf<typeof CONST.IOU.TYPE>,
     transactionID: string,
     reportID: string,
+    receiptType: string,
 ) {
     if (!receiptFilename || !receiptPath) {
         return;
@@ -4223,7 +4249,7 @@ function navigateToStartStepIfScanFileCannotBeRead(
         }
         IOUUtils.navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
     };
-    FileUtils.readFileAsync(receiptPath, receiptFilename, onSuccess, onFailure);
+    FileUtils.readFileAsync(receiptPath, receiptFilename, onSuccess, onFailure, receiptType);
 }
 
 /** Save the preferred payment method for a policy */
@@ -4250,6 +4276,8 @@ export {
     initMoneyRequest,
     startMoneyRequest_temporaryForRefactor,
     resetMoneyRequestInfo,
+    clearMoneyRequest,
+    updateMoneyRequestTypeParams,
     setMoneyRequestAmount_temporaryForRefactor,
     setMoneyRequestBillable_temporaryForRefactor,
     setMoneyRequestCreated,
