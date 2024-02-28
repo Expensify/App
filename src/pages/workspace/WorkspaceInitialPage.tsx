@@ -96,7 +96,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
 
     const hasMembersError = PolicyUtils.hasPolicyMemberError(policyMembers);
     const hasGeneralSettingsError = !isEmptyObject(policy?.errorFields?.generalSettings ?? {}) || !isEmptyObject(policy?.errorFields?.avatar ?? {});
-
     const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy);
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
     const isFreeGroupPolicy = PolicyUtils.isFreeGroupPolicy(policy);
@@ -151,6 +150,12 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
     ];
 
     const protectedCollectPolicyMenuItems: WorkspaceMenuItem[] = [
+        {
+            translationKey: 'workspace.common.workflows',
+            icon: Expensicons.Workflows,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.WORKFLOWS,
+        },
         {
             translationKey: 'workspace.common.members',
             icon: Expensicons.Users,

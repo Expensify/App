@@ -358,7 +358,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
 
     const getHeaderContent = () => (
         <>
-            <Text style={[styles.pl5, styles.mb5, styles.mt3]}>{translate('workspace.people.membersListTitle')}</Text>
+            <Text style={[styles.pl5, styles.mb5, styles.mt3, styles.textSupporting]}>{translate('workspace.people.membersListTitle')}</Text>
             {!isEmptyObject(invitedPrimaryToSecondaryLogins) && (
                 <MessagesRow
                     type="success"

@@ -703,8 +703,8 @@ function getAllReportActions(reportID: string): ReportActions {
 function isReportActionAttachment(reportAction: OnyxEntry<ReportAction>): boolean {
     const message = reportAction?.message?.[0];
 
-    if (reportAction && 'isAttachment' in reportAction) {
-        return reportAction.isAttachment ?? false;
+    if (reportAction && ('isAttachment' in reportAction || 'attachmentInfo' in reportAction)) {
+        return reportAction?.isAttachment ?? !!reportAction?.attachmentInfo ?? false;
     }
 
     if (message) {
@@ -801,14 +801,6 @@ function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): 
         text: reportAction?.message ? reportAction?.message[0].text : '',
         type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
     };
-}
-
-/**
- * MARKEDREIMBURSED reportActions come from marking a report as reimbursed in OldDot. For now, we just
- * concat all of the text elements of the message to create the full message.
- */
-function getMarkedReimbursedMessage(reportAction: OnyxEntry<ReportAction>): string {
-    return reportAction?.message?.map((element) => element.text).join('') ?? '';
 }
 
 function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
@@ -938,7 +930,6 @@ export {
     hasRequestFromCurrentAccount,
     getFirstVisibleReportActionID,
     isMemberChangeAction,
-    getMarkedReimbursedMessage,
     getMemberChangeMessageFragment,
     getMemberChangeMessagePlainText,
     isReimbursementDeQueuedAction,
