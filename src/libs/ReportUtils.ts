@@ -98,11 +98,6 @@ type SpendBreakdown = {
 
 type ParticipantDetails = [number, string, UserUtils.AvatarSource, UserUtils.AvatarSource];
 
-type ReportAndWorkspaceName = {
-    rootReportName: string;
-    workspaceName?: string;
-};
-
 type OptimisticAddCommentReportAction = Pick<
     ReportAction,
     | 'reportActionID'
@@ -2558,34 +2553,6 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
 }
 
 /**
- * Get the report name and workspace name for a report based on the type of the report
- */
-function getReportAndWorkspaceName(report: OnyxEntry<Report>): ReportAndWorkspaceName {
-    if (!report) {
-        return {
-            rootReportName: '',
-        };
-    }
-
-    if (isIOURequest(report)) {
-        return {
-            rootReportName: getReportName(report),
-        };
-    }
-    if (isExpenseRequest(report)) {
-        return {
-            rootReportName: getReportName(report),
-            workspaceName: isIOUReport(report) ? CONST.POLICY.OWNER_EMAIL_FAKE : getPolicyName(report, true),
-        };
-    }
-
-    return {
-        rootReportName: getReportName(report),
-        workspaceName: getPolicyName(report, true),
-    };
-}
-
-/**
  * Get either the policyName or domainName the chat is tied to
  */
 function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
@@ -2617,12 +2584,27 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>): ParentNavigatio
     }
 
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
-    const {rootReportName, workspaceName} = getReportAndWorkspaceName(parentReport);
-    if (!rootReportName) {
+    if (!parentReport) {
         return {};
     }
 
-    return {rootReportName, workspaceName};
+    if (isIOURequest(parentReport)) {
+        return {
+            rootReportName: getReportName(parentReport),
+        };
+    }
+
+    if (isExpenseRequest(parentReport)) {
+        return {
+            rootReportName: getReportName(parentReport),
+            workspaceName: isIOUReport(parentReport) ? CONST.POLICY.OWNER_EMAIL_FAKE : getPolicyName(parentReport, true),
+        };
+    }
+
+    return {
+        rootReportName: getReportName(parentReport),
+        workspaceName: getPolicyName(parentReport, true),
+    };
 }
 
 /**
