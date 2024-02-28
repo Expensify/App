@@ -1,8 +1,8 @@
-import PropTypes from 'prop-types';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -13,61 +13,54 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PublicScreensParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Card from '@userActions/Card';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import assignedCardPropTypes from './assignedCardPropTypes';
+import type SCREENS from '@src/SCREENS';
+import type {ReportVirtualCardFraudForm} from '@src/types/form';
+import type {Card as OnyxCard} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-const propTypes = {
-    /* Onyx Props */
-    formData: PropTypes.shape({
-        isLoading: PropTypes.bool,
-    }),
-    cardList: PropTypes.objectOf(assignedCardPropTypes),
-    /** The parameters needed to authenticate with a short-lived token are in the URL */
-    route: PropTypes.shape({
-        /** Each parameter passed via the URL */
-        params: PropTypes.shape({
-            /** Domain string */
-            domain: PropTypes.string,
-        }),
-    }).isRequired,
+type ReportVirtualCardFraudPageOnyxProps = {
+    /** Form data propTypes */
+    formData: OnyxEntry<ReportVirtualCardFraudForm>;
+
+    /** Card list propTypes */
+    cardList: OnyxEntry<Record<string, OnyxCard>>;
 };
 
-const defaultProps = {
-    cardList: {},
-    formData: {},
-};
+type ReportVirtualCardFraudPageProps = ReportVirtualCardFraudPageOnyxProps & StackScreenProps<PublicScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
 
 function ReportVirtualCardFraudPage({
     route: {
-        params: {domain},
+        params: {domain = ''},
     },
     cardList,
     formData,
-}) {
+}: ReportVirtualCardFraudPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const domainCards = CardUtils.getDomainCards(cardList)[domain];
-    const virtualCard = _.find(domainCards, (card) => card.isVirtual) || {};
-    const virtualCardError = ErrorUtils.getLatestErrorMessage(virtualCard) || '';
+    const virtualCard = domainCards?.find((card) => card.isVirtual);
+    const virtualCardError = ErrorUtils.getLatestErrorMessage(virtualCard?.errors ?? {});
 
-    const prevIsLoading = usePrevious(formData.isLoading);
+    const prevIsLoading = usePrevious(formData?.isLoading);
 
     useEffect(() => {
-        if (!prevIsLoading || formData.isLoading) {
+        if (!prevIsLoading || formData?.isLoading) {
             return;
         }
-        if (!_.isEmpty(virtualCard.errors)) {
+        if (!isEmptyObject(virtualCard?.errors)) {
             return;
         }
 
         Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain));
-    }, [domain, formData.isLoading, prevIsLoading, virtualCard.errors]);
+    }, [domain, formData?.isLoading, prevIsLoading, virtualCard?.errors]);
 
-    if (_.isEmpty(virtualCard)) {
+    if (isEmptyObject(virtualCard)) {
         return <NotFoundPage />;
     }
 
@@ -78,12 +71,12 @@ function ReportVirtualCardFraudPage({
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain))}
             />
             <View style={[styles.flex1, styles.justifyContentBetween]}>
-                <Text style={[styles.baseFontStyle, styles.mh5]}>{translate('reportFraudPage.description')}</Text>
+                <Text style={[styles.webViewStyles.baseFontStyle, styles.mh5]}>{translate('reportFraudPage.description')}</Text>
                 <FormAlertWithSubmitButton
                     isAlertVisible={Boolean(virtualCardError)}
                     onSubmit={() => Card.reportVirtualExpensifyCardFraud(virtualCard.cardID)}
                     message={virtualCardError}
-                    isLoading={formData.isLoading}
+                    isLoading={formData?.isLoading}
                     buttonText={translate('reportFraudPage.deactivateCard')}
                 />
             </View>
@@ -91,11 +84,9 @@ function ReportVirtualCardFraudPage({
     );
 }
 
-ReportVirtualCardFraudPage.propTypes = propTypes;
-ReportVirtualCardFraudPage.defaultProps = defaultProps;
 ReportVirtualCardFraudPage.displayName = 'ReportVirtualCardFraudPage';
 
-export default withOnyx({
+export default withOnyx<ReportVirtualCardFraudPageProps, ReportVirtualCardFraudPageOnyxProps>({
     cardList: {
         key: ONYXKEYS.CARD_LIST,
     },
