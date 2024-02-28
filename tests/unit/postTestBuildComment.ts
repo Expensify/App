@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 import {when} from 'jest-when';
-import asMutable from '@src/types/utils/AsMutable';
+import asMutable from '@src/types/utils/asMutable';
 import ghAction from '../../.github/actions/javascript/postTestBuildComment/postTestBuildComment';
 import GithubUtils from '../../.github/libs/GithubUtils';
 
@@ -61,9 +61,7 @@ describe('Post test build comments action tests', () => {
     });
 
     test('Test GH action', async () => {
-        when(core.getInput)
-            .calledWith('PR_NUMBER', {required: true})
-            .mockReturnValue(12 as unknown as string);
+        when(core.getInput).calledWith('PR_NUMBER', {required: true}).mockReturnValue(12);
         when(core.getInput).calledWith('ANDROID', {required: true}).mockReturnValue('success');
         when(core.getInput).calledWith('IOS', {required: true}).mockReturnValue('success');
         when(core.getInput).calledWith('WEB', {required: true}).mockReturnValue('success');
@@ -94,6 +92,6 @@ describe('Post test build comments action tests', () => {
             }
         `);
         expect(createCommentMock).toBeCalledTimes(1);
-        expect(createCommentMock).toBeCalledWith('App', 12, message);
+        expect(createCommentMock).toBeCalledWith('App', '12', message);
     });
 });
