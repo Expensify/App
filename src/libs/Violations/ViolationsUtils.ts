@@ -181,7 +181,7 @@ const ViolationsUtils = {
             case 'smartscanFailed':
                 return translate('violations.smartscanFailed');
             case 'someTagLevelsRequired':
-                return translate('violations.someTagLevelsRequired');
+                return translate('violations.someTagLevelsRequired', {tagName});
             case 'tagOutOfPolicy':
                 return translate('violations.tagOutOfPolicy', {tagName});
             case 'taxAmountChanged':

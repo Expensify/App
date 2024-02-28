@@ -58,7 +58,26 @@ function useViolations(violations: TransactionViolation[]) {
         }
         return violationGroups ?? new Map();
     }, [violations]);
-    const getViolationsForField = useCallback((field: ViolationField) => violationsByField.get(field) ?? [], [violationsByField]);
+
+    const getViolationsForField = useCallback(
+        (field: ViolationField, data?: TransactionViolation['data']) => {
+            const currentViolations = violationsByField.get(field) ?? [];
+            if (_.isNumber(data?.tagListIndex) && currentViolations[0]?.name === 'someTagLevelsRequired' && Array.isArray(currentViolations[0]?.data?.errorIndexes)) {
+                return currentViolations
+                    .filter((violation) => violation.data?.errorIndexes?.includes(data?.tagListIndex))
+                    .map((violation) => ({
+                        ...violation,
+                        data: {
+                            ...violation.data,
+                            tagName: data?.tagListName,
+                        },
+                    }));
+            }
+
+            return currentViolations;
+        },
+        [violationsByField],
+    );
 
     return {
         getViolationsForField,
