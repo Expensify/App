@@ -111,7 +111,7 @@ type Person = {
     text?: string;
 };
 
-type ReportActionBase = {
+type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
     reportActionID: string;
 
@@ -122,6 +122,9 @@ type ReportActionBase = {
     previousReportActionID?: string;
 
     actorAccountID?: number;
+
+    /** The account of the last message's actor */
+    actor?: string;
 
     /** Person who created the action */
     person?: Person[];
@@ -189,8 +192,6 @@ type ReportActionBase = {
     /** ISO-formatted datetime */
     lastModified?: string;
 
-    /** Is this action pending? */
-    pendingAction?: OnyxCommon.PendingAction;
     delegateAccountID?: number;
 
     /** Server side errors keyed by microtime */
@@ -216,7 +217,7 @@ type ReportActionBase = {
 
     /** Flag for checking if data is from optimistic data */
     isOptimisticAction?: boolean;
-};
+}>;
 
 type ReportAction = ReportActionBase & OriginalMessage;
 
