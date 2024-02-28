@@ -99,11 +99,6 @@ type SpendBreakdown = {
 
 type ParticipantDetails = [number, string, UserUtils.AvatarSource, UserUtils.AvatarSource];
 
-type ReportAndWorkspaceName = {
-    rootReportName: string;
-    workspaceName?: string;
-};
-
 type OptimisticAddCommentReportAction = Pick<
     ReportAction,
     | 'reportActionID'
@@ -2567,39 +2562,6 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
 }
 
 /**
- * Recursively navigates through thread parents to get the root report and workspace name.
- * The recursion stops when we find a non thread or money request report, whichever comes first.
- */
-function getRootReportAndWorkspaceName(report: OnyxEntry<Report>): ReportAndWorkspaceName {
-    if (!report) {
-        return {
-            rootReportName: '',
-        };
-    }
-    if (isChildReport(report) && !isMoneyRequestReport(report) && !isTaskReport(report)) {
-        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
-        return getRootReportAndWorkspaceName(parentReport);
-    }
-
-    if (isIOURequest(report)) {
-        return {
-            rootReportName: getReportName(report),
-        };
-    }
-    if (isExpenseRequest(report)) {
-        return {
-            rootReportName: getReportName(report),
-            workspaceName: isIOUReport(report) ? CONST.POLICY.OWNER_EMAIL_FAKE : getPolicyName(report, true),
-        };
-    }
-
-    return {
-        rootReportName: getReportName(report),
-        workspaceName: getPolicyName(report, true),
-    };
-}
-
-/**
  * Get either the policyName or domainName the chat is tied to
  */
 function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
@@ -2626,16 +2588,15 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
  * Gets the parent navigation subtitle for the report
  */
 function getParentNavigationSubtitle(report: OnyxEntry<Report>): ParentNavigationSummaryParams {
-    if (isThread(report)) {
-        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
-        const {rootReportName, workspaceName} = getRootReportAndWorkspaceName(parentReport);
-        if (!rootReportName) {
-            return {};
-        }
-
-        return {rootReportName, workspaceName};
+    const parentReport = getParentReport(report);
+    if (isEmptyObject(parentReport)) {
+        return {};
     }
-    return {};
+
+    return {
+        reportName: getReportName(parentReport),
+        workspaceName: getPolicyName(parentReport, true),
+    };
 }
 
 /**
