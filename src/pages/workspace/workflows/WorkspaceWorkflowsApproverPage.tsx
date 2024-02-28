@@ -145,7 +145,7 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails,
         });
 
         return sectionsArr;
-    }, [formattedPolicyMembers, formattedApprover, searchTerm]);
+    }, [formattedPolicyMembers, formattedApprover, searchTerm, translate]);
 
     const headerMessage = useMemo(() => (searchTerm && !sections[0].data.length ? translate('common.noResultsFound') : ''), [translate, sections]);
 
