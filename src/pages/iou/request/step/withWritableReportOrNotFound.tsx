@@ -1,4 +1,3 @@
-import type {RouteProp} from '@react-navigation/native';
 import type {ComponentType, ForwardedRef} from 'react';
 import React, {forwardRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -16,7 +15,7 @@ type WithWritableReportOrNotFoundOnyxProps = {
 };
 
 type WithWritableReportOrNotFoundProps = WithWritableReportOrNotFoundOnyxProps & {
-    route: RouteProp<Record<string, {iouType: string; reportID: string} | undefined>>;
+    route: {params: {iouType: string; reportID: string} | undefined};
 };
 
 export default function <TRef, TProps extends WithWritableReportOrNotFoundProps>(WrappedComponent: ComponentType<TProps>) {
