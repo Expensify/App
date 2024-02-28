@@ -13,7 +13,6 @@ import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import * as Report from '@userActions/Report';
@@ -68,10 +67,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
             testID={RoomDescriptionPage.displayName}
         >
             <FullPageNotFoundView shouldShow={!ReportUtils.canEditReportDescription(report, policy)}>
-                <HeaderWithBackButton
-                    title={translate('reportDescriptionPage.roomDescription')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButton title={translate('reportDescriptionPage.roomDescription')} />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM}
