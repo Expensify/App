@@ -964,7 +964,12 @@ function getCategoryListSections(
     }
 
     if (searchInputValue) {
-        const searchCategories = enabledCategories.filter((category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
+        const searchCategories = enabledCategories
+            .filter((category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()))
+            .map((category) => ({
+                ...category,
+                isSelected: selectedOptions.some((selectedOption) => selectedOption.name === category.name),
+            }));
 
         categorySections.push({
             // "Search" section
