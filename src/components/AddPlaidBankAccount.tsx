@@ -93,7 +93,7 @@ function AddPlaidBankAccount({
     const defaultSelectedPlaidAccountMask = plaidBankAccounts.find((account) => account.plaidAccountID === selectedPlaidAccountID)?.mask ?? '';
     const subscribedKeyboardShortcuts = useRef<Array<() => void>>([]);
     const previousNetworkState = useRef<boolean | undefined>();
-    const [selectedPlaidAccountMask, setSelectedPlaidAccountMask] = useState<string>(defaultSelectedPlaidAccountMask);
+    const [selectedPlaidAccountMask, setSelectedPlaidAccountMask] = useState(defaultSelectedPlaidAccountMask);
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -122,7 +122,7 @@ function AddPlaidBankAccount({
      */
     const subscribeToNavigationShortcuts = () => {
         // find and block the shortcuts
-        const shortcutsToBlock = Object.values(CONST.KEYBOARD_SHORTCUTS).filter((x) => 'type' in x && x.type === CONST.KEYBOARD_SHORTCUTS_TYPES.NAVIGATION_SHORTCUT);
+        const shortcutsToBlock = Object.values(CONST.KEYBOARD_SHORTCUTS).filter((shortcut) => 'type' in shortcut && shortcut.type === CONST.KEYBOARD_SHORTCUTS_TYPES.NAVIGATION_SHORTCUT);
         subscribedKeyboardShortcuts.current = shortcutsToBlock.map((shortcut) =>
             KeyboardShortcut.subscribe(
                 shortcut.shortcutKey,
@@ -166,7 +166,7 @@ function AddPlaidBankAccount({
         previousNetworkState.current = isOffline;
     }, [allowDebit, bankAccountID, isAuthenticatedWithPlaid, isOffline]);
 
-    const token = getPlaidLinkToken() ?? '';
+    const token = getPlaidLinkToken();
     const options = plaidBankAccounts.map((account) => ({
         value: account.plaidAccountID,
         label: account.addressName ?? '',
@@ -211,7 +211,7 @@ function AddPlaidBankAccount({
                         BankAccounts.setPlaidEvent(event);
                         // Handle Plaid login errors (will potentially reset plaid token and item depending on the error)
                         if (event === 'ERROR') {
-                            Log.hmmm('[PlaidLink] Error: ', metadata as Record<string, unknown> | undefined);
+                            Log.hmmm('[PlaidLink] Error: ', {...metadata});
                             if (bankAccountID && metadata && 'error_code' in metadata) {
                                 BankAccounts.handlePlaidError(bankAccountID, metadata.error_code ?? '', metadata.error_message ?? '', metadata.request_id);
                             }
