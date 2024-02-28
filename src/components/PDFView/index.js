@@ -43,8 +43,6 @@ class PDFView extends Component {
         this.getDevicePixelRatio = _.memoize(this.getDevicePixelRatio.bind(this));
         this.setListAttributes = this.setListAttributes.bind(this);
 
-        this.documentOpenedSuccessfully = false;
-
         const workerURL = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
         if (pdfjs.GlobalWorkerOptions.workerSrc !== workerURL) {
             pdfjs.GlobalWorkerOptions.workerSrc = workerURL;
@@ -98,10 +96,6 @@ class PDFView extends Component {
                 isPasswordInvalid: false,
                 isCheckingPassword: false,
             });
-
-            if (pageViewports.length) {
-                this.documentOpenedSuccessfully = true;
-            }
         });
     }
 

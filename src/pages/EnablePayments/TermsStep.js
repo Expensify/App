@@ -7,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -31,6 +32,30 @@ const defaultProps = {
     userWallet: {},
     walletTerms: {},
 };
+
+function HaveReadAndAgreeLabel() {
+    const {translate} = useLocalize();
+
+    return (
+        <Text>
+            {`${translate('termsStep.haveReadAndAgree')}`}
+            <TextLink href="https://use.expensify.com/esignagreement">{`${translate('termsStep.electronicDisclosures')}.`}</TextLink>
+        </Text>
+    );
+}
+
+function AgreeToTheLabel() {
+    const {translate} = useLocalize();
+
+    return (
+        <Text>
+            {`${translate('termsStep.agreeToThe')} `}
+            <TextLink href="https://use.expensify.com/privacy">{`${translate('common.privacy')} `}</TextLink>
+            {`${translate('common.and')} `}
+            <TextLink href="https://use.expensify.com/walletagreement">{`${translate('termsStep.walletAgreement')}.`}</TextLink>
+        </Text>
+    );
+}
 
 function TermsStep(props) {
     const styles = useThemeStyles();
@@ -71,27 +96,12 @@ function TermsStep(props) {
                     accessibilityLabel={props.translate('termsStep.haveReadAndAgree')}
                     style={[styles.mb4, styles.mt4]}
                     onInputChange={toggleDisclosure}
-                    LabelComponent={() => (
-                        <Text>
-                            {`${props.translate('termsStep.haveReadAndAgree')}`}
-                            <TextLink href="https://use.expensify.com/esignagreement">{`${props.translate('termsStep.electronicDisclosures')}.`}</TextLink>
-                        </Text>
-                    )}
+                    LabelComponent={HaveReadAndAgreeLabel}
                 />
                 <CheckboxWithLabel
                     accessibilityLabel={props.translate('termsStep.agreeToThe')}
                     onInputChange={togglePrivacyPolicy}
-                    LabelComponent={() => (
-                        <Text>
-                            {`${props.translate('termsStep.agreeToThe')} `}
-
-                            <TextLink href="https://use.expensify.com/privacy">{`${props.translate('common.privacy')} `}</TextLink>
-
-                            {`${props.translate('common.and')} `}
-
-                            <TextLink href="https://use.expensify.com/walletagreement">{`${props.translate('termsStep.walletAgreement')}.`}</TextLink>
-                        </Text>
-                    )}
+                    LabelComponent={AgreeToTheLabel}
                 />
                 <FormAlertWithSubmitButton
                     buttonText={props.translate('termsStep.enablePayments')}
