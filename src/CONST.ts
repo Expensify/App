@@ -689,6 +689,7 @@ const CONST = {
             DOMAIN_ALL: 'domainAll',
             POLICY_ROOM: 'policyRoom',
             POLICY_EXPENSE_CHAT: 'policyExpenseChat',
+            GROUP_CHAT: 'group',
         },
         WORKSPACE_CHAT_ROOMS: {
             ANNOUNCE: '#announce',

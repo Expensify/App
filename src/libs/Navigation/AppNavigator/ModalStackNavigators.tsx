@@ -162,6 +162,7 @@ const SearchModalStackNavigator = createModalStackNavigator<SearchNavigatorParam
 
 const NewChatModalStackNavigator = createModalStackNavigator<NewChatNavigatorParamList>({
     [SCREENS.NEW_CHAT.ROOT]: () => require('../../../pages/NewChatSelectorPage').default as React.ComponentType,
+    [SCREENS.NEW_CHAT.NEW_CHAT_CONFIRM]: () => require('../../../pages/NewChatConfirmPage').default as React.ComponentType,
 });
 
 const NewTaskModalStackNavigator = createModalStackNavigator<NewTaskNavigatorParamList>({

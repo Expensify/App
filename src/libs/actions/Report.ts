@@ -198,6 +198,11 @@ Onyx.connect({
     callback: (val) => (allRecentlyUsedReportFields = val),
 });
 
+function startNewChat() {
+    clearGroupChat();
+    Navigation.navigate(ROUTES.NEW);
+}
+
 /** Get the private pusher channel name for a Report. */
 function getReportChannelName(reportID: string): string {
     return `${CONST.PUSHER.PRIVATE_REPORT_CHANNEL_PREFIX}${reportID}${CONFIG.PUSHER.SUFFIX}`;
@@ -733,7 +738,7 @@ function openReport(
  * @param userLogins list of user logins to start a chat report with.
  * @param shouldDismissModal a flag to determine if we should dismiss modal before navigate to report or navigate to report directly.
  */
-function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true) {
+function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true, memberRoles?: string[], reportName?: string) {
     let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
 
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
@@ -2899,6 +2904,14 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
     API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER, parameters, {optimisticData, failureData});
 }
 
+function setGroupDraft(invitedUsersIDs: number[], groupChatAdminLogins: string[] = [], reportName: string = '') {
+    Onyx.set(ONYXKEYS.NEW_GROUP, {selectedOptions: invitedUsersIDs, groupChatAdminLogins, reportName});
+}
+
+function clearGroupChat() {
+    Onyx.set(ONYXKEYS.NEW_GROUP, null);
+}
+
 export {
     searchInServer,
     addComment,
@@ -2969,4 +2982,7 @@ export {
     updateReportName,
     resolveActionableMentionWhisper,
     updateRoomVisibility,
+    setGroupDraft,
+    clearGroupChat,
+    startNewChat,
 };

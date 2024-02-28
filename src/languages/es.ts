@@ -1142,6 +1142,9 @@ export default {
         roomDescriptionOptional: 'Descripción de la sala de chat (opcional)',
         explainerText: 'Establece una descripción personalizada para la sala de chat.',
     },
+    groupConfirmPage: {
+        groupName: 'Nombre del grupo',
+    },
     languagePage: {
         language: 'Idioma',
         languages: {
@@ -1282,7 +1285,7 @@ export default {
     },
     newChatPage: {
         createChat: 'Crear chat',
-        createGroup: 'Crear grupo',
+        startGroup: 'Grupo de inicio',
         addToGroup: 'Añadir al grupo',
     },
     yearPickerPage: {

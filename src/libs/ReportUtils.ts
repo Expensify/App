@@ -9,6 +9,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as Expensicons from '@components/Icon/Expensicons';
+import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
@@ -1428,6 +1429,14 @@ function getWorkspaceAvatar(report: OnyxEntry<Report>): UserUtils.AvatarSource {
     const workspaceName = getPolicyName(report, false, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]);
     const avatar = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatar ?? '';
     return !isEmpty(avatar) ? avatar : getDefaultWorkspaceAvatar(workspaceName);
+}
+
+// /**
+//  * Helper method to return the default avatar associated with the given reportID
+//  * TO REWORK!
+//  */
+function getDefaultGroupAvatar(): IconAsset {
+    return defaultGroupAvatars.Avatar1;
 }
 
 /**
@@ -5208,6 +5217,7 @@ export {
     canEditRoomVisibility,
     canEditPolicyDescription,
     getPolicyDescriptionText,
+    getDefaultGroupAvatar,
 };
 
 export type {
