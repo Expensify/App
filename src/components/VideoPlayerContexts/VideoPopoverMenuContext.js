@@ -29,7 +29,7 @@ function VideoPopoverMenuContextProvider({children}) {
     const downloadAttachment = useCallback(() => {
         const sourceURI = isLocalFile ? currentlyPlayingURL : addEncryptedAuthTokenToURL(currentlyPlayingURL);
         fileDownload(sourceURI);
-    }, [currentlyPlayingURL]);
+    }, [currentlyPlayingURL, isLocalFile]);
 
     const menuItems = useMemo(() => {
         const items = [];
