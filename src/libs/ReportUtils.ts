@@ -8,6 +8,7 @@ import lodashIsEqual from 'lodash/isEqual';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {FileObject} from '@components/AttachmentModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import CONST from '@src/CONST';
@@ -1323,7 +1324,7 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>, isUserPolicyAdmin: boo
 /**
  * Returns true if Concierge is one of the chat participants (1:1 as well as group chats)
  */
-function chatIncludesConcierge(report: OnyxEntry<Report>): boolean {
+function chatIncludesConcierge(report: Partial<OnyxEntry<Report>>): boolean {
     return Boolean(report?.participantAccountIDs?.length && report?.participantAccountIDs?.includes(CONST.ACCOUNT_ID.CONCIERGE));
 }
 
@@ -2698,7 +2699,7 @@ function getPolicyDescriptionText(policy: Policy): string {
     return parser.htmlToText(policy.description);
 }
 
-function buildOptimisticAddCommentReportAction(text?: string, file?: File, actorAccountID?: number): OptimisticReportAction {
+function buildOptimisticAddCommentReportAction(text?: string, file?: FileObject, actorAccountID?: number): OptimisticReportAction {
     const parser = new ExpensiMark();
     const commentText = getParsedComment(text ?? '');
     const isAttachment = !text && file !== undefined;
@@ -3985,10 +3986,10 @@ function shouldReportBeInOptionList({
 /**
  * Attempts to find a report in onyx with the provided list of participants. Does not include threads, task, money request, room, and policy expense chat.
  */
-function getChatByParticipants(newParticipantList: number[]): OnyxEntry<Report> {
+function getChatByParticipants(newParticipantList: number[], reports: OnyxCollection<Report> = allReports): OnyxEntry<Report> {
     const sortedNewParticipantList = newParticipantList.sort();
     return (
-        Object.values(allReports ?? {}).find((report) => {
+        Object.values(reports ?? {}).find((report) => {
             // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
             if (
                 !report ||
