@@ -1,9 +1,9 @@
-import type {Video} from 'expo-av';
+import type {AVPlaybackStatusToSet, Video} from 'expo-av';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import type {PlaybackContext} from './types';
+import type {PlaybackContext, StatusCallback} from './types';
 
 const Context = React.createContext<PlaybackContext | null>(null);
 
@@ -19,15 +19,16 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     }, [currentVideoPlayerRef]);
 
     const stopVideo = useCallback(() => {
-        currentVideoPlayerRef.current?.stopAsync?.();
+        currentVideoPlayerRef.current?.stopAsync();
     }, [currentVideoPlayerRef]);
 
     const playVideo = useCallback(() => {
-        currentVideoPlayerRef.current?.getStatusAsync?.().then((status) => {
+        currentVideoPlayerRef.current?.getStatusAsync().then((status) => {
+            const newStatus: AVPlaybackStatusToSet = {shouldPlay: true};
             if ('durationMillis' in status && status.durationMillis === status.positionMillis) {
-                currentVideoPlayerRef.current?.setStatusAsync({shouldPlay: true, positionMillis: 0});
+                newStatus.positionMillis = 0;
             }
-            currentVideoPlayerRef.current?.setStatusAsync({shouldPlay: true});
+            currentVideoPlayerRef.current?.setStatusAsync(newStatus);
         });
     }, [currentVideoPlayerRef]);
 
@@ -59,7 +60,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     );
 
     const checkVideoPlaying = useCallback(
-        (statusCallback: (isPlaying: boolean) => void) => {
+        (statusCallback: StatusCallback) => {
             currentVideoPlayerRef.current?.getStatusAsync().then((status) => {
                 statusCallback('isPlaying' in status && status.isPlaying);
             });

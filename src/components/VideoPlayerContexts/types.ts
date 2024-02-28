@@ -2,6 +2,7 @@ import type {Video} from 'expo-av';
 import type {MutableRefObject} from 'react';
 import type {View} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
+import type CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type PlaybackContext = {
@@ -36,7 +37,11 @@ type MenuItem = {
 
 type VideoPopoverMenuContext = {
     menuItems: Array<SingularMenuItem | MenuItem>;
-    updatePlaybackSpeed: (speed: number) => void;
+    updatePlaybackSpeed: (speed: PlaybackSpeed) => void;
 };
 
-export type {PlaybackContext, VolumeContext, VideoPopoverMenuContext, MenuItem, SingularMenuItem};
+type StatusCallback = (isPlaying: boolean) => void;
+
+type PlaybackSpeed = (typeof CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS)[number];
+
+export type {PlaybackContext, VolumeContext, VideoPopoverMenuContext, MenuItem, SingularMenuItem, StatusCallback, PlaybackSpeed};
