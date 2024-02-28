@@ -132,8 +132,7 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails}
         if (!policy || !policy.approvalMode || !personalDetails?.[member.accountID]?.login) {
             return;
         }
-        const approver: string = personalDetails?.[member.accountID]?.login || policy.approver || '';
-        console.log(approver);
+        const approver: string = personalDetails?.[member.accountID]?.login || policy.approver || policy.owner;
         Policy.setWorkspaceApprovalMode(policy.id, approver, policy.approvalMode);
         Navigation.goBack();
     };
