@@ -2579,25 +2579,14 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
  * Gets the parent navigation subtitle for the report
  */
 function getParentNavigationSubtitle(report: OnyxEntry<Report>): ParentNavigationSummaryParams {
-    if (!isThread(report)) {
-        return {};
-    }
-
-    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
-    if (!parentReport) {
+    const parentReport = getParentReport(report);
+    if (isEmptyObject(parentReport)) {
         return {};
     }
 
     if (isIOURequest(parentReport)) {
         return {
             reportName: getReportName(parentReport),
-        };
-    }
-
-    if (isExpenseRequest(parentReport)) {
-        return {
-            reportName: getReportName(parentReport),
-            workspaceName: isIOUReport(parentReport) ? CONST.POLICY.OWNER_EMAIL_FAKE : getPolicyName(parentReport, true),
         };
     }
 
