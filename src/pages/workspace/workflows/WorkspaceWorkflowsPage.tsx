@@ -34,8 +34,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
 
-    const ownerPersonalDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([policy?.ownerAccountID ?? 0], CONST.EMPTY_OBJECT), false);
-    const policyOwnerDisplayName = ownerPersonalDetails[0]?.displayName;
+    const policyApprover = policy?.approver;
     const containerStyle = useMemo(() => [styles.ph8, styles.mhn8, styles.ml11, styles.pv3, styles.pr0, styles.pl4, styles.mr0, styles.widthAuto, styles.mt4], [styles]);
 
     const items: ToggleSettingOptionRowProps[] = useMemo(
