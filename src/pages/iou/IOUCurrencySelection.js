@@ -9,6 +9,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {withNetwork} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -165,6 +166,7 @@ function IOUCurrencySelection(props) {
                     />
                     <SelectionList
                         sections={sections}
+                        ListItem={RadioListItem}
                         textInputLabel={translate('common.search')}
                         textInputValue={searchValue}
                         onChangeText={setSearchValue}

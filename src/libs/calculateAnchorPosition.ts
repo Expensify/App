@@ -16,13 +16,15 @@ type AnchorOrigin = {
 export default function calculateAnchorPosition(anchorComponent: View | RNText, anchorOrigin?: AnchorOrigin): Promise<AnchorPosition> {
     return new Promise((resolve) => {
         if (!anchorComponent) {
-            return resolve({horizontal: 0, vertical: 0});
+            resolve({horizontal: 0, vertical: 0});
+            return;
         }
         anchorComponent.measureInWindow((x, y, width, height) => {
             if (anchorOrigin?.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP && anchorOrigin?.horizontal === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT) {
-                return resolve({horizontal: x, vertical: y + height + (anchorOrigin?.shiftVertical ?? 0)});
+                resolve({horizontal: x, vertical: y + height + (anchorOrigin?.shiftVertical ?? 0)});
+                return;
             }
-            return resolve({horizontal: x + width, vertical: y + (anchorOrigin?.shiftVertical ?? 0)});
+            resolve({horizontal: x + width, vertical: y + (anchorOrigin?.shiftVertical ?? 0)});
         });
     });
 }

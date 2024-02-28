@@ -8,6 +8,10 @@ import type {CSSProperties, FocusEventHandler, KeyboardEventHandler, MouseEventH
 import 'react-native';
 import type {BootSplashModule} from '@libs/BootSplash/types';
 
+type HybridAppModule = {
+    closeReactNativeApp: () => void;
+};
+
 declare module 'react-native' {
     // <------ REACT NATIVE WEB (0.19.0) ------>
     // Extracted from react-native-web, packages/react-native-web/src/exports/View/types.js
@@ -351,5 +355,6 @@ declare module 'react-native' {
 
     interface NativeModulesStatic {
         BootSplash: BootSplashModule;
+        HybridAppModule: HybridAppModule;
     }
 }
