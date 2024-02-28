@@ -109,7 +109,7 @@ type RequestAmountParams = {amount: string};
 
 type RequestedAmountMessageParams = {formattedAmount: string; comment?: string};
 
-type SplitAmountParams = {amount: number};
+type SplitAmountParams = {amount: string | number};
 
 type DidSplitAmountMessageParams = {formattedAmount: string; comment: string};
 
