@@ -34,21 +34,19 @@ function ExpensifyWordmark({isSmallScreenWidth, style}: ExpensifyWordmarkProps) 
     const LogoComponent = logoComponents[environment];
 
     return (
-        <>
-            <View
-                style={[
-                    StyleUtils.getSignInWordmarkWidthStyle(isSmallScreenWidth, environment),
-                    StyleUtils.getHeight(isSmallScreenWidth ? variables.signInLogoHeightSmallScreen : variables.signInLogoHeight),
-                    isSmallScreenWidth && (environment === CONST.ENVIRONMENT.DEV || environment === CONST.ENVIRONMENT.STAGING) ? styles.ml3 : {},
-                    style,
-                ]}
-            >
-                <ImageSVG
-                    contentFit="contain"
-                    src={LogoComponent}
-                />
-            </View>
-        </>
+        <View
+            style={[
+                StyleUtils.getSignInWordmarkWidthStyle(isSmallScreenWidth, environment),
+                StyleUtils.getHeight(isSmallScreenWidth ? variables.signInLogoHeightSmallScreen : variables.signInLogoHeight),
+                isSmallScreenWidth && (environment === CONST.ENVIRONMENT.DEV || environment === CONST.ENVIRONMENT.STAGING) ? styles.ml3 : {},
+                style,
+            ]}
+        >
+            <ImageSVG
+                contentFit="contain"
+                src={LogoComponent}
+            />
+        </View>
     );
 }
 

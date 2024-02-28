@@ -1,4 +1,4 @@
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -82,18 +82,20 @@ function IOURequestStartPage({
     const previousIOURequestType = usePrevious(transactionRequestType.current);
     const isFromGlobalCreate = _.isEmpty(report.reportID);
 
-    useEffect(() => {
-        const handler = (event) => {
-            if (event.code !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
-                return;
-            }
-            event.preventDefault();
-            event.stopPropagation();
-        };
-        KeyDownPressListener.addKeyDownPressListener(handler);
+    useFocusEffect(
+        useCallback(() => {
+            const handler = (event) => {
+                if (event.code !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
+                    return;
+                }
+                event.preventDefault();
+                event.stopPropagation();
+            };
+            KeyDownPressListener.addKeyDownPressListener(handler);
 
-        return () => KeyDownPressListener.removeKeyDownPressListener(handler);
-    }, []);
+            return () => KeyDownPressListener.removeKeyDownPressListener(handler);
+        }, []),
+    );
 
     // Clear out the temporary money request if the reportID in the URL has changed from the transaction's reportID
     useEffect(() => {
@@ -157,13 +159,7 @@ function IOURequestStartPage({
                                 id={CONST.TAB.IOU_REQUEST_TYPE}
                                 selectedTab={selectedTab || CONST.IOU.REQUEST_TYPE.SCAN}
                                 onTabSelected={resetIOUTypeIfChanged}
-                                tabBar={({state, navigation: tabNavigation, position}) => (
-                                    <TabSelector
-                                        state={state}
-                                        navigation={tabNavigation}
-                                        position={position}
-                                    />
-                                )}
+                                tabBar={TabSelector}
                             >
                                 <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => <IOURequestStepAmount route={route} />}</TopTab.Screen>
                                 <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>{() => <IOURequestStepScan route={route} />}</TopTab.Screen>
