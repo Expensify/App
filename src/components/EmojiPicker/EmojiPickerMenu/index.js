@@ -334,10 +334,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected, activeEmoji}) {
                 isFiltered={isListFiltered}
                 headerEmojis={headerEmojis}
                 scrollToHeader={scrollToHeader}
-                listWrapperStyle={[
-                    listStyle,
-                    styles.flexShrink1,
-                ]}
+                listWrapperStyle={[listStyle, styles.flexShrink1]}
                 ref={emojiListRef}
                 data={filteredEmojis}
                 renderItem={renderItem}
