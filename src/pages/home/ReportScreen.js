@@ -623,7 +623,7 @@ export default compose(
                 selector: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
             },
             transactionThreadReportActions: {
-                key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.transactionThreadReportID : 0}`,
+                key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? (report.transactionThreadReportID || '0') : '0'}`,
                 canEvict: false,
                 selector: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
             },
