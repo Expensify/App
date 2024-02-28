@@ -81,7 +81,7 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails}
                 );
             }
 
-            result.push({
+            policyUsersSection.push({
                 keyForList: accountIDKey,
                 accountID,
                 isSelected: policy?.approver === details.login,
