@@ -79,7 +79,9 @@ function IOURequestStepTag({
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const parentReportAction = parentReportActions[report.parentReportActionID];
-    const canEdit = canEditMoneyRequest(parentReportAction);
+
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = isEditing && !canEditMoneyRequest(parentReportAction);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -112,12 +114,11 @@ function IOURequestStepTag({
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID={IOURequestStepTag.displayName}
-            shouldShowNotFoundPage={!canEdit}
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             {({insets}) => (
                 <>
                     <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: policyTagListName})}</Text>
-
                     <TagPicker
                         policyID={report.policyID}
                         tag={policyTagListName}
