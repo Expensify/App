@@ -52,6 +52,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                 onNavigate(attachmentsFromReport[initialPage]);
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportActions, compareImage]);
 
     /** Updates the page state when the user navigates between attachments */
@@ -119,39 +120,33 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
     return (
         <View style={containerStyles}>
-            {page == null ? (
-                <FullScreenLoadingIndicator />
+            {page === -1 ? (
+                <BlockingView
+                    icon={Illustrations.ToddBehindCloud}
+                    iconWidth={variables.modalTopIconWidth}
+                    iconHeight={variables.modalTopIconHeight}
+                    title={translate('notFound.notHere')}
+                />
             ) : (
                 <>
-                    {page === -1 ? (
-                        <BlockingView
-                            icon={Illustrations.ToddBehindCloud}
-                            iconWidth={variables.modalTopIconWidth}
-                            iconHeight={variables.modalTopIconHeight}
-                            title={translate('notFound.notHere')}
-                        />
-                    ) : (
-                        <>
-                            <CarouselButtons
-                                shouldShowArrows={shouldShowArrows}
-                                page={page}
-                                attachments={attachments}
-                                onBack={() => cycleThroughAttachments(-1)}
-                                onForward={() => cycleThroughAttachments(1)}
-                                autoHideArrow={autoHideArrows}
-                                cancelAutoHideArrow={cancelAutoHideArrows}
-                            />
+                    <CarouselButtons
+                        shouldShowArrows={shouldShowArrows}
+                        page={page}
+                        attachments={attachments}
+                        onBack={() => cycleThroughAttachments(-1)}
+                        onForward={() => cycleThroughAttachments(1)}
+                        autoHideArrow={autoHideArrows}
+                        cancelAutoHideArrow={cancelAutoHideArrows}
+                    />
 
-                            <AttachmentCarouselPager
-                                items={attachments}
-                                onRequestToggleArrows={toggleArrows}
-                                onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
-                                onClose={goBack}
-                                ref={pagerRef}
-                                initialPage={page}
-                            />
-                        </>
-                    )}
+                    <AttachmentCarouselPager
+                        items={attachments}
+                        initialPage={page}
+                        onRequestToggleArrows={toggleArrows}
+                        onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
+                        onClose={goBack}
+                        ref={pagerRef}
+                    />
                 </>
             )}
         </View>
