@@ -74,11 +74,17 @@ function HeaderWithBackButton({
     const middleContent = useMemo(() => {
         if (progressBarPercentage) {
             return (
-                <View>
-                    <View style={styles.progressBarWrapper}>
-                        <View style={[{width: `${progressBarPercentage}%`}, styles.progressBar]} />
+                <>
+                    {/* Reserves as much space for the middleContent as possible */}
+                    <View style={styles.flexGrow1} />
+                    {/* Uses absolute positioning so that it's always centered instead of being affected by the
+                    presence or absence of back/close buttons to the left/right of it */}
+                    <View style={styles.headerProgressBarContainer}>
+                        <View style={styles.headerProgressBar}>
+                            <View style={[{width: `${progressBarPercentage}%`}, styles.headerProgressBarFill]} />
+                        </View>
                     </View>
-                </View>
+                </>
             );
         }
 
@@ -99,21 +105,7 @@ function HeaderWithBackButton({
                 textStyles={titleColor ? [StyleUtils.getTextColorStyle(titleColor)] : []}
             />
         );
-    }, [
-        StyleUtils,
-        policy,
-        progressBarPercentage,
-        report,
-        shouldEnableDetailPageNavigation,
-        shouldShowAvatarWithDisplay,
-        stepCounter,
-        styles.progressBar,
-        styles.progressBarWrapper,
-        subtitle,
-        title,
-        titleColor,
-        translate,
-    ]);
+    }, [StyleUtils, policy, progressBarPercentage, report, shouldEnableDetailPageNavigation, shouldShowAvatarWithDisplay, stepCounter, styles, subtitle, title, titleColor, translate]);
 
     return (
         <View
@@ -125,6 +117,9 @@ function HeaderWithBackButton({
                 isCentralPaneSettings && styles.headerBarDesktopHeight,
                 shouldShowBorderBottom && styles.borderBottom,
                 shouldShowBackButton && styles.pl2,
+                // progressBarPercentage can be 0 which would
+                // be falsey, hence using !== undefined explicitly
+                progressBarPercentage !== undefined && styles.pl2,
                 shouldOverlay && StyleSheet.absoluteFillObject,
             ]}
         >

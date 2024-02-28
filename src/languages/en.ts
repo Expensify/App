@@ -1210,6 +1210,14 @@ export default {
         loginForm: 'Login form',
         notYou: ({user}: NotYouParams) => `Not ${user}?`,
     },
+    onboarding: {
+        welcome: 'Welcome!',
+        whatsYourName: "What's your name?",
+        error: {
+            requiredFirstName: 'Please input your first name to continue',
+            requiredLasttName: 'Please input your last name to continue',
+        },
+    },
     personalDetails: {
         error: {
             containsReservedWord: 'Name cannot contain the words Expensify or Concierge',

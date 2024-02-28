@@ -1209,6 +1209,14 @@ export default {
         loginForm: 'Formulario de inicio de sesión',
         notYou: ({user}: NotYouParams) => `¿No eres ${user}?`,
     },
+    onboarding: {
+        welcome: '¡Bienvenido!',
+        whatsYourName: '¿Cómo te llamas?',
+        error: {
+            requiredFirstName: 'Por favor, ingresa tu primer nombre para continuar',
+            requiredLasttName: 'Por favor, ingresa tu apellido para continuar',
+        },
+    },
     personalDetails: {
         error: {
             containsReservedWord: 'El nombre no puede contener las palabras Expensify o Concierge',
