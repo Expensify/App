@@ -118,7 +118,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     if (!navigation) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }
-    debugger;
     let root: NavigationRoot = navigation;
     let current: NavigationRoot | undefined;
 
