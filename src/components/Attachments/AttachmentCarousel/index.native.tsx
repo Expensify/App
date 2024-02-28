@@ -52,7 +52,6 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                 onNavigate(attachmentsFromReport[initialPage]);
             }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportActions, compareImage]);
 
     /** Updates the page state when the user navigates between attachments */
@@ -108,8 +107,18 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         Navigation.goBack();
     }, []);
 
+    const containerStyles = [styles.flex1, styles.attachmentCarouselContainer];
+
+    if (page == null) {
+        return (
+            <View style={containerStyles}>
+                <FullScreenLoadingIndicator />
+            </View>
+        );
+    }
+
     return (
-        <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
+        <View style={containerStyles}>
             {page == null ? (
                 <FullScreenLoadingIndicator />
             ) : (
