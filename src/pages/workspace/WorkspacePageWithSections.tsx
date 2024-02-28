@@ -42,7 +42,7 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         headerText: string;
 
         /** Main content of the page */
-        children: (hasVBA: boolean, policyID: string, isUsingECard: boolean) => ReactNode;
+        children: ((hasVBA: boolean, policyID: string, isUsingECard: boolean) => ReactNode) | ReactNode;
 
         /** Content to be added as fixed footer */
         footer?: ReactNode;
@@ -68,6 +68,9 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         /** Whether to show this page to non admin policy members */
         shouldShowNonAdmin?: boolean;
 
+        /** Whether to show the not found page */
+        shouldShowNotFoundPage?: boolean;
+
         /** Policy values needed in the component */
         policy: OnyxEntry<Policy>;
 
@@ -91,6 +94,7 @@ function WorkspacePageWithSections({
     backButtonRoute,
     children = () => null,
     footer = null,
+    icon = undefined,
     guidesCallTaskID = '',
     headerText,
     policy,
@@ -104,7 +108,7 @@ function WorkspacePageWithSections({
     shouldShowLoading = true,
     shouldShowOfflineIndicatorInWideScreen = false,
     shouldShowNonAdmin = false,
-    icon,
+    shouldShowNotFoundPage = false,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID ?? '';
@@ -114,16 +118,9 @@ function WorkspacePageWithSections({
     const achState = reimbursementAccount?.achData?.state ?? '';
     const isUsingECard = user?.isUsingExpensifyCard ?? false;
     const hasVBA = achState === BankAccount.STATE.OPEN;
-    const content = children(hasVBA, policyID, isUsingECard);
+    const content = typeof children === 'function' ? children(hasVBA, policyID, isUsingECard) : children;
     const {isSmallScreenWidth} = useWindowDimensions();
     const firstRender = useRef(true);
-
-    const goBack = () => {
-        Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
-
-        // Needed when workspace with given policyID does not exist
-        Navigation.navigateWithSwitchPolicyID({route: ROUTES.ALL_SETTINGS});
-    };
 
     useEffect(() => {
         // Because isLoading is false before merging in Onyx, we need firstRender ref to display loading page as well before isLoading is change to true
@@ -136,7 +133,7 @@ function WorkspacePageWithSections({
 
     const shouldShow = useMemo(() => {
         // If the policy object doesn't exist or contains only error data, we shouldn't display it.
-        if ((isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors))) && isEmptyObject(policyDraft)) {
+        if (((isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors))) && isEmptyObject(policyDraft)) || shouldShowNotFoundPage) {
             return true;
         }
 
@@ -153,8 +150,8 @@ function WorkspacePageWithSections({
             shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen && !shouldShow}
         >
             <FullPageNotFoundView
-                onBackButtonPress={goBack}
-                onLinkPress={goBack}
+                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
+                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
                 shouldShow={shouldShow}
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
                 shouldForceFullScreen
@@ -164,7 +161,7 @@ function WorkspacePageWithSections({
                     guidesCallTaskID={guidesCallTaskID}
                     shouldShowBackButton={isSmallScreenWidth || shouldShowBackButton}
                     onBackButtonPress={() => Navigation.goBack(backButtonRoute ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}
-                    icon={icon}
+                    icon={icon ?? undefined}
                 />
                 {(isLoading || firstRender.current) && shouldShowLoading ? (
                     <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />

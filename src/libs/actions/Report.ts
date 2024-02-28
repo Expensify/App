@@ -67,6 +67,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {PersonalDetails, PersonalDetailsList, PolicyReportField, RecentlyUsedReportFields, ReportActionReactions, ReportMetadata, ReportUserIsTyping} from '@src/types/onyx';
 import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import type {NotificationPreference, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
@@ -2841,6 +2842,11 @@ function clearNewRoomFormError() {
         isLoading: false,
         errorFields: null,
         errors: null,
+        [INPUT_IDS.ROOM_NAME]: '',
+        [INPUT_IDS.REPORT_DESCRIPTION]: '',
+        [INPUT_IDS.POLICY_ID]: '',
+        [INPUT_IDS.WRITE_CAPABILITY]: '',
+        [INPUT_IDS.VISIBILITY]: '',
     });
 }
 

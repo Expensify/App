@@ -15,6 +15,7 @@ import type CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
 
@@ -59,6 +60,9 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.CARD]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.WORKFLOWS]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.REIMBURSE]: {
         policyID: string;
     };
@@ -72,6 +76,9 @@ type CentralPaneNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.MEMBERS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.CATEGORIES]: {
         policyID: string;
     };
 };
@@ -152,6 +159,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.CURRENCY]: undefined;
     [SCREENS.WORKSPACE.NAME]: undefined;
     [SCREENS.WORKSPACE.DESCRIPTION]: undefined;
+    [SCREENS.WORKSPACE.SHARE]: undefined;
     [SCREENS.WORKSPACE.RATE_AND_UNIT]: {
         policyID: string;
     };
@@ -167,12 +175,23 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
+        policyID: string;
+    };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: undefined;
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: undefined;
     [SCREENS.KEYBOARD_SHORTCUTS]: undefined;
+    [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: undefined;
+    [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
+        [EXIT_SURVEY_REASON_FORM_INPUT_IDS.REASON]: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>;
+        backTo: Routes;
+    };
+    [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: {
+        backTo: Routes;
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type NewChatNavigatorParamList = {
@@ -263,9 +282,12 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backTo: string;
     };
-    [SCREENS.MONEY_REQUEST.CATEGORY]: {
-        iouType: string;
+    [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        transactionID: string;
         reportID: string;
+        backTo: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: {
         iouType: string;
@@ -285,6 +307,13 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         backTo: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: {
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        reportID: string;
+        backTo: Routes | undefined;
+        action: ValueOf<typeof CONST.IOU.ACTION>;
+        pageIndex: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_MERCHANT]: {
         action: ValueOf<typeof CONST.IOU.ACTION>;
@@ -476,6 +505,7 @@ type PublicScreensParamList = {
         shortLivedAuthToken?: string;
         shortLivedToken?: string;
         exitTo?: Routes | HybridAppRoute;
+        domain?: Routes;
     };
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;

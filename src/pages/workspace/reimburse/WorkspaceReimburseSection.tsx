@@ -68,45 +68,41 @@ function WorkspaceReimburseSection({policy, reimbursementAccount}: WorkspaceReim
         );
     }
 
-    return (
-        <>
-            {hasVBA ? (
-                <Section
-                    title={translate('workspace.reimburse.fastReimbursementsHappyMembers')}
-                    icon={Illustrations.TreasureChest}
-                    isCentralPane
-                    menuItems={[
-                        {
-                            title: translate('workspace.reimburse.reimburseReceipts'),
-                            onPress: () => Link.openOldDotLink(reimburseReceiptsUrl),
-                            icon: Expensicons.Bank,
-                            shouldShowRightIcon: true,
-                            iconRight: Expensicons.NewWindow,
-                            wrapperStyle: styles.cardMenuItem,
-                            link: () => Link.buildOldDotURL(reimburseReceiptsUrl),
-                        },
-                    ]}
-                >
-                    <View style={styles.mv3}>
-                        <Text>{translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
-                    </View>
-                </Section>
-            ) : (
-                <Section
-                    title={translate('workspace.reimburse.unlockNextDayReimbursements')}
-                    icon={Illustrations.OpenSafe}
-                    isCentralPane
-                >
-                    <View style={styles.mv3}>
-                        <Text>{translate('workspace.reimburse.unlockNoVBACopy')}</Text>
-                    </View>
-                    <ConnectBankAccountButton
-                        policyID={policyId}
-                        style={styles.mt4}
-                    />
-                </Section>
-            )}
-        </>
+    return hasVBA ? (
+        <Section
+            title={translate('workspace.reimburse.fastReimbursementsHappyMembers')}
+            icon={Illustrations.TreasureChest}
+            isCentralPane
+            menuItems={[
+                {
+                    title: translate('workspace.reimburse.reimburseReceipts'),
+                    onPress: () => Link.openOldDotLink(reimburseReceiptsUrl),
+                    icon: Expensicons.Bank,
+                    shouldShowRightIcon: true,
+                    iconRight: Expensicons.NewWindow,
+                    wrapperStyle: [styles.cardMenuItem],
+                    link: () => Link.buildOldDotURL(reimburseReceiptsUrl),
+                },
+            ]}
+        >
+            <View style={[styles.mv3]}>
+                <Text>{translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
+            </View>
+        </Section>
+    ) : (
+        <Section
+            title={translate('workspace.reimburse.unlockNextDayReimbursements')}
+            icon={Illustrations.OpenSafe}
+            isCentralPane
+        >
+            <View style={[styles.mv3]}>
+                <Text>{translate('workspace.reimburse.unlockNoVBACopy')}</Text>
+            </View>
+            <ConnectBankAccountButton
+                policyID={policy?.id ?? ''}
+                style={[styles.mt4]}
+            />
+        </Section>
     );
 }
 
