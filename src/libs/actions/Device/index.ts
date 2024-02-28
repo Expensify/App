@@ -12,7 +12,8 @@ let deviceID: string | null = null;
 function getDeviceID(): Promise<string | null> {
     return new Promise((resolve) => {
         if (deviceID) {
-            return resolve(deviceID);
+            resolve(deviceID);
+            return;
         }
 
         const connectionID = Onyx.connect({
