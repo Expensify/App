@@ -641,18 +641,19 @@ function removeMembers(accountIDs: number[], policyID: string) {
 function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newRole: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER) {
     const previousPolicyMembers = {...allPolicyMembers};
     const memberRoles: WorkspaceMembersRoleData[] = accountIDs
-        .map((accountID) => {
-            if (!allPersonalDetails?.[accountID]) {
-                return null;
+        .reduce((result: WorkspaceMembersRoleData[], accountID: number) => {
+            if (!allPersonalDetails?.[accountID]?.login) {
+                return result;
             }
 
-            return {
+            result.push({
                 accountID,
-                email: allPersonalDetails?.[accountID]?.login,
+                email: allPersonalDetails?.[accountID]?.login ?? '',
                 role: newRole,
-            };
-        })
-        .filter((item): item is WorkspaceMembersRoleData => item !== null);
+            });
+
+            return result;
+        }, []);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -660,6 +661,7 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
             key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
             value: {
                 ...memberRoles.reduce((member: Record<number, {role: string}>, current) => {
+                    // eslint-disable-next-line no-param-reassign
                     member[current.accountID] = {role: current?.role};
                     return member;
                 }, {}),
