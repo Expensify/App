@@ -6,7 +6,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
-import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';
@@ -29,7 +28,7 @@ type WorkspaceAutoReportingMonthlyOffsetPageItem = {
 };
 
 function WorkspaceAutoReportingMonthlyOffsetPage({policy}: WorkspaceAutoReportingMonthlyOffsetProps) {
-    const {translate, preferredLocale} = useLocalize();
+    const {translate, toLocaleOrdinal} = useLocalize();
     const offset = policy?.autoReportingOffset ?? 0;
     const [searchText, setSearchText] = useState('');
     const trimmedText = searchText.trim().toLowerCase();
@@ -38,7 +37,7 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy}: WorkspaceAutoReportin
         const day = index + 1;
 
         return {
-            text: Localize.toLocaleOrdinal(preferredLocale, day),
+            text: toLocaleOrdinal(day),
             keyForList: day.toString(), // we have to cast it as string for <ListItem> to work
             isSelected: day === offset,
             isNumber: true,

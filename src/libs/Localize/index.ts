@@ -145,37 +145,6 @@ function getPreferredListFormat(): Intl.ListFormat {
 }
 
 /**
- * Formats a number into its localized ordinal representation i.e 1st, 2nd etc
- */
-function toLocaleOrdinal(locale: Locale, number: number): string {
-    const formatter = new Intl.PluralRules(locale, {type: 'ordinal'});
-    const rule = formatter.select(number);
-
-    const suffixes: Record<string, Record<string, string>> = {
-        en: {
-            one: 'st',
-            two: 'nd',
-            few: 'rd',
-            other: 'th',
-        },
-        es: {
-            one: '.º',
-            two: '.º',
-            few: '.º',
-            other: '.º',
-        },
-    };
-
-    const lang = locale.substring(0, 2);
-
-    const languageSuffixes = suffixes[lang] || suffixes.en;
-
-    const suffix = languageSuffixes[rule] || languageSuffixes.other;
-
-    return `${number}${suffix}`;
-}
-
-/**
  * Format an array into a string with comma and "and" ("a dog, a cat and a chicken")
  */
 function formatList(components: string[]) {
@@ -218,5 +187,5 @@ function getDevicePreferredLocale(): Locale {
     return RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES])?.languageTag ?? CONST.LOCALES.DEFAULT;
 }
 
-export {translatableTextPropTypes, translate, translateLocal, translateIfPhraseKey, formatList, formatMessageElementList, getDevicePreferredLocale, toLocaleOrdinal};
+export {translatableTextPropTypes, translate, translateLocal, translateIfPhraseKey, formatList, formatMessageElementList, getDevicePreferredLocale};
 export type {PhraseParameters, Phrase, MaybePhraseKey};

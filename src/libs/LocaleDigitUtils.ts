@@ -66,4 +66,35 @@ function fromLocaleDigit(locale: Locale, localeDigit: string): string {
     return STANDARD_DIGITS[index];
 }
 
-export {toLocaleDigit, fromLocaleDigit};
+/**
+ * Formats a number into its localized ordinal representation i.e 1st, 2nd etc
+ */
+function toLocaleOrdinal(locale: Locale, number: number): string {
+    const formatter = new Intl.PluralRules(locale, {type: 'ordinal'});
+    const rule = formatter.select(number);
+
+    const suffixes: Record<string, Record<string, string>> = {
+        en: {
+            one: 'st',
+            two: 'nd',
+            few: 'rd',
+            other: 'th',
+        },
+        es: {
+            one: '.º',
+            two: '.º',
+            few: '.º',
+            other: '.º',
+        },
+    };
+
+    const lang = locale.substring(0, 2);
+
+    const languageSuffixes = suffixes[lang] || suffixes.en;
+
+    const suffix = languageSuffixes[rule] || languageSuffixes.other;
+
+    return `${number}${suffix}`;
+}
+
+export {toLocaleDigit, toLocaleOrdinal, fromLocaleDigit};

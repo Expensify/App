@@ -42,7 +42,7 @@ const getAutoReportingFrequencyDisplayNames = (locale: Locale): AutoReportingFre
 });
 
 function WorkspaceAutoReportingFrequencyPage({policy}: WorkspaceAutoReportingFrequencyPageProps) {
-    const {translate, preferredLocale} = useLocalize();
+    const {translate, preferredLocale, toLocaleOrdinal} = useLocalize();
     const styles = useThemeStyles();
     const [isMonthlyFrequency, setIsMonthlyFrequency] = useState(policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY);
 
@@ -70,10 +70,10 @@ function WorkspaceAutoReportingFrequencyPage({policy}: WorkspaceAutoReportingFre
 
     const getDescriptionText = () => {
         if (policy?.autoReportingOffset === undefined) {
-            return Localize.toLocaleOrdinal(preferredLocale, 1);
+            return toLocaleOrdinal(1);
         }
         if (typeof policy?.autoReportingOffset === 'number') {
-            return Localize.toLocaleOrdinal(preferredLocale, policy.autoReportingOffset);
+            return toLocaleOrdinal(policy.autoReportingOffset);
         }
 
         return translate(`workflowsPage.frequencies.${policy?.autoReportingOffset}`);
