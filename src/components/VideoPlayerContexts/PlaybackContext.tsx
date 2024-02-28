@@ -33,7 +33,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     }, [currentVideoPlayerRef]);
 
     const unloadVideo = useCallback(() => {
-        currentVideoPlayerRef.current?.unloadAsync?.();
+        currentVideoPlayerRef.current?.unloadAsync();
     }, [currentVideoPlayerRef]);
 
     const updateCurrentlyPlayingURL = useCallback(
