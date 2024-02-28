@@ -88,7 +88,6 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
             isSubmitButtonVisible={(plaidData?.bankAccounts ?? []).length > 0}
         >
             <InputWrapper
-                // @ts-expect-error TODO: Remove this once AddPlaidBankAccount (https://github.com/Expensify/App/issues/25119) is migrated to TypeScript
                 InputComponent={AddPlaidBankAccount}
                 text={translate('bankAccount.plaidBodyCopy')}
                 onSelect={(plaidAccountID: string) => {
@@ -101,8 +100,6 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
                 selectedPlaidAccountID={selectedPlaidAccountID}
                 isDisplayedInNewVBBA
                 inputID={BANK_INFO_STEP_KEYS.SELECTED_PLAID_ACCOUNT_ID}
-                inputMode={CONST.INPUT_MODE.TEXT}
-                style={[styles.mt5]}
                 defaultValue={selectedPlaidAccountID}
             />
         </FormProvider>

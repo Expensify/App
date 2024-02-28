@@ -1,6 +1,7 @@
 import type {ComponentType, FocusEvent, Key, MutableRefObject, ReactNode, Ref} from 'react';
 import type {GestureResponderEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import type AddressSearch from '@components/AddressSearch';
 import type AmountForm from '@components/AmountForm';
 import type AmountTextInput from '@components/AmountTextInput';
@@ -38,7 +39,8 @@ type ValidInputs =
     | typeof StatePicker
     | typeof RoomNameInput
     | typeof ValuePicker
-    | typeof RadioButtons;
+    | typeof RadioButtons
+    | typeof AddPlaidBankAccount;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date';
 type ValueTypeMap = {
