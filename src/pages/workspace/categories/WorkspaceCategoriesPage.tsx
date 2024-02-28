@@ -26,6 +26,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import * as Policy from '@userActions/Policy';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
 type PolicyForList = {
     value: string;
@@ -110,6 +111,10 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
             />
         </View>
     );
+
+    if (policyCategories === undefined) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
