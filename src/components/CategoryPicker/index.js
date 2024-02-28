@@ -70,6 +70,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             onSelectRow={onSubmit}
             ListItem={RadioListItem}
             initiallyFocusedOptionKey={selectedOptionKey}
+            isRowMultilineSupported
         />
     );
 }
