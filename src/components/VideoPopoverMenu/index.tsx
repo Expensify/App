@@ -1,28 +1,23 @@
-import PropTypes from 'prop-types';
 import React from 'react';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import {useVideoPopoverMenuContext} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
+import type {AnchorPosition} from '@styles/index';
 
-const propTypes = {
-    isPopoverVisible: PropTypes.bool,
-
-    hidePopover: PropTypes.func,
-
-    anchorPosition: PropTypes.shape({
-        horizontal: PropTypes.number.isRequired,
-        vertical: PropTypes.number.isRequired,
-    }),
+type VideoPopoverMenuProps = {
+    isPopoverVisible: boolean;
+    hidePopover: (selectedItem?: PopoverMenuItem, index?: number) => void;
+    anchorPosition: AnchorPosition;
 };
-const defaultProps = {
-    isPopoverVisible: false,
-    anchorPosition: {
+
+function VideoPopoverMenu({
+    isPopoverVisible = false,
+    hidePopover = () => {},
+    anchorPosition = {
         horizontal: 0,
         vertical: 0,
     },
-    hidePopover: () => {},
-};
-
-function VideoPopoverMenu({isPopoverVisible, hidePopover, anchorPosition}) {
+}: VideoPopoverMenuProps) {
     const {menuItems} = useVideoPopoverMenuContext();
 
     return (
@@ -36,9 +31,6 @@ function VideoPopoverMenu({isPopoverVisible, hidePopover, anchorPosition}) {
         />
     );
 }
-
-VideoPopoverMenu.propTypes = propTypes;
-VideoPopoverMenu.defaultProps = defaultProps;
 VideoPopoverMenu.displayName = 'VideoPopoverMenu';
 
 export default VideoPopoverMenu;
