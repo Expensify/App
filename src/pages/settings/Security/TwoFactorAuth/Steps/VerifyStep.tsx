@@ -5,6 +5,7 @@ import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {useSession} from '@components/OnyxProvider';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import QRCode from '@components/QRCode';
 import Text from '@components/Text';
@@ -19,14 +20,13 @@ import type {TwoFactorAuthStepOnyxProps, TwoFactorAuthStepProps} from '@pages/se
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import { useSession } from '@components/OnyxProvider';
 
 const TROUBLESHOOTING_LINK = 'https://community.expensify.com/discussion/7736/faq-troubleshooting-two-factor-authentication-issues/p1?new=1';
 
 function VerifyStep({account}: TwoFactorAuthStepProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const session =  useSession();
+    const session = useSession();
 
     const formRef = useRef<HTMLFormElement>(null);
 

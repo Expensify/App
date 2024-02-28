@@ -5,7 +5,6 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import * as Expensicons from '@components/Icon/Expensicons';
-import type {BackToParams} from '@libs/Navigation/types'
 import * as Illustrations from '@components/Icon/Illustrations';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import Section from '@components/Section';
@@ -16,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Clipboard from '@libs/Clipboard';
 import localFileDownload from '@libs/localFileDownload';
+import type {BackToParams} from '@libs/Navigation/types';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
 import type {TwoFactorAuthStepOnyxProps} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthStepProps';
@@ -25,7 +25,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type CodesStepProps = TwoFactorAuthStepOnyxProps & BackToParams
+type CodesStepProps = TwoFactorAuthStepOnyxProps & BackToParams;
 
 function CodesStep({account, backTo}: CodesStepProps) {
     const theme = useTheme();

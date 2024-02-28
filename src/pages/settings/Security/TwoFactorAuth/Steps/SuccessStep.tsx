@@ -1,8 +1,8 @@
 import React from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import LottieAnimations from '@components/LottieAnimations';
-import type {BackToParams} from '@libs/Navigation/types';
 import useLocalize from '@hooks/useLocalize';
+import type {BackToParams} from '@libs/Navigation/types';
 import Navigation from '@navigation/Navigation';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
