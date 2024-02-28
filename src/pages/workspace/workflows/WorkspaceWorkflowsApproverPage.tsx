@@ -56,8 +56,8 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails}
         !isOffline && policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyMember.errors);
 
     const [formattedPolicyMembers, formattedApprover] = useMemo(() => {
-        const formattedPolicyMembers: MemberOption[] = [];
-        const formattedApprover: MemberOption[] = [];
+        const policyMemberDetails: MemberOption[] = [];
+        const approverDetails: MemberOption[] = [];
 
         Object.entries(policyMembers ?? {}).forEach(([accountIDKey, policyMember]) => {
             const accountID = Number(accountIDKey);
