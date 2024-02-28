@@ -165,7 +165,7 @@ function LHNOptionsList({
                 animationWebStyle={styles.emptyLHNAnimationWeb(isExtraSmallScreenHeight)}
                 title={translate('common.emptyLHN.title')}
                 shouldShowLink={false}
-                renderSubtitle={renderEmptyStateSubtitle}
+                renderCustomSubtitle={renderEmptyStateSubtitle}
             />
         );
     }

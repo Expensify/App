@@ -1,6 +1,5 @@
 import React from 'react';
-import type {CSSProperties} from 'react';
-import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
+import type {ImageSourcePropType, StyleProp, ViewStyle, WebStyle} from 'react-native';
 import {View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
 import AutoEmailLink from '@components/AutoEmailLink';
@@ -68,10 +67,10 @@ type BlockingViewProps = RequiredIllustrationProps & {
     /** Style for the animation */
     animationStyles?: StyleProp<ViewStyle>;
 
-    animationWebStyle?: CSSProperties;
+    animationWebStyle?: WebStyle;
 
     /** Render custom subtitle */
-    renderSubtitle?: () => React.ReactElement;
+    renderCustomSubtitle?: () => React.ReactElement;
 };
 
 function BlockingView({
@@ -88,7 +87,7 @@ function BlockingView({
     shouldEmbedLinkWithSubtitle = false,
     animationStyles = [],
     animationWebStyle = {},
-    renderSubtitle,
+    renderCustomSubtitle,
 }: BlockingViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -108,6 +107,17 @@ function BlockingView({
                     </TextLink>
                 ) : null}
             </>
+        );
+    }
+
+    function renderSubtitle() {
+        if (renderCustomSubtitle) {
+            return renderCustomSubtitle();
+        }
+        return shouldEmbedLinkWithSubtitle ? (
+            <Text style={[styles.textAlignCenter]}>{renderContent()}</Text>
+        ) : (
+            <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>{renderContent()}</View>
         );
     }
 
@@ -133,13 +143,7 @@ function BlockingView({
             <View>
                 <Text style={[styles.notFoundTextHeader]}>{title}</Text>
 
-                {renderSubtitle ? (
-                    renderSubtitle()
-                ) : shouldEmbedLinkWithSubtitle ? (
-                    <Text style={[styles.textAlignCenter]}>{renderContent()}</Text>
-                ) : (
-                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>{renderContent()}</View>
-                )}
+                {renderSubtitle()}
             </View>
         </View>
     );
