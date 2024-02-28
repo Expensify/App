@@ -105,6 +105,7 @@ function ReportActionItemFragment({
                         source={source}
                         html={fragment.html ?? ''}
                         addExtraMargin={!displayAsGroup}
+                        styleAsDeleted={!!(isOffline && isPendingDelete)}
                     />
                 );
             }

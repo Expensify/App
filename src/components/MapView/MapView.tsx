@@ -144,54 +144,50 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             }
         };
 
-        return (
-            <>
-                {!isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
-                    <View style={style}>
-                        <Mapbox.MapView
-                            style={{flex: 1}}
-                            styleURL={styleURL}
-                            onMapIdle={setMapIdle}
-                            onTouchStart={() => setUserInteractedWithMap(true)}
-                            pitchEnabled={pitchEnabled}
-                            attributionPosition={{...styles.r2, ...styles.b2}}
-                            scaleBarEnabled={false}
-                            logoPosition={{...styles.l2, ...styles.b2}}
-                            // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...responder.panHandlers}
-                        >
-                            <Mapbox.Camera
-                                ref={cameraRef}
-                                defaultSettings={{
-                                    centerCoordinate: currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location,
-                                    zoomLevel: initialState?.zoom,
-                                }}
-                            />
-
-                            {waypoints?.map(({coordinate, markerComponent, id}) => {
-                                const MarkerComponent = markerComponent;
-                                return (
-                                    <MarkerView
-                                        id={id}
-                                        key={id}
-                                        coordinate={coordinate}
-                                    >
-                                        <MarkerComponent />
-                                    </MarkerView>
-                                );
-                            })}
-
-                            {directionCoordinates && <Direction coordinates={directionCoordinates} />}
-                        </Mapbox.MapView>
-                    </View>
-                ) : (
-                    <PendingMapView
-                        title={translate('distance.mapPending.title')}
-                        subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
-                        style={styles.mapEditView}
+        return !isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
+            <View style={style}>
+                <Mapbox.MapView
+                    style={{flex: 1}}
+                    styleURL={styleURL}
+                    onMapIdle={setMapIdle}
+                    onTouchStart={() => setUserInteractedWithMap(true)}
+                    pitchEnabled={pitchEnabled}
+                    attributionPosition={{...styles.r2, ...styles.b2}}
+                    scaleBarEnabled={false}
+                    logoPosition={{...styles.l2, ...styles.b2}}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...responder.panHandlers}
+                >
+                    <Mapbox.Camera
+                        ref={cameraRef}
+                        defaultSettings={{
+                            centerCoordinate: currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location,
+                            zoomLevel: initialState?.zoom,
+                        }}
                     />
-                )}
-            </>
+
+                    {waypoints?.map(({coordinate, markerComponent, id}) => {
+                        const MarkerComponent = markerComponent;
+                        return (
+                            <MarkerView
+                                id={id}
+                                key={id}
+                                coordinate={coordinate}
+                            >
+                                <MarkerComponent />
+                            </MarkerView>
+                        );
+                    })}
+
+                    {directionCoordinates && <Direction coordinates={directionCoordinates} />}
+                </Mapbox.MapView>
+            </View>
+        ) : (
+            <PendingMapView
+                title={translate('distance.mapPending.title')}
+                subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
+                style={styles.mapEditView}
+            />
         );
     },
 );

@@ -46,7 +46,7 @@ function parsePhoneNumber(phoneNumber: string, options?: PhoneNumberParseOptions
 function addSMSDomainIfPhoneNumber(login: string): string {
     const parsedPhoneNumber = parsePhoneNumber(login);
     if (parsedPhoneNumber.possible && !Str.isValidEmail(login)) {
-        return parsedPhoneNumber.number?.e164 + CONST.SMS.DOMAIN;
+        return `${parsedPhoneNumber.number?.e164}${CONST.SMS.DOMAIN}`;
     }
     return login;
 }
