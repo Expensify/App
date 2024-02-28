@@ -13,6 +13,7 @@ import ShowMoreButton from '@components/ShowMoreButton';
 import TextInput from '@components/TextInput';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -76,6 +77,7 @@ function BaseOptionsSelector(props) {
     const prevValue = usePrevious(value);
 
     useImperativeHandle(props.forwardedRef, () => textInputRef.current);
+    const {inputCallbackRef} = useAutoFocusInput();
 
     /**
      * Paginate props.sections to only allow a certain number of items per section.
@@ -274,37 +276,6 @@ function BaseOptionsSelector(props) {
     );
 
     useEffect(() => {
-        if (isFocused && props.autoFocus && textInputRef.current) {
-            focusTimeout.current = setTimeout(() => {
-                textInputRef.current.focus();
-            }, CONST.ANIMATED_TRANSITION);
-        }
-
-        scrollToIndex(props.selectedOptions.length ? 0 : focusedIndex, false);
-
-        return () => {
-            if (!focusTimeout.current) {
-                return;
-            }
-            clearTimeout(focusTimeout.current);
-        };
-        // we want to run this effect only once, when the component is mounted
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    useEffect(() => {
-        // Screen coming back into focus, for example
-        // when doing Cmd+Shift+K, then Cmd+K, then Cmd+Shift+K.
-        if (!shouldFocusInputOnScreenFocus || !isFocused || !props.autoFocus || !textInputRef.current) {
-            return;
-        }
-
-        setTimeout(() => {
-            textInputRef.current.focus();
-        }, CONST.ANIMATED_TRANSITION);
-    }, [isFocused, props.autoFocus]);
-
-    useEffect(() => {
         if (_.isEqual(allOptions, prevOptions)) {
             return;
         }
@@ -386,7 +357,10 @@ function BaseOptionsSelector(props) {
 
     const textInput = (
         <TextInput
-            ref={textInputRef}
+            ref={(el) => {
+                textInputRef.current = el;
+                inputCallbackRef(el);
+            }}
             label={props.textInputLabel}
             accessibilityLabel={props.textInputLabel}
             role={CONST.ROLE.PRESENTATION}
