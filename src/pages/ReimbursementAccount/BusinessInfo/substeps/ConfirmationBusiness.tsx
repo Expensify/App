@@ -47,6 +47,17 @@ const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACC
     return errors;
 };
 
+function ConfirmCompanyLabel() {
+    const {translate} = useLocalize();
+
+    return (
+        <Text>
+            {`${translate('businessInfoStep.confirmCompanyIsNot')} `}
+            <TextLink href={CONST.LIST_OF_RESTRICTED_BUSINESSES}>{`${translate('businessInfoStep.listOfRestrictedBusinesses')}.`}</TextLink>
+        </Text>
+    );
+}
+
 function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, onNext, onMove}: ConfirmationBusinessProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -138,12 +149,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                     aria-label={`${translate('businessInfoStep.confirmCompanyIsNot')} ${translate('businessInfoStep.listOfRestrictedBusinesses')}`}
                     inputID={BUSINESS_INFO_STEP_KEYS.HAS_NO_CONNECTION_TO_CANNABIS}
                     defaultValue={defaultCheckboxState}
-                    LabelComponent={() => (
-                        <Text>
-                            {`${translate('businessInfoStep.confirmCompanyIsNot')} `}
-                            <TextLink href={CONST.LIST_OF_RESTRICTED_BUSINESSES}>{`${translate('businessInfoStep.listOfRestrictedBusinesses')}.`}</TextLink>
-                        </Text>
-                    )}
+                    LabelComponent={ConfirmCompanyLabel}
                     style={[styles.mt3]}
                     shouldSaveDraft
                 />

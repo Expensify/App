@@ -32,6 +32,17 @@ type DebitCardPageOnyxProps = {
 
 type DebitCardPageProps = DebitCardPageOnyxProps;
 
+function IAcceptTheLabel() {
+    const {translate} = useLocalize();
+
+    return (
+        <Text>
+            {`${translate('common.iAcceptThe')}`}
+            <TextLink href={CONST.TERMS_URL}>{`${translate('common.expensifyTermsOfService')}`}</TextLink>
+        </Text>
+    );
+}
+
 const REQUIRED_FIELDS = [
     INPUT_IDS.NAME_ON_CARD,
     INPUT_IDS.CARD_NUMBER,
@@ -198,12 +209,7 @@ function DebitCardPage({formData}: DebitCardPageProps) {
                     accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
                     inputID={INPUT_IDS.ACCEPT_TERMS}
                     defaultValue={false}
-                    LabelComponent={() => (
-                        <Text>
-                            {`${translate('common.iAcceptThe')}`}
-                            <TextLink href={CONST.TERMS_URL}>{`${translate('common.expensifyTermsOfService')}`}</TextLink>
-                        </Text>
-                    )}
+                    LabelComponent={IAcceptTheLabel}
                     style={[styles.mt4]}
                 />
             </FormProvider>
