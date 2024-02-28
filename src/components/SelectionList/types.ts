@@ -87,7 +87,7 @@ type ListItem = {
     /** Whether this option should show subscript */
     shouldShowSubscript?: boolean;
 
-    /** Whether to wrap large text up to 2 lines */
+    /** Whether to wrap long text up to 2 lines */
     isMultilineSupported?: boolean;
 };
 
