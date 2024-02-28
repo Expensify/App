@@ -1,21 +1,41 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+import type {NavigationProp} from '@react-navigation/core/src/types';
+import type * as Navigation from '@react-navigation/native';
+import type {ParamListBase} from '@react-navigation/routers';
 import {render} from '@testing-library/react-native';
-import PropTypes from 'prop-types';
+import type {ReactElement} from 'react';
 import React from 'react';
-import ComposeProviders from '../../src/components/ComposeProviders';
-import {LocaleContextProvider} from '../../src/components/LocaleContextProvider';
-import OnyxProvider from '../../src/components/OnyxProvider';
-import {CurrentReportIDContextProvider} from '../../src/components/withCurrentReportID';
-import {EnvironmentProvider} from '../../src/components/withEnvironment';
-import CONST from '../../src/CONST';
-import DateUtils from '../../src/libs/DateUtils';
-import ReportActionItemSingle from '../../src/pages/home/report/ReportActionItemSingle';
-import reportActionPropTypes from '../../src/pages/home/report/reportActionPropTypes';
-import SidebarLinksData from '../../src/pages/home/sidebar/SidebarLinksData';
-import reportPropTypes from '../../src/pages/reportPropTypes';
+import ComposeProviders from '@components/ComposeProviders';
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import OnyxProvider from '@components/OnyxProvider';
+import {CurrentReportIDContextProvider} from '@components/withCurrentReportID';
+import {EnvironmentProvider} from '@components/withEnvironment';
+import DateUtils from '@libs/DateUtils';
+import ReportActionItemSingle from '@pages/home/report/ReportActionItemSingle';
+import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
+import CONST from '@src/CONST';
+import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
+import type {ActionName} from '@src/types/onyx/OriginalMessage';
+
+type MockedReportActionItemSingleProps = {
+    /** Determines if the avatar is displayed as a subscript (positioned lower than normal) */
+    shouldShowSubscriptAvatar?: boolean;
+
+    /** Report for this action */
+    report: Report;
+
+    /** All the data of the action */
+    reportAction: ReportAction;
+};
+
+type MockedSidebarLinksProps = {
+    /** Current report id */
+    currentReportID?: string;
+};
 
 // we have to mock `useIsFocused` because it's used in the SidebarLinks component
-const mockedNavigate = jest.fn();
-jest.mock('@react-navigation/native', () => {
+const mockedNavigate: jest.MockedFn<NavigationProp<ParamListBase>['navigate']> = jest.fn();
+jest.mock('@react-navigation/native', (): typeof Navigation => {
     const actualNav = jest.requireActual('@react-navigation/native');
     return {
         ...actualNav,
@@ -28,10 +48,10 @@ jest.mock('@react-navigation/native', () => {
             addListener: jest.fn(),
         }),
         createNavigationContainerRef: jest.fn(),
-    };
+    } as typeof Navigation;
 });
 
-const fakePersonalDetails = {
+const fakePersonalDetails: PersonalDetailsList = {
     1: {
         accountID: 1,
         login: 'email1@test.com',
@@ -101,13 +121,11 @@ let lastFakeReportID = 0;
 let lastFakeReportActionID = 0;
 
 /**
- * @param {Number[]} participantAccountIDs
- * @param {Number} millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
- * @param {boolean} isUnread
- * @returns {Object}
+ * @param millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
  */
-function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0, isUnread = false) {
+function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0, isUnread = false): Report {
     const lastVisibleActionCreated = DateUtils.getDBTime(Date.now() - millisecondsInThePast);
+
     return {
         type: CONST.REPORT.TYPE.CHAT,
         reportID: `${++lastFakeReportID}`,
@@ -119,12 +137,11 @@ function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0
 }
 
 /**
- * @param {String} actor
- * @param {Number} millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
- * @returns {Object}
+ * @param millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
  */
-function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 0) {
-    const timestamp = DateUtils.getDBTime(Date.now() - millisecondsInThePast);
+function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 0): ReportAction {
+    const timestamp = Date.now() - millisecondsInThePast;
+    const created = DateUtils.getDBTime(timestamp);
 
     return {
         actor,
@@ -132,6 +149,7 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
         reportActionID: `${++lastFakeReportActionID}`,
         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
         shouldShow: true,
+        created,
         timestamp,
         reportActionTimestamp: timestamp,
         person: [
@@ -195,35 +213,23 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
     };
 }
 
-/**
- * @param {boolean} isArchived
- * @param {boolean} isUserCreatedPolicyRoom
- * @param {boolean} hasAddWorkspaceError
- * @param {boolean} isUnread
- * @param {boolean} isPinned
- * @param {boolean} hasDraft
- * @returns {Object}
- */
-function getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft) {
+function getAdvancedFakeReport(isArchived: boolean, isUserCreatedPolicyRoom: boolean, hasAddWorkspaceError: boolean, isUnread: boolean, isPinned: boolean, hasDraft: boolean): Report {
     return {
         ...getFakeReport([1, 2], 0, isUnread),
         type: CONST.REPORT.TYPE.CHAT,
         chatType: isUserCreatedPolicyRoom ? CONST.REPORT.CHAT_TYPE.POLICY_ROOM : CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
         statusNum: isArchived ? CONST.REPORT.STATUS_NUM.CLOSED : 0,
         stateNum: isArchived ? CONST.REPORT.STATE_NUM.APPROVED : 0,
-        errorFields: hasAddWorkspaceError ? {addWorkspaceRoom: 'blah'} : null,
+        errorFields: hasAddWorkspaceError ? {1708946640843000: {addWorkspaceRoom: 'blah'}} : undefined,
         isPinned,
         hasDraft,
     };
 }
 
 /**
- * @param {Number[]} [participantAccountIDs]
- * @param {Number} [millisecondsInThePast] the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
- * @param {boolean} [isUnread]
- * @returns {Object}
+ * @param millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
  */
-function getFakeReportWithPolicy(participantAccountIDs = [1, 2], millisecondsInThePast = 0, isUnread = false) {
+function getFakeReportWithPolicy(participantAccountIDs = [1, 2], millisecondsInThePast = 0, isUnread = false): Report {
     return {
         ...getFakeReport(participantAccountIDs, millisecondsInThePast, isUnread),
         type: CONST.REPORT.TYPE.CHAT,
@@ -235,12 +241,7 @@ function getFakeReportWithPolicy(participantAccountIDs = [1, 2], millisecondsInT
     };
 }
 
-/**
- * @param {Number} [id]
- * @param {String} [name]
- * @returns {Object}
- */
-function getFakePolicy(id = 1, name = 'Workspace-Test-001') {
+function getFakePolicy(id = '1', name = 'Workspace-Test-001'): Policy {
     return {
         id,
         name,
@@ -252,7 +253,7 @@ function getFakePolicy(id = 1, name = 'Workspace-Test-001') {
         avatar: '',
         employeeList: [],
         isPolicyExpenseChatEnabled: true,
-        lastModified: 1697323926777105,
+        lastModified: '1697323926777105',
         autoReporting: true,
         autoReportingFrequency: 'immediate',
         harvesting: {
@@ -268,21 +269,34 @@ function getFakePolicy(id = 1, name = 'Workspace-Test-001') {
 }
 
 /**
- * @param {String} actionName
- * @param {String} actor
- * @param {Number} millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
- * @returns {Object}
+ * @param millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
  */
-function getFakeAdvancedReportAction(actionName = 'IOU', actor = 'email1@test.com', millisecondsInThePast = 0) {
+function getFakeAdvancedReportAction(actionName: ActionName = 'IOU', actor = 'email1@test.com', millisecondsInThePast = 0): ReportAction {
     return {
         ...getFakeReportAction(actor, millisecondsInThePast),
         actionName,
-    };
+    } as ReportAction;
 }
 
-/**
- * @param {String} [currentReportID]
- */
+function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
+    return (
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, EnvironmentProvider, CurrentReportIDContextProvider]}>
+            <SidebarLinksData
+                // @ts-expect-error TODO: Remove this once SidebarLinksData (https://github.com/Expensify/App/issues/25220) is migrated to TypeScript.
+                onLinkClick={() => {}}
+                insets={{
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                }}
+                isSmallScreenWidth={false}
+                currentReportID={currentReportID}
+            />
+        </ComposeProviders>
+    );
+}
+
 function getDefaultRenderedSidebarLinks(currentReportID = '') {
     // A try-catch block needs to be added to the rendering so that any errors that happen while the component
     // renders are caught and logged to the console. Without the try-catch block, Jest might only report the error
@@ -301,40 +315,7 @@ function getDefaultRenderedSidebarLinks(currentReportID = '') {
     }
 }
 
-/**
- * @param {String} [currentReportID]
- * @returns {JSX.Element}
- */
-function MockedSidebarLinks({currentReportID}) {
-    return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, EnvironmentProvider, CurrentReportIDContextProvider]}>
-            <SidebarLinksData
-                onLinkClick={() => {}}
-                insets={{
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                }}
-                isSmallScreenWidth={false}
-                currentReportID={currentReportID}
-            />
-        </ComposeProviders>
-    );
-}
-
-MockedSidebarLinks.propTypes = {
-    currentReportID: PropTypes.string,
-};
-
-MockedSidebarLinks.defaultProps = {
-    currentReportID: '',
-};
-
-/**
- * @param {React.ReactElement} component
- */
-function internalRender(component) {
+function internalRender(component: ReactElement) {
     // A try-catch block needs to be added to the rendering so that any errors that happen while the component
     // renders are caught and logged to the console. Without the try-catch block, Jest might only report the error
     // as "The above error occurred in your component", without providing specific details. By using a try-catch block,
@@ -348,48 +329,12 @@ function internalRender(component) {
     }
 }
 
-/**
- * @param {Boolean} [shouldShowSubscriptAvatar]
- * @param {Object} [report]
- * @param {Object} [reportAction]
- */
-function getDefaultRenderedReportActionItemSingle(shouldShowSubscriptAvatar = true, report = null, reportAction = null) {
-    const currentReport = report || getFakeReport();
-    const currentReportAction = reportAction || getFakeAdvancedReportAction();
-
-    internalRender(
-        <MockedReportActionItemSingle
-            shouldShowSubscriptAvatar={shouldShowSubscriptAvatar}
-            report={currentReport}
-            reportAction={currentReportAction}
-        />,
-    );
-}
-
-/**
- * @param {Boolean} shouldShowSubscriptAvatar
- * @param {Object} report
- * @param {Object} reportAction
- * @returns {JSX.Element}
- */
-function MockedReportActionItemSingle({shouldShowSubscriptAvatar, report, reportAction}) {
-    const personalDetailsList = {
-        [reportAction.actorAccountID]: {
-            accountID: reportAction.actorAccountID,
-            login: 'email1@test.com',
-            displayName: 'Email One',
-            avatar: 'https://example.com/avatar.png',
-            firstName: 'One',
-        },
-    };
-
+function MockedReportActionItemSingle({shouldShowSubscriptAvatar = true, report, reportAction}: MockedReportActionItemSingleProps) {
     return (
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider, EnvironmentProvider, CurrentReportIDContextProvider]}>
             <ReportActionItemSingle
                 action={reportAction}
                 report={report}
-                personalDetailsList={personalDetailsList}
-                wrapperStyles={[{display: 'inline'}]}
                 showHeader
                 shouldShowSubscriptAvatar={shouldShowSubscriptAvatar}
                 hasBeenFlagged={false}
@@ -400,17 +345,18 @@ function MockedReportActionItemSingle({shouldShowSubscriptAvatar, report, report
     );
 }
 
-MockedReportActionItemSingle.propTypes = {
-    shouldShowSubscriptAvatar: PropTypes.bool,
-    report: reportPropTypes,
-    reportAction: PropTypes.shape(reportActionPropTypes),
-};
+function getDefaultRenderedReportActionItemSingle(shouldShowSubscriptAvatar = true, report?: Report, reportAction?: ReportAction) {
+    const currentReport = report ?? getFakeReport();
+    const currentReportAction = reportAction ?? getFakeAdvancedReportAction();
 
-MockedReportActionItemSingle.defaultProps = {
-    shouldShowSubscriptAvatar: true,
-    report: null,
-    reportAction: null,
-};
+    internalRender(
+        <MockedReportActionItemSingle
+            shouldShowSubscriptAvatar={shouldShowSubscriptAvatar}
+            report={currentReport}
+            reportAction={currentReportAction}
+        />,
+    );
+}
 
 export {
     fakePersonalDetails,
