@@ -84,8 +84,10 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     let canDeleteRequest = canModifyRequest;
 
     if (ReportUtils.isPaidGroupPolicyExpenseReport(moneyRequestReport)) {
-        // If it's a paid policy expense report, only allow deleting the request if it's not submitted or the user is the policy admin
-        canDeleteRequest = canDeleteRequest && (ReportUtils.isDraftExpenseReport(moneyRequestReport) || PolicyUtils.isPolicyAdmin(policy));
+        // If it's a paid policy expense report, only allow deleting the request if it's in draft state or instantly submitted state or the user is the policy admin
+        canDeleteRequest =
+            canDeleteRequest &&
+            (ReportUtils.isDraftExpenseReport(moneyRequestReport) || ReportUtils.isExpenseReportWithInstantSubmittedState(moneyRequestReport) || PolicyUtils.isPolicyAdmin(policy));
     }
 
     const changeMoneyRequestStatus = () => {
@@ -148,30 +150,12 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
         IOU.setShownHoldUseExplanation();
     };
 
-    if (canModifyRequest) {
-        if (!TransactionUtils.hasReceipt(transaction)) {
-            threeDotsMenuItems.push({
-                icon: Expensicons.Receipt,
-                text: translate('receipt.addReceipt'),
-                onSelected: () =>
-                    Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                            CONST.IOU.ACTION.EDIT,
-                            CONST.IOU.TYPE.REQUEST,
-                            transaction?.transactionID ?? '',
-                            report.reportID,
-                            Navigation.getActiveRouteWithoutParams(),
-                        ),
-                    ),
-            });
-        }
-        if (canDeleteRequest) {
-            threeDotsMenuItems.push({
-                icon: Expensicons.Trashcan,
-                text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
-                onSelected: () => setIsDeleteModalVisible(true),
-            });
-        }
+    if (canDeleteRequest) {
+        threeDotsMenuItems.push({
+            icon: Expensicons.Trashcan,
+            text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
+            onSelected: () => setIsDeleteModalVisible(true),
+        });
     }
 
     return (

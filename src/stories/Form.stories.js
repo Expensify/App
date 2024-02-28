@@ -130,6 +130,7 @@ function Template(args) {
                 InputComponent={CheckboxWithLabel}
                 inputID="checkbox"
                 style={[defaultStyles.mb4, defaultStyles.mt5]}
+                // eslint-disable-next-line react/no-unstable-nested-components
                 LabelComponent={() => <Text>I accept the Expensify Terms of Service</Text>}
             />
         </FormProvider>

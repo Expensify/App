@@ -18,14 +18,16 @@ function canUseBrowserNotifications(): Promise<boolean> {
     return new Promise((resolve) => {
         // They have no browser notifications so we can't use this feature
         if (!window.Notification) {
-            return resolve(false);
+            resolve(false);
+            return;
         }
 
         // Check if they previously granted or denied us access to send a notification
         const permissionGranted = Notification.permission === 'granted';
 
         if (permissionGranted || Notification.permission === 'denied') {
-            return resolve(permissionGranted);
+            resolve(permissionGranted);
+            return;
         }
 
         // Check their global preferences for browser notifications and ask permission if they have none

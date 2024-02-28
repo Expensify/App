@@ -2063,7 +2063,7 @@ describe('OptionsListUtils', () => {
         const emptySearch = '';
         const wrongSearch = 'bla bla';
 
-        const policyTaxRatesWithDefault = {
+        const taxRatesWithDefault = {
             name: 'Tax',
             defaultExternalID: 'CODE1',
             defaultValue: '0%',
@@ -2170,34 +2170,15 @@ describe('OptionsListUtils', () => {
             },
         ];
 
-        const result = OptionsListUtils.getFilteredOptions({}, {}, [], emptySearch, [], [], false, false, false, {}, [], false, {}, [], false, false, true, policyTaxRatesWithDefault);
+        const result = OptionsListUtils.getFilteredOptions({}, {}, [], emptySearch, [], [], false, false, false, {}, [], false, {}, [], false, false, true, taxRatesWithDefault);
 
-        expect(result.policyTaxRatesOptions).toStrictEqual(resultList);
+        expect(result.taxRatesOptions).toStrictEqual(resultList);
 
-        const searchResult = OptionsListUtils.getFilteredOptions({}, {}, [], search, [], [], false, false, false, {}, [], false, {}, [], false, false, true, policyTaxRatesWithDefault);
-        expect(searchResult.policyTaxRatesOptions).toStrictEqual(searchResultList);
+        const searchResult = OptionsListUtils.getFilteredOptions({}, {}, [], search, [], [], false, false, false, {}, [], false, {}, [], false, false, true, taxRatesWithDefault);
+        expect(searchResult.taxRatesOptions).toStrictEqual(searchResultList);
 
-        const wrongSearchResult = OptionsListUtils.getFilteredOptions(
-            {},
-            {},
-            [],
-            wrongSearch,
-            [],
-            [],
-            false,
-            false,
-            false,
-            {},
-            [],
-            false,
-            {},
-            [],
-            false,
-            false,
-            true,
-            policyTaxRatesWithDefault,
-        );
-        expect(wrongSearchResult.policyTaxRatesOptions).toStrictEqual(wrongSearchResultList);
+        const wrongSearchResult = OptionsListUtils.getFilteredOptions({}, {}, [], wrongSearch, [], [], false, false, false, {}, [], false, {}, [], false, false, true, taxRatesWithDefault);
+        expect(wrongSearchResult.taxRatesOptions).toStrictEqual(wrongSearchResultList);
     });
 
     it('formatMemberForList()', () => {
