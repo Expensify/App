@@ -6,7 +6,6 @@ import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import getActionsFromPartialDiff from './AppNavigator/getActionsFromPartialDiff';
 import getPartialStateDiff from './AppNavigator/getPartialStateDiff';
 import dismissModal from './dismissModal';
@@ -135,7 +134,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     const extractedPolicyID = extractPolicyIDFromPath(`/${path}`);
     const policyIDFromState = getPolicyIDFromState(rootState);
     const policyID = extractedPolicyID ?? policyIDFromState;
-
 
     if (policyID) {
         // The stateFromPath doesn't include proper path if there is a policy passed with /w/id.

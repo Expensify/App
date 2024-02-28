@@ -87,7 +87,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
-    
+
     // https://reactnavigation.org/docs/themes
     const navigationTheme = useMemo(
         () => ({

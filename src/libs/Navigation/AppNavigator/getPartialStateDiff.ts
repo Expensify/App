@@ -40,7 +40,7 @@ type GetPartialStateDiffReturnType = {
  * @param metainfo - Additional info from getAdaptedStateFromPath function.
  * @returns The screen options object
  */
-function getPartialStateDiff(state: State<RootStackParamList>, templateState: State<RootStackParamList>, metainfo: Metainfo): GetPartialStateDiffReturnType {    
+function getPartialStateDiff(state: State<RootStackParamList>, templateState: State<RootStackParamList>, metainfo: Metainfo): GetPartialStateDiffReturnType {
     const diff: GetPartialStateDiffReturnType = {};
 
     // If it is mandatory we need to compare both central pane and bottom tab of states.

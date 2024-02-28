@@ -22,7 +22,7 @@ type WorkspaceSwitcherButtonProps = WorkspaceSwitcherButtonOnyxProps;
 function WorkspaceSwitcherButton({policy}: WorkspaceSwitcherButtonProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
-    
+
     const {source, name, type} = useMemo(() => {
         if (!policy) {
             return {source: Expensicons.ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR};

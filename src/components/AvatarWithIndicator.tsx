@@ -23,7 +23,6 @@ type AvatarWithIndicatorProps = {
 };
 
 function AvatarWithIndicator({source, tooltipText = '', fallbackIcon = Expensicons.FallbackAvatar, isLoading = true}: AvatarWithIndicatorProps) {
-
     return (
         <Tooltip text={tooltipText}>
             <View>
