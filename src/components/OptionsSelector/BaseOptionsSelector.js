@@ -18,7 +18,6 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import setSelection from '@libs/setSelection';
 import CONST from '@src/CONST';
 import {defaultProps as optionsSelectorDefaultProps, propTypes as optionsSelectorPropTypes} from './optionsSelectorPropTypes';
@@ -54,8 +53,6 @@ const defaultProps = {
     listStyles: [],
     ...optionsSelectorDefaultProps,
 };
-
-const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
 function BaseOptionsSelector(props) {
     const isFocused = useIsFocused();
