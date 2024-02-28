@@ -31,6 +31,7 @@ import type {PersonalDetailsList} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
 import type PlaidData from './PlaidData';
 import type Policy from './Policy';
+import type {TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
 import type {PolicyMembers} from './PolicyMember';
 import type PolicyMember from './PolicyMember';
@@ -129,6 +130,9 @@ export type {
     SecurityGroup,
     Session,
     Task,
+    TaxRate,
+    TaxRates,
+    TaxRatesWithDefault,
     Transaction,
     TransactionViolation,
     TransactionViolations,
