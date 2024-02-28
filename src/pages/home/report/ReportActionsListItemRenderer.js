@@ -123,7 +123,6 @@ function ReportActionsListItemRenderer({
         ],
     );
 
-    console.debug('timddd', shouldDisplayParentAction);
 
     return shouldDisplayParentAction ? (
         <ReportActionItemParentAction
