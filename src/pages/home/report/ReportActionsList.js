@@ -552,7 +552,7 @@ function ReportActionsList({
             {!isFloatingMessageCounterVisible && dateIndicatorLabel ? (
                 <ReportDateIndicator
                     created={dateIndicatorLabel.created}
-                    style={[styles.pAbsolute, styles.t0, styles.l0, styles.r0, styles.pt1, styles.chatItemDateIndicatorWrapper, {marginRight: scrollBarWidth}]}
+                    style={[styles.pAbsolute, styles.t0, styles.l0, styles.r0, styles.chatItemDateIndicatorWrapper, {marginRight: scrollBarWidth}]}
                 />
             ) : null}
             <Animated.View style={[animatedStyles, styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}>
