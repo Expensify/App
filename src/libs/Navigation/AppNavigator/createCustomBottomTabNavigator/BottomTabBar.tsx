@@ -15,8 +15,8 @@ import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute'
 import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList} from '@libs/Navigation/types';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
-import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
 import SignInOrAvatarWithOptionalStatus from '@pages/home/sidebar/BottomTabAvatar';
+import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
 import variables from '@styles/variables';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
