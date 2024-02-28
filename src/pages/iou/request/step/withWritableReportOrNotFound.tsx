@@ -46,3 +46,5 @@ export default function <TRef, TProps extends WithWritableReportOrNotFoundProps>
         },
     })(forwardRef(WithWritableReportOrNotFound));
 }
+
+export type {WithWritableReportOrNotFoundProps};
