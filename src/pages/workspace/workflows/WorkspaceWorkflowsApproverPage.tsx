@@ -49,11 +49,6 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails,
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
-    const headerMessage = useMemo(() => {
-        const searchValue = searchTerm.trim().toLowerCase();
-        return OptionsListUtils.getHeaderMessage(true, false, searchValue);
-    }, [translate, searchTerm, policyName]);
-
     const isDeletedPolicyMember = (policyMember: PolicyMember): boolean =>
         !isOffline && policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyMember.errors);
 
