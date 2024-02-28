@@ -116,9 +116,12 @@ function GenericPressable(
         [shouldUseHapticsOnPress, onPress, nextFocusRef, ref, isDisabled],
     );
 
-    const onKeyboardShortcutPressHandler = useCallback((event?: GestureResponderEvent | KeyboardEvent) => {
-        onPressHandler(event);
-    }, [onPressHandler]);
+    const onKeyboardShortcutPressHandler = useCallback(
+        (event?: GestureResponderEvent | KeyboardEvent) => {
+            onPressHandler(event);
+        },
+        [onPressHandler],
+    );
 
     useEffect(() => {
         if (!keyboardShortcut) {

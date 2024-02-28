@@ -1,5 +1,6 @@
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useRef} from 'react';
+import {Text} from 'react-native';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
