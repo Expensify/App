@@ -46,8 +46,7 @@ function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails
     if (displayName) {
         return displayName;
     }
-    const fallbackValue = shouldFallbackToHidden ? CommonTranslationUtils.hiddenText() : '';
-    return defaultValue || fallbackValue;
+    return defaultValue || (shouldFallbackToHidden ? CommonTranslationUtils.hiddenText() : '');
 }
 
 /**
