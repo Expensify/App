@@ -1,38 +1,22 @@
 import type {ContentStyle} from '@shopify/flash-list';
 import type {RefObject} from 'react';
 import type {LayoutChangeEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {CurrentReportIDContextValue} from '@components/withCurrentReportID';
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import type {Locale, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
-import { OrderedReports } from '@libs/SidebarUtils';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
 
-type LHNOptionsListOnyxProps = {
-    /** The policy which the user has access to and which the report could be tied to */
-    policy: OnyxCollection<Policy>;
+type OptionListItem = {
+    /** The reportID of the report */
+    reportID: string;
 
-    /** Array of report actions for this report */
-    reportActions: OnyxCollection<ReportActions>;
+    /** The item that should be rendered */
+    optionItem: OptionData | undefined;
 
-    /** Indicates which locale the user currently has selected */
-    preferredLocale: OnyxEntry<Locale>;
-
-    /** List of users' personal details */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-
-    /** The transaction from the parent report action */
-    transactions: OnyxCollection<Transaction>;
-
-    /** List of draft comments */
-    draftComments: OnyxCollection<string>;
-
-    /** The list of transaction violations */
-    transactionViolations: OnyxCollection<TransactionViolation[]>;
+    /** Comment added to report */
+    comment: string;
 };
 
 type CustomLHNOptionsListProps = {
@@ -43,7 +27,7 @@ type CustomLHNOptionsListProps = {
     contentContainerStyles?: StyleProp<ContentStyle>;
 
     /** Sections for the section list */
-    data: string[];
+    data: OptionListItem[];
 
     /** Callback to fire when a row is selected */
     onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View>) => void;
@@ -58,50 +42,20 @@ type CustomLHNOptionsListProps = {
     onFirstItemRendered: () => void;
 };
 
-type LHNOptionsListProps = CustomLHNOptionsListProps & CurrentReportIDContextValue & LHNOptionsListOnyxProps;
+type LHNOptionsListProps = CustomLHNOptionsListProps & CurrentReportIDContextValue;
 
 type OptionRowLHNDataProps = {
     /** Whether row should be focused */
     isFocused?: boolean;
 
-    /** List of users' personal details */
-    personalDetails?: PersonalDetailsList;
-
-    /** The preferred language for the app */
-    preferredLocale?: OnyxEntry<Locale>;
-
-    /** The full data of the report */
-    fullReport: OnyxEntry<Report>;
-
-    /** The policy which the user has access to and which the report could be tied to */
-    policy?: OnyxEntry<Policy>;
-
-    /** The action from the parent report */
-    parentReportAction?: OnyxEntry<ReportAction>;
-
-    /** The transaction from the parent report action */
-    transaction: OnyxEntry<Transaction>;
-
-    /** The transaction linked to the report's last action */
-    lastReportActionTransaction?: OnyxEntry<Transaction | EmptyObject>;
-
     /** Comment added to report */
     comment: string;
 
-    /** The receipt transaction from the parent report action */
-    receiptTransactions: OnyxCollection<Transaction>;
+    /** The item that should be rendered */
+    optionItem: OptionData | undefined;
 
     /** The reportID of the report */
     reportID: string;
-
-    /** Array of report actions for this report */
-    reportActions: OnyxEntry<ReportActions>;
-
-    /** List of transaction violation */
-    transactionViolations: OnyxCollection<TransactionViolation[]>;
-
-    /** Whether the user can use violations */
-    canUseViolations: boolean | undefined;
 
     /** Toggle between compact and default view */
     viewMode?: OptionMode;
@@ -130,11 +84,11 @@ type OptionRowLHNProps = {
     style?: StyleProp<TextStyle>;
 
     /** The item that should be rendered */
-    optionItem?: OptionData;
+    optionItem: OptionData | undefined;
 
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 
-type RenderItemProps = {item: OrderedReports};
+type RenderItemProps = {item: OptionListItem};
 
-export type {LHNOptionsListProps, OptionRowLHNDataProps, OptionRowLHNProps, LHNOptionsListOnyxProps, RenderItemProps};
+export type {LHNOptionsListProps, OptionRowLHNDataProps, OptionRowLHNProps, OptionListItem, RenderItemProps};

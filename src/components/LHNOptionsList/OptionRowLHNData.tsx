@@ -1,10 +1,5 @@
-import {deepEqual} from 'fast-equals';
-import React, {useEffect, useMemo, useRef} from 'react';
-import * as ReportUtils from '@libs/ReportUtils';
-import SidebarUtils from '@libs/SidebarUtils';
+import React, {useEffect} from 'react';
 import * as Report from '@userActions/Report';
-import CONST from '@src/CONST';
-import type {OptionData} from '@src/libs/ReportUtils';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
 
@@ -14,12 +9,7 @@ import type {OptionRowLHNDataProps} from './types';
  * The OptionRowLHN component is memoized, so it will only
  * re-render if the data really changed.
  */
-function OptionRowLHNData({
-    isFocused = false,
-    comment,
-    optionItem,
-    ...propsToForward
-}: OptionRowLHNDataProps) {
+function OptionRowLHNData({isFocused = false, comment, optionItem, ...propsToForward}: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
 
     useEffect(() => {

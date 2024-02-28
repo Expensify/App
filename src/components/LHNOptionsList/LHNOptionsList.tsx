@@ -3,13 +3,12 @@ import type {ReactElement} from 'react';
 import React, {memo, useCallback, useMemo} from 'react';
 import {StyleSheet, View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {OrderedReports} from '@libs/SidebarUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import OptionRowLHNData from './OptionRowLHNData';
-import type {LHNOptionsListProps, RenderItemProps} from './types';
+import type {LHNOptionsListProps, OptionListItem, RenderItemProps} from './types';
 
-const keyExtractor = (item: OrderedReports) => `report_${item?.reportID}`;
+const keyExtractor = (item: OptionListItem) => `report_${item.reportID}`;
 
 function LHNOptionsList({
     style,

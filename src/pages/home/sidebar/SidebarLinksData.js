@@ -31,12 +31,16 @@ const propTypes = {
 
     network: networkPropTypes.isRequired,
 
+    // eslint-disable-next-line react/forbid-prop-types
+    policyMembers: PropTypes.object,
+
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     isLoadingApp: true,
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+    policyMembers: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
