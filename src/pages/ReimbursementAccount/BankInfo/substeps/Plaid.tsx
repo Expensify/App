@@ -11,7 +11,6 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as ReimbursementAccountActions from '@userActions/ReimbursementAccount';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -94,7 +93,9 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
                     ReimbursementAccountActions.updateReimbursementAccountDraft({plaidAccountID});
                 }}
                 plaidData={plaidData}
-                onExitPlaid={() => BankAccounts.setBankAccountSubStep(null)}
+                onExitPlaid={() => {
+                    BankAccounts.setBankAccountSubStep(null);
+                }}
                 allowDebit
                 bankAccountID={bankAccountID}
                 selectedPlaidAccountID={selectedPlaidAccountID}
