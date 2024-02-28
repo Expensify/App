@@ -2,8 +2,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTagList, ReportAction} from '@src/types/onyx';
-import type * as OnyxTypes from '@src/types/onyx';
+import type {PolicyTagList, Report, ReportAction} from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
@@ -25,7 +24,7 @@ Onyx.connect({
     },
 });
 
-let allReports: OnyxCollection<OnyxTypes.Report> = null;
+let allReports: OnyxCollection<Report> = null;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
