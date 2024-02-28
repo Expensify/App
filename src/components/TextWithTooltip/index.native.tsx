@@ -6,7 +6,7 @@ function TextWithTooltip({text, textStyles, numberOfLines = 1}: TextWithTooltipP
     return (
         <Text
             style={textStyles}
-            numberOfLines={numberOfLines ?? 1}
+            numberOfLines={numberOfLines}
         >
             {text}
         </Text>

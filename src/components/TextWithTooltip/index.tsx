@@ -17,7 +17,7 @@ function TextWithTooltip({text, shouldShowTooltip, textStyles, numberOfLines = 1
         >
             <Text
                 style={textStyles}
-                numberOfLines={numberOfLines ?? 1}
+                numberOfLines={numberOfLines}
                 onLayout={(e) => {
                     const target = (e.nativeEvent as unknown as LayoutChangeEvent).target;
                     if (!shouldShowTooltip) {
