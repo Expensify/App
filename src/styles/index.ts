@@ -1406,7 +1406,6 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarAvatar: {
-            backgroundColor: theme.icon,
             borderRadius: 20,
             height: variables.componentSizeSmall,
             width: variables.componentSizeSmall,
