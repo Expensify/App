@@ -17,6 +17,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import compose from '@libs/compose';
 import {translatableTextPropTypes} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -87,6 +88,7 @@ function ProfilePage(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    usePrivatePersonalDetails();
     const getPronouns = () => {
         let pronounsKey = lodashGet(props.currentUserPersonalDetails, 'pronouns', '');
         if (pronounsKey.startsWith(CONST.PRONOUNS.PREFIX)) {
