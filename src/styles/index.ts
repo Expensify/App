@@ -418,6 +418,12 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightHero,
         },
 
+        textHeroSmall: {
+            ...headlineFont,
+            fontSize: variables.fontSizeSignInHeroSmall,
+            lineHeight: '110%',
+        },
+
         textStrong: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontWeight: FontUtils.fontWeight.bold,
@@ -4403,16 +4409,20 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.icon,
         },
 
-        progressBarWrapper: {
+        headerProgressBarContainer: {
             position: 'absolute',
+            width: '100%',
+        },
+
+        headerProgressBar: {
             width: variables.componentSizeMedium,
-            height: 4,
+            height: variables.iconSizeXXXSmall,
             borderRadius: variables.componentBorderRadiusRounded,
             backgroundColor: theme.progressBarBackground,
             alignSelf: 'center',
         },
 
-        progressBar: {
+        headerProgressBarFill: {
             borderRadius: variables.componentBorderRadiusRounded,
             height: '100%',
             backgroundColor: theme.progressBarFill,
