@@ -721,10 +721,9 @@ function getShareDestination(reportID: string, reports: OnyxCollection<OnyxTypes
 
 /**
  * Returns the parentReportAction if the given report is a thread/task.
- *
- * @deprecated Use Onyx.connect() or withOnyx() instead
  */
 function getParentReportAction(report: OnyxEntry<OnyxTypes.Report>): ReportAction | Record<string, never> {
+    // If the report is not a thread report, then it won't have a parent and an empty object can be returned.
     if (!report?.parentReportID || !report.parentReportActionID) {
         return {};
     }
