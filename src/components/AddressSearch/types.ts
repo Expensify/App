@@ -79,7 +79,7 @@ type AddressSearchProps = {
     predefinedPlaces?: Place[] | null;
 
     /** A map of inputID key names */
-    renamedInputKeys: RenamedInputKeysProps;
+    renamedInputKeys?: RenamedInputKeysProps;
 
     /** Maximum number of characters allowed in search input */
     maxInputLength?: number;

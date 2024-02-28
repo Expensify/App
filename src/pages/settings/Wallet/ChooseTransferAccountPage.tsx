@@ -1,51 +1,49 @@
 import React from 'react';
+import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {AccountData, WalletTransfer} from '@src/types/onyx';
 import PaymentMethodList from './PaymentMethodList';
-import walletTransferPropTypes from './walletTransferPropTypes';
 
-const propTypes = {
+type ChooseTransferAccountPageOnyxProps = {
     /** Wallet transfer propTypes */
-    walletTransfer: walletTransferPropTypes,
-
-    ...withLocalizePropTypes,
+    walletTransfer: OnyxEntry<WalletTransfer>;
 };
 
-const defaultProps = {
-    walletTransfer: {},
-};
+type ChooseTransferAccountPageProps = ChooseTransferAccountPageOnyxProps;
 
-function ChooseTransferAccountPage(props) {
+function ChooseTransferAccountPage({walletTransfer = {}}: ChooseTransferAccountPageProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     /**
      * Go back to transfer balance screen with the selected bank account set
-     * @param {Object} event Click event object
-     * @param {String} accountType of the selected account type
-     * @param {Object} account of the selected account data
+     * @param event Click event object
+     * @param accountType of the selected account type
+     * @param account of the selected account data
      */
-    const selectAccountAndNavigateBack = (event, accountType, account) => {
-        PaymentMethods.saveWalletTransferAccountTypeAndID(accountType, accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? account.bankAccountID : account.fundID);
+    const selectAccountAndNavigateBack = (event?: GestureResponderEvent | KeyboardEvent, accountType?: string, account?: AccountData) => {
+        PaymentMethods.saveWalletTransferAccountTypeAndID(
+            accountType ?? '',
+            (accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? account?.bankAccountID?.toString() : account?.fundID?.toString()) ?? '',
+        );
         Navigation.goBack(ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE);
     };
 
-    /**
-     * @param {String} paymentType
-     */
     const navigateToAddPaymentMethodPage = () => {
-        if (props.walletTransfer.filterPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
+        if (walletTransfer?.filterPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             Navigation.navigate(ROUTES.SETTINGS_ADD_DEBIT_CARD);
             return;
         }
@@ -55,24 +53,24 @@ function ChooseTransferAccountPage(props) {
     return (
         <ScreenWrapper testID={ChooseTransferAccountPage.displayName}>
             <HeaderWithBackButton
-                title={props.translate('chooseTransferAccountPage.chooseAccount')}
+                title={translate('chooseTransferAccountPage.chooseAccount')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE)}
             />
             <View style={[styles.mt3, styles.flexShrink1, styles.flexBasisAuto]}>
                 <PaymentMethodList
                     onPress={selectAccountAndNavigateBack}
                     shouldShowSelectedState
-                    filterType={props.walletTransfer.filterPaymentMethodType}
-                    selectedMethodID={props.walletTransfer.selectedAccountID}
+                    filterType={walletTransfer?.filterPaymentMethodType}
+                    selectedMethodID={walletTransfer?.selectedAccountID}
                     shouldShowAddPaymentMethodButton={false}
                 />
             </View>
             <MenuItem
                 onPress={navigateToAddPaymentMethodPage}
                 title={
-                    props.walletTransfer.filterPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT
-                        ? props.translate('paymentMethodList.addNewBankAccount')
-                        : props.translate('paymentMethodList.addNewDebitCard')
+                    walletTransfer?.filterPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT
+                        ? translate('paymentMethodList.addNewBankAccount')
+                        : translate('paymentMethodList.addNewDebitCard')
                 }
                 icon={Expensicons.Plus}
             />
@@ -80,15 +78,10 @@ function ChooseTransferAccountPage(props) {
     );
 }
 
-ChooseTransferAccountPage.propTypes = propTypes;
-ChooseTransferAccountPage.defaultProps = defaultProps;
 ChooseTransferAccountPage.displayName = 'ChooseTransferAccountPage';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        walletTransfer: {
-            key: ONYXKEYS.WALLET_TRANSFER,
-        },
-    }),
-)(ChooseTransferAccountPage);
+export default withOnyx<ChooseTransferAccountPageProps, ChooseTransferAccountPageOnyxProps>({
+    walletTransfer: {
+        key: ONYXKEYS.WALLET_TRANSFER,
+    },
+})(ChooseTransferAccountPage);

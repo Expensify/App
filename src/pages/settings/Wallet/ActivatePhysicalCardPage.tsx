@@ -1,14 +1,14 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
 import MagicCodeInput from '@components/MagicCodeInput';
+import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -19,32 +19,22 @@ import * as CardUtils from '@libs/CardUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PublicScreensParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as CardSettings from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import assignedCardPropTypes from './assignedCardPropTypes';
+import type {Card} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-const propTypes = {
-    /* Onyx Props */
-
-    /** The details about the Expensify cards */
-    cardList: PropTypes.objectOf(assignedCardPropTypes),
-
-    /** Navigation route context info provided by react navigation */
-    route: PropTypes.shape({
-        params: PropTypes.shape({
-            /** domain passed via route /settings/wallet/card/:domain */
-            domain: PropTypes.string,
-        }),
-    }).isRequired,
+type ActivatePhysicalCardPageOnyxProps = {
+    /** Card list propTypes */
+    cardList: OnyxEntry<Record<string, Card>>;
 };
 
-const defaultProps = {
-    cardList: {},
-};
+type ActivatePhysicalCardPageProps = ActivatePhysicalCardPageOnyxProps & StackScreenProps<PublicScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
 
 const LAST_FOUR_DIGITS_LENGTH = 4;
 const MAGIC_INPUT_MIN_HEIGHT = 86;
@@ -52,9 +42,9 @@ const MAGIC_INPUT_MIN_HEIGHT = 86;
 function ActivatePhysicalCardPage({
     cardList,
     route: {
-        params: {domain},
+        params: {domain = ''},
     },
-}) {
+}: ActivatePhysicalCardPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useWindowDimensions();
@@ -65,23 +55,24 @@ function ActivatePhysicalCardPage({
     const [lastFourDigits, setLastFourDigits] = useState('');
     const [lastPressedDigit, setLastPressedDigit] = useState('');
 
-    const domainCards = CardUtils.getDomainCards(cardList)[domain];
-    const physicalCard = _.find(domainCards, (card) => !card.isVirtual) || {};
-    const cardID = lodashGet(physicalCard, 'cardID', 0);
-    const cardError = ErrorUtils.getLatestErrorMessage(physicalCard);
+    const domainCards = CardUtils.getDomainCards(cardList)[domain] ?? [];
+    const physicalCard = domainCards.find((card) => !card.isVirtual);
+    const cardID = physicalCard?.cardID ?? 0;
+    const cardError = ErrorUtils.getLatestErrorMessage(physicalCard ?? {});
 
-    const activateCardCodeInputRef = useRef(null);
+    const activateCardCodeInputRef = useRef<MagicCodeInputHandle>(null);
 
     /**
      * If state of the card is CONST.EXPENSIFY_CARD.STATE.OPEN, navigate to card details screen.
      */
     useEffect(() => {
-        if (physicalCard.isLoading || lodashGet(cardList, `${cardID}.state`, 0) !== CONST.EXPENSIFY_CARD.STATE.OPEN) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (physicalCard?.isLoading || cardList?.[cardID]?.state !== CONST.EXPENSIFY_CARD.STATE.OPEN) {
             return;
         }
 
         Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain));
-    }, [cardID, cardList, domain, physicalCard.isLoading]);
+    }, [cardID, cardList, domain, physicalCard?.isLoading]);
 
     useEffect(
         () => () => {
@@ -95,17 +86,13 @@ function ActivatePhysicalCardPage({
      *
      * NOTE: If the same digit is pressed twice in a row, append it to the end of the string
      * so that useEffect inside MagicCodeInput will be triggered by artificial change of the value.
-     *
-     * @param {String} key
      */
-    const updateLastPressedDigit = useCallback((key) => setLastPressedDigit(lastPressedDigit === key ? lastPressedDigit + key : key), [lastPressedDigit]);
+    const updateLastPressedDigit = useCallback((key: string) => setLastPressedDigit(lastPressedDigit === key ? lastPressedDigit + key : key), [lastPressedDigit]);
 
     /**
      * Handle card activation code input
-     *
-     * @param {String} text
      */
-    const onCodeInput = (text) => {
+    const onCodeInput = (text: string) => {
         setFormError('');
 
         if (cardError) {
@@ -116,7 +103,7 @@ function ActivatePhysicalCardPage({
     };
 
     const submitAndNavigateToNextPage = useCallback(() => {
-        activateCardCodeInputRef.current.blur();
+        activateCardCodeInputRef.current?.blur();
 
         if (lastFourDigits.replace(CONST.MAGIC_CODE_EMPTY_CHAR, '').length !== LAST_FOUR_DIGITS_LENGTH) {
             setFormError('activateCardPage.error.thatDidntMatch');
@@ -126,7 +113,7 @@ function ActivatePhysicalCardPage({
         CardSettings.activatePhysicalExpensifyCard(lastFourDigits, cardID);
     }, [lastFourDigits, cardID]);
 
-    if (_.isEmpty(physicalCard)) {
+    if (isEmptyObject(physicalCard)) {
         return <NotFoundPage />;
     }
 
@@ -161,7 +148,7 @@ function ActivatePhysicalCardPage({
             <Button
                 success
                 isDisabled={isOffline}
-                isLoading={physicalCard.isLoading}
+                isLoading={physicalCard?.isLoading}
                 medium={isExtraSmallScreenHeight}
                 style={[styles.w100, styles.p5, styles.mtAuto]}
                 onPress={submitAndNavigateToNextPage}
@@ -172,11 +159,9 @@ function ActivatePhysicalCardPage({
     );
 }
 
-ActivatePhysicalCardPage.propTypes = propTypes;
-ActivatePhysicalCardPage.defaultProps = defaultProps;
 ActivatePhysicalCardPage.displayName = 'ActivatePhysicalCardPage';
 
-export default withOnyx({
+export default withOnyx<ActivatePhysicalCardPageProps, ActivatePhysicalCardPageOnyxProps>({
     cardList: {
         key: ONYXKEYS.CARD_LIST,
     },
