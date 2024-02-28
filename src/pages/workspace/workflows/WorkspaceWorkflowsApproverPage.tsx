@@ -101,8 +101,16 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails}
                 pendingAction: policyMember.pendingAction,
             });
         });
-        return result;
-    }, [personalDetails, policyMembers, searchTerm, translate]);
+
+        sectionsArr.push({
+            title: translate('common.all'),
+            data: policyUsersSection,
+            shouldShow: true,
+            indexOffset: 0,
+        });
+
+        return sectionsArr;
+    }, [personalDetails, policyMembers, searchTerm, translate, policy?.approver]);
 
     return (
         <ScreenWrapper
