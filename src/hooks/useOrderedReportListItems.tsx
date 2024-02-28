@@ -1,3 +1,5 @@
+import lodashGet from 'lodash/get';
+import lodashMap from 'lodash/map';
 import React, {createContext, useCallback, useContext, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -152,29 +154,27 @@ const chatReportSelector = (report: OnyxEntry<Report>) =>
         isUnreadWithMention: ReportUtils.isUnreadWithMention(report),
     };
 
-const reportActionsSelector = (reportActions: OnyxEntry<ReportActions>) => {
-    if (!reportActions) {
-        return [];
-    }
+const reportActionsSelector = (reportActions: OnyxEntry<ReportActions>) =>
+    reportActions &&
+    lodashMap(reportActions, (reportAction) => {
+        const {reportActionID, parentReportActionID, actionName, errors = [], originalMessage} = reportAction;
+        const decision = lodashGet(reportAction, 'message[0].moderationDecision.decision');
 
-    return Object.values(reportActions).map((reportAction) => {
-        const {reportActionID, actionName, originalMessage} = reportAction ?? {};
-        const decision = reportAction?.message?.[0]?.moderationDecision?.decision;
         return {
             reportActionID,
+            parentReportActionID,
             actionName,
-            originalMessage,
+            errors,
             message: [
                 {
                     moderationDecision: {decision},
                 },
             ],
+            originalMessage,
         };
     });
-};
 
 const OrderedReportListItemsContextProvider = withOnyx<WithOrderedReportListItemsContextProviderProps, OnyxProps>({
-    // @ts-expect-error Need some help in determining the correct type for this selector
     chatReports: {
         key: ONYXKEYS.COLLECTION.REPORT,
         selector: chatReportSelector,
@@ -190,7 +190,6 @@ const OrderedReportListItemsContextProvider = withOnyx<WithOrderedReportListItem
     },
     allReportActions: {
         key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-        // @ts-expect-error Need some help in determining the correct type for this selector
         selector: reportActionsSelector,
         initialValue: {},
     },
