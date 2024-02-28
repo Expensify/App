@@ -454,7 +454,7 @@ Onyx.connect({
     callback: (value) => {
         currentUserPersonalDetails = value?.[currentUserAccountID ?? -1] ?? null;
         allPersonalDetails = value ?? {};
-        allPersonalDetailLogins = Object.values(allPersonalDetails).map((v) => v?.login ?? '');
+        allPersonalDetailLogins = Object.values(allPersonalDetails).map((personalDetail) => personalDetail?.login ?? '');
     },
 });
 
