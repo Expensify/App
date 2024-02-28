@@ -71,7 +71,8 @@ function IOURequestStepParticipants({
     }, [participants, updateRouteParams]);
 
     const addParticipant = useCallback(
-        (val, isSplit) => {
+        (val, selectedIouType) => {
+            const isSplit = selectedIouType === CONST.IOU.TYPE.SPLIT;
             // It's only possible to switch between REQUEST and SPLIT.
             // We want to update the IOU type only if it's not updated yet to prevent unnecessary updates.
             if (isSplit && iouType !== CONST.IOU.TYPE.SPLIT) {
@@ -106,7 +107,8 @@ function IOURequestStepParticipants({
     );
 
     const goToNextStep = useCallback(
-        (isSplit) => {
+        (selectedIouType) => {
+            const isSplit = selectedIouType === CONST.IOU.TYPE.SPLIT;
             const nextStepIOUType = !isSplit && iouType !== CONST.IOU.TYPE.REQUEST ? CONST.IOU.TYPE.REQUEST : iouType;
             IOU.setMoneyRequestTag(transactionID, '');
             IOU.setMoneyRequestCategory(transactionID, '');

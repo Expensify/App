@@ -189,16 +189,13 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
      * @param {Object} option
      */
     const addSingleParticipant = (option) => {
-        onParticipantsAdded(
-            [
-                {
-                    ..._.pick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText'),
-                    selected: true,
-                },
-            ],
-            false,
-        );
-        onFinish(false);
+        onParticipantsAdded([
+            {
+                ..._.pick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText'),
+                selected: true,
+            },
+        ]);
+        onFinish();
     };
 
     /**
@@ -237,7 +234,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 ];
             }
 
-            onParticipantsAdded(newSelectedOptions, newSelectedOptions.length !== 0);
+            onParticipantsAdded(newSelectedOptions, newSelectedOptions.length !== 0 ? CONST.IOU.TYPE.SPLIT : undefined);
         },
         [participants, onParticipantsAdded],
     );
@@ -266,7 +263,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             return;
         }
 
-        onFinish(true);
+        onFinish(CONST.IOU.TYPE.SPLIT);
     }, [shouldShowSplitBillErrorMessage, onFinish]);
 
     const footerContent = useMemo(
