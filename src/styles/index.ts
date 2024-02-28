@@ -421,7 +421,7 @@ const styles = (theme: ThemeColors) =>
         textHeroSmall: {
             ...headlineFont,
             fontSize: variables.fontSizeSignInHeroSmall,
-            lineHeight: variables.fontSizeSignInHeroSmallLineHeight,
+            lineHeight: '110%',
         },
 
         textStrong: {
