@@ -41,7 +41,7 @@ type WorkspaceWorkflowsApproverPageProps = WorkspaceWorkflowsApproverPageOnyxPro
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 type MembersSection = SectionListData<MemberOption, Section<MemberOption>>;
 
-function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails}: WorkspaceWorkflowsApproverPageProps) {
+function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails, isLoadingReportData = true}: WorkspaceWorkflowsApproverPageProps) {
     const {translate} = useLocalize();
     const policyName = policy?.name ?? '';
     const [searchTerm, setSearchTerm] = useState('');
