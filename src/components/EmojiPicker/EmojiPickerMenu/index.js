@@ -336,8 +336,6 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected, activeEmoji}) {
                 scrollToHeader={scrollToHeader}
                 listWrapperStyle={[
                     listStyle,
-                    // Set scrollPaddingTop to consider sticky headers while scrolling
-                    {scrollPaddingTop: isListFiltered ? 0 : CONST.EMOJI_PICKER_ITEM_HEIGHT},
                     styles.flexShrink1,
                 ]}
                 ref={emojiListRef}
