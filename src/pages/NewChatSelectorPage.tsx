@@ -32,6 +32,7 @@ function NewChatSelectorPage() {
             >
                 <TopTab.Screen
                     name={CONST.TAB.NEW_CHAT}
+                    // @ts-expect-error TODO: 'isGroupChat' is declared here.
                     component={NewChatPage}
                 />
                 <TopTab.Screen
