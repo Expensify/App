@@ -56,7 +56,6 @@ function SidebarLinksData({isFocused, currentReportID, insets, isLoadingApp, onL
     const orderedReportListItems = useOrderedReportIDs();
 
     const optionListItems = useMemo(() => {
-        // this can be very heavy because we are no longer comapring the IDS but the whole objects for the list
         if (deepEqual(orderedReportListItemsRef.current, orderedReportListItems)) {
             return orderedReportListItemsRef.current;
         }
