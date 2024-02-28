@@ -1,28 +1,17 @@
+import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ReportScreenWrapper from '@libs/Navigation/AppNavigator/ReportScreenWrapper';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
-import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import SCREENS from '@src/SCREENS';
 
-const Stack = createPlatformStackNavigator<CentralPaneNavigatorParamList>();
+const Stack = createStackNavigator<CentralPaneNavigatorParamList>();
 
 const url = getCurrentUrl();
 const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : undefined;
 
 type Screens = Partial<Record<keyof CentralPaneNavigatorParamList, () => React.ComponentType>>;
-
-// const workspaceSettingsScreens = {
-//     [SCREENS.SETTINGS.WORKSPACES]: () => require('../../../../../pages/workspace/WorkspacesListPage').default as React.ComponentType,
-//     [SCREENS.WORKSPACE.PROFILE]: () => require('../../../../../pages/workspace/WorkspaceProfilePage').default as React.ComponentType,
-//     [SCREENS.WORKSPACE.CARD]: () => require('../../../../../pages/workspace/card/WorkspaceCardPage').default as React.ComponentType,
-//     [SCREENS.WORKSPACE.REIMBURSE]: () => require('../../../../../pages/workspace/reimburse/WorkspaceReimbursePage').default as React.ComponentType,
-//     [SCREENS.WORKSPACE.BILLS]: () => require('../../../../../pages/workspace/bills/WorkspaceBillsPage').default as React.ComponentType,
-//     [SCREENS.WORKSPACE.INVOICES]: () => require('../../../../../pages/workspace/invoices/WorkspaceInvoicesPage').default as React.ComponentType,
-//     [SCREENS.WORKSPACE.TRAVEL]: () => require('../../../../../pages/workspace/travel/WorkspaceTravelPage').default as React.ComponentType,
-//     [SCREENS.WORKSPACE.MEMBERS]: () => require('../../../../../pages/workspace/WorkspaceMembersPage').default as React.ComponentType,
-// } satisfies Screens;
 
 const settingsScreens = {
     [SCREENS.SETTINGS.WORKSPACES]: () => require('../../../../../pages/workspace/WorkspacesListPage').default as React.ComponentType,
@@ -50,11 +39,6 @@ function BaseCentralPaneNavigator() {
                 initialParams={{openOnAdminRoom: openOnAdminRoom === 'true' || undefined}}
                 component={ReportScreenWrapper}
             />
-            {/* <Stack.Screen
-                name={SCREENS.SETTINGS_CENTRAL_PANE}
-                // options={screenOptions.centralPaneNavigator}
-                component={ModalStackNavigators.AccountSettingsModalStackNavigator}
-            /> */}
             {Object.entries(settingsScreens).map(([screenName, componentGetter]) => (
                 <Stack.Screen
                     key={screenName}
@@ -62,13 +46,6 @@ function BaseCentralPaneNavigator() {
                     getComponent={componentGetter}
                 />
             ))}
-            {/* {Object.entries(workspaceSettingsScreens).map(([screenName, componentGetter]) => (
-                <Stack.Screen
-                    key={screenName}
-                    name={screenName as keyof Screens}
-                    getComponent={componentGetter}
-                />
-            ))} */}
         </Stack.Navigator>
     );
 }

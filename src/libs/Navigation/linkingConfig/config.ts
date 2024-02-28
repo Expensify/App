@@ -59,46 +59,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     exact: true,
                 },
                 [SCREENS.SETTINGS.WORKSPACES]: ROUTES.SETTINGS_WORKSPACES,
-                // [SCREENS.WORKSPACE.PROFILE]: ROUTES.WORKSPACE_PROFILE.route,
-                // [SCREENS.WORKSPACE.CARD]: {
-                //     path: ROUTES.WORKSPACE_CARD.route,
-                // },
-                // [SCREENS.WORKSPACE.REIMBURSE]: {
-                //     path: ROUTES.WORKSPACE_REIMBURSE.route,
-                // },
-                // [SCREENS.WORKSPACE.BILLS]: {
-                //     path: ROUTES.WORKSPACE_BILLS.route,
-                // },
-                // [SCREENS.WORKSPACE.INVOICES]: {
-                //     path: ROUTES.WORKSPACE_INVOICES.route,
-                // },
-                // [SCREENS.WORKSPACE.TRAVEL]: {
-                //     path: ROUTES.WORKSPACE_TRAVEL.route,
-                // },
-                // [SCREENS.WORKSPACE.MEMBERS]: {
-                //     path: ROUTES.WORKSPACE_MEMBERS.route,
-                // },
-                // [SCREENS.SETTINGS.PROFILE.ROOT]: {
-                //     path: ROUTES.SETTINGS_PROFILE,
-                //     exact: true,
-                // },
-                // [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
-                //     path: ROUTES.SETTINGS_PREFERENCES,
-                //     exact: true,
-                // },
-                // [SCREENS.SETTINGS.SECURITY]: {
-                //     path: ROUTES.SETTINGS_SECURITY,
-                //     exact: true,
-                // },
-                // [SCREENS.SETTINGS.WALLET.ROOT]: {
-                //     path: ROUTES.SETTINGS_WALLET,
-                //     exact: true,
-                // },
-                // [SCREENS.SETTINGS.ABOUT]: {
-                //     path: ROUTES.SETTINGS_ABOUT,
-                //     exact: true,
-                // },
-                //
             },
         },
         [SCREENS.NOT_FOUND]: '*',
@@ -291,6 +251,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
                             path: ROUTES.WORKSPACE_INVITE_MESSAGE.route,
                         },
+                        [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_CATEGORIES_SETTINGS.route,
+                        },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
                             exact: true,
@@ -304,6 +267,15 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_PROFILE_NAME.route,
                         [SCREENS.SETTINGS.SHARE_CODE]: {
                             path: ROUTES.SETTINGS_SHARE_CODE,
+                        },
+                        [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: {
+                            path: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
+                        },
+                        [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
+                            path: ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.route,
+                        },
+                        [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: {
+                            path: ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route,
                         },
                     },
                 },
@@ -544,6 +516,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.PROFILE]: ROUTES.WORKSPACE_PROFILE.route,
                         [SCREENS.WORKSPACE.CARD]: {
                             path: ROUTES.WORKSPACE_CARD.route,
+                        },
+                        [SCREENS.WORKSPACE.WORKFLOWS]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS.route,
                         },
                         [SCREENS.WORKSPACE.REIMBURSE]: {
                             path: ROUTES.WORKSPACE_REIMBURSE.route,

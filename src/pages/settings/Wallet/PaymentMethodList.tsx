@@ -7,7 +7,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg/lib/typescript/ReactNativeSVG';
-import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import type {RenderSuggestionMenuItemProps} from '@components/AutoCompleteSuggestions/types';
 import Button from '@components/Button';
 import FormAlertWrapper from '@components/FormAlertWrapper';
@@ -34,10 +34,9 @@ import type {AccountData, BankAccountList, CardList, FundList} from '@src/types/
 import type {BankIcon} from '@src/types/onyx/Bank';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
+import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-
-const FILTER_TYPES = [CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT, ''] as const;
 
 type PaymentMethodListOnyxProps = {
     /** List of bank accounts */
@@ -81,8 +80,11 @@ type PaymentMethodListProps = PaymentMethodListOnyxProps & {
     /** List container style */
     style?: StyleProp<ViewStyle>;
 
+    /** List item style */
+    listItemStyle?: StyleProp<ViewStyle>;
+
     /** Type to filter the payment Method list */
-    filterType?: TupleToUnion<typeof FILTER_TYPES>;
+    filterType?: FilterMethodPaymentType;
 
     /** Whether the add bank account button should be shown on the list */
     shouldShowAddBankAccount?: boolean;
@@ -98,9 +100,6 @@ type PaymentMethodListProps = PaymentMethodListOnyxProps & {
 
     /** What to do when a menu item is pressed */
     onPress: (event?: GestureResponderEvent | KeyboardEvent, accountType?: string, accountData?: AccountData, icon?: IconAsset, isDefault?: boolean, methodID?: number) => void;
-
-    /** List item style */
-    listItemStyle: StyleProp<ViewStyle>;
 };
 
 type PaymentMethodItem = PaymentMethod & {
@@ -303,7 +302,7 @@ function PaymentMethodList({
                     hoverAndPressStyle={styles.hoveredComponentBG}
                     shouldShowRightIcon={item.shouldShowRightIcon}
                     shouldShowSelectedState={shouldShowSelectedState}
-                    isSelected={selectedMethodID === item.methodID}
+                    isSelected={selectedMethodID.toString() === item.methodID?.toString()}
                     interactive={item.interactive}
                     brickRoadIndicator={item.brickRoadIndicator}
                     success={item.isMethodActive}
