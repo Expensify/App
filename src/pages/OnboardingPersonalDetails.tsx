@@ -29,7 +29,6 @@ function OnboardingPersonalDetails({currentUserPersonalDetails}: OnboardingPerso
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
-    const currentUserDetails = currentUserPersonalDetails || {};
 
     const saveAndNavigate = useCallback((values: FormOnyxValues<'displayNameForm'>) => {
         PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim(), {preventGoBack: true});
@@ -100,7 +99,7 @@ function OnboardingPersonalDetails({currentUserPersonalDetails}: OnboardingPerso
                             label={translate('common.firstName')}
                             aria-label={translate('common.firstName')}
                             role={CONST.ROLE.PRESENTATION}
-                            defaultValue={currentUserDetails?.firstName}
+                            defaultValue={currentUserPersonalDetails?.firstName}
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             spellCheck={false}
                             autoFocus
@@ -114,7 +113,7 @@ function OnboardingPersonalDetails({currentUserPersonalDetails}: OnboardingPerso
                             label={translate('common.lastName')}
                             aria-label={translate('common.lastName')}
                             role={CONST.ROLE.PRESENTATION}
-                            defaultValue={currentUserDetails?.lastName}
+                            defaultValue={currentUserPersonalDetails?.lastName}
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             spellCheck={false}
                         />
