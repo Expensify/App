@@ -48,11 +48,11 @@ function TextCommentFragment({fragment, styleAsDeleted, source, style, displayAs
     // If the only difference between fragment.text and fragment.html is <br /> tags and emoji tag
     // on native, we render it as text, not as html
     // on other device, only render it as text if the only difference is <br /> tag
-    if (!shouldRenderAsText(html, text)) {
+    const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text);
+    if (!shouldRenderAsText(html, text) && !(containsOnlyEmojis && styleAsDeleted)) {
         const editedTag = fragment.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';
         const htmlWithDeletedTag = styleAsDeleted ? `<del>${html}</del>` : html;
 
-        const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text);
         const htmlContent = containsOnlyEmojis ? Str.replaceAll(htmlWithDeletedTag, '<emoji>', '<emoji islarge>') : htmlWithDeletedTag;
 
         const htmlWithTag = editedTag ? `${htmlContent}${editedTag}` : htmlContent;
@@ -65,7 +65,6 @@ function TextCommentFragment({fragment, styleAsDeleted, source, style, displayAs
         );
     }
 
-    const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text);
     const message = isEmpty(iouMessage) ? text : iouMessage;
 
     return (
