@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/AddDebitCardForm';
 import type {BankAccountList, FundList} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
@@ -205,7 +206,15 @@ function clearDebitCardFormErrorAndSubmit() {
     Onyx.set(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM, {
         isLoading: false,
         errors: undefined,
-        setupComplete: false,
+        [INPUT_IDS.SETUP_COMPLETE]: false,
+        [INPUT_IDS.NAME_ON_CARD]: '',
+        [INPUT_IDS.CARD_NUMBER]: '',
+        [INPUT_IDS.EXPIRATION_DATE]: '',
+        [INPUT_IDS.SECURITY_CODE]: '',
+        [INPUT_IDS.ADDRESS_STREET]: '',
+        [INPUT_IDS.ADDRESS_ZIP_CODE]: '',
+        [INPUT_IDS.ADDRESS_STATE]: '',
+        [INPUT_IDS.ACCEPT_TERMS]: '',
     });
 }
 

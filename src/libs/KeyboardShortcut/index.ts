@@ -1,6 +1,7 @@
 import Str from 'expensify-common/lib/str';
 import * as KeyCommand from 'react-native-key-command';
 import getOperatingSystem from '@libs/getOperatingSystem';
+import localeCompare from '@libs/LocaleCompare';
 import CONST from '@src/CONST';
 import bindHandlerToKeydownEvent from './bindHandlerToKeydownEvent';
 
@@ -32,7 +33,7 @@ type Shortcut = {
 const documentedShortcuts: Record<string, Shortcut> = {};
 
 function getDocumentedShortcuts(): Shortcut[] {
-    return Object.values(documentedShortcuts).sort((a, b) => a.displayName.localeCompare(b.displayName));
+    return Object.values(documentedShortcuts).sort((a, b) => localeCompare(a.displayName, b.displayName));
 }
 
 const keyInputEnter = KeyCommand?.constants?.keyInputEnter?.toString() ?? 'keyInputEnter';

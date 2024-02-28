@@ -179,6 +179,10 @@ export default {
         marginLeft: 40,
     },
 
+    ml11: {
+        marginLeft: 44,
+    },
+
     ml18: {
         marginLeft: 72,
     },
@@ -381,6 +385,10 @@ export default {
         paddingVertical: 40,
     },
 
+    pv12: {
+        paddingVertical: 48,
+    },
+
     ph0: {
         paddingHorizontal: 0,
     },
@@ -475,6 +483,10 @@ export default {
 
     pl3: {
         paddingLeft: 12,
+    },
+
+    pl4: {
+        paddingLeft: 16,
     },
 
     pl5: {
