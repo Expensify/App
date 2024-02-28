@@ -61,6 +61,8 @@ function BaseSelectionList<TItem extends ListItem>(
         rightHandSideComponent,
         isLoadingNewOptions = false,
         onLayout,
+        customListHeader,
+        listHeaderWrapperStyle,
     }: BaseSelectionListProps<TItem>,
     inputRef: ForwardedRef<RNTextInput>,
 ) {
@@ -287,7 +289,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 showTooltip={showTooltip}
                 canSelectMultiple={canSelectMultiple}
                 onSelectRow={() => selectRow(item)}
-                onDismissError={onDismissError}
+                onDismissError={() => onDismissError?.(item)}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList}
@@ -428,7 +430,7 @@ function BaseSelectionList<TItem extends ListItem>(
                             <>
                                 {!headerMessage && canSelectMultiple && shouldShowSelectAll && (
                                     <PressableWithFeedback
-                                        style={[styles.peopleRow, styles.userSelectNone, styles.ph4, styles.pb3]}
+                                        style={[styles.peopleRow, styles.userSelectNone, styles.ph4, styles.pb3, listHeaderWrapperStyle]}
                                         onPress={selectAllRow}
                                         accessibilityLabel={translate('workspace.people.selectAll')}
                                         role="button"
@@ -443,11 +445,14 @@ function BaseSelectionList<TItem extends ListItem>(
                                             onPress={selectAllRow}
                                             disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                                         />
-                                        <View style={[styles.flex1]}>
-                                            <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
-                                        </View>
+                                        {customListHeader ?? (
+                                            <View style={[styles.flex1]}>
+                                                <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
+                                            </View>
+                                        )}
                                     </PressableWithFeedback>
                                 )}
+                                {!headerMessage && !canSelectMultiple && customListHeader}
                                 <SectionList
                                     ref={listRef}
                                     sections={sections}
