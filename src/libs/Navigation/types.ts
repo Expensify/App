@@ -502,6 +502,7 @@ type PublicScreensParamList = {
         shortLivedAuthToken?: string;
         shortLivedToken?: string;
         exitTo?: Routes | HybridAppRoute;
+        domain?: Routes;
     };
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;
