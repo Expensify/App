@@ -3,8 +3,6 @@ import type {ImageStyle, StyleProp} from 'react-native';
 import {Image, ScrollView, StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import WorkspaceProfileLight from '@assets/images/workspace-profile-light.png';
-import WorkspaceProfile from '@assets/images/workspace-profile.png';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
@@ -15,7 +13,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useThemePreference from '@hooks/useThemePreference';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
@@ -29,6 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
@@ -44,8 +42,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const themePreference = useThemePreference();
-    const isDarkTheme = themePreference === CONST.THEME.DARK;
+    const illustrations = useThemeIllustrations();
 
     const outputCurrency = policy?.outputCurrency ?? '';
     const currencySymbol = currencyList?.[outputCurrency]?.symbol ?? '';
@@ -96,7 +93,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                         >
                             <Image
                                 style={StyleSheet.flatten([styles.wAuto, styles.h68, imageStyle])}
-                                source={isDarkTheme ? WorkspaceProfile : WorkspaceProfileLight}
+                                source={illustrations.WorkspaceProfile}
                                 resizeMode="cover"
                             />
                             <AvatarWithImagePicker
