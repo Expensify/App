@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import Avatar from './Avatar';
@@ -23,9 +24,11 @@ type AvatarWithIndicatorProps = {
 };
 
 function AvatarWithIndicator({source, tooltipText = '', fallbackIcon = Expensicons.FallbackAvatar, isLoading = true}: AvatarWithIndicatorProps) {
+    const styles = useThemeStyles();
+
     return (
         <Tooltip text={tooltipText}>
-            <View>
+            <View style={[styles.sidebarAvatar]}>
                 {isLoading ? (
                     <AvatarSkeleton />
                 ) : (

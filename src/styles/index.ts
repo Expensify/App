@@ -1408,8 +1408,8 @@ const styles = (theme: ThemeColors) =>
         sidebarAvatar: {
             backgroundColor: theme.icon,
             borderRadius: 20,
-            height: variables.componentSizeNormal,
-            width: variables.componentSizeNormal,
+            height: variables.componentSizeSmall,
+            width: variables.componentSizeSmall,
         },
 
         statusIndicator: (backgroundColor = theme.danger) =>
