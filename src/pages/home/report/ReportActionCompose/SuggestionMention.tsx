@@ -189,8 +189,8 @@ function SuggestionMention(
                 suggestionEndIndex = indexOfFirstSpecialCharOrEmojiAfterTheCursor + selectionEnd;
             }
 
-            const newLineIndex = value.lastIndexOf('\n', selectionEnd - 1);
-            const leftString = value.substring(newLineIndex + 1, suggestionEndIndex);
+            const afterLastBreakLineIndex = value.lastIndexOf('\n', selectionEnd - 1) + 1;
+            const leftString = value.substring(afterLastBreakLineIndex, suggestionEndIndex);
             const words = leftString.split(CONST.REGEX.SPACE_OR_EMOJI);
             const lastWord: string = words.at(-1) ?? '';
             const secondToLastWord = words[words.length - 3];
@@ -201,12 +201,12 @@ function SuggestionMention(
 
             // Detect if the last two words contain a mention (two words are needed to detect a mention with a space in it)
             if (lastWord.startsWith('@')) {
-                atSignIndex = leftString.lastIndexOf(lastWord);
+                atSignIndex = leftString.lastIndexOf(lastWord) + afterLastBreakLineIndex;
                 suggestionWord = lastWord;
 
                 prefix = suggestionWord.substring(1);
             } else if (secondToLastWord && secondToLastWord.startsWith('@') && secondToLastWord.length > 1) {
-                atSignIndex = leftString.lastIndexOf(secondToLastWord);
+                atSignIndex = leftString.lastIndexOf(secondToLastWord) + afterLastBreakLineIndex;
                 suggestionWord = `${secondToLastWord} ${lastWord}`;
 
                 prefix = suggestionWord.substring(1);
