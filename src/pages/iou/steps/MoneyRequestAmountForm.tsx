@@ -33,6 +33,9 @@ type MoneyRequestAmountFormProps = {
     /** Whether the amount is being edited or not */
     isEditing?: boolean;
 
+    /** Whether the currency symbol is pressable */
+    isCurrencyPressable?: boolean;
+
     /** Fired when back button pressed, navigates to currency selection page */
     onCurrencyButtonPress: () => void;
 
@@ -69,6 +72,7 @@ function MoneyRequestAmountForm(
         amount = 0,
         taxAmount = 0,
         currency = CONST.CURRENCY.USD,
+        isCurrencyPressable = true,
         isEditing = false,
         onCurrencyButtonPress,
         onSubmitButtonPress,
@@ -300,7 +304,7 @@ function MoneyRequestAmountForm(
                         setSelection({start, end});
                     }}
                     onKeyPress={textInputKeyPress}
-                    isCurrencyPressable
+                    isCurrencyPressable={isCurrencyPressable}
                 />
                 {!!formError && (
                     <FormHelpMessage
