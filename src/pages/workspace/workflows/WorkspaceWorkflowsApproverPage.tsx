@@ -120,7 +120,7 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails}
             title: translate('common.all'),
             data: policyUsersSection,
             shouldShow: true,
-            indexOffset: 1,
+            indexOffset: approverSection.length,
         });
 
         return sectionsArr;
