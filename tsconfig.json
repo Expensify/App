@@ -19,7 +19,8 @@
             "es2022.array",
             "es2022.object",
             "es2022.string",
-            "ES2021.Intl"
+            "ES2021.Intl",
+            "ES2023.Array"
         ],
         "allowJs": true,
         "checkJs": false,
@@ -36,6 +37,7 @@
         "paths": {
             "@assets/*": ["./assets/*"],
             "@components/*": ["./src/components/*"],
+            "@desktop/*": ["./desktop/*"],
             "@hooks/*": ["./src/hooks/*"],
             "@libs/*": ["./src/libs/*"],
             "@navigation/*": ["./src/libs/Navigation/*"],

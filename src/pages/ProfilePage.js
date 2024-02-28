@@ -271,9 +271,30 @@ ProfilePage.propTypes = propTypes;
 ProfilePage.defaultProps = defaultProps;
 ProfilePage.displayName = 'ProfilePage';
 
+/**
+ * This function narrow down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
+ * and makes the entire component more performant because it's not re-rendering when a bunch of properties change which aren't ever used in the UI.
+ * @param {Object} [report]
+ * @returns {Object|undefined}
+ */
+const chatReportSelector = (report) =>
+    report && {
+        reportID: report.reportID,
+        participantAccountIDs: report.participantAccountIDs,
+        parentReportID: report.parentReportID,
+        parentReportActionID: report.parentReportActionID,
+        type: report.type,
+        chatType: report.chatType,
+        isPolicyExpenseChat: report.isPolicyExpenseChat,
+    };
+
 export default compose(
     withLocalize,
     withOnyx({
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
+            selector: chatReportSelector,
+        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
@@ -281,9 +302,9 @@ export default compose(
             key: ONYXKEYS.SESSION,
         },
         report: {
-            key: ({route, session}) => {
+            key: ({route, session, reports}) => {
                 const accountID = Number(lodashGet(route.params, 'accountID', 0));
-                const reportID = lodashGet(ReportUtils.getChatByParticipants([accountID]), 'reportID', '');
+                const reportID = lodashGet(ReportUtils.getChatByParticipants([accountID], reports), 'reportID', '');
                 if ((session && Number(session.accountID) === accountID) || Session.isAnonymousUser() || !reportID) {
                     return null;
                 }
