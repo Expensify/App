@@ -18,6 +18,7 @@ import type {
     OpenDraftWorkspaceRequestParams,
     OpenWorkspaceInvitePageParams,
     OpenWorkspaceMembersPageParams,
+    OpenPolicyCategoriesPageParams,
     OpenWorkspaceParams,
     OpenWorkspaceReimburseViewParams,
     SetWorkspaceApprovalModeParams,
@@ -1673,6 +1674,19 @@ function openWorkspaceMembersPage(policyID: string, clientMemberEmails: string[]
     API.read(READ_COMMANDS.OPEN_WORKSPACE_MEMBERS_PAGE, params);
 }
 
+function openPolicyCategoriesPage(policyID: string) {
+    if (!policyID) {
+        Log.warn('openPolicyCategoriesPage invalid params', {policyID});
+        return;
+    }
+
+    const params: OpenPolicyCategoriesPageParams = {
+        policyID,
+    };
+
+    API.read(READ_COMMANDS.OPEN_POLICY_CATEGORIES_PAGE, params);
+}
+
 function openWorkspaceInvitePage(policyID: string, clientMemberEmails: string[]) {
     if (!policyID || !clientMemberEmails) {
         Log.warn('openWorkspaceInvitePage invalid params', {policyID, clientMemberEmails});
@@ -2264,6 +2278,7 @@ export {
     generatePolicyID,
     createWorkspace,
     openWorkspaceMembersPage,
+    openPolicyCategoriesPage,
     openWorkspaceInvitePage,
     openWorkspace,
     removeWorkspace,

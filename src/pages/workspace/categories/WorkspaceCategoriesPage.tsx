@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo, useState} from 'react';
+import React, {useMemo, useState, useEffect} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -25,6 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import * as Policy from '@userActions/Policy';
 
 type PolicyForList = {
     value: string;
@@ -47,6 +48,11 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
     const theme = useTheme();
     const {translate} = useLocalize();
     const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
+
+    useEffect(() => {
+        Policy.openPolicyCategoriesPage(route.params.policyID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const categoryList = useMemo<PolicyForList[]>(
         () =>
