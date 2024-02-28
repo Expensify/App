@@ -23,4 +23,12 @@ type TestConfig = {
     [key: string]: string;
 };
 
-export type {SigninParams, IsE2ETestSession, NetworkCacheMap, NetworkCacheEntry, TestConfig};
+type TestResult = {
+    name: string;
+    branch?: string;
+    duration?: number;
+    error?: string;
+    renderCount?: number;
+};
+
+export type {SigninParams, IsE2ETestSession, NetworkCacheMap, NetworkCacheEntry, TestConfig, TestResult};

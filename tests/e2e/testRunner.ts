@@ -75,7 +75,6 @@ try {
 }
 
 // START OF TEST CODE
-
 const runTests = async () => {
     Logger.info('Installing apps and reversing port');
     await installApp('android', config.MAIN_APP_PACKAGE, mainAppPath);
@@ -87,32 +86,36 @@ const runTests = async () => {
     await server.start();
 
     // Create a dict in which we will store the run durations for all tests
-    const results = {};
+    const results: Record<string, Record<string, unknown[]>> = {};
 
     // Collect results while tests are being executed
-    server.addTestResultListener((testResult) => {
-        if (testResult.error != null) {
+    // server.addTestResultListener((testResult) => {
+    server.addTestResultListener((res) => {
+        const testResult = res;
+        if (testResult?.error != null) {
             throw new Error(`Test '${testResult.name}' failed with error: ${testResult.error}`);
         }
-        let result = 0;
+        let result: number | undefined = 0;
 
-        if ('duration' in testResult) {
+        if (testResult?.duration) {
             if (testResult.duration < 0) {
                 return;
             }
             result = testResult.duration;
         }
-        if ('renderCount' in testResult) {
+        if (testResult?.renderCount) {
             result = testResult.renderCount;
         }
 
-        Logger.log(`[LISTENER] Test '${testResult.name}' on '${testResult.branch}' measured ${result}`);
+        Logger.log(`[LISTENER] Test '${testResult?.name}' on '${testResult?.branch}' measured ${result}`);
 
-        if (!results[testResult.branch]) {
+        if (testResult?.branch && !results[testResult.branch]) {
             results[testResult.branch] = {};
         }
 
-        results[testResult.branch][testResult.name] = (results[testResult.branch][testResult.name] || []).concat(result);
+        if (testResult?.branch && testResult?.name) {
+            results[testResult.branch][testResult.name] = (results[testResult.branch][testResult.name] || []).concat(result);
+        }
     });
 
     // Function to run a single test iteration
@@ -181,7 +184,7 @@ const runTests = async () => {
 
         // We run each test multiple time to average out the results
         for (let testIteration = 0; testIteration < config.RUNS; testIteration++) {
-            const onError = (e: string) => {
+            const onError = (e: Error) => {
                 errorCountRef.errorCount += 1;
                 if (testIteration === 0 || errorCountRef.errorCount === errorCountRef.allowedExceptions) {
                     Logger.error("There was an error running the test and we've reached the maximum number of allowed exceptions. Stopping the test run.");
@@ -190,6 +193,7 @@ const runTests = async () => {
                     // maximum number of allowed exceptions, we should stop the test run.
                     throw e;
                 }
+                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                 Logger.warn(`There was an error running the test. Continuing the test run. Error: ${e}`);
             };
 
@@ -207,7 +211,7 @@ const runTests = async () => {
                 // Run the test on the delta app:
                 await runTestIteration(config.DELTA_APP_PACKAGE, deltaIterationText, launchArgs);
             } catch (e) {
-                onError(e);
+                onError(e as Error);
             }
         }
     }

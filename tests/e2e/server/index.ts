@@ -1,6 +1,6 @@
 import type {IncomingMessage, ServerResponse} from 'http';
 import {createServer} from 'http';
-import type {TestConfig} from '@libs/E2E/types';
+import type {TestConfig, TestResult} from '@libs/E2E/types';
 import config from '../config';
 import * as nativeCommands from '../nativeCommands';
 import * as Logger from '../utils/logger';
@@ -19,7 +19,8 @@ type PostJSONRequestData = {
     payload: unknown;
 };
 
-type Listener = (args?: unknown) => void;
+type ListenerArgs = (Partial<TestResult> & Partial<TestConfig | PostJSONRequestData>) | null;
+type Listener = (args?: ListenerArgs) => void;
 
 // Gets the request data as a string
 const getReqData = (req: IncomingMessage): Promise<string> => {
