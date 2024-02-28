@@ -16,6 +16,7 @@ function VideoPopoverMenuContextProvider({children}) {
     const {translate} = useLocalize();
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[2]);
     const {isOffline} = useNetwork();
+    const isLocalFile = currentlyPlayingURL && (currentlyPlayingURL.startsWith('blob:') || currentlyPlayingURL.startsWith('file:'));
 
     const updatePlaybackSpeed = useCallback(
         (speed) => {
@@ -26,14 +27,14 @@ function VideoPopoverMenuContextProvider({children}) {
     );
 
     const downloadAttachment = useCallback(() => {
-        const sourceURI = currentlyPlayingURL.startsWith('blob:') || currentlyPlayingURL.startsWith('file:') ? currentlyPlayingURL : addEncryptedAuthTokenToURL(currentlyPlayingURL);
+        const sourceURI = isLocalFile ? currentlyPlayingURL : addEncryptedAuthTokenToURL(currentlyPlayingURL);
         fileDownload(sourceURI);
     }, [currentlyPlayingURL]);
 
     const menuItems = useMemo(() => {
         const items = [];
 
-        if (!isOffline) {
+        if (!isOffline && !isLocalFile) {
             items.push({
                 icon: Expensicons.Download,
                 text: translate('common.download'),
