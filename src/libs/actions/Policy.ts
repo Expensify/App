@@ -640,7 +640,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
 
 function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newRole: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER) {
     const previousPolicyMembers = {...allPolicyMembers};
-    const data: WorkspaceMembersRoleData[] = accountIDs
+    const memberRoles: WorkspaceMembersRoleData[] = accountIDs
         .map((accountID) => {
             if (!allPersonalDetails?.[accountID]) {
                 return null;
@@ -659,9 +659,9 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
             value: {
-                ...data.reduce((acc: Record<number, {role: string}>, current) => {
-                    acc[current.accountID] = {role: current?.role};
-                    return acc;
+                ...memberRoles.reduce((member: Record<number, {role: string}>, current) => {
+                    member[current.accountID] = {role: current?.role};
+                    return member;
                 }, {}),
                 errors: null,
             },
@@ -691,7 +691,7 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
 
     const params: UpdateWorkspaceMembersRoleParams = {
         policyID,
-        employees: JSON.stringify(data.map((item) => ({email: item.email, role: item.role}))),
+        employees: JSON.stringify(memberRoles.map((item) => ({email: item.email, role: item.role}))),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData, failureData});
