@@ -165,7 +165,7 @@ function IOURequestStepScan({
         navigateToConfirmationStep();
     };
 
-    const handleOnUserMedia = (stream) => {
+    const setupCameraPermissionsAndCapabilities = (stream) => {
         setCameraPermissionState('granted');
 
         const [track] = stream.getVideoTracks();
@@ -177,6 +177,10 @@ function IOURequestStepScan({
     };
 
     const getScreenshot = useCallback(() => {
+        if (!cameraRef.current || !cameraRef.current.getScreenshot) {
+            return;
+        }
+
         const imageBase64 = cameraRef.current.getScreenshot();
 
         const filename = `receipt_${Date.now()}.png`;
@@ -192,11 +196,16 @@ function IOURequestStepScan({
         navigateToConfirmationStep();
     }, [action, transactionID, updateScanAndNavigate, navigateToConfirmationStep]);
 
-    const capturePhoto = useCallback(() => {
-        if (!cameraRef.current.getScreenshot) {
+    const clearTorchConstraints = useCallback(() => {
+        if (!trackRef.current) {
             return;
         }
+        trackRef.current.applyConstraints({
+            advanced: [{torch: false}],
+        });
+    }, []);
 
+    const capturePhoto = useCallback(() => {
         if (trackRef.current && isFlashLightOn) {
             trackRef.current
                 .applyConstraints({
@@ -205,16 +214,14 @@ function IOURequestStepScan({
                 .then(() => {
                     getScreenshotTimeoutRef.current = setTimeout(() => {
                         getScreenshot();
-                        trackRef.current.applyConstraints({
-                            advanced: [{torch: false}],
-                        });
+                        clearTorchConstraints();
                     }, 2000);
                 });
             return;
         }
 
         getScreenshot();
-    }, [cameraRef, isFlashLightOn, getScreenshot]);
+    }, [isFlashLightOn, getScreenshot, clearTorchConstraints]);
 
     const panResponder = useRef(
         PanResponder.create({
@@ -222,14 +229,15 @@ function IOURequestStepScan({
         }),
     ).current;
 
-    useEffect(() => {
-        return () => {
+    useEffect(
+        () => () => {
             if (!getScreenshotTimeoutRef.current) {
                 return;
             }
             clearTimeout(getScreenshotTimeoutRef.current);
-        };
-    }, []);
+        },
+        [],
+    );
 
     const mobileCameraView = () => (
         <>
@@ -254,7 +262,7 @@ function IOURequestStepScan({
                     </View>
                 )}
                 <NavigationAwareCamera
-                    onUserMedia={handleOnUserMedia}
+                    onUserMedia={setupCameraPermissionsAndCapabilities}
                     onUserMediaError={() => setCameraPermissionState('denied')}
                     style={{...styles.videoContainer, display: cameraPermissionState !== 'granted' ? 'none' : 'block'}}
                     ref={cameraRef}
