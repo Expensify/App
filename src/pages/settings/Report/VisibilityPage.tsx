@@ -5,6 +5,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import type {ReportSettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -72,6 +73,7 @@ function VisibilityPage({report}: VisibilityProps) {
                         changeVisibility(option.value);
                     }}
                     initiallyFocusedOptionKey={visibilityOptions.find((visibility) => visibility.isSelected)?.keyForList}
+                    ListItem={RadioListItem}
                 />
                 <ConfirmModal
                     isVisible={showConfirmModal}

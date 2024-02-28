@@ -158,7 +158,7 @@ type EnterMagicCodeParams = {contactMethod: string};
 
 type TransferParams = {amount: string};
 
-type InstantSummaryParams = {rate: number; minAmount: number};
+type InstantSummaryParams = {rate: string; minAmount: string};
 
 type NotYouParams = {user: string};
 
