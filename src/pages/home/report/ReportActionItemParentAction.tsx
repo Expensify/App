@@ -66,6 +66,7 @@ function ReportActionItemParentAction({report, index = 0, shouldHideThreadDivide
             unsubscribeReports.forEach((unsubscribeReport) => unsubscribeReport());
             unsubscribeReportActions.forEach((unsubscribeReportAction) => unsubscribeReportAction());
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
