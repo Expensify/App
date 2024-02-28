@@ -112,42 +112,6 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
         </View>
     );
 
-    const getComponentToRender = () => {
-        if (policyCategories === undefined) {
-            return (
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    style={[styles.flex1]}
-                    color={theme.textSupporting}
-                />
-            );
-        }
-
-        if (categoryList.length === 0) {
-            return (
-                <WorkspaceEmptyStateSection
-                    title={translate('workspace.categories.emptyCategories.title')}
-                    icon={Illustrations.EmptyStateExpenses}
-                    subtitle={translate('workspace.categories.emptyCategories.subtitle')}
-                />
-            );
-        }
-
-        return (
-            <SelectionList
-                canSelectMultiple
-                sections={[{data: categoryList, indexOffset: 0, isDisabled: false}]}
-                onCheckboxPress={toggleCategory}
-                onSelectRow={navigateToCategorySettings}
-                onSelectAll={toggleAllCategories}
-                showScrollIndicator
-                ListItem={TableListItem}
-                customListHeader={getCustomListHeader()}
-                listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-            />
-        );
-    };
-
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
@@ -168,7 +132,33 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
                     </View>
-                    {getComponentToRender()}
+                    {policyCategories === undefined && (
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            style={[styles.flex1]}
+                            color={theme.textSupporting}
+                        />
+                    )}
+                    {Boolean(policyCategories) && categoryList.length === 0 && (
+                        <WorkspaceEmptyStateSection
+                            title={translate('workspace.categories.emptyCategories.title')}
+                            icon={Illustrations.EmptyStateExpenses}
+                            subtitle={translate('workspace.categories.emptyCategories.subtitle')}
+                        />
+                    )}
+                    {Boolean(policyCategories) && Boolean(categoryList.length) && (
+                        <SelectionList
+                            canSelectMultiple
+                            sections={[{data: categoryList, indexOffset: 0, isDisabled: false}]}
+                            onCheckboxPress={toggleCategory}
+                            onSelectRow={navigateToCategorySettings}
+                            onSelectAll={toggleAllCategories}
+                            showScrollIndicator
+                            ListItem={TableListItem}
+                            customListHeader={getCustomListHeader()}
+                            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        />
+                    )}
                 </ScreenWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>
