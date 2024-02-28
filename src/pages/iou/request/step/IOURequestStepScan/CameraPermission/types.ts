@@ -1,6 +1,6 @@
 type CameraPermissionModule = {
-    requestCameraPermission: () => Promise<string> | void;
-    getCameraPermissionStatus: () => Promise<string> | void;
+    requestCameraPermission: (() => Promise<string>) | undefined;
+    getCameraPermissionStatus: (() => Promise<string>) | undefined;
 };
 
 export default CameraPermissionModule;

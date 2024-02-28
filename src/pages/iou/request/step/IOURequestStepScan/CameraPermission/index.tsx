@@ -1,12 +1,9 @@
 import type CameraPermissionModule from './types';
 
-function requestCameraPermission() {}
-
-function getCameraPermissionStatus() {}
 
 const CameraPermission: CameraPermissionModule = {
-    requestCameraPermission,
-    getCameraPermissionStatus,
+    requestCameraPermission: undefined,
+    getCameraPermissionStatus: undefined,
 };
 
 export default CameraPermission;
