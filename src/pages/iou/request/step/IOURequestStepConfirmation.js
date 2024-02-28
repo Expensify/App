@@ -92,6 +92,7 @@ function IOURequestStepConfirmation({
     const [receiptFile, setReceiptFile] = useState();
     const receiptFilename = lodashGet(transaction, 'filename');
     const receiptPath = lodashGet(transaction, 'receipt.source');
+    const receiptType = lodashGet(transaction, 'receipt.type');
     const transactionTaxCode = transaction.taxRate && transaction.taxRate.keyForList;
     const transactionTaxAmount = transaction.taxAmount;
     const requestType = TransactionUtils.getRequestType(transaction);
@@ -179,8 +180,8 @@ function IOURequestStepConfirmation({
             setReceiptFile(receipt);
         };
 
-        IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID);
-    }, [receiptPath, receiptFilename, requestType, iouType, transactionID, reportID]);
+        IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID, receiptType);
+    }, [receiptType, receiptPath, receiptFilename, requestType, iouType, transactionID, reportID]);
 
     useEffect(() => {
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
