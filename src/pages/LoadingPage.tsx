@@ -8,7 +8,6 @@ type LoadingPageProps = {
     /** Method to trigger when pressing back button of the header */
     onBackButtonPress?: () => void;
 
-    /** Title of the Loading page */
     title: string;
 };
 
