@@ -239,7 +239,7 @@ export default withCurrentReportID(
     withOnyx<SidebarLinksDataProps, SidebarLinksDataOnyxProps>({
         chatReports: {
             key: ONYXKEYS.COLLECTION.REPORT,
-            // This assertion is needed because the selector in withOnyx expects that the return type will be the same as type in ONYXKEYS but in this case it's not, this is a bug in withOnyx but it's impossible to fix it, when useOnyx will be introduce it will be fixed.
+            // This assertion is needed because the selector in withOnyx expects that the return type will be the same as type in ONYXKEYS but for collection keys the selector is executed for each collection item. This is a bug in withOnyx typings that we don't have a solution yet, when useOnyx hook is introduced it will be fixed.
             selector: chatReportSelector as unknown as (report: OnyxEntry<OnyxTypes.Report>) => OnyxCollection<ChatReportSelector>,
             initialValue: {},
         },
@@ -261,7 +261,7 @@ export default withCurrentReportID(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-            // This assertion is needed because the selector in withOnyx expects that the return type will be the same as type in ONYXKEYS but in this case it's not, this is a bug in withOnyx but it's impossible to fix it, when useOnyx will be introduce it will be fixed.
+            // This assertion is needed because the selector in withOnyx expects that the return type will be the same as type in ONYXKEYS but for collection keys the selector is executed for each collection item. This is a bug in withOnyx typings that we don't have a solution yet, when useOnyx hook is introduced it will be fixed.
             selector: policySelector as unknown as (policy: OnyxEntry<OnyxTypes.Policy>) => OnyxCollection<PolicySelector>,
             initialValue: {},
         },

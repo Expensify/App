@@ -136,7 +136,7 @@ function getOrderedReportIDs(
             pinnedAndGBRReports.push(report);
         } else if (report?.hasDraft) {
             draftReports.push(report);
-        } else if (ReportUtils.isArchivedRoom(report) && report) {
+        } else if (report && ReportUtils.isArchivedRoom(report)) {
             archivedReports.push(report);
         } else {
             nonArchivedReports.push(report);

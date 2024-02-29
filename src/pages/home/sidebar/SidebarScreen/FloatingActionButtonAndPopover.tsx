@@ -215,6 +215,7 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>) =>
 export default withOnyx<FloatingActionButtonAndPopoverProps & RefAttributes<FloatingActionButtonAndPopoverRef>, FloatingActionButtonAndPopoverOnyxProps>({
     allPolicies: {
         key: ONYXKEYS.COLLECTION.POLICY,
+        // This assertion is needed because the selector in withOnyx expects that the return type will be the same as type in ONYXKEYS but for collection keys the selector is executed for each collection item. This is a bug in withOnyx typings that we don't have a solution yet, when useOnyx hook is introduced it will be fixed.
         selector: policySelector as unknown as (policy: OnyxEntry<OnyxTypes.Policy>) => OnyxCollection<PolicySelector>,
     },
     isLoading: {
