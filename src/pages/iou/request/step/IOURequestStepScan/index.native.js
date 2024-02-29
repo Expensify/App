@@ -1,9 +1,9 @@
 import lodashGet from 'lodash/get';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {ActivityIndicator, Alert, AppState, View} from 'react-native';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import {RESULTS} from 'react-native-permissions';
-import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Alert, AppState, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { RESULTS } from 'react-native-permissions';
+import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import { useCameraDevice } from 'react-native-vision-camera';
 import Hand from '@assets/images/hand.svg';
 import Shutter from '@assets/images/shutter.svg';
@@ -53,20 +53,21 @@ const defaultProps = {
 function IOURequestStepScan({
     report,
     route: {
-        params: {action, iouType, reportID, transactionID, backTo},
+        params: { action, iouType, reportID, transactionID, backTo },
     },
-    transaction: {isFromGlobalCreate},
+    transaction: { isFromGlobalCreate },
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const device = useCameraDevice('back');
 
+    const hasFlash = device != null && device.hasFlash
     const camera = useRef(null);
     const [flash, setFlash] = useState(false);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState(undefined);
     const askedForPermission = useRef(false);
 
-    const {translate} = useLocalize();
+    const { translate } = useLocalize();
 
     const askForPermissions = (showPermissionsAlert = true) => {
         // There's no way we can check for the BLOCKED status without requesting the permission first
@@ -86,11 +87,11 @@ function IOURequestStepScan({
 
     const focusIndicatorOpacity = useSharedValue(0);
     const focusIndicatorScale = useSharedValue(2);
-    const focusIndicatorPosition = useSharedValue({x: 0, y: 0});
+    const focusIndicatorPosition = useSharedValue({ x: 0, y: 0 });
 
     const cameraFocusIndicatorAnimatedStyle = useAnimatedStyle(() => ({
         opacity: focusIndicatorOpacity.value,
-        transform: [{translateX: focusIndicatorPosition.value.x}, {translateY: focusIndicatorPosition.value.y}, {scale: focusIndicatorScale.value}],
+        transform: [{ translateX: focusIndicatorPosition.value.x }, { translateY: focusIndicatorPosition.value.y }, { scale: focusIndicatorScale.value }],
     }));
 
     const focusCamera = (point) => {
@@ -109,11 +110,11 @@ function IOURequestStepScan({
     const tapGesture = Gesture.Tap()
         .enabled(device && device.supportsFocus)
         .onStart((ev) => {
-            const point = {x: ev.x, y: ev.y};
+            const point = { x: ev.x, y: ev.y };
 
-            focusIndicatorOpacity.value = withSequence(withTiming(0.8, {duration: 250}), withDelay(1000, withTiming(0, {duration: 250})));
+            focusIndicatorOpacity.value = withSequence(withTiming(0.8, { duration: 250 }), withDelay(1000, withTiming(0, { duration: 250 })));
             focusIndicatorScale.value = 2;
-            focusIndicatorScale.value = withSpring(1, {damping: 10, stiffness: 200});
+            focusIndicatorScale.value = withSpring(1, { damping: 10, stiffness: 200 });
             focusIndicatorPosition.value = point;
 
             runOnJS(focusCamera)(point);
@@ -152,7 +153,7 @@ function IOURequestStepScan({
     }, []);
 
     const validateReceipt = (file) => {
-        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
+        const { fileExtension } = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
         if (!CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(fileExtension.toLowerCase())) {
             Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
             return false;
@@ -239,8 +240,7 @@ function IOURequestStepScan({
 
         return camera.current
             .takePhoto({
-                qualityPrioritization: 'speed',
-                flash: flash ? 'on' : 'off',
+                flash: flash && hasFlash ? 'on' : 'off',
             })
             .then((photo) => {
                 // Store the receipt on the transaction object in Onyx
@@ -260,7 +260,7 @@ function IOURequestStepScan({
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep, cameraPermissionStatus]);
+    }, [flash, hasFlash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep, cameraPermissionStatus]);
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
@@ -326,7 +326,7 @@ function IOURequestStepScan({
             )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                 <AttachmentPicker shouldHideCameraOption>
-                    {({openPicker}) => (
+                    {({ openPicker }) => (
                         <PressableWithFeedback
                             role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             accessibilityLabel={translate('receipt.gallery')}
@@ -359,20 +359,22 @@ function IOURequestStepScan({
                         height={CONST.RECEIPT.SHUTTER_SIZE}
                     />
                 </PressableWithFeedback>
-                <PressableWithFeedback
-                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                    accessibilityLabel={translate('receipt.flash')}
-                    style={[styles.alignItemsEnd]}
-                    disabled={cameraPermissionStatus !== RESULTS.GRANTED}
-                    onPress={() => setFlash((prevFlash) => !prevFlash)}
-                >
-                    <Icon
-                        height={32}
-                        width={32}
-                        src={Expensicons.Bolt}
-                        fill={flash ? theme.iconHovered : theme.textSupporting}
-                    />
-                </PressableWithFeedback>
+                {hasFlash && (
+                    <PressableWithFeedback
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        accessibilityLabel={translate('receipt.flash')}
+                        style={[styles.alignItemsEnd]}
+                        disabled={cameraPermissionStatus !== RESULTS.GRANTED}
+                        onPress={() => setFlash((prevFlash) => !prevFlash)}
+                    >
+                        <Icon
+                            height={32}
+                            width={32}
+                            src={Expensicons.Bolt}
+                            fill={flash ? theme.iconHovered : theme.textSupporting}
+                        />
+                    </PressableWithFeedback>
+                )}
             </View>
         </StepScreenWrapper>
     );
