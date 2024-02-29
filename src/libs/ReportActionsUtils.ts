@@ -562,24 +562,6 @@ function getFirstVisibleReportActionID(sortedReportActions: ReportAction[] = [],
 }
 
 /**
- * @returns The first modified expense report action from `reportActions` or the one at index 0 if one couldn't be found.
- */
-function getFirstModifiedExpenseReportAction(reportLastReadTime: string, reportActions: ReportAction[]) {
-    if (!reportLastReadTime || !Array.isArray(reportActions) || reportActions?.length === 0) {
-        return;
-    }
-
-    const reportLastReadTimeDate = new Date(reportLastReadTime);
-    const modifiedExpenseReportActions = reportActions.filter(isModifiedExpenseAction);
-
-    return modifiedExpenseReportActions.reduce((accumulatorAction: ReportAction, currentAction: ReportAction) => {
-        const currentDiff = Math.abs(new Date(currentAction?.created).getTime() - reportLastReadTimeDate.getTime());
-        const accumulatorDiff = Math.abs(new Date(accumulatorAction?.created).getTime() - reportLastReadTimeDate.getTime());
-        return currentDiff > accumulatorDiff ? currentAction : accumulatorAction;
-    }, modifiedExpenseReportActions[0]);
-}
-
-/**
  * @returns The latest report action in the `onyxData` or `null` if one couldn't be found
  */
 function getLatestReportActionFromOnyxData(onyxData: OnyxUpdate[] | null): OnyxEntry<ReportAction> {
@@ -909,7 +891,6 @@ export {
     getLastClosedReportAction,
     getLastVisibleAction,
     getLastVisibleMessage,
-    getFirstModifiedExpenseReportAction,
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
     getMostRecentIOURequestActionID,

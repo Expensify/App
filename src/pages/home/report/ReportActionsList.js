@@ -398,20 +398,14 @@ function ReportActionsList({
         // This is to avoid a warning of:
         // Cannot update a component (ReportActionsList) while rendering a different component (CellRenderer).
         let markerFound = false;
-        // Use first modified expense report action to set the unread marker indicator
-        // instead of the last one, since that is the most recent unread action.
-        const firstModifiedExpenseReportAction = ReportActionsUtils.getFirstModifiedExpenseReportAction(report.lastReadTime, sortedVisibleReportActions);
         _.each(sortedVisibleReportActions, (reportAction, index) => {
             if (!shouldDisplayNewMarker(reportAction, index)) {
                 return;
             }
             markerFound = true;
-            // If message was marked unread manually, we should skip updating the unread marker indicator
-            // to the first modified expense report action.
-            const reportActionID = messageManuallyMarkedUnread === 0 ? _.get(firstModifiedExpenseReportAction, 'reportActionID', reportAction.reportActionID) : reportAction.reportActionID;
             if (!currentUnreadMarker && currentUnreadMarker !== reportAction.reportActionID) {
-                cacheUnreadMarkers.set(report.reportID, reportActionID);
-                setCurrentUnreadMarker(reportActionID);
+                cacheUnreadMarkers.set(report.reportID, reportAction.reportActionID);
+                setCurrentUnreadMarker(reportAction.reportActionID);
             }
         });
         if (!markerFound) {
