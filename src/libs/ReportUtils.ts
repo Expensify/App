@@ -1241,7 +1241,7 @@ function getChildReportNotificationPreference(reportAction: OnyxEntry<ReportActi
  * Return true if:
  * - report is a non-settled IOU
  * - report is a draft
- * - report is processing and policy's on Instant Submit
+ * - report is a processing expense report and its policy has Instant reporting frequency
  */
 function canAddTransactionsToMoneyRequest(report: OnyxEntry<Report>): boolean {
     if (!isIOUReport(report) && !isExpenseReport(report)) {
@@ -4992,7 +4992,7 @@ function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
    Create a new report if:
    - we don't have an iouReport set in the chatReport
    - we have one, but it's waiting on the payee adding a bank account
-   - we have one but we can't add more transactions to it due to: report is approved or settled, or, report is processing and policy isn't under Instant Submit
+   - we have one but we can't add more transactions to it due to: report is approved or settled, or report is processing and policy isn't on Instant submit reporting frequency
  */
 function shouldBuildOptimisticMoneyRequestReport(existingIOUReport: OnyxEntry<Report> | undefined | null, chatReport: OnyxEntry<Report> | null): boolean {
     return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddTransactionsToMoneyRequest(existingIOUReport);
