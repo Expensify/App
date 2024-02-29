@@ -58,19 +58,7 @@ function useViolations(violations: TransactionViolation[]) {
         }
         return violationGroups ?? new Map();
     }, [violations]);
-
-    const getViolationsForField = useCallback(
-        (field: ViolationField, data?: TransactionViolation['data']) => {
-            const currentViolations = violationsByField.get(field) ?? [];
-
-            if (data?.tagName) {
-                return currentViolations.filter((violation) => violation.data?.tagName === data.tagName);
-            }
-
-            return currentViolations;
-        },
-        [violationsByField],
-    );
+    const getViolationsForField = useCallback((field: ViolationField) => violationsByField.get(field) ?? [], [violationsByField]);
 
     return {
         getViolationsForField,

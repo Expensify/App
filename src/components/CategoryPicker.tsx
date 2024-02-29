@@ -80,8 +80,9 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
-            initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             ListItem={RadioListItem}
+            initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
+            isRowMultilineSupported
         />
     );
 }

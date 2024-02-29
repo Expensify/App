@@ -26,6 +26,7 @@ type AttachmentCarouselPagerContextValue = {
     isScrollEnabled: SharedValue<boolean>;
     onTap: () => void;
     onScaleChanged: (scale: number) => void;
+    onSwipeDown: () => void;
 };
 
 const AttachmentCarouselPagerContext = createContext<AttachmentCarouselPagerContextValue | null>(null);

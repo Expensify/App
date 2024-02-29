@@ -35,6 +35,8 @@ type Split = {
     createdChatReportActionID?: string;
     createdIOUReportActionID?: string;
     reportPreviewReportActionID?: string;
+    transactionThreadReportID?: string;
+    createdReportActionIDForThread?: string;
 };
 
 type IOU = {

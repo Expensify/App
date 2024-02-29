@@ -340,7 +340,7 @@ describe('libs/NextStepUtils', () => {
 
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     submitsTo: currentUserAccountID,
-                    isPreventSelfApprovalEnabled: true,
+                    preventSelfApprovalEnabled: true,
                 }).then(() => {
                     const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
