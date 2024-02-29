@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
+import type {PolicyCollectionDataSet} from '@src/types/onyx/Policy';
 import DateUtils from '../../src/libs/DateUtils';
 import * as NextStepUtils from '../../src/libs/NextStepUtils';
 import * as ReportUtils from '../../src/libs/ReportUtils';
@@ -40,10 +41,12 @@ describe('libs/NextStepUtils', () => {
         const report = ReportUtils.buildOptimisticExpenseReport('fake-chat-report-id-1', policyID, 1, -500, CONST.CURRENCY.USD) as Report;
 
         beforeAll(() => {
-            // @ts-expect-error Preset necessary values
+            const policyCollectionDataSet: PolicyCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: policy,
+            };
+
             Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: policy,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
                     [strangeAccountID]: {
                         accountID: strangeAccountID,
@@ -51,6 +54,7 @@ describe('libs/NextStepUtils', () => {
                         avatar: '',
                     },
                 },
+                ...policyCollectionDataSet,
             }).then(waitForBatchedUpdates);
         });
 
