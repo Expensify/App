@@ -6,7 +6,39 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import * as Report from './Report';
 
-function clearReportActionErrors(reportID: string, reportAction: ReportAction, key?: string) {
+type IgnoreDirection = 'parent' | 'child';
+
+/**
+ * 
+ignore: undefined means we want to check both parent and children report actions
+ignore: parent | child means we want to ignore check parent | child report actions because we already check them before
+ */
+function clearAllRelatedReportActionErrors(reportID: string, reportAction: ReportAction | null, ignore?: IgnoreDirection, keys?: string[]) {
+    const errorKeys = keys || Object.keys(reportAction?.errors ?? {});
+    if (!reportAction || errorKeys.length === 0) {
+        return;
+    }
+
+    clearReportActionErrors(reportID, reportAction, keys);
+
+    const report = ReportUtils.getReport(reportID);
+    if (report?.parentReportID && report?.parentReportActionID && ignore !== 'parent') {
+        const parentReportAction = ReportActionUtils.getReportAction(report.parentReportID, report.parentReportActionID);
+        const parentErrorKeys = Object.keys(parentReportAction?.errors ?? {}).filter((err) => errorKeys.includes(err));
+
+        clearAllRelatedReportActionErrors(report.parentReportID, parentReportAction, 'child', parentErrorKeys);
+    }
+
+    if (reportAction.childReportID && ignore !== 'child') {
+        const childActions = ReportActionUtils.getAllReportActions(reportAction.childReportID);
+        Object.values(childActions).forEach((action) => {
+            const childErrorKeys = Object.keys(action.errors ?? {}).filter((err) => errorKeys.includes(err));
+            clearAllRelatedReportActionErrors(reportAction.childReportID ?? '', action, 'parent', childErrorKeys);
+        });
+    }
+}
+
+function clearReportActionErrors(reportID: string, reportAction: ReportAction, keys?: string[]) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
 
     if (!reportAction.reportActionID) {
@@ -33,12 +65,16 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction, k
         return;
     }
 
-    if (key) {
+    if (keys) {
+        const errors: Record<string, null> = {};
+
+        keys.forEach((key) => {
+            errors[key] = null;
+        });
+
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
             [reportAction.reportActionID]: {
-                errors: {
-                    [key]: null,
-                },
+                errors,
             },
         });
         return;
@@ -53,4 +89,5 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction, k
 export {
     // eslint-disable-next-line import/prefer-default-export
     clearReportActionErrors,
+    clearAllRelatedReportActionErrors,
 };

@@ -788,13 +788,7 @@ function ReportActionItem(props) {
                         />
                         <View style={StyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || !_.isUndefined(props.draftMessage))}>
                             <OfflineWithFeedback
-                                onClose={() => {
-                                    ReportActions.clearReportActionErrors(props.report.reportID, props.action);
-                                    Object.keys(props.action.relatedErrors ?? {}).forEach((key) => {
-                                        const error = props.action.relatedErrors[key];
-                                        ReportActions.clearReportActionErrors(error.reportID, ReportActionsUtils.getReportAction(error.reportID, error.reportActionID), key);
-                                    });
-                                }}
+                                onClose={() => ReportActions.clearAllRelatedReportActionErrors(props.report.reportID, props.action)}
                                 pendingAction={
                                     !_.isUndefined(props.draftMessage) ? null : props.action.pendingAction || (props.action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : '')
                                 }
