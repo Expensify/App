@@ -1,5 +1,10 @@
-import React, {useEffect} from 'react';
+import {deepEqual} from 'fast-equals';
+import React, {useEffect, useMemo, useRef} from 'react';
+import * as ReportUtils from '@libs/ReportUtils';
+import SidebarUtils from '@libs/SidebarUtils';
 import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import type {OptionData} from '@src/libs/ReportUtils';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
 
@@ -9,8 +14,62 @@ import type {OptionRowLHNDataProps} from './types';
  * The OptionRowLHN component is memoized, so it will only
  * re-render if the data really changed.
  */
-function OptionRowLHNData({isFocused = false, comment, optionItem, ...propsToForward}: OptionRowLHNDataProps) {
+function OptionRowLHNData({
+    isFocused = false,
+    fullReport,
+    reportActions,
+    personalDetails = {},
+    preferredLocale = CONST.LOCALES.DEFAULT,
+    comment,
+    policy,
+    receiptTransactions,
+    parentReportAction,
+    transaction,
+    lastReportActionTransaction = {},
+    transactionViolations,
+    canUseViolations,
+    ...propsToForward
+}: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
+
+    const optionItemRef = useRef<OptionData>();
+
+    const hasViolations = canUseViolations && ReportUtils.doesTransactionThreadHaveViolations(fullReport, transactionViolations, parentReportAction ?? null);
+
+    const optionItem = useMemo(() => {
+        // Note: ideally we'd have this as a dependent selector in onyx!
+        const item = SidebarUtils.getOptionData({
+            report: fullReport,
+            reportActions,
+            personalDetails,
+            preferredLocale: preferredLocale ?? CONST.LOCALES.DEFAULT,
+            policy,
+            parentReportAction,
+            hasViolations: !!hasViolations,
+        });
+        if (deepEqual(item, optionItemRef.current)) {
+            return optionItemRef.current;
+        }
+
+        optionItemRef.current = item;
+
+        return item;
+        // Listen parentReportAction to update title of thread report when parentReportAction changed
+        // Listen to transaction to update title of transaction report when transaction changed
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        fullReport,
+        lastReportActionTransaction,
+        reportActions,
+        personalDetails,
+        preferredLocale,
+        policy,
+        parentReportAction,
+        transaction,
+        transactionViolations,
+        canUseViolations,
+        receiptTransactions,
+    ]);
 
     useEffect(() => {
         if (!optionItem || !!optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {
