@@ -37,7 +37,7 @@ const SCREENS = {
         TROUBLESHOOT: 'Settings_Troubleshoot',
         CONSOLE: 'Settings_Console',
         SHARE_LOG: 'Share_Log',
-        SAVE_THE_WORLD: 'Settings_SaveTheWorld',
+        SAVE_THE_WORLD: 'Settings_TeachersUnite',
 
         PROFILE: {
             ROOT: 'Settings_Profile',
