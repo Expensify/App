@@ -129,7 +129,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
     const accountMenuItemsData: Menu = useMemo(() => {
         const profileBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(loginList);
         const paymentCardList = fundList;
-        const signOutTranslationKey = Session.isSupportalToken() && Session.hasStashedSession() ? 'initialSettingsPage.signOut' : 'initialSettingsPage.restoreStashed';
+        const signOutTranslationKey = Session.isSupportalToken() && Session.hasStashedSession() ? 'initialSettingsPage.restoreStashed' : 'initialSettingsPage.signOut';
         const defaultMenu: Menu = {
             sectionStyle: styles.accountSettingsSectionContainer,
             sectionTranslationKey: 'initialSettingsPage.account',
