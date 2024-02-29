@@ -516,7 +516,7 @@ const ROUTES = {
     ONBOARDING_ROOT: 'onboarding',
     ONBOARDING_PERSONAL_DETAILS: 'onboarding/personal-details',
     ONBOARDING_PURPOSE: 'onboarding/purpose',
-    ONBOARDING_WELCOME_VIDEO: 'onboarding/welcome-video',
+    WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
 } as const;
 
 /**

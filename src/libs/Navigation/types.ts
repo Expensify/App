@@ -466,7 +466,10 @@ type OnboardingModalNavigatorParamList = {
     [SCREENS.ONBOARDING_MODAL.ONBOARDING]: undefined;
     [SCREENS.ONBOARDING.PERSONAL_DETAILS]: undefined;
     [SCREENS.ONBOARDING.PURPOSE]: undefined;
-    [SCREENS.ONBOARDING.WELCOME_VIDEO]: undefined;
+};
+
+type WelcomeVideoModalNavigatorParamList = {
+    [SCREENS.WELCOME_VIDEO.ROOT]: undefined;
 };
 
 type BottomTabNavigatorParamList = {
@@ -530,6 +533,7 @@ type AuthScreensParamList = {
     [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
     [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: NavigatorScreenParams<FullScreenNavigatorParamList>;
     [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: NavigatorScreenParams<OnboardingModalNavigatorParamList>;
+    [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: NavigatorScreenParams<WelcomeVideoModalNavigatorParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
 };
 
@@ -564,6 +568,7 @@ export type {
     LeftModalNavigatorParamList,
     RightModalNavigatorParamList,
     OnboardingModalNavigatorParamList,
+    WelcomeVideoModalNavigatorParamList,
     PublicScreensParamList,
     MoneyRequestNavigatorParamList,
     SplitDetailsNavigatorParamList,

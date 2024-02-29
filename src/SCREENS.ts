@@ -237,13 +237,16 @@ const SCREENS = {
     ONBOARDING: {
         PERSONAL_DETAILS: 'Onboarding_Personal_Details',
         PURPOSE: 'Onboarding_Purpose',
-        WELCOME_VIDEO: 'Onboarding_Welcome_Video',
     },
 
     ONBOARD_ENGAGEMENT: {
         ROOT: 'Onboard_Engagement_Root',
         MANAGE_TEAMS_EXPENSES: 'Manage_Teams_Expenses',
         EXPENSIFY_CLASSIC: 'Expenisfy_Classic',
+    },
+
+    WELCOME_VIDEO: {
+        ROOT: 'Welcome_Video_Root',
     },
 
     I_KNOW_A_TEACHER: 'I_Know_A_Teacher',

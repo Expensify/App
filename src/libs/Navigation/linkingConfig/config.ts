@@ -80,6 +80,15 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
             },
         },
+        [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: {
+            path: ROUTES.WELCOME_VIDEO_ROOT,
+            screens: {
+                [SCREENS.WELCOME_VIDEO.ROOT]: {
+                    path: ROUTES.WELCOME_VIDEO_ROOT,
+                    exact: true,
+                },
+            },
+        },
         [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: {
             path: ROUTES.ONBOARDING_ROOT,
             screens: {
@@ -89,10 +98,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
                 [SCREENS.ONBOARDING.PURPOSE]: {
                     path: ROUTES.ONBOARDING_PURPOSE,
-                    exact: true,
-                },
-                [SCREENS.ONBOARDING.WELCOME_VIDEO]: {
-                    path: ROUTES.ONBOARDING_WELCOME_VIDEO,
                     exact: true,
                 },
             },

@@ -1536,6 +1536,15 @@ const styles = (theme: ThemeColors) =>
                 overflow: 'hidden',
             } satisfies ViewStyle),
 
+        WelcomeVideoNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>
+            ({
+                width: shouldUseNarrowLayout ? 500 : '100%',
+                height: shouldUseNarrowLayout ? 500 : '100%',
+                maxHeight: '100%',
+                borderRadius: shouldUseNarrowLayout ? 16 : 0,
+                overflow: 'hidden',
+            } satisfies ViewStyle),
+
         onlyEmojisText: {
             fontSize: variables.fontSizeOnlyEmojis,
             lineHeight: variables.fontSizeOnlyEmojisHeight,
