@@ -57,6 +57,8 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersona
         [personalBankAccount],
     );
 
+    console.log('hello');
+
     useEffect(() => BankAccounts.clearPersonalBankAccount, []);
 
     return (

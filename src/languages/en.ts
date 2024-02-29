@@ -1349,6 +1349,7 @@ export default {
         confirmBankInfo: 'Confirm bank info',
         manuallyAdd: 'Manually add your bank account',
         addYourBankAccount: 'Add your bank account',
+        sendAndReceiveMoney: 'Send and receive money',
         letsDoubleCheck: "Let's double check that everything looks right.",
         accountEnding: 'Account ending in',
         thisBankAccount: 'This bank account will be used for business payments on your workspace',

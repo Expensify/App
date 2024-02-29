@@ -83,6 +83,17 @@ function openPersonalBankAccountSetupView(exitReportID?: string) {
 }
 
 /**
+ * Open the personal bank account setup flow, with an optional exitReportID to redirect to once the flow is finished.
+ */
+function openPersonalBankAccountSetupViewRefactor(exitReportID?: string) {
+    clearPlaid().then(() => {
+        if (exitReportID) {
+            Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID});
+        }
+    });
+}
+
+/**
  * Whether after adding a bank account we should continue with the KYC flow. If so, we must specify the fallback route.
  */
 function setPersonalBankAccountContinueKYCOnSuccess(onSuccessFallbackRoute: Route) {
@@ -527,6 +538,7 @@ export {
     validateBankAccount,
     verifyIdentityForBankAccount,
     setReimbursementAccountLoading,
+    openPersonalBankAccountSetupViewRefactor
 };
 
 export type {BusinessAddress, PersonalAddress};

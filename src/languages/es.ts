@@ -1366,6 +1366,8 @@ export default {
         manuallyAdd: 'Añadir manualmente tu cuenta bancaria',
         letsDoubleCheck: 'Verifiquemos que todo esté correcto.',
         accountEnding: 'Cuenta terminada en',
+        // TODO: change for Spanish transations
+        sendAndReceiveMoney: 'Send and receive money',
         thisBankAccount: 'Esta cuenta bancaria se utilizará para pagos comerciales en tu espacio de trabajo',
         // TODO: change for Spanish transations
         addBankAccountBodyPt1: 'Add your bank account and we’ll connect it to your Expensify Wallet so you can send and receive money right in the app.',

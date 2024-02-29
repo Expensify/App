@@ -61,6 +61,9 @@ const propTypes = {
     /** Is displayed in new VBBA */
     isDisplayedInNewVBBA: PropTypes.bool,
 
+    /** Is displayed in new walletFlow */
+    isNewWalletFlow: PropTypes.bool,
+
     /** Text to display on error message */
     errorText: PropTypes.string,
 
@@ -80,6 +83,7 @@ const defaultProps = {
     bankAccountID: 0,
     isPlaidDisabled: false,
     isDisplayedInNewVBBA: false,
+    isNewWalletFlow: false,
     errorText: '',
     onInputChange: () => {},
 };
@@ -99,6 +103,7 @@ function AddPlaidBankAccount({
     isDisplayedInNewVBBA,
     errorText,
     onInputChange,
+                                 isNewWalletFlow
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -280,6 +285,37 @@ function AddPlaidBankAccount({
         return (
             <FullPageOfflineBlockingView>
                 <Text style={[styles.mb3, styles.textHeadline]}>{translate('bankAccount.chooseAnAccount')}</Text>
+                {!_.isEmpty(text) && <Text style={[styles.mb6, styles.textSupporting]}>{text}</Text>}
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb6]}>
+                    <Icon
+                        src={icon}
+                        height={iconSize}
+                        width={iconSize}
+                        additionalStyles={iconStyles}
+                    />
+                    <View>
+                        <Text style={[styles.ml3, styles.textStrong]}>{bankName}</Text>
+                        {selectedPlaidAccountMask.length > 0 && (
+                            <Text style={[styles.ml3, styles.textLabelSupporting]}>{`${translate('bankAccount.accountEnding')} ${selectedPlaidAccountMask}`}</Text>
+                        )}
+                    </View>
+                </View>
+                <Text style={[styles.textLabelSupporting]}>{`${translate('bankAccount.chooseAnAccountBelow')}:`}</Text>
+                <RadioButtons
+                    items={options}
+                    defaultCheckedValue={defaultSelectedPlaidAccountID}
+                    onPress={handleSelectingPlaidAccount}
+                    radioButtonStyle={[styles.mb6]}
+                />
+                <FormHelpMessage message={errorText} />
+            </FullPageOfflineBlockingView>
+        );
+    }
+
+    if (isNewWalletFlow) {
+        return (
+            <FullPageOfflineBlockingView>
+                <Text style={[styles.mb3, styles.textHeadline]}>{translate('bankAccount.chooseYourBankAccount')}</Text>
                 {!_.isEmpty(text) && <Text style={[styles.mb6, styles.textSupporting]}>{text}</Text>}
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb6]}>
                     <Icon

@@ -175,7 +175,7 @@ function KYCWall({
                 (!isExpenseReport && bankAccountList !== null && !PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, bankAccountList, shouldIncludeDebitCard))
             ) {
                 Log.info('[KYC Wallet] User does not have valid payment method');
-
+                console.log('here1');
                 if (!shouldIncludeDebitCard) {
                     selectPaymentMethod(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
                     return;
@@ -192,6 +192,7 @@ function KYCWall({
             if (!isExpenseReport) {
                 // Ask the user to upgrade to a gold wallet as this means they have not yet gone through our Know Your Customer (KYC) checks
                 const hasActivatedWallet = userWallet?.tierName && [CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM].some((name) => name === userWallet.tierName);
+                console.log('here2');
 
                 if (!hasActivatedWallet) {
                     Log.info('[KYC Wallet] User does not have active wallet');
