@@ -1054,7 +1054,7 @@ export default {
             daily: 'Daily',
             lastDayOfMonth: 'Last day of the month',
             lastBusinessDayOfMonth: 'Last business day of the month',
-            ordinals:{
+            ordinals: {
                 one: 'st',
                 two: 'nd',
                 few: 'rd',
