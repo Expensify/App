@@ -1647,8 +1647,9 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
         return formattedLogin;
     }
 
-    // todo: remove this once we have a better way to handle this
-    const shouldAddPostfix = shouldAddCurrentUserPostfix && accountID !== currentUserAccountID;
+    // for selfDm, we show user dispalyName + (You) as postfix
+    const shouldAddPostfix = shouldAddCurrentUserPostfix && accountID === currentUserAccountID;
+
     const longName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, formattedLogin, shouldFallbackToHidden, shouldAddPostfix);
 
     // If the user's personal details (first name) should be hidden, make sure we return "hidden" instead of the short name
