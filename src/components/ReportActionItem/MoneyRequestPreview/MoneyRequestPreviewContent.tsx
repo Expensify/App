@@ -276,7 +276,7 @@ function MoneyRequestPreviewContent({
                                                 </View>
                                             )}
                                         </View>
-                                        <View style={[styles.flexRow, styles.mt1]}>
+                                        <View style={[styles.flexRow]}>
                                             <View style={[styles.flex1]}>
                                                 {!isCurrentUserManager && shouldShowPendingConversionMessage && (
                                                     <Text style={[styles.textLabel, styles.colorMuted]}>{translate('iou.pendingConversionMessage')}</Text>
