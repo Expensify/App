@@ -172,7 +172,7 @@ function ProfilePage(props) {
                                         style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
                                         numberOfLines={1}
                                     >
-                                        {displayName}
+                                        {props.formatPhoneNumber(displayName)}
                                     </Text>
                                 )}
                                 {hasStatus && (

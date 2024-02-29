@@ -128,7 +128,7 @@ function DetailsPage({personalDetails, route, session}: DetailsPageProps) {
                                         style={[styles.textHeadline, styles.mb6, styles.pre]}
                                         numberOfLines={1}
                                     >
-                                        {displayName}
+                                        {formatPhoneNumber(displayName)}
                                     </Text>
                                 )}
                                 {details.login ? (

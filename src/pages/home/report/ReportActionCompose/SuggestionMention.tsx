@@ -1,3 +1,4 @@
+import Str from 'expensify-common/lib/str';
 import lodashSortBy from 'lodash/sortBy';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
@@ -62,7 +63,8 @@ function SuggestionMention(
         (highlightedMentionIndexInner: number) => {
             const commentBeforeAtSign = value.slice(0, suggestionValues.atSignIndex);
             const mentionObject = suggestionValues.suggestedMentions[highlightedMentionIndexInner];
-            const mentionCode = mentionObject.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT ? CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT : `@${mentionObject.login}`;
+            const mentionCode =
+                mentionObject.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT ? CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT : `@${Str.removeSMSDomain(mentionObject.login ?? '')}`;
             const commentAfterMention = value.slice(suggestionValues.atSignIndex + suggestionValues.mentionPrefix.length + 1);
 
             updateComment(`${commentBeforeAtSign}${mentionCode} ${SuggestionsUtils.trimLeadingSpace(commentAfterMention)}`, true);
@@ -151,7 +153,7 @@ function SuggestionMention(
             const sortedPersonalDetails = lodashSortBy(filteredPersonalDetails, (detail) => detail?.displayName || detail?.login);
             sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length).forEach((detail) => {
                 suggestions.push({
-                    text: PersonalDetailsUtils.getDisplayNameOrDefault(detail),
+                    text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(detail)),
                     alternateText: formatPhoneNumber(detail?.login ?? ''),
                     login: detail?.login,
                     icons: [
