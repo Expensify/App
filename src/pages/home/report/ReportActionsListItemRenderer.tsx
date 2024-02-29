@@ -10,6 +10,9 @@ type ReportActionsListItemRendererProps = {
     /** All the data of the action item */
     reportAction: ReportAction;
 
+    /** The report's parentReportAction */
+    parentReportAction: PropTypes.shape(reportActionPropTypes),
+
     /** Position index of the report action in the overall report FlatList view */
     index: number;
 
@@ -34,6 +37,7 @@ type ReportActionsListItemRendererProps = {
 
 function ReportActionsListItemRenderer({
     reportAction,
+    parentReportAction,
     index,
     report,
     displayAsGroup,
@@ -43,9 +47,7 @@ function ReportActionsListItemRenderer({
     linkedReportActionID = '',
 }: ReportActionsListItemRendererProps) {
     const shouldDisplayParentAction =
-        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
-        ReportUtils.isChatThread(report) &&
-        !ReportActionsUtils.isTransactionThread(ReportActionsUtils.getParentReportAction(report));
+        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && ReportUtils.isChatThread(report) && !ReportActionsUtils.isTransactionThread(parentReportAction);
 
     /**
      * Create a lightweight ReportAction so as to keep the re-rendering as light as possible by

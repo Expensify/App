@@ -36,6 +36,9 @@ type ReportActionsListProps = WithCurrentUserPersonalDetailsProps & {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
 
+    /** The report's parentReportAction */
+    parentReportAction: PropTypes.shape(reportActionPropTypes),
+
     /** Sorted actions prepared for display */
     sortedReportActions: OnyxTypes.ReportAction[];
 
@@ -106,6 +109,7 @@ function isMessageUnread(message: OnyxTypes.ReportAction, lastReadTime?: string)
 
 function ReportActionsList({
     report,
+    parentReportAction,
     isLoadingInitialReportActions = false,
     isLoadingOlderReportActions = false,
     isLoadingNewerReportActions = false,
@@ -391,6 +395,7 @@ function ReportActionsList({
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => (
             <ReportActionsListItemRenderer
                 reportAction={reportAction}
+                parentReportAction={parentReportAction}
                 index={index}
                 report={report}
                 linkedReportActionID={linkedReportActionID}
@@ -400,7 +405,7 @@ function ReportActionsList({
                 shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
             />
         ),
-        [report, linkedReportActionID, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker],
+        [report, linkedReportActionID, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker, parentReportAction],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.

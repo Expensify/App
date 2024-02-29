@@ -37,6 +37,9 @@ type ReportActionsViewProps = ReportActionsViewOnyxProps & {
     /** Array of report actions for this report */
     reportActions?: OnyxTypes.ReportAction[];
 
+    /** The report's parentReportAction */
+    parentReportAction: PropTypes.shape(reportActionPropTypes),
+
     /** The report metadata loading states */
     isLoadingInitialReportActions?: boolean;
 
@@ -227,6 +230,7 @@ function ReportActionsView({
         <>
             <ReportActionsList
                 report={report}
+                parentReportAction={props.parentReportAction}
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={reportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
