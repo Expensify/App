@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize, closed]
     branches-ignore: [staging, production]
-    # paths-ignore: [docs/**, .github/**, contributingGuides/**, tests/**, workflow_tests/**, '**.md', '**.sh']
+    paths-ignore: [docs/**, .github/**, contributingGuides/**, tests/**, workflow_tests/**, '**.md', '**.sh']
 
 jobs:
   perf-tests:
@@ -74,4 +74,4 @@ jobs:
           GRAPHITE_PORT: ${{ vars.GRAPHITE_PORT }}
         # run only when merged to main
         if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'graphite-testing-script'
-        run: echo -e "${{ steps.saveGraphiteString.outputs.GRAPHITE_STRING }}" | nc "$GRAPHITE_SERVER" "$GRAPHITE_PORT"
+        run: echo -e "${{ steps.saveGraphiteString.outputs.GRAPHITE_STRING }}" | nc -u "$GRAPHITE_SERVER" "$GRAPHITE_PORT"
