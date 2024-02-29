@@ -4,7 +4,7 @@ import {ActivityIndicator, Alert, AppState, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
-import {useCameraDevices} from 'react-native-vision-camera';
+import { useCameraDevice } from 'react-native-vision-camera';
 import Hand from '@assets/images/hand.svg';
 import Shutter from '@assets/images/shutter.svg';
 import AttachmentPicker from '@components/AttachmentPicker';
@@ -59,8 +59,7 @@ function IOURequestStepScan({
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const devices = useCameraDevices('wide-angle-camera');
-    const device = devices.back;
+    const device = useCameraDevice('back');
 
     const camera = useRef(null);
     const [flash, setFlash] = useState(false);
