@@ -74,7 +74,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         title={translate('workflowsPage.approver')}
                         titleStyle={styles.textLabelSupportingNormal}
                         descriptionTextStyle={styles.textNormalThemeText}
-                        description={policyApprover ?? ''}
+                        description={policyApproverName ?? ''}
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVER.getRoute(route.params.policyID))}
                         // TODO will be done in https://github.com/Expensify/Expensify/issues/368334
                         shouldShowRightIcon
