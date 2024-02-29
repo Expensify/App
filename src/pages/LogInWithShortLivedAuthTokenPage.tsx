@@ -38,15 +38,15 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
         // We have to check for both shortLivedAuthToken and shortLivedToken, as the old mobile app uses shortLivedToken, and is not being actively updated.
         const token = shortLivedAuthToken || shortLivedToken;
 
+        if (!account?.isLoading && authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT) {
+            Session.signInWithSupportAuthToken(shortLivedAuthToken);
+            return;
+        }
+
         // Try to authenticate using the shortLivedToken if we're not already trying to load the accounts
         if (token && !account?.isLoading) {
             Log.info('LogInWithShortLivedAuthTokenPage - Successfully received shortLivedAuthToken. Signing in...');
             Session.signInWithShortLivedAuthToken(email, token);
-            return;
-        }
-
-        if (!account?.isLoading && authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT) {
-            Session.signInWithSupportAuthToken(shortLivedAuthToken);
             return;
         }
 
