@@ -14,6 +14,8 @@ import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as Browser from '@libs/Browser';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
+import convertToProxyURL from 'react-native-video-cache';
+
 import {videoPlayerDefaultProps, videoPlayerPropTypes} from './propTypes';
 import shouldReplayVideo from './shouldReplayVideo';
 import VideoPlayerControls from './VideoPlayerControls';
@@ -51,7 +53,8 @@ function BaseVideoPlayer({
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isBuffering, setIsBuffering] = useState(true);
-    const [sourceURL] = useState(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url));
+    const cachedUrl = url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url);
+    const [sourceURL] = useState(convertToProxyURL(cachedUrl));
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
     const videoPlayerRef = useRef(null);
@@ -169,7 +172,7 @@ function BaseVideoPlayer({
             originalParent.appendChild(sharedElement);
         };
     }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isSmallScreenWidth, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
-
+    
     return (
         <>
             <View style={style}>
