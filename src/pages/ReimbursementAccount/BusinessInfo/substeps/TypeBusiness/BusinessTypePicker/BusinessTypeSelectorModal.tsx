@@ -3,6 +3,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -61,12 +62,12 @@ function BusinessTypeSelectorModal({isVisible, currentBusinessType, onBusinessTy
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
-                    headerMessage={translate('businessInfoStep.companyType')}
                     sections={[{data: incorporationTypes, indexOffset: 0}]}
                     initiallyFocusedOptionKey={currentBusinessType}
                     onSelectRow={onBusinessTypeSelected}
                     shouldStopPropagation
                     shouldUseDynamicMaxToRenderPerBatch
+                    ListItem={RadioListItem}
                 />
             </ScreenWrapper>
         </Modal>

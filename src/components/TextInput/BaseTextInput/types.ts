@@ -51,15 +51,11 @@ type CustomBaseTextInputProps = {
 
     /**
      * Autogrow input container length based on the entered text.
-     * Note: If you use this prop, the text input has to be controlled
-     * by a value prop.
      */
     autoGrow?: boolean;
 
     /**
      * Autogrow input container height based on the entered text
-     * Note: If you use this prop, the text input has to be controlled
-     * by a value prop.
      */
     autoGrowHeight?: boolean;
 

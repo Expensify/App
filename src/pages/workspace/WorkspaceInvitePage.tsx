@@ -12,6 +12,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {Section} from '@components/SelectionList/types';
+import UserListItem from '@components/SelectionList/UserListItem';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -284,12 +285,14 @@ function WorkspaceInvitePage({
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
+            shouldUseCachedViewportHeight
             testID={WorkspaceInvitePage.displayName}
         >
             <FullPageNotFoundView
                 shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
+                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
             >
                 <HeaderWithBackButton
                     title={translate('workspace.invite.invitePeople')}
@@ -304,6 +307,7 @@ function WorkspaceInvitePage({
                 <SelectionList
                     canSelectMultiple
                     sections={sections}
+                    ListItem={UserListItem}
                     textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                     textInputValue={searchTerm}
                     onChangeText={(value) => {
