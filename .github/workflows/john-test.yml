@@ -10,13 +10,8 @@ jobs:
     if: ${{ github.actor != 'OSBotify' }}
     runs-on: ubuntu-latest-reassure-tests
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
       - name: Test sending some fake data to Graphite
         env:
           GRAPHITE_SERVER: ${{ vars.GRAPHITE_SERVER }}
           GRAPHITE_PORT: ${{ vars.GRAPHITE_PORT }}
-        run: echo -e "reassure_testing.PR-37538.[SelectionList]-should-render-multiple-selection-and-select-3-items.renderDuration 84.4 1709229830" | nc -u "$GRAPHITE_SERVER" "$GRAPHITE_PORT"
+        run: echo -e "reassure_testing.PR-0.[SelectionList]-should-render-multiple-selection-and-select-3-items.renderDuration 3000 1709229855" | nc -q0 "$GRAPHITE_SERVER" "$GRAPHITE_PORT"
