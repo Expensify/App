@@ -358,7 +358,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
 
     const getHeaderContent = () => (
         <>
-            <Text style={[styles.pl5, styles.mb5, styles.mt3]}>{translate('workspace.people.membersListTitle')}</Text>
+            <Text style={[styles.pl5, styles.mb5, styles.mt3, styles.textSupporting]}>{translate('workspace.people.membersListTitle')}</Text>
             {!isEmptyObject(invitedPrimaryToSecondaryLogins) && (
                 <MessagesRow
                     type="success"
@@ -415,7 +415,8 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
             <FullPageNotFoundView
                 shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
+                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
             >
                 <HeaderWithBackButton
                     title={translate('workspace.common.members')}
