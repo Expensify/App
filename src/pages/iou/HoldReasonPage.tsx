@@ -11,13 +11,13 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import * as FormActions from '@userActions/FormActions';
 import * as IOU from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
-import * as FormActions from '@userActions/FormActions';
-import * as ReportUtils from '@libs/ReportUtils';
 
 type HoldReasonPageRouteParams = {
     /** ID of the transaction the page was opened for */
@@ -57,7 +57,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM> = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.COMMENT]);
 
-                if (!values.comment) {
+        if (!values.comment) {
             errors.comment = 'common.error.fieldRequired';
         }
 
@@ -67,7 +67,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
     useEffect(() => {
         FormActions.clearErrors(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM);
         FormActions.clearErrorFields(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM);
-    }   , []);
+    }, []);
 
     return (
         <ScreenWrapper
