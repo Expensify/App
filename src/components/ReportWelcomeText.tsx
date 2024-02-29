@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
-import { View } from 'react-native';
-import type { OnyxEntry } from 'react-native-onyx';
-import { withOnyx } from 'react-native-onyx';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -11,8 +11,8 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type { PersonalDetailsList, Policy, Report } from '@src/types/onyx';
-import { PressableWithoutFeedback } from './Pressable';
+import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
+import {PressableWithoutFeedback} from './Pressable';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
 import UserDetailsTooltip from './UserDetailsTooltip';
@@ -30,8 +30,8 @@ type ReportWelcomeTextProps = ReportWelcomeTextOnyxProps & {
     policy: OnyxEntry<Policy>;
 };
 
-function ReportWelcomeText({ report, policy, personalDetails }: ReportWelcomeTextProps) {
-    const { translate } = useLocalize();
+function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isChatRoom = ReportUtils.isChatRoom(report);
@@ -57,7 +57,7 @@ function ReportWelcomeText({ report, policy, personalDetails }: ReportWelcomeTex
 
     const getWelcomeHeroText = useMemo(() => {
         if (isChatRoom) {
-            return translate('reportActionsView.welcomeToRoom', { roomName: reportName });
+            return translate('reportActionsView.welcomeToRoom', {roomName: reportName});
         }
 
         if (isSelfDM) {
@@ -140,7 +140,7 @@ function ReportWelcomeText({ report, policy, personalDetails }: ReportWelcomeTex
                 {isDefault && (
                     <Text>
                         <Text>{translate('reportActionsView.beginningOfChatHistory')}</Text>
-                        {displayNamesWithTooltips.map(({ displayName, pronouns, accountID }, index) => (
+                        {displayNamesWithTooltips.map(({displayName, pronouns, accountID}, index) => (
                             // eslint-disable-next-line react/no-array-index-key
                             <Text key={`${displayName}${pronouns}${index}`}>
                                 <UserDetailsTooltip accountID={accountID}>
@@ -165,7 +165,7 @@ function ReportWelcomeText({ report, policy, personalDetails }: ReportWelcomeTex
                     </Text>
                 )}
                 {(moneyRequestOptions.includes(CONST.IOU.TYPE.SEND) || moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)) && (
-                    <Text>{translate('reportActionsView.usePlusButton', { additionalText })}</Text>
+                    <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>
                 )}
             </View>
         </>
