@@ -131,9 +131,8 @@ const runTests = async () => {
 
         await withFailTimeout(
             new Promise<void>((resolve) => {
-                const cleanup = server.addTestDoneListener(() => {
+                server.addTestDoneListener(() => {
                     Logger.success(iterationText);
-                    cleanup();
                     resolve();
                 });
             }),
