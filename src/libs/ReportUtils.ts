@@ -4986,6 +4986,17 @@ function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
     return isAutoReimbursable;
 }
 
+/**
+ * Used from money request actions to decide if we need to build an optimistic money request report.
+   Create a new report if:
+   - we don't have an iouReport set in the chatReport
+   - we have one, but it's waiting on the payee adding a bank account
+   - we have one but we can't add more transactions to it due to: report is approved or settled, or, report is processing and policy isn't under Instant Submit
+ */
+function shouldBuildOptimisticMoneyRequestReport(existingIOUReport: OnyxEntry<Report> | undefined | null, chatReport: OnyxEntry<Report> | null): boolean {
+    return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddTransactionsToMoneyRequest(existingIOUReport);
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -5188,6 +5199,7 @@ export {
     canEditPolicyDescription,
     getPolicyDescriptionText,
     canAddTransactionsToMoneyRequest,
+    shouldBuildOptimisticMoneyRequestReport,
 };
 
 export type {
