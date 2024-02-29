@@ -131,5 +131,6 @@ export type {
     BeneficialOwnersStepProps,
     ACHContractStepProps,
     ReimbursementAccountProps,
+    InputID,
 };
 export default INPUT_IDS;

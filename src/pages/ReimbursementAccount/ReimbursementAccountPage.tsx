@@ -1,4 +1,5 @@
 import type {RouteProp} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import Str from 'expensify-common/lib/str';
 import lodashPick from 'lodash/pick';
 import React, {useEffect, useRef, useState} from 'react';
@@ -28,9 +29,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {InputID} from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {ACHData, BankAccountStep as TBankAccountStep} from '@src/types/onyx/ReimbursementAccount';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ACHContractStep from './ACHContractStep';
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 import BankAccountStep from './BankAccountStep';
 import BeneficialOwnersStep from './BeneficialOwnersStep';
 import CompanyStep from './CompanyStep';
@@ -39,50 +43,6 @@ import ContinueBankAccountSetup from './ContinueBankAccountSetup';
 import EnableBankAccount from './EnableBankAccount/EnableBankAccount';
 import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import RequestorStep from './RequestorStep';
-
-type ReimbursementAccountDraft = {
-    bankAccountID: number;
-
-    /** Props needed for BankAccountStep */
-    accountNumber: string;
-    routingNumber: string;
-    acceptTerms: boolean;
-    plaidAccountID: string;
-    mask: string;
-
-    /** Props needed for CompanyStep */
-    companyName: string;
-    addressStreet: string;
-    addressCity: string;
-    addressState: string;
-    addressZipCode: string;
-    companyPhone: string;
-    website: string;
-    companyTaxID: string;
-    incorporationType: string;
-    incorporationDate: string | Date;
-    incorporationState: string;
-    hasNoConnectionToCannabis: boolean;
-
-    /** Props needed for RequestorStep */
-    firstName: string;
-    lastName: string;
-    requestorAddressStreet: string;
-    requestorAddressCity: string;
-    requestorAddressState: string;
-    requestorAddressZipCode: string;
-    dob: string | Date;
-    ssnLast4: string;
-    isOnfidoSetupComplete: boolean;
-
-    /** Props needed for ACHContractStep */
-    ownsMoreThan25Percent: boolean;
-    hasOtherBeneficialOwners: boolean;
-    acceptTermsAndConditions: boolean;
-    certifyTrueInformation: boolean;
-    beneficialOwners: string;
-    beneficialOwnerKeys: string[];
-};
 
 type ReimbursementAccountOnyxProps = {
     /** Plaid SDK token to use to initialize the widget */
@@ -108,7 +68,9 @@ type ReimbursementAccountOnyxProps = {
 };
 
 type ReimbursementAccountPageProps = WithPolicyOnyxProps &
-    ReimbursementAccountOnyxProps & {route: RouteProp<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>};
+    ReimbursementAccountOnyxProps &
+    StackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
+
 const ROUTE_NAMES = {
     COMPANY: 'company',
     PERSONAL_INFORMATION: 'personal-information',
@@ -123,8 +85,8 @@ const ROUTE_NAMES = {
  * We can pass stepToOpen in the URL to force which step to show.
  * Mainly needed when user finished the flow in verifying state, and Ops ask them to modify some fields from a specific step.
  */
-function getStepToOpenFromRouteParams(route: RouteProp<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>): ValueOf<typeof CONST.BANK_ACCOUNT.STEP> | '' {
-    switch (route.params.stepToOpen ?? '') {
+function getStepToOpenFromRouteParams(route: RouteProp<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>): TBankAccountStep | '' {
+    switch (route.params.stepToOpen) {
         case ROUTE_NAMES.NEW:
             return CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         case ROUTE_NAMES.COMPANY:
@@ -144,7 +106,7 @@ function getStepToOpenFromRouteParams(route: RouteProp<ReimbursementAccountNavig
     }
 }
 
-function getRouteForCurrentStep(currentStep: ValueOf<typeof CONST.BANK_ACCOUNT.STEP>): ValueOf<typeof ROUTE_NAMES> {
+function getRouteForCurrentStep(currentStep: TBankAccountStep): ValueOf<typeof ROUTE_NAMES> {
     switch (currentStep) {
         case CONST.BANK_ACCOUNT.STEP.COMPANY:
             return ROUTE_NAMES.COMPANY;
@@ -184,8 +146,7 @@ function ReimbursementAccountPage({
     */
     const achData = reimbursementAccount?.achData;
 
-    function getBankAccountFields(fieldNames: string[]): string[] {
-        // @ts-expect-error -- Pick<ACHData, T> is more acurate type in this case because lodashPick returns Partial<ACHData>
+    function getBankAccountFields<T extends InputID>(fieldNames: T[]): Pick<ACHData, T> {
         return {
             ...lodashPick(reimbursementAccount?.achData, ...fieldNames),
         };
@@ -194,7 +155,7 @@ function ReimbursementAccountPage({
     /**
      * Returns selected bank account fields based on field names provided.
      */
-    function getFieldsForStep(step: string): string[] {
+    function getFieldsForStep(step: TBankAccountStep): InputID[] {
         switch (step) {
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
                 return ['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings'];
@@ -553,5 +514,3 @@ export default withPolicy(
         },
     })(ReimbursementAccountPage),
 );
-
-export type {ReimbursementAccountDraft};

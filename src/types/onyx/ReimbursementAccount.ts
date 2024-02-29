@@ -38,6 +38,22 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
 
     /** Weather Onfido setup is complete */
     isOnfidoSetupComplete?: boolean;
+
+    mask?: string;
+
+    isSavings?: string;
+
+    plaidAccountID?: string;
+
+    plaidAccessToken?: string;
+
+    selectedPlaidAccountID?: string;
+
+    amount1?: string;
+
+    amount2?: string;
+
+    amount3?: string;
 };
 
 type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
