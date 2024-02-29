@@ -14,7 +14,7 @@ import * as NumberUtils from '@libs/NumberUtils';
 
 type VolumeButtonProps = {
     style: ViewStyle;
-    small: boolean;
+    small?: boolean;
 };
 
 const getVolumeIcon = (volume: number) => {
