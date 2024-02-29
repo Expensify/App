@@ -6,6 +6,9 @@ type Address = {
     zip?: string;
     country?: string;
     zipCode?: string;
+    address?: string;
+    lat?: string;
+    lng?: string;
 };
 
 type PrivatePersonalDetails = {
