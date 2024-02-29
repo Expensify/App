@@ -429,28 +429,31 @@ function BaseSelectionList<TItem extends ListItem>(
                         ) : (
                             <>
                                 {!headerMessage && canSelectMultiple && shouldShowSelectAll && (
-                                    <PressableWithFeedback
-                                        style={[styles.peopleRow, styles.userSelectNone, styles.ph4, styles.pb3, listHeaderWrapperStyle]}
-                                        onPress={selectAllRow}
-                                        accessibilityLabel={translate('workspace.people.selectAll')}
-                                        role="button"
-                                        accessibilityState={{checked: flattenedSections.allSelected}}
-                                        disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
-                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                                        onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
-                                    >
-                                        <Checkbox
-                                            accessibilityLabel={translate('workspace.people.selectAll')}
-                                            isChecked={flattenedSections.allSelected}
+                                    <View style={[styles.peopleRow, styles.ph4, styles.pb3, listHeaderWrapperStyle]}>
+                                        <PressableWithFeedback
+                                            style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
                                             onPress={selectAllRow}
+                                            accessibilityLabel={translate('workspace.people.selectAll')}
+                                            role="button"
+                                            accessibilityState={{checked: flattenedSections.allSelected}}
                                             disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
-                                        />
-                                        {customListHeader ?? (
-                                            <View style={[styles.flex1]}>
-                                                <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
-                                            </View>
-                                        )}
-                                    </PressableWithFeedback>
+                                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                            onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
+                                        >
+                                            <Checkbox
+                                                accessibilityLabel={translate('workspace.people.selectAll')}
+                                                isChecked={flattenedSections.allSelected}
+                                                onPress={selectAllRow}
+                                                disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
+                                            />
+                                            {!customListHeader ? (
+                                                <View style={[styles.flex1]}>
+                                                    <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
+                                                </View>
+                                            ) : null}
+                                        </PressableWithFeedback>
+                                        {customListHeader}
+                                    </View>
                                 )}
                                 {!headerMessage && !canSelectMultiple && customListHeader}
                                 <SectionList
