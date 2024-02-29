@@ -2757,12 +2757,6 @@ const styles = (theme: ThemeColors) =>
             height: '100%',
         },
 
-        navigationOnboardingScreenCardStyle: {
-            backgroundColor: 'transparent',
-            width: '100%',
-            height: '100%',
-        },
-
         invisible: {
             position: 'absolute',
             opacity: 0,

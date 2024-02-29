@@ -1,5 +1,5 @@
 import {createStackNavigator} from '@react-navigation/stack';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
@@ -15,7 +15,6 @@ const Stack = createStackNavigator<OnboardingModalNavigatorParamList>();
 
 function OnboardingModalNavigator() {
     const styles = useThemeStyles();
-    const screenOptions = useMemo(() => OnboardingModalNavigatorScreenOptions(styles), [styles]);
     const {shouldUseNarrowLayout} = useOnboardingLayout();
 
     return (
@@ -23,7 +22,7 @@ function OnboardingModalNavigator() {
             <Overlay />
             <View style={styles.onboardingNavigatorOuterView}>
                 <View style={styles.OnboardingNavigatorInnerView(shouldUseNarrowLayout)}>
-                    <Stack.Navigator screenOptions={screenOptions}>
+                    <Stack.Navigator screenOptions={OnboardingModalNavigatorScreenOptions()}>
                         <Stack.Screen
                             name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
                             component={OnboardingPersonalDetails}

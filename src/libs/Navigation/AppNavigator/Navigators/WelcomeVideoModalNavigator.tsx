@@ -1,5 +1,5 @@
 import {createStackNavigator} from '@react-navigation/stack';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import OnboardingWelcomeVideo from '@components/OnboardingWelcomeVideo';
@@ -14,7 +14,6 @@ const Stack = createStackNavigator<WelcomeVideoModalNavigatorParamList>();
 
 function WelcomeVideoModalNavigator() {
     const styles = useThemeStyles();
-    const screenOptions = useMemo(() => WelcomeVideoModalNavigatorScreenOptions(styles), [styles]);
     const {shouldUseNarrowLayout} = useOnboardingLayout();
 
     return (
@@ -22,7 +21,7 @@ function WelcomeVideoModalNavigator() {
             <Overlay />
             <View style={styles.onboardingNavigatorOuterView}>
                 <View style={styles.WelcomeVideoNavigatorInnerView(shouldUseNarrowLayout)}>
-                    <Stack.Navigator screenOptions={screenOptions}>
+                    <Stack.Navigator screenOptions={WelcomeVideoModalNavigatorScreenOptions()}>
                         <Stack.Screen
                             name={SCREENS.WELCOME_VIDEO.ROOT}
                             component={OnboardingWelcomeVideo}
