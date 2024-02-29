@@ -524,7 +524,6 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
     const lastOriginalReportAction = lastReportActions[report?.reportID ?? ''] ?? null;
     let lastMessageTextFromReport = '';
-    const lastActionName = lastReportAction?.actionName ?? '';
 
     if (ReportUtils.isArchivedRoom(report)) {
         const archiveReason =
@@ -576,13 +575,8 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
         const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction(report?.reportID, lastReportAction);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
-    } else if (
-        lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
-        lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED ||
-        lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED ||
-        lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKEDITED
-    ) {
-        lastMessageTextFromReport = lastReportAction?.message?.[0].text ?? '';
+    } else if (ReportActionUtils.isTaskAction(lastReportAction)) {
+        lastMessageTextFromReport = TaskUtils.getTaskReportActionMessage(lastReportAction).text;
     } else if (ReportActionUtils.isCreatedTaskReportAction(lastReportAction)) {
         lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
     }

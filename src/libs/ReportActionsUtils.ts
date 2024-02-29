@@ -671,7 +671,8 @@ function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return (
         reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
         reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED ||
-        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED
+        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED ||
+        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKEDITED
     );
 }
 

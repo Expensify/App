@@ -393,12 +393,8 @@ function ReportActionItem(props) {
                     transactionViolations={props.transactionViolations}
                 />
             );
-        } else if (
-            props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
-            props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED ||
-            props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED
-        ) {
-            children = <TaskAction actionName={props.action.actionName} />;
+        } else if (ReportActionsUtils.isTaskAction(props.action)) {
+            children = <TaskAction action={props.action} />;
         } else if (ReportActionsUtils.isCreatedTaskReportAction(props.action)) {
             children = (
                 <ShowContextMenuContext.Provider value={contextValue}>
