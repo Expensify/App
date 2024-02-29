@@ -464,8 +464,10 @@ function ReportActionItem(props) {
             children = <ReportActionItemBasicMessage message={ReportUtils.getReimbursementDeQueuedActionMessage(props.action, props.report)} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
             children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(props.report.reportID, props.action)} />;
-        } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED) {
-            children = <ReportActionItemBasicMessage message={ReportActionsUtils.getMarkedReimbursedMessage(props.action)} />;
+        } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
+            children = <ReportActionItemBasicMessage message={props.translate('iou.heldRequest', {comment: lodashGet(props, 'action.message[1].text', '')})} />;
+        } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
+            children = <ReportActionItemBasicMessage message={props.translate('iou.unheldRequest')} />;
         } else {
             const hasBeenFlagged =
                 !_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision) &&
@@ -627,6 +629,28 @@ function ReportActionItem(props) {
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         const parentReportAction = props.parentReportActions[props.report.parentReportActionID];
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
+            const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);
+            if (ReportActionsUtils.isDeletedParentAction(parentReportAction) || isReversedTransaction) {
+                return (
+                    <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth, true), styles.justifyContentEnd]}>
+                        <AnimatedEmptyStateBackground />
+                        <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
+                            <OfflineWithFeedback pendingAction={lodashGet(parentReportAction, 'pendingAction', null)}>
+                                <ReportActionItemSingle
+                                    action={parentReportAction}
+                                    showHeader
+                                    report={props.report}
+                                >
+                                    <RenderHTML
+                                        html={`<comment>${props.translate(isReversedTransaction ? 'parentReportAction.reversedTransaction' : 'parentReportAction.deletedRequest')}</comment>`}
+                                    />
+                                </ReportActionItemSingle>
+                                <View style={styles.threadDividerLine} />
+                            </OfflineWithFeedback>
+                        </View>
+                    </View>
+                );
+            }
             return (
                 <ShowContextMenuContext.Provider value={contextValue}>
                     <MoneyRequestView
@@ -639,16 +663,18 @@ function ReportActionItem(props) {
         if (ReportUtils.isTaskReport(props.report)) {
             if (ReportUtils.isCanceledTaskReport(props.report, parentReportAction)) {
                 return (
-                    <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth, true)]}>
+                    <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)]}>
                         <AnimatedEmptyStateBackground />
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
-                            <ReportActionItemSingle
-                                action={parentReportAction}
-                                showHeader={_.isUndefined(props.draftMessage)}
-                                report={props.report}
-                            >
-                                <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
-                            </ReportActionItemSingle>
+                            <OfflineWithFeedback pendingAction={parentReportAction.pendingAction}>
+                                <ReportActionItemSingle
+                                    action={parentReportAction}
+                                    showHeader={_.isUndefined(props.draftMessage)}
+                                    report={props.report}
+                                >
+                                    <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
+                                </ReportActionItemSingle>
+                            </OfflineWithFeedback>
                             <View style={styles.reportHorizontalRule} />
                         </View>
                     </View>
@@ -863,9 +889,10 @@ export default compose(
         },
     }),
 )(
-    memo(
-        ReportActionItem,
-        (prevProps, nextProps) =>
+    memo(ReportActionItem, (prevProps, nextProps) => {
+        const prevParentReportAction = prevProps.parentReportActions[prevProps.report.parentReportActionID];
+        const nextParentReportAction = nextProps.parentReportActions[nextProps.report.parentReportActionID];
+        return (
             prevProps.displayAsGroup === nextProps.displayAsGroup &&
             prevProps.draftMessage === nextProps.draftMessage &&
             prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction &&
@@ -894,6 +921,8 @@ export default compose(
             prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
             _.isEqual(prevProps.policyReportFields, nextProps.policyReportFields) &&
             _.isEqual(prevProps.report.reportFields, nextProps.report.reportFields) &&
-            _.isEqual(prevProps.policy, nextProps.policy),
-    ),
+            _.isEqual(prevProps.policy, nextProps.policy) &&
+            _.isEqual(prevParentReportAction, nextParentReportAction)
+        );
+    }),
 );
