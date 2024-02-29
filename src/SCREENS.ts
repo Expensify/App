@@ -80,6 +80,12 @@ const SCREENS = {
             REPORT_VIRTUAL_CARD_FRAUD: 'Settings_Wallet_ReportVirtualCardFraud',
             CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
         },
+
+        EXIT_SURVEY: {
+            REASON: 'Settings_ExitSurvey_Reason',
+            RESPONSE: 'Settings_ExitSurvey_Response',
+            CONFIRM: 'Settings_ExitSurvey_Confirm',
+        },
     },
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
@@ -207,10 +213,13 @@ const SCREENS = {
         MEMBERS: 'Workspace_Members',
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
+        CATEGORIES: 'Workspace_Categories',
         CURRENCY: 'Workspace_Profile_Currency',
+        WORKFLOWS: 'Workspace_Workflows',
         DESCRIPTION: 'Workspace_Profile_Description',
         SHARE: 'Workspace_Profile_Share',
         NAME: 'Workspace_Profile_Name',
+        CATEGORIES_SETTINGS: 'Categories_Settings',
     },
 
     EDIT_REQUEST: {
