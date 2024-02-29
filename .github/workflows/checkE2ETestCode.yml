@@ -1,4 +1,4 @@
-name: Check e2e test code
+name: Check e2e test code builds correctly
 
 on:
   workflow_call:
