@@ -4168,6 +4168,10 @@ function hasIOUWaitingOnCurrentUserBankAccount(chatReport: OnyxEntry<Report>): b
 
 /**
  * Checks whether the supplied report supports adding more transactions to it.
+ * Return true if:
+ * - report is a non-settled IOU
+ * - report is a draft
+ * - report is processing and policy's on Instant Submit
  */
 function canAddTransactionsToMoneyRequest(report: OnyxEntry<Report>) {
     if (!isIOUReport(report) && !isExpenseReport(report)) {
@@ -4182,10 +4186,6 @@ function canAddTransactionsToMoneyRequest(report: OnyxEntry<Report>) {
         return false;
     }
 
-    // We've narrowed it down to reports that are either:
-    // - non-settled IOUs
-    // - draft expense reports
-    // - submitted expense reports under a policy with Instant Submit
     return true;
 }
 
