@@ -70,18 +70,11 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
         [policyCategories, selectedCategories, styles.alignSelfCenter, styles.disabledText, styles.flexRow, styles.p1, styles.pl2, theme.icon, translate],
     );
 
-    const navigateToCategorySettings = (categoryName: string) => {
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, categoryName));
-    };
-
     const toggleCategory = (category: PolicyForList) => {
         setSelectedCategories((prev) => ({
             ...prev,
             [category.value]: !prev[category.value],
         }));
-
-        // FIXME: This is a temporary solution to navigate to category settings page
-        navigateToCategorySettings(category.text);
     };
 
     const toggleAllCategories = () => {
@@ -96,15 +89,19 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
         </View>
     );
 
-    const navigateToCategorySettings = () => {
+    const navigateToCategoriesSettings = () => {
         Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES_SETTINGS.getRoute(route.params.policyID));
+    };
+
+    const navigateToCategorySettings = (category: PolicyForList) => {
+        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, category.text));
     };
 
     const settingsButton = (
         <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
             <Button
                 medium
-                onPress={navigateToCategorySettings}
+                onPress={navigateToCategoriesSettings}
                 icon={Expensicons.Gear}
                 text={translate('common.settings')}
                 style={[isSmallScreenWidth && styles.w50]}
