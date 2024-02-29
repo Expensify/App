@@ -3,16 +3,14 @@ import Str from 'expensify-common/lib/str';
 import React, {useEffect} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import AutoUpdateTime from '@components/AutoUpdateTime';
 import Avatar from '@components/Avatar';
-import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import CommunicationsLink from '@components/CommunicationsLink';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -29,7 +27,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {ProfileNavigatorParamList} from '@navigation/types';
-import variables from '@styles/variables';
 import * as PersonalDetailsActions from '@userActions/PersonalDetails';
 import * as ReportActions from '@userActions/Report';
 import * as SessionActions from '@userActions/Session';
@@ -48,6 +45,9 @@ type ProfilePageOnyxProps = {
 
     /** The report currently being looked at */
     report: OnyxEntry<Report>;
+
+    /** The list of all reports */
+    reports: OnyxCollection<Report>;
 
     /** Session info for the currently logged in user. */
     session: OnyxEntry<Session>;
@@ -70,7 +70,7 @@ const getPhoneNumber = ({login = '', displayName = ''}: PersonalDetails | EmptyO
     return login ? Str.removeSMSDomain(login) : '';
 };
 
-function ProfilePage({personalDetails, route, session, report}: ProfilePageProps) {
+function ProfilePage({personalDetails, route, session, report, reports}: ProfilePageProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const accountID = Number(route.params?.accountID ?? 0);
@@ -124,7 +124,7 @@ function ProfilePage({personalDetails, route, session, report}: ProfilePageProps
 
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>
-            <FullPageNotFoundView shouldShow={CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID)}>
+            <FullPageNotFoundView shouldShow={shouldShowBlockingView || CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID)}>
                 <HeaderWithBackButton
                     title={translate('common.profile')}
                     onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
@@ -230,15 +230,6 @@ function ProfilePage({personalDetails, route, session, report}: ProfilePageProps
                         </ScrollView>
                     )}
                     {!hasMinimumDetails && isLoading && <FullScreenLoadingIndicator style={styles.flex1} />}
-                    {shouldShowBlockingView && (
-                        <BlockingView
-                            icon={Illustrations.ToddBehindCloud}
-                            iconWidth={variables.modalTopIconWidth}
-                            iconHeight={variables.modalTopIconHeight}
-                            title={translate('notFound.notHere')}
-                            shouldShowLink
-                        />
-                    )}
                 </View>
             </FullPageNotFoundView>
         </ScreenWrapper>
@@ -247,7 +238,26 @@ function ProfilePage({personalDetails, route, session, report}: ProfilePageProps
 
 ProfilePage.displayName = 'ProfilePage';
 
+/**
+ * This function narrow down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
+ * and makes the entire component more performant because it's not re-rendering when a bunch of properties change which aren't ever used in the UI.
+ */
+const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
+    report && {
+        reportID: report.reportID,
+        participantAccountIDs: report.participantAccountIDs,
+        parentReportID: report.parentReportID,
+        parentReportActionID: report.parentReportActionID,
+        type: report.type,
+        chatType: report.chatType,
+        isPolicyExpenseChat: report.isPolicyExpenseChat,
+    };
+
 export default withOnyx<ProfilePageProps, ProfilePageOnyxProps>({
+    reports: {
+        key: ONYXKEYS.COLLECTION.REPORT,
+        selector: chatReportSelector,
+    },
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     },
@@ -255,9 +265,9 @@ export default withOnyx<ProfilePageProps, ProfilePageOnyxProps>({
         key: ONYXKEYS.SESSION,
     },
     report: {
-        key: ({route, session}) => {
+        key: ({route, session, reports}) => {
             const accountID = Number(route.params?.accountID ?? 0);
-            const reportID = ReportUtils.getChatByParticipants([accountID])?.reportID ?? '';
+            const reportID = ReportUtils.getChatByParticipants([accountID], reports)?.reportID ?? '';
 
             if ((Boolean(session) && Number(session?.accountID) === accountID) || SessionActions.isAnonymousUser() || !reportID) {
                 return `${ONYXKEYS.COLLECTION.REPORT}0`;
