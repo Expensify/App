@@ -287,7 +287,7 @@ function ReportPreview({
                                     <View style={styles.reportPreviewAmountSubtitleContainer}>
                                         <View style={styles.flexRow}>
                                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                                <Text style={styles.textHeadline}>{getDisplayAmount()}</Text>
+                                                <Text style={styles.textHeadlineH2}>{getDisplayAmount()}</Text>
                                                 {ReportUtils.isSettled(iouReportID) && (
                                                     <View style={styles.defaultCheckmarkWrapper}>
                                                         <Icon
