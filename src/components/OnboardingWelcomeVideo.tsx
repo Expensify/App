@@ -15,7 +15,10 @@ import LottieAnimations from './LottieAnimations';
 import Text from './Text';
 import VideoPlayer from './VideoPlayer';
 
-const BASE_VIDEO_ASPECT_RATIO = 484 / 272.25;
+// Aspect ratio and height of the video.
+// Useful before video loads to reserve space.
+const VIDEO_ASPECT_RATIO = 484 / 272.25;
+const VIDEO_HEIGHT = 320;
 
 const MODAL_PADDING = variables.spacing2;
 
@@ -41,7 +44,7 @@ function OnboardingWelcomeVideo() {
     const [welcomeVideoStatus, setWelcomeVideoStatus] = useState<VideoStatus>('video');
     const [isWelcomeVideoStatusLocked, setIsWelcomeVideoStatusLocked] = useState(false);
     const [isVideoLoaded, setIsVideoLoaded] = useState(false);
-    const [videoAspectRatio, setVideoAspectRatio] = useState(BASE_VIDEO_ASPECT_RATIO);
+    const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
     const {isOffline} = useNetwork();
 
     useEffect(() => {
@@ -88,7 +91,13 @@ function OnboardingWelcomeVideo() {
             const videoWidth = containerDimensions.current.width - 2 * MODAL_PADDING;
 
             return (
-                <View style={{width: videoWidth, height: videoWidth / videoAspectRatio}}>
+                <View
+                    style={[
+                        styles.w100,
+                        // Prevent layout jumps by reserving height for the video
+                        {height: VIDEO_HEIGHT - 2 * MODAL_PADDING},
+                    ]}
+                >
                     <VideoPlayer
                         // Temporary file supplied for testing purposes, to
                         // be changed when correct one gets uploaded on backend
@@ -121,8 +130,8 @@ function OnboardingWelcomeVideo() {
             onLayout={storeContainerDimensions}
         >
             <View style={{padding: MODAL_PADDING}}>{getWelcomeVideo()}</View>
-            <View style={[shouldUseNarrowLayout ? [styles.mt3, styles.mh5] : [styles.mt5, styles.mh8]]}>
-                <View style={[shouldUseNarrowLayout ? [styles.gap2, styles.mb10] : [styles.gap1, styles.mb8]]}>
+            <View style={[shouldUseNarrowLayout ? [styles.mt5, styles.mh8] : [styles.mt3, styles.mh5]]}>
+                <View style={[shouldUseNarrowLayout ? [styles.gap1, styles.mb8] : [styles.gap2, styles.mb10]]}>
                     <Text style={styles.textHeroSmall}>{translate('onboarding.welcomeVideo.title')}</Text>
                     <Text style={styles.textSupporting}>{translate('onboarding.welcomeVideo.description')}</Text>
                 </View>
