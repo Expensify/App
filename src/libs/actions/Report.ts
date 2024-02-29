@@ -48,6 +48,7 @@ import DateUtils from '@libs/DateUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import LocalNotification from '@libs/Notification/LocalNotification';
@@ -177,10 +178,27 @@ const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 
 let reportIDDeeplinkedFromOldDot: string | undefined;
 Linking.getInitialURL().then((url) => {
-    const params = new URLSearchParams(url ?? '');
-    const exitToRoute = params.get('exitTo') ?? '';
-    const {reportID} = ReportUtils.parseReportRouteParams(exitToRoute);
-    reportIDDeeplinkedFromOldDot = reportID;
+    const isWeb = ([CONST.PLATFORM.WEB] as unknown as string).includes(getPlatform());
+    const currentParams = new URLSearchParams(url ?? '');
+    const currentExitToRoute = currentParams.get('exitTo') ?? '';
+    const {reportID: currentReportID} = ReportUtils.parseReportRouteParams(currentExitToRoute);
+
+    if (!isWeb) {
+        reportIDDeeplinkedFromOldDot = currentReportID;
+
+        return;
+    }
+
+    const prevUrl = sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.INITIAL_URL);
+    const prevParams = new URLSearchParams(prevUrl ?? '');
+    const prevExitToRoute = prevParams.get('exitTo') ?? '';
+    const {reportID: prevReportID} = ReportUtils.parseReportRouteParams(prevExitToRoute);
+
+    reportIDDeeplinkedFromOldDot = currentReportID || prevReportID;
+
+    if (currentReportID && url) {
+        sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.INITIAL_URL, url);
+    }
 });
 
 let lastVisitedPath: string | undefined;
