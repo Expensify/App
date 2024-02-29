@@ -1771,6 +1771,7 @@ export default {
                 title: 'No has creado ninguna categoría',
                 subtitle: 'Añade una categoría para organizar tu gasto.',
             },
+            genericFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
         },
         emptyWorkspace: {
             title: 'Crea un espacio de trabajo',

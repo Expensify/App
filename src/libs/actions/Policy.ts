@@ -28,7 +28,6 @@ import type {
     UpdateWorkspaceGeneralSettingsParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
@@ -203,16 +202,11 @@ Onyx.connect({
     callback: (val) => (allRecentlyUsedTags = val),
 });
 
-const allCategoryPolicies: OnyxCollection<PolicyCategories> = {};
+let allPolicyCategories: OnyxCollection<PolicyCategories> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
-    callback: (val, key) => {
-        if (!key) {
-            return;
-        }
-        const policyID = CollectionUtils.extractCollectionItemID(key);
-        allCategoryPolicies[policyID] = val;
-    },
+    waitForCollectionCallback: true,
+    callback: (val) => (allPolicyCategories = val),
 });
 
 /**
@@ -2210,7 +2204,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
 }
 
 function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Record<string, {name: string; enabled: boolean}>) {
-    const policyCategories = allCategoryPolicies?.[policyID] ?? {};
+    const policyCategories = allPolicyCategories?.[policyID] ?? {};
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -2219,10 +2213,42 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
                     ...Object.keys(categoriesToUpdate).reduce<Record<string, PolicyCategory>>((acc, key) => {
-                        acc[key] = {...policyCategories[key], ...categoriesToUpdate[key]};
+                        acc[key] = {
+                            ...policyCategories[key],
+                            ...categoriesToUpdate[key],
+                            errors: {
+                                enabled: null,
+                            },
+                        };
 
                         return acc;
                     }, {}),
+
+                    pendingAction: Object.keys(categoriesToUpdate).reduce<Record<string, string | null>>((acc, key) => {
+                        acc[key] = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+                        return acc;
+                    }, {}),
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    ...Object.keys(categoriesToUpdate).reduce<Record<string, PolicyCategory>>((acc, key) => {
+                        acc[key] = {
+                            ...policyCategories[key],
+                            ...categoriesToUpdate[key],
+                            errors: {
+                                enabled: null,
+                            },
+                        };
+
+                        return acc;
+                    }, {}),
+
+                    pendingAction: null,
                 },
             },
         ],
@@ -2231,7 +2257,17 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
-                    ...policyCategories,
+                    ...Object.keys(categoriesToUpdate).reduce<Record<string, PolicyCategory>>((acc, key) => {
+                        acc[key] = {
+                            ...policyCategories[key],
+                            ...categoriesToUpdate[key],
+                            errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.genericFailureMessage'),
+                        };
+
+                        return acc;
+                    }, {}),
+
+                    pendingAction: null,
                 },
             },
         ],

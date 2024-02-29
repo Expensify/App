@@ -1747,6 +1747,7 @@ export default {
                 title: "You haven't created any categories",
                 subtitle: 'Add a category to organize your spend.',
             },
+            genericFailureMessage: 'An error occurred while updating the category, please try again.',
         },
         emptyWorkspace: {
             title: 'Create a workspace',
