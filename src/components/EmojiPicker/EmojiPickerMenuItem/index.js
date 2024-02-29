@@ -38,17 +38,6 @@ const propTypes = {
 };
 
 function EmojiPickerMenuItem(props) {
-
-// class EmojiPickerMenuItem extends PureComponent {
-    // constructor(props) {
-    //     super(props);
-
-    //     ref = null;
-    //     this.focusAndScroll = this.focusAndScroll.bind(this);
-    //     this.state = {
-    //         isHovered: false,
-    //     };
-    // }
     const [isHovered, setIsHovered] = useState(false);
     const ref = useRef(null);
 

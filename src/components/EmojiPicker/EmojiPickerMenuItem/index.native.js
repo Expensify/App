@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {PureComponent} from 'react';
+import React, {useEffect, useRef} from 'react';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import withStyleUtils, {withStyleUtilsPropTypes} from '@components/withStyleUtils';
@@ -39,53 +39,38 @@ const propTypes = {
     ...withStyleUtilsPropTypes,
 };
 
-class EmojiPickerMenuItem extends PureComponent {
-    constructor(props) {
-        super(props);
+function EmojiPickerMenuItem(props) {
 
-        this.ref = null;
-    }
+    const ref = useRef(null);
 
-    componentDidMount() {
-        if (!this.props.isFocused) {
+    useEffect(() => {
+        if(!props.isFocused) {
             return;
         }
-        this.ref.focus();
-    }
+        ref.focus();
+    }, [props.isFocused])
 
-    componentDidUpdate(prevProps) {
-        if (prevProps.isFocused === this.props.isFocused) {
-            return;
-        }
-        if (!this.props.isFocused) {
-            return;
-        }
-        this.ref.focus();
-    }
-
-    render() {
-        return (
-            <PressableWithoutFeedback
-                shouldUseAutoHitSlop={false}
-                onPress={() => this.props.onPress(this.props.emoji)}
-                onHoverIn={this.props.onHoverIn}
-                onHoverOut={this.props.onHoverOut}
-                onFocus={this.props.onFocus}
-                onBlur={this.props.onBlur}
-                ref={(ref) => (this.ref = ref)}
-                style={({pressed}) => [
-                    this.props.StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
-                    this.props.isHighlighted && this.props.isUsingKeyboardMovement ? this.props.themeStyles.emojiItemKeyboardHighlighted : {},
-                    this.props.isHighlighted && !this.props.isUsingKeyboardMovement ? this.props.themeStyles.emojiItemHighlighted : {},
-                    this.props.themeStyles.emojiItem,
-                ]}
-                accessibilityLabel={this.props.emoji}
-                role={CONST.ROLE.BUTTON}
-            >
-                <Text style={[this.props.themeStyles.emojiText]}>{this.props.emoji}</Text>
-            </PressableWithoutFeedback>
-        );
-    }
+    return (
+        <PressableWithoutFeedback
+            shouldUseAutoHitSlop={false}
+            onPress={() => props.onPress(props.emoji)}
+            onHoverIn={props.onHoverIn}
+            onHoverOut={props.onHoverOut}
+            onFocus={props.onFocus}
+            onBlur={props.onBlur}
+            ref={(el) => (ref.current = el)}
+            style={({pressed}) => [
+                props.StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
+                props.isHighlighted && props.isUsingKeyboardMovement ? props.themeStyles.emojiItemKeyboardHighlighted : {},
+                props.isHighlighted && !props.isUsingKeyboardMovement ? props.themeStyles.emojiItemHighlighted : {},
+                props.themeStyles.emojiItem,
+            ]}
+            accessibilityLabel={props.emoji}
+            role={CONST.ROLE.BUTTON}
+        >
+            <Text style={[props.themeStyles.emojiText]}>{props.emoji}</Text>
+        </PressableWithoutFeedback>
+    );
 }
 
 EmojiPickerMenuItem.propTypes = propTypes;
