@@ -60,7 +60,6 @@ function BaseListItem<TItem extends ListItem>({
             pendingAction={pendingAction}
             errors={errors}
             errorRowStyles={styles.ph5}
-            style={[styles.w100]}
         >
             <PressableWithFeedback
                 // eslint-disable-next-line react/jsx-props-no-spreading
