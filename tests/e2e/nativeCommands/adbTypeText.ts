@@ -1,7 +1,7 @@
 import execAsync from '../utils/execAsync';
 import * as Logger from '../utils/logger';
 
-const adbTypeText = async (text) => {
+const adbTypeText = async (text: string) => {
     Logger.log(`📝 Typing text: ${text}`);
     execAsync(`adb shell input text "${text}"`);
     return true;
