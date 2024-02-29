@@ -734,14 +734,17 @@ function getParentReportAction(report: OnyxEntry<OnyxTypes.Report>): ReportActio
  * Cancels a task by setting the report state to SUBMITTED and status to CLOSED
  */
 function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
-    const message = `deleted task: ${report?.reportName}`;
-    const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(report?.reportID ?? '', CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED, message);
+    if (!report) {
+        return;
+    }
+    const message = `deleted task: ${report.reportName}`;
+    const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(report.reportID ?? '', CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED, message);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
     const parentReportAction = getParentReportAction(report);
     const parentReport = ReportUtils.getParentReport(report);
 
     // If the task report is the last visible action in the parent report, we should navigate back to the parent report
-    const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(report?.reportID ?? '');
+    const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(report.reportID ?? '');
     const optimisticReportAction: Partial<ReportUtils.OptimisticTaskReportAction> = {
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
         previousMessage: parentReportAction.message,
@@ -765,7 +768,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {
                 lastVisibleActionCreated: optimisticCancelReportAction.created,
                 lastMessageText: message,
@@ -783,7 +786,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
             value: {
                 [optimisticReportActionID]: optimisticCancelReportAction as OnyxTypes.ReportAction,
             },
@@ -811,7 +814,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
             value: {
                 [optimisticReportActionID]: {
                     pendingAction: null,
@@ -832,15 +835,15 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {
-                stateNum: report?.stateNum ?? '',
-                statusNum: report?.statusNum ?? '',
+                stateNum: report.stateNum ?? '',
+                statusNum: report.statusNum ?? '',
             } as OnyxTypes.Report,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
             value: {
                 [optimisticReportActionID]: null,
             },
@@ -858,7 +861,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
 
     const parameters: CancelTaskParams = {
         cancelledTaskReportActionID: optimisticReportActionID,
-        taskReportID: report?.reportID,
+        taskReportID: report.reportID,
     };
 
     API.write(WRITE_COMMANDS.CANCEL_TASK, parameters, {optimisticData, successData, failureData});
