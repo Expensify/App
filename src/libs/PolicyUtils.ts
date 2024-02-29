@@ -181,7 +181,9 @@ function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<PolicyTagLi
         return [];
     }
 
-    return Object.values(policyTagList).filter((policyTagListValue) => policyTagListValue !== null);
+    return Object.values(policyTagList)
+        .filter((policyTagListValue) => policyTagListValue !== null)
+        .sort((a, b) => a.orderWeight - b.orderWeight);
 }
 
 /**
