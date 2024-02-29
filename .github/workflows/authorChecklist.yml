@@ -18,5 +18,8 @@ jobs:
 
       - name: authorChecklist.js
         uses: ./.github/actions/javascript/authorChecklist
+        env:
+          GRAPHITE_SERVER: ${{ vars.GRAPHITE_SERVER }}
+          GRAPHITE_PORT: ${{ vars.GRAPHITE_PORT }}
         with:
           GITHUB_TOKEN: ${{ github.token }}
