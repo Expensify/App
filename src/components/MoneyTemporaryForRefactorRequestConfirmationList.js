@@ -23,6 +23,7 @@ import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import {policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,7 +42,6 @@ import ReceiptEmptyState from './ReceiptEmptyState';
 import SettlementButton from './SettlementButton';
 import Switch from './Switch';
 import tagPropTypes from './tagPropTypes';
-import taxPropTypes from './taxPropTypes';
 import Text from './Text';
 import transactionPropTypes from './transactionPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from './withCurrentUserPersonalDetails';
@@ -161,8 +161,8 @@ const propTypes = {
     policyTags: tagPropTypes,
 
     /* Onyx Props */
-    /** Collection of tax rates attached to a policy */
-    policyTaxRates: taxPropTypes,
+    /** The policy of the report */
+    policy: policyPropTypes.policy,
 
     /** Transaction that represents the money request */
     transaction: transactionPropTypes,
@@ -189,6 +189,7 @@ const defaultProps = {
     receiptPath: '',
     receiptFilename: '',
     listStyles: [],
+    policy: {},
     policyCategories: {},
     policyTags: {},
     transactionID: '',
@@ -197,7 +198,6 @@ const defaultProps = {
     isDistanceRequest: false,
     shouldShowSmartScanFields: true,
     isPolicyExpenseChat: false,
-    policyTaxRates: {},
 };
 
 function MoneyTemporaryForRefactorRequestConfirmationList({
@@ -238,7 +238,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     session: {accountID},
     shouldShowSmartScanFields,
     transaction,
-    policyTaxRates,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -252,6 +251,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const {unit, rate, currency} = mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
     const shouldCalculateDistanceAmount = isDistanceRequest && iouAmount === 0;
+    const taxRates = lodashGet(policy, 'taxRates', {});
 
     // A flag for showing the categories field
     const shouldShowCategories = isPolicyExpenseChat && (iouCategory || OptionsListUtils.hasEnabledOptions(_.values(policyCategories)));
@@ -286,8 +286,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction.taxAmount, iouCurrencyCode);
 
-    const defaultTaxKey = policyTaxRates.defaultExternalID;
-    const defaultTaxName = (defaultTaxKey && `${policyTaxRates.taxes[defaultTaxKey].name} (${policyTaxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
+    const defaultTaxKey = taxRates.defaultExternalID;
+    const defaultTaxName = (defaultTaxKey && `${taxRates.taxes[defaultTaxKey].name} (${taxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
     const taxRateTitle = (transaction.taxRate && transaction.taxRate.text) || defaultTaxName;
 
     const isFocused = useIsFocused();
@@ -767,7 +767,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 <MenuItemWithTopDescription
                     key={name}
                     shouldShowRightIcon={!isReadOnly}
-                    title={TransactionUtils.getTag(transaction, index)}
+                    title={TransactionUtils.getTagForDisplay(transaction, index)}
                     description={name}
                     numberOfLinesTitle={2}
                     onPress={() =>
@@ -787,10 +787,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         {
             item: (
                 <MenuItemWithTopDescription
-                    key={`${policyTaxRates.name}${taxRateTitle}`}
+                    key={`${taxRates.name}${taxRateTitle}`}
                     shouldShowRightIcon={!isReadOnly}
                     title={taxRateTitle}
-                    description={policyTaxRates.name}
+                    description={taxRates.name}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
@@ -804,10 +804,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         {
             item: (
                 <MenuItemWithTopDescription
-                    key={`${policyTaxRates.name}${formattedTaxAmount}`}
+                    key={`${taxRates.name}${formattedTaxAmount}`}
                     shouldShowRightIcon={!isReadOnly}
                     title={formattedTaxAmount}
-                    description={policyTaxRates.name}
+                    description={taxRates.name}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
@@ -908,7 +908,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
                 </View>
             )}
-            {shouldShowAllFields && <>{supplementaryFields}</>}
+            {shouldShowAllFields && supplementaryFields}
         </OptionsSelector>
     );
 }
@@ -935,9 +935,6 @@ export default compose(
         },
         policy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-        },
-        policyTaxRates: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${policyID}`,
         },
     }),
 )(MoneyTemporaryForRefactorRequestConfirmationList);
