@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {
     AddressLineParams,
+    AdminCanceledRequestParams,
     AlreadySignedInParams,
     AmountEachParams,
     ApprovedAmountParams,
@@ -25,9 +26,11 @@ import type {
     FormattedMaxLengthParams,
     GoBackMessageParams,
     GoToRoomParams,
+    HeldRequestParams,
     InstantSummaryParams,
     LocalTimeParams,
     LoggedInAsParams,
+    LogSizeParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
     MaxParticipantsReachedParams,
@@ -113,10 +116,12 @@ type AllCountries = Record<Country, string>;
 export default {
     common: {
         cancel: 'Cancel',
+        dismiss: 'Dismiss',
         yes: 'Yes',
         no: 'No',
         ok: 'OK',
         buttonConfirm: 'Got it',
+        name: 'Name',
         attachment: 'Attachment',
         to: 'To',
         optional: 'Optional',
@@ -126,6 +131,7 @@ export default {
         next: 'Next',
         previous: 'Previous',
         goBack: 'Go back',
+        create: 'Create',
         add: 'Add',
         resend: 'Resend',
         save: 'Save',
@@ -200,6 +206,7 @@ export default {
         iAcceptThe: 'I accept the ',
         remove: 'Remove',
         admin: 'Admin',
+        owner: 'Owner',
         dateFormat: 'YYYY-MM-DD',
         send: 'Send',
         notifications: 'Notifications',
@@ -303,6 +310,8 @@ export default {
         of: 'of',
         default: 'Default',
         update: 'Update',
+        member: 'Member',
+        role: 'Role',
     },
     location: {
         useCurrent: 'Use current location',
@@ -422,7 +431,6 @@ export default {
         oneMoment: "One moment while we redirect you to your company's single sign-on portal.",
     },
     reportActionCompose: {
-        addAction: 'Actions',
         dropToUpload: 'Drop to upload',
         sendAttachment: 'Send attachment',
         addAttachment: 'Add attachment',
@@ -582,6 +590,8 @@ export default {
         requestMoney: 'Request money',
         sendMoney: 'Send money',
         pay: 'Pay',
+        cancelPayment: 'Cancel payment',
+        cancelPaymentConfirmation: 'Are you sure that you want to cancel this payment?',
         viewDetails: 'View details',
         pending: 'Pending',
         canceled: 'Canceled',
@@ -620,8 +630,9 @@ export default {
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `approved ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
+        adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager} cancelled the ${amount} payment.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
-            `Canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
+            `canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
         paidElsewhereWithAmount: ({payer, amount}: PaidElsewhereWithAmountParams) => `${payer ? `${payer} ` : ''}paid ${amount} elsewhere`,
@@ -635,7 +646,7 @@ export default {
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `the ${valueName} to ${newValueToDisplay} (previously ${oldValueToDisplay})`,
         updatedTheDistance: ({newDistanceToDisplay, oldDistanceToDisplay, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceParams) =>
             `changed the distance to ${newDistanceToDisplay} (previously ${oldDistanceToDisplay}), which updated the amount to ${newAmountToDisplay} (previously ${oldAmountToDisplay})`,
-        threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
+        threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `for ${comment}` : 'request'}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         tagSelection: ({tagName}: TagSelectionParams) => `Select a ${tagName} to add additional organization to your money.`,
         categorySelection: 'Select a category to add additional organization to your money.',
@@ -660,6 +671,20 @@ export default {
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Started settling up, payment is held until ${submitterDisplayName} enables their Wallet`,
         enableWallet: 'Enable Wallet',
         hold: 'Hold',
+        holdRequest: 'Hold request',
+        unholdRequest: 'Unhold request',
+        heldRequest: ({comment}: HeldRequestParams) => `held this request with the comment: ${comment}`,
+        unheldRequest: 'unheld this request',
+        explainHold: "Explain why you're holding this request.",
+        reason: 'Reason',
+        holdReasonRequired: 'A reason is required when holding.',
+        requestOnHold: 'This request was put on hold. Review the comments for next steps.',
+        confirmApprove: 'Confirm what to approve',
+        confirmApprovalAmount: 'Approve the entire report total or only the amount not on hold.',
+        confirmPay: 'Confirm what to pay',
+        confirmPayAmount: 'Pay all out-of-pocket spend or only the amount not on hold.',
+        payOnly: 'Pay only',
+        approveOnly: 'Approve only',
         holdEducationalTitle: 'This request is on',
         whatIsHoldTitle: 'What is hold?',
         whatIsHoldExplain: 'Hold is our way of streamlining financial collaboration. "Reject" is so harsh!',
@@ -727,11 +752,6 @@ export default {
     shareCodePage: {
         title: 'Your code',
         subtitle: 'Invite members to Expensify by sharing your personal QR code or referral link.',
-    },
-    loungeAccessPage: {
-        loungeAccess: 'Lounge access',
-        headline: 'The Expensify Lounge is closed.',
-        description: "The Expensify Lounge in San Francisco is closed for the time being, but we'll update this page when it reopens!",
     },
     pronounsPage: {
         pronouns: 'Pronouns',
@@ -810,6 +830,7 @@ export default {
             viewTheCode: 'View the code',
             viewOpenJobs: 'View open jobs',
             reportABug: 'Report a bug',
+            troubleshoot: 'Troubleshoot',
         },
         appDownloadLinks: {
             android: {
@@ -822,7 +843,23 @@ export default {
                 label: 'macOS',
             },
         },
-        goToExpensifyClassic: 'Go to Expensify Classic',
+        troubleshoot: {
+            clearCacheAndRestart: 'Clear cache and restart',
+            viewConsole: 'View debug console',
+            debugConsole: 'Debug console',
+            description: 'Use the tools below to help troubleshoot the Expensify experience. If you encounter any issues, please',
+            submitBug: 'submit a bug',
+            confirmResetDescription: 'All unsent draft messages will be lost, but the rest of your data is safe.',
+            resetAndRefresh: 'Reset and refresh',
+        },
+        debugConsole: {
+            saveLog: 'Save log',
+            shareLog: 'Share log',
+            enterCommand: 'Enter command',
+            execute: 'Execute',
+            noLogsAvailable: 'No logs available',
+            logSizeTooLarge: ({size}: LogSizeParams) => `Log size exceeds the limit of ${size} MB. Please use "Save log" to download the log file instead.`,
+        },
         security: 'Security',
         signOut: 'Sign out',
         signOutConfirmationText: "You'll lose any offline changes if you sign-out.",
@@ -991,6 +1028,25 @@ export default {
             updateAddress: 'Update address',
         },
         cardDetailsLoadingFailure: 'An error occurred while loading the card details. Please check your internet connection and try again.',
+    },
+    workflowsPage: {
+        workflowTitle: 'Spend',
+        workflowDescription: 'Configure a workflow from the moment spend occurs, including approval and payment.',
+        delaySubmissionTitle: 'Delay submissions',
+        delaySubmissionDescription: 'Expenses are shared right away for better spend visibility. Set a slower cadence if needed.',
+        submissionFrequency: 'Submission frequency',
+        weeklyFrequency: 'Weekly',
+        monthlyFrequency: 'Monthly',
+        twiceAMonthFrequency: 'Twice a month',
+        byTripFrequency: 'By trip',
+        manuallyFrequency: 'Manually',
+        dailyFrequency: 'Daily',
+        addApprovalsTitle: 'Add approvals',
+        approver: 'Approver',
+        connectBankAccount: 'Connect bank account',
+        addApprovalsDescription: 'Require additional approval before authorizing a payment.',
+        makeOrTrackPaymentsTitle: 'Make or track payments',
+        makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify, or simply track payments made elsewhere.',
     },
     reportFraudPage: {
         title: 'Report virtual card fraud',
@@ -1645,11 +1701,15 @@ export default {
     workspace: {
         common: {
             card: 'Cards',
+            workflows: 'Workflows',
             workspace: 'Workspace',
             edit: 'Edit workspace',
+            enabled: 'Enabled',
+            disabled: 'Disabled',
             delete: 'Delete workspace',
             settings: 'Settings',
             reimburse: 'Reimbursements',
+            categories: 'Categories',
             bills: 'Bills',
             invoices: 'Invoices',
             travel: 'Travel',
@@ -1677,6 +1737,15 @@ export default {
             free: 'Free',
             control: 'Control',
             collect: 'Collect',
+        },
+        categories: {
+            requiresCategory: 'Members must categorize all spend',
+            enableCategory: 'Enable category',
+            subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
+            emptyCategories: {
+                title: "You haven't created any categories",
+                subtitle: 'Add a category to organize your spend.',
+            },
         },
         emptyWorkspace: {
             title: 'Create a workspace',
@@ -1711,6 +1780,7 @@ export default {
             },
             addedWithPrimary: 'Some users were added with their primary logins.',
             invitedBySecondaryLogin: ({secondaryLogin}) => `Added by secondary login ${secondaryLogin}.`,
+            membersListTitle: 'Directory of all workspace members.',
         },
         card: {
             header: 'Unlock free Expensify Cards',
@@ -1796,6 +1866,7 @@ export default {
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
         },
         editor: {
+            descriptionInputLabel: 'Description',
             nameInputLabel: 'Name',
             nameInputHelpText: 'This is the name you will see on your workspace.',
             nameIsRequiredError: 'You need to define a name for your workspace.',
@@ -2100,7 +2171,7 @@ export default {
         reply: 'Reply',
         from: 'From',
         in: 'in',
-        parentNavigationSummary: ({rootReportName, workspaceName}: ParentNavigationSummaryParams) => `From ${rootReportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
+        parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `From ${reportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
     },
     qrCodes: {
         copy: 'Copy URL',
@@ -2167,7 +2238,6 @@ export default {
         address: 'Address',
         waypointDescription: {
             start: 'Start',
-            finish: 'Finish',
             stop: 'Stop',
         },
         mapPending: {
@@ -2268,7 +2338,7 @@ export default {
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Date older than ${maxAge} days`,
         missingCategory: 'Missing category',
         missingComment: 'Description required for selected category',
-        missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Missing ${tagName ?? 'tag'}`,
+        missingTag: ({tagName}: ViolationsMissingTagParams) => `Missing ${tagName ?? 'tag'}`,
         modifiedAmount: 'Amount greater than scanned receipt',
         modifiedDate: 'Date differs from scanned receipt',
         nonExpensiworksExpense: 'Non-Expensiworks expense',
@@ -2278,8 +2348,8 @@ export default {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Amount over ${formattedLimit}/person limit`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Amount over daily ${formattedLimit}/person category limit`,
         receiptNotSmartScanned: 'Receipt not verified. Please confirm accuracy.',
-        receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams = {}) =>
-            `Receipt required${formattedLimit ? ` over ${formattedLimit}${category ? ' category limit' : ''}` : ''}`,
+        receiptRequired: (params: ViolationsReceiptRequiredParams) => `Receipt required${params ? ` over ${params.formattedLimit}${params.category ? ' category limit' : ''}` : ''}`,
+        reviewRequired: 'Review required',
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {
             if (brokenBankConnection) {
                 return isAdmin
@@ -2299,5 +2369,38 @@ export default {
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'Tax'} no longer valid`,
         taxRateChanged: 'Tax rate was modified',
         taxRequired: 'Missing tax rate',
+    },
+    videoPlayer: {
+        play: 'Play',
+        pause: 'Pause',
+        fullscreen: 'Fullscreen',
+        playbackSpeed: 'Playback speed',
+        expand: 'Expand',
+        mute: 'Mute',
+        unmute: 'Unmute',
+    },
+    exitSurvey: {
+        header: 'Before you go',
+        reasonPage: {
+            title: "Please tell us why you're leaving",
+            subtitle: 'Before you go, please tell us why you’d like to switch to Expensify Classic.',
+        },
+        reasons: {
+            [CONST.EXIT_SURVEY.REASONS.FEATURE_NOT_AVAILABLE]: "I need a feature that's only available in Expensify Classic.",
+            [CONST.EXIT_SURVEY.REASONS.DONT_UNDERSTAND]: "I don't understand how to use New Expensify.",
+            [CONST.EXIT_SURVEY.REASONS.PREFER_CLASSIC]: 'I understand how to use New Expensify, but I prefer Expensify Classic.',
+        },
+        prompts: {
+            [CONST.EXIT_SURVEY.REASONS.FEATURE_NOT_AVAILABLE]: "What feature do you need that isn't available in New Expensify?",
+            [CONST.EXIT_SURVEY.REASONS.DONT_UNDERSTAND]: 'What are you trying to do?',
+            [CONST.EXIT_SURVEY.REASONS.PREFER_CLASSIC]: 'Why do you prefer Expensify Classic?',
+        },
+        responsePlaceholder: 'Your response',
+        thankYou: 'Thanks for the feedback!',
+        thankYouSubtitle: 'Your responses will help us build a better product to get stuff done. Thank you so much!',
+        goToExpensifyClassic: 'Switch to Expensify Classic',
+        offlineTitle: "Looks like you're stuck here...",
+        offline:
+            "You appear to be offline. Unfortunately, Expensify Classic doesn't work offline, but New Expensify does. If you prefer to use Expensify Classic, try again when you have an internet connection.",
     },
 } satisfies TranslationBase;

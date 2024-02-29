@@ -50,6 +50,7 @@ function SignInPageWrapper(args: Props) {
             <SignInPage
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...args}
+                // @ts-expect-error Navigation prop is only used within this test
                 navigation={args.navigation}
             />
         </ComposeProviders>

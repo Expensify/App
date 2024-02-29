@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,13 +16,16 @@ type CurrencySymbolButtonProps = {
 
     /** Function to call when currency button is pressed */
     onCurrencyButtonPress: () => void;
+
+    /** Whether the currency button is pressable or not */
+    isCurrencyPressable?: boolean;
 };
 
-function CurrencySymbolButton({onCurrencyButtonPress, currencySymbol}: CurrencySymbolButtonProps) {
+function CurrencySymbolButton({onCurrencyButtonPress, currencySymbol, isCurrencyPressable = true}: CurrencySymbolButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    return (
+    return isCurrencyPressable ? (
         <Tooltip text={translate('common.selectCurrency')}>
             <PressableWithoutFeedback
                 onPress={onCurrencyButtonPress}
@@ -37,6 +41,10 @@ function CurrencySymbolButton({onCurrencyButtonPress, currencySymbol}: CurrencyS
                 <Text style={styles.iouAmountText}>{currencySymbol}</Text>
             </PressableWithoutFeedback>
         </Tooltip>
+    ) : (
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+            <Text style={styles.iouAmountText}>{currencySymbol}</Text>
+        </View>
     );
 }
 

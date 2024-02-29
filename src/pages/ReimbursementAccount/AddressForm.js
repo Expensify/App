@@ -107,7 +107,6 @@ function AddressForm(props) {
                     defaultValue={props.defaultValues.street}
                     onInputChange={props.onFieldChange}
                     errorText={props.errors.street ? 'bankAccount.error.addressStreet' : ''}
-                    hint="common.noPO"
                     renamedInputKeys={props.inputKeys}
                     maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                     isLimitedToUSA

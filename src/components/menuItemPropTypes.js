@@ -164,6 +164,8 @@ const propTypes = {
     /** Should check anonymous user in onPress function */
     shouldCheckActionAllowedOnPress: PropTypes.bool,
 
+    shouldPutLeftPaddingWhenNoIcon: PropTypes.bool,
+
     /** The menu item link or function to get the link */
     link: PropTypes.oneOfType(PropTypes.func, PropTypes.string),
 

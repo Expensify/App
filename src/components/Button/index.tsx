@@ -320,7 +320,7 @@ function Button(
                     shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
                     shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    'text' in rest && (rest?.icon || rest?.shouldShowRightIcon) ? styles.alignItemsStretch : undefined,
+                    'text' in rest && rest?.shouldShowRightIcon ? styles.alignItemsStretch : undefined,
                     innerStyles,
                 ]}
                 hoverStyle={[

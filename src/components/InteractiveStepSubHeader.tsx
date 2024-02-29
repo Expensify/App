@@ -77,8 +77,9 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
                                 styles.interactiveStepHeaderStepButton,
                                 isLockedStep && styles.interactiveStepHeaderLockedStepButton,
                                 isCompletedStep && styles.interactiveStepHeaderCompletedStepButton,
+                                !onStepSelected && styles.cursorDefault,
                             ]}
-                            disabled={isLockedStep}
+                            disabled={isLockedStep || !onStepSelected}
                             onPress={moveToStep}
                             accessible
                             accessibilityLabel={stepName[index]}

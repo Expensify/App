@@ -67,6 +67,9 @@ const propTypes = {
 
         /** The URL for the policy avatar */
         avatar: PropTypes.string,
+
+        /** The id of the policy */
+        id: PropTypes.string,
     }),
 
     /** The reportID of the request */
@@ -111,7 +114,21 @@ function HeaderView(props) {
     const isPolicyMember = useMemo(() => !_.isEmpty(props.policy), [props.policy]);
     const canLeaveRoom = ReportUtils.canLeaveRoom(props.report, isPolicyMember);
     const reportDescription = ReportUtils.getReportDescriptionText(props.report);
-    const policyName = ReportUtils.getPolicyName(props.report);
+    const policyName = ReportUtils.getPolicyName(props.report, true);
+    const policyDescription = ReportUtils.getPolicyDescriptionText(props.policy);
+    const isPersonalExpenseChat = isPolicyExpenseChat && ReportUtils.isCurrentUserSubmitter(props.report.reportID);
+    const shouldShowSubtitle = () => {
+        if (_.isEmpty(subtitle)) {
+            return false;
+        }
+        if (isChatRoom) {
+            return _.isEmpty(reportDescription);
+        }
+        if (isPolicyExpenseChat) {
+            return _.isEmpty(policyDescription);
+        }
+        return true;
+    };
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
@@ -177,7 +194,7 @@ function HeaderView(props) {
     );
 
     const renderAdditionalText = () => {
-        if (_.isEmpty(policyName) || _.isEmpty(reportDescription) || !_.isEmpty(parentNavigationSubtitleData)) {
+        if (shouldShowSubtitle() || isPersonalExpenseChat || _.isEmpty(policyName) || !_.isEmpty(parentNavigationSubtitleData)) {
             return null;
         }
         return (
@@ -217,7 +234,7 @@ function HeaderView(props) {
             dataSet={{dragArea: true}}
         >
             <View style={[styles.appContentHeader, !isSmallScreenWidth && styles.headerBarDesktopHeight]}>
-                <View style={[styles.appContentHeaderTitle, !isSmallScreenWidth && styles.pl5]}>
+                <View style={[styles.appContentHeaderTitle, !isSmallScreenWidth && !isLoading && styles.pl5]}>
                     {isLoading ? (
                         <ReportHeaderSkeletonView onBackButtonPress={props.onNavigationMenuButtonClicked} />
                     ) : (
@@ -280,7 +297,7 @@ function HeaderView(props) {
                                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
                                             />
                                         )}
-                                        {!_.isEmpty(subtitle) && _.isEmpty(reportDescription) && (
+                                        {shouldShowSubtitle() && (
                                             <Text
                                                 style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
                                                 numberOfLines={1}
@@ -288,7 +305,7 @@ function HeaderView(props) {
                                                 {subtitle}
                                             </Text>
                                         )}
-                                        {!_.isEmpty(reportDescription) && _.isEmpty(parentNavigationSubtitleData) && (
+                                        {isChatRoom && !_.isEmpty(reportDescription) && _.isEmpty(parentNavigationSubtitleData) && (
                                             <PressableWithoutFeedback
                                                 onPress={() => {
                                                     if (ReportUtils.canEditReportDescription(props.report, props.policy)) {
@@ -305,6 +322,26 @@ function HeaderView(props) {
                                                     numberOfLines={1}
                                                 >
                                                     {reportDescription}
+                                                </Text>
+                                            </PressableWithoutFeedback>
+                                        )}
+                                        {isPolicyExpenseChat && !_.isEmpty(policyDescription) && _.isEmpty(parentNavigationSubtitleData) && (
+                                            <PressableWithoutFeedback
+                                                onPress={() => {
+                                                    if (ReportUtils.canEditPolicyDescription(props.policy)) {
+                                                        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(props.report.policyID));
+                                                        return;
+                                                    }
+                                                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.reportID));
+                                                }}
+                                                style={[styles.alignSelfStart, styles.mw100]}
+                                                accessibilityLabel={translate('workspace.editor.descriptionInputLabel')}
+                                            >
+                                                <Text
+                                                    style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
+                                                    numberOfLines={1}
+                                                >
+                                                    {policyDescription}
                                                 </Text>
                                             </PressableWithoutFeedback>
                                         )}
@@ -371,7 +408,6 @@ export default memo(
         },
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
-            selector: (policy) => _.pick(policy, ['name', 'avatar', 'pendingAction']),
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,

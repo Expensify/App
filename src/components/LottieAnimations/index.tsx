@@ -3,11 +3,6 @@ import variables from '@styles/variables';
 import type DotLottieAnimation from './types';
 
 const DotLottieAnimations = {
-    ExpensifyLounge: {
-        file: require('@assets/animations/ExpensifyLounge.lottie'),
-        w: 1920,
-        h: 1080,
-    },
     FastMoney: {
         file: require('@assets/animations/FastMoney.lottie'),
         w: 375,
@@ -66,6 +61,11 @@ const DotLottieAnimations = {
         w: 375,
         h: 240,
         backgroundColor: colors.yellow600,
+    },
+    Desk: {
+        file: require('@assets/animations/Desk.lottie'),
+        w: 200,
+        h: 120,
     },
 } satisfies Record<string, DotLottieAnimation>;
 

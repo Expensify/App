@@ -87,7 +87,8 @@ function callSocketEventCallbacks(eventName: SocketEventName, data?: EventCallba
 function init(args: Args, params?: unknown): Promise<void> {
     return new Promise((resolve) => {
         if (socket) {
-            return resolve();
+            resolve();
+            return;
         }
 
         // Use this for debugging
