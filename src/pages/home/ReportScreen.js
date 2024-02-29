@@ -480,7 +480,7 @@ function ReportScreen({
         }
     }, [report, didSubscribeToReportLeavingEvents, reportID]);
 
-    const onListLayout = useCallback((e) => {
+    const onListLayout = useCallback(() => {
         if (!markReadyForHydration) {
             return;
         }
