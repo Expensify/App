@@ -22,7 +22,7 @@ type ActionPayloadParams = {
 type CentralPaneRouteParams = Record<string, string> & {policyID?: string; reportID?: string};
 
 function checkIfActionPayloadNameIsEqual(action: Writable<NavigationAction>, screenName: string) {
-    return action?.payload && 'name' in action?.payload && action?.payload?.name === screenName;
+    return action?.payload && 'name' in action.payload && action?.payload?.name === screenName;
 }
 
 function getActionForBottomTabNavigator(action: StackNavigationAction, state: NavigationState<RootStackParamList>, policyID?: string): Writable<NavigationAction> | undefined {

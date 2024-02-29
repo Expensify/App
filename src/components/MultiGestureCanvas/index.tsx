@@ -10,7 +10,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {DEFAULT_ZOOM_RANGE, SPRING_CONFIG, ZOOM_RANGE_BOUNCE_FACTORS} from './constants';
-import type {CanvasSize, ContentSize, OnScaleChangedCallback, OnTapCallback, ZoomRange} from './types';
+import type {CanvasSize, ContentSize, OnScaleChangedCallback, OnSwipeDownCallback, OnTapCallback, ZoomRange} from './types';
 import usePanGesture from './usePanGesture';
 import usePinchGesture from './usePinchGesture';
 import useTapGestures from './useTapGestures';
@@ -47,6 +47,8 @@ type MultiGestureCanvasProps = ChildrenProps & {
 
     /** Handles scale changed event */
     onTap?: OnTapCallback;
+
+    onSwipeDown?: OnSwipeDownCallback;
 };
 
 function MultiGestureCanvas({
@@ -59,6 +61,7 @@ function MultiGestureCanvas({
     shouldDisableTransformationGestures: shouldDisableTransformationGesturesProp,
     onTap,
     onScaleChanged,
+    onSwipeDown,
 }: MultiGestureCanvasProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -88,6 +91,7 @@ function MultiGestureCanvas({
 
     const panTranslateX = useSharedValue(0);
     const panTranslateY = useSharedValue(0);
+    const isSwipingDownToClose = useSharedValue(false);
     const panGestureRef = useRef(Gesture.Pan());
 
     const pinchScale = useSharedValue(1);
@@ -113,8 +117,8 @@ function MultiGestureCanvas({
         stopAnimation();
 
         if (animated) {
-            offsetX.value = withSpring(0, SPRING_CONFIG);
-            offsetY.value = withSpring(0, SPRING_CONFIG);
+            offsetX.value = 0;
+            offsetY.value = 0;
             panTranslateX.value = withSpring(0, SPRING_CONFIG);
             panTranslateY.value = withSpring(0, SPRING_CONFIG);
             pinchTranslateX.value = withSpring(0, SPRING_CONFIG);
@@ -172,6 +176,8 @@ function MultiGestureCanvas({
         panTranslateY,
         stopAnimation,
         shouldDisableTransformationGestures,
+        isSwipingDownToClose,
+        onSwipeDown,
     })
         .simultaneousWithExternalGesture(...panGestureSimultaneousList)
         .withRef(panGestureRef);
