@@ -8,6 +8,7 @@ const CustomDevMenu: CustomDevMenuElement = Object.assign(
         useEffect(() => {
             DevMenu.addItem('Open Test Preferences', toggleTestToolsModal);
         }, []);
+        // eslint-disable-next-line react/jsx-no-useless-fragment
         return <></>;
     },
     {

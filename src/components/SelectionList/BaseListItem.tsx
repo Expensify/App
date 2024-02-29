@@ -12,12 +12,14 @@ import type {BaseListItemProps, ListItem} from './types';
 
 function BaseListItem<TItem extends ListItem>({
     item,
+    pressableStyle,
     wrapperStyle,
     selectMultipleStyle,
     isDisabled = false,
     shouldPreventDefaultFocusOnSelectRow = false,
     canSelectMultiple = false,
     onSelectRow,
+    onCheckboxPress,
     onDismissError = () => {},
     rightHandSideComponent,
     keyForList,
@@ -42,6 +44,14 @@ function BaseListItem<TItem extends ListItem>({
         return rightHandSideComponent;
     };
 
+    const handleCheckboxPress = () => {
+        if (onCheckboxPress) {
+            onCheckboxPress(item);
+        } else {
+            onSelectRow(item);
+        }
+    };
+
     return (
         <OfflineWithFeedback
             onClose={() => onDismissError(item)}
@@ -59,13 +69,16 @@ function BaseListItem<TItem extends ListItem>({
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
                 nativeID={keyForList}
+                style={pressableStyle}
             >
                 {({hovered}) => (
                     <>
                         <View style={wrapperStyle}>
                             {canSelectMultiple && (
-                                <View
-                                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                <PressableWithFeedback
+                                    accessibilityLabel={item.text}
+                                    role={CONST.ROLE.BUTTON}
+                                    onPress={handleCheckboxPress}
                                     style={StyleUtils.getCheckboxPressableStyle()}
                                 >
                                     <View style={selectMultipleStyle}>
@@ -78,7 +91,7 @@ function BaseListItem<TItem extends ListItem>({
                                             />
                                         )}
                                     </View>
-                                </View>
+                                </PressableWithFeedback>
                             )}
 
                             {typeof children === 'function' ? children(hovered) : children}

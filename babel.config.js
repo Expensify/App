@@ -68,6 +68,7 @@ const metro = {
                     // This path is provide alias for files like `ONYXKEYS` and `CONST`.
                     '@src': './src',
                     '@userActions': './src/libs/actions',
+                    '@desktop': './desktop',
                 },
             },
         ],
