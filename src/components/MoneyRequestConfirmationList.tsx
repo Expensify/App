@@ -259,7 +259,7 @@ function MoneyRequestConfirmationList({
     const shouldShowTax = isPolicyExpenseChat && (policy?.tax?.trackingEnabled ?? policy?.isTaxTrackingEnabled);
 
     // A flag for showing the billable field
-    const shouldShowBillable = !policy?.disabledFields?.defaultBillable ?? true;
+    const shouldShowBillable = !(policy?.disabledFields?.defaultBillable ?? true);
 
     const hasRoute = TransactionUtils.hasRoute(transaction ?? null);
     const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !mileageRate?.rate);
