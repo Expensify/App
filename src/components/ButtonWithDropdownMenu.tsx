@@ -10,30 +10,33 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PopoverMenu from './PopoverMenu';
 
-type DropdownOption<T> = {
-    value: T;
+type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE>;
+
+type DropdownOption = {
+    value: PaymentType;
     text: string;
-    icon?: IconAsset;
+    icon: IconAsset;
     iconWidth?: number;
     iconHeight?: number;
     iconDescription?: string;
 };
 
-type ButtonWithDropdownMenuProps<T> = {
+type ButtonWithDropdownMenuProps = {
     /** Text to display for the menu header */
     menuHeaderText?: string;
 
     /** Callback to execute when the main button is pressed */
-    onPress: (event: GestureResponderEvent | KeyboardEvent | undefined, value: T) => void;
+    onPress: (event: GestureResponderEvent | KeyboardEvent | undefined, value: PaymentType) => void;
 
     /** Callback to execute when a dropdown option is selected */
-    onOptionSelected?: (option: DropdownOption<T>) => void;
+    onOptionSelected?: (option: DropdownOption) => void;
 
     /** Call the onPress function on main button when Enter key is pressed */
     pressOnEnter?: boolean;
@@ -52,19 +55,19 @@ type ButtonWithDropdownMenuProps<T> = {
 
     /** Menu options to display */
     /** e.g. [{text: 'Pay with Expensify', icon: Wallet}] */
-    options: Array<DropdownOption<T>>;
+    options: DropdownOption[];
 
     /** The anchor alignment of the popover menu */
     anchorAlignment?: AnchorAlignment;
 
     /* ref for the button */
-    buttonRef?: RefObject<View>;
+    buttonRef: RefObject<View>;
 
     /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
     enterKeyEventListenerPriority?: number;
 };
 
-function ButtonWithDropdownMenu<T>({
+function ButtonWithDropdownMenu({
     isLoading = false,
     isDisabled = false,
     pressOnEnter = false,
@@ -80,7 +83,7 @@ function ButtonWithDropdownMenu<T>({
     options,
     onOptionSelected,
     enterKeyEventListenerPriority = 0,
-}: ButtonWithDropdownMenuProps<T>) {
+}: ButtonWithDropdownMenuProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
