@@ -143,7 +143,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
             setTwoFactorAuthCode(text);
         }
         if (key === 'recoveryCode') {
-            setRecoveryCode(text);
+            setRecoveryCode(text.trim());
         }
 
         setFormError((prevError) => ({...prevError, [key]: undefined}));
