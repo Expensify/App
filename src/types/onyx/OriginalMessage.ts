@@ -22,6 +22,7 @@ type OriginalMessageActionName =
     | 'TASKCOMPLETED'
     | 'TASKEDITED'
     | 'TASKREOPENED'
+    | 'ACTIONABLEJOINREQUEST'
     | 'ACTIONABLEMENTIONWHISPER'
     | ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
 type OriginalMessageApproved = {
@@ -219,7 +220,7 @@ type OriginalMessagePolicyChangeLog = {
 };
 
 type OriginalMessageJoinPolicyChangeLog = {
-    actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLEJOINREQUEST>;
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLEJOINREQUEST;
     originalMessage: ChangeLog;
 };
 
@@ -297,8 +298,8 @@ type OriginalMessage =
     | OriginalMessageReportPreview
     | OriginalMessageRoomChangeLog
     | OriginalMessagePolicyChangeLog
-    | OriginalMessageJoinPolicyChangeLog
     | OriginalMessagePolicyTask
+    | OriginalMessageJoinPolicyChangeLog
     | OriginalMessageModifiedExpense
     | OriginalMessageReimbursementQueued
     | OriginalMessageReimbursementDequeued
