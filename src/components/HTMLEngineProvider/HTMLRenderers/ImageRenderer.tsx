@@ -74,7 +74,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     );
 
     return imagePreviewModalDisabled ? (
-        <>{thumbnailImageComponent}</>
+        thumbnailImageComponent
     ) : (
         <ShowContextMenuContext.Consumer>
             {({onShowContextMenu, anchor, report, action, checkIfContextMenuActive}) => (
