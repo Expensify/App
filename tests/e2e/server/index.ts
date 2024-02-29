@@ -1,7 +1,7 @@
 import {createServer} from 'http';
 import type {IncomingMessage, ServerResponse} from 'http';
-import type {NativeCommand, TestResult} from '@libs/E2E/client';
-import type {NetworkCacheMap, TestConfig} from '@libs/E2E/types';
+import type {NativeCommand, TestResult} from '../../../src/libs/E2E/client';
+import type {NetworkCacheMap, TestConfig} from '../../../src/libs/E2E/types';
 import config from '../config';
 import * as nativeCommands from '../nativeCommands';
 import * as Logger from '../utils/logger';
