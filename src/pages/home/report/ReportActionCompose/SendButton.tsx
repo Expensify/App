@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React, {memo} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -11,24 +10,22 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
-const propTypes = {
+type SendButtonProps = {
     /** Whether the button is disabled */
-    isDisabled: PropTypes.bool.isRequired,
+    isDisabled: boolean;
 
     /** Handle clicking on send button */
-    handleSendMessage: PropTypes.func.isRequired,
+    handleSendMessage: () => void;
 };
 
-function SendButton({isDisabled: isDisabledProp, handleSendMessage}) {
+function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const Tap = Gesture.Tap()
-        .enabled()
-        .onEnd(() => {
-            handleSendMessage();
-        });
+    const Tap = Gesture.Tap().onEnd(() => {
+        handleSendMessage();
+    });
 
     return (
         <View
@@ -60,7 +57,6 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}) {
     );
 }
 
-SendButton.propTypes = propTypes;
 SendButton.displayName = 'SendButton';
 
 export default memo(SendButton);
