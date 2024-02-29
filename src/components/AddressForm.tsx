@@ -75,15 +75,6 @@ function AddressForm({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    // let zipSampleFormat = '';
-
-    // if (country) {
-    //     const countryData = CONST.COUNTRY_ZIP_REGEX_DATA[country];
-    //     if (countryData && 'samples' in countryData) {
-    //         zipSampleFormat = countryData.samples;
-    //     }
-    // }
-
     const zipSampleFormat = (country && (CONST.COUNTRY_ZIP_REGEX_DATA[country] as CountryZipRegex)?.samples) ?? '';
 
     const zipFormat: MaybePhraseKey = ['common.zipCodeExampleFormat', {zipSampleFormat}];
