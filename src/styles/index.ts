@@ -1531,6 +1531,7 @@ const styles = (theme: ThemeColors) =>
             ({
                 width: shouldUseNarrowLayout ? 500 : '100%',
                 height: shouldUseNarrowLayout ? 712 : '100%',
+                maxHeight: '100%',
                 borderRadius: shouldUseNarrowLayout ? 16 : 0,
                 overflow: 'hidden',
             } satisfies ViewStyle),
