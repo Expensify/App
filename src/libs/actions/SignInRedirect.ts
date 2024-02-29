@@ -21,6 +21,8 @@ function clearStorageAndRedirect(errorMessage?: string) {
     keysToPreserve.push(ONYXKEYS.NVP_PREFERRED_LOCALE);
     keysToPreserve.push(ONYXKEYS.ACTIVE_CLIENTS);
     keysToPreserve.push(ONYXKEYS.DEVICE_ID);
+    keysToPreserve.push(ONYXKEYS.STASHED_CREDENTIALS);
+    keysToPreserve.push(ONYXKEYS.STASHED_SESSION);
 
     // After signing out, set ourselves as offline if we were offline before logging out and we are not forcing it.
     // If we are forcing offline, ignore it while signed out, otherwise it would require a refresh because there's no way to toggle the switch to go back online while signed out.
