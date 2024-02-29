@@ -1,4 +1,3 @@
-import type {ParamListBase, StackNavigationState} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import {format} from 'date-fns';
 import fastMerge from 'expensify-common/lib/fastMerge';
@@ -44,7 +43,7 @@ import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUR
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as UserUtils from '@libs/UserUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
-import type {MoneyRequestNavigatorParamList, NavigationPartialRoute} from '@navigation/types';
+import type {MoneyRequestNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -260,28 +259,6 @@ function initMoneyRequest(reportID: string, isFromGlobalCreate: boolean, iouRequ
 
 function clearMoneyRequest(transactionID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
-}
-
-/**
- * Update money request-related pages IOU type params
- */
-function updateMoneyRequestTypeParams(routes: StackNavigationState<ParamListBase>['routes'] | NavigationPartialRoute[], newIouType: string, tab: string) {
-    routes.forEach((route) => {
-        const tabList = [CONST.TAB_REQUEST.DISTANCE, CONST.TAB_REQUEST.MANUAL, CONST.TAB_REQUEST.SCAN] as string[];
-        if (!route.name.startsWith('Money_Request_') && !tabList.includes(route.name)) {
-            return;
-        }
-        const newParams: Record<string, unknown> = {iouType: newIouType};
-        if (route.name === 'Money_Request_Create') {
-            // Both screen and nested params are needed to properly update the nested tab navigator
-            newParams.params = {...newParams};
-            newParams.screen = tab;
-        }
-        Navigation.setParams(newParams, route.key ?? '');
-
-        // Recursively update nested money request tab params
-        updateMoneyRequestTypeParams(route.state?.routes ?? [], newIouType, tab);
-    });
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -4286,8 +4263,6 @@ export {
     initMoneyRequest,
     startMoneyRequest_temporaryForRefactor,
     resetMoneyRequestInfo,
-    clearMoneyRequest,
-    updateMoneyRequestTypeParams,
     setMoneyRequestAmount_temporaryForRefactor,
     setMoneyRequestBillable_temporaryForRefactor,
     setMoneyRequestCreated,

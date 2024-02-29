@@ -1,7 +1,5 @@
-import {useNavigation} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useRef} from 'react';
-import _ from 'underscore';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
@@ -38,16 +36,13 @@ function IOURequestStepParticipants({
     transaction: {participants = []},
 }) {
     const {translate} = useLocalize();
-    const navigation = useNavigation();
     const selectedReportID = useRef(reportID);
     const numberOfParticipants = useRef(participants.length);
     const iouRequestType = TransactionUtils.getRequestType(transaction);
-    const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
-    const headerTitle = isSplitRequest ? translate('iou.split') : translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
+    const headerTitle = translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
     const receiptFilename = lodashGet(transaction, 'filename');
     const receiptPath = lodashGet(transaction, 'receipt.source');
     const receiptType = lodashGet(transaction, 'receipt.type');
-    const newIouType = useRef();
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
@@ -56,40 +51,8 @@ function IOURequestStepParticipants({
         IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, () => {}, iouRequestType, iouType, transactionID, reportID, receiptType);
     }, [receiptType, receiptPath, receiptFilename, iouRequestType, iouType, transactionID, reportID]);
 
-    const updateRouteParams = useCallback(() => {
-        IOU.updateMoneyRequestTypeParams(navigation.getState().routes, newIouType.current);
-    }, [navigation]);
-
-    useEffect(() => {
-        if (!newIouType.current) {
-            return;
-        }
-        // Participants can be added as normal or split participants. We want to wait for the participants' data to be updated before
-        // updating the money request type route params reducing the overhead of the thread and preventing possible jitters in UI.
-        updateRouteParams();
-        newIouType.current = null;
-    }, [participants, updateRouteParams]);
-
     const addParticipant = useCallback(
-        (val, selectedIouType) => {
-            const isSplit = selectedIouType === CONST.IOU.TYPE.SPLIT;
-            // It's only possible to switch between REQUEST and SPLIT.
-            // We want to update the IOU type only if it's not updated yet to prevent unnecessary updates.
-            if (isSplit && iouType !== CONST.IOU.TYPE.SPLIT) {
-                newIouType.current = CONST.IOU.TYPE.SPLIT;
-            } else if (!isSplit && iouType === CONST.IOU.TYPE.SPLIT) {
-                // Non-split can be either REQUEST or SEND. Instead of checking whether
-                // the current IOU type is not a REQUEST (true for SEND), we check whether the current IOU type is a SPLIT.
-                newIouType.current = CONST.IOU.TYPE.REQUEST;
-            }
-
-            // If the Onyx participants has the same items as the selected participants (val), Onyx won't update it
-            // thus this component won't rerender, so we can immediately update the route params.
-            if (newIouType.current && _.isEqual(participants, val)) {
-                updateRouteParams();
-                newIouType.current = null;
-            }
-
+        (val) => {
             IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, val);
             numberOfParticipants.current = val.length;
 
@@ -103,19 +66,15 @@ function IOURequestStepParticipants({
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
             selectedReportID.current = lodashGet(val, '[0].reportID', reportID);
         },
-        [reportID, transactionID, iouType, participants, updateRouteParams],
+        [reportID, transactionID],
     );
 
-    const goToNextStep = useCallback(
-        (selectedIouType) => {
-            const isSplit = selectedIouType === CONST.IOU.TYPE.SPLIT;
-            const nextStepIOUType = !isSplit && iouType !== CONST.IOU.TYPE.REQUEST ? CONST.IOU.TYPE.REQUEST : iouType;
-            IOU.setMoneyRequestTag(transactionID, '');
-            IOU.setMoneyRequestCategory(transactionID, '');
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(nextStepIOUType, transactionID, selectedReportID.current || reportID));
-        },
-        [iouType, transactionID, reportID],
-    );
+    const goToNextStep = useCallback(() => {
+        const nextStepIOUType = numberOfParticipants.current === 1 ? iouType : CONST.IOU.TYPE.SPLIT;
+        IOU.setMoneyRequestTag(transactionID, '');
+        IOU.setMoneyRequestCategory(transactionID, '');
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(nextStepIOUType, transactionID, selectedReportID.current || reportID));
+    }, [iouType, transactionID, reportID]);
 
     const navigateBack = useCallback(() => {
         IOUUtils.navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID);
@@ -131,7 +90,7 @@ function IOURequestStepParticipants({
         >
             {({didScreenTransitionEnd}) => (
                 <MoneyRequestParticipantsSelector
-                    participants={isSplitRequest ? participants : []}
+                    participants={participants}
                     onParticipantsAdded={addParticipant}
                     onFinish={goToNextStep}
                     iouType={iouType}

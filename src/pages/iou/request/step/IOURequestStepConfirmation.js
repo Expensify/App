@@ -155,6 +155,11 @@ function IOURequestStepConfirmation({
         // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
         // back to the participants step
         if (!transaction.participantsAutoAssigned) {
+            // When going back to the participants step, if the iou is a "request" (not a split), then the participants need to be cleared from the
+            // transaction so that the participant can be selected again.
+            if (iouType === CONST.IOU.TYPE.REQUEST) {
+                IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, []);
+            }
             Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
             return;
         }

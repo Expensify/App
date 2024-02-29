@@ -234,7 +234,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 ];
             }
 
-            onParticipantsAdded(newSelectedOptions, newSelectedOptions.length !== 0 ? CONST.IOU.TYPE.SPLIT : undefined);
+            onParticipantsAdded(newSelectedOptions);
         },
         [participants, onParticipantsAdded],
     );
@@ -263,7 +263,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             return;
         }
 
-        onFinish(CONST.IOU.TYPE.SPLIT);
+        onFinish();
     }, [shouldShowSplitBillErrorMessage, onFinish]);
 
     const footerContent = useMemo(
