@@ -448,6 +448,14 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightSizeh2,
         },
 
+        textHeadlineH1: {
+            ...headlineFont,
+            ...whiteSpace.preWrap,
+            color: theme.heading,
+            fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightSizeh1,
+        },
+
         textWhite: {
             color: theme.textLight,
         },
