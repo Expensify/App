@@ -17,6 +17,7 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CachedPDFPaths from '@libs/actions/CachedPDFPaths';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import compose from '@libs/compose';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -57,6 +58,9 @@ const propTypes = {
     // eslint-disable-next-line react/no-unused-prop-types
     transactionID: PropTypes.string,
 
+    /** The id of the report action related to the attachment */
+    reportActionID: PropTypes.string,
+
     isHovered: PropTypes.bool,
 
     optionalVideoDuration: PropTypes.number,
@@ -71,6 +75,7 @@ const defaultProps = {
     isWorkspaceAvatar: false,
     maybeIcon: false,
     transactionID: '',
+    reportActionID: '',
     isHovered: false,
     optionalVideoDuration: 0,
 };
@@ -92,6 +97,7 @@ function AttachmentView({
     maybeIcon,
     fallbackSource,
     transaction,
+    reportActionID,
     isHovered,
     optionalVideoDuration,
 }) {
@@ -100,14 +106,14 @@ function AttachmentView({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [loadComplete, setLoadComplete] = useState(false);
-    const isVideo = Str.isVideo(source);
+    const isVideo = (typeof source === 'string' && Str.isVideo(source)) || (file && Str.isVideo(file.name));
 
     useEffect(() => {
-        if (!isFocused) {
+        if (!isFocused && !(file && isUsedInAttachmentModal)) {
             return;
         }
         updateCurrentlyPlayingURL(isVideo ? source : null);
-    }, [isFocused, isVideo, source, updateCurrentlyPlayingURL]);
+    }, [isFocused, isVideo, source, updateCurrentlyPlayingURL, file, isUsedInAttachmentModal]);
 
     const [imageError, setImageError] = useState(false);
 
@@ -153,6 +159,15 @@ function AttachmentView({
     if ((_.isString(source) && Str.isPDF(source)) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename')))) {
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source) : source;
 
+        const onPDFLoadComplete = (path) => {
+            if (path && (transaction.transactionID || reportActionID)) {
+                CachedPDFPaths.add(transaction.transactionID || reportActionID, path);
+            }
+            if (!loadComplete) {
+                setLoadComplete(true);
+            }
+        };
+
         // We need the following View component on android native
         // So that the event will propagate properly and
         // the Password protected preview will be shown for pdf attachement we are about to send.
@@ -166,7 +181,7 @@ function AttachmentView({
                     encryptedSourceUrl={encryptedSourceUrl}
                     onPress={onPress}
                     onToggleKeyboard={onToggleKeyboard}
-                    onLoadComplete={() => !loadComplete && setLoadComplete(true)}
+                    onLoadComplete={onPDFLoadComplete}
                     errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [styles.cursorAuto]}
                     style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
                     isUsedInCarousel={isUsedInCarousel}
@@ -201,7 +216,7 @@ function AttachmentView({
         );
     }
 
-    if (isVideo || (file && Str.isVideo(file.name))) {
+    if (isVideo) {
         return (
             <AttachmentViewVideo
                 source={source}

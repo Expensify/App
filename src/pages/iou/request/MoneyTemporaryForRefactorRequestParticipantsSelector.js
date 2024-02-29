@@ -11,6 +11,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/UserListItem';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
@@ -233,7 +234,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 ];
             }
 
-            onParticipantsAdded(newSelectedOptions);
+            onParticipantsAdded(newSelectedOptions, newSelectedOptions.length !== 0 ? CONST.IOU.TYPE.SPLIT : undefined);
         },
         [participants, onParticipantsAdded],
     );
@@ -262,7 +263,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             return;
         }
 
-        onFinish();
+        onFinish(CONST.IOU.TYPE.SPLIT);
     }, [shouldShowSplitBillErrorMessage, onFinish]);
 
     const footerContent = useMemo(
@@ -337,6 +338,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             <SelectionList
                 onConfirm={handleConfirmSelection}
                 sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
+                ListItem={UserListItem}
                 textInputValue={searchTerm}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 textInputHint={offlineMessage}
