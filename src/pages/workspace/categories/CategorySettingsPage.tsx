@@ -55,26 +55,28 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
                         title={route.params.categoryName}
                         shouldShowBackButton={isSmallScreenWidth}
                     />
-                    <OfflineWithFeedback
-                        errors={policyCategory?.errors}
-                        pendingAction={policyCategory?.pendingFields?.enabled}
-                        errorRowStyles={styles.mh5}
-                    >
-                        <View style={[styles.mt2, styles.mh5]}>
-                            <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                <Text>{translate('workspace.categories.enableCategory')}</Text>
-                                <Switch
-                                    isOn={policyCategory.enabled}
-                                    accessibilityLabel={translate('workspace.categories.enableCategory')}
-                                    onToggle={updateWorkspaceRequiresCategory}
-                                />
+                    <View style={styles.flexGrow1}>
+                        <OfflineWithFeedback
+                            errors={policyCategory?.errors}
+                            pendingAction={policyCategory?.pendingFields?.enabled}
+                            errorRowStyles={styles.mh5}
+                        >
+                            <View style={[styles.mt2, styles.mh5]}>
+                                <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                                    <Text>{translate('workspace.categories.enableCategory')}</Text>
+                                    <Switch
+                                        isOn={policyCategory.enabled}
+                                        accessibilityLabel={translate('workspace.categories.enableCategory')}
+                                        onToggle={updateWorkspaceRequiresCategory}
+                                    />
+                                </View>
                             </View>
-                        </View>
-                    </OfflineWithFeedback>
-                    <MenuItemWithTopDescription
-                        title={policyCategory.name}
-                        description={translate(`workspace.categories.categoryName`)}
-                    />
+                        </OfflineWithFeedback>
+                        <MenuItemWithTopDescription
+                            title={policyCategory.name}
+                            description={translate(`workspace.categories.categoryName`)}
+                        />
+                    </View>
                 </ScreenWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>

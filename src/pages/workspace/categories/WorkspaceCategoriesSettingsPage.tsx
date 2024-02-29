@@ -34,22 +34,24 @@ function WorkspaceCategoriesSettingsPage({route}: WorkspaceCategoriesSettingsPag
                         testID={WorkspaceCategoriesSettingsPage.displayName}
                     >
                         <HeaderWithBackButton title={translate('common.settings')} />
-                        <OfflineWithFeedback
-                            errors={policy?.errorFields?.requiresCategory}
-                            pendingAction={policy?.pendingFields?.requiresCategory}
-                            errorRowStyles={styles.mh5}
-                        >
-                            <View style={[styles.mt2, styles.mh4]}>
-                                <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.requiresCategory')}</Text>
-                                    <Switch
-                                        isOn={policy?.requiresCategory ?? false}
-                                        accessibilityLabel={translate('workspace.categories.requiresCategory')}
-                                        onToggle={updateWorkspaceRequiresCategory}
-                                    />
+                        <View style={styles.flexGrow1}>
+                            <OfflineWithFeedback
+                                errors={policy?.errorFields?.requiresCategory}
+                                pendingAction={policy?.pendingFields?.requiresCategory}
+                                errorRowStyles={styles.mh5}
+                            >
+                                <View style={[styles.mt2, styles.mh4]}>
+                                    <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.requiresCategory')}</Text>
+                                        <Switch
+                                            isOn={policy?.requiresCategory ?? false}
+                                            accessibilityLabel={translate('workspace.categories.requiresCategory')}
+                                            onToggle={updateWorkspaceRequiresCategory}
+                                        />
+                                    </View>
                                 </View>
-                            </View>
-                        </OfflineWithFeedback>
+                            </OfflineWithFeedback>
+                        </View>
                     </ScreenWrapper>
                 )}
             </PaidPolicyAccessOrNotFoundWrapper>
