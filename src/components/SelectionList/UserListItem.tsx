@@ -18,6 +18,7 @@ function UserListItem({
     isDisabled,
     canSelectMultiple,
     onSelectRow,
+    onCheckboxPress,
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
@@ -41,6 +42,7 @@ function UserListItem({
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
+            onCheckboxPress={onCheckboxPress}
             onDismissError={onDismissError}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             rightHandSideComponent={rightHandSideComponent}
