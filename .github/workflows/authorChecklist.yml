@@ -13,9 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     if: github.actor != 'OSBotify' && github.actor != 'imgbot[bot]'
     steps:
-      - run: |
-          echo ${{ vars.GRAPHITE_SERVER }}
-          echo ${{ vars.GRAPHITE_PORT }}
       - name: Checkout
         uses: actions/checkout@v4
 
