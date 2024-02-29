@@ -225,17 +225,19 @@ function signOutAndRedirectToSignIn(shouldReplaceCurrentScreen?: boolean, stashS
             signOut();
         }
         // This function will clear the whole storage
-        redirectToSignIn();
+        let redirectPromise = redirectToSignIn();
 
         // If someone was logged as a supportal user, let's check if there's any credentials stashed, and
         // if there is, let's set that session as the main one instead of completely logging out.
         if(isSupportal && hasStashedSession()) {
-            Onyx.multiSet({
-                [ONYXKEYS.CREDENTIALS]: stashedCredentials,
-                [ONYXKEYS.SESSION]: stashedSession,
-                // Let's also remove the stashed session/credentials, since it's not needed anymore
-                [ONYXKEYS.STASHED_CREDENTIALS]: null,
-                [ONYXKEYS.STASHED_SESSION]: null,
+            redirectPromise.then(() => {
+                Onyx.multiSet({
+                    [ONYXKEYS.CREDENTIALS]: stashedCredentials,
+                    [ONYXKEYS.SESSION]: stashedSession,
+                    // Let's also remove the stashed session/credentials, since it's not needed anymore
+                    [ONYXKEYS.STASHED_CREDENTIALS]: null,
+                    [ONYXKEYS.STASHED_SESSION]: null,
+                });
             });
         }
     } else {
