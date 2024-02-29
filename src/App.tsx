@@ -37,6 +37,7 @@ import InitialUrlContext from './libs/InitialUrlContext';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import type {Route} from './ROUTES';
 
+// Just adding comment to create PR to graphite-testing-script branch to test the github action flow
 type AppProps = {
     /** If we have an authToken this is true */
     url?: Route;
