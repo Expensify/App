@@ -116,7 +116,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     return (
         <View style={[styles.pt0]}>
             <HeaderWithBackButton
-                shouldShowAvatarWithDisplay
+                shouldShowReportAvatarWithDisplay
                 shouldEnableDetailPageNavigation
                 shouldShowPinButton={false}
                 report={moneyRequestReport}

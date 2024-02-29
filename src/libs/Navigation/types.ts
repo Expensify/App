@@ -455,14 +455,6 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: NavigatorScreenParams<PrivateNotesNavigatorParamList>;
 };
 
-// type SettingsCentralPaneNavigatorParamList = {
-//     [SCREENS.SETTINGS.PROFILE.ROOT]: undefined;
-//     [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
-//     [SCREENS.SETTINGS.SECURITY]: undefined;
-//     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
-//     [SCREENS.SETTINGS.ABOUT]: undefined;
-// };
-
 type WorkspacesCentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.PROFILE]: {
         policyID: string;

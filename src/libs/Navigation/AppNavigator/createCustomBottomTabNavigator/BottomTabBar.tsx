@@ -15,7 +15,7 @@ import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute'
 import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList} from '@libs/Navigation/types';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
-import SignInOrAvatarWithOptionalStatus from '@pages/home/sidebar/BottomTabAvatar';
+import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
 import variables from '@styles/variables';
 import * as Welcome from '@userActions/Welcome';
@@ -93,7 +93,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
             </Tooltip>
             <BottomTabBarFloatingActionButton />
             <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                <SignInOrAvatarWithOptionalStatus isSelected={currentTabName === SCREENS.SETTINGS.ROOT} />
+                <BottomTabAvatar isSelected={currentTabName === SCREENS.SETTINGS.ROOT} />
             </View>
         </View>
     );

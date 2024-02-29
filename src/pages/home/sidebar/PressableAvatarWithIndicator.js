@@ -9,7 +9,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
@@ -29,6 +28,7 @@ const propTypes = {
     /** Indicates whether the app is loading initial data */
     isLoading: PropTypes.bool,
 
+    /** Whether the avatar is selected */
     isSelected: PropTypes.bool,
 };
 
@@ -46,7 +46,6 @@ const defaultProps = {
 function PressableAvatarWithIndicator({isCreateMenuOpen, currentUserPersonalDetails, isLoading, isSelected}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const theme = useTheme();
 
     const showSettingsPage = useCallback(() => {
         if (isCreateMenuOpen) {
@@ -57,8 +56,6 @@ function PressableAvatarWithIndicator({isCreateMenuOpen, currentUserPersonalDeta
         Navigation.navigate(ROUTES.SETTINGS);
     }, [isCreateMenuOpen]);
 
-    const buttonStyle = isSelected ? {borderWidth: 2, borderRadius: 30, borderColor: theme.splashBG} : {};
-
     return (
         <PressableWithoutFeedback
             accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
@@ -66,7 +63,7 @@ function PressableAvatarWithIndicator({isCreateMenuOpen, currentUserPersonalDeta
             onPress={showSettingsPage}
         >
             <OfflineWithFeedback pendingAction={lodashGet(currentUserPersonalDetails, 'pendingFields.avatar', null)}>
-                <View style={[styles.p1, buttonStyle]}>
+                <View style={[styles.p1, isSelected && styles.selectedAvatarBorder]}>
                     <AvatarWithIndicator
                         source={UserUtils.getAvatar(currentUserPersonalDetails.avatar, currentUserPersonalDetails.accountID)}
                         tooltipText={translate('profilePage.profile')}

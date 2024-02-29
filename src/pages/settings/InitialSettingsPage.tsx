@@ -68,7 +68,7 @@ type InitialSettingsPageOnyxProps = {
     /** The policies which the user has access to */
     policies: OnyxCollection<OnyxTypes.Policy>;
 
-    // eslint-disable-next-line react/forbid-prop-types
+    /** Members of all the workspaces the user is member of */
     policyMembers: OnyxCollection<OnyxTypes.PolicyMembers>;
 };
 
@@ -203,13 +203,11 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
         }
 
         return {
-            sectionStyle: {
-                ...styles.pt4,
-            },
+            sectionStyle: styles.workspaceSettingsSectionContainer,
             sectionTranslationKey: 'common.workspaces',
             items,
         };
-    }, [policies, policyMembers, styles.pt4]);
+    }, [policies, policyMembers, styles.workspaceSettingsSectionContainer]);
 
     /**
      * Retuns a list of menu items data for general section
@@ -225,12 +223,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                 {
                     translationKey: 'exitSurvey.goToExpensifyClassic',
                     icon: Expensicons.ExpensifyLogoNew,
-                    action: () => {
-                        Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-                    },
-                    link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.INBOX),
-                    iconRight: Expensicons.NewWindow,
-                    shouldShowRightIcon: true,
+                    routeName: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
                 },
                 {
                     translationKey: 'initialSettingsPage.help',

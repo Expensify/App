@@ -29,7 +29,6 @@ function BottomTabNavigator() {
                 />
                 <Tab.Screen
                     name={SCREENS.SETTINGS.ROOT}
-                    // options={screenOptions.homeScreen}
                     getComponent={loadInitialSettingsPage}
                 />
             </Tab.Navigator>

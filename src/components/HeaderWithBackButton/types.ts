@@ -90,8 +90,8 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Data to display a step counter in the header */
     stepCounter?: StepCounterParams;
 
-    /** Whether we should show an avatar */
-    shouldShowAvatarWithDisplay?: boolean;
+    /** Whether we should show a report avatar */
+    shouldShowReportAvatarWithDisplay?: boolean;
 
     /** Parent report, if provided it will override props.report for AvatarWithDisplay */
     parentReport?: OnyxEntry<Report>;
@@ -123,6 +123,7 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should overlay the 3 dots menu */
     shouldOverlayDots?: boolean;
 
+    /** Policy avatar to display in the header */
     policyAvatar?: Icon;
 };
 

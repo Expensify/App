@@ -44,7 +44,7 @@ function TopBar({policy}: TopBarProps) {
 
                     <View style={[styles.ml3, styles.flex1]}>
                         <Breadcrumbs
-                            secondaryBreadcrumbStyle={styles.flexShrink1}
+                            secondaryBreadcrumbTextStyle={styles.flexShrink1}
                             breadcrumbs={[
                                 {
                                     type: CONST.BREADCRUMB_TYPE.ROOT,

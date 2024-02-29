@@ -34,7 +34,7 @@ function HeaderWithBackButton({
     report = null,
     policy,
     policyAvatar,
-    shouldShowAvatarWithDisplay = false,
+    shouldShowReportAvatarWithDisplay = false,
     shouldShowBackButton = true,
     shouldShowBorderBottom = false,
     shouldShowCloseButton = false,
@@ -128,7 +128,7 @@ function HeaderWithBackButton({
                         type={policyAvatar?.type}
                     />
                 )}
-                {shouldShowAvatarWithDisplay ? (
+                {shouldShowReportAvatarWithDisplay ? (
                     <AvatarWithDisplayName
                         report={report}
                         policy={policy}

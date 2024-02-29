@@ -1427,6 +1427,12 @@ const styles = (theme: ThemeColors) =>
             width: variables.componentSizeSmall,
         },
 
+        selectedAvatarBorder: {
+            borderWidth: 2,
+            borderRadius: 20,
+            borderColor: theme.success,
+        },
+
         statusIndicator: (backgroundColor = theme.danger) =>
             ({
                 borderColor: theme.sidebar,
@@ -2627,6 +2633,12 @@ const styles = (theme: ThemeColors) =>
             ...spacing.mt0,
             ...spacing.mb0,
             ...spacing.pt0,
+        },
+
+        workspaceSettingsSectionContainer: {
+            borderBottomWidth: 1,
+            borderBottomColor: theme.border,
+            ...spacing.pt4,
         },
 
         centralPaneAnimation: {
