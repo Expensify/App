@@ -169,6 +169,10 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
         };
     }, [loginList, fundList, styles.accountSettingsSectionContainer, bankAccountList, userWallet?.errors, walletTerms?.errors]);
 
+    /**
+     * Retuns a list of menu items data for workspace section
+     * @returns object with translationKey, style and items for the workspace section
+     */
     const workspaceMenuItemsData: Menu = useMemo(() => {
         const items: MenuData[] = [
             {

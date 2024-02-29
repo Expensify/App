@@ -46,7 +46,7 @@ function Indicator({reimbursementAccount, allPolicyMembers, policies, bankAccoun
 
     // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
     // those should be cleaned out before doing any error checking
-    const cleanPolicies = Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => !!policy));
+    const cleanPolicies = Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => policy?.id));
     const cleanAllPolicyMembers = Object.fromEntries(Object.entries(allPolicyMembers ?? {}).filter(([, policyMembers]) => !!policyMembers));
 
     // All of the error & info-checking methods are put into an array. This is so that using _.some() will return
