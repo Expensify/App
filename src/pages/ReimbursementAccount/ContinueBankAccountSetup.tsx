@@ -77,7 +77,7 @@ function ContinueBankAccountSetup({policyName = '', onBackButtonPress, reimburse
                             onPress={() => BankAccounts.requestResetFreePlanBankAccount()}
                             shouldShowRightIcon
                             wrapperStyle={[styles.cardMenuItem]}
-                            disabled={Boolean(pendingAction) || !isEmptyObject(errors)}
+                            disabled={!!pendingAction || !isEmptyObject(errors)}
                         />
                     </OfflineWithFeedback>
                 </Section>

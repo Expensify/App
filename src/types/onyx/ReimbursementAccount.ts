@@ -1,6 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
+import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, ReimbursementAccountProps, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
 
@@ -8,7 +8,7 @@ type BankAccountStep = ValueOf<typeof CONST.BANK_ACCOUNT.STEP>;
 
 type BankAccountSubStep = ValueOf<typeof CONST.BANK_ACCOUNT.SUBSTEP>;
 
-type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorStepProps & ACHContractStepProps> & {
+type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorStepProps & ACHContractStepProps & ReimbursementAccountProps> & {
     /** Step of the setup flow that we are on. Determines which view is presented. */
     currentStep?: BankAccountStep;
 
@@ -41,19 +41,7 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
 
     mask?: string;
 
-    isSavings?: string;
-
     plaidAccountID?: string;
-
-    plaidAccessToken?: string;
-
-    selectedPlaidAccountID?: string;
-
-    amount1?: string;
-
-    amount2?: string;
-
-    amount3?: string;
 };
 
 type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{

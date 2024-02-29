@@ -182,7 +182,6 @@ function ReimbursementAccountPage({
 
     /**
      * Returns true if a VBBA exists in any state other than OPEN or LOCKED
-
      */
     function hasInProgressVBBA(): boolean {
         return !!achData?.bankAccountID && achData?.state !== BankAccount.STATE.OPEN && achData?.state !== BankAccount.STATE.LOCKED;
