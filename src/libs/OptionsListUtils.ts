@@ -1479,7 +1479,7 @@ function getOptions(
         if (!includeP2P && !isPolicyExpenseChat) {
             return;
         }
-        console.log('report', isSelfDM, includeSelfDM, report);
+
         if (isSelfDM && !includeSelfDM) {
             return;
         }
