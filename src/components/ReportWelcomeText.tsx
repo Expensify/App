@@ -132,11 +132,6 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                         )}
                     </>
                 )}
-                {isSelfDM && (
-                    <Text>
-                        <Text>{translate('reportActionsView.beginningOfChatHistorySelfDM')}</Text>
-                    </Text>
-                )}
                 {isDefault && (
                     <Text>
                         <Text>{translate('reportActionsView.beginningOfChatHistory')}</Text>

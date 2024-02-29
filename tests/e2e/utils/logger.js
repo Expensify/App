@@ -1,3 +1,4 @@
+/* eslint-disable import/no-import-module-exports */
 import fs from 'fs';
 import path from 'path';
 import _ from 'underscore';

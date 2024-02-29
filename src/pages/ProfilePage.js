@@ -7,13 +7,11 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AutoUpdateTime from '@components/AutoUpdateTime';
 import Avatar from '@components/Avatar';
-import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import CommunicationsLink from '@components/CommunicationsLink';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -30,7 +28,6 @@ import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import variables from '@styles/variables';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
@@ -146,7 +143,7 @@ function ProfilePage(props) {
 
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>
-            <FullPageNotFoundView shouldShow={CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID)}>
+            <FullPageNotFoundView shouldShow={shouldShowBlockingView || CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID)}>
                 <HeaderWithBackButton
                     title={props.translate('common.profile')}
                     onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
@@ -252,16 +249,6 @@ function ProfilePage(props) {
                         </ScrollView>
                     )}
                     {!hasMinimumDetails && isLoading && <FullScreenLoadingIndicator style={styles.flex1} />}
-                    {shouldShowBlockingView && (
-                        <BlockingView
-                            icon={Illustrations.ToddBehindCloud}
-                            iconWidth={variables.modalTopIconWidth}
-                            iconHeight={variables.modalTopIconHeight}
-                            title={props.translate('notFound.notHere')}
-                            shouldShowLink
-                            link={props.translate('notFound.goBackHome')}
-                        />
-                    )}
                 </View>
             </FullPageNotFoundView>
         </ScreenWrapper>
@@ -272,9 +259,30 @@ ProfilePage.propTypes = propTypes;
 ProfilePage.defaultProps = defaultProps;
 ProfilePage.displayName = 'ProfilePage';
 
+/**
+ * This function narrow down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
+ * and makes the entire component more performant because it's not re-rendering when a bunch of properties change which aren't ever used in the UI.
+ * @param {Object} [report]
+ * @returns {Object|undefined}
+ */
+const chatReportSelector = (report) =>
+    report && {
+        reportID: report.reportID,
+        participantAccountIDs: report.participantAccountIDs,
+        parentReportID: report.parentReportID,
+        parentReportActionID: report.parentReportActionID,
+        type: report.type,
+        chatType: report.chatType,
+        isPolicyExpenseChat: report.isPolicyExpenseChat,
+    };
+
 export default compose(
     withLocalize,
     withOnyx({
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
+            selector: chatReportSelector,
+        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
@@ -282,9 +290,9 @@ export default compose(
             key: ONYXKEYS.SESSION,
         },
         report: {
-            key: ({route, session}) => {
+            key: ({route, session, reports}) => {
                 const accountID = Number(lodashGet(route.params, 'accountID', 0));
-                const reportID = lodashGet(ReportUtils.getChatByParticipants([accountID]), 'reportID', '');
+                const reportID = lodashGet(ReportUtils.getChatByParticipants([accountID], reports), 'reportID', '');
                 if ((session && Number(session.accountID) === accountID) || Session.isAnonymousUser() || !reportID) {
                     return null;
                 }
