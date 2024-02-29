@@ -3,7 +3,7 @@ import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, View, Vie
 import type {Place} from 'react-native-google-places-autocomplete';
 import type {MaybePhraseKey} from '@libs/Localize';
 import type Locale from '@src/types/onyx/Locale';
-import {Address} from '@src/types/onyx/PrivatePersonalDetails';
+import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 type CurrentLocationButtonProps = {
     /** Callback that is called when the button is clicked */
