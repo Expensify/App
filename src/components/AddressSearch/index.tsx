@@ -289,6 +289,7 @@ function AddressSearch(
     };
 
     const renderHeaderComponent = () => (
+        // eslint-disable-next-line react/jsx-no-useless-fragment
         <>
             {(predefinedPlaces?.length ?? 0) > 0 && (
                 <>
