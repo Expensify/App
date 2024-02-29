@@ -209,6 +209,7 @@ function ReportActionsList({
             if (nextItem.reportActionTimestamp && currentItem.reportActionTimestamp) {
                 return DateUtils.formatDate(currentItem.reportActionTimestamp) !== DateUtils.formatDate(nextItem.reportActionTimestamp);
             }
+            return false;
         },
         [sortedReportActions],
     );

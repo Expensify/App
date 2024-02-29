@@ -759,6 +759,7 @@ function ReportActionItem(props) {
     const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedToAccountIDs);
     const whisperedToPersonalDetails = isWhisper ? _.filter(personalDetails, (details) => _.includes(whisperedToAccountIDs, details.accountID)) : [];
     const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
+    const indicatorTimestamp = props.action.reportActionTimestamp || 0;
     return (
         <PressableWithSecondaryInteraction
             ref={popoverAnchorRef}
@@ -771,7 +772,7 @@ function ReportActionItem(props) {
             withoutFocusOnSecondaryInteraction
             accessibilityLabel={props.translate('accessibilityHints.chatMessage')}
         >
-            {props.showDateIndicator && <ReportDateIndicator created={props.action.reportActionTimestamp} />}
+            {props.showDateIndicator && <ReportDateIndicator created={indicatorTimestamp} />}
             <Hoverable
                 shouldHandleScroll
                 isDisabled={!_.isUndefined(props.draftMessage)}
