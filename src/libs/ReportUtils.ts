@@ -1252,7 +1252,7 @@ function canAddTransactionsToMoneyRequest(report: OnyxEntry<Report>): boolean {
         return false;
     }
 
-    if (isProcessingReport(report) && !PolicyUtils.isInstantSubmitEnabled(getPolicy(report?.policyID))) {
+    if (isGroupPolicy(report) && isProcessingReport(report) && !PolicyUtils.isInstantSubmitEnabled(getPolicy(report?.policyID))) {
         return false;
     }
 
@@ -4219,7 +4219,7 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
     // which is tied to their workspace chat.
     if (isMoneyRequestReport(report)) {
         const canAddTransactions = canAddTransactionsToMoneyRequest(report);
-        return isPaidGroupPolicy(report) ? isOwnPolicyExpenseChat && canAddTransactions : canAddTransactions;
+        return isGroupPolicy(report) ? isOwnPolicyExpenseChat && canAddTransactions : canAddTransactions;
     }
 
     // In case of policy expense chat, users can only request money from their own policy expense chat
