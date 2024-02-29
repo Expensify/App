@@ -598,6 +598,15 @@ function MoneyRequestConfirmationList({
     ]);
 
     const receiptData = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction ?? null, receiptPath, receiptFilename) : null;
+
+    const imageSource = useMemo(() => {
+        if (receiptData?.thumbnail) {
+            return typeof receiptData.thumbnail === 'string' ? {uri: receiptData.thumbnail} : receiptData.thumbnail;
+        }
+
+        return typeof receiptData?.image === 'string' ? {uri: receiptData.image} : receiptData?.image;
+    }, []);
+
     return (
         // @ts-expect-error TODO: Remove this once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TypeScript.
         <OptionsSelector
@@ -626,7 +635,7 @@ function MoneyRequestConfirmationList({
             {receiptData?.image ?? receiptData?.thumbnail ? (
                 <Image
                     style={styles.moneyRequestImage}
-                    source={{uri: receiptData?.thumbnail ?? receiptData?.image}}
+                    source={imageSource}
                     // AuthToken is required when retrieving the image from the server
                     // but we don't need it to load the blob:// or file:// image when starting a money request / split bill
                     // So if we have a thumbnail, it means we're retrieving the image from the server
