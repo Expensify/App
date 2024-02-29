@@ -4218,7 +4218,8 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
     // User can request money in any IOU report, unless paid, but user can only request money in an expense report
     // which is tied to their workspace chat.
     if (isMoneyRequestReport(report)) {
-        return isOwnPolicyExpenseChat && canAddTransactionsToMoneyRequest(report);
+        const canAddTransactions = canAddTransactionsToMoneyRequest(report);
+        return isPaidGroupPolicy(report) ? isOwnPolicyExpenseChat && canAddTransactions : canAddTransactions;
     }
 
     // In case of policy expense chat, users can only request money from their own policy expense chat
