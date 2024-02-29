@@ -33,6 +33,7 @@ import type PlaidData from './PlaidData';
 import type Policy from './Policy';
 import type {TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
+import type PolicyJoinMember from './PolicyJoinMember';
 import type {PolicyMembers} from './PolicyMember';
 import type PolicyMember from './PolicyMember';
 import type {PolicyReportField, PolicyReportFields} from './PolicyReportField';
@@ -154,4 +155,5 @@ export type {
     LastPaymentMethod,
     InvitedEmailsToAccountIDs,
     Log,
+    PolicyJoinMember,
 };

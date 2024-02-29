@@ -326,8 +326,29 @@ function ReportActionItem(props) {
     );
 
     const actionableItemButtons = useMemo(() => {
-        if (!(ReportActionsUtils.isActionableMentionWhisper(props.action) && !lodashGet(props.action, 'originalMessage.resolution', null))) {
+        if (
+            !(
+                (ReportActionsUtils.isActionableMentionWhisper(props.action) || ReportActionsUtils.isActionableJoinWorkspaceRequest(props.action)) &&
+                !lodashGet(props.action, 'originalMessage.resolution', null)
+            )
+        ) {
             return [];
+        }
+
+        if (ReportActionsUtils.isActionableJoinWorkspaceRequest(props.action)) {
+            return [
+                {
+                    text: 'actionableMentionJoinWorkspaceOptions.accept',
+                    key: `${props.action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT}`,
+                    onPress: () => Report.acceptJoinRequest(props.report.reportID, props.action.originalMessage.accountID, props.action.reportActionID),
+                    isPrimary: true,
+                },
+                {
+                    text: 'actionableMentionJoinWorkspaceOptions.decline',
+                    key: `${props.action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.DECLINE}`,
+                    onPress: () => Report.declineJoinRequest(props.report.reportID, props.action.originalMessage.accountID, props.action.reportActionID),
+                },
+            ];
         }
         return [
             {
@@ -488,6 +509,7 @@ function ReportActionItem(props) {
                                             CONST.REPORT.ACTIONS.TYPE.IOU,
                                             CONST.REPORT.ACTIONS.TYPE.APPROVED,
                                             CONST.REPORT.ACTIONS.TYPE.MOVED,
+                                            CONST.REPORT.ACTIONS.TYPE.ACTIONABLEJOINREQUEST,
                                         ],
                                         props.action.actionName,
                                     )

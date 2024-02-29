@@ -51,6 +51,7 @@ type WorkspaceItem = Required<Pick<MenuItemProps, 'title' | 'disabled'>> &
         policyID?: string;
         adminRoom?: string | null;
         announceRoom?: string | null;
+        isJoinRequestPending?: boolean;
     };
 
 // eslint-disable-next-line react/no-unused-prop-types
@@ -191,6 +192,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                                 workspaceIcon={item.icon}
                                 ownerAccountID={item.ownerAccountID}
                                 workspaceType={item.type}
+                                isJoinRequestPending={item?.isJoinRequestPending}
                                 rowStyles={hovered && styles.hoveredComponentBG}
                                 layoutWidth={isSmallScreenWidth ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}
                                 brickRoadIndicator={item.brickRoadIndicator}
@@ -283,8 +285,28 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
 
         return Object.values(policies)
             .filter((policy): policy is PolicyType => PolicyUtils.shouldShowPolicy(policy, !!isOffline))
-            .map(
-                (policy): WorkspaceItem => ({
+            .map((policy): WorkspaceItem => {
+                if (policy?.isJoinRequestPending) {
+                    const policyInfo = Object.values(policy.policyDetailsForNonMembers)[0];
+                    const id = Object.keys(policy.policyDetailsForNonMembers)[0];
+                    return {
+                        title: policyInfo.name,
+                        icon: policyInfo.avatar ? policyInfo.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
+                        disabled: true,
+                        ownerAccountID: policyInfo.ownerAccountID,
+                        type: policyInfo.type,
+                        iconType: policyInfo.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+                        iconFill: theme.textLight,
+                        fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                        policyID: id,
+                        role: CONST.POLICY.ROLE.USER,
+                        errors: null,
+                        action: () => null,
+                        dismissError: () => null,
+                        isJoinRequestPending: true,
+                    };
+                }
+                return {
                     title: policy.name,
                     icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                     action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id)),
@@ -307,8 +329,8 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                     ownerAccountID: policy.ownerAccountID,
                     role: policy.role,
                     type: policy.type,
-                }),
-            )
+                };
+            })
             .sort((a, b) => localeCompare(a.title, b.title));
     }, [reimbursementAccount?.errors, policies, isOffline, theme.textLight, allPolicyMembers, policyRooms]);
 

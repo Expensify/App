@@ -219,6 +219,11 @@ type OriginalMessagePolicyChangeLog = {
     originalMessage: ChangeLog;
 };
 
+type OriginalMessageJoinPolicyChangeLog = {
+    actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLEJOINREQUEST>;
+    originalMessage: ChangeLog;
+};
+
 type OriginalMessageRoomChangeLog = {
     actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG>;
     originalMessage: ChangeLog;
@@ -293,6 +298,7 @@ type OriginalMessage =
     | OriginalMessageReportPreview
     | OriginalMessageRoomChangeLog
     | OriginalMessagePolicyChangeLog
+    | OriginalMessageJoinPolicyChangeLog
     | OriginalMessagePolicyTask
     | OriginalMessageModifiedExpense
     | OriginalMessageReimbursementQueued

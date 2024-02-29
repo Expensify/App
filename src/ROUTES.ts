@@ -478,6 +478,10 @@ const ROUTES = {
         route: 'workspace/:policyID/avatar',
         getRoute: (policyID: string) => `workspace/${policyID}/avatar` as const,
     },
+    WORKSPACE_JOIN_USER: {
+        route: 'workspace/:policyID/join',
+        getRoute: (policyID: string, invitedEmail: string) => `workspace/${policyID}/join?email=${invitedEmail}` as const,
+    },
     WORKSPACE_SETTINGS_CURRENCY: {
         route: 'workspace/:policyID/settings/currency',
         getRoute: (policyID: string) => `workspace/${policyID}/settings/currency` as const,

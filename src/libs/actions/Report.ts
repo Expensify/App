@@ -2900,6 +2900,76 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
     API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER, parameters, {optimisticData, failureData});
 }
 
+/**
+ * Accept user join request to a workspace
+ */
+function acceptJoinRequest(reportId: string, accountID: string, adminsRoomMessageReportActionID: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            value: {
+                [adminsRoomMessageReportActionID]: {
+                    originalMessage: {choice: 'accept'},
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            value: {
+                [adminsRoomMessageReportActionID]: {
+                    originalMessage: {choice: ''},
+                },
+            },
+        },
+    ];
+
+    const parameters = {
+        requests: [{policyID: {accountID, adminsRoomMessageReportActionID}}],
+    };
+
+    API.write(WRITE_COMMANDS.ACCEPT_JOIN_REQUEST, parameters, {optimisticData, failureData});
+}
+
+/**
+ * Decline user join request to a workspace
+ */
+function declineJoinRequest(reportId: string, accountID: string, adminsRoomMessageReportActionID: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            value: {
+                [adminsRoomMessageReportActionID]: {
+                    originalMessage: {choice: 'decline'},
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            value: {
+                [adminsRoomMessageReportActionID]: {
+                    originalMessage: {choice: ''},
+                },
+            },
+        },
+    ];
+
+    const parameters = {
+        requests: [{policyID: {accountID, adminsRoomMessageReportActionID}}],
+    };
+
+    API.write(WRITE_COMMANDS.DECLINE_JOIN_REQUEST, parameters, {optimisticData, failureData});
+}
+
 export {
     searchInServer,
     addComment,
@@ -2970,4 +3040,6 @@ export {
     updateReportName,
     resolveActionableMentionWhisper,
     updateRoomVisibility,
+    acceptJoinRequest,
+    declineJoinRequest,
 };

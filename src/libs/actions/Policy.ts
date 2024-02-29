@@ -808,6 +808,58 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
 }
 
 /**
+ * Invite member to the specified workspace/policyID
+ * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
+ */
+function inviteMemberToWorkspace(policyID: string, invitedEmail: string, isSamePrivateDomain: boolean) {
+    const memberJoinKey = `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}` as const;
+
+    const optimisticMembersState = {policyID, invitedEmail};
+    const failureMembersState = {policyID, invitedEmail};
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: memberJoinKey,
+            value: optimisticMembersState,
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: memberJoinKey,
+            value: {},
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: memberJoinKey,
+            value: failureMembersState,
+        },
+    ];
+
+    const params = {policyID, invitedEmail};
+
+    API.write(WRITE_COMMANDS.JOIN_POLICY_VIA_INVITE_LINK, params, {optimisticData, successData, failureData});
+
+    // When API will return reportID for invited user in the same domain - code below should be uncommented - will be in future tickets
+    // if (!isSamePrivateDomain) {
+    //
+    //     API.write(WRITE_COMMANDS.JOIN_POLICY_VIA_INVITE_LINK, params, {optimisticData, successData, failureData});
+    // } else {
+    //     // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    //     API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.JOIN_POLICY_VIA_INVITE_LINK, params, {}).then((response) => {
+    //         if (response) {
+    //             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(response.reportID));
+    //         }
+    //     });
+    // }
+}
+
+/**
  * Updates a workspace avatar image
  */
 function updateWorkspaceAvatar(policyID: string, file: File) {
@@ -2277,4 +2329,5 @@ export {
     setWorkspaceApprovalMode,
     updateWorkspaceDescription,
     setWorkspaceRequiresCategory,
+    inviteMemberToWorkspace,
 };

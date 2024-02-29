@@ -55,6 +55,9 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
 
     /** Determines if three dots menu should be shown or not */
     shouldDisableThreeDotsMenu?: boolean;
+
+    /** Determines if pending column should be shown or not */
+    isJoinRequestPending?: boolean;
 };
 
 type BrickRoadIndicatorIconProps = {
@@ -98,8 +101,10 @@ function WorkspacesListRow({
     style,
     brickRoadIndicator,
     shouldDisableThreeDotsMenu,
+    isJoinRequestPending,
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const threeDotsMenuContainerRef = useRef<View>(null);
@@ -204,6 +209,27 @@ function WorkspacesListRow({
                         {translate('workspace.common.plan')}
                     </Text>
                 </View>
+                {isJoinRequestPending && (
+                    <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.border, styles.pv1, styles.pl1, styles.pr2]}>
+                            <Icon
+                                src={Expensicons.Hourglass}
+                                fill={theme.icon}
+                                width={variables.iconSizeExtraSmall}
+                                height={variables.iconSizeExtraSmall}
+                                additionalStyles={styles.workspaceTypeWrapper}
+                            />
+                            <View style={styles.flex1}>
+                                <Text
+                                    numberOfLines={1}
+                                    style={styles.labelStrong}
+                                >
+                                    {translate('workspace.common.requested')}
+                                </Text>
+                            </View>
+                        </View>
+                    </View>
+                )}
             </View>
 
             {isWide && (
@@ -212,22 +238,26 @@ function WorkspacesListRow({
                         <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
                     </View>
                     <View ref={threeDotsMenuContainerRef}>
-                        <ThreeDotsMenu
-                            onIconPress={() => {
-                                threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
-                                    setThreeDotsMenuPosition({
-                                        horizontal: x + width,
-                                        vertical: y + height,
+                        {!isJoinRequestPending ? (
+                            <ThreeDotsMenu
+                                onIconPress={() => {
+                                    threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
+                                        setThreeDotsMenuPosition({
+                                            horizontal: x + width,
+                                            vertical: y + height,
+                                        });
                                     });
-                                });
-                            }}
-                            menuItems={menuItems}
-                            anchorPosition={threeDotsMenuPosition}
-                            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                            iconStyles={[styles.mr2]}
-                            shouldOverlay
-                            disabled={shouldDisableThreeDotsMenu}
-                        />
+                                }}
+                                menuItems={menuItems}
+                                anchorPosition={threeDotsMenuPosition}
+                                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                                iconStyles={[styles.mr2]}
+                                shouldOverlay
+                                disabled={shouldDisableThreeDotsMenu}
+                            />
+                        ) : (
+                            <View style={[styles.touchableButtonImage, styles.mr2]} />
+                        )}
                     </View>
                 </>
             )}
