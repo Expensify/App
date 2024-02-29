@@ -681,7 +681,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 <MenuItemWithTopDescription
                     key={translate('common.distance')}
                     shouldShowRightIcon={!isReadOnly && isTypeRequest}
-                    title={iouMerchant}
+                    title={DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, translate)}
                     description={translate('common.distance')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
@@ -698,7 +698,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 <MenuItemWithTopDescription
                     key={translate('common.rate')}
                     shouldShowRightIcon={!isReadOnly && isTypeRequest}
-                    title={DistanceRequestUtils.getRateForDisplay(hasRoute, distance, unit, rate, currency, translate, toLocaleDigit)}
+                    title={DistanceRequestUtils.getRateForDisplay(hasRoute, unit, rate, currency, translate, toLocaleDigit)}
                     description={translate('common.rate')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}

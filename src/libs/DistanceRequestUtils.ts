@@ -1,10 +1,24 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry, OnyxCollection} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {MileageRate, Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
+
+const policies: OnyxCollection<Policy> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    callback: (policy, key) => {
+        if (!policy || !key || !policy.name) {
+            return;
+        }
+
+        policies[key] = policy;
+    },
+});
 
 /**
  * Retrieves the default mileage rate based on a given policy.
@@ -67,22 +81,21 @@ function convertDistanceUnit(distanceInMeters: number, unit: Unit): number {
  */
 function getRoundedDistanceInUnits(distanceInMeters: number, unit: Unit): string {
     const convertedDistance = convertDistanceUnit(distanceInMeters, unit);
-    return convertedDistance.toFixed(2);
+    // TODO: add logic for currencies for which we need to round to 4 decimals
+    return convertedDistance.toFixed(3);
 }
 
 /**
-* @param hasRoute Whether the route exists for the distance request
-* @param distanceInMeters Distance traveled
-* @param unit Unit that should be used to display the distance
-* @param rate Expensable amount allowed per unit
-* @param currency The currency associated with the rate
-* @param translate Translate function
-* @param toLocaleDigit Function to convert to localized digit
-* @returns A string that describes the distance traveled and the rate used for expense calculation
-*/
+ * @param hasRoute Whether the route exists for the distance request
+ * @param unit Unit that should be used to display the distance
+ * @param rate Expensable amount allowed per unit
+ * @param currency The currency associated with the rate
+ * @param translate Translate function
+ * @param toLocaleDigit Function to convert to localized digit
+ * @returns A string that describes the distance traveled and the rate used for expense calculation
+ */
 function getRateForDisplay(
     hasRoute: boolean,
-    distanceInMeters: number,
     unit: Unit,
     rate: number,
     currency: string,
@@ -99,6 +112,28 @@ function getRateForDisplay(
     const currencySymbol = CurrencyUtils.getCurrencySymbol(currency) || `${currency} `;
 
     return `${currencySymbol}${ratePerUnit} / ${singularDistanceUnit}`;
+}
+
+// TODO: I wonder if it would be better to rfactor these functions to pass params in an object
+/**
+ * @param hasRoute Whether the route exists for the distance request
+ * @param distanceInMeters Distance traveled
+ * @param unit Unit that should be used to display the distance
+ * @param rate Expensable amount allowed per unit
+ * @param translate Translate function
+ * @returns A string that describes the distance traveled
+ */
+function getDistanceForDisplay(hasRoute: boolean, distanceInMeters: number, unit: Unit, translate: LocaleContextProps['translate']): string {
+    if (!hasRoute) {
+        return translate('iou.routePending');
+    }
+
+    const distanceInUnits = getRoundedDistanceInUnits(distanceInMeters, unit);
+    const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
+    const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
+    const unitString = distanceInUnits === '1' ? singularDistanceUnit : distanceUnit;
+
+    return `${distanceInUnits} ${unitString}`;
 }
 
 /**
@@ -124,13 +159,52 @@ function getDistanceMerchant(
         return translate('iou.routePending');
     }
 
-    const distanceInUnits = getRoundedDistanceInUnits(distanceInMeters, unit);
-    const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
-    const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
-    const unitString = distanceInUnits === '1' ? singularDistanceUnit : distanceUnit;
-    const ratePerUnit = getRateForDisplay(hasRoute, distanceInMeters, unit, rate, currency, translate, toLocaleDigit);
+    const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, translate);
+    const ratePerUnit = getRateForDisplay(hasRoute, unit, rate, currency, translate, toLocaleDigit);
 
-    return `${distanceInUnits} ${unitString} @ ${ratePerUnit}`;
+    return `${distanceInUnits} @ ${ratePerUnit}`;
+}
+
+/**
+ * Retrieves the mileage rates for given policy.
+ *
+ * @param policyID - The policy ID from which to extract the mileage rates.
+ *
+ * @returns An array of mileage rates or an empty array if not found.
+ */
+function getMileageRates(policyID?: string): MileageRate[] | [] {
+    if (!policyID) {
+        return [];
+    }
+
+    const mileageRates: MileageRate[] = [];
+
+    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? null;
+
+    if (!policy || !policy?.customUnits) {
+        return mileageRates;
+    }
+
+    const distanceUnit = Object.values(policy.customUnits).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    if (!distanceUnit?.rates) {
+        return mileageRates;
+    }
+
+    const rates = Object.values(distanceUnit.rates);
+
+    for (const rate of rates) {
+        if (rate.enabled) {
+            mileageRates.push({
+                rate: rate.rate ?? 0,
+                name: rate.name,
+                currency: rate.currency ?? 'USD',
+                unit: distanceUnit.attributes.unit,
+                customUnitRateID: rate.customUnitRateID,
+            });
+        }
+    }
+
+    return mileageRates;
 }
 
 /**
@@ -147,4 +221,11 @@ function getDistanceRequestAmount(distance: number, unit: Unit, rate: number): n
     return Math.round(roundedDistance * rate);
 }
 
-export default {getDefaultMileageRate, getDistanceMerchant, getDistanceRequestAmount, getRateForDisplay};
+export default {
+    getDefaultMileageRate,
+    getDistanceMerchant,
+    getDistanceRequestAmount,
+    getRateForDisplay,
+    getMileageRates,
+    getDistanceForDisplay,
+};

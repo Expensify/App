@@ -1,17 +1,27 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import compose from '@libs/compose';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
+import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import type {Policy} from '@src/types/onyx';
 
 type Props = {
     // eslint-disable-next-line react/no-unused-prop-types
     lastSelectedDistanceRate: string;
+
+    /** Policy details */
+    policy: OnyxEntry<Policy>;
+
     /** The route object passed to this screen */
     route: {
         /** The params passed to this screen */
@@ -22,18 +32,22 @@ type Props = {
     };
 };
 
-const mockRates = [
-    {text: 'Default Rate', alternateText: '$0.656 / mile', keyForList: 'DefaultRate'},
-    {text: 'Custom Rate', alternateText: '$0.700 / mile', keyForList: 'CustomRate'},
-];
-
 function IOURequestStepRate({
+    policy,
     route: {
         params: {backTo},
     },
 }: Props) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, toLocaleDigit} = useLocalize();
+    const rates = DistanceRequestUtils.getMileageRates(policy?.id);
+
+    const data = rates.map((rate) => ({
+        text: rate.name ?? '',
+        alternateText: DistanceRequestUtils.getRateForDisplay(true, rate.unit, rate.rate, rate.currency, translate, toLocaleDigit),
+        keyForList: rate.name ?? '',
+        value: rate.customUnitRateID,
+    }));
 
     return (
         <StepScreenWrapper
@@ -45,10 +59,11 @@ function IOURequestStepRate({
             <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate')}</Text>
 
             <SelectionList
-                sections={[{data: mockRates}]}
+                sections={[{data}]}
                 ListItem={RadioListItem}
                 onSelectRow={() => {}}
-                initiallyFocusedOptionKey="DefaultRate"
+                // TODO: change for lastSelectedDistanceRates
+                initiallyFocusedOptionKey="Default Rate"
             />
         </StepScreenWrapper>
     );
@@ -56,10 +71,14 @@ function IOURequestStepRate({
 
 IOURequestStepRate.displayName = 'IOURequestStepRate';
 
-// export default withOnyx({
-//     lastSelectedDistanceRate: {
-//         key: 'ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATE',
-//     },
-// })(IOURequestStepRate);
-
-export default IOURequestStepRate;
+export default compose(
+    withWritableReportOrNotFound,
+    withOnyx({
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        },
+        // lastSelectedDistanceRates: {
+        //     key: ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
+        // },
+    }),
+)(IOURequestStepRate);

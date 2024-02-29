@@ -19,8 +19,10 @@ type Attributes = {
 
 type MileageRate = {
     unit: Unit;
-    rate?: number;
     currency: string;
+    customUnitRateID?: string;
+    rate?: number;
+    name?: string;
 };
 
 type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<{
