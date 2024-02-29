@@ -13,7 +13,6 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import type SCREENS from '@src/SCREENS';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 type WorkspaceCategoriesSettingsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES_SETTINGS>;
 
@@ -37,7 +36,7 @@ function WorkspaceCategoriesSettingsPage({route}: WorkspaceCategoriesSettingsPag
                         <HeaderWithBackButton title={translate('common.settings')} />
                         <OfflineWithFeedback
                             errors={policy?.errorFields?.requiresCategory}
-                            pendingAction={policy?.pendingFields?.requiresCategory as OnyxCommon.PendingAction}
+                            pendingAction={policy?.pendingFields?.requiresCategory}
                             errorRowStyles={styles.mh5}
                         >
                             <View style={[styles.mt2, styles.mh4]}>

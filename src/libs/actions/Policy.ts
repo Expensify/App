@@ -2216,16 +2216,12 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
                         acc[key] = {
                             ...policyCategories[key],
                             ...categoriesToUpdate[key],
-                            errors: {
-                                enabled: null,
+                            errors: {},
+                            pendingFields: {
+                                enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             },
                         };
 
-                        return acc;
-                    }, {}),
-
-                    pendingAction: Object.keys(categoriesToUpdate).reduce<Record<string, string | null>>((acc, key) => {
-                        acc[key] = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
                         return acc;
                     }, {}),
                 },
@@ -2240,15 +2236,14 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
                         acc[key] = {
                             ...policyCategories[key],
                             ...categoriesToUpdate[key],
-                            errors: {
+                            errors: {},
+                            pendingFields: {
                                 enabled: null,
                             },
                         };
 
                         return acc;
                     }, {}),
-
-                    pendingAction: null,
                 },
             },
         ],
@@ -2262,12 +2257,13 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
                             ...policyCategories[key],
                             ...categoriesToUpdate[key],
                             errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.genericFailureMessage'),
+                            pendingFields: {
+                                enabled: null,
+                            },
                         };
 
                         return acc;
                     }, {}),
-
-                    pendingAction: null,
                 },
             },
         ],

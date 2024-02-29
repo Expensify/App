@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
@@ -54,17 +55,22 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
                         title={route.params.categoryName}
                         shouldShowBackButton={isSmallScreenWidth}
                     />
-
-                    <View style={[styles.mt2, styles.mh5]}>
-                        <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                            <Text>{translate('workspace.categories.enableCategory')}</Text>
-                            <Switch
-                                isOn={policyCategory.enabled}
-                                accessibilityLabel={translate('workspace.categories.enableCategory')}
-                                onToggle={updateWorkspaceRequiresCategory}
-                            />
+                    <OfflineWithFeedback
+                        errors={policyCategory?.errors}
+                        pendingAction={policyCategory?.pendingFields?.enabled}
+                        errorRowStyles={styles.mh5}
+                    >
+                        <View style={[styles.mt2, styles.mh5]}>
+                            <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                                <Text>{translate('workspace.categories.enableCategory')}</Text>
+                                <Switch
+                                    isOn={policyCategory.enabled}
+                                    accessibilityLabel={translate('workspace.categories.enableCategory')}
+                                    onToggle={updateWorkspaceRequiresCategory}
+                                />
+                            </View>
                         </View>
-                    </View>
+                    </OfflineWithFeedback>
                     <MenuItemWithTopDescription
                         title={policyCategory.name}
                         description={translate(`workspace.categories.categoryName`)}
