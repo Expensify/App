@@ -1,5 +1,5 @@
 import type {RouteProp} from '@react-navigation/native';
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -13,9 +13,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as IOU from '@userActions/IOU';
-import type ONYXKEYS from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
+import * as FormActions from '@userActions/FormActions';
+import * as ReportUtils from '@libs/ReportUtils';
 
 type HoldReasonPageRouteParams = {
     /** ID of the transaction the page was opened for */
@@ -44,6 +46,10 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
     };
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
+        if (!ReportUtils.isReportApproved(reportID) && !ReportUtils.isSettled(reportID)) {
+            FormActions.setErrors(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM, {reportModified: translate('common.error.transactionModified')});
+            return;
+        }
         IOU.putOnHold(transactionID, values.comment, reportID);
         navigateBack();
     };
@@ -51,12 +57,17 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM> = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.COMMENT]);
 
-        if (!values.comment) {
+                if (!values.comment) {
             errors.comment = 'common.error.fieldRequired';
         }
 
         return errors;
     }, []);
+
+    useEffect(() => {
+        FormActions.clearErrors(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM);
+        FormActions.clearErrorFields(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM);
+    }   , []);
 
     return (
         <ScreenWrapper
