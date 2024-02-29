@@ -19,6 +19,7 @@ const propTypes = {
     /** Emoji status */
     emojiStatus: PropTypes.string,
 
+    /** Whether the avatar is selected */
     isSelected: PropTypes.bool,
 };
 
