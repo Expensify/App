@@ -375,9 +375,9 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     );
 
     const getCustomListHeader = () => (
-        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, StyleUtils.getPaddingLeft(64)]}>
+        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
             <View>
-                <Text style={styles.searchInputStyle}>{translate('common.member')}</Text>
+                <Text style={[styles.searchInputStyle, styles.ml3]}>{translate('common.member')}</Text>
             </View>
             <View style={[StyleUtils.getMinimumWidth(60)]}>
                 <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('common.role')}</Text>
