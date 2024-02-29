@@ -171,7 +171,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         },
         {
             translationKey: 'workspace.common.moreFeatures',
-            icon: Expensicons.Checkmark,
+            icon: Expensicons.Gear,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.MORE_FEATURES,
         },
