@@ -952,8 +952,8 @@ function getDropDownButtonHeight(buttonSize: ButtonSizeValue): ViewStyle {
  */
 function getAmountFontSizeAndLineHeight(isSmallScreenWidth: boolean, windowWidth: number, displayAmountLength: number, numberOfParticipant: number): TextStyle {
     let toSubtract = 0;
-    const baseFontSize = variables.fontSizeh2;
-    const baseLineHeight = variables.lineHeightSizeh2;
+    const baseFontSize = variables.fontSizeXLarge;
+    const baseLineHeight = variables.lineHeightXXLarge;
 
     const numberOfAvatar = numberOfParticipant < 4 ? numberOfParticipant : 4;
     const differentWithMaxLength = 17 - displayAmountLength;

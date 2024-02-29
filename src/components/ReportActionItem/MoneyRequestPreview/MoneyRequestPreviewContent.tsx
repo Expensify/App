@@ -247,7 +247,7 @@ function MoneyRequestPreviewContent({
                                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                                 <Text
                                                     style={[
-                                                        styles.textHeadlineH2,
+                                                        styles.textHeadline,
                                                         isBillSplit &&
                                                             StyleUtils.getAmountFontSizeAndLineHeight(isSmallScreenWidth, windowWidth, displayAmount.length, sortedParticipantAvatars.length),
                                                         isDeleted && styles.lineThrough,
