@@ -40,6 +40,7 @@ const ONYXKEYS = {
 
     /** Credentials to authenticate the user */
     CREDENTIALS: 'credentials',
+    STASHED_CREDENTIALS: 'stashedCredentials',
 
     // Contains loading data for the IOU feature (MoneyRequestModal, IOUDetail, & MoneyRequestPreview Components)
     IOU: 'iou',
@@ -102,6 +103,7 @@ const ONYXKEYS = {
 
     /** Information about the current session (authToken, accountID, email, loading, error) */
     SESSION: 'session',
+    STASHED_SESSION: 'stashedSession',
     BETAS: 'betas',
 
     /** NVP keys
