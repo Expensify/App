@@ -1,5 +1,5 @@
 diff --git a/node_modules/@react-native-camera-roll/camera-roll/android/build.gradle b/node_modules/@react-native-camera-roll/camera-roll/android/build.gradle
-index 6891fa3..3759bed 100644
+index 6891fa3..8397f95 100644
 --- a/node_modules/@react-native-camera-roll/camera-roll/android/build.gradle
 +++ b/node_modules/@react-native-camera-roll/camera-roll/android/build.gradle
 @@ -81,7 +81,9 @@ def findNodeModulePath(baseDir, packageName) {
@@ -13,34 +13,14 @@ index 6891fa3..3759bed 100644
      if (reactNative.exists()) {
          return reactNative
      }
-diff --git a/node_modules/@react-native-camera-roll/camera-roll/android/src/main/AndroidManifest.xml b/node_modules/@react-native-camera-roll/camera-roll/android/src/main/AndroidManifest.xml
-index dbda53f..98fb413 100644
---- a/node_modules/@react-native-camera-roll/camera-roll/android/src/main/AndroidManifest.xml
-+++ b/node_modules/@react-native-camera-roll/camera-roll/android/src/main/AndroidManifest.xml
-@@ -1,6 +1,6 @@
- 
- <manifest xmlns:android="http://schemas.android.com/apk/res/android"
--          package="com.reactnativecommunity.cameraroll">
-+          >
- 
- </manifest>
-   
-\ No newline at end of file
 diff --git a/node_modules/@react-native-camera-roll/camera-roll/ios/RNCCameraRoll.mm b/node_modules/@react-native-camera-roll/camera-roll/ios/RNCCameraRoll.mm
-index 4769d28..75b74b9 100644
+index 4769d28..ef88a07 100644
 --- a/node_modules/@react-native-camera-roll/camera-roll/ios/RNCCameraRoll.mm
 +++ b/node_modules/@react-native-camera-roll/camera-roll/ios/RNCCameraRoll.mm
-@@ -207,6 +207,21 @@ static void requestPhotoLibraryAccess(RCTPromiseRejectBlock reject, PhotosAuthor
+@@ -207,6 +207,14 @@ static void requestPhotoLibraryAccess(RCTPromiseRejectBlock reject, PhotosAuthor
          options.fetchLimit = 1;
          PHFetchResult<PHAsset *> *createdAsset = [PHAsset fetchAssetsWithLocalIdentifiers:@[placeholder.localIdentifier]
                                                                                    options:options];
-+
-+        if (![createdAsset isKindOfClass:[PHAsset class]]) {
-+          resolve(@{
-+            @"node": [NSNull null]
-+          });
-+          return;
-+        }
 +
 +        if (![createdAsset isKindOfClass:[PHAsset class]]) {
 +          resolve(@{
