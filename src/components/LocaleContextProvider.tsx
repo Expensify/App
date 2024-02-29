@@ -38,7 +38,7 @@ type LocaleContextProps = {
     datetimeToRelative: (datetime: string) => string;
 
     /** Formats a datetime to local date and time string */
-    datetimeToCalendarTime: (datetime: string, includeTimezone: boolean, isLowercase?: boolean) => string;
+    datetimeToCalendarTime: (timestamp: string, isLowercase?: boolean) => string;
 
     /** Formats a datetime to local time string */
     datetimeToLocalString: (datetime: string, includeTimezone: boolean) => string;

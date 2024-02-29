@@ -7,6 +7,7 @@ import {
     endOfDay,
     endOfMonth,
     endOfWeek,
+    endOfYear,
     format,
     formatDistanceToNow,
     getDate,
@@ -22,6 +23,7 @@ import {
     setDefaultOptions,
     startOfDay,
     startOfWeek,
+    startOfYear,
     subDays,
     subMilliseconds,
     subMinutes,
@@ -176,23 +178,35 @@ function isYesterday(date: Date, timeZone: SelectedTimezone): boolean {
 }
 
 /**
+ * Formats datetime to selected format type
+ *
+ * eg.
+ *
+ * Dec 14, 2023
+ */
+function formatDate(datetime: string, formatString: string = CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) {
+    const date = new Date(datetime);
+    return format(date, formatString);
+}
+
+/**
  * Formats an ISO-formatted datetime string to local date
  *
  * e.g.
  *
- * Jan 20           within current week
- * Jan 20, 2019     anything before current week
+ * Jan 20           within current year
+ * Jan 20, 2019     anything before current year
  */
-function datetimeToCalendarTime(locale: Locale, datetime: string, currentSelectedTimezone: SelectedTimezone = timezone.selected, isLowercase = false): string {
-    const date = getLocalDateFromDatetime(locale, datetime, currentSelectedTimezone);
-    const weekStartsOn = getWeekStartsOn();
+function datetimeToCalendarTime(locale: Locale, timestamp: string, currentSelectedTimezone: SelectedTimezone = timezone.selected, isLowercase = false): string {
+    const timestampToDate = formatDate(timestamp);
+    const date = getLocalDateFromDatetime(locale, timestampToDate, currentSelectedTimezone);
 
     let today = Localize.translate(locale, 'common.today');
     let tomorrow = Localize.translate(locale, 'common.tomorrow');
     let yesterday = Localize.translate(locale, 'common.yesterday');
 
-    const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn});
-    const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn});
+    const startOfCurrentYear = startOfYear(new Date());
+    const endOfCurrentYear = endOfYear(new Date());
 
     if (isLowercase) {
         today = today.toLowerCase();
@@ -209,7 +223,7 @@ function datetimeToCalendarTime(locale: Locale, datetime: string, currentSelecte
     if (isYesterday(date, currentSelectedTimezone)) {
         return yesterday;
     }
-    if (date >= startOfCurrentWeek && date <= endOfCurrentWeek) {
+    if (date >= startOfCurrentYear && date <= endOfCurrentYear) {
         return format(date, CONST.DATE.MONTH_DAY_ABBR_FORMAT);
     }
     return format(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
@@ -778,18 +792,6 @@ function getLastBusinessDayOfMonth(inputDate: Date): number {
     }
 
     return getDate(currentDate);
-}
-
-/**
- * Formats datetime to selected format type
- *
- * eg.
- *
- * Dec 14, 2023
- */
-function formatDate(datetime: Date, formatString: string = CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) {
-    const date = new Date(datetime);
-    return format(date, formatString);
 }
 
 const DateUtils = {

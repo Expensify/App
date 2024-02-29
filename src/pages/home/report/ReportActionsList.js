@@ -206,8 +206,8 @@ function ReportActionsList({
             const currentItem = sortedReportActions[index];
             const nextItem = sortedReportActions[index + 1];
 
-            if (nextItem) {
-                return DateUtils.formatDate(currentItem.created) !== DateUtils.formatDate(nextItem.created);
+            if (nextItem.reportActionTimestamp && currentItem.reportActionTimestamp) {
+                return DateUtils.formatDate(currentItem.reportActionTimestamp) !== DateUtils.formatDate(nextItem.reportActionTimestamp);
             }
         },
         [sortedReportActions],
@@ -549,9 +549,9 @@ function ReportActionsList({
                 isActive={isFloatingMessageCounterVisible && !!currentUnreadMarker}
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
-            {!isFloatingMessageCounterVisible && dateIndicatorLabel ? (
+            {!isFloatingMessageCounterVisible && dateIndicatorLabel.reportActionTimestamp ? (
                 <ReportDateIndicator
-                    created={dateIndicatorLabel.created}
+                    created={dateIndicatorLabel.reportActionTimestamp}
                     style={[styles.pAbsolute, styles.t0, styles.l0, styles.r0, styles.chatItemDateIndicatorWrapper, {marginRight: scrollBarWidth}]}
                 />
             ) : null}

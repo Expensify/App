@@ -771,7 +771,7 @@ function ReportActionItem(props) {
             withoutFocusOnSecondaryInteraction
             accessibilityLabel={props.translate('accessibilityHints.chatMessage')}
         >
-            {props.showDateIndicator && <ReportDateIndicator created={props.action.created} />}
+            {props.showDateIndicator && <ReportDateIndicator created={props.action.reportActionTimestamp} />}
             <Hoverable
                 shouldHandleScroll
                 isDisabled={!_.isUndefined(props.draftMessage)}
