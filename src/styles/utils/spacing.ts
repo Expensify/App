@@ -319,6 +319,10 @@ export default {
         marginBottom: -4,
     },
 
+    mbn5: {
+        marginBottom: -20,
+    },
+
     p0: {
         padding: 0,
         paddingHorizontal: 0,

@@ -1,24 +1,23 @@
-import lodashGet from 'lodash/get';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import participantPropTypes from '@components/participantPropTypes';
 import Text from '@components/Text';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import Timers from '@libs/Timers';
+import type {Locale} from '@src/components/LocaleContextProvider';
 import CONST from '@src/CONST';
+import type {PersonalDetails} from '@src/types/onyx';
 
-const propTypes = {
+type ParticipantLocalTimeProps = {
     /** Personal details of the participant */
-    participant: participantPropTypes.isRequired,
-
-    ...withLocalizePropTypes,
+    participant: PersonalDetails;
 };
 
-function getParticipantLocalTime(participant, preferredLocale) {
-    const reportRecipientTimezone = lodashGet(participant, 'timezone', CONST.DEFAULT_TIME_ZONE);
-    const reportTimezone = DateUtils.getLocalDateFromDatetime(preferredLocale, null, reportRecipientTimezone.selected);
+function getParticipantLocalTime(participant: PersonalDetails, preferredLocale: Locale) {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
+    const reportRecipientTimezone = participant.timezone || CONST.DEFAULT_TIME_ZONE;
+    const reportTimezone = DateUtils.getLocalDateFromDatetime(preferredLocale, undefined, reportRecipientTimezone.selected);
     const currentTimezone = DateUtils.getLocalDateFromDatetime(preferredLocale);
     const reportRecipientDay = DateUtils.formatToDayOfWeek(reportTimezone);
     const currentUserDay = DateUtils.formatToDayOfWeek(currentTimezone);
@@ -28,9 +27,9 @@ function getParticipantLocalTime(participant, preferredLocale) {
     return `${DateUtils.formatToLocalTime(reportTimezone)}`;
 }
 
-function ParticipantLocalTime(props) {
+function ParticipantLocalTime({participant}: ParticipantLocalTimeProps) {
+    const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
-    const {participant, preferredLocale, translate} = props;
 
     const [localTime, setLocalTime] = useState(() => getParticipantLocalTime(participant, preferredLocale));
     useEffect(() => {
@@ -44,7 +43,8 @@ function ParticipantLocalTime(props) {
         };
     }, [participant, preferredLocale]);
 
-    const reportRecipientDisplayName = lodashGet(props, 'participant.firstName') || lodashGet(props, 'participant.displayName');
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
+    const reportRecipientDisplayName = participant.firstName || participant.displayName;
 
     if (!reportRecipientDisplayName) {
         return null;
@@ -65,7 +65,6 @@ function ParticipantLocalTime(props) {
     );
 }
 
-ParticipantLocalTime.propTypes = propTypes;
 ParticipantLocalTime.displayName = 'ParticipantLocalTime';
 
-export default withLocalize(ParticipantLocalTime);
+export default ParticipantLocalTime;
