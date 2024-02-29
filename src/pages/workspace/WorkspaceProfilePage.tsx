@@ -77,6 +77,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
         ),
         [policy?.avatar, policyName, styles.alignSelfCenter, styles.avatarXLarge],
     );
+
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
     const confirmDeleteAndHideModal = useCallback(() => {
@@ -85,11 +86,8 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
         }
 
         Policy.deleteWorkspace(policy?.id, policyName);
-
         Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
-
         Navigation.navigateWithSwitchPolicyID({route: ROUTES.ALL_SETTINGS});
-
         setIsDeleteModalOpen(false);
     }, [policy?.id, policyName]);
     return (
@@ -200,6 +198,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                     <Button
                                         accessibilityLabel={translate('common.delete')}
                                         text={translate('common.delete')}
+                                        style={[styles.ml2]}
                                         onPress={() => setIsDeleteModalOpen(true)}
                                         medium
                                     />
