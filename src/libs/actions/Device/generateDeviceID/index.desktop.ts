@@ -1,4 +1,4 @@
-import ELECTRON_EVENTS from '../../../../../desktop/ELECTRON_EVENTS';
+import ELECTRON_EVENTS from '@desktop/ELECTRON_EVENTS';
 import type GenerateDeviceID from './types';
 
 /**
