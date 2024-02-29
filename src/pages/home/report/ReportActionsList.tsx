@@ -5,6 +5,7 @@ import type {DebouncedFunc} from 'lodash';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {usePersonalDetails} from '@components/OnyxProvider';
@@ -37,7 +38,7 @@ type ReportActionsListProps = WithCurrentUserPersonalDetailsProps & {
     report: OnyxTypes.Report;
 
     /** The report's parentReportAction */
-    parentReportAction: PropTypes.shape(reportActionPropTypes),
+    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
     /** Sorted actions prepared for display */
     sortedReportActions: OnyxTypes.ReportAction[];

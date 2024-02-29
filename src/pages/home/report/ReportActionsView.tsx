@@ -38,7 +38,7 @@ type ReportActionsViewProps = ReportActionsViewOnyxProps & {
     reportActions?: OnyxTypes.ReportAction[];
 
     /** The report's parentReportAction */
-    parentReportAction: PropTypes.shape(reportActionPropTypes),
+    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
     /** The report metadata loading states */
     isLoadingInitialReportActions?: boolean;
@@ -53,6 +53,7 @@ type ReportActionsViewProps = ReportActionsViewOnyxProps & {
 function ReportActionsView({
     report,
     session,
+    parentReportAction,
     reportActions = [],
     isLoadingInitialReportActions = false,
     isLoadingOlderReportActions = false,
@@ -230,7 +231,7 @@ function ReportActionsView({
         <>
             <ReportActionsList
                 report={report}
-                parentReportAction={props.parentReportAction}
+                parentReportAction={parentReportAction}
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={reportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}

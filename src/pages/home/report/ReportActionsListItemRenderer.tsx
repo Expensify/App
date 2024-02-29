@@ -1,4 +1,5 @@
 import React, {memo, useMemo} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -11,7 +12,7 @@ type ReportActionsListItemRendererProps = {
     reportAction: ReportAction;
 
     /** The report's parentReportAction */
-    parentReportAction: PropTypes.shape(reportActionPropTypes),
+    parentReportAction: OnyxEntry<ReportAction>;
 
     /** Position index of the report action in the overall report FlatList view */
     index: number;
