@@ -16,7 +16,7 @@ function VideoPopoverMenuContextProvider({children}) {
     const {translate} = useLocalize();
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[2]);
     const {isOffline} = useNetwork();
-    const isLocalFile = currentlyPlayingURL && (currentlyPlayingURL.startsWith('blob:') || currentlyPlayingURL.startsWith('file:'));
+    const isLocalFile = currentlyPlayingURL && _.some(CONST.ATTACHMENT_LOCAL_URL_PREFIX, (prefix) => currentlyPlayingURL.startsWith(prefix));
 
     const updatePlaybackSpeed = useCallback(
         (speed) => {
@@ -27,9 +27,9 @@ function VideoPopoverMenuContextProvider({children}) {
     );
 
     const downloadAttachment = useCallback(() => {
-        const sourceURI = isLocalFile ? currentlyPlayingURL : addEncryptedAuthTokenToURL(currentlyPlayingURL);
+        const sourceURI = addEncryptedAuthTokenToURL(currentlyPlayingURL);
         fileDownload(sourceURI);
-    }, [currentlyPlayingURL, isLocalFile]);
+    }, [currentlyPlayingURL]);
 
     const menuItems = useMemo(() => {
         const items = [];
@@ -60,7 +60,7 @@ function VideoPopoverMenuContextProvider({children}) {
         });
 
         return items;
-    }, [currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline]);
+    }, [currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline, isLocalFile]);
 
     const contextValue = useMemo(() => ({menuItems, updatePlaybackSpeed}), [menuItems, updatePlaybackSpeed]);
     return <VideoPopoverMenuContext.Provider value={contextValue}>{children}</VideoPopoverMenuContext.Provider>;
