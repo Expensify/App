@@ -23,8 +23,8 @@ type Props = {
 };
 
 const mockRates = [
-    {text: 'Default Rate', alternateText: '0.656/mile', keyForList: 'DefaultRate'},
-    {text: 'Custom Rate', alternateText: '0.700/mile', keyForList: 'CustomRate'},
+    {text: 'Default Rate', alternateText: '$0.656 / mile', keyForList: 'DefaultRate'},
+    {text: 'Custom Rate', alternateText: '$0.700 / mile', keyForList: 'CustomRate'},
 ];
 
 function IOURequestStepRate({
@@ -42,7 +42,7 @@ function IOURequestStepRate({
             shouldShowWrapper={Boolean(backTo)}
             testID="rate"
         >
-            <Text style={[styles.mh5, styles.mv4]}>{translate('themePage.chooseThemeBelowOrSync')}</Text>
+            <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate')}</Text>
 
             <SelectionList
                 sections={[{data: mockRates}]}

@@ -691,6 +691,8 @@ export default {
         set: 'estableció',
         changed: 'cambió',
         removed: 'eliminó',
+        // TODO: check if this is the correct translation
+        chooseARate: 'Elige una tarifa para utilizar a continuación',
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',

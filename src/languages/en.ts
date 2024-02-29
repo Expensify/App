@@ -696,6 +696,7 @@ export default {
         set: 'set',
         changed: 'changed',
         removed: 'removed',
+        chooseARate: 'Choose a rate to use below',
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
