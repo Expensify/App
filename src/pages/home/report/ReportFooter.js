@@ -34,9 +34,6 @@ const propTypes = {
     /** The pending action when we are adding a chat */
     pendingAction: PropTypes.string,
 
-    /** Height of the list which the composer is part of */
-    listHeight: PropTypes.number,
-
     /** Whetjer the report is ready for display */
     isReportReadyForDisplay: PropTypes.bool,
 
@@ -49,7 +46,6 @@ const propTypes = {
 const defaultProps = {
     report: {reportID: '0'},
     pendingAction: null,
-    listHeight: 0,
     isReportReadyForDisplay: true,
     lastReportAction: null,
     isEmptyChat: true,
@@ -139,7 +135,6 @@ function ReportFooter(props) {
                             lastReportAction={props.lastReportAction}
                             pendingAction={props.pendingAction}
                             isComposerFullSize={props.isComposerFullSize}
-                            listHeight={props.listHeight}
                             isReportReadyForDisplay={props.isReportReadyForDisplay}
                         />
                     </SwipeableView>
@@ -166,7 +161,6 @@ export default compose(
         (prevProps, nextProps) =>
             isEqual(prevProps.report, nextProps.report) &&
             prevProps.pendingAction === nextProps.pendingAction &&
-            prevProps.listHeight === nextProps.listHeight &&
             prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
             prevProps.isEmptyChat === nextProps.isEmptyChat &&
             prevProps.lastReportAction === nextProps.lastReportAction &&

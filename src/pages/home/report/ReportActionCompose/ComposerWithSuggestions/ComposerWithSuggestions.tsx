@@ -38,7 +38,6 @@ import * as KeyDownListener from '@libs/KeyboardShortcut/KeyDownPressListener';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as SuggestionUtils from '@libs/SuggestionUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import getCursorPosition from '@pages/home/report/ReportActionCompose/getCursorPosition';
@@ -54,7 +53,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import {MeasureParentContainerAndCursorCallback} from '../../../../../components/AutoCompleteSuggestions/types';
+import type {MeasureParentContainerAndCursorCallback} from '../../../../../components/AutoCompleteSuggestions/types';
 
 type SyncSelection = {
     position: number;
@@ -721,9 +720,9 @@ function ComposerWithSuggestions(
     }, []);
 
     const measureParentContainerAndReportCursor = useCallback(
-      (callback: MeasureParentContainerAndCursorCallback) => {
-        const {x: positionX, y: positionY} = getCursorPosition(selection);
-        const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef});
+        (callback: MeasureParentContainerAndCursorCallback) => {
+            const {x: positionX, y: positionY} = getCursorPosition(selection);
+            const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef});
             measureParentContainer((x, y, width, height) => {
                 callback({
                     x,

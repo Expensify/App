@@ -2,7 +2,7 @@ import type {TextInput} from 'react-native';
 
 type TextInputScrollProps = {
     mobileInputScrollPosition: React.RefObject<number>;
-    textInputRef: React.RefObject<TextInput | HTMLDivElement>;
+    textInputRef: React.RefObject<HTMLDivElement | TextInput>;
 };
 
 type GetScrollPositionType = {scrollValue: number};
