@@ -92,6 +92,7 @@ function MoneyRequestPreviewContent({
     const isFetchingWaypointsFromServer = TransactionUtils.isFetchingWaypointsFromServer(transaction);
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const isSettled = ReportUtils.isSettled(iouReport?.reportID);
+    const isOnHold = TransactionUtils.isOnHold(transaction);
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const showMissingMerchant = !isSettled && hasFieldErrors && TransactionUtils.isMerchantMissing(transaction);
     const isRoutePending = isFetchingWaypointsFromServer && !requestAmount;
@@ -168,6 +169,8 @@ function MoneyRequestPreviewContent({
             message += ` • ${translate('iou.pending')}`;
         } else if (iouReport?.isCancelledIOU) {
             message += ` • ${translate('iou.canceled')}`;
+        } else if (isOnHold) {
+            message += ` • ${translate('iou.hold')}`;
         }
         return message;
     };

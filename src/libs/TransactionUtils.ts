@@ -12,6 +12,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
+import {getCleanedTagName} from './PolicyUtils';
 import type {OptimisticIOUReportAction} from './ReportUtils';
 
 let allTransactions: OnyxCollection<Transaction> = {};
@@ -140,7 +141,7 @@ function hasReceipt(transaction: Transaction | undefined | null): boolean {
 }
 
 function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
-    if (transaction?.modifiedMerchant && transaction.modifiedMerchant !== '') {
+    if (transaction?.modifiedMerchant && transaction?.modifiedMerchant !== '') {
         return transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     }
     const isMerchantEmpty = transaction?.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction?.merchant === '';
@@ -156,14 +157,14 @@ function isPartialMerchant(merchant: string): boolean {
 }
 
 function isAmountMissing(transaction: OnyxEntry<Transaction>) {
-    return transaction?.amount === 0 && (!transaction.modifiedAmount || transaction.modifiedAmount === 0);
+    return transaction?.amount === 0 && (!transaction?.modifiedAmount || transaction?.modifiedAmount === 0);
 }
 
-function isCreatedMissing(transaction: Transaction) {
-    return transaction.created === '' && (!transaction.created || transaction.modifiedCreated === '');
+function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
+    return transaction?.created === '' && (!transaction?.created || transaction?.modifiedCreated === '');
 }
 
-function areRequiredFieldsEmpty(transaction: Transaction): boolean {
+function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>): boolean {
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
     const isFromExpenseReport = parentReport?.type === CONST.REPORT.TYPE.EXPENSE;
     return (isFromExpenseReport && isMerchantMissing(transaction)) || isAmountMissing(transaction) || isCreatedMissing(transaction);
@@ -409,7 +410,7 @@ function getTag(transaction: OnyxEntry<Transaction>, tagIndex?: number): string 
 }
 
 function getTagForDisplay(transaction: OnyxEntry<Transaction>, tagIndex?: number): string {
-    return getTag(transaction, tagIndex).replace(/[\\\\]:/g, ':');
+    return getCleanedTagName(getTag(transaction, tagIndex));
 }
 
 /**
@@ -480,13 +481,13 @@ function isReceiptBeingScanned(transaction: OnyxEntry<Transaction>): boolean {
  * Check if the transaction has a non-smartscanning receipt and is missing required fields
  */
 function hasMissingSmartscanFields(transaction: OnyxEntry<Transaction>): boolean {
-    return Boolean(transaction && hasReceipt(transaction) && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && areRequiredFieldsEmpty(transaction));
+    return Boolean(transaction && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && areRequiredFieldsEmpty(transaction));
 }
 
 /**
  * Check if the transaction has a defined route
  */
-function hasRoute(transaction: Transaction): boolean {
+function hasRoute(transaction: OnyxEntry<Transaction>): boolean {
     return !!transaction?.routes?.route0?.geometry?.coordinates;
 }
 
