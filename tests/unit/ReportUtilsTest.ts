@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Policy, Report, ReportAction} from '@src/types/onyx';
+import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -45,7 +47,7 @@ const participantsPersonalDetails = {
     },
 } as const;
 
-const policy = {
+const policy: Policy = {
     id: '1',
     name: 'Vikings Policy',
     role: 'user',
@@ -53,17 +55,18 @@ const policy = {
     owner: '',
     outputCurrency: '',
     isPolicyExpenseChatEnabled: false,
-} as const;
+};
 
 Onyx.init({keys: ONYXKEYS});
 
 describe('ReportUtils', () => {
     beforeAll(() => {
+        const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (current) => current.id);
         Onyx.multiSet({
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
             [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
             [ONYXKEYS.COUNTRY_CODE]: 1,
-            [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}` as const]: policy,
+            ...policyCollectionDataSet,
         });
         return waitForBatchedUpdates();
     });
@@ -268,14 +271,14 @@ describe('ReportUtils', () => {
         });
         it('returns false when the matched IOU report does not have an owner accountID', () => {
             const report = {
-                ...(LHNTestUtils.getFakeReport() as Report),
+                ...LHNTestUtils.getFakeReport(),
                 ownerAccountID: undefined,
             };
             expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
         });
         it('returns false when the linked iou report has an oustanding IOU', () => {
             const report = {
-                ...(LHNTestUtils.getFakeReport() as Report),
+                ...LHNTestUtils.getFakeReport(),
                 iouReportID: '1',
             };
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
@@ -287,7 +290,7 @@ describe('ReportUtils', () => {
         });
         it('returns false when the report has no outstanding IOU but is waiting for a bank account and the logged user is the report owner', () => {
             const report = {
-                ...(LHNTestUtils.getFakeReport() as Report),
+                ...LHNTestUtils.getFakeReport(),
                 ownerAccountID: currentUserAccountID,
                 isWaitingOnBankAccount: true,
             };
@@ -295,7 +298,7 @@ describe('ReportUtils', () => {
         });
         it('returns false when the report has outstanding IOU and is not waiting for a bank account and the logged user is the report owner', () => {
             const report = {
-                ...(LHNTestUtils.getFakeReport() as Report),
+                ...LHNTestUtils.getFakeReport(),
                 ownerAccountID: currentUserAccountID,
                 isWaitingOnBankAccount: false,
             };
@@ -303,7 +306,7 @@ describe('ReportUtils', () => {
         });
         it('returns false when the report has no oustanding IOU but is waiting for a bank account and the logged user is not the report owner', () => {
             const report = {
-                ...(LHNTestUtils.getFakeReport() as Report),
+                ...LHNTestUtils.getFakeReport(),
                 ownerAccountID: 97,
                 isWaitingOnBankAccount: true,
             };
@@ -311,14 +314,14 @@ describe('ReportUtils', () => {
         });
         it('returns true when the report has an unread mention', () => {
             const report = {
-                ...(LHNTestUtils.getFakeReport() as Report),
+                ...LHNTestUtils.getFakeReport(),
                 isUnreadWithMention: true,
             };
             expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
         });
         it('returns true when the report is an outstanding task', () => {
             const report = {
-                ...(LHNTestUtils.getFakeReport() as Report),
+                ...LHNTestUtils.getFakeReport(),
                 type: CONST.REPORT.TYPE.TASK,
                 managerID: currentUserAccountID,
                 isUnreadWithMention: false,
@@ -329,7 +332,7 @@ describe('ReportUtils', () => {
         });
         it('returns true when the report has oustanding child request', () => {
             const report = {
-                ...(LHNTestUtils.getFakeReport() as Report),
+                ...LHNTestUtils.getFakeReport(),
                 ownerAccountID: 99,
                 hasOutstandingChildRequest: true,
                 isWaitingOnBankAccount: false,
@@ -363,7 +366,7 @@ describe('ReportUtils', () => {
 
             it('it is a room with no participants except self', () => {
                 const report = {
-                    ...(LHNTestUtils.getFakeReport() as Report),
+                    ...LHNTestUtils.getFakeReport(),
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, null, [currentUserAccountID]);
@@ -372,7 +375,7 @@ describe('ReportUtils', () => {
 
             it('its not your policy expense chat', () => {
                 const report = {
-                    ...(LHNTestUtils.getFakeReport() as Report),
+                    ...LHNTestUtils.getFakeReport(),
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                     isOwnPolicyExpenseChat: false,
                 };
@@ -382,7 +385,7 @@ describe('ReportUtils', () => {
 
             it('its paid IOU report', () => {
                 const report = {
-                    ...(LHNTestUtils.getFakeReport() as Report),
+                    ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.IOU,
                     statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 };
@@ -392,7 +395,7 @@ describe('ReportUtils', () => {
 
             it('its approved Expense report', () => {
                 const report = {
-                    ...(LHNTestUtils.getFakeReport() as Report),
+                    ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.EXPENSE,
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                     statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
@@ -403,7 +406,7 @@ describe('ReportUtils', () => {
 
             it('its paid Expense report', () => {
                 const report = {
-                    ...(LHNTestUtils.getFakeReport() as Report),
+                    ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.EXPENSE,
                     statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 };
@@ -417,7 +420,7 @@ describe('ReportUtils', () => {
                     isOwnPolicyExpenseChat: false,
                 }).then(() => {
                     const report = {
-                        ...(LHNTestUtils.getFakeReport() as Report),
+                        ...LHNTestUtils.getFakeReport(),
                         parentReportID: '100',
                         type: CONST.REPORT.TYPE.EXPENSE,
                     };
@@ -433,7 +436,7 @@ describe('ReportUtils', () => {
                     isOwnPolicyExpenseChat: true,
                 }).then(() => {
                     const report = {
-                        ...(LHNTestUtils.getFakeReport() as Report),
+                        ...LHNTestUtils.getFakeReport(),
                         type: CONST.REPORT.TYPE.EXPENSE,
                         stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                         statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
@@ -463,7 +466,7 @@ describe('ReportUtils', () => {
                     CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 ].every((chatType) => {
                     const report = {
-                        ...(LHNTestUtils.getFakeReport() as Report),
+                        ...LHNTestUtils.getFakeReport(),
                         chatType,
                     };
                     const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, null, [currentUserAccountID, participantsAccountIDs[0]]);
@@ -474,7 +477,7 @@ describe('ReportUtils', () => {
 
             it('has multiple participants excluding self', () => {
                 const report = {
-                    ...(LHNTestUtils.getFakeReport() as Report),
+                    ...LHNTestUtils.getFakeReport(),
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, null, [currentUserAccountID, ...participantsAccountIDs]);
@@ -484,7 +487,7 @@ describe('ReportUtils', () => {
 
             it('user has send money permission', () => {
                 const report = {
-                    ...(LHNTestUtils.getFakeReport() as Report),
+                    ...LHNTestUtils.getFakeReport(),
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, null, [currentUserAccountID, ...participantsAccountIDs]);
@@ -494,7 +497,7 @@ describe('ReportUtils', () => {
 
             it("it's a group DM report", () => {
                 const report = {
-                    ...(LHNTestUtils.getFakeReport() as Report),
+                    ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.CHAT,
                     participantsAccountIDs: [currentUserAccountID, ...participantsAccountIDs],
                 };
@@ -512,7 +515,7 @@ describe('ReportUtils', () => {
                     isOwnPolicyExpenseChat: true,
                 }).then(() => {
                     const report = {
-                        ...(LHNTestUtils.getFakeReport() as Report),
+                        ...LHNTestUtils.getFakeReport(),
                         parentReportID: '102',
                         type: CONST.REPORT.TYPE.EXPENSE,
                     };
@@ -529,7 +532,7 @@ describe('ReportUtils', () => {
                     isOwnPolicyExpenseChat: true,
                 }).then(() => {
                     const report = {
-                        ...(LHNTestUtils.getFakeReport() as Report),
+                        ...LHNTestUtils.getFakeReport(),
                         type: CONST.REPORT.TYPE.EXPENSE,
                         stateNum: CONST.REPORT.STATE_NUM.OPEN,
                         statusNum: CONST.REPORT.STATUS_NUM.OPEN,
@@ -551,7 +554,7 @@ describe('ReportUtils', () => {
 
             it('it is an IOU report in submitted state', () => {
                 const report = {
-                    ...(LHNTestUtils.getFakeReport() as Report),
+                    ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.IOU,
                     stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
@@ -563,7 +566,7 @@ describe('ReportUtils', () => {
 
             it('it is an IOU report in submitted state even with send money permissions', () => {
                 const report = {
-                    ...(LHNTestUtils.getFakeReport() as Report),
+                    ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.IOU,
                     stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
@@ -577,7 +580,7 @@ describe('ReportUtils', () => {
         describe('return multiple money request option if', () => {
             it("it is user's own policy expense chat", () => {
                 const report = {
-                    ...(LHNTestUtils.getFakeReport() as Report),
+                    ...LHNTestUtils.getFakeReport(),
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                     isOwnPolicyExpenseChat: true,
                 };
@@ -589,7 +592,7 @@ describe('ReportUtils', () => {
 
             it('it is a 1:1 DM', () => {
                 const report = {
-                    ...(LHNTestUtils.getFakeReport() as Report),
+                    ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.CHAT,
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, null, [currentUserAccountID, participantsAccountIDs[0]]);
@@ -618,7 +621,7 @@ describe('ReportUtils', () => {
 
     describe('sortReportsByLastRead', () => {
         it('should filter out report without reportID & lastReadTime and sort lastReadTime in ascending order', () => {
-            const reports = [
+            const reports: Array<OnyxEntry<Report>> = [
                 {reportID: '1', lastReadTime: '2023-07-08 07:15:44.030'},
                 {reportID: '2', lastReadTime: undefined},
                 {reportID: '3', lastReadTime: '2023-07-06 07:15:44.030'},
@@ -627,42 +630,41 @@ describe('ReportUtils', () => {
                 {reportID: '6'},
                 null,
             ];
-            const sortedReports = [
+            const sortedReports: Array<OnyxEntry<Report>> = [
                 {reportID: '3', lastReadTime: '2023-07-06 07:15:44.030'},
                 {reportID: '4', lastReadTime: '2023-07-07 07:15:44.030', type: CONST.REPORT.TYPE.IOU},
                 {reportID: '1', lastReadTime: '2023-07-08 07:15:44.030'},
-            ] as const;
+            ];
             expect(ReportUtils.sortReportsByLastRead(reports, null)).toEqual(sortedReports);
         });
     });
 
     describe('getAllAncestorReportActions', () => {
-        const reports = [
+        const reports: Report[] = [
             {reportID: '1', lastReadTime: '2024-02-01 04:56:47.233', reportName: 'Report'},
             {reportID: '2', lastReadTime: '2024-02-01 04:56:47.233', parentReportActionID: '1', parentReportID: '1', reportName: 'Report'},
             {reportID: '3', lastReadTime: '2024-02-01 04:56:47.233', parentReportActionID: '2', parentReportID: '2', reportName: 'Report'},
             {reportID: '4', lastReadTime: '2024-02-01 04:56:47.233', parentReportActionID: '3', parentReportID: '3', reportName: 'Report'},
             {reportID: '5', lastReadTime: '2024-02-01 04:56:47.233', parentReportActionID: '4', parentReportID: '4', reportName: 'Report'},
-        ] as const;
+        ];
 
-        const reportActions = [
+        const reportActions: ReportAction[] = [
             {reportActionID: '1', created: '2024-02-01 04:42:22.965', actionName: 'MARKEDREIMBURSED'},
             {reportActionID: '2', created: '2024-02-01 04:42:28.003', actionName: 'MARKEDREIMBURSED'},
             {reportActionID: '3', created: '2024-02-01 04:42:31.742', actionName: 'MARKEDREIMBURSED'},
             {reportActionID: '4', created: '2024-02-01 04:42:35.619', actionName: 'MARKEDREIMBURSED'},
-        ] as const;
+        ];
 
         beforeAll(() => {
+            const reportCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.REPORT, reports, (report) => report.reportID);
+            const reportActionCollectionDataSet = toCollectionDataSet(
+                ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                reportActions.map((reportAction) => ({[reportAction.reportActionID]: reportAction})),
+                (actions) => Object.values(actions)[0].reportActionID,
+            );
             Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.REPORT}${reports[0].reportID}` as const]: reports[0],
-                [`${ONYXKEYS.COLLECTION.REPORT}${reports[1].reportID}` as const]: reports[1],
-                [`${ONYXKEYS.COLLECTION.REPORT}${reports[2].reportID}` as const]: reports[2],
-                [`${ONYXKEYS.COLLECTION.REPORT}${reports[3].reportID}` as const]: reports[3],
-                [`${ONYXKEYS.COLLECTION.REPORT}${reports[4].reportID}` as const]: reports[4],
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reports[0].reportID}` as const]: {[reportActions[0].reportActionID]: reportActions[0]},
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reports[1].reportID}` as const]: {[reportActions[1].reportActionID]: reportActions[1]},
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reports[2].reportID}` as const]: {[reportActions[2].reportActionID]: reportActions[2]},
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reports[3].reportID}` as const]: {[reportActions[3].reportActionID]: reportActions[3]},
+                ...reportCollectionDataSet,
+                ...reportActionCollectionDataSet,
             });
             return waitForBatchedUpdates();
         });

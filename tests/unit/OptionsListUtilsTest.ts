@@ -623,7 +623,9 @@ describe('OptionsListUtils', () => {
             if (!ReportUtils.canUserPerformWriteAction(report) || ReportUtils.isExpensifyOnlyParticipantInReport(report)) {
                 return reports;
             }
-            return {...reports, [reportKey]: report};
+            // eslint-disable-next-line no-param-reassign
+            reports[reportKey] = report;
+            return reports;
         }, {});
 
         // When we pass an empty search value

@@ -16,9 +16,8 @@ jest.mock('@components/Icon/Expensicons');
 jest.mock('@react-navigation/native');
 
 const getMockedReportsMap = (length = 100) => {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    const mockReports = Array.from({length}, (_, i) => {
-        const reportID = i + 1;
+    const mockReports = Array.from({length}, (value, index) => {
+        const reportID = index + 1;
         const participants = [1, 2];
         const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
         const report = LHNTestUtils.getFakeReport(participants, 1, true);
