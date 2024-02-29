@@ -24,8 +24,8 @@ type VideoPlayerControlsProps = {
     // Defines if component should have small icons and tighter spacing inline
     small: boolean;
     style: ViewStyle;
-    showPopoverMenu: (event: GestureResponderEvent) => void;
-    togglePlayCurrentVideo: (event: GestureResponderEvent) => void;
+    showPopoverMenu: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
+    togglePlayCurrentVideo: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 };
 
 function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying, small = false, style, showPopoverMenu, togglePlayCurrentVideo}: VideoPlayerControlsProps) {
