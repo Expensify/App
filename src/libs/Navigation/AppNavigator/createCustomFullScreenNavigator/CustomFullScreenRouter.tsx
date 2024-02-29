@@ -10,7 +10,11 @@ const isAtLeastOneInState = (state: StackState, screenName: string): boolean => 
 
 function adaptStateIfNecessary(state: StackState) {
     const isNarrowLayout = getIsNarrowLayout();
-    const topmostWorkspaceCentralPaneRoute = state.routes.at(-1)?.state?.routes[0];
+    const workspaceCentralPane = state.routes.at(-1);
+    const topmostWorkspaceCentralPaneRoute = workspaceCentralPane?.state?.routes[0];
+    // When a screen from the FullScreenNavigator is opened from the deeplink then params should be passed to SCREENS.WORKSPACE.INITIAL from the variable defined below.
+    const workspacesCentralPaneParams =
+        workspaceCentralPane?.params && 'params' in workspaceCentralPane.params ? (workspaceCentralPane.params.params as Record<string, string | undefined>) : undefined;
 
     // There should always be SETTINGS.ROOT screen in the state to make sure go back works properly if we deeplinkg to a subpage of settings.
     if (!isAtLeastOneInState(state, SCREENS.WORKSPACE.INITIAL)) {
@@ -23,7 +27,7 @@ function adaptStateIfNecessary(state: StackState) {
             // Unshift the root screen to fill left pane.
             state.routes.unshift({
                 name: SCREENS.WORKSPACE.INITIAL,
-                params: topmostWorkspaceCentralPaneRoute?.params,
+                params: topmostWorkspaceCentralPaneRoute?.params ?? workspacesCentralPaneParams,
             });
         }
     }
