@@ -51,21 +51,24 @@ import type {AutoAuthState} from '@src/types/onyx/Session';
 import clearCache from './clearCache';
 import Session from '@src/types/onyx/Session';
 
-let sessionAuthTokenType: ValueOf<typeof CONST.AUTH_TOKEN_TYPES> | null = null;
-let sessionAuthToken: string | null = null;
+let session: Session = {};
 let authPromiseResolver: ((value: boolean) => void) | null = null;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: (session) => {
-        sessionAuthTokenType = session?.authTokenType ?? null;
-        sessionAuthToken = session?.authToken ?? null;
-
-        if (sessionAuthToken && authPromiseResolver) {
+    callback: (value) => {
+        session = value ?? {};
+        if (session.authToken && authPromiseResolver) {
             authPromiseResolver(true);
             authPromiseResolver = null;
         }
     },
+});
+
+let stashedSession: Session = {};
+Onyx.connect({
+    key: ONYXKEYS.STASHED_SESSION,
+    callback: (value) => (stashedSession = value ?? {}),
 });
 
 let credentials: Credentials = {};
@@ -80,12 +83,6 @@ Onyx.connect({
     callback: (value) => (stashedCredentials = value ?? {}),
 });
 
-let stashedSession: Session = {};
-Onyx.connect({
-    key: ONYXKEYS.STASHED_SESSION,
-    callback: (value) => (stashedSession = value ?? {}),
-});
-
 let preferredLocale: ValueOf<typeof CONST.LOCALES> | null = null;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
@@ -93,7 +90,7 @@ Onyx.connect({
 });
 
 function isSupportalToken(): boolean {
-    return sessionAuthTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
+    return session.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 }
 
 /**
@@ -201,7 +198,7 @@ function signOut() {
  * Checks if the account is an anonymous account.
  */
 function isAnonymousUser(): boolean {
-    return sessionAuthTokenType === 'anonymousAccount';
+    return session.authTokenType === 'anonymousAccount';
 }
 
 function signOutAndRedirectToSignIn(shouldReplaceCurrentScreen?: boolean, stashSession?: boolean) {
@@ -890,7 +887,7 @@ function validateTwoFactorAuth(twoFactorAuthCode: string) {
  */
 function waitForUserSignIn(): Promise<boolean> {
     return new Promise<boolean>((resolve) => {
-        if (sessionAuthToken) {
+        if (session.authToken) {
             resolve(true);
         } else {
             authPromiseResolver = resolve;
