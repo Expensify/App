@@ -303,7 +303,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
 
-    const hideRecieptModal = () => {
+    const navigateBack = () => {
         Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(iouType, transaction.transactionID, reportID));
     };
 
@@ -868,6 +868,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     // We don't support scaning password protected PDF receipt
                     enabled={!isAttachmentInvalid}
                     onPassword={() => setIsAttachmentInvalid(true)}
+                    isClickable={false}
                 />
             ) : (
                 <Image
@@ -939,10 +940,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             {shouldShowAllFields && supplementaryFields}
             <ConfirmModal
                 title={translate('attachmentPicker.wrongFileType')}
-                onConfirm={hideRecieptModal}
-                onCancel={hideRecieptModal}
+                onConfirm={navigateBack}
+                onCancel={navigateBack}
                 isVisible={isAttachmentInvalid}
-                prompt={translate('receipt.protectedPDFNotSupportedError')}
+                prompt={translate('attachmentPicker.protectedPDFNotSupported')}
                 confirmText={translate('common.close')}
                 shouldShowCancelButton={false}
             />

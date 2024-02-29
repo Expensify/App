@@ -328,8 +328,9 @@ export default {
         attachmentTooSmall: 'Archivo adjunto demasiado pequeño',
         sizeNotMet: 'El archivo adjunto debe ser más grande que 240 bytes.',
         wrongFileType: 'Tipo de archivo inválido',
-        notAllowedExtension: 'Este tipo de archivo no es compatible.',
+        notAllowedExtension: 'Este tipo de archivo no es compatible',
         folderNotAllowedMessage: 'Subir una carpeta no está permitido. Prueba con otro archivo.',
+        protectedPDFNotSupported: 'Los PDFs con password no son compatibles',
     },
     avatarCropModal: {
         title: 'Editar foto',
@@ -565,7 +566,6 @@ export default {
         deleteReceipt: 'Eliminar recibo',
         deleteConfirmation: '¿Estás seguro de que quieres borrar este recibo?',
         addReceipt: 'Añadir recibo',
-        protectedPDFNotSupportedError: 'Los PDFs con password no son compatibles.',
     },
     iou: {
         amount: 'Importe',

@@ -7,7 +7,7 @@ type PDFThumbnailProps = {
     /** Any additional styles to apply */
     style?: StyleProp<ViewStyle>;
 
-    /** Whether the image requires an authToken */
+    /** Whether the PDF thumbnail requires an authToken */
     isAuthTokenRequired?: boolean;
 
     /** Whether the PDF thumbnail can be loaded */
@@ -15,6 +15,9 @@ type PDFThumbnailProps = {
 
     /** Callback to call if PDF is password protected */
     onPassword?: () => void;
+
+    /** Whether the PDF thumbnail is clickable */
+    isClickable?: boolean;
 };
 
 export default PDFThumbnailProps;

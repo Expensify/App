@@ -1,0 +1,4 @@
+/* These style overrides are necessary so that the PDF thumbnail shows default pointer when it's not clickable */
+.react-pdf__Thumbnail--notClickable {
+    cursor: default;
+}

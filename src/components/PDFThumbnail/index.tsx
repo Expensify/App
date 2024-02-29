@@ -1,21 +1,23 @@
-import React, {useMemo} from 'react';
+// @ts-expect-error - We use the same method as PDFView to import the worker
+import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {Document, pdfjs, Thumbnail} from 'react-pdf';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import './index.css';
 import type PDFThumbnailProps from './types';
 
-if (!pdfjs.GlobalWorkerOptions.workerSrc) {
-    pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-        'pdfjs-dist/legacy/build/pdf.worker.min.js',
-        // @ts-expect-error - It is a recommended step for import worker - https://github.com/wojtekmaj/react-pdf/blob/main/packages/react-pdf/README.md#import-worker-recommended
-        import.meta.url,
-    ).toString();
-}
-
-function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword = () => {}}: PDFThumbnailProps) {
+function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword = () => {}, isClickable = true}: PDFThumbnailProps) {
     const styles = useThemeStyles();
+
+    useEffect(() => {
+        const workerURL = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
+        if (pdfjs.GlobalWorkerOptions.workerSrc !== workerURL) {
+            pdfjs.GlobalWorkerOptions.workerSrc = workerURL;
+        }
+    }, []);
 
     const thumbnail = useMemo(
         () => (
@@ -31,10 +33,13 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                     onPassword();
                 }}
             >
-                <Thumbnail pageIndex={0} />
+                <Thumbnail
+                    pageIndex={0}
+                    className={isClickable ? '' : 'react-pdf__Thumbnail--notClickable'}
+                />
             </Document>
         ),
-        [isAuthTokenRequired, previewSourceURL, onPassword],
+        [isAuthTokenRequired, previewSourceURL, onPassword, isClickable],
     );
 
     return (

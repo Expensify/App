@@ -338,8 +338,9 @@ export default {
         attachmentTooSmall: 'Attachment too small',
         sizeNotMet: 'Attachment size must be greater than 240 bytes.',
         wrongFileType: 'Invalid file type',
-        notAllowedExtension: 'This file type is not allowed.',
+        notAllowedExtension: 'This file type is not allowed',
         folderNotAllowedMessage: 'Uploading a folder is not allowed. Try a different file.',
+        protectedPDFNotSupported: 'Password-protected PDF is not supported',
     },
     avatarCropModal: {
         title: 'Edit photo',
@@ -572,7 +573,6 @@ export default {
         deleteReceipt: 'Delete receipt',
         deleteConfirmation: 'Are you sure you want to delete this receipt?',
         addReceipt: 'Add receipt',
-        protectedPDFNotSupportedError: 'Password-protected PDF is not supported.',
     },
     iou: {
         amount: 'Amount',
