@@ -1465,7 +1465,11 @@ function getOptions(
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
         const isSelfDM = ReportUtils.isSelfDM(report);
-        const accountIDs = report.visibleChatMemberAccountIDs ?? [];
+        let accountIDs = report.visibleChatMemberAccountIDs ?? [];
+
+        if (isSelfDM) {
+            accountIDs = [currentUserAccountID ?? 0];
+        }
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
             return;
@@ -1475,7 +1479,7 @@ function getOptions(
         if (!includeP2P && !isPolicyExpenseChat) {
             return;
         }
-
+        console.log('report', isSelfDM, includeSelfDM, report);
         if (isSelfDM && !includeSelfDM) {
             return;
         }

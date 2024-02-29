@@ -1610,6 +1610,10 @@ function getIcons(
         return isPayer ? [managerIcon, ownerIcon] : [ownerIcon, managerIcon];
     }
 
+    if (isSelfDM(report)) {
+        return getIconsForParticipants([currentUserAccountID ?? 0], personalDetails);
+    }
+
     return getIconsForParticipants(report?.participantAccountIDs ?? [], personalDetails);
 }
 
