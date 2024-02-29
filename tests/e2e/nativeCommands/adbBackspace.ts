@@ -3,7 +3,7 @@ import * as Logger from '../utils/logger';
 
 const adbBackspace = async () => {
     Logger.log(`🔙 Pressing backspace`);
-    execAsync(`adb shell input keyevent KEYCODE_DEL`);
+    await execAsync(`adb shell input keyevent KEYCODE_DEL`);
     return true;
 };
 
