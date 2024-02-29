@@ -94,22 +94,21 @@ function MoneyRequestPreviewContent({
     const isSettled = ReportUtils.isSettled(iouReport?.reportID);
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const showMissingMerchant = !isSettled && hasFieldErrors && TransactionUtils.isMerchantMissing(transaction);
-    const isRoutePending = isFetchingWaypointsFromServer && !requestAmount;
 
     /*
      Show the merchant for IOUs and expenses only if:
      - the merchant is not empty, is custom, or is not related to scanning smartscan;
      - the request is not a distance request with a pending route and amount = 0 - in this case,
        the merchant says: "Route pending...", which is already shown in the amount field;
-     - the merchant field is required, but it is missing
     */
     const shouldShowMerchant =
-        ((!!requestMerchant && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT) || showMissingMerchant) &&
-        !isRoutePending;
+        !!requestMerchant &&
+        requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT &&
+        requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT &&
+        !(isFetchingWaypointsFromServer && !requestAmount);
     const shouldShowDescription = !!description && !shouldShowMerchant && !isScanning;
 
-    let merchantOrDescription = showMissingMerchant ? translate('iou.missingMerchant') : requestMerchant;
+    let merchantOrDescription = requestMerchant;
     if (!shouldShowMerchant) {
         merchantOrDescription = description || '';
     }
@@ -154,7 +153,18 @@ function MoneyRequestPreviewContent({
         let message = translate('iou.cash');
         if (shouldShowRBR && transaction) {
             if (hasFieldErrors) {
-                return `${message} • ${translate('violations.reviewRequired')}`;
+                const isMerchantMissing = TransactionUtils.isMerchantMissing(transaction);
+                const isAmountMissing = TransactionUtils.isAmountMissing(transaction);
+
+                if (isAmountMissing && isMerchantMissing) {
+                    message += ` • ${translate('violations.reviewRequired')}`;
+                } else if (isAmountMissing) {
+                    message += ` • ${translate('iou.missingAmount')}`;
+                } else {
+                    message += ` • ${translate('iou.missingMerchant')}`;
+                }
+
+                return message;
             }
 
             const violations = TransactionUtils.getTransactionViolations(transaction.transactionID, transactionViolations);
@@ -180,12 +190,8 @@ function MoneyRequestPreviewContent({
             return translate('iou.receiptScanning');
         }
 
-        if (isRoutePending) {
+        if (isFetchingWaypointsFromServer && !requestAmount) {
             return translate('iou.routePending');
-        }
-
-        if (!isSettled && hasFieldErrors && TransactionUtils.isAmountMissing(transaction)) {
-            return translate('iou.missingAmount');
         }
 
         return CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency);
@@ -277,7 +283,6 @@ function MoneyRequestPreviewContent({
                                     </View>
                                 )}
                             </View>
-
                             <View style={[styles.flexRow, styles.mt1]}>
                                 <View style={[styles.flex1]}>
                                     {!isCurrentUserManager && shouldShowPendingConversionMessage && (
