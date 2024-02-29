@@ -115,7 +115,7 @@ beforeAll(() => {
     // simulate data arriving we will just set it into Onyx directly with Onyx.merge() or Onyx.set() etc.
     global.fetch = TestHelper.getGlobalFetchMock() as typeof global.fetch;
 
-    Linking.setInitialURL('https://new.expensify.com/');
+    // Linking.setInitialURL('https://new.expensify.com/');
     appSetup();
 
     // Connect to Pusher
@@ -129,7 +129,7 @@ beforeAll(() => {
 
 function scrollUpToRevealNewMessagesBadge() {
     const hintText = Localize.translateLocal('sidebarScreen.listOfChatMessages');
-    fireEvent.scroll(screen.queryByLabelText(hintText), {
+    fireEvent.scroll(screen.getByLabelText(hintText), {
         nativeEvent: {
             contentOffset: {
                 y: 250,
@@ -196,8 +196,8 @@ const USER_B_ACCOUNT_ID = 2;
 const USER_B_EMAIL = 'user_b@test.com';
 const USER_C_ACCOUNT_ID = 3;
 const USER_C_EMAIL = 'user_c@test.com';
-let reportAction3CreatedDate;
-let reportAction9CreatedDate;
+let reportAction3CreatedDate: string;
+let reportAction9CreatedDate: string;
 
 /**
  * Sets up a test with a logged in user that has one unread chat from another user. Returns the <App/> test instance.
