@@ -129,7 +129,8 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                         <SelectionList
                             canSelectMultiple
                             sections={[{data: categoryList, isDisabled: false}]}
-                            onSelectRow={toggleCategory}
+                            onCheckboxPress={toggleCategory}
+                            onSelectRow={navigateToCategorySettings}
                             onSelectAll={toggleAllCategories}
                             showScrollIndicator
                             ListItem={TableListItem}

@@ -279,6 +279,7 @@ function WorkspaceInvitePage({
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
+            shouldUseCachedViewportHeight
             testID={WorkspaceInvitePage.displayName}
         >
             <FullPageNotFoundView
