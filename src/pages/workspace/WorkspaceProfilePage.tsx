@@ -66,7 +66,8 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
             <Avatar
                 containerStyles={styles.avatarXLarge}
                 imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
-                source={policy?.avatar ?? ReportUtils.getDefaultWorkspaceAvatar(policyName)}
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
+                source={policy?.avatar || ReportUtils.getDefaultWorkspaceAvatar(policyName)}
                 fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                 size={CONST.AVATAR_SIZE.XLARGE}
                 name={policyName}
