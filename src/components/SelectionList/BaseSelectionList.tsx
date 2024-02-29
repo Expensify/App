@@ -8,7 +8,7 @@ import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
 import FixedFooter from '@components/FixedFooter';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import {PressableWithFeedback} from '@components/Pressable';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import SectionList from '@components/SectionList';
 import Text from '@components/Text';
@@ -30,6 +30,7 @@ function BaseSelectionList<TItem extends ListItem>(
         ListItem,
         canSelectMultiple = false,
         onSelectRow,
+        onCheckboxPress,
         onSelectAll,
         onDismissError,
         textInputLabel = '',
@@ -63,6 +64,7 @@ function BaseSelectionList<TItem extends ListItem>(
         onLayout,
         customListHeader,
         listHeaderWrapperStyle,
+        isRowMultilineSupported = false,
     }: BaseSelectionListProps<TItem>,
     inputRef: ForwardedRef<RNTextInput>,
 ) {
@@ -289,10 +291,12 @@ function BaseSelectionList<TItem extends ListItem>(
                 showTooltip={showTooltip}
                 canSelectMultiple={canSelectMultiple}
                 onSelectRow={() => selectRow(item)}
+                onCheckboxPress={onCheckboxPress ? () => onCheckboxPress?.(item) : undefined}
                 onDismissError={() => onDismissError?.(item)}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList}
+                isMultilineSupported={isRowMultilineSupported}
             />
         );
     };
@@ -429,7 +433,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         ) : (
                             <>
                                 {!headerMessage && canSelectMultiple && shouldShowSelectAll && (
-                                    <View style={[styles.peopleRow, styles.ph4, styles.pb3, listHeaderWrapperStyle]}>
+                                    <View style={[styles.userSelectNone, styles.peopleRow, styles.ph4, styles.pb3, listHeaderWrapperStyle]}>
                                         <PressableWithFeedback
                                             style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
                                             onPress={selectAllRow}
