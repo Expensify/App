@@ -1,25 +1,34 @@
 import {fireEvent} from '@testing-library/react-native';
+import type {RenderResult} from '@testing-library/react-native';
 import React, {useState} from 'react';
+import type {ComponentType} from 'react';
 import {measurePerformance} from 'reassure';
-import _ from 'underscore';
+import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
-import SelectionList from '../../src/components/SelectionList';
-import variables from '../../src/styles/variables';
+import type {ListItem} from '@components/SelectionList/types';
+import type {KeyboardStateContextValue} from '@components/withKeyboardState';
+import type {WithLocalizeProps} from '@components/withLocalize';
+import variables from '@styles/variables';
 
-jest.mock('../../src/components/Icon/Expensicons');
+type SelectionListWrapperProps = {
+    /** Whether this is a multi-select list */
+    canSelectMultiple?: boolean;
+};
 
-jest.mock('../../src/hooks/useLocalize', () =>
+jest.mock('@components/Icon/Expensicons');
+
+jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: jest.fn(),
     })),
 );
 
-jest.mock('../../src/components/withLocalize', () => (Component) => {
-    function WrappedComponent(props) {
+jest.mock('@components/withLocalize', <TProps extends WithLocalizeProps>() => (Component: ComponentType<TProps>) => {
+    function WrappedComponent(props: Omit<TProps, keyof WithLocalizeProps>) {
         return (
             <Component
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
+                {...(props as TProps)}
                 translate={() => ''}
             />
         );
@@ -28,18 +37,18 @@ jest.mock('../../src/components/withLocalize', () => (Component) => {
     return WrappedComponent;
 });
 
-jest.mock('../../src/hooks/useNetwork', () =>
+jest.mock('@hooks/useNetwork', () =>
     jest.fn(() => ({
         isOffline: false,
     })),
 );
 
-jest.mock('../../src/components/withKeyboardState', () => (Component) => {
-    function WrappedComponent(props) {
+jest.mock('@components/withKeyboardState', () => <TProps extends KeyboardStateContextValue>(Component: ComponentType<TProps>) => {
+    function WrappedComponent(props: Omit<TProps, keyof KeyboardStateContextValue>) {
         return (
             <Component
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
+                {...(props as TProps)}
                 isKeyboardShown={false}
             />
         );
@@ -54,25 +63,25 @@ jest.mock('@react-navigation/native', () => ({
     createNavigationContainerRef: jest.fn(),
 }));
 
-function SelectionListWrapper(args) {
-    const [selectedIds, setSelectedIds] = useState([]);
+function SelectionListWrapper({canSelectMultiple}: SelectionListWrapperProps) {
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
     const sections = [
         {
-            data: Array.from({length: 1000}, (__, i) => ({
-                text: `Item ${i}`,
-                keyForList: `item-${i}`,
-                isSelected: _.contains(selectedIds, `item-${i}`),
+            data: Array.from({length: 1000}, (element, index) => ({
+                text: `Item ${index}`,
+                keyForList: `item-${index}`,
+                isSelected: selectedIds.includes(`item-${index}`),
             })),
             indexOffset: 0,
             isDisabled: false,
         },
     ];
 
-    const onSelectRow = (item) => {
-        if (args.canSelectMultiple) {
-            if (_.contains(selectedIds, item.keyForList)) {
-                setSelectedIds(_.without(selectedIds, item.keyForList));
+    const onSelectRow = (item: ListItem) => {
+        if (canSelectMultiple) {
+            if (selectedIds.includes(item.keyForList)) {
+                setSelectedIds(selectedIds.filter((selectedId) => selectedId === item.keyForList));
             } else {
                 setSelectedIds([...selectedIds, item.keyForList]);
             }
@@ -88,8 +97,7 @@ function SelectionListWrapper(args) {
             onSelectRow={onSelectRow}
             initiallyFocusedOptionKey="item-0"
             ListItem={RadioListItem}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...args}
+            canSelectMultiple={canSelectMultiple}
         />
     );
 }
@@ -99,20 +107,22 @@ test('[SelectionList] should render 1 section and a thousand items', () => {
 });
 
 test('[SelectionList] should press a list item', () => {
-    const scenario = (screen) => {
+    const scenario = (screen: RenderResult) => {
         fireEvent.press(screen.getByText('Item 5'));
     };
 
+    // @ts-expect-error scenario is expected to be an async function
     measurePerformance(<SelectionListWrapper />, {scenario});
 });
 
 test('[SelectionList] should render multiple selection and select 3 items', () => {
-    const scenario = (screen) => {
+    const scenario = (screen: RenderResult) => {
         fireEvent.press(screen.getByText('Item 1'));
         fireEvent.press(screen.getByText('Item 2'));
         fireEvent.press(screen.getByText('Item 3'));
     };
 
+    // @ts-expect-error scenario is expected to be an async function
     measurePerformance(<SelectionListWrapper canSelectMultiple />, {scenario});
 });
 
@@ -135,7 +145,7 @@ test('[SelectionList] should scroll and select a few items', () => {
         },
     };
 
-    const scenario = (screen) => {
+    const scenario = (screen: RenderResult) => {
         fireEvent.press(screen.getByText('Item 1'));
         // see https://github.com/callstack/react-native-testing-library/issues/1540
         fireEvent(screen.getByTestId('selection-list'), 'onContentSizeChange', eventData.nativeEvent.contentSize.width, eventData.nativeEvent.contentSize.height);
@@ -144,5 +154,6 @@ test('[SelectionList] should scroll and select a few items', () => {
         fireEvent.press(screen.getByText('Item 15'));
     };
 
+    // @ts-expect-error scenario is expected to be an async function
     measurePerformance(<SelectionListWrapper canSelectMultiple />, {scenario});
 });
