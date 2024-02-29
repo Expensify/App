@@ -56,7 +56,7 @@
     "workflow-test": "./workflow_tests/scripts/runWorkflowTests.sh",
     "workflow-test:generate": "ts-node workflow_tests/utils/preGenerateTest.js",
     "setup-https": "mkcert -install && mkcert -cert-file config/webpack/certificate.pem -key-file config/webpack/key.pem dev.new.expensify.com localhost 127.0.0.1",
-    "e2e-test-runner-build": "tsc -p tests/e2e/tsconfig.build.json"
+    "e2e-test-runner-build": "ncc build tests/e2e/testRunner.js -o tests/e2e/dist/"
   },
   "dependencies": {
     "@dotlottie/react-player": "^1.6.3",
