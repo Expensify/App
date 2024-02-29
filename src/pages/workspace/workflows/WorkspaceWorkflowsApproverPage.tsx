@@ -130,21 +130,21 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails,
             ];
         }
 
-        sectionsArr.push({
+        sectionsArray.push({
             title: undefined,
             data: formattedApprover,
             shouldShow: formattedApprover.length > 0,
             indexOffset: 0,
         });
 
-        sectionsArr.push({
+        sectionsArray.push({
             title: translate('common.all'),
             data: formattedPolicyMembers,
             shouldShow: true,
             indexOffset: formattedApprover.length,
         });
 
-        return sectionsArr;
+        return sectionsArray;
     }, [formattedPolicyMembers, formattedApprover, searchTerm, translate]);
 
     const headerMessage = useMemo(() => (searchTerm && !sections[0].data.length ? translate('common.noResultsFound') : ''), [translate, sections]);
