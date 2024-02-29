@@ -2571,7 +2571,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
     }
 
     if (isSelfDM(report)) {
-        formattedName = getDisplayNameForParticipant(report?.participantAccountIDs?.[0], undefined, undefined, true);
+        formattedName = getDisplayNameForParticipant(currentUserAccountID, undefined, undefined, true);
     }
 
     if (formattedName) {
