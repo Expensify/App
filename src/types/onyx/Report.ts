@@ -1,5 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type ONYXKEYS from '@src/ONYXKEYS';
+import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 import type {PolicyReportField} from './PolicyReportField';
@@ -174,6 +176,8 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
     PolicyReportField['fieldID']
 >;
 
+type ReportCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPORT>;
+
 export default Report;
 
-export type {NotificationPreference, RoomVisibility, WriteCapability, Note};
+export type {NotificationPreference, RoomVisibility, WriteCapability, Note, ReportCollectionDataSet};

@@ -13,9 +13,11 @@ function RadioListItem({
     isDisabled,
     canSelectMultiple,
     onSelectRow,
+    onCheckboxPress,
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
+    isMultilineSupported = false,
 }: RadioListItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -30,6 +32,7 @@ function RadioListItem({
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
+            onCheckboxPress={onCheckboxPress}
             onDismissError={onDismissError}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             rightHandSideComponent={rightHandSideComponent}
@@ -44,9 +47,10 @@ function RadioListItem({
                             styles.optionDisplayName,
                             isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
                             styles.sidebarLinkTextBold,
-                            styles.pre,
+                            isMultilineSupported ? styles.preWrap : styles.pre,
                             item.alternateText ? styles.mb1 : null,
                         ]}
+                        numberOfLines={isMultilineSupported ? 2 : 1}
                     />
 
                     {!!item.alternateText && (
