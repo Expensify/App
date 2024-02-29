@@ -69,7 +69,7 @@ function ContinueBankAccountSetup({policyName = '', onBackButtonPress, reimburse
                             shouldShowRightIcon
                             large
                             success
-                            isDisabled={Boolean(pendingAction) || !isEmptyObject(errors)}
+                            isDisabled={!!pendingAction || !isEmptyObject(errors)}
                         />
                         <MenuItem
                             title={translate('workspace.bankAccount.startOver')}

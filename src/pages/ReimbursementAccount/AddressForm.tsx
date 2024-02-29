@@ -9,29 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-
-type Address = {
-    /** Address street field */
-    street: string;
-
-    /** Address city field */
-    city: string;
-
-    /** Address state field */
-    state: State;
-
-    /** Address zip code field */
-    zipCode: string;
-
-    /** Address street2 field */
-    street2?: string;
-
-    /** Address latitude field */
-    lat?: string;
-
-    /** Address longitude field */
-    lng?: string;
-};
+import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 type AddressError = Record<keyof Address, boolean>;
 
@@ -43,7 +21,7 @@ type AddressFormProps = {
     onFieldChange?: <T>(value: T) => void;
 
     /** Default values */
-    defaultValues?: Partial<Record<keyof Address, string>>;
+    defaultValues?: Address;
 
     /** Form values */
     values?: Address;
@@ -52,7 +30,7 @@ type AddressFormProps = {
     errors?: AddressError;
 
     /** The map for inputID of the inputs */
-    inputKeys?: Partial<Record<keyof Address, string>>;
+    inputKeys?: Address;
 
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft?: boolean;
@@ -69,7 +47,7 @@ function AddressForm({shouldSaveDraft = false, defaultValues, values, errors, in
                     inputID={inputKeys?.street ?? 'streetInput'}
                     shouldSaveDraft={shouldSaveDraft}
                     label={translate(streetTranslationKey)}
-                    containerStyles={[styles.mt6]}
+                    containerStyles={styles.mt6}
                     value={values?.street}
                     defaultValue={defaultValues?.street}
                     onInputChange={onFieldChange}
@@ -98,7 +76,7 @@ function AddressForm({shouldSaveDraft = false, defaultValues, values, errors, in
                     InputComponent={StatePicker}
                     inputID={inputKeys?.state ?? 'stateInput'}
                     shouldSaveDraft={shouldSaveDraft}
-                    value={values?.state}
+                    value={values?.state as State}
                     defaultValue={defaultValues?.state}
                     onInputChange={(value) => onFieldChange({state: value})}
                     errorText={errors?.state ? 'bankAccount.error.addressState' : ''}

@@ -16,8 +16,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type WorkspaceParamList = BottomTabNavigatorParamList & CentralPaneNavigatorParamList & SettingsNavigatorParamList & ReimbursementAccountNavigatorParamList;
-type PolicyRoute = RouteProp<WorkspaceParamList, ValueOf<typeof SCREENS.WORKSPACE> | typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
+type NavigatorsParamList = BottomTabNavigatorParamList & CentralPaneNavigatorParamList & SettingsNavigatorParamList & ReimbursementAccountNavigatorParamList;
+type PolicyRoute = RouteProp<NavigatorsParamList, ValueOf<typeof SCREENS.WORKSPACE> | typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
 
 function getPolicyIDFromRoute(route: PolicyRoute): string {
     return route?.params?.policyID ?? '';

@@ -36,6 +36,7 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
     /** Policy ID of the workspace the bank account is being set up on */
     policyID?: string;
 
+    /** Weather Onfido setup is complete */
     isOnfidoSetupComplete?: boolean;
 };
 

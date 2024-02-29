@@ -36,6 +36,8 @@ type BankInfoOnyxProps = {
 type BankInfoProps = BankInfoOnyxProps & {
     /** Goes to the previous step */
     onBackButtonPress: () => void;
+
+    /** Current Policy ID */
     policyID: string;
 };
 
