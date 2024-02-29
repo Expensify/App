@@ -64,11 +64,14 @@ jobs:
 
       - name: Get and save graphite string
         # run only when merged to main
-        if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'graphite-testing-script'
+        # if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'graphite-testing-script'
         id: saveGraphiteString
         uses: ./.github/actions/javascript/getGraphiteString
 
       - name: Send graphite data
         # run only when merged to main
-        if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'graphite-testing-script'
+        env:
+          GRAPHITE_SERVER: ${{ vars.GRAPHITE_SERVER }}
+          GRAPHITE_PORT: ${{ vars.GRAPHITE_PORT }}
+        # if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'graphite-testing-script'
         run: echo -e "${{ steps.saveGraphiteString.outputs.GRAPHITE_STRING }}" | nc "$GRAPHITE_SERVER" "$GRAPHITE_PORT"
