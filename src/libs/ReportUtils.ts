@@ -948,14 +948,6 @@ function isProcessingReport(report: OnyxEntry<Report> | EmptyObject): boolean {
 }
 
 /**
- * Returns true if the policy has `instant` reporting frequency and if the report is still being processed (i.e. submitted state)
- */
-function isExpenseReportWithInstantSubmittedState(report: OnyxEntry<Report> | EmptyObject): boolean {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? null;
-    return isExpenseReport(report) && isProcessingReport(report) && PolicyUtils.isInstantSubmitEnabled(policy);
-}
-
-/**
  * Check if the report is a single chat report that isn't a thread
  * and personal detail of participant is optimistic data
  */
@@ -1245,6 +1237,29 @@ function getChildReportNotificationPreference(reportAction: OnyxEntry<ReportActi
 }
 
 /**
+ * Checks whether the supplied report supports adding more transactions to it.
+ * Return true if:
+ * - report is a non-settled IOU
+ * - report is a draft
+ * - report is processing and policy's on Instant Submit
+ */
+function canAddTransactionsToMoneyRequest(report: OnyxEntry<Report>): boolean {
+    if (!isIOUReport(report) && !isExpenseReport(report)) {
+        return false;
+    }
+
+    if (isReportApproved(report) || isSettled(report?.reportID)) {
+        return false;
+    }
+
+    if (isProcessingReport(report) && !PolicyUtils.isInstantSubmitEnabled(getPolicy(report?.policyID))) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * Can only delete if the author is this user and the action is an ADDCOMMENT action or an IOU action in an unsettled report, or if the user is a
  * policy admin
  */
@@ -1264,8 +1279,8 @@ function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: 
 
         if (isActionOwner) {
             if (!isEmptyObject(report) && isPaidGroupPolicyExpenseReport(report)) {
-                // If it's a paid policy expense report, only allow deleting the request if it's a draft or is instantly submitted or the user is the policy admin
-                return isDraftExpenseReport(report) || isExpenseReportWithInstantSubmittedState(report) || PolicyUtils.isPolicyAdmin(policy);
+                // If the report supports adding transactions to it, then it also supports deleting transactions from it.
+                return canAddTransactionsToMoneyRequest(report);
             }
             return true;
         }
@@ -4167,29 +4182,6 @@ function hasIOUWaitingOnCurrentUserBankAccount(chatReport: OnyxEntry<Report>): b
 }
 
 /**
- * Checks whether the supplied report supports adding more transactions to it.
- * Return true if:
- * - report is a non-settled IOU
- * - report is a draft
- * - report is processing and policy's on Instant Submit
- */
-function canAddTransactionsToMoneyRequest(report: OnyxEntry<Report>) {
-    if (!isIOUReport(report) && !isExpenseReport(report)) {
-        return false;
-    }
-
-    if (isReportApproved(report) || isSettled(report?.reportID)) {
-        return false;
-    }
-
-    if (isProcessingReport(report) && !PolicyUtils.isInstantSubmitEnabled(getPolicy(report?.policyID))) {
-        return false;
-    }
-
-    return true;
-}
-
-/**
  * Users can request money:
  * - in policy expense chats only if they are in a role of a member in the chat (in other words, if it's their policy expense chat)
  * - in an open or submitted expense report tied to a policy expense chat the user owns
@@ -5025,7 +5017,6 @@ export {
     isPublicAnnounceRoom,
     isConciergeChatReport,
     isProcessingReport,
-    isExpenseReportWithInstantSubmittedState,
     isCurrentUserTheOnlyParticipant,
     hasAutomatedExpensifyAccountIDs,
     hasExpensifyGuidesEmails,
