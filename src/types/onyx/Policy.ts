@@ -261,7 +261,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the Connections feature is enabled */
         areConnectionsEnabled?: boolean;
-    } & PendingJoinRequestPolicy,
+    } & Partial<PendingJoinRequestPolicy>,
     'generalSettings' | 'addWorkspaceRoom'
 >;
 

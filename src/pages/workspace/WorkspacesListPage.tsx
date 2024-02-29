@@ -286,7 +286,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
         return Object.values(policies)
             .filter((policy): policy is PolicyType => PolicyUtils.shouldShowPolicy(policy, !!isOffline))
             .map((policy): WorkspaceItem => {
-                if (policy?.isJoinRequestPending) {
+                if (policy?.isJoinRequestPending && policy?.policyDetailsForNonMembers) {
                     const policyInfo = Object.values(policy.policyDetailsForNonMembers)[0];
                     const id = Object.keys(policy.policyDetailsForNonMembers)[0];
                     return {
