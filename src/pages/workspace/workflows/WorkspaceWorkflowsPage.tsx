@@ -109,7 +109,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 isActive: false, // TODO will be done in https://github.com/Expensify/Expensify/issues/368335
             },
         ],
-        [policy, route.params.policyID, styles, translate, policyApprover, containerStyle, isOffline, StyleUtils],
+        [policy, route.params.policyID, styles, translate, policyApproverName, containerStyle, isOffline, StyleUtils],
     );
 
     const renderItem = ({item}: {item: ToggleSettingOptionRowProps}) => (
