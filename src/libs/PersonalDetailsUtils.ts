@@ -57,7 +57,7 @@ function getPersonalDetailsByIDs(accountIDs: number[], currentUserAccountID: num
 }
 
 function getPersonalDetailByEmail(email: string): PersonalDetails | undefined {
-    return Object.entries(allPersonalDetails ?? {}).find(([_, detail]) => detail?.login === email) as unknown as PersonalDetails;
+    return Object.values(allPersonalDetails ?? {}).find((detail) => detail?.login === email) as unknown as PersonalDetails;
 }
 
 /**
