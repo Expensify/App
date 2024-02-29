@@ -100,7 +100,7 @@
     "date-fns-tz": "^2.0.0",
     "dom-serializer": "^0.2.2",
     "domhandler": "^4.3.0",
-    "expensify-common": "git+ssh://git@github.com/Expensify/expensify-common.git#77d0b150ba6bfbe7a64b3c3e30b65592b2e58c4a",
+    "expensify-common": "git+ssh://git@github.com/Expensify/expensify-common.git#83ae6194b3e4feb363ea9d061085a7ab76e35ffb",
     "expo": "^50.0.3",
     "expo-av": "~13.10.4",
     "expo-image": "1.10.1",
