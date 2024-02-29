@@ -28,12 +28,13 @@ function LogOutPreviousUserPage({session, route}: LogOutPreviousUserPageProps) {
         Linking.getInitialURL().then((transitionURL) => {
             const sessionEmail = session?.email;
             const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL ?? undefined, sessionEmail);
+            const isSupportalLogin = route.params.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 
             if (isLoggingInAsNewUser) {
                 SessionActions.signOutAndRedirectToSignIn();
             }
 
-            if (route.params.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT) {
+            if (isSupportalLogin) {
                 SessionActions.signInWithSupportAuthToken(route.params.shortLivedAuthToken ?? '');
                 return;
             }
