@@ -566,7 +566,7 @@ function ComposerWithSuggestions(
 
     const hideSuggestionMenu = useCallback(
         (e) => {
-            mobileInputScrollPosition.current = lodashGet(e, 'nativeEvent.contentOffset.y', 0);
+            mobileInputScrollPosition.current = e?.nativeEvent?.contentOffset?.y ?? 0;
             if (!suggestionsRef.current || isScrollLikelyLayoutTriggered.current) {
                 return;
             }

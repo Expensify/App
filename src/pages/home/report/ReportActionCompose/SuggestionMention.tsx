@@ -1,6 +1,6 @@
 import lodashSortBy from 'lodash/sortBy';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useImperativeHandle, useRef, useState} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {Mention} from '@components/MentionSuggestions';
 import MentionSuggestions from '@components/MentionSuggestions';
@@ -35,7 +35,7 @@ const defaultSuggestionsValues: SuggestionValues = {
 };
 
 function SuggestionMention(
-    {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, measureParentContainerAndReportCursor, isComposerFocused, composerHeight}: SuggestionProps,
+    {value, setSelection, updateComment, isAutoSuggestionPickerLarge, measureParentContainerAndReportCursor, isComposerFocused, composerHeight}: SuggestionProps,
     ref: ForwardedRef<SuggestionsRef>,
 ) {
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;

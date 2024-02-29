@@ -1,5 +1,5 @@
 import type {ForwardedRef, RefAttributes} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useImperativeHandle, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
@@ -54,7 +54,7 @@ function SuggestionEmoji(
         updateComment,
         isAutoSuggestionPickerLarge,
         resetKeyboardInput,
-        measureParentContainerAndReportCursor, //measureParentContainer,
+        measureParentContainerAndReportCursor,
     }: SuggestionEmojiProps,
     ref: ForwardedRef<SuggestionsRef>,
 ) {

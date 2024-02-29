@@ -1,10 +1,10 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useRef} from 'react';
-import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
+import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
+import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import usePrevious from '@hooks/usePrevious';
-import {MeasureParentContainerAndCursorCallback} from '../../../../components/AutoCompleteSuggestions/types';
 import type {SuggestionsRef} from './ReportActionCompose';
 import SuggestionEmoji from './SuggestionEmoji';
 import SuggestionMention from './SuggestionMention';
