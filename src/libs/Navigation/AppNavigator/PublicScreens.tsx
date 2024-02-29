@@ -1,5 +1,5 @@
-import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
+import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PublicScreensParamList} from '@navigation/types';
 import LogInWithShortLivedAuthTokenPage from '@pages/LogInWithShortLivedAuthTokenPage';
 import AppleSignInDesktopPage from '@pages/signin/AppleSignInDesktopPage';
@@ -12,7 +12,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
 
-const RootStack = createStackNavigator<PublicScreensParamList>();
+const RootStack = createPlatformStackNavigator<PublicScreensParamList>();
 
 function PublicScreens() {
     return (
