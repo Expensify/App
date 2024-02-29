@@ -20,7 +20,7 @@ type NetworkCacheMap = Record<
 
 type TestConfig = {
     name: string;
-    [key: string]: string;
+    [key: string]: string | {autoFocus: boolean};
 };
 
 type TestResult = {

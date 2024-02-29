@@ -469,7 +469,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 <HeaderWithBackButton
                     title={translate('workspace.common.connectBankAccount')}
                     subtitle={policyName}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                    onBackButtonPress={() => Navigation.goBack()}
                 />
                 <View style={[styles.m5, styles.mv3, styles.flex1]}>
                     <Text>{errorText}</Text>
