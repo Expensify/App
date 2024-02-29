@@ -63,6 +63,7 @@ function useViolations(violations: TransactionViolation[]) {
         (field: ViolationField, data?: TransactionViolation['data']) => {
             const currentViolations = violationsByField.get(field) ?? [];
 
+            // someTagLevelsRequired has special logic becase data.errorIndexes is a bit unique in how it denotes the tag list that has the violation
             // tagListIndex can be 0 so we compare with undefined
             if (currentViolations[0]?.name === 'someTagLevelsRequired' && data?.tagListIndex !== undefined && Array.isArray(currentViolations[0]?.data?.errorIndexes)) {
                 return currentViolations
@@ -74,6 +75,11 @@ function useViolations(violations: TransactionViolation[]) {
                             tagName: data?.tagListName,
                         },
                     }));
+            }
+
+            // tagOutOfPolicy has special logic because we have to account for multi-level tags and use tagName to find the right tag to put the violation on
+            if (currentViolations[0]?.name === 'tagOutOfPolicy' && data?.tagListName !== undefined && currentViolations[0]?.data?.tagName) {
+                return currentViolations.filter((violation) => violation.data?.tagName === data?.tagListName);
             }
 
             return currentViolations;

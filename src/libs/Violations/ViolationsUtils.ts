@@ -50,6 +50,7 @@ const ViolationsUtils = {
         }
 
         if (policyRequiresTags) {
+            const selectedTags = updatedTransaction.tag?.split(CONST.COLON) ?? [];
             const policyTagKeys = Object.keys(policyTagList);
 
             // At the moment, we only return violations for tags for workspaces with single-level tags
@@ -77,6 +78,24 @@ const ViolationsUtils = {
                 // Add 'missingTag violation' if tag is required and not set
                 if (!hasMissingTagViolation && !updatedTransaction.tag && policyRequiresTags) {
                     newTransactionViolations.push({name: CONST.VIOLATIONS.MISSING_TAG, type: 'violation'});
+                }
+            } else {
+                let errorIndexes = [];
+                for (let i = 0; i < policyTagKeys.length; i++) {
+                    const isTagRequired = policyTagList[policyTagKeys[i]].required ?? true;
+                    const isTagSelected = Boolean(selectedTags[i]);
+                    if (isTagRequired && (!isTagSelected || (selectedTags.length === 1 && selectedTags[0] === ''))){
+                        errorIndexes.push(i)
+                    }
+                }
+                if (errorIndexes.length) {
+                    newTransactionViolations.push({
+                        name: CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED,
+                        type: 'violation',
+                        data: {
+                            errorIndexes,
+                        },
+                    });
                 }
             }
         }
