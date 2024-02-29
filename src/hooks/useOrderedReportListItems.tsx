@@ -6,7 +6,7 @@ import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Policy, PolicyMembers, PriorityMode, Report, ReportAction, ReportActions, TransactionViolation} from '@src/types/onyx';
+import type {Beta, Policy, PolicyMembers, PriorityMode, Report, ReportActions, TransactionViolation} from '@src/types/onyx';
 import useActiveWorkspace from './useActiveWorkspace';
 import useCurrentReportID from './useCurrentReportID';
 

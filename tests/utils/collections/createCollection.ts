@@ -10,7 +10,7 @@ export default function createCollection<T>(createKey: (item: T, index: number) 
     return map;
 }
 
-export function createNestedCollection<T>(
+function createNestedCollection<T>(
     createParentKey: (item: T, index: number) => string | number,
     createKey: (item: T, index: number) => string | number,
     createItem: (index: number) => T,
@@ -29,4 +29,8 @@ export function createNestedCollection<T>(
     }
 
     return map;
+}
+
+export {
+    createNestedCollection,
 }

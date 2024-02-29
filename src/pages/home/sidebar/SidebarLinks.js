@@ -33,7 +33,7 @@ const basePropTypes = {
 const propTypes = {
     ...basePropTypes,
 
-    optionListItems: PropTypes.arrayOf(PropTypes.object).isRequired,
+    optionListItems: PropTypes.arrayOf(PropTypes.string).isRequired,
 
     isLoading: PropTypes.bool.isRequired,
 
