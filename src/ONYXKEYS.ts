@@ -129,6 +129,9 @@ const ONYXKEYS = {
     /** This NVP contains the active policyID */
     NVP_ACTIVE_POLICY_ID: 'nvp_expensify_activePolicyID',
 
+    /** This NVP contains the referral banners the user dismissed */
+    NVP_DISMISSED_REFERRAL_BANNERS: 'dismissedReferralBanners',
+
     /** Does this user have push notifications enabled for this device? */
     PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
 
@@ -572,6 +575,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHOULD_STORE_LOGS]: boolean;
     [ONYXKEYS.CACHED_PDF_PATHS]: Record<string, string>;
     [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: string;
+    [ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS]: OnyxTypes.DismissedReferralBanners;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;

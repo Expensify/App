@@ -22,7 +22,7 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {DismissedReferralBanners} from '@src/types/onyx/Account';
+import type DismissedReferralBanners from '@src/types/onyx/DismissedReferralBanners';
 
 type NewChatPageWithOnyxProps = {
     /** All reports shared with the user */
@@ -287,8 +287,7 @@ NewChatPage.displayName = 'NewChatPage';
 
 export default withOnyx<NewChatPageProps, NewChatPageWithOnyxProps>({
     dismissedReferralBanners: {
-        key: ONYXKEYS.ACCOUNT,
-        selector: (data) => data?.dismissedReferralBanners ?? {},
+        key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
     },
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,

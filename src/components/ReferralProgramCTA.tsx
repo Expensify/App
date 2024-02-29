@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import Navigation from '@src/libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {DismissedReferralBanners} from '@src/types/onyx/Account';
+import type DismissedReferralBanners from '@src/types/onyx/DismissedReferralBanners';
 import Icon from './Icon';
 import {Close} from './Icon/Expensicons';
 import {PressableWithoutFeedback} from './Pressable';
@@ -82,7 +82,6 @@ function ReferralProgramCTA({referralContentType, dismissedReferralBanners}: Ref
 
 export default withOnyx<ReferralProgramCTAProps, ReferralProgramCTAOnyxProps>({
     dismissedReferralBanners: {
-        key: ONYXKEYS.ACCOUNT,
-        selector: (data) => data?.dismissedReferralBanners ?? {},
+        key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
     },
 })(ReferralProgramCTA);
