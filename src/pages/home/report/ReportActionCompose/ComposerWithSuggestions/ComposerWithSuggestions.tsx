@@ -276,7 +276,7 @@ function ComposerWithSuggestions(
     const valueRef = useRef(value);
     valueRef.current = value;
 
-    const [selection, setSelection] = useState(() => ({start: 0, end: 0, positionX: 0, positionY: 0}));
+    const [selection, setSelection] = useState(() => ({start: 0, end: 0}));
 
     const [composerHeight, setComposerHeight] = useState(0);
 
@@ -305,7 +305,6 @@ function ComposerWithSuggestions(
      */
     const setTextInputRef = useCallback(
         (el: TextInput) => {
-            // @ts-expect-error need to reassign this ref
             ReportActionComposeFocusManager.composerRef.current = el;
             textInputRef.current = el;
             if (typeof animatedRef === 'function') {
