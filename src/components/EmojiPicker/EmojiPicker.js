@@ -192,6 +192,7 @@ const EmojiPicker = forwardRef((props, ref) => {
             innerContainerStyle={styles.popoverInnerContainer}
             avoidKeyboard
             shouldEnableNewFocusManagement
+            restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
         >
             <EmojiPickerMenu
                 onEmojiSelected={selectEmoji}
