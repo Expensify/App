@@ -63,7 +63,7 @@ jobs:
           COUNT_DEVIATION: 0
 
       - name: Get and save graphite string
-        # run only when merged to main
+        # run only when merged to ~main~ graphite-testing-script
         if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'graphite-testing-script'
         id: saveGraphiteString
         uses: ./.github/actions/javascript/getGraphiteString
