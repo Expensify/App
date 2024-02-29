@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import * as Localize from './Localize';
 import * as NumberFormatUtils from './NumberFormatUtils';
 
 type Locale = ValueOf<typeof CONST.LOCALES>;
@@ -75,16 +76,16 @@ function toLocaleOrdinal(locale: Locale, number: number): string {
 
     const suffixes: Record<string, Record<string, string>> = {
         en: {
-            one: 'st',
-            two: 'nd',
-            few: 'rd',
-            other: 'th',
+            one: Localize.translate(locale, 'workflowsPage.frequencies.ordinals.one'),
+            two: Localize.translate(locale, 'workflowsPage.frequencies.ordinals.two'),
+            few: Localize.translate(locale, 'workflowsPage.frequencies.ordinals.few'),
+            other: Localize.translate(locale, 'workflowsPage.frequencies.ordinals.other'),
         },
         es: {
-            one: '.º',
-            two: '.º',
-            few: '.º',
-            other: '.º',
+            one: Localize.translate(locale, 'workflowsPage.frequencies.ordinals.one'),
+            two: Localize.translate(locale, 'workflowsPage.frequencies.ordinals.two'),
+            few: Localize.translate(locale, 'workflowsPage.frequencies.ordinals.few'),
+            other: Localize.translate(locale, 'workflowsPage.frequencies.ordinals.other'),
         },
     };
 

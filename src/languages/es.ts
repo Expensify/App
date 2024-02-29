@@ -1050,6 +1050,12 @@ export default {
             daily: 'Diaria',
             lastDayOfMonth: 'Último día del mes',
             lastBusinessDayOfMonth: 'Último día hábil del mes',
+            ordinals:{
+                one: '.º',
+                two: '.º',
+                few: '.º',
+                other: '.º',
+            },
         },
     },
     reportFraudPage: {
