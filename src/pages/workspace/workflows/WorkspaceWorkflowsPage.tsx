@@ -33,7 +33,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
 
-    const policyApprover = policy?.approver;
+    const policyApproverEmail = policy?.approver;
+    const policyApproverName = useMemo(() => PersonalDetailsUtils.getPersonalDetailByEmail(policyApproverEmail ?? '')?.displayName || policyApproverEmail, [policyApproverEmail]);
     const containerStyle = useMemo(() => [styles.ph8, styles.mhn8, styles.ml11, styles.pv3, styles.pr0, styles.pl4, styles.mr0, styles.widthAuto, styles.mt4], [styles]);
 
     const items: ToggleSettingOptionRowProps[] = useMemo(
