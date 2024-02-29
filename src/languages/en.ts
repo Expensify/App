@@ -1748,6 +1748,48 @@ export default {
                 subtitle: 'Add a category to organize your spend.',
             },
         },
+        moreFeatures: {
+            spendSection: {
+                title: 'Spend',
+                subtitle: 'Enable optional functionality that helps you scale your team.',
+            },
+            organizeSection: {
+                title: 'Organize',
+                subtitle: 'Group and analyze spend, record every tax paid.',
+            },
+            distanceRates: {
+                title: 'Distance rates',
+                subtitle: 'Add, update and enforce rates.',
+            },
+            expensifyCard: {
+                title: 'Expensify card',
+                subtitle: 'Gain insights and control over spend.',
+            },
+            workflows: {
+                title: 'Workflows',
+                subtitle: 'Configure how spend is approved and paid.',
+            },
+            categories: {
+                title: 'Categories',
+                subtitle: 'Track and organize spend.',
+            },
+            tags: {
+                title: 'Tags',
+                subtitle: 'Add additional ways to classify spend.',
+            },
+            taxes: {
+                title: 'Taxes',
+                subtitle: 'Document and reclaim eligible taxes.',
+            },
+            reportFields: {
+                title: 'Report fields',
+                subtitle: 'Subtitle...',
+            },
+            connections: {
+                title: 'Connections',
+                subtitle: 'Subtitle...',
+            },
+        },
         emptyWorkspace: {
             title: 'Create a workspace',
             subtitle: 'Workspaces are where you’ll chat with your team, reimburse expenses, issue cards, send invoices, pay bills, and more - all in one place.',

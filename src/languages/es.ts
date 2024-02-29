@@ -1772,6 +1772,48 @@ export default {
                 subtitle: 'Añade una categoría para organizar tu gasto.',
             },
         },
+        moreFeatures: {
+            spendSection: {
+                title: 'Gastar',
+                subtitle: 'Habilitar una funcionalidad opcional que lo ayude a escalar su equipo.',
+            },
+            organizeSection: {
+                title: 'Organizar',
+                subtitle: 'Agrupar y analizar el gasto, registrar cada impuesto pagado.',
+            },
+            distanceRates: {
+                title: 'Tasas de distancia',
+                subtitle: 'Agregar, actualizar y hacer cumplir las tarifas.',
+            },
+            expensifyCard: {
+                title: 'Tarjeta de expensas',
+                subtitle: 'Obtener ideas y control sobre el gasto.',
+            },
+            workflows: {
+                title: 'Flujos de trabajo',
+                subtitle: 'Configure cómo se aprueba y paga el gasto.',
+            },
+            categories: {
+                title: 'Categorías',
+                subtitle: 'Rastrear y organizar el gasto.',
+            },
+            tags: {
+                title: 'Etiquetas',
+                subtitle: 'Agregue formas adicionales de clasificar el gasto.',
+            },
+            taxes: {
+                title: 'Impuestos',
+                subtitle: 'Documentar y reclamar impuestos elegibles.',
+            },
+            reportFields: {
+                title: 'Campos de informes',
+                subtitle: 'Subtitle...',
+            },
+            connections: {
+                title: 'Conexión',
+                subtitle: 'Subtitle...',
+            },
+        },
         emptyWorkspace: {
             title: 'Crea un espacio de trabajo',
             subtitle: 'En los espacios de trabajo podrás chatear con tu equipo, reembolsar gastos, emitir tarjetas, enviar y pagar facturas, y mucho más - todo en un mismo lugar.',

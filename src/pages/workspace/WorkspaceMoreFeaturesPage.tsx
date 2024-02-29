@@ -37,8 +37,8 @@ function WorkspaceMoreFeaturesPage({route}: WorkspaceMoreFeaturesPageProps) {
         () => [
             {
                 icon: Illustrations.Car,
-                title: 'Distance rates',
-                subtitle: 'Add, update and enforce rates',
+                title: translate('workspace.moreFeatures.distanceRates.title'),
+                subtitle: translate('workspace.moreFeatures.distanceRates.subtitle'),
                 onToggle: (isEnabled: boolean) => {
                     console.log('isEnabled', isEnabled);
                 },
@@ -47,8 +47,8 @@ function WorkspaceMoreFeaturesPage({route}: WorkspaceMoreFeaturesPageProps) {
             },
             {
                 icon: Illustrations.HandCard,
-                title: 'Expensify card',
-                subtitle: 'Gain insights and control over spend',
+                title: translate('workspace.moreFeatures.expensifyCard.title'),
+                subtitle: translate('workspace.moreFeatures.expensifyCard.subtitle'),
                 onToggle: (isEnabled: boolean) => {
                     console.log('isEnabled', isEnabled);
                 },
@@ -57,8 +57,8 @@ function WorkspaceMoreFeaturesPage({route}: WorkspaceMoreFeaturesPageProps) {
             },
             {
                 icon: Illustrations.Workflows,
-                title: 'Workflows',
-                subtitle: 'Configure how spend is approved and paid',
+                title: translate('workspace.moreFeatures.workflows.title'),
+                subtitle: translate('workspace.moreFeatures.workflows.subtitle'),
                 onToggle: (isEnabled: boolean) => {
                     console.log('isEnabled', isEnabled);
                 },
@@ -66,15 +66,15 @@ function WorkspaceMoreFeaturesPage({route}: WorkspaceMoreFeaturesPageProps) {
                 pendingAction: undefined,
             },
         ],
-        [],
+        [translate],
     );
 
     const organizeItems: ToggleSettingOptionRowProps[] = useMemo(
         () => [
             {
                 icon: Illustrations.FolderOpen,
-                title: 'Categories',
-                subtitle: 'Track and organize spend',
+                title: translate('workspace.moreFeatures.categories.title'),
+                subtitle: translate('workspace.moreFeatures.categories.subtitle'),
                 onToggle: (isEnabled: boolean) => {
                     console.log('isEnabled', isEnabled);
                 },
@@ -83,8 +83,8 @@ function WorkspaceMoreFeaturesPage({route}: WorkspaceMoreFeaturesPageProps) {
             },
             {
                 icon: Illustrations.Tag,
-                title: 'Tags',
-                subtitle: 'Add additional ways to classify spend',
+                title: translate('workspace.moreFeatures.tags.title'),
+                subtitle: translate('workspace.moreFeatures.tags.subtitle'),
                 onToggle: (isEnabled: boolean) => {
                     console.log('isEnabled', isEnabled);
                 },
@@ -93,8 +93,8 @@ function WorkspaceMoreFeaturesPage({route}: WorkspaceMoreFeaturesPageProps) {
             },
             {
                 icon: Illustrations.Coins,
-                title: 'Taxes',
-                subtitle: 'Document and reclaim eligible taxes.',
+                title: translate('workspace.moreFeatures.taxes.title'),
+                subtitle: translate('workspace.moreFeatures.taxes.subtitle'),
                 onToggle: (isEnabled: boolean) => {
                     console.log('isEnabled', isEnabled);
                 },
@@ -103,8 +103,8 @@ function WorkspaceMoreFeaturesPage({route}: WorkspaceMoreFeaturesPageProps) {
             },
             {
                 icon: Illustrations.Pencil,
-                title: 'Report fields',
-                subtitle: 'Subtitle...',
+                title: translate('workspace.moreFeatures.reportFields.title'),
+                subtitle: translate('workspace.moreFeatures.reportFields.subtitle'),
                 onToggle: (isEnabled: boolean) => {
                     console.log('isEnabled', isEnabled);
                 },
@@ -113,8 +113,8 @@ function WorkspaceMoreFeaturesPage({route}: WorkspaceMoreFeaturesPageProps) {
             },
             {
                 icon: Illustrations.Accounting,
-                title: 'Connections',
-                subtitle: 'Subtitle...',
+                title: translate('workspace.moreFeatures.connections.title'),
+                subtitle: translate('workspace.moreFeatures.connections.subtitle'),
                 onToggle: (isEnabled: boolean) => {
                     console.log('isEnabled', isEnabled);
                 },
@@ -122,7 +122,7 @@ function WorkspaceMoreFeaturesPage({route}: WorkspaceMoreFeaturesPageProps) {
                 pendingAction: undefined,
             },
         ],
-        [],
+        [translate],
     );
 
     const renderItem = (item: ToggleSettingOptionRowProps) => (
@@ -160,9 +160,9 @@ function WorkspaceMoreFeaturesPage({route}: WorkspaceMoreFeaturesPageProps) {
                         <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                             <Section
                                 containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
-                                title="Spend"
+                                title={translate('workspace.moreFeatures.spendSection.title')}
                                 titleStyles={styles.textStrong}
-                                subtitle="Enable optional functionality that helps you scale your team."
+                                subtitle={translate('workspace.moreFeatures.spendSection.subtitle')}
                                 subtitleMuted
                             >
                                 {spendItems.map(renderItem)}
@@ -172,9 +172,9 @@ function WorkspaceMoreFeaturesPage({route}: WorkspaceMoreFeaturesPageProps) {
                         <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                             <Section
                                 containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
-                                title="Organize"
+                                title={translate('workspace.moreFeatures.organizeSection.title')}
                                 titleStyles={styles.textStrong}
-                                subtitle="Group and analyze spend, record every tax paid."
+                                subtitle={translate('workspace.moreFeatures.organizeSection.subtitle')}
                                 subtitleMuted
                             >
                                 {organizeItems.map(renderItem)}
