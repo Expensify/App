@@ -441,8 +441,8 @@ const ROUTES = {
     },
 
     RECEIPT: {
-        route: 'receipt/:transactionID/:reportID',
-        getRoute: (transactionID: string, reportID: string) => `receipt/${transactionID}/${reportID}` as const,
+        route: 'r/:reportID/receipt/:transactionID',
+        getRoute: (transactionID: string, reportID: string) => `r/${reportID}/receipt/${transactionID}` as const,
     },
 
     WORKSPACE_NEW: 'workspace/new',
