@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {PureComponent, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import withStyleUtils, {withStyleUtilsPropTypes} from '@components/withStyleUtils';
@@ -43,7 +43,7 @@ function EmojiPickerMenuItem(props) {
     // constructor(props) {
     //     super(props);
 
-    //     this.ref = null;
+    //     ref = null;
     //     this.focusAndScroll = this.focusAndScroll.bind(this);
     //     this.state = {
     //         isHovered: false,
@@ -52,12 +52,10 @@ function EmojiPickerMenuItem(props) {
     const [isHovered, setIsHovered] = useState(false);
     const ref = useRef(null);
 
-    // componentDidMount() {
-    //     if (!this.props.isFocused) {
-    //         return;
-    //     }
-    //     this.focusAndScroll();
-    // }
+    const focusAndScroll = () => {
+        ref.focus({preventScroll: true});
+        ref.scrollIntoView({block: 'nearest'});
+    }
 
     useEffect(() => {
         if(!props.isFocused) {
@@ -66,61 +64,44 @@ function EmojiPickerMenuItem(props) {
         focusAndScroll();
     }, [props.isFocused])
 
-
-    componentDidUpdate(prevProps) {
-        if (prevProps.isFocused === this.props.isFocused) {
-            return;
-        }
-        if (!this.props.isFocused) {
-            return;
-        }
-
-        this.focusAndScroll();
-    }
-
-    focusAndScroll() {
-        this.ref.focus({preventScroll: true});
-        this.ref.scrollIntoView({block: 'nearest'});
-    }
-
-    render() {
+    
         return (
             <PressableWithoutFeedback
                 shouldUseAutoHitSlop={false}
-                onPress={() => this.props.onPress(this.props.emoji)}
+                onPress={() => props.onPress(props.emoji)}
                 // In order to prevent haptic feedback, pass empty callback as onLongPress props. Please refer https://github.com/necolas/react-native-web/issues/2349#issuecomment-1195564240
                 onLongPress={Browser.isMobileChrome() ? () => {} : undefined}
-                onPressOut={Browser.isMobile() ? this.props.onHoverOut : undefined}
+                onPressOut={Browser.isMobile() ? props.onHoverOut : undefined}
                 onHoverIn={() => {
-                    if (this.props.onHoverIn) {
-                        this.props.onHoverIn();
+                    if (props.onHoverIn) {
+                        props.onHoverIn();
                     }
 
-                    this.setState({isHovered: true});
+                    setIsHovered(true);
                 }}
                 onHoverOut={() => {
-                    if (this.props.onHoverOut) {
-                        this.props.onHoverOut();
+                    if (props.onHoverOut) {
+                        props.onHoverOut();
                     }
 
-                    this.setState({isHovered: false});
+                    setIsHovered(false);
                 }}
-                onFocus={this.props.onFocus}
-                onBlur={this.props.onBlur}
-                ref={(ref) => (this.ref = ref)}
+                onFocus={props.onFocus}
+                onBlur={props.onBlur}
+                ref={(el) => (ref.current = el)}
                 style={({pressed}) => [
-                    this.props.isFocused ? this.props.themeStyles.emojiItemKeyboardHighlighted : {},
-                    this.state.isHovered || this.props.isHighlighted ? this.props.themeStyles.emojiItemHighlighted : {},
-                    Browser.isMobile() && this.props.StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
-                    this.props.themeStyles.emojiItem,
+                    props.isFocused ? props.themeStyles.emojiItemKeyboardHighlighted : {},
+                    isHovered || props.isHighlighted ? props.themeStyles.emojiItemHighlighted : {},
+                    Browser.isMobile() && props.StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
+                    props.themeStyles.emojiItem,
                 ]}
-                accessibilityLabel={this.props.emoji}
+                accessibilityLabel={props.emoji}
                 role={CONST.ROLE.BUTTON}
             >
-                <Text style={[this.props.themeStyles.emojiText]}>{this.props.emoji}</Text>
+                <Text style={[props.themeStyles.emojiText]}>{props.emoji}</Text>
             </PressableWithoutFeedback>
         );
-    }
+    
 }
 
 EmojiPickerMenuItem.propTypes = propTypes;
