@@ -27,7 +27,7 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import ReportActionItemDate from './ReportActionItemDate';
 import ReportActionItemFragment from './ReportActionItemFragment';
 
-type ReportActionItemSingleProps = ChildrenProps & {
+type ReportActionItemSingleProps = Partial<ChildrenProps> & {
     /** All the data of the action */
     action: ReportAction;
 

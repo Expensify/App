@@ -40,6 +40,7 @@ const keysToPreserve: OnyxKey[] = [
     ONYXKEYS.NVP_TRY_FOCUS_MODE,
     ONYXKEYS.PREFERRED_THEME,
     ONYXKEYS.NVP_PREFERRED_LOCALE,
+    ONYXKEYS.CREDENTIALS,
 ];
 
 type BaseMenuItem = {

@@ -178,6 +178,7 @@ const CONST = {
     DATE: {
         SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
+        FNS_DATE_TIME_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss',
         LOCAL_TIME_FORMAT: 'h:mm a',
         YEAR_MONTH_FORMAT: 'yyyyMM',
         MONTH_FORMAT: 'MMMM',
@@ -3311,6 +3312,18 @@ const CONST = {
             SSN: 2,
             ADDRESS: 3,
         },
+    },
+
+    EXIT_SURVEY: {
+        REASONS: {
+            FEATURE_NOT_AVAILABLE: 'featureNotAvailable',
+            DONT_UNDERSTAND: 'dontUnderstand',
+            PREFER_CLASSIC: 'preferClassic',
+        },
+    },
+
+    SESSION_STORAGE_KEYS: {
+        INITIAL_URL: 'INITIAL_URL',
     },
 } as const;
 

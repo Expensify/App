@@ -265,7 +265,7 @@ function formatToLongDateWithWeekday(datetime: string | Date): string {
  *
  * @returns Sunday
  */
-function formatToDayOfWeek(datetime: string): string {
+function formatToDayOfWeek(datetime: Date): string {
     return format(new Date(datetime), CONST.DATE.WEEKDAY_TIME_FORMAT);
 }
 
