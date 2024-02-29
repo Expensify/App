@@ -1,0 +1,10 @@
+{
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "noEmit": false,
+        "esModuleInterop": true,
+        "outDir": "dist",
+        "rootDir": "."
+    },
+    "exclude": [".github/**/*"]
+}
