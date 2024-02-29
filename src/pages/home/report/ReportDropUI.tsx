@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
@@ -8,12 +7,11 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-const propTypes = {
+type ReportDropUIProps = {
     /** Callback to execute when a file is dropped. */
-    onDrop: PropTypes.func.isRequired,
+    onDrop: (event: DragEvent) => void;
 };
-
-function ReportDropUI({onDrop}) {
+function ReportDropUI({onDrop}: ReportDropUIProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     return (
@@ -33,6 +31,5 @@ function ReportDropUI({onDrop}) {
 }
 
 ReportDropUI.displayName = 'ReportDropUI';
-ReportDropUI.propTypes = propTypes;
 
 export default ReportDropUI;
