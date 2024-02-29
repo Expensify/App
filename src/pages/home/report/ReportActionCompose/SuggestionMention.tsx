@@ -1,12 +1,13 @@
 import Str from 'expensify-common/lib/str';
-import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import _ from 'underscore';
+import lodashSortBy from 'lodash/sortBy';
+import type {ForwardedRef} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type {Mention} from '@components/MentionSuggestions';
 import MentionSuggestions from '@components/MentionSuggestions';
 import {usePersonalDetails} from '@components/OnyxProvider';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import * as LoginUtils from '@libs/LoginUtils';
@@ -14,56 +15,40 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as SuggestionsUtils from '@libs/SuggestionUtils';
 import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
-import * as SuggestionProps from './suggestionProps';
+import type {PersonalDetailsList} from '@src/types/onyx';
+import type {SuggestionsRef} from './ReportActionCompose';
+import type {SuggestionProps} from './Suggestions';
+
+type SuggestionValues = {
+    suggestedMentions: Mention[];
+    atSignIndex: number;
+    shouldShowSuggestionMenu: boolean;
+    mentionPrefix: string;
+};
 
 /**
  * Check if this piece of string looks like a mention
- * @param {String} str
- * @returns {Boolean}
  */
-const isMentionCode = (str) => CONST.REGEX.HAS_AT_MOST_TWO_AT_SIGNS.test(str);
+const isMentionCode = (str: string): boolean => CONST.REGEX.HAS_AT_MOST_TWO_AT_SIGNS.test(str);
 
-const defaultSuggestionsValues = {
+const defaultSuggestionsValues: SuggestionValues = {
     suggestedMentions: [],
     atSignIndex: -1,
     shouldShowSuggestionMenu: false,
     mentionPrefix: '',
 };
 
-const propTypes = {
-    /** A ref to this component */
-    forwardedRef: PropTypes.shape({current: PropTypes.shape({})}),
-
-    ...SuggestionProps.implementationBaseProps,
-
-    ...withCurrentUserPersonalDetailsPropTypes,
-};
-
-const defaultProps = {
-    forwardedRef: null,
-    ...withCurrentUserPersonalDetailsDefaultProps,
-};
-
-function SuggestionMention({
-    value,
-    setValue,
-    selection,
-    setSelection,
-    isComposerFullSize,
-    updateComment,
-    composerHeight,
-    forwardedRef,
-    isAutoSuggestionPickerLarge,
-    measureParentContainer,
-    isComposerFocused,
-    currentUserPersonalDetails,
-}) {
-    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+function SuggestionMention(
+    {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, measureParentContainer, isComposerFocused}: SuggestionProps,
+    ref: ForwardedRef<SuggestionsRef>,
+) {
+    const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
     const {translate, formatPhoneNumber} = useLocalize();
     const previousValue = usePrevious(value);
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
-    const isMentionSuggestionsMenuVisible = !_.isEmpty(suggestionValues.suggestedMentions) && suggestionValues.shouldShowSuggestionMenu;
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const isMentionSuggestionsMenuVisible = !!suggestionValues.suggestedMentions.length && suggestionValues.shouldShowSuggestionMenu;
 
     const [highlightedMentionIndex, setHighlightedMentionIndex] = useArrowKeyFocusManager({
         isActive: isMentionSuggestionsMenuVisible,
@@ -75,12 +60,12 @@ function SuggestionMention({
     const shouldBlockCalc = useRef(false);
 
     const formatLoginPrivateDomain = useCallback(
-        (displayText, userLogin = '') => {
+        (displayText = '', userLogin = '') => {
             if (userLogin !== displayText) {
                 return displayText;
             }
             // If the emails are not in the same private domain, we also return the displayText
-            if (!LoginUtils.areEmailsFromSamePrivateDomain(displayText, currentUserPersonalDetails.login)) {
+            if (!LoginUtils.areEmailsFromSamePrivateDomain(displayText, currentUserPersonalDetails.login ?? '')) {
                 return Str.removeSMSDomain(displayText);
             }
 
@@ -92,10 +77,9 @@ function SuggestionMention({
 
     /**
      * Replace the code of mention and update selection
-     * @param {Number} highlightedMentionIndex
      */
     const insertSelectedMention = useCallback(
-        (highlightedMentionIndexInner) => {
+        (highlightedMentionIndexInner: number) => {
             const commentBeforeAtSign = value.slice(0, suggestionValues.atSignIndex);
             const mentionObject = suggestionValues.suggestedMentions[highlightedMentionIndexInner];
             const mentionCode =
@@ -126,23 +110,21 @@ function SuggestionMention({
 
     /**
      * Listens for keyboard shortcuts and applies the action
-     *
-     * @param {Object} e
      */
     const triggerHotkeyActions = useCallback(
-        (e) => {
+        (event: KeyboardEvent) => {
             const suggestionsExist = suggestionValues.suggestedMentions.length > 0;
 
-            if (((!e.shiftKey && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) || e.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) && suggestionsExist) {
-                e.preventDefault();
+            if (((!event.shiftKey && event.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) || event.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) && suggestionsExist) {
+                event.preventDefault();
                 if (suggestionValues.suggestedMentions.length > 0) {
                     insertSelectedMention(highlightedMentionIndex);
                     return true;
                 }
             }
 
-            if (e.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey) {
-                e.preventDefault();
+            if (event.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey) {
+                event.preventDefault();
 
                 if (suggestionsExist) {
                     resetSuggestions();
@@ -155,7 +137,7 @@ function SuggestionMention({
     );
 
     const getMentionOptions = useCallback(
-        (personalDetailsParam, searchValue = '') => {
+        (personalDetailsParam: PersonalDetailsList, searchValue = ''): Mention[] => {
             const suggestions = [];
 
             if (CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT.includes(searchValue.toLowerCase())) {
@@ -165,15 +147,15 @@ function SuggestionMention({
                     icons: [
                         {
                             source: Expensicons.Megaphone,
-                            type: 'avatar',
+                            type: CONST.ICON_TYPE_AVATAR,
                         },
                     ],
                 });
             }
 
-            const filteredPersonalDetails = _.filter(_.values(personalDetailsParam), (detail) => {
+            const filteredPersonalDetails = Object.values(personalDetailsParam ?? {}).filter((detail) => {
                 // If we don't have user's primary login, that member is not known to the current user and hence we do not allow them to be mentioned
-                if (!detail.login || detail.isOptimisticPersonalDetail) {
+                if (!detail?.login || detail.isOptimisticPersonalDetail) {
                     return false;
                 }
                 // We don't want to mention system emails like notifications@expensify.com
@@ -188,18 +170,19 @@ function SuggestionMention({
                 return true;
             });
 
-            const sortedPersonalDetails = _.sortBy(filteredPersonalDetails, (detail) => detail.displayName || detail.login);
-            _.each(_.first(sortedPersonalDetails, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length), (detail) => {
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
+            const sortedPersonalDetails = lodashSortBy(filteredPersonalDetails, (detail) => detail?.displayName || detail?.login);
+            sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length).forEach((detail) => {
                 suggestions.push({
-                    text: formatLoginPrivateDomain(PersonalDetailsUtils.getDisplayNameOrDefault(detail), detail.login),
-                    alternateText: `@${formatLoginPrivateDomain(detail.login, detail.login)}`,
-                    login: detail.login,
+                    text: formatLoginPrivateDomain(PersonalDetailsUtils.getDisplayNameOrDefault(detail), detail?.login),
+                    alternateText: `@${formatLoginPrivateDomain(detail?.login, detail?.login)}`,
+                    login: detail?.login,
                     icons: [
                         {
-                            name: detail.login,
-                            source: UserUtils.getAvatar(detail.avatar, detail.accountID),
-                            type: 'avatar',
-                            fallbackIcon: detail.fallbackIcon,
+                            name: detail?.login,
+                            source: UserUtils.getAvatar(detail?.avatar, detail?.accountID),
+                            type: CONST.ICON_TYPE_AVATAR,
+                            fallbackIcon: detail?.fallbackIcon,
                         },
                     ],
                 });
@@ -211,7 +194,7 @@ function SuggestionMention({
     );
 
     const calculateMentionSuggestion = useCallback(
-        (selectionEnd) => {
+        (selectionEnd: number) => {
             if (shouldBlockCalc.current || selectionEnd < 1 || !isComposerFocused) {
                 shouldBlockCalc.current = false;
                 resetSuggestions();
@@ -232,12 +215,12 @@ function SuggestionMention({
             const afterLastBreakLineIndex = value.lastIndexOf('\n', selectionEnd - 1) + 1;
             const leftString = value.substring(afterLastBreakLineIndex, suggestionEndIndex);
             const words = leftString.split(CONST.REGEX.SPACE_OR_EMOJI);
-            const lastWord = _.last(words);
+            const lastWord: string = words.at(-1) ?? '';
             const secondToLastWord = words[words.length - 3];
 
-            let atSignIndex;
-            let suggestionWord;
-            let prefix;
+            let atSignIndex: number | undefined;
+            let suggestionWord = '';
+            let prefix: string;
 
             // Detect if the last two words contain a mention (two words are needed to detect a mention with a space in it)
             if (lastWord.startsWith('@')) {
@@ -254,7 +237,7 @@ function SuggestionMention({
                 prefix = lastWord.substring(1);
             }
 
-            const nextState = {
+            const nextState: Partial<SuggestionValues> = {
                 suggestedMentions: [],
                 atSignIndex,
                 mentionPrefix: prefix,
@@ -266,7 +249,7 @@ function SuggestionMention({
                 const suggestions = getMentionOptions(personalDetails, prefix);
 
                 nextState.suggestedMentions = suggestions;
-                nextState.shouldShowSuggestionMenu = !_.isEmpty(suggestions);
+                nextState.shouldShowSuggestionMenu = !!suggestions.length;
             }
 
             setSuggestionValues((prevState) => ({
@@ -299,20 +282,16 @@ function SuggestionMention({
     }, []);
 
     const setShouldBlockSuggestionCalc = useCallback(
-        (shouldBlockSuggestionCalc) => {
+        (shouldBlockSuggestionCalc: boolean) => {
             shouldBlockCalc.current = shouldBlockSuggestionCalc;
         },
         [shouldBlockCalc],
     );
 
-    const onClose = useCallback(() => {
-        setSuggestionValues((prevState) => ({...prevState, suggestedMentions: []}));
-    }, []);
-
     const getSuggestions = useCallback(() => suggestionValues.suggestedMentions, [suggestionValues]);
 
     useImperativeHandle(
-        forwardedRef,
+        ref,
         () => ({
             resetSuggestions,
             triggerHotkeyActions,
@@ -329,34 +308,16 @@ function SuggestionMention({
 
     return (
         <MentionSuggestions
-            onClose={onClose}
             highlightedMentionIndex={highlightedMentionIndex}
             mentions={suggestionValues.suggestedMentions}
-            comment={value}
-            updateComment={setValue}
-            colonIndex={suggestionValues.colonIndex}
             prefix={suggestionValues.mentionPrefix}
             onSelect={insertSelectedMention}
-            isComposerFullSize={isComposerFullSize}
-            isMentionPickerLarge={isAutoSuggestionPickerLarge}
-            composerHeight={composerHeight}
+            isMentionPickerLarge={!!isAutoSuggestionPickerLarge}
             measureParentContainer={measureParentContainer}
         />
     );
 }
 
-SuggestionMention.propTypes = propTypes;
-SuggestionMention.defaultProps = defaultProps;
 SuggestionMention.displayName = 'SuggestionMention';
 
-const SuggestionMentionWithRef = React.forwardRef((props, ref) => (
-    <SuggestionMention
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
-
-SuggestionMentionWithRef.displayName = 'SuggestionMentionWithRef';
-
-export default withCurrentUserPersonalDetails(SuggestionMentionWithRef);
+export default forwardRef(SuggestionMention);

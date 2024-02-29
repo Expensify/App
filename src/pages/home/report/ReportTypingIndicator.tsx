@@ -1,7 +1,6 @@
-import PropTypes from 'prop-types';
 import React, {memo, useMemo} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import Text from '@components/Text';
 import TextWithEllipsis from '@components/TextWithEllipsis';
 import useLocalize from '@hooks/useLocalize';
@@ -9,28 +8,30 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportUtils from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportUserIsTyping} from '@src/types/onyx';
 
-const propTypes = {
+type ReportTypingIndicatorOnyxProps = {
     /** Key-value pairs of user accountIDs/logins and whether or not they are typing. Keys are accountIDs or logins. */
-    userTypingStatuses: PropTypes.objectOf(PropTypes.bool),
+    userTypingStatuses: OnyxEntry<ReportUserIsTyping>;
 };
 
-const defaultProps = {
-    userTypingStatuses: {},
+type ReportTypingIndicatorProps = ReportTypingIndicatorOnyxProps & {
+    // eslint-disable-next-line react/no-unused-prop-types -- This is used by withOnyx
+    reportID: string;
 };
 
-function ReportTypingIndicator({userTypingStatuses}) {
+function ReportTypingIndicator({userTypingStatuses}: ReportTypingIndicatorProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
     const styles = useThemeStyles();
-    const usersTyping = useMemo(() => _.filter(_.keys(userTypingStatuses), (loginOrAccountID) => userTypingStatuses[loginOrAccountID]), [userTypingStatuses]);
+    const usersTyping = useMemo(() => Object.keys(userTypingStatuses ?? {}).filter((loginOrAccountID) => userTypingStatuses?.[loginOrAccountID]), [userTypingStatuses]);
     const firstUserTyping = usersTyping[0];
 
     const isUserTypingADisplayName = Number.isNaN(Number(firstUserTyping));
 
     // If we are offline, the user typing statuses are not up-to-date so do not show them
-    if (isOffline || !firstUserTyping) {
+    if (!!isOffline || !firstUserTyping) {
         return null;
     }
 
@@ -40,6 +41,7 @@ function ReportTypingIndicator({userTypingStatuses}) {
     if (usersTyping.length === 1) {
         return (
             <TextWithEllipsis
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
                 leadingText={firstUserTypingDisplayName || translate('common.someone')}
                 trailingText={` ${translate('reportTypingIndicator.isTyping')}`}
                 textStyle={[styles.chatItemComposeSecondaryRowSubText]}
@@ -59,13 +61,10 @@ function ReportTypingIndicator({userTypingStatuses}) {
     );
 }
 
-ReportTypingIndicator.propTypes = propTypes;
-ReportTypingIndicator.defaultProps = defaultProps;
 ReportTypingIndicator.displayName = 'ReportTypingIndicator';
 
-export default withOnyx({
+export default withOnyx<ReportTypingIndicatorProps, ReportTypingIndicatorOnyxProps>({
     userTypingStatuses: {
         key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`,
-        initialValue: {},
     },
 })(memo(ReportTypingIndicator));
