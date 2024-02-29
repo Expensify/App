@@ -9,15 +9,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import Button from './Button';
 import Lottie from './Lottie';
 import LottieAnimations from './LottieAnimations';
-import Modal from './Modal';
 import Text from './Text';
 import VideoPlayer from './VideoPlayer';
 
-const BASE_VIDEO_ASPECT_RATIO = 2;
+const BASE_VIDEO_ASPECT_RATIO = 484 / 272.25;
 
 const MODAL_PADDING = variables.spacing2;
 
@@ -38,9 +36,8 @@ function OnboardingWelcomeVideo() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const containerDimensions = useRef<LayoutRectangle>({width: 0, height: 0, x: 0, y: 0});
-    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
-    const [isModalOpen, setIsModalOpen] = useState(true);
     const [welcomeVideoStatus, setWelcomeVideoStatus] = useState<VideoStatus>('video');
     const [isWelcomeVideoStatusLocked, setIsWelcomeVideoStatusLocked] = useState(false);
     const [isVideoLoaded, setIsVideoLoaded] = useState(false);
@@ -66,11 +63,10 @@ function OnboardingWelcomeVideo() {
     };
 
     const closeModal = useCallback(() => {
-        setIsModalOpen(false);
         Navigation.goBack();
     }, []);
 
-    const onVideoLoaded = (e: VideoReadyForDisplayEvent | VideoLoadedEventType | undefined) => {
+    const setAspectRatio = (e: VideoReadyForDisplayEvent | VideoLoadedEventType | undefined) => {
         if (!e) {
             return;
         }
@@ -98,7 +94,7 @@ function OnboardingWelcomeVideo() {
                         // be changed when correct one gets uploaded on backend
                         url="https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4"
                         videoPlayerStyle={[styles.onboardingVideoPlayer, {width: videoWidth, height: videoWidth / videoAspectRatio}]}
-                        onVideoLoaded={onVideoLoaded}
+                        onVideoLoaded={setAspectRatio}
                         onPlaybackStatusUpdate={setVideoStatus}
                         shouldShowProgressVolumeOnly
                         shouldPlay
