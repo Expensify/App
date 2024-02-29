@@ -2,7 +2,7 @@ import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
 import Str from 'expensify-common/lib/str';
 import React, {useEffect, useMemo, useState} from 'react';
-import type {SectionListData} from 'react-native';
+import type {GestureResponderEvent, SectionListData} from 'react-native';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -236,9 +236,9 @@ function WorkspaceInvitePage({
         setSelectedOptions(newSelectedOptions);
     };
 
-    const validate = (): boolean => {
+    const validate = (options: OptionsListUtils.MemberForList[]): boolean => {
         const errors: Errors = {};
-        if (selectedOptions.length <= 0) {
+        if (options.length <= 0) {
             errors.noUserSelected = 'true';
         }
 
@@ -246,15 +246,25 @@ function WorkspaceInvitePage({
         return isEmptyObject(errors);
     };
 
-    const inviteUser = () => {
-        if (!validate()) {
+    const inviteUser = (e?: GestureResponderEvent | KeyboardEvent | undefined, option?: MemberForList) => {
+        const options = [...selectedOptions];
+        if (option && e && 'key' in e && e.key === 'Enter') {
+            const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option?.login);
+
+            if (option && !isOptionInList) {
+                toggleOption(option);
+                options.push(option);
+            }
+        }
+
+        if (!validate(options)) {
             return;
         }
 
         const invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs = {};
-        selectedOptions.forEach((option) => {
-            const login = option.login ?? '';
-            const accountID = option.accountID ?? '';
+        options.forEach((selectedOption) => {
+            const login = selectedOption.login ?? '';
+            const accountID = selectedOption.accountID ?? '';
             if (!login.toLowerCase().trim() || !accountID) {
                 return;
             }

@@ -371,11 +371,22 @@ function BaseSelectionList<TItem extends ListItem>(
     });
 
     /** Calls confirm action when pressing CTRL (CMD) + Enter */
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, onConfirm ?? selectFocusedOption, {
-        captureOnInputs: true,
-        shouldBubble: !flattenedSections.allOptions[focusedIndex],
-        isActive: !disableKeyboardShortcuts && isFocused,
-    });
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER,
+        (e) => {
+            const focusedOption = flattenedSections.allOptions[focusedIndex];
+            if (onConfirm && (flattenedSections.selectedOptions.length || focusedOption)) {
+                onConfirm(e, focusedOption);
+                return;
+            }
+            selectFocusedOption();
+        },
+        {
+            captureOnInputs: true,
+            shouldBubble: !flattenedSections.allOptions[focusedIndex],
+            isActive: !disableKeyboardShortcuts && isFocused,
+        },
+    );
 
     return (
         <ArrowKeyFocusManager
