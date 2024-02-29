@@ -4,23 +4,24 @@ import {utcToZonedTime} from 'date-fns-tz';
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {AppState, DeviceEventEmitter, Linking} from 'react-native';
-import Onyx from 'react-native-onyx';
+import Onyx, {OnyxEntry} from 'react-native-onyx';
+import * as CollectionUtils from '@libs/CollectionUtils';
+import DateUtils from '@libs/DateUtils';
+import * as Localize from '@libs/Localize';
+import LocalNotification from '@libs/Notification/LocalNotification';
+import * as NumberUtils from '@libs/NumberUtils';
+import * as Pusher from '@libs/Pusher/pusher';
+import PusherConnectionManager from '@libs/PusherConnectionManager';
 import FontUtils from '@styles/utils/FontUtils';
-import App from '../../src/App';
-import CONFIG from '../../src/CONFIG';
-import CONST from '../../src/CONST';
-import * as AppActions from '../../src/libs/actions/App';
-import * as Report from '../../src/libs/actions/Report';
-import * as User from '../../src/libs/actions/User';
-import * as CollectionUtils from '../../src/libs/CollectionUtils';
-import DateUtils from '../../src/libs/DateUtils';
-import * as Localize from '../../src/libs/Localize';
-import LocalNotification from '../../src/libs/Notification/LocalNotification';
-import * as NumberUtils from '../../src/libs/NumberUtils';
-import * as Pusher from '../../src/libs/Pusher/pusher';
-import PusherConnectionManager from '../../src/libs/PusherConnectionManager';
-import ONYXKEYS from '../../src/ONYXKEYS';
-import appSetup from '../../src/setup';
+import * as AppActions from '@userActions/App';
+import * as Report from '@userActions/Report';
+import * as User from '@userActions/User';
+import App from '@src/App';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import appSetup from '@src/setup';
+import type {ReportAction, ReportActions} from '@src/types/onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -34,6 +35,7 @@ jest.mock('../../src/components/ConfirmedRoute.tsx');
 
 // Needed for: https://stackoverflow.com/questions/76903168/mocking-libraries-in-jest
 jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         ignoreLogs: jest.fn(),
@@ -41,6 +43,7 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
     },
 }));
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual('react-native-reanimated/mock'),
     createAnimatedPropAdapter: jest.fn,
@@ -50,7 +53,7 @@ jest.mock('react-native-reanimated', () => ({
 /**
  * We need to keep track of the transitionEnd callback so we can trigger it in our tests
  */
-let transitionEndCB;
+let transitionEndCB: () => void | undefined;
 
 /**
  * This is a helper function to create a mock for the addListener function of the react-navigation library.
@@ -59,7 +62,7 @@ let transitionEndCB;
  *
  * P.S: This can't be moved to a utils file because Jest wants any external function to stay in the scope.
  *
- * @returns {Object} An object with two functions: triggerTransitionEnd and addListener
+ * @returns An object with two functions: triggerTransitionEnd and addListener
  */
 const createAddListenerMock = () => {
     const transitionEndListeners = [];
@@ -84,6 +87,7 @@ jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual('@react-navigation/native');
     const {triggerTransitionEnd, addListener} = createAddListenerMock();
     transitionEndCB = triggerTransitionEnd;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     const useNavigation = () => ({
         navigate: jest.fn(),
         ...actualNav.useNavigation,
@@ -93,6 +97,7 @@ jest.mock('@react-navigation/native', () => {
         addListener,
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actualNav,
         useNavigation,
@@ -108,7 +113,7 @@ beforeAll(() => {
     // fetch() never gets called so it does not need mocking) or we might have fetch throw an error to test error handling
     // behavior. But here we just want to treat all API requests as a generic "success" and in the cases where we need to
     // simulate data arriving we will just set it into Onyx directly with Onyx.merge() or Onyx.set() etc.
-    global.fetch = TestHelper.getGlobalFetchMock();
+    global.fetch = TestHelper.getGlobalFetchMock() as typeof global.fetch;
 
     Linking.setInitialURL('https://new.expensify.com/');
     appSetup();
@@ -144,29 +149,31 @@ function scrollUpToRevealNewMessagesBadge() {
 }
 
 /**
- * @return {Boolean}
+ * @return
  */
 function isNewMessagesBadgeVisible() {
     const hintText = Localize.translateLocal('accessibilityHints.scrollToNewestMessages');
     const badge = screen.queryByAccessibilityHint(hintText);
-    return Math.round(badge.props.style.transform[0].translateY) === -40;
+    return Math.round(badge?.props.style.transform[0].translateY) === -40;
 }
 
 /**
- * @return {Promise}
+ * @return
  */
 function navigateToSidebar() {
     const hintText = Localize.translateLocal('accessibilityHints.navigateToChatsList');
     const reportHeaderBackButton = screen.queryByAccessibilityHint(hintText);
-    fireEvent(reportHeaderBackButton, 'press');
+    if (reportHeaderBackButton) {
+        fireEvent(reportHeaderBackButton, 'press');
+    }
     return waitForBatchedUpdates();
 }
 
 /**
- * @param {Number} index
- * @return {Promise}
+ * @param index
+ * @return
  */
-async function navigateToSidebarOption(index) {
+async function navigateToSidebarOption(index: number): Promise<void> {
     const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
     const optionRows = screen.queryAllByAccessibilityHint(hintText);
     fireEvent(optionRows[index], 'press');
@@ -174,7 +181,7 @@ async function navigateToSidebarOption(index) {
 }
 
 /**
- * @return {Boolean}
+ * @return
  */
 function areYouOnChatListScreen() {
     const hintText = Localize.translateLocal('sidebarScreen.listOfChats');
@@ -195,7 +202,7 @@ let reportAction9CreatedDate;
 /**
  * Sets up a test with a logged in user that has one unread chat from another user. Returns the <App/> test instance.
  *
- * @returns {Promise}
+ * @returns
  */
 function signInAndGetAppWithUnreadChat() {
     // Render the App and sign in as a test user.
@@ -302,7 +309,7 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(async () => {
-                await act(() => transitionEndCB && transitionEndCB());
+                await act(() => transitionEndCB?.());
 
                 // That the report actions are visible along with the created action
                 const welcomeMessageHintText = Localize.translateLocal('accessibilityHints.chatWelcomeMessage');
@@ -327,7 +334,7 @@ describe('Unread Indicators', () => {
             // Navigate to the unread chat from the sidebar
             .then(() => navigateToSidebarOption(0))
             .then(async () => {
-                await act(() => transitionEndCB && transitionEndCB());
+                await act(() => transitionEndCB?.());
                 // Verify the unread indicator is present
                 const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
@@ -453,7 +460,7 @@ describe('Unread Indicators', () => {
             })
             .then(waitForBatchedUpdates)
             .then(async () => {
-                await act(() => transitionEndCB && transitionEndCB());
+                await act(() => transitionEndCB?.());
                 // Verify that report we navigated to appears in a "read" state while the original unread report still shows as unread
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
@@ -530,7 +537,7 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(async () => {
-                await act(() => transitionEndCB && transitionEndCB());
+                await act(() => transitionEndCB?.());
                 const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
@@ -587,8 +594,8 @@ describe('Unread Indicators', () => {
             }));
 
     it('Displays the correct chat message preview in the LHN when a comment is added then deleted', () => {
-        let reportActions;
-        let lastReportAction;
+        let reportActions: Record<string, ReportAction>;
+        let lastReportAction: ReportAction;
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
             callback: (val) => (reportActions = val),
