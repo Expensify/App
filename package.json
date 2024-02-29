@@ -127,6 +127,7 @@
     "react-native": "0.73.2",
     "react-native-android-location-enabler": "^2.0.1",
     "react-native-blob-util": "0.19.4",
+    "react-native-cached-image": "^1.4.3",
     "react-native-collapsible": "^1.6.1",
     "react-native-config": "^1.4.5",
     "react-native-dev-menu": "^4.1.1",
