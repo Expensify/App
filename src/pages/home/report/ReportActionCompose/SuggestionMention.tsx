@@ -153,7 +153,7 @@ function SuggestionMention(
             const sortedPersonalDetails = lodashSortBy(filteredPersonalDetails, (detail) => detail?.displayName || detail?.login);
             sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length).forEach((detail) => {
                 suggestions.push({
-                    text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(detail)),
+                    text: Str.removeSMSDomain(PersonalDetailsUtils.getDisplayNameOrDefault(detail)),
                     alternateText: formatPhoneNumber(detail?.login ?? ''),
                     login: detail?.login,
                     icons: [
