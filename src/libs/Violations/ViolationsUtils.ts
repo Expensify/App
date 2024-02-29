@@ -95,8 +95,6 @@ const ViolationsUtils = {
                 for (let i = 0; i < policyTagKeys.length; i++) {
                     const isTagRequired = policyTagList[policyTagKeys[i]].required ?? true;
                     const isTagSelected = Boolean(selectedTags[i]);
-                    // console.log('i', i, isTagRequired, isTagSelected, selectedTags, policyTagList[policyTagKeys[i]], updatedTransaction.tag);
-                    // console.log('i', i, isTagRequired, isTagSelected, selectedTags);
                     if (isTagRequired && (!isTagSelected || (selectedTags.length === 1 && selectedTags[0] === ''))){
                         errorIndexes.push(i)
                     }
@@ -116,9 +114,6 @@ const ViolationsUtils = {
                         const selectedTag = selectedTags[i];
                         const tags = policyTagList[policyTagKeys[i]].tags;
                         const isTagInPolicy = _.some(tags, (tag, tagKey) => tag.name === selectedTag && Boolean(tag.enabled));
-                        // console.log(policyTagList[policyTagKeys[i]]);
-                        // console.log('i', i, isTagRequired, isTagSelected, selectedTags, policyTagList[policyTagKeys[i]], updatedTransaction.tag);
-                        // console.log('i', i, isTagRequired, isTagInPolicy, tags, selectedTag, selectedTags, policyTagKeys[i]);
                         if (!isTagInPolicy) {
                             newTransactionViolations.push({
                                 name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
@@ -128,7 +123,7 @@ const ViolationsUtils = {
                                 },
                             });
                             hasInvalidTag = true;
-                            break
+                            break;
                         }
                     }
                     if (!hasInvalidTag) {
