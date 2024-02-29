@@ -8,7 +8,7 @@ import type {PersonalDetails, TransactionViolation} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import createCollection from '../utils/collections/createCollection';
+import createCollection, {createNestedCollection} from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
@@ -23,6 +23,12 @@ const getMockedReports = (length = 500) =>
     );
 
 const reportActions = createCollection<ReportAction>(
+    (item) => `${item.reportActionID}`,
+    (index) => createRandomReportAction(index),
+);
+
+const allReportActions = createNestedCollection<ReportAction>(
+    (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
     (item) => `${item.reportActionID}`,
     (index) => createRandomReportAction(index),
 );
@@ -81,24 +87,6 @@ describe('SidebarUtils', () => {
             (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
             (index) => createRandomPolicy(index),
         );
-
-        const allReportActions = Object.fromEntries(
-            Object.keys(reportActions).map((key) => [
-                key,
-                [
-                    {
-                        errors: reportActions[key].errors ?? [],
-                        message: [
-                            {
-                                moderationDecision: {
-                                    decision: reportActions[key].message?.[0]?.moderationDecision?.decision,
-                                },
-                            },
-                        ],
-                    },
-                ],
-            ]),
-        ) as unknown as OnyxCollection<ReportAction[]>;
 
         await waitForBatchedUpdates();
         await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, betas, policies, CONST.PRIORITY_MODE.DEFAULT, allReportActions, transactionViolations));

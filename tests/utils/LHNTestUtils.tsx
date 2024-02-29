@@ -10,6 +10,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxProvider from '@components/OnyxProvider';
 import {CurrentReportIDContextProvider} from '@components/withCurrentReportID';
 import {EnvironmentProvider} from '@components/withEnvironment';
+import {OrderedReportListItemsContextProvider} from '@hooks/useOrderedReportListItems';
 import DateUtils from '@libs/DateUtils';
 import ReportActionItemSingle from '@pages/home/report/ReportActionItemSingle';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
@@ -280,7 +281,7 @@ function getFakeAdvancedReportAction(actionName: ActionName = 'IOU', actor = 'em
 
 function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, EnvironmentProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, OrderedReportListItemsContextProvider, EnvironmentProvider, CurrentReportIDContextProvider]}>
             <SidebarLinksData
                 // @ts-expect-error TODO: Remove this once SidebarLinksData (https://github.com/Expensify/App/issues/25220) is migrated to TypeScript.
                 onLinkClick={() => {}}
