@@ -145,14 +145,17 @@ const buildQuickbooksOnlineOAuthJob = function (callbackPath: string, policyID?:
 //     }));
 // },
 
-const getQuickBooksOnlineSetupLink = (callbackPath: string, policyID: string) => {
+const getQuickBooksOnlineSetupLink = (policyID: string) => {
+    const callbackPath = `https://dev.new.expensify.com:8082/workspace/${policyID}/accounting`;
     // const jobDescription = buildQuickbooksOnlineOAuthJob(callbackPath, policyID);
     // const queryString = new URLSearchParams({requestJobDescription: JSON.stringify(jobDescription)}).toString();
     // const queryString = `requestJobDescription=${encodeURIComponent(JSON.stringify(jobDescription))}`;
     // return `${CONFIG.EXPENSIFY.INTEGRATION_SERVER_PROXY}?${queryString}`;
 
     const otherParams = new URLSearchParams({callbackPath, policyID}).toString();
-    return `${getCommandURL({command: 'ConnectWorkspaceToQuickbooksOnline'})}&${otherParams}`;
+    const commandUrl = `${getCommandURL({command: 'ConnectWorkspaceToQuickbooksOnline'})}&${otherParams}`;
+    console.log('getQuickBooksOnlineSetupLink commandUrl', commandUrl);
+    return commandUrl;
 }
 
 export {

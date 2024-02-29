@@ -116,7 +116,7 @@ function WorkspaceAccountingPage({
                             <Button
                                 onPress={() => {
                                     setTriggeredSyncManually(true);
-                                    Link.openLink(getQuickBooksOnlineSetupLink(`https://dev.new.expensify.com:8082/workspace/${policy.id}/accounting`, policy.id), environmentURL, false);
+                                    Link.openLink(getQuickBooksOnlineSetupLink(policy.id), environmentURL, false);
                                 }}
                             >
                                 <Text>Quickbooks Online Setup</Text>
