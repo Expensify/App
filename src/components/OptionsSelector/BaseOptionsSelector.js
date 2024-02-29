@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import _ from 'underscore';
-import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -12,11 +11,13 @@ import OptionsList from '@components/OptionsList';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ShowMoreButton from '@components/ShowMoreButton';
 import TextInput from '@components/TextInput';
+import useActiveElementRole from '@hooks/useActiveElementRole';
+import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getPlatform from '@libs/getPlatform';
-import KeyboardShortcut from '@libs/KeyboardShortcut';
 import setSelection from '@libs/setSelection';
 import CONST from '@src/CONST';
 import {defaultProps as optionsSelectorDefaultProps, propTypes as optionsSelectorPropTypes} from './optionsSelectorPropTypes';
@@ -58,109 +59,93 @@ function BaseOptionsSelector(props) {
     const {translate} = useLocalize();
     const themeStyles = useThemeStyles();
 
-    const getInitiallyFocusedIndex = useCallback(
-        (allOptions) => {
-            let defaultIndex;
-            if (props.shouldTextInputAppearBelowOptions) {
-                defaultIndex = allOptions.length;
-            } else if (props.focusedIndex >= 0) {
-                defaultIndex = props.focusedIndex;
-            } else {
-                defaultIndex = props.selectedOptions.length;
-            }
-            if (_.isUndefined(props.initiallyFocusedOptionKey)) {
-                return defaultIndex;
-            }
-
-            const indexOfInitiallyFocusedOption = _.findIndex(allOptions, (option) => option.keyForList === props.initiallyFocusedOptionKey);
-
-            return indexOfInitiallyFocusedOption;
-        },
-        [props.shouldTextInputAppearBelowOptions, props.initiallyFocusedOptionKey, props.selectedOptions.length, props.focusedIndex],
-    );
-
-    const isWebOrDesktop = [CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform());
-    const accessibilityRoles = _.values(CONST.ROLE);
-
     const [disabledOptionsIndexes, setDisabledOptionsIndexes] = useState([]);
-    const [sections, setSections] = useState();
-    const [shouldDisableRowSelection, setShouldDisableRowSelection] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [value, setValue] = useState('');
     const [paginationPage, setPaginationPage] = useState(1);
-    const [disableEnterShortCut, setDisableEnterShortCut] = useState(false);
 
+    const shouldDisableRowSelection = useRef(false);
     const relatedTarget = useRef(null);
     const listRef = useRef();
     const textInputRef = useRef();
-    const enterSubscription = useRef();
-    const CTRLEnterSubscription = useRef();
-    const focusTimeout = useRef();
-    const prevLocale = useRef(props.preferredLocale);
-    const prevPaginationPage = useRef(paginationPage);
-    const prevSelectedOptions = useRef(props.selectedOptions);
-    const prevValue = useRef(value);
+
+    const prevSelectedOptions = usePrevious(props.selectedOptions);
+    const prevValue = usePrevious(value);
 
     useImperativeHandle(props.forwardedRef, () => textInputRef.current);
+    const {inputCallbackRef} = useAutoFocusInput();
 
     /**
-     * Flattens the sections into a single array of options.
-     * Each object in this array is enhanced to have:
-     *
-     *   1. A `sectionIndex`, which represents the index of the section it came from
-     *   2. An `index`, which represents the index of the option within the section it came from.
-     *
-     * @returns {Array<Object>}
+     * Paginate props.sections to only allow a certain number of items per section.
      */
-    const flattenSections = useCallback(() => {
-        const calcAllOptions = [];
-        const calcDisabledOptionsIndexes = [];
-        let index = 0;
-        _.each(props.sections, (section, sectionIndex) => {
-            _.each(section.data, (option, optionIndex) => {
-                calcAllOptions.push({
-                    ...option,
-                    sectionIndex,
-                    index: optionIndex,
-                });
-                if (section.isDisabled || option.isDisabled) {
-                    calcDisabledOptionsIndexes.push(index);
-                }
-                index += 1;
-            });
-        });
-
-        setDisabledOptionsIndexes(calcDisabledOptionsIndexes);
-        return calcAllOptions;
-    }, [props.sections]);
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const initialAllOptions = useMemo(() => flattenSections(), []);
-    const [allOptions, setAllOptions] = useState(initialAllOptions);
-    const [focusedIndex, setFocusedIndex] = useState(getInitiallyFocusedIndex(initialAllOptions));
-    const [focusedOption, setFocusedOption] = useState(allOptions[focusedIndex]);
-
-    /**
-     * Maps sections to render only allowed count of them per section.
-     *
-     * @returns {Objects[]}
-     */
-    const sliceSections = useCallback(
+    const sections = useMemo(
         () =>
             _.map(props.sections, (section) => {
                 if (_.isEmpty(section.data)) {
                     return section;
                 }
 
-                const pagination = paginationPage || 1;
-
-                return {
-                    ...section,
-                    data: section.data.slice(0, CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * pagination),
-                };
+                // eslint-disable-next-line no-param-reassign
+                section.data = section.data.slice(0, CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * (paginationPage || 1));
+                return section;
             }),
         [paginationPage, props.sections],
     );
+
+    /**
+     * Flatten the sections into a single array of options.
+     * Each object in this array is enhanced to have:
+     *
+     *   1. A `sectionIndex`, which represents the index of the section it came from
+     *   2. An `index`, which represents the index of the option within the section it came from.
+     */
+    const allOptions = useMemo(() => {
+        const options = [];
+        const calcDisabledOptionIndexes = [];
+        let index = 0;
+        _.each(sections, (section, sectionIndex) => {
+            _.each(section.data, (option, optionIndex) => {
+                // eslint-disable-next-line no-param-reassign
+                option.sectionIndex = sectionIndex;
+                // eslint-disable-next-line no-param-reassign
+                option.index = optionIndex;
+                options.push(option);
+
+                if (section.isDisabled || option.isDisabled) {
+                    calcDisabledOptionIndexes.push(index);
+                }
+
+                index++;
+            });
+        });
+        setDisabledOptionsIndexes(calcDisabledOptionIndexes);
+        return options;
+    }, [sections]);
+    const prevOptions = usePrevious(allOptions);
+
+    const initialFocusedIndex = useMemo(() => {
+        if (!_.isUndefined(props.initiallyFocusedOptionKey)) {
+            return _.findIndex(allOptions, (option) => option.keyForList === props.initiallyFocusedOptionKey);
+        }
+
+        let defaultIndex;
+        if (props.shouldTextInputAppearBelowOptions) {
+            defaultIndex = allOptions.length;
+        } else if (props.focusedIndex >= 0) {
+            defaultIndex = props.focusedIndex;
+        } else {
+            defaultIndex = props.selectedOptions.length;
+        }
+        return defaultIndex;
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- this value is only used to initialize state so only ever needs to be computed on the first render
+    }, []);
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
+        initialFocusedIndex,
+        disabledIndexes: disabledOptionsIndexes,
+        maxIndex: allOptions.length - 1,
+        isActive: !props.disableArrowKeysActions,
+        disableHorizontalKeys: true,
+    });
 
     /**
      * Completes the follow-up actions after a row is selected
@@ -206,8 +191,8 @@ function BaseOptionsSelector(props) {
 
             if (props.canSelectMultipleOptions) {
                 selectRow(localFocusedOption);
-            } else if (!shouldDisableRowSelection) {
-                setShouldDisableRowSelection(true);
+            } else if (!shouldDisableRowSelection.current) {
+                shouldDisableRowSelection.current = true;
 
                 let result = selectRow(localFocusedOption);
                 if (!(result instanceof Promise)) {
@@ -216,75 +201,13 @@ function BaseOptionsSelector(props) {
 
                 setTimeout(() => {
                     result.finally(() => {
-                        setShouldDisableRowSelection(false);
+                        shouldDisableRowSelection.current = false;
                     });
                 }, 500);
             }
         },
-        [props.canSelectMultipleOptions, focusedIndex, allOptions, isFocused, selectRow, shouldDisableRowSelection],
+        [props.canSelectMultipleOptions, focusedIndex, allOptions, isFocused, selectRow],
     );
-
-    const handleFocusIn = () => {
-        const activeElement = document.activeElement;
-        setDisableEnterShortCut(activeElement && accessibilityRoles.includes(activeElement.role) && activeElement.role !== CONST.ROLE.PRESENTATION);
-    };
-
-    const handleFocusOut = () => {
-        setDisableEnterShortCut(false);
-    };
-
-    const subscribeActiveElement = () => {
-        if (!isWebOrDesktop) {
-            return;
-        }
-        document.addEventListener('focusin', handleFocusIn);
-        document.addEventListener('focusout', handleFocusOut);
-    };
-
-    const subscribeToEnterShortcut = () => {
-        const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
-        enterSubscription.current = KeyboardShortcut.subscribe(
-            enterConfig.shortcutKey,
-            selectFocusedOption,
-            enterConfig.descriptionKey,
-            enterConfig.modifiers,
-            true,
-            () => !allOptions[focusedIndex],
-        );
-    };
-
-    const subscribeToCtrlEnterShortcut = () => {
-        const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
-        CTRLEnterSubscription.current = KeyboardShortcut.subscribe(
-            CTRLEnterConfig.shortcutKey,
-            () => {
-                if (props.canSelectMultipleOptions) {
-                    props.onConfirmSelection();
-                    return;
-                }
-
-                const localFocusedOption = allOptions[focusedIndex];
-                if (!localFocusedOption) {
-                    return;
-                }
-
-                selectRow(localFocusedOption);
-            },
-            CTRLEnterConfig.descriptionKey,
-            CTRLEnterConfig.modifiers,
-            true,
-        );
-    };
-
-    const unSubscribeFromKeyboardShortcut = () => {
-        if (enterSubscription.current) {
-            enterSubscription.current();
-        }
-
-        if (CTRLEnterSubscription.current) {
-            CTRLEnterSubscription.current();
-        }
-    };
 
     const selectOptions = useCallback(() => {
         if (props.canSelectMultipleOptions) {
@@ -302,11 +225,16 @@ function BaseOptionsSelector(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [allOptions, focusedIndex, props.canSelectMultipleOptions, props.onConfirmSelection, selectRow]);
 
+    const activeElementRole = useActiveElementRole();
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         shouldBubble: !allOptions[focusedIndex],
         captureOnInputs: true,
+        isActive: isFocused && (!activeElementRole || activeElementRole === CONST.ROLE.PRESENTATION),
     });
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, selectOptions, {captureOnInputs: true});
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, selectOptions, {
+        captureOnInputs: true,
+        isActive: isFocused,
+    });
 
     /**
      * Scrolls to the focused index within the SectionList
@@ -328,119 +256,27 @@ function BaseOptionsSelector(props) {
                 return;
             }
 
-            // Note: react-native's SectionList automatically strips out any empty sections.
-            // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
-            // Otherwise, it will cause an index-out-of-bounds error and crash the app.
-            let adjustedSectionIndex = sectionIndex;
-            for (let i = 0; i < sectionIndex; i++) {
-                if (_.isEmpty(lodashGet(sections, `[${i}].data`))) {
-                    adjustedSectionIndex--;
-                }
-            }
-
-            listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated});
+            listRef.current.scrollToLocation({sectionIndex, itemIndex, animated});
         },
         [allOptions, sections],
     );
 
     useEffect(() => {
-        subscribeToEnterShortcut();
-        subscribeToCtrlEnterShortcut();
-        subscribeActiveElement();
-
-        if (props.isFocused && props.autoFocus && textInputRef.current) {
-            focusTimeout.current = setTimeout(() => {
-                textInputRef.current.focus();
-            }, CONST.ANIMATED_TRANSITION);
-        }
-
-        scrollToIndex(props.selectedOptions.length ? 0 : focusedIndex, false);
-
-        return () => {
-            if (focusTimeout.current) {
-                clearTimeout(focusTimeout.current);
-            }
-
-            unSubscribeFromKeyboardShortcut();
-        };
-        // we want to run this effect only once, when the component is mounted
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    useEffect(() => {
-        // Unregister the shortcut before registering a new one to avoid lingering shortcut listener
-        enterSubscription.current();
-        if (!disableEnterShortCut) {
-            subscribeToEnterShortcut();
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [disableEnterShortCut]);
-
-    useEffect(() => {
-        if (props.isFocused) {
-            subscribeToEnterShortcut();
-            subscribeToCtrlEnterShortcut();
-        } else {
-            unSubscribeFromKeyboardShortcut();
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.isFocused]);
-
-    useEffect(() => {
-        const newSections = sliceSections();
-
-        if (prevPaginationPage.current !== paginationPage) {
-            prevPaginationPage.current = paginationPage;
-            setSections(newSections);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [paginationPage]);
-
-    useEffect(() => {
-        setFocusedOption(allOptions[focusedIndex]);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [focusedIndex]);
-
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    useEffect(() => {
-        // Screen coming back into focus, for example
-        // when doing Cmd+Shift+K, then Cmd+K, then Cmd+Shift+K.
-        // Only applies to platforms that support keyboard shortcuts
-        if (isWebOrDesktop && isFocused && props.autoFocus && textInputRef.current) {
-            setTimeout(() => {
-                textInputRef.current.focus();
-            }, CONST.ANIMATED_TRANSITION);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isFocused, props.autoFocus]);
-
-    useEffect(() => {
-        const newSections = sliceSections();
-        const newOptions = flattenSections();
-
-        if (prevLocale.current !== props.preferredLocale) {
-            prevLocale.current = props.preferredLocale;
-            setAllOptions(newOptions);
-            setSections(newSections);
+        if (_.isEqual(allOptions, prevOptions)) {
             return;
         }
 
         const newFocusedIndex = props.selectedOptions.length;
-        const prevFocusedOption = _.find(newOptions, (option) => focusedOption && option.keyForList === focusedOption.keyForList);
-        const prevFocusedOptionIndex = prevFocusedOption ? _.findIndex(newOptions, (option) => focusedOption && option.keyForList === focusedOption.keyForList) : undefined;
-
-        setSections(newSections);
-        setAllOptions(newOptions);
-        setFocusedIndex(prevFocusedOptionIndex || (_.isNumber(props.focusedIndex) ? props.focusedIndex : newFocusedIndex));
+        const prevFocusedOption = prevOptions[focusedIndex];
+        const indexOfPrevFocusedOptionInCurrentList = _.findIndex(allOptions, (option) => prevFocusedOption && option.keyForList === prevFocusedOption.keyForList);
+        setFocusedIndex(indexOfPrevFocusedOptionInCurrentList || (_.isNumber(props.focusedIndex) ? props.focusedIndex : newFocusedIndex));
         // we want to run this effect only when the sections change
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.sections]);
+    }, [allOptions]);
 
     useEffect(() => {
         // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
-        if (props.selectedOptions.length !== prevSelectedOptions.current.length || (!!prevValue.current && !value)) {
-            prevSelectedOptions.current = props.selectedOptions;
-            prevValue.current = value;
+        if (props.selectedOptions.length !== prevSelectedOptions.length || (!!prevValue && !value)) {
             scrollToIndex(0);
             return;
         }
@@ -471,29 +307,6 @@ function BaseOptionsSelector(props) {
     );
 
     const debouncedUpdateSearchValue = _.debounce(updateSearchValue, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
-
-    /**
-     * Calculates all currently visible options based on the sections that are currently being shown
-     * and the number of items of those sections.
-     *
-     * @returns {Number}
-     */
-    const calculateAllVisibleOptionsCount = useCallback(() => {
-        let count = 0;
-
-        _.forEach(sections, (section) => {
-            count += lodashGet(section, 'data.length', 0);
-        });
-
-        return count;
-    }, [sections]);
-
-    /**
-     * @param {Number} index
-     */
-    const updateFocusedIndex = useCallback((index) => {
-        setFocusedIndex(index);
-    }, []);
 
     /**
      * Completes the follow-up action after clicking on multiple select button
@@ -530,7 +343,10 @@ function BaseOptionsSelector(props) {
 
     const textInput = (
         <TextInput
-            ref={textInputRef}
+            ref={(el) => {
+                textInputRef.current = el;
+                inputCallbackRef(el);
+            }}
             label={props.textInputLabel}
             accessibilityLabel={props.textInputLabel}
             role={CONST.ROLE.PRESENTATION}
@@ -619,13 +435,7 @@ function BaseOptionsSelector(props) {
     );
 
     return (
-        <ArrowKeyFocusManager
-            disabledIndexes={disabledOptionsIndexes}
-            focusedIndex={focusedIndex}
-            maxIndex={calculateAllVisibleOptionsCount() - 1}
-            onFocusedIndexChanged={props.disableArrowKeysActions ? () => {} : updateFocusedIndex}
-            shouldResetIndexOnEndReached={false}
-        >
+        <>
             <View style={[themeStyles.flexGrow1, themeStyles.flexShrink1, themeStyles.flexBasisAuto]}>
                 {/*
                  * The OptionsList component uses a SectionList which uses a VirtualizedList internally.
@@ -684,7 +494,7 @@ function BaseOptionsSelector(props) {
                     {props.footerContent}
                 </FixedFooter>
             )}
-        </ArrowKeyFocusManager>
+        </>
     );
 }
 
