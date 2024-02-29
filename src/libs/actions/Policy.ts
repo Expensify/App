@@ -392,6 +392,9 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 autoReporting: enabled,
+                harvesting: {
+                    enabled: true,
+                },
                 pendingFields: {isAutoApprovalEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             },
         },
@@ -403,7 +406,7 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 autoReporting: !enabled,
-                pendingFields: {isAutoApprovalEnabled: null},
+                pendingFields: {isAutoApprovalEnabled: null, harvesting: null},
             },
         },
     ];
@@ -413,7 +416,7 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                pendingFields: {isAutoApprovalEnabled: null},
+                pendingFields: {isAutoApprovalEnabled: null, harvesting: null},
             },
         },
     ];
@@ -1451,6 +1454,12 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 customUnits,
+                areCategoriesEnabled: true,
+                areTagsEnabled: false,
+                areDistanceRatesEnabled: false,
+                areWorkflowsEnabled: false,
+                areReportFieldsEnabled: false,
+                areConnectionsEnabled: false,
             },
         },
         {
@@ -1852,6 +1861,12 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
         outputCurrency: CONST.CURRENCY.USD,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         customUnits,
+        areCategoriesEnabled: true,
+        areTagsEnabled: false,
+        areDistanceRatesEnabled: false,
+        areWorkflowsEnabled: false,
+        areReportFieldsEnabled: false,
+        areConnectionsEnabled: false,
     };
 
     const optimisticData: OnyxUpdate[] = [

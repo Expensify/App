@@ -17,6 +17,12 @@ type Attributes = {
     unit: Unit;
 };
 
+type MileageRate = {
+    unit: Unit;
+    rate?: number;
+    currency: string;
+};
+
 type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<{
     name: string;
     customUnitID: string;
@@ -237,10 +243,28 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** All the integration connections attached to the policy */
         connections?: Record<string, Connection>;
+
+        /** Whether the Categories feature is enabled */
+        areCategoriesEnabled?: boolean;
+
+        /** Whether the Tags feature is enabled */
+        areTagsEnabled?: boolean;
+
+        /** Whether the Distance Rates feature is enabled */
+        areDistanceRatesEnabled?: boolean;
+
+        /** Whether the workflows feature is enabled */
+        areWorkflowsEnabled?: boolean;
+
+        /** Whether the Report Fields feature is enabled */
+        areReportFieldsEnabled?: boolean;
+
+        /** Whether the Connections feature is enabled */
+        areConnectionsEnabled?: boolean;
     } & PendingJoinRequestPolicy,
     'generalSettings' | 'addWorkspaceRoom'
 >;
 
 export default Policy;
 
-export type {Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault, PendingJoinRequestPolicy};
+export type {Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault, MileageRate, PendingJoinRequestPolicy};

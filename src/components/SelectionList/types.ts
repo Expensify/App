@@ -23,6 +23,9 @@ type CommonListItemProps<TItem> = {
     /** Callback to fire when the item is pressed */
     onSelectRow: (item: TItem) => void;
 
+    /** Callback to fire when a checkbox is pressed */
+    onCheckboxPress?: (item: TItem) => void;
+
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
 
@@ -162,6 +165,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Callback to fire when a row is pressed */
     onSelectRow: (item: TItem) => void;
+
+    /** Optional callback function triggered upon pressing a checkbox. If undefined and the list displays checkboxes, checkbox interactions are managed by onSelectRow, allowing for pressing anywhere on the list. */
+    onCheckboxPress?: (item: TItem) => void;
 
     /** Callback to fire when "Select All" checkbox is pressed. Only use along with `canSelectMultiple` */
     onSelectAll?: () => void;
