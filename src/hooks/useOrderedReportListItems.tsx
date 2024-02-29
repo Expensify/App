@@ -1,9 +1,7 @@
-import lodashGet from 'lodash/get';
-import lodashMap from 'lodash/map';
 import React, {createContext, useCallback, useContext, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails, useReport} from '@components/OnyxProvider';
 import {getCurrentUserAccountID} from '@libs/actions/Report';
 import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -19,7 +17,7 @@ type OnyxProps = {
     chatReports: OnyxCollection<Report>;
     betas: OnyxEntry<Beta[]>;
     policies: OnyxCollection<Policy>;
-    allReportActions: OnyxCollection<ReportAction[]>;
+    allReportActions: OnyxCollection<ReportActions>;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     policyMembers: OnyxCollection<PolicyMembers>;
     priorityMode: OnyxEntry<PriorityMode>;
@@ -112,72 +110,9 @@ function WithOrderedReportListItemsContextProvider({
     return <OrderedReportListItemsContext.Provider value={orderedReportListItems}>{children}</OrderedReportListItemsContext.Provider>;
 }
 
-/**
- * This function (and the few below it), narrow down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
- * and makes the entire component more performant because it's not re-rendering when a bunch of properties change which aren't ever used in the UI.
- */
-const chatReportSelector = (report: OnyxEntry<Report>) =>
-    report && {
-        reportID: report.reportID,
-        participantAccountIDs: report.participantAccountIDs,
-        hasDraft: report.hasDraft,
-        isPinned: report.isPinned,
-        isHidden: report.isHidden,
-        notificationPreference: report.notificationPreference,
-        errorFields: {addWorkspaceRoom: report.errorFields?.addWorkspaceRoom},
-        lastMessageText: report.lastMessageText,
-        lastVisibleActionCreated: report.lastVisibleActionCreated,
-        iouReportID: report.iouReportID,
-        total: report.total,
-        nonReimbursableTotal: report.nonReimbursableTotal,
-        hasOutstandingChildRequest: report.hasOutstandingChildRequest,
-        isWaitingOnBankAccount: report.isWaitingOnBankAccount,
-        statusNum: report.statusNum,
-        stateNum: report.stateNum,
-        chatType: report.chatType,
-        type: report.type,
-        policyID: report.policyID,
-        visibility: report.visibility,
-        lastReadTime: report.lastReadTime,
-        // Needed for name sorting:
-        reportName: report.reportName,
-        policyName: report.policyName,
-        oldPolicyName: report.oldPolicyName,
-        // Other less obvious properites considered for sorting:
-        ownerAccountID: report.ownerAccountID,
-        currency: report.currency,
-        managerID: report.managerID,
-        // Other important less obivous properties for filtering:
-        parentReportActionID: report.parentReportActionID,
-        parentReportID: report.parentReportID,
-        isDeletedParentAction: report.isDeletedParentAction,
-        isUnreadWithMention: ReportUtils.isUnreadWithMention(report),
-    };
-
-const reportActionsSelector = (reportActions: OnyxEntry<ReportActions>) =>
-    reportActions &&
-    lodashMap(reportActions, (reportAction) => {
-        const {reportActionID, parentReportActionID, actionName, errors = [], originalMessage} = reportAction;
-        const decision = lodashGet(reportAction, 'message[0].moderationDecision.decision');
-
-        return {
-            reportActionID,
-            parentReportActionID,
-            actionName,
-            errors,
-            message: [
-                {
-                    moderationDecision: {decision},
-                },
-            ],
-            originalMessage,
-        };
-    });
-
 const OrderedReportListItemsContextProvider = withOnyx<WithOrderedReportListItemsContextProviderProps, OnyxProps>({
     chatReports: {
         key: ONYXKEYS.COLLECTION.REPORT,
-        selector: chatReportSelector,
         initialValue: {},
     },
     priorityMode: {
@@ -190,7 +125,6 @@ const OrderedReportListItemsContextProvider = withOnyx<WithOrderedReportListItem
     },
     allReportActions: {
         key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-        selector: reportActionsSelector,
         initialValue: {},
     },
     policies: {
