@@ -59,7 +59,9 @@ function IOURequestStepScan({
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const device = useCameraDevice('back');
+    const device = useCameraDevice('back', {
+        physicalDevices: ['wide-angle-camera']
+    });
 
     const hasFlash = device != null && device.hasFlash
     const camera = useRef(null);
