@@ -1,6 +1,7 @@
 import lodashSortBy from 'lodash/sortBy';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useImperativeHandle, useRef, useState} from 'react';
+import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {Mention} from '@components/MentionSuggestions';
 import MentionSuggestions from '@components/MentionSuggestions';
@@ -248,7 +249,7 @@ function SuggestionMention(
     }, []);
 
     const onSelectionChange = useCallback(
-        (e) => {
+        (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
             /**
              * we pass here e.nativeEvent.selection.end directly to calculateMentionSuggestion
              * because in other case calculateMentionSuggestion will have an old calculation value
@@ -291,7 +292,7 @@ function SuggestionMention(
             mentions={suggestionValues.suggestedMentions}
             prefix={suggestionValues.mentionPrefix}
             onSelect={insertSelectedMention}
-            isMentionPickerLarge={isAutoSuggestionPickerLarge}
+            isMentionPickerLarge={!!isAutoSuggestionPickerLarge}
             composerHeight={composerHeight}
             measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
         />

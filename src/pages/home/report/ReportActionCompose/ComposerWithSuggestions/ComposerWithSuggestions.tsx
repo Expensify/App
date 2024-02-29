@@ -5,6 +5,7 @@ import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, us
 import type {
     LayoutChangeEvent,
     MeasureInWindowOnSuccessCallback,
+    NativeScrollEvent,
     NativeSyntheticEvent,
     TextInput,
     TextInputFocusEventData,
@@ -53,6 +54,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import {MeasureParentContainerAndCursorCallback} from '../../../../../components/AutoCompleteSuggestions/types';
 
 type SyncSelection = {
     position: number;
@@ -305,6 +307,7 @@ function ComposerWithSuggestions(
      */
     const setTextInputRef = useCallback(
         (el: TextInput) => {
+            // @ts-expect-error need to reassign this ref
             ReportActionComposeFocusManager.composerRef.current = el;
             textInputRef.current = el;
             if (typeof animatedRef === 'function') {
@@ -564,7 +567,7 @@ function ComposerWithSuggestions(
     );
 
     const hideSuggestionMenu = useCallback(
-        (e) => {
+        (e: NativeSyntheticEvent<NativeScrollEvent>) => {
             mobileInputScrollPosition.current = e?.nativeEvent?.contentOffset?.y ?? 0;
             if (!suggestionsRef.current || isScrollLikelyLayoutTriggered.current) {
                 return;
@@ -728,7 +731,7 @@ function ComposerWithSuggestions(
     }, []);
 
     const measureParentContainerAndReportCursor = useCallback(
-        (callback) => {
+        (callback: MeasureParentContainerAndCursorCallback) => {
             const {x: positionX, y: positionY} = getCursorPosition(selection);
             const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef});
             measureParentContainer((x, y, width, height) => {
