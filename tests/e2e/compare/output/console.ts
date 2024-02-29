@@ -1,11 +1,5 @@
+import type {Stats} from '../../measure/math';
 import * as format from './format';
-
-type Stats = {
-    mean: number;
-    stdev: number;
-    runs: number;
-    entries: Record<string, number[]>;
-};
 
 type Entry = {
     name: string;
