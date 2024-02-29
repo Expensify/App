@@ -17,7 +17,7 @@ const ONYXKEYS = {
     ACCOUNT_MANAGER_REPORT_ID: 'accountManagerReportID',
 
     /** Boolean flag only true when first set */
-    NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',
+    NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'nvp_isFirstTimeNewExpensifyUser',
 
     /** Holds an array of client IDs which is used for multi-tabs on web in order to know
      * which tab is the leader, and which ones are the followers */
@@ -109,22 +109,25 @@ const ONYXKEYS = {
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
 
     /** Contains the users's block expiration (if they have one) */
-    NVP_BLOCKED_FROM_CONCIERGE: 'private_blockedFromConcierge',
+    NVP_BLOCKED_FROM_CONCIERGE: 'nvp_private_blockedFromConcierge',
 
     /** A unique identifier that each user has that's used to send notifications */
-    NVP_PRIVATE_PUSH_NOTIFICATION_ID: 'private_pushNotificationID',
+    NVP_PRIVATE_PUSH_NOTIFICATION_ID: 'nvp_private_pushNotificationID',
 
     /** The NVP with the last payment method used per policy */
-    NVP_LAST_PAYMENT_METHOD: 'nvp_lastPaymentMethod',
+    NVP_LAST_PAYMENT_METHOD: 'nvp_private_lastPaymentMethod',
 
     /** This NVP holds to most recent waypoints that a person has used when creating a distance request */
     NVP_RECENT_WAYPOINTS: 'expensify_recentWaypoints',
 
     /** This NVP will be `true` if the user has ever dismissed the engagement modal on either OldDot or NewDot. If it becomes true it should stay true forever. */
-    NVP_HAS_DISMISSED_IDLE_PANEL: 'hasDismissedIdlePanel',
+    NVP_HAS_DISMISSED_IDLE_PANEL: 'nvp_hasDismissedIdlePanel',
 
     /** This NVP contains the choice that the user made on the engagement modal */
-    NVP_INTRO_SELECTED: 'introSelected',
+    NVP_INTRO_SELECTED: 'nvp_introSelected',
+
+    /** This NVP contains the active policyID */
+    NVP_ACTIVE_POLICY_ID: 'nvp_expensify_activePolicyID',
 
     /** Does this user have push notifications enabled for this device? */
     PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
@@ -146,7 +149,7 @@ const ONYXKEYS = {
     ONFIDO_APPLICANT_ID: 'onfidoApplicantID',
 
     /** Indicates which locale should be used */
-    NVP_PREFERRED_LOCALE: 'preferredLocale',
+    NVP_PREFERRED_LOCALE: 'nvp_preferredLocale',
 
     /** User's Expensify Wallet */
     USER_WALLET: 'userWallet',
@@ -170,7 +173,7 @@ const ONYXKEYS = {
     CARD_LIST: 'cardList',
 
     /** Whether the user has tried focus mode yet */
-    NVP_TRY_FOCUS_MODE: 'tryFocusMode',
+    NVP_TRY_FOCUS_MODE: 'nvp_tryFocusMode',
 
     /** Whether the user has been shown the hold educational interstitial yet */
     NVP_HOLD_USE_EXPLAINED: 'holdUseExplained',
@@ -188,10 +191,10 @@ const ONYXKEYS = {
     REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
 
     /** Store preferred skintone for emoji */
-    PREFERRED_EMOJI_SKIN_TONE: 'preferredEmojiSkinTone',
+    PREFERRED_EMOJI_SKIN_TONE: 'nvp_expensify_preferredEmojiSkinTone',
 
     /** Store frequently used emojis for this user */
-    FREQUENTLY_USED_EMOJIS: 'frequentlyUsedEmojis',
+    FREQUENTLY_USED_EMOJIS: 'expensify_frequentlyUsedEmojis',
 
     /** Stores Workspace ID that will be tied to reimbursement account during setup */
     REIMBURSEMENT_ACCOUNT_WORKSPACE_ID: 'reimbursementAccountWorkspaceID',
@@ -568,6 +571,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.LOGS]: Record<number, OnyxTypes.Log>;
     [ONYXKEYS.SHOULD_STORE_LOGS]: boolean;
     [ONYXKEYS.CACHED_PDF_PATHS]: Record<string, string>;
+    [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: string;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;
