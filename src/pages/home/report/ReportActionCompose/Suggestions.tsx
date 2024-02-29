@@ -41,9 +41,6 @@ type SuggestionProps = {
 
     /** Whether the auto suggestion picker is large */
     isAutoSuggestionPickerLarge?: boolean;
-
-    /** The height of the composer */
-    composerHeight?: number;
 };
 
 /**
@@ -58,7 +55,6 @@ function Suggestions(
         selection,
         setSelection,
         updateComment,
-        composerHeight,
         resetKeyboardInput,
         measureParentContainerAndReportCursor,
         isAutoSuggestionPickerLarge = true,
@@ -148,7 +144,6 @@ function Suggestions(
         setSelection,
         selection,
         updateComment,
-        composerHeight,
         isAutoSuggestionPickerLarge,
         measureParentContainerAndReportCursor,
         isComposerFocused,

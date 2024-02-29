@@ -5,11 +5,11 @@ import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, us
 import type {
     LayoutChangeEvent,
     MeasureInWindowOnSuccessCallback,
-    NativeScrollEvent,
     NativeSyntheticEvent,
     TextInput,
     TextInputFocusEventData,
     TextInputKeyPressEventData,
+    TextInputScrollEventData,
     TextInputSelectionChangeEventData,
 } from 'react-native';
 import {findNodeHandle, InteractionManager, NativeModules, View} from 'react-native';
@@ -138,9 +138,6 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         /** Function to measure the parent container */
         measureParentContainer: (callback: MeasureInWindowOnSuccessCallback) => void;
 
-        /** The height of the list */
-        listHeight: number;
-
         /** Whether the scroll is likely to trigger a layout */
         isScrollLikelyLayoutTriggered: RefObject<boolean>;
 
@@ -234,7 +231,6 @@ function ComposerWithSuggestions(
         handleSendMessage,
         shouldShowComposeInput,
         measureParentContainer = () => {},
-        listHeight,
         isScrollLikelyLayoutTriggered,
         raiseIsScrollLikelyLayoutTriggered,
 
@@ -286,12 +282,6 @@ function ComposerWithSuggestions(
     const insertedEmojisRef = useRef<Emoji[]>([]);
 
     const syncSelectionWithOnChangeTextRef = useRef<SyncSelection | null>(null);
-
-    const suggestions = suggestionsRef.current?.getSuggestions() ?? [];
-
-    const hasEnoughSpaceForLargeSuggestion = SuggestionUtils.hasEnoughSpaceForLargeSuggestionMenu(listHeight, composerHeight, suggestions?.length ?? 0);
-
-    const isAutoSuggestionPickerLarge = !isSmallScreenWidth || (isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion);
 
     /**
      * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
@@ -567,7 +557,7 @@ function ComposerWithSuggestions(
     );
 
     const hideSuggestionMenu = useCallback(
-        (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+        (e: NativeSyntheticEvent<TextInputScrollEventData>) => {
             mobileInputScrollPosition.current = e?.nativeEvent?.contentOffset?.y ?? 0;
             if (!suggestionsRef.current || isScrollLikelyLayoutTriggered.current) {
                 return;
@@ -731,9 +721,9 @@ function ComposerWithSuggestions(
     }, []);
 
     const measureParentContainerAndReportCursor = useCallback(
-        (callback: MeasureParentContainerAndCursorCallback) => {
-            const {x: positionX, y: positionY} = getCursorPosition(selection);
-            const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef});
+      (callback: MeasureParentContainerAndCursorCallback) => {
+        const {x: positionX, y: positionY} = getCursorPosition(selection);
+        const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef});
             measureParentContainer((x, y, width, height) => {
                 callback({
                     x,
@@ -790,9 +780,7 @@ function ComposerWithSuggestions(
                 ref={suggestionsRef}
                 isComposerFocused={textInputRef.current?.isFocused()}
                 updateComment={updateComment}
-                composerHeight={composerHeight}
                 measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
-                isAutoSuggestionPickerLarge={isAutoSuggestionPickerLarge}
                 // Input
                 value={value}
                 setValue={setValue}

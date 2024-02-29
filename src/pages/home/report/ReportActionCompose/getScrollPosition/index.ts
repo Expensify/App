@@ -1,14 +1,12 @@
 import type {GetScrollPositionType, TextInputScrollProps} from './types';
 
 function getScrollPosition({textInputRef}: TextInputScrollProps): GetScrollPositionType {
-    if (!textInputRef.current?.scrollTop) {
-        return {
-            scrollValue: 0,
-        };
+    let scrollValue = 0;
+    if (textInputRef.current instanceof HTMLDivElement) {
+        scrollValue = textInputRef.current.scrollTop;
     }
-    return {
-        scrollValue: textInputRef.current?.scrollTop,
-    };
+
+    return {scrollValue};
 }
 
 export default getScrollPosition;
