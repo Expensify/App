@@ -3,7 +3,7 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-na
 import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
 import {utcToZonedTime} from 'date-fns-tz';
 import React from 'react';
-import {AppState, DeviceEventEmitter} from 'react-native';
+import {AppState, DeviceEventEmitter, Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
@@ -64,7 +64,7 @@ let transitionEndCB: () => void | undefined;
  * @returns An object with two functions: triggerTransitionEnd and addListener
  */
 const createAddListenerMock = () => {
-    const transitionEndListeners = [];
+    const transitionEndListeners: Array<() => void> = [];
     const triggerTransitionEnd = () => {
         transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
     };
@@ -114,7 +114,7 @@ beforeAll(() => {
     // simulate data arriving we will just set it into Onyx directly with Onyx.merge() or Onyx.set() etc.
     global.fetch = TestHelper.getGlobalFetchMock() as typeof global.fetch;
 
-    // Linking.setInitialURL('https://new.expensify.com/');
+    Linking.setInitialURL('https://new.expensify.com/');
     appSetup();
 
     // Connect to Pusher
