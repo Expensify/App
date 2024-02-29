@@ -111,7 +111,7 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails,
     }, [personalDetails, policyMembers, translate, policy?.approver]);
 
     const sections: MembersSection[] = useMemo(() => {
-        const sectionsArr: MembersSection[] = [];
+        const sectionsArray: MembersSection[] = [];
 
         if (searchTerm !== '') {
             const filteredOptions = [...formattedApprover, ...formattedPolicyMembers].filter((option) => {
