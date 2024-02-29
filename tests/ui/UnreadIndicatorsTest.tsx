@@ -4,6 +4,7 @@ import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
 import {utcToZonedTime} from 'date-fns-tz';
 import React from 'react';
 import {AppState, DeviceEventEmitter, Linking} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
@@ -21,7 +22,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import appSetup from '@src/setup';
-import type {ReportAction} from '@src/types/onyx';
+import type {ReportAction, ReportActions} from '@src/types/onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -289,7 +290,7 @@ describe('Unread Indicators', () => {
         signInAndGetAppWithUnreadChat()
             .then(() => {
                 // Verify no notifications are created for these older messages
-                expect(LocalNotification.showCommentNotification.mock.calls).toHaveLength(0);
+                expect((LocalNotification.showCommentNotification as jest.Mock).mock.calls).toHaveLength(0);
 
                 // Verify the sidebar links are rendered
                 const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
@@ -594,8 +595,9 @@ describe('Unread Indicators', () => {
             }));
 
     it('Displays the correct chat message preview in the LHN when a comment is added then deleted', () => {
-        let reportActions: Record<string, ReportAction>;
-        let lastReportAction: ReportAction;
+        // let reportActions: Record<string, ReportAction>;
+        let reportActions: OnyxEntry<ReportActions>;
+        let lastReportAction: ReportAction | undefined;
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
             callback: (val) => (reportActions = val),
@@ -611,11 +613,11 @@ describe('Unread Indicators', () => {
                 })
                 .then(() => {
                     // Simulate the response from the server so that the comment can be deleted in this test
-                    lastReportAction = {...CollectionUtils.lastItem(reportActions)};
+                    lastReportAction = reportActions ? CollectionUtils.lastItem(reportActions) : undefined;
                     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
-                        lastMessageText: lastReportAction.message[0].text,
-                        lastVisibleActionCreated: DateUtils.getDBTime(lastReportAction.timestamp),
-                        lastActorAccountID: lastReportAction.actorAccountID,
+                        lastMessageText: lastReportAction?.message?.[0].text,
+                        lastVisibleActionCreated: DateUtils.getDBTime(lastReportAction?.timestamp),
+                        lastActorAccountID: lastReportAction?.actorAccountID,
                         reportID: REPORT_ID,
                     });
                     return waitForBatchedUpdates();
@@ -627,7 +629,9 @@ describe('Unread Indicators', () => {
                     expect(alternateText).toHaveLength(1);
                     expect(alternateText[0].props.children).toBe('Current User Comment 1');
 
-                    Report.deleteReportComment(REPORT_ID, lastReportAction);
+                    if (lastReportAction) {
+                        Report.deleteReportComment(REPORT_ID, lastReportAction);
+                    }
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
