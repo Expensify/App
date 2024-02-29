@@ -51,7 +51,6 @@ function BaseTextInput(
         hint = '',
         onInputChange = () => {},
         shouldDelayFocus = false,
-        submitOnEnter = false,
         multiline = false,
         shouldInterceptSwipe = false,
         autoCorrect = true,
@@ -280,11 +279,12 @@ function BaseTextInput(
     return (
         <>
             <View
-                style={[styles.pointerEventsNone, containerStyles]}
+                style={[containerStyles]}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(shouldInterceptSwipe && SwipeInterceptPanResponder.panHandlers)}
             >
                 <PressableWithoutFeedback
+                    role={CONST.ROLE.PRESENTATION}
                     onPress={onPress}
                     tabIndex={-1}
                     accessibilityLabel={label}
@@ -396,9 +396,6 @@ function BaseTextInput(
                                 selection={inputProps.selection}
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
-                                // FormSubmit Enter key handler does not have access to direct props.
-                                // `dataset.submitOnEnter` is used to indicate that pressing Enter on this input should call the submit callback.
-                                dataSet={{submitOnEnter: isMultiline && submitOnEnter}}
                             />
                             {inputProps.isLoading && (
                                 <ActivityIndicator

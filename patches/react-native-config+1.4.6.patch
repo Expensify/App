@@ -1,0 +1,44 @@
+diff --git a/node_modules/react-native-config/android/dotenv.gradle b/node_modules/react-native-config/android/dotenv.gradle
+index 2225375..48f94ca 100644
+--- a/node_modules/react-native-config/android/dotenv.gradle
++++ b/node_modules/react-native-config/android/dotenv.gradle
+@@ -41,7 +41,8 @@ def loadDotEnv(flavor = getCurrentFlavor()) {
+     def env = [:]
+     println("Reading env from: $envFile")
+ 
+-    File f = new File("$project.rootDir/../$envFile");
++    def reactNativeProjectRoot = project.hasProperty('reactNativeProject') ? project.reactNativeProject : ".."
++    File f = new File("$project.rootDir/$reactNativeProjectRoot/$envFile");
+     if (!f.exists()) {
+         f = new File("$envFile");
+     }
+diff --git a/node_modules/react-native-config/react-native-config.podspec b/node_modules/react-native-config/react-native-config.podspec
+index 54985dd..c394ec7 100644
+--- a/node_modules/react-native-config/react-native-config.podspec
++++ b/node_modules/react-native-config/react-native-config.podspec
+@@ -3,6 +3,7 @@
+ require 'json'
+ 
+ package = JSON.parse(File.read(File.join(__dir__, 'package.json')))
++REACT_NATIVE_DIR = ENV["REACT_NATIVE_DIR"] || ".."
+ 
+ Pod::Spec.new do |s|
+   s.name         = 'react-native-config'
+@@ -21,7 +22,7 @@ Pod::Spec.new do |s|
+     name: 'Config codegen',
+     script: %(
+ set -ex
+-HOST_PATH="$SRCROOT/../.."
++HOST_PATH="$SRCROOT/../#{REACT_NATIVE_DIR}"
+ "${PODS_TARGET_SRCROOT}/ios/ReactNativeConfig/BuildDotenvConfig.rb" "$HOST_PATH" "${PODS_TARGET_SRCROOT}/ios/ReactNativeConfig"
+ ),
+     execution_position: :before_compile,
+@@ -43,7 +44,7 @@ HOST_PATH="$SRCROOT/../.."
+       name: 'Config codegen',
+       script: %(
+         set -ex
+-        HOST_PATH="$SRCROOT/../.."
++        HOST_PATH="$SRCROOT/../#{REACT_NATIVE_DIR}"
+         "${PODS_TARGET_SRCROOT}/ios/ReactNativeConfig/BuildDotenvConfig.rb" "$HOST_PATH" "${PODS_TARGET_SRCROOT}/ios/ReactNativeConfig"
+         ),
+       execution_position: :before_compile,

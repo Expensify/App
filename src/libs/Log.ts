@@ -3,13 +3,30 @@
 
 /* eslint-disable rulesdir/no-api-in-views */
 import Logger from 'expensify-common/lib/Logger';
+import Onyx from 'react-native-onyx';
 import type {Merge} from 'type-fest';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import pkg from '../../package.json';
+import {addLog} from './actions/Console';
+import {shouldAttachLog} from './Console';
 import getPlatform from './getPlatform';
 import * as Network from './Network';
 import requireParameters from './requireParameters';
 
 let timeout: NodeJS.Timeout;
+let shouldCollectLogs = false;
+
+Onyx.connect({
+    key: ONYXKEYS.SHOULD_STORE_LOGS,
+    callback: (val) => {
+        if (!val) {
+            shouldCollectLogs = false;
+        }
+
+        shouldCollectLogs = Boolean(val);
+    },
+});
 
 type LogCommandParameters = {
     expensifyCashAppVersion: string;
@@ -50,7 +67,15 @@ function serverLoggingCallback(logger: Logger, params: ServerLoggingCallbackOpti
 const Log = new Logger({
     serverLoggingCallback,
     clientLoggingCallback: (message) => {
+        if (!shouldAttachLog(message)) {
+            return;
+        }
+
         console.debug(message);
+
+        if (shouldCollectLogs) {
+            addLog({time: new Date(), level: CONST.DEBUG_CONSOLE.LEVELS.DEBUG, message});
+        }
     },
     isDebug: true,
 });

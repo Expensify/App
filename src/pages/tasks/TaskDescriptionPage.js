@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -12,8 +12,8 @@ import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
@@ -23,6 +23,7 @@ import reportPropTypes from '@pages/reportPropTypes';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/EditTaskForm';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -39,7 +40,20 @@ const defaultProps = {
 const parser = new ExpensiMark();
 function TaskDescriptionPage(props) {
     const styles = useThemeStyles();
-    const validate = useCallback(() => ({}), []);
+
+    /**
+     * @param {Object} values - form input values passed by the Form component
+     * @returns {Boolean}
+     */
+    const validate = useCallback((values) => {
+        const errors = {};
+
+        if (values.description.length > CONST.DESCRIPTION_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'description', ['common.error.characterLimitExceedCounter', {length: values.description.length, limit: CONST.DESCRIPTION_LIMIT}]);
+        }
+
+        return errors;
+    }, []);
 
     const submit = useCallback(
         (values) => {
@@ -66,6 +80,7 @@ function TaskDescriptionPage(props) {
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
     const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID);
     const isTaskNonEditable = ReportUtils.isTaskReport(props.report) && (!canModifyTask || !isOpen);
+    const defaultDescriptionValue = useMemo(() => parser.htmlToMarkdown((props.report && parser.replace(props.report.description)) || ''), [props.report]);
 
     useFocusEffect(
         useCallback(() => {
@@ -103,11 +118,11 @@ function TaskDescriptionPage(props) {
                         <InputWrapper
                             InputComponent={TextInput}
                             role={CONST.ROLE.PRESENTATION}
-                            inputID="description"
-                            name="description"
+                            inputID={INPUT_IDS.DESCRIPTION}
+                            name={INPUT_IDS.DESCRIPTION}
                             label={props.translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
-                            defaultValue={parser.htmlToMarkdown((props.report && parser.replace(props.report.description)) || '')}
+                            defaultValue={defaultDescriptionValue}
                             ref={(el) => {
                                 if (!el) {
                                     return;
@@ -116,7 +131,7 @@ function TaskDescriptionPage(props) {
                                 updateMultilineInputRange(inputRef.current);
                             }}
                             autoGrowHeight
-                            submitOnEnter={!Browser.isMobile()}
+                            shouldSubmitForm
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
                         />
                     </View>

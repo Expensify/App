@@ -12,6 +12,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
@@ -19,6 +20,7 @@ import reportPropTypes from '@pages/reportPropTypes';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/EditTaskForm';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -44,6 +46,8 @@ function TaskTitlePage(props) {
 
         if (_.isEmpty(values.title)) {
             errors.title = 'newTaskPage.pleaseEnterTaskName';
+        } else if (values.title.length > CONST.TITLE_CHARACTER_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'title', ['common.error.characterLimitExceedCounter', {length: values.title.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
         }
 
         return errors;
@@ -95,8 +99,8 @@ function TaskTitlePage(props) {
                             <InputWrapper
                                 InputComponent={TextInput}
                                 role={CONST.ROLE.PRESENTATION}
-                                inputID="title"
-                                name="title"
+                                inputID={INPUT_IDS.TITLE}
+                                name={INPUT_IDS.TITLE}
                                 label={props.translate('task.title')}
                                 accessibilityLabel={props.translate('task.title')}
                                 defaultValue={(props.report && props.report.reportName) || ''}

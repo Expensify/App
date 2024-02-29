@@ -22,9 +22,8 @@ type ReportAvatarProps = ReportAvatarOnyxProps & StackScreenProps<AuthScreensPar
 
 function ReportAvatar({report = {} as Report, policies, isLoadingApp = true}: ReportAvatarProps) {
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '0'}`];
-    const isArchivedRoom = ReportUtils.isArchivedRoom(report);
-    const policyName = isArchivedRoom ? report?.oldPolicyName : policy?.name;
-    const avatarURL = policy?.avatar ?? '' ? policy?.avatar ?? '' : ReportUtils.getDefaultWorkspaceAvatar(policyName);
+    const policyName = ReportUtils.getPolicyName(report, false, policy);
+    const avatarURL = ReportUtils.getWorkspaceAvatar(report);
 
     return (
         <AttachmentModal

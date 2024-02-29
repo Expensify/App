@@ -9,6 +9,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {withNetwork} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -105,7 +106,7 @@ function IOUCurrencySelection(props) {
             // Navigating to "backTo" will result in forward navigation instead, causing disruption to the currency selection.
             // To prevent any negative experience, we have made the decision to simply close the currency selection page.
             if (_.isEmpty(backTo) || props.navigation.getState().routes.length === 1) {
-                Navigation.goBack(ROUTES.HOME);
+                Navigation.goBack();
             } else {
                 Navigation.navigate(`${props.route.params.backTo}?currency=${option.currencyCode}`);
             }
@@ -165,6 +166,7 @@ function IOUCurrencySelection(props) {
                     />
                     <SelectionList
                         sections={sections}
+                        ListItem={RadioListItem}
                         textInputLabel={translate('common.search')}
                         textInputValue={searchValue}
                         onChangeText={setSearchValue}

@@ -12,9 +12,9 @@ function getValueUsingPixelRatio(defaultValue: number, maxValue: number): number
 }
 
 export default {
-    // do we need to change it?
     bottomTabHeight: 80,
-    contentHeaderHeight: getValueUsingPixelRatio(80, 100),
+    contentHeaderHeight: getValueUsingPixelRatio(72, 100),
+    contentHeaderDesktopHeight: getValueUsingPixelRatio(80, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
     componentSizeNormal: 40,
     componentSizeMedium: 48,
@@ -81,6 +81,7 @@ export default {
     iconSizeSuperLarge: 60,
     iconSizeUltraLarge: 120,
     iconBottomBar: 24,
+    iconHeader: 48,
     emojiSize: 20,
     emojiLineHeight: 28,
     iouAmountTextSize: 40,
@@ -155,7 +156,8 @@ export default {
     modalContentMaxWidth: 360,
     listItemHeightNormal: 64,
     popoverWidth: 375,
-    addPaymentPopoverTopSpacing: 8,
+    bankAccountActionPopoverRightSpacing: 32,
+    bankAccountActionPopoverTopSpacing: 14,
     addPaymentPopoverRightSpacing: 23,
     anonymousReportFooterBreakpoint: 650,
     dropDownButtonDividerHeight: 28,
@@ -166,6 +168,7 @@ export default {
     eReceiptThumnailCenterReceiptBreakpoint: 200,
     eReceiptIconHeight: 100,
     eReceiptIconWidth: 72,
+    eReceiptEmptyIconWidth: 76,
     eReceiptMCCHeightWidth: 40,
     eReceiptIconHeightSmall: 65,
     eReceiptIconWidthSmall: 46,
@@ -185,10 +188,13 @@ export default {
     reportActionItemImagesMoreCornerTriangleWidth: 40,
     bankCardWidth: 40,
     bankCardHeight: 26,
+    popoverzIndex: 10000,
     workspaceTypeIconWidth: 34,
     sectionMargin: 16,
-    workspaceSectionMaxWidth: 600,
-    sectionIllustrationHeight: 240,
+    workspaceSectionMaxWidth: 680,
+    oldDotWireframeIconWidth: 263.38,
+    oldDotWireframeIconHeight: 143.28,
+    sectionIllustrationHeight: 220,
     photoUploadPopoverWidth: 335,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
@@ -210,4 +216,7 @@ export default {
     updateAnimationH: 240,
     updateTextViewContainerWidth: 310,
     updateViewHeaderHeight: 70,
+
+    mushroomTopHatWidth: 138,
+    mushroomTopHatHeight: 128,
 } as const;

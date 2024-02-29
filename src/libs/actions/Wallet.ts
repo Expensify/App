@@ -261,12 +261,7 @@ function answerQuestionsForWallet(answers: WalletQuestionAnswer[], idNumber: str
 }
 
 function requestPhysicalExpensifyCard(cardID: number, authToken: string, privatePersonalDetails: PrivatePersonalDetails) {
-    const {
-        legalFirstName,
-        legalLastName,
-        phoneNumber,
-        address: {city, country, state, street, zip},
-    } = privatePersonalDetails;
+    const {legalFirstName = '', legalLastName = '', phoneNumber = '', address: {city = '', country = '', state = '', street = '', zip = ''} = {}} = privatePersonalDetails;
 
     const requestParams: RequestPhysicalExpensifyCardParams = {
         authToken,

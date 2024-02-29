@@ -5,9 +5,10 @@ import isDate from 'lodash/isDate';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
 import type {OnyxCollection} from 'react-native-onyx';
+import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormValue} from '@components/Form/types';
 import CONST from '@src/CONST';
+import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import * as CardUtils from './CardUtils';
 import DateUtils from './DateUtils';
 import * as LoginUtils from './LoginUtils';
@@ -36,7 +37,11 @@ function validateCardNumber(value: string): boolean {
 /**
  * Validating that this is a valid address (PO boxes are not allowed)
  */
-function isValidAddress(value: string): boolean {
+function isValidAddress(value: FormValue): boolean {
+    if (typeof value !== 'string') {
+        return false;
+    }
+
     if (!CONST.REGEX.ANY_VALUE.test(value) || value.match(CONST.REGEX.EMOJIS)) {
         return false;
     }
@@ -74,8 +79,12 @@ function isValidPastDate(date: string | Date): boolean {
 
 /**
  * Used to validate a value that is "required".
+ * @param value - field value
  */
-function isRequiredFulfilled(value: string | Date | unknown[] | Record<string, unknown> | null): boolean {
+function isRequiredFulfilled(value?: FormValue): boolean {
+    if (!value) {
+        return false;
+    }
     if (typeof value === 'string') {
         return !StringUtils.isEmptyString(value);
     }
@@ -91,15 +100,20 @@ function isRequiredFulfilled(value: string | Date | unknown[] | Record<string, u
 
 /**
  * Used to add requiredField error to the fields passed.
+ * @param values - all form values
+ * @param requiredFields - required fields for particular form
  */
-function getFieldRequiredErrors(values: OnyxCommon.Errors, requiredFields: string[]) {
-    const errors: OnyxCommon.Errors = {};
+function getFieldRequiredErrors<TFormID extends OnyxFormKey>(values: FormOnyxValues<TFormID>, requiredFields: Array<FormOnyxKeys<TFormID>>): FormInputErrors<TFormID> {
+    const errors: FormInputErrors<TFormID> = {};
+
     requiredFields.forEach((fieldKey) => {
-        if (isRequiredFulfilled(values[fieldKey])) {
+        if (isRequiredFulfilled(values[fieldKey] as FormValue)) {
             return;
         }
+
         errors[fieldKey] = 'common.error.fieldRequired';
     });
+
     return errors;
 }
 

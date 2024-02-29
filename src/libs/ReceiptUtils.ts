@@ -11,6 +11,7 @@ import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import * as FileUtils from './fileDownload/FileUtils';
+import * as TransactionUtils from './TransactionUtils';
 
 type ThumbnailAndImageURI = {
     image: ImageSourcePropType | string;
@@ -33,7 +34,7 @@ type FileNameAndExtension = {
  * @param receiptFileName
  */
 function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPath: string | null = null, receiptFileName: string | null = null): ThumbnailAndImageURI {
-    if (Object.hasOwn(transaction?.pendingFields ?? {}, 'waypoints')) {
+    if (TransactionUtils.isFetchingWaypointsFromServer(transaction)) {
         return {thumbnail: null, image: ReceiptGeneric, isLocalFile: true};
     }
     // URI to image, i.e. blob:new.expensify.com/9ef3a018-4067-47c6-b29f-5f1bd35f213d or expensify.com/receipts/w_e616108497ef940b7210ec6beb5a462d01a878f4.jpg

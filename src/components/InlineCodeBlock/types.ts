@@ -1,7 +1,9 @@
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import type {TDefaultRenderer, TDefaultRendererProps, TText} from 'react-native-render-html';
+import type {TDefaultRenderer, TDefaultRendererProps, TPhrasing, TText} from 'react-native-render-html';
 
-type InlineCodeBlockProps<TComponent extends TText> = {
+type TTextOrTPhrasing = TText | TPhrasing;
+
+type InlineCodeBlockProps<TComponent extends TTextOrTPhrasing> = {
     TDefaultRenderer: TDefaultRenderer<TComponent>;
     textStyle: StyleProp<TextStyle>;
     defaultRendererProps: TDefaultRendererProps<TComponent>;
@@ -9,3 +11,4 @@ type InlineCodeBlockProps<TComponent extends TText> = {
 };
 
 export default InlineCodeBlockProps;
+export type {TTextOrTPhrasing};

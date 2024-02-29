@@ -41,9 +41,6 @@ const propTypes = {
     /** Whether referral CTA should be displayed */
     shouldShowReferralCTA: PropTypes.bool,
 
-    /** A method triggered when the user closes the call to action banner */
-    onCallToActionClosed: PropTypes.func,
-
     /** Referral content type */
     referralContentType: PropTypes.string,
 
@@ -56,7 +53,6 @@ const propTypes = {
 const defaultProps = {
     shouldDelayFocus: false,
     shouldShowReferralCTA: false,
-    onCallToActionClosed: () => {},
     referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND,
     safeAreaPaddingBottomStyle: {},
     contentContainerStyles: [],
@@ -72,7 +68,6 @@ class BaseOptionsSelector extends Component {
         this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
         this.scrollToIndex = this.scrollToIndex.bind(this);
         this.selectRow = this.selectRow.bind(this);
-        this.closeReferralModal = this.closeReferralModal.bind(this);
         this.selectFocusedOption = this.selectFocusedOption.bind(this);
         this.addToSelection = this.addToSelection.bind(this);
         this.updateSearchValue = this.updateSearchValue.bind(this);
@@ -89,13 +84,13 @@ class BaseOptionsSelector extends Component {
         const allOptions = this.flattenSections();
         const sections = this.sliceSections();
         const focusedIndex = this.getInitiallyFocusedIndex(allOptions);
+        this.focusedOption = allOptions[focusedIndex];
 
         this.state = {
             sections,
             allOptions,
             focusedIndex,
             shouldDisableRowSelection: false,
-            shouldShowReferralModal: this.props.shouldShowReferralCTA,
             errorMessage: '',
             paginationPage: 1,
             disableEnterShortCut: false,
@@ -119,19 +114,19 @@ class BaseOptionsSelector extends Component {
 
     componentDidUpdate(prevProps, prevState) {
         if (prevState.disableEnterShortCut !== this.state.disableEnterShortCut) {
-            if (this.state.disableEnterShortCut) {
-                this.unsubscribeEnter();
-            } else {
+            // Unregister the shortcut before registering a new one to avoid lingering shortcut listener
+            this.unsubscribeEnter();
+            if (!this.state.disableEnterShortCut) {
                 this.subscribeToEnterShortcut();
             }
         }
 
         if (prevProps.isFocused !== this.props.isFocused) {
+            // Unregister the shortcut before registering a new one to avoid lingering shortcut listener
+            this.unSubscribeFromKeyboardShortcut();
             if (this.props.isFocused) {
                 this.subscribeToEnterShortcut();
                 this.subscribeToCtrlEnterShortcut();
-            } else {
-                this.unSubscribeFromKeyboardShortcut();
             }
         }
 
@@ -152,6 +147,10 @@ class BaseOptionsSelector extends Component {
             });
         }
 
+        if (prevState.focusedIndex !== this.state.focusedIndex) {
+            this.focusedOption = this.state.allOptions[this.state.focusedIndex];
+        }
+
         if (_.isEqual(this.props.sections, prevProps.sections)) {
             return;
         }
@@ -168,13 +167,14 @@ class BaseOptionsSelector extends Component {
         }
         const newFocusedIndex = this.props.selectedOptions.length;
         const isNewFocusedIndex = newFocusedIndex !== this.state.focusedIndex;
-
+        const prevFocusedOption = _.find(newOptions, (option) => this.focusedOption && option.keyForList === this.focusedOption.keyForList);
+        const prevFocusedOptionIndex = prevFocusedOption ? _.findIndex(newOptions, (option) => this.focusedOption && option.keyForList === this.focusedOption.keyForList) : undefined;
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState(
             {
                 sections: newSections,
                 allOptions: newOptions,
-                focusedIndex: _.isNumber(this.props.focusedIndex) ? this.props.focusedIndex : newFocusedIndex,
+                focusedIndex: prevFocusedOptionIndex || (_.isNumber(this.props.focusedIndex) ? this.props.focusedIndex : newFocusedIndex),
             },
             () => {
                 // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
@@ -198,6 +198,19 @@ class BaseOptionsSelector extends Component {
         }
 
         this.unSubscribeFromKeyboardShortcut();
+    }
+
+    handleFocusIn() {
+        const activeElement = document.activeElement;
+        this.setState({
+            disableEnterShortCut: activeElement && this.accessibilityRoles.includes(activeElement.role) && activeElement.role !== CONST.ROLE.PRESENTATION,
+        });
+    }
+
+    handleFocusOut() {
+        this.setState({
+            disableEnterShortCut: false,
+        });
     }
 
     /**
@@ -259,29 +272,11 @@ class BaseOptionsSelector extends Component {
     updateSearchValue(value) {
         this.setState({
             paginationPage: 1,
-            errorMessage: value.length > this.props.maxLength ? this.props.translate('common.error.characterLimitExceedCounter', {length: value.length, limit: this.props.maxLength}) : '',
+            errorMessage: value.length > this.props.maxLength ? ['common.error.characterLimitExceedCounter', {length: value.length, limit: this.props.maxLength}] : '',
             value,
         });
 
         this.props.onChangeText(value);
-    }
-
-    closeReferralModal() {
-        this.setState((prevState) => ({shouldShowReferralModal: !prevState.shouldShowReferralModal}));
-        this.props.onCallToActionClosed(this.props.referralContentType);
-    }
-
-    handleFocusIn() {
-        const activeElement = document.activeElement;
-        this.setState({
-            disableEnterShortCut: activeElement && this.accessibilityRoles.includes(activeElement.role) && activeElement.role !== CONST.ROLE.PRESENTATION,
-        });
-    }
-
-    handleFocusOut() {
-        this.setState({
-            disableEnterShortCut: false,
-        });
     }
 
     subscribeActiveElement() {
@@ -292,6 +287,7 @@ class BaseOptionsSelector extends Component {
         document.addEventListener('focusout', this.handleFocusOut);
     }
 
+    // eslint-disable-next-line react/no-unused-class-component-methods
     unSubscribeActiveElement() {
         if (!this.isWebOrDesktop) {
             return;
@@ -371,6 +367,7 @@ class BaseOptionsSelector extends Component {
         }
     }
 
+    // eslint-disable-next-line react/no-unused-class-component-methods
     focus() {
         if (!this.textInput) {
             return;
@@ -653,12 +650,9 @@ class BaseOptionsSelector extends Component {
                         </>
                     )}
                 </View>
-                {this.props.shouldShowReferralCTA && this.state.shouldShowReferralModal && (
+                {this.props.shouldShowReferralCTA && (
                     <View style={[this.props.themeStyles.ph5, this.props.themeStyles.pb5, this.props.themeStyles.flexShrink0]}>
-                        <ReferralProgramCTA
-                            referralContentType={this.props.referralContentType}
-                            onCloseButtonPress={this.closeReferralModal}
-                        />
+                        <ReferralProgramCTA referralContentType={this.props.referralContentType} />
                     </View>
                 )}
 

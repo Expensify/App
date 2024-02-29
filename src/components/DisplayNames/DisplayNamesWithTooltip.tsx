@@ -53,6 +53,7 @@ function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWit
             style={[textStyles, styles.pRelative]}
             numberOfLines={numberOfLines || undefined}
             ref={containerRef}
+            testID={DisplayNamesWithToolTip.displayName}
         >
             {shouldUseFullTitle
                 ? ReportUtils.formatReportLastMessageText(fullTitle)
