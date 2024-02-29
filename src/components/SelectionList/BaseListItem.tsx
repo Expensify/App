@@ -79,7 +79,7 @@ function BaseListItem<TItem extends ListItem>({
                                     accessibilityLabel={item.text}
                                     role={CONST.ROLE.BUTTON}
                                     onPress={handleCheckboxPress}
-                                    style={StyleUtils.getCheckboxPressableStyle()}
+                                    style={[StyleUtils.getCheckboxPressableStyle(), styles.mr3]}
                                 >
                                     <View style={selectMultipleStyle}>
                                         {item.isSelected && (
