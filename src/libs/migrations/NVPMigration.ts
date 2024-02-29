@@ -45,9 +45,12 @@ export default function () {
             key: ONYXKEYS.ACCOUNT,
             callback: (value) => {
                 Onyx.disconnect(connectionID);
+                // @ts-expect-error we are removing this property, so it is not in the type anymore
                 if (value?.activePolicyID) {
+                    // @ts-expect-error we are removing this property, so it is not in the type anymore
                     const activePolicyID = value.activePolicyID;
-                    const newValue = value;
+                    const newValue = {...value};
+                    // @ts-expect-error we are removing this property, so it is not in the type anymore
                     delete newValue.activePolicyID;
                     Onyx.multiSet({
                         [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: activePolicyID,
