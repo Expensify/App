@@ -2641,7 +2641,7 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 13,
             fontSize: 13,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
-            fontWeight: 400,
+            fontWeight: '400',
             lineHeight: 16,
             color: theme.textSupporting,
         },
@@ -3068,7 +3068,7 @@ const styles = (theme: ThemeColors) =>
         smallEditIcon: {
             alignItems: 'center',
             backgroundColor: theme.buttonDefaultBG,
-            borderColor: theme.appBG,
+            borderColor: theme.cardBG,
             borderRadius: 20,
             borderWidth: 3,
             color: theme.textReversed,
@@ -4330,6 +4330,11 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        walletCardNumber: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
+        },
+
         walletCardMenuItem: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontWeight: FontUtils.fontWeight.bold,
@@ -4625,9 +4630,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         workspaceTitleStyle: {
-            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontWeight: '500',
-            fontSize: variables.workspaceProfileName,
+            ...headlineFont,
+            fontSize: variables.fontSizeXLarge,
         },
     } satisfies Styles);
 
