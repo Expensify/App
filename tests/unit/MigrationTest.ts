@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import Onyx from 'react-native-onyx';
 import Log from '../../src/libs/Log';
 import CheckForPreviousReportActionID from '../../src/libs/migrations/CheckForPreviousReportActionID';
@@ -7,13 +8,13 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('../../src/libs/getPlatform');
 
-let LogSpy;
+let LogSpy: unknown;
 
 describe('Migrations', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
         LogSpy = jest.spyOn(Log, 'info');
-        Log.serverLoggingCallback = () => {};
+        Log.serverLoggingCallback = () => Promise.resolve({requestID: '123'});
         return waitForBatchedUpdates();
     });
 
@@ -32,6 +33,7 @@ describe('Migrations', () => {
         it('Should remove all report actions given that a previousReportActionID does not exist', () =>
             Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
+                    // @ts-expect-error Preset necessary values
                     1: {
                         reportActionID: '1',
                     },
@@ -51,7 +53,7 @@ describe('Migrations', () => {
                         callback: (allReportActions) => {
                             Onyx.disconnect(connectionID);
                             const expectedReportAction = {};
-                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toMatchObject(expectedReportAction);
+                            expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toMatchObject(expectedReportAction);
                         },
                     });
                 }));
@@ -59,6 +61,7 @@ describe('Migrations', () => {
         it('Should not remove any report action given that previousReportActionID exists in first valid report action', () =>
             Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
+                    // @ts-expect-error Preset necessary values
                     1: {
                         reportActionID: '1',
                         previousReportActionID: '0',
@@ -87,12 +90,13 @@ describe('Migrations', () => {
                                     previousReportActionID: '1',
                                 },
                             };
-                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toMatchObject(expectedReportAction);
+                            expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toMatchObject(expectedReportAction);
                         },
                     });
                 }));
 
         it('Should skip zombie report actions and proceed to remove all reportActions given that a previousReportActionID does not exist', () =>
+            // @ts-expect-error Preset necessary values
             Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {},
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: null,
@@ -117,15 +121,16 @@ describe('Migrations', () => {
                         callback: (allReportActions) => {
                             Onyx.disconnect(connectionID);
                             const expectedReportAction = {};
-                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toMatchObject(expectedReportAction);
-                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]).toBeUndefined();
-                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]).toBeUndefined();
-                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4`]).toMatchObject(expectedReportAction);
+                            expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toMatchObject(expectedReportAction);
+                            expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]).toBeUndefined();
+                            expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]).toBeUndefined();
+                            expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4`]).toMatchObject(expectedReportAction);
                         },
                     });
                 }));
 
         it('Should skip zombie report actions and should not remove any report action given that previousReportActionID exists in first valid report action', () =>
+            // @ts-expect-error Preset necessary values
             Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {},
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: null,
@@ -160,15 +165,16 @@ describe('Migrations', () => {
                                     previousReportActionID: '23',
                                 },
                             };
-                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toMatchObject(expectedReportAction1);
-                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]).toBeUndefined();
-                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]).toBeUndefined();
-                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4`]).toMatchObject(expectedReportAction4);
+                            expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toMatchObject(expectedReportAction1);
+                            expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]).toBeUndefined();
+                            expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]).toBeUndefined();
+                            expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4`]).toMatchObject(expectedReportAction4);
                         },
                     });
                 }));
 
         it('Should skip if no valid reportActions', () =>
+            // @ts-expect-error Preset necessary values
             Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: null,
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: {},
@@ -184,10 +190,10 @@ describe('Migrations', () => {
                         callback: (allReportActions) => {
                             Onyx.disconnect(connectionID);
                             const expectedReportAction = {};
-                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toBeUndefined();
-                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]).toMatchObject(expectedReportAction);
-                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]).toMatchObject(expectedReportAction);
-                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4`]).toBeUndefined();
+                            expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toBeUndefined();
+                            expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]).toMatchObject(expectedReportAction);
+                            expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]).toMatchObject(expectedReportAction);
+                            expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4`]).toBeUndefined();
                         },
                     });
                 }));
@@ -200,6 +206,7 @@ describe('Migrations', () => {
             ));
 
         it('Should move individual draft to a draft collection of report', () =>
+            // @ts-expect-error Preset necessary values
             Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`]: 'a',
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_2`]: 'b',
@@ -221,16 +228,17 @@ describe('Migrations', () => {
                                 3: 'c',
                                 4: 'd',
                             };
-                            expect(allReportActionsDrafts[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`]).toBeUndefined();
-                            expect(allReportActionsDrafts[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_2`]).toBeUndefined();
-                            expect(allReportActionsDrafts[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}2_4`]).toBeUndefined();
-                            expect(allReportActionsDrafts[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1`]).toMatchObject(expectedReportActionDraft1);
-                            expect(allReportActionsDrafts[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}2`]).toMatchObject(expectedReportActionDraft2);
+                            expect(allReportActionsDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`]).toBeUndefined();
+                            expect(allReportActionsDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_2`]).toBeUndefined();
+                            expect(allReportActionsDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}2_4`]).toBeUndefined();
+                            expect(allReportActionsDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1`]).toMatchObject(expectedReportActionDraft1);
+                            expect(allReportActionsDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}2`]).toMatchObject(expectedReportActionDraft2);
                         },
                     });
                 }));
 
         it('Should skip if nothing to migrate', () =>
+            // @ts-expect-error Preset necessary values
             Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`]: null,
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_2`]: null,
@@ -246,15 +254,16 @@ describe('Migrations', () => {
                         callback: (allReportActions) => {
                             Onyx.disconnect(connectionID);
                             const expectedReportActionDraft = {};
-                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`]).toBeUndefined();
-                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_2`]).toBeUndefined();
-                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}2_4`]).toBeUndefined();
-                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}2`]).toMatchObject(expectedReportActionDraft);
+                            expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`]).toBeUndefined();
+                            expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_2`]).toBeUndefined();
+                            expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}2_4`]).toBeUndefined();
+                            expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}2`]).toMatchObject(expectedReportActionDraft);
                         },
                     });
                 }));
 
         it("Shouldn't move empty individual draft to a draft collection of report", () =>
+            // @ts-expect-error Preset necessary values
             Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`]: '',
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1`]: {},
@@ -266,7 +275,7 @@ describe('Migrations', () => {
                         waitForCollectionCallback: true,
                         callback: (allReportActionsDrafts) => {
                             Onyx.disconnect(connectionID);
-                            expect(allReportActionsDrafts[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`]).toBeUndefined();
+                            expect(allReportActionsDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`]).toBeUndefined();
                         },
                     });
                 }));
