@@ -7,6 +7,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-nat
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
+import type {FileObject} from '@components/AttachmentModal';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import type {
@@ -67,6 +68,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {PersonalDetails, PersonalDetailsList, PolicyReportField, RecentlyUsedReportFields, ReportActionReactions, ReportMetadata, ReportUserIsTyping} from '@src/types/onyx';
 import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import type {NotificationPreference, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
@@ -75,6 +77,7 @@ import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/Rep
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Modal from './Modal';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
@@ -86,12 +89,14 @@ type ActionSubscriber = {
     callback: SubscriberCallback;
 };
 
+let conciergeChatReportID: string | undefined;
 let currentUserAccountID = -1;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         // When signed out, val is undefined
         if (!value?.accountID) {
+            conciergeChatReportID = undefined;
             return;
         }
 
@@ -168,7 +173,6 @@ Onyx.connect({
 });
 
 const allReports: OnyxCollection<Report> = {};
-let conciergeChatReportID: string | undefined;
 const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 
 let reportIDDeeplinkedFromOldDot: string | undefined;
@@ -353,7 +357,7 @@ function notifyNewAction(reportID: string, accountID?: number, reportActionID?: 
  * - Adding one attachment
  * - Add both a comment and attachment simultaneously
  */
-function addActions(reportID: string, text = '', file?: File) {
+function addActions(reportID: string, text = '', file?: FileObject) {
     let reportCommentText = '';
     let reportCommentAction: OptimisticAddCommentReportAction | undefined;
     let attachmentAction: OptimisticAddCommentReportAction | undefined;
@@ -512,7 +516,7 @@ function addActions(reportID: string, text = '', file?: File) {
 }
 
 /** Add an attachment and optional comment. */
-function addAttachment(reportID: string, file: File, text = '') {
+function addAttachment(reportID: string, file: FileObject, text = '') {
     addActions(reportID, text, file);
 }
 
@@ -1221,6 +1225,7 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
         reportActionID,
     };
 
+    CachedPDFPaths.clearByKey(reportActionID);
     API.write(WRITE_COMMANDS.DELETE_COMMENT, parameters, {optimisticData, successData, failureData});
 }
 
@@ -1716,19 +1721,18 @@ function updateWriteCapabilityAndNavigate(report: Report, newValue: WriteCapabil
 
 /**
  * Navigates to the 1:1 report with Concierge
- *
- * @param ignoreConciergeReportID - Flag to ignore conciergeChatReportID during navigation. The default behavior is to not ignore.
  */
-function navigateToConciergeChat(ignoreConciergeReportID = false, shouldDismissModal = false) {
+function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageActive = () => true) {
     // If conciergeChatReportID contains a concierge report ID, we navigate to the concierge chat using the stored report ID.
     // Otherwise, we would find the concierge chat and navigate to it.
-    // Now, when user performs sign-out and a sign-in again, conciergeChatReportID may contain a stale value.
-    // In order to prevent navigation to a stale value, we use ignoreConciergeReportID to forcefully find and navigate to concierge chat.
-    if (!conciergeChatReportID || ignoreConciergeReportID) {
+    if (!conciergeChatReportID) {
         // In order to avoid creating concierge repeatedly,
         // we need to ensure that the server data has been successfully pulled
         Welcome.serverDataIsReadyPromise().then(() => {
             // If we don't have a chat with Concierge then create it
+            if (!checkIfCurrentPageActive()) {
+                return;
+            }
             navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], shouldDismissModal);
         });
     } else if (shouldDismissModal) {
@@ -2213,10 +2217,7 @@ function openReportFromDeepLink(url: string, isAuthenticated: boolean) {
         Session.waitForUserSignIn().then(() => {
             Navigation.waitForProtectedRoutes().then(() => {
                 const route = ReportUtils.getRouteFromLink(url);
-                if (route === ROUTES.CONCIERGE) {
-                    navigateToConciergeChat(true);
-                    return;
-                }
+
                 if (route && Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(route)) {
                     Session.signOutAndRedirectToSignIn(true);
                     return;
@@ -2838,6 +2839,11 @@ function clearNewRoomFormError() {
         isLoading: false,
         errorFields: null,
         errors: null,
+        [INPUT_IDS.ROOM_NAME]: '',
+        [INPUT_IDS.REPORT_DESCRIPTION]: '',
+        [INPUT_IDS.POLICY_ID]: '',
+        [INPUT_IDS.WRITE_CAPABILITY]: '',
+        [INPUT_IDS.VISIBILITY]: '',
     });
 }
 

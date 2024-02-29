@@ -229,6 +229,7 @@ function signInAndGetAppWithUnreadChat() {
                 lastVisibleActionCreated: reportAction9CreatedDate,
                 lastMessageText: 'Test',
                 participantAccountIDs: [USER_B_ACCOUNT_ID],
+                lastActorAccountID: USER_B_ACCOUNT_ID,
                 type: CONST.REPORT.TYPE.CHAT,
             });
             const createdReportActionID = NumberUtils.rand64();
@@ -388,6 +389,7 @@ describe('Unread Indicators', () => {
                                     lastReadTime: '',
                                     lastVisibleActionCreated: DateUtils.getDBTime(utcToZonedTime(NEW_REPORT_FIST_MESSAGE_CREATED_DATE, 'UTC').valueOf()),
                                     lastMessageText: 'Comment 1',
+                                    lastActorAccountID: USER_C_ACCOUNT_ID,
                                     participantAccountIDs: [USER_C_ACCOUNT_ID],
                                     type: CONST.REPORT.TYPE.CHAT,
                                 },
