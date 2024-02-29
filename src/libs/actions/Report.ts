@@ -2435,6 +2435,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
  */
 function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
     const report = currentReportData?.[reportID];
+
     const participantAccountIDsAfterRemoval = report?.participantAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
     const visibleChatMemberAccountIDsAfterRemoval = report?.visibleChatMemberAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
 
@@ -2460,6 +2461,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
         },
     ];
 
+    console.log('optimisticData', optimisticData);
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
