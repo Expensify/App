@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyCategories, PolicyTagList, Transaction, TransactionViolation} from '@src/types/onyx';
+import _ from 'underscore';
 
 const ViolationsUtils = {
     /**
@@ -80,15 +81,27 @@ const ViolationsUtils = {
                     newTransactionViolations.push({name: CONST.VIOLATIONS.MISSING_TAG, type: 'violation'});
                 }
             } else {
+                newTransactionViolations = reject(newTransactionViolations, {
+                    name: CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED,
+                });
+                newTransactionViolations = reject(newTransactionViolations, {
+                    name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
+                });
+
+                // calculate errorIndexes for someTagLevelsRequired
+                // if it's empty, reject it from current violations
+                // else push it to onyx
                 let errorIndexes = [];
                 for (let i = 0; i < policyTagKeys.length; i++) {
                     const isTagRequired = policyTagList[policyTagKeys[i]].required ?? true;
                     const isTagSelected = Boolean(selectedTags[i]);
+                    // console.log('i', i, isTagRequired, isTagSelected, selectedTags, policyTagList[policyTagKeys[i]], updatedTransaction.tag);
+                    // console.log('i', i, isTagRequired, isTagSelected, selectedTags);
                     if (isTagRequired && (!isTagSelected || (selectedTags.length === 1 && selectedTags[0] === ''))){
                         errorIndexes.push(i)
                     }
                 }
-                if (errorIndexes.length) {
+                if (errorIndexes.length !== 0) {
                     newTransactionViolations.push({
                         name: CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED,
                         type: 'violation',
@@ -96,6 +109,33 @@ const ViolationsUtils = {
                             errorIndexes,
                         },
                     });
+                } else {
+                    let hasInvalidTag = false;
+                    for (let i = 0; i < policyTagKeys.length; i++) {
+                        const isTagRequired = policyTagList[policyTagKeys[i]].required ?? true;
+                        const selectedTag = selectedTags[i];
+                        const tags = policyTagList[policyTagKeys[i]].tags;
+                        const isTagInPolicy = _.some(tags, (tag, tagKey) => tag.name === selectedTag && Boolean(tag.enabled));
+                        // console.log(policyTagList[policyTagKeys[i]]);
+                        // console.log('i', i, isTagRequired, isTagSelected, selectedTags, policyTagList[policyTagKeys[i]], updatedTransaction.tag);
+                        // console.log('i', i, isTagRequired, isTagInPolicy, tags, selectedTag, selectedTags, policyTagKeys[i]);
+                        if (!isTagInPolicy) {
+                            newTransactionViolations.push({
+                                name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
+                                type: 'violation',
+                                data: {
+                                    tagName: policyTagKeys[i],
+                                },
+                            });
+                            hasInvalidTag = true;
+                            break
+                        }
+                    }
+                    if (!hasInvalidTag) {
+                        newTransactionViolations = reject(newTransactionViolations, {
+                            name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
+                        });
+                    }
                 }
             }
         }
