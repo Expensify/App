@@ -96,7 +96,7 @@ const lightTheme = {
     // The screen name (see SCREENS.ts) is the name of the screen as far as react-navigation is concerned, and the linkingConfig maps screen names to URLs
     PAGE_THEMES: {
         [SCREENS.HOME]: {
-            backgroundColor: colors.productLight200,
+            backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
         [SCREENS.REPORT]: {

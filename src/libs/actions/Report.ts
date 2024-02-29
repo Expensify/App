@@ -77,6 +77,7 @@ import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/Rep
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Modal from './Modal';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
@@ -1224,6 +1225,7 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
         reportActionID,
     };
 
+    CachedPDFPaths.clearByKey(reportActionID);
     API.write(WRITE_COMMANDS.DELETE_COMMENT, parameters, {optimisticData, successData, failureData});
 }
 
@@ -1720,7 +1722,7 @@ function updateWriteCapabilityAndNavigate(report: Report, newValue: WriteCapabil
 /**
  * Navigates to the 1:1 report with Concierge
  */
-function navigateToConciergeChat(shouldDismissModal = false, shouldPopCurrentScreen = false, checkIfCurrentPageActive = () => true) {
+function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageActive = () => true) {
     // If conciergeChatReportID contains a concierge report ID, we navigate to the concierge chat using the stored report ID.
     // Otherwise, we would find the concierge chat and navigate to it.
     if (!conciergeChatReportID) {
@@ -1731,17 +1733,11 @@ function navigateToConciergeChat(shouldDismissModal = false, shouldPopCurrentScr
             if (!checkIfCurrentPageActive()) {
                 return;
             }
-            if (shouldPopCurrentScreen && !shouldDismissModal) {
-                Navigation.goBack();
-            }
             navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], shouldDismissModal);
         });
     } else if (shouldDismissModal) {
         Navigation.dismissModal(conciergeChatReportID);
     } else {
-        if (shouldPopCurrentScreen) {
-            Navigation.goBack();
-        }
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeChatReportID));
     }
 }
@@ -2255,6 +2251,7 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
     if (!report) {
         return;
     }
+    const isChatThread = ReportUtils.isChatThread(report);
 
     // Pusher's leavingStatus should be sent earlier.
     // Place the broadcast before calling the LeaveRoom API to prevent a race condition
@@ -2263,20 +2260,22 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
 
     // If a workspace member is leaving a workspace room, they don't actually lose the room from Onyx.
     // Instead, their notification preference just gets set to "hidden".
+    // Same applies for chat threads too
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: isWorkspaceMemberLeavingWorkspaceRoom
-                ? {
-                      notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-                  }
-                : {
-                      reportID: null,
-                      stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                      statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                      notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-                  },
+            value:
+                isWorkspaceMemberLeavingWorkspaceRoom || isChatThread
+                    ? {
+                          notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                      }
+                    : {
+                          reportID: null,
+                          stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                          statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                          notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                      },
         },
     ];
 
@@ -2284,12 +2283,13 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: isWorkspaceMemberLeavingWorkspaceRoom
-                ? {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}
-                : Object.keys(report).reduce<Record<string, null>>((acc, key) => {
-                      acc[key] = null;
-                      return acc;
-                  }, {}),
+            value:
+                isWorkspaceMemberLeavingWorkspaceRoom || isChatThread
+                    ? {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}
+                    : Object.keys(report).reduce<Record<string, null>>((acc, key) => {
+                          acc[key] = null;
+                          return acc;
+                      }, {}),
         },
     ];
 
@@ -2345,15 +2345,19 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
     const lastAccessedReportID = filteredReportsByLastRead.at(-1)?.reportID;
 
     if (lastAccessedReportID) {
-        // We should call Navigation.goBack to pop the current route first before navigating to Concierge.
-        Navigation.goBack();
+        // If it is not a chat thread we should call Navigation.goBack to pop the current route first before navigating to last accessed report.
+        if (!isChatThread) {
+            Navigation.goBack();
+        }
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID));
     } else {
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
         const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
         if (chat?.reportID) {
-            // We should call Navigation.goBack to pop the current route first before navigating to Concierge.
-            Navigation.goBack();
+            // If it is not a chat thread we should call Navigation.goBack to pop the current route first before navigating to Concierge.
+            if (!isChatThread) {
+                Navigation.goBack();
+            }
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chat.reportID));
         }
     }

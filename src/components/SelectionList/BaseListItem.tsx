@@ -20,6 +20,7 @@ function BaseListItem<TItem extends ListItem>({
     shouldPreventDefaultFocusOnSelectRow = false,
     canSelectMultiple = false,
     onSelectRow,
+    onCheckboxPress,
     onDismissError = () => {},
     rightHandSideComponent,
     keyForList,
@@ -43,6 +44,14 @@ function BaseListItem<TItem extends ListItem>({
         }
 
         return rightHandSideComponent;
+    };
+
+    const handleCheckboxPress = () => {
+        if (onCheckboxPress) {
+            onCheckboxPress(item);
+        } else {
+            onSelectRow(item);
+        }
     };
 
     return (
@@ -69,8 +78,10 @@ function BaseListItem<TItem extends ListItem>({
             >
                 <View style={wrapperStyle}>
                     {canSelectMultiple && (
-                        <View
+                        <PressableWithFeedback
+                            accessibilityLabel={item.text}
                             role={CONST.ROLE.BUTTON}
+                            onPress={handleCheckboxPress}
                             style={StyleUtils.getCheckboxPressableStyle()}
                         >
                             <View style={selectMultipleStyle}>
@@ -83,7 +94,7 @@ function BaseListItem<TItem extends ListItem>({
                                     />
                                 )}
                             </View>
-                        </View>
+                        </PressableWithFeedback>
                     )}
 
                     {typeof children === 'function' ? children(hovered) : children}
