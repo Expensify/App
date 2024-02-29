@@ -50,8 +50,6 @@ function TaxPicker({selectedTaxRate, taxRates, insets, onSubmit}) {
             sections={sections}
             selectedOptions={selectedOptions}
             value={searchValue}
-            // Focus the first option when searching
-            focusedIndex={0}
             initiallyFocusedOptionKey={selectedOptionKey}
             textInputLabel={translate('common.search')}
             boldStyle

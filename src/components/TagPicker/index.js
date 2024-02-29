@@ -70,8 +70,6 @@ function TagPicker({selectedTag, tag, tagIndex, policyTags, policyRecentlyUsedTa
             highlightSelectedOptions
             isRowMultilineSupported
             shouldShowTextInput={shouldShowTextInput}
-            // Focus the first option when searching
-            focusedIndex={0}
             // Focus the selected option on first load
             initiallyFocusedOptionKey={selectedOptionKey}
             onChangeText={setSearchValue}

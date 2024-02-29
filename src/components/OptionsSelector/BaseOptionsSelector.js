@@ -165,16 +165,17 @@ class BaseOptionsSelector extends Component {
             });
             return;
         }
-        const newFocusedIndex = this.props.selectedOptions.length;
+        const newFocusedIndex = this.props.canSelectMultipleOptions ? this.props.selectedOptions.length : 0;
         const isNewFocusedIndex = newFocusedIndex !== this.state.focusedIndex;
         const prevFocusedOption = _.find(newOptions, (option) => this.focusedOption && option.keyForList === this.focusedOption.keyForList);
         const prevFocusedOptionIndex = prevFocusedOption ? _.findIndex(newOptions, (option) => this.focusedOption && option.keyForList === this.focusedOption.keyForList) : undefined;
+
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState(
             {
                 sections: newSections,
                 allOptions: newOptions,
-                focusedIndex: prevFocusedOptionIndex || (_.isNumber(this.props.focusedIndex) ? this.props.focusedIndex : newFocusedIndex),
+                focusedIndex: prevFocusedOptionIndex || newFocusedIndex,
             },
             () => {
                 // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
@@ -221,8 +222,6 @@ class BaseOptionsSelector extends Component {
         let defaultIndex;
         if (this.props.shouldTextInputAppearBelowOptions) {
             defaultIndex = allOptions.length;
-        } else if (this.props.focusedIndex >= 0) {
-            defaultIndex = this.props.focusedIndex;
         } else {
             defaultIndex = this.props.selectedOptions.length;
         }
