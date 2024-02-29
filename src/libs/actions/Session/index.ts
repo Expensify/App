@@ -955,4 +955,5 @@ export {
     waitForUserSignIn,
     canAccessRouteByAnonymousUser,
     signInWithSupportAuthToken,
+    isSupportalToken,
 };
