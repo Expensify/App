@@ -217,11 +217,12 @@ function MoneyRequestConfirmationList(props) {
     const {onSendMoney, onConfirm, onSelectParticipant} = props;
     const {translate, toLocaleDigit} = useLocalize();
     const transaction = props.transaction;
-    const {canUseViolations} = usePermissions();
+    const {canUseP2PDistanceRequests, canUseViolations} = usePermissions();
 
     const isTypeRequest = props.iouType === CONST.IOU.TYPE.REQUEST;
     const isSplitBill = props.iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = props.iouType === CONST.IOU.TYPE.SEND;
+    const canEditDistance = isTypeRequest || (canUseP2PDistanceRequests && isSplitBill);
 
     const isSplitWithScan = isSplitBill && props.isScanRequest;
 
@@ -262,6 +263,7 @@ function MoneyRequestConfirmationList(props) {
               props.isDistanceRequest ? currency : props.iouCurrencyCode,
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(props.transaction.taxAmount, props.iouCurrencyCode);
+    const formattedDistance = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
 
     const defaultTaxKey = taxRates.defaultExternalID;
     const defaultTaxName = (defaultTaxKey && `${taxRates.taxes[defaultTaxKey].name} (${taxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
@@ -720,13 +722,14 @@ function MoneyRequestConfirmationList(props) {
                     )}
                     {props.isDistanceRequest && (
                         <MenuItemWithTopDescription
-                            shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
-                            title={props.iouMerchant}
+                            shouldShowRightIcon={!props.isReadOnly && canEditDistance}
+                            title={formattedDistance}
                             description={translate('common.distance')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DISTANCE.getRoute(props.iouType, props.reportID))}
-                            disabled={didConfirm || !isTypeRequest}
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            disabled={didConfirm || !canEditDistance}
                             interactive={!props.isReadOnly}
                         />
                     )}
