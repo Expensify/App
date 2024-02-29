@@ -108,7 +108,7 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails,
             }
         });
         return [policyMemberDetails, approverDetails];
-    }, [personalDetails, policyMembers, translate, policy?.approver]);
+    }, [personalDetails, policyMembers, translate, policy?.approver, StyleUtils, isDeletedPolicyMember, policy?.owner, styles]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArray: MembersSection[] = [];
