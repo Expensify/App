@@ -170,7 +170,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             routeName: SCREENS.WORKSPACE.CATEGORIES,
         },
         {
-            translationKey: 'workspace.common.features',
+            translationKey: 'workspace.common.moreFeatures',
             icon: Expensicons.Checkmark,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.MORE_FEATURES,

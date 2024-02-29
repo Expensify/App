@@ -52,7 +52,7 @@ function WorkspaceMoreFeaturesPage({route}: WorkspaceMoreFeaturesPageProps) {
                 >
                     <HeaderWithBackButton
                         icon={Illustrations.FolderOpen}
-                        title={translate('workspace.common.features')}
+                        title={translate('workspace.common.moreFeatures')}
                         shouldShowBackButton={isSmallScreenWidth}
                     />
 
