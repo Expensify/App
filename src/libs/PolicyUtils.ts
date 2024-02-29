@@ -4,7 +4,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy, PolicyMembers, PolicyTagList, PolicyTags, Session} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, PolicyMembers, PolicyTagList, PolicyTags} from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Navigation from './Navigation/Navigation';
@@ -117,16 +117,6 @@ const isFreeGroupPolicy = (policy: OnyxEntry<Policy> | EmptyObject): boolean => 
 
 const isPolicyMember = (policyID: string, policies: OnyxCollection<Policy>): boolean => Object.values(policies ?? {}).some((policy) => policy?.id === policyID);
 
-const isPolicyPayer = (policy: OnyxEntry<Policy> | EmptyObject, session: OnyxEntry<Session>, isApproved: boolean, isManager: boolean, isAdmin: boolean): boolean => {
-    if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-        const isReimburser = session?.email === policy?.reimburserEmail;
-        return isReimburser && (isApproved || isManager);
-    }
-    if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
-        return isAdmin && (isApproved || isManager);
-    }
-    return false;
-};
 /**
  * Create an object mapping member emails to their accountIDs. Filter for members without errors, and get the login email from the personalDetail object using the accountID.
  *
@@ -294,7 +284,6 @@ export {
     getCountOfEnabledTagsOfList,
     isPendingDeletePolicy,
     isPolicyMember,
-    isPolicyPayer,
     isPaidGroupPolicy,
     extractPolicyIDFromPath,
     getPathWithoutPolicyID,

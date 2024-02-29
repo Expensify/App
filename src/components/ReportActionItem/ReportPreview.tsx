@@ -209,7 +209,7 @@ function ReportPreview({
 
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isPayer = PolicyUtils.isPolicyPayer(policy, session, isApproved, isCurrentUserManager, isPolicyAdmin);
+    const isPayer = ReportUtils.isPayer(policy, session, iouReport, isPaidGroupPolicy, isPolicyAdmin);
     const isOnInstantSubmitPolicy = PolicyUtils.isInstantSubmitEnabled(policy);
     const isOnSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
     const shouldShowPayButton = useMemo(

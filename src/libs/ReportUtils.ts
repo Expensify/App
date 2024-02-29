@@ -1222,6 +1222,33 @@ function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
 }
 
 /**
+ * Checks if the current user is a payer of the request
+ */
+
+function isPayer(
+    policy: OnyxEntry<Policy> | EmptyObject,
+    session: OnyxEntry<Session>,
+    iouReport: OnyxEntry<Report>,
+    // eslint-disable-next-line @typescript-eslint/no-shadow
+    isPaidGroupPolicy: boolean,
+    isAdmin: boolean,
+) {
+    const isApproved = isReportApproved(iouReport);
+    const isManager = iouReport?.managerID === session?.accountID;
+    if (isPaidGroupPolicy) {
+        if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+            const isReimburser = session?.email === policy?.reimburserEmail;
+            return isReimburser && (isApproved || isManager);
+        }
+        if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
+            return isAdmin && (isApproved || isManager);
+        }
+        return false;
+    }
+    return isAdmin || (isMoneyRequestReport(iouReport) && isManager);
+}
+
+/**
  * Get the notification preference given a report
  */
 function getReportNotificationPreference(report: OnyxEntry<Report>): string | number {
@@ -1603,6 +1630,7 @@ function getIcons(
             name: personalDetails?.[report?.ownerAccountID ?? -1]?.displayName ?? '',
             fallbackIcon: personalDetails?.[report?.ownerAccountID ?? -1]?.fallbackIcon,
         };
+        // eslint-disable-next-line @typescript-eslint/no-shadow
         const isPayer = currentUserAccountID === report?.managerID;
 
         return isPayer ? [managerIcon, ownerIcon] : [ownerIcon, managerIcon];
@@ -5156,6 +5184,7 @@ export {
     hasSingleParticipant,
     getReportRecipientAccountIDs,
     isOneOnOneChat,
+    isPayer,
     goBackToDetailsPage,
     getTransactionReportName,
     getTransactionDetails,
