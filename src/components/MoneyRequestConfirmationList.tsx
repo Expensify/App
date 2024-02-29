@@ -605,7 +605,7 @@ function MoneyRequestConfirmationList({
         }
 
         return typeof receiptData?.image === 'string' ? {uri: receiptData.image} : receiptData?.image;
-    }, []);
+    }, [receiptData?.thumbnail, receiptData?.image]);
 
     return (
         // @ts-expect-error TODO: Remove this once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TypeScript.
