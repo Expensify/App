@@ -161,7 +161,7 @@ function DetailsPage({personalDetails, route, session}: DetailsPageProps) {
                             </View>
                             {!isCurrentUser && (
                                 <MenuItem
-                                    title={`${translate('common.message')}${displayName}`}
+                                    title={`${translate('common.message')}${formatPhoneNumber(displayName)}`}
                                     titleStyle={styles.flex1}
                                     icon={Expensicons.ChatBubble}
                                     onPress={() => Report.navigateToAndOpenReport([login])}
