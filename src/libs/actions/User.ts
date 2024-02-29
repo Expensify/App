@@ -961,11 +961,9 @@ function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTE
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
+            key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
             value: {
-                dismissedReferralBanners: {
-                    [type]: true,
-                },
+                [type]: true,
             },
         },
     ];
