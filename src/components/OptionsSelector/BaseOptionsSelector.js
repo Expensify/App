@@ -295,9 +295,9 @@ function BaseOptionsSelector(props) {
             setErrorMessage(
                 searchValue.length > props.maxLength
                     ? translate('common.error.characterLimitExceedCounter', {
-                        length: searchValue.length,
-                        limit: props.maxLength,
-                    })
+                          length: searchValue.length,
+                          limit: props.maxLength,
+                      })
                     : '',
             );
             props.onChangeText(searchValue);
