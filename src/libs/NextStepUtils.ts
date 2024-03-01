@@ -73,7 +73,7 @@ function buildNextStep(
 
     const {policyID = '', ownerAccountID = -1, managerID = -1} = report;
     const policy = ReportUtils.getPolicy(policyID);
-    const {submitsTo, harvesting, isPreventSelfApprovalEnabled, autoReportingFrequency, autoReportingOffset} = policy;
+    const {submitsTo, harvesting, isPreventSelfApprovalEnabled, preventSelfApprovalEnabled, autoReportingFrequency, autoReportingOffset} = policy;
     const isOwner = currentUserAccountID === ownerAccountID;
     const isManager = currentUserAccountID === managerID;
     const isSelfApproval = currentUserAccountID === submitsTo;
@@ -164,7 +164,7 @@ function buildNextStep(
             }
 
             // Prevented self submitting
-            if (isPreventSelfApprovalEnabled && isSelfApproval) {
+            if ((isPreventSelfApprovalEnabled ?? preventSelfApprovalEnabled) && isSelfApproval) {
                 optimisticNextStep.message = [
                     {
                         text: "Oops! Looks like you're submitting to ",

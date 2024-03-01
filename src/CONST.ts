@@ -178,6 +178,7 @@ const CONST = {
     DATE: {
         SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
+        FNS_DATE_TIME_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss',
         LOCAL_TIME_FORMAT: 'h:mm a',
         YEAR_MONTH_FORMAT: 'yyyyMM',
         MONTH_FORMAT: 'MMMM',
@@ -307,6 +308,7 @@ const CONST = {
         BETA_COMMENT_LINKING: 'commentLinking',
         VIOLATIONS: 'violations',
         REPORT_FIELDS: 'reportFields',
+        WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -895,6 +897,7 @@ const CONST = {
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
     DEFAULT_CLOSE_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
+    DEFAULT_NETWORK_DATA: {isOffline: false},
     FORMS: {
         LOGIN_FORM: 'LoginForm',
         VALIDATE_CODE_FORM: 'ValidateCodeForm',
@@ -950,6 +953,9 @@ const CONST = {
     EMOJI_FREQUENT_ROW_COUNT: 3,
 
     EMOJI_DEFAULT_SKIN_TONE: -1,
+
+    // Amount of emojis to render ahead at the end of the update cycle
+    EMOJI_DRAW_AMOUNT: 250,
 
     INVISIBLE_CODEPOINTS: ['fe0f', '200d', '2066'],
 
@@ -1538,6 +1544,8 @@ const CONST = {
         PATH_WITHOUT_POLICY_ID: /\/w\/[a-zA-Z0-9]+(\/|$)/,
 
         POLICY_ID_FROM_PATH: /\/w\/([a-zA-Z0-9]+)(\/|$)/,
+
+        SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#]+(?:\\.[\\w\\-\\'\\+]+)*`, 'gim'),
     },
 
     PRONOUNS: {
@@ -1554,7 +1562,9 @@ const CONST = {
         WORKSPACE_INVOICES: 'WorkspaceSendInvoices',
         WORKSPACE_TRAVEL: 'WorkspaceBookTravel',
         WORKSPACE_MEMBERS: 'WorkspaceManageMembers',
+        WORKSPACE_WORKFLOWS: 'WorkspaceWorkflows',
         WORKSPACE_BANK_ACCOUNT: 'WorkspaceBankAccount',
+        WORKSPACE_SETTINGS: 'WorkspaceSettings',
     },
     get EXPENSIFY_EMAILS() {
         return [
@@ -3106,6 +3116,8 @@ const CONST = {
      */
     ADDITIONAL_ALLOWED_CHARACTERS: 20,
 
+    VALIDATION_REIMBURSEMENT_INPUT_LIMIT: 20,
+
     REFERRAL_PROGRAM: {
         CONTENT_TYPES: {
             MONEY_REQUEST: 'request',
@@ -3268,6 +3280,12 @@ const CONST = {
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 
+    /** Dimensions for illustration shown in Confirmation Modal */
+    CONFIRM_CONTENT_SVG_SIZE: {
+        HEIGHT: 220,
+        WIDTH: 130,
+    },
+
     DEBUG_CONSOLE: {
         LEVELS: {
             INFO: 'INFO',
@@ -3302,6 +3320,18 @@ const CONST = {
             SSN: 2,
             ADDRESS: 3,
         },
+    },
+
+    EXIT_SURVEY: {
+        REASONS: {
+            FEATURE_NOT_AVAILABLE: 'featureNotAvailable',
+            DONT_UNDERSTAND: 'dontUnderstand',
+            PREFER_CLASSIC: 'preferClassic',
+        },
+    },
+
+    SESSION_STORAGE_KEYS: {
+        INITIAL_URL: 'INITIAL_URL',
     },
 } as const;
 
