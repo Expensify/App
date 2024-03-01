@@ -1,7 +1,7 @@
 import type {Video} from 'expo-av';
 import type {MutableRefObject} from 'react';
 import React, {useCallback, useMemo, useState} from 'react';
-import type {GestureResponderEvent, LayoutChangeEvent, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -23,7 +23,7 @@ type VideoPlayerControlsProps = {
     isPlaying: boolean;
     // Defines if component should have small icons and tighter spacing inline
     small: boolean;
-    style: ViewStyle;
+    style: StyleProp<ViewStyle>;
     showPopoverMenu: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
     togglePlayCurrentVideo: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 };
