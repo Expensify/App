@@ -2907,7 +2907,6 @@ function getHumanReadableStatus(statusNum: number): string {
 function populateOptimisticReportFormula(formula: string, report: OptimisticExpenseReport, policy: Policy | EmptyObject): string {
     const createdDate = report.lastVisibleActionCreated ? new Date(report.lastVisibleActionCreated) : undefined;
     const result = formula
-        .replaceAll('{report:id}', report.reportID)
         // We don't translate because the server response is always in English
         .replaceAll('{report:type}', 'Expense Report')
         .replaceAll('{report:startdate}', createdDate ? format(createdDate, CONST.DATE.FNS_FORMAT_STRING) : '')
