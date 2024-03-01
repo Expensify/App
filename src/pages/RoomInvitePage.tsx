@@ -176,7 +176,8 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
         (e?: GestureResponderEvent | KeyboardEvent | undefined, option?: OptionsListUtils.MemberForList) => {
             const options = [...selectedOptions];
 
-            if (option && e && 'key' in e && e.key === 'Enter' && !options.length) {
+            // if we got
+            if (option && !options.length) {
                 const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option?.login);
 
                 if (option && !isOptionInList) {

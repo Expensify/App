@@ -263,8 +263,8 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
 
     const handleConfirmSelection = useCallback(
         (keyEvent, option) => {
-            const shouldAddSingleParticipant = option && keyEvent && 'key' in keyEvent && keyEvent.key === 'Enter' && !participants.length;
-            if (shouldShowSplitBillErrorMessage || (!participants.length && (!option || keyEvent.key !== 'Enter'))) {
+            const shouldAddSingleParticipant = option && !participants.length;
+            if (shouldShowSplitBillErrorMessage || (!participants.length && !option)) {
                 return;
             }
 

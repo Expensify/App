@@ -279,9 +279,9 @@ function MoneyRequestParticipantsSelector({
 
     const handleConfirmSelection = useCallback(
         (keyEvent, option) => {
-            const shouldAddSingleParticipant = option && keyEvent && 'key' in keyEvent && keyEvent.key === 'Enter' && !participants.length;
+            const shouldAddSingleParticipant = option && !participants.length;
 
-            if (shouldShowSplitBillErrorMessage || (!participants.length && (!option || keyEvent.key !== 'Enter'))) {
+            if (shouldShowSplitBillErrorMessage || (!participants.length && !option)) {
                 return;
             }
 
