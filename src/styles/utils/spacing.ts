@@ -247,6 +247,10 @@ export default {
         marginTop: 'auto',
     },
 
+    mtn1: {
+        marginTop: -4,
+    },
+
     mtn2: {
         marginTop: -8,
     },
@@ -317,6 +321,10 @@ export default {
 
     mbn1: {
         marginBottom: -4,
+    },
+
+    mbn3: {
+        marginBottom: -12,
     },
 
     mbn5: {
