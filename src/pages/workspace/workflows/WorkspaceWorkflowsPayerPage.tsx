@@ -1,37 +1,37 @@
 // import { View } from 'react-native';
-import type { StackScreenProps } from '@react-navigation/stack';
-import React, { useCallback, useMemo, useState } from 'react';
+import type {StackScreenProps} from '@react-navigation/stack';
+import React, {useCallback, useMemo, useState} from 'react';
 // import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import type { SectionListData } from 'react-native';
-import type { OnyxEntry } from 'react-native-onyx';
-import { withOnyx } from 'react-native-onyx';
+import type {SectionListData} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type { ListItem, Section } from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionList';
+import type {ListItem, Section} from '@components/SelectionList/types';
+import UserListItem from '@components/SelectionList/UserListItem';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
-import { formatPhoneNumber } from '@libs/LocalePhoneNumber';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
-import type { SettingsNavigatorParamList } from '@navigation/types';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
-import type { WithPolicyAndFullscreenLoadingProps } from '@pages/workspace/withPolicyAndFullscreenLoading';
+import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
-import UserListItem from '@components/SelectionList/UserListItem';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type { PersonalDetailsList, PolicyMember } from '@src/types/onyx';
-import { isEmptyObject } from '@src/types/utils/EmptyObject';
-import useStyleUtils from '@hooks/useStyleUtils';
-import SelectionList from '@components/SelectionList';
+import type {PersonalDetailsList, PolicyMember} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceWorkflowsPayerPageOnyxProps = {
     /** All of the personal details for everyone */
@@ -41,18 +41,17 @@ type WorkspaceWorkflowsPayerPageOnyxProps = {
 type WorkspaceWorkflowsPayerPageProps = WorkspaceWorkflowsPayerPageOnyxProps &
     WithPolicyAndFullscreenLoadingProps &
     StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_PAYER>;
-type MemberOption = Omit<ListItem, 'accountID'> & { accountID: number };
+type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 type MembersSection = SectionListData<MemberOption, Section<MemberOption>>;
 
-function WorkspaceWorkflowsPayerPage({ route, policy, policyMembers, personalDetails }: WorkspaceWorkflowsPayerPageProps) {
-    const { translate } = useLocalize();
+function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDetails}: WorkspaceWorkflowsPayerPageProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const policyName = policy?.name ?? '';
-    const { isOffline } = useNetwork();
+    const {isOffline} = useNetwork();
 
     const [searchTerm, setSearchTerm] = useState('');
-
 
     const isDeletedPolicyMember = useCallback(
         (policyMember: PolicyMember) => !isOffline && policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyMember.errors),
@@ -168,7 +167,7 @@ function WorkspaceWorkflowsPayerPage({ route, policy, policyMembers, personalDet
                     testID={WorkspaceWorkflowsPayerPage.displayName}
                 >
                     <HeaderWithBackButton
-                        title={translate('workflowsPage.approver')}
+                        title={translate('workflowsPage.authorizedPayer')}
                         subtitle={policyName}
                         onBackButtonPress={Navigation.goBack}
                     />
