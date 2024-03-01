@@ -410,17 +410,19 @@ describe('ReportUtils', () => {
                 });
             });
 
-            it("it is a submitted report tied to user's own policy expense chat and the policy has Instant Submit frequency", () => {
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}101`, {
-                    reportID: '101',
-                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                    isOwnPolicyExpenseChat: true,
-                }).then(() => {
-                    const paidPolicy = {
-                        id: '3f54cca8',
-                        type: CONST.POLICY.TYPE.TEAM,
-                        autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                    };
+            it("it is a submitted report tied to user's own policy expense chat and the policy does not have Instant Submit frequency", () => {
+                const paidPolicy = {
+                    id: '3f54cca8',
+                    type: CONST.POLICY.TYPE.TEAM,
+                };
+                Promise.all([
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${paidPolicy.id}`, paidPolicy),
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}101`, {
+                        reportID: '101',
+                        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                        isOwnPolicyExpenseChat: true,
+                    }),
+                ]).then(() => {
                     const report = {
                         ...LHNTestUtils.getFakeReport(),
                         type: CONST.REPORT.TYPE.EXPENSE,
@@ -430,7 +432,7 @@ describe('ReportUtils', () => {
                         policyID: paidPolicy.id,
                     };
                     const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, paidPolicy, [currentUserAccountID, participantsAccountIDs[0]]);
-                    expect(moneyRequestOptions.length).toBe(1);
+                    expect(moneyRequestOptions.length).toBe(0);
                 });
             });
         });
@@ -547,16 +549,19 @@ describe('ReportUtils', () => {
             });
 
             it("it is a submitted expense report in user's own policyExpenseChat and the policy has Instant Submit frequency", () => {
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}101`, {
-                    reportID: '101',
-                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                    isOwnPolicyExpenseChat: true,
-                }).then(() => {
-                    const paidPolicy = {
-                        id: 'ef72dfeb',
-                        type: CONST.POLICY.TYPE.TEAM,
-                        autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                    };
+                const paidPolicy = {
+                    id: 'ef72dfeb',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                };
+                Promise.all([
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${paidPolicy.id}`, paidPolicy),
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}101`, {
+                        reportID: '101',
+                        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                        isOwnPolicyExpenseChat: true,
+                    }),
+                ]).then(() => {
                     const report = {
                         ...LHNTestUtils.getFakeReport(),
                         type: CONST.REPORT.TYPE.EXPENSE,
