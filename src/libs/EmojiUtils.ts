@@ -568,6 +568,8 @@ function getSpacersIndexes(allEmojis: EmojiPickerList): number[] {
     return spacersIndexes;
 }
 
+export type {HeaderIndice};
+
 export {
     findEmojiByName,
     findEmojiByCode,

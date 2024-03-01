@@ -2,24 +2,23 @@ import {useCallback, useEffect, useMemo, useState} from 'react';
 import {useAnimatedRef} from 'react-native-reanimated';
 import emojis from '@assets/emojis';
 import {useFrequentlyUsedEmojis} from '@components/OnyxProvider';
-import type {PickerEmojis} from '@assets/emojis/types';
-import type {SupportedLanguage} from '@libs/EmojiTrie';
-import type {FlashList} from '@shopify/flash-list';
 import useLocalize from '@hooks/useLocalize';
 import usePreferredEmojiSkinTone from '@hooks/usePreferredEmojiSkinTone';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as EmojiUtils from '@libs/EmojiUtils';
+import type {PickerEmoji, PickerEmojis} from '@assets/emojis/types';
+import type {FlashList} from '@shopify/flash-list';
 
 const useEmojiPickerMenu = () => {
-    const emojiListRef = useAnimatedRef<FlashList<string>>();
+    const emojiListRef = useAnimatedRef<FlashList<PickerEmoji>>();
     const frequentlyUsedEmojis = useFrequentlyUsedEmojis();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const allEmojis = useMemo(() => EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis), [frequentlyUsedEmojis]);
     const headerEmojis = useMemo(() => EmojiUtils.getHeaderEmojis(allEmojis as PickerEmojis), [allEmojis]);
     const headerRowIndices = useMemo(() => headerEmojis.map((headerEmoji) => headerEmoji.index), [headerEmojis]);
     const spacersIndexes = useMemo(() => EmojiUtils.getSpacersIndexes(allEmojis), [allEmojis]);
-    const [filteredEmojis, setFilteredEmojis] = useState(allEmojis);
+    const [filteredEmojis, setFilteredEmojis] = useState<PickerEmojis>(allEmojis as PickerEmojis);
     const [headerIndices, setHeaderIndices] = useState(headerRowIndices);
     const isListFiltered = allEmojis.length !== filteredEmojis.length;
     const {preferredLocale} = useLocalize();
@@ -34,7 +33,7 @@ const useEmojiPickerMenu = () => {
     const listStyle = StyleUtils.getEmojiPickerListHeight(isListFiltered, windowHeight * 0.95);
 
     useEffect(() => {
-        setFilteredEmojis(allEmojis);
+        setFilteredEmojis(allEmojis as PickerEmojis);
     }, [allEmojis]);
 
     useEffect(() => {
@@ -49,7 +48,7 @@ const useEmojiPickerMenu = () => {
     const suggestEmojis = useCallback(
         (searchTerm: string) => {
             const normalizedSearchTerm = searchTerm.toLowerCase().trim().replaceAll(':', '');
-            const emojisSuggestions = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, preferredLocale as keyof SupportedLanguage, allEmojis.length);
+            const emojisSuggestions = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, preferredLocale, allEmojis.length);
 
             return [normalizedSearchTerm, emojisSuggestions];
         },
@@ -74,3 +73,4 @@ const useEmojiPickerMenu = () => {
 };
 
 export default useEmojiPickerMenu;
+

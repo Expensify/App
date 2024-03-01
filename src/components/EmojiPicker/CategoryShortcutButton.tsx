@@ -23,7 +23,7 @@ type CategoryShortcutButtonProps = {
     onPress: () => void,
 }
 
-function CategoryShortcutButton(props: CategoryShortcutButtonProps) {
+function CategoryShortcutButton({code, icon, onPress}: CategoryShortcutButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -32,21 +32,21 @@ function CategoryShortcutButton(props: CategoryShortcutButtonProps) {
 
     return (
         <Tooltip
-            text={translate(`emojiPicker.headers.${props.code}` as TranslationPaths)}
+            text={translate(`emojiPicker.headers.${code}` as TranslationPaths)}
             shiftVertical={-4}
         >
             <PressableWithoutFeedback
                 shouldUseAutoHitSlop={false}
-                onPress={props.onPress}
+                onPress={onPress}
                 onHoverIn={() => setIsHighlighted(true)}
                 onHoverOut={() => setIsHighlighted(false)}
                 style={({pressed}) => [StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)), styles.categoryShortcutButton, isHighlighted && styles.emojiItemHighlighted]}
-                accessibilityLabel={`emojiPicker.headers.${props.code}`}
+                accessibilityLabel={`emojiPicker.headers.${code}`}
                 role={CONST.ROLE.BUTTON}
             >
                 <Icon
                     fill={theme.icon}
-                    src={props.icon}
+                    src={icon}
                     height={variables.iconSizeNormal}
                     width={variables.iconSizeNormal}
                 />

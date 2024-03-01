@@ -16,6 +16,8 @@ import useLocalize from '@hooks/useLocalize';
 type EmojiPickerButtonDropdownProps = {
     /** Flag to disable the emoji picker button */
     isDisabled?: boolean,
+
+    
 }
 
 function EmojiPickerButtonDropdown({isDisabled}: EmojiPickerButtonDropdownProps, ) {
@@ -84,15 +86,5 @@ function EmojiPickerButtonDropdown({isDisabled}: EmojiPickerButtonDropdownProps,
 }
 
 EmojiPickerButtonDropdown.displayName = 'EmojiPickerButtonDropdown';
-
-// const EmojiPickerButtonDropdownWithRef = React.forwardRef((props, ref) => (
-//     <EmojiPickerButtonDropdown
-//         // eslint-disable-next-line react/jsx-props-no-spreading
-//         {...props}
-//         forwardedRef={ref}
-//     />
-// ));
-
-// EmojiPickerButtonDropdownWithRef.displayName = 'EmojiPickerButtonDropdownWithRef';
 
 export default React.forwardRef(EmojiPickerButtonDropdown);
