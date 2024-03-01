@@ -1,6 +1,6 @@
-import PropTypes from 'prop-types';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -17,10 +17,19 @@ type EmojiPickerButtonDropdownProps = {
     /** Flag to disable the emoji picker button */
     isDisabled?: boolean,
 
-    
+    onModalHide: EmojiPickerAction.OnModalHideValue,
+
+    onInputChange: (emoji: string) => void,
+
+    value?: string
+
+    disabled?: boolean
+
+    style: StyleProp<ViewStyle>
+
 }
 
-function EmojiPickerButtonDropdown({isDisabled}: EmojiPickerButtonDropdownProps, ) {
+function EmojiPickerButtonDropdown({isDisabled, onModalHide, onInputChange, value, disabled, style}: EmojiPickerButtonDropdownProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
@@ -34,8 +43,8 @@ function EmojiPickerButtonDropdown({isDisabled}: EmojiPickerButtonDropdownProps,
         }
 
         EmojiPickerAction.showEmojiPicker(
-            props.onModalHide,
-            (emoji) => props.onInputChange(emoji),
+            onModalHide,
+            (emoji) => onInputChange(emoji),
             emojiPopoverAnchor,
             {
                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -44,7 +53,7 @@ function EmojiPickerButtonDropdown({isDisabled}: EmojiPickerButtonDropdownProps,
             },
             () => {},
             undefined,
-            props.value,
+            value,
         );
     };
 
@@ -52,7 +61,7 @@ function EmojiPickerButtonDropdown({isDisabled}: EmojiPickerButtonDropdownProps,
         <Tooltip text={translate('reportActionCompose.emoji')}>
             <PressableWithoutFeedback
                 ref={emojiPopoverAnchor}
-                style={[styles.emojiPickerButtonDropdown, props.style]}
+                style={[styles.emojiPickerButtonDropdown, style]}
                 disabled={isDisabled}
                 onPress={onPress}
                 id="emojiDropdownButton"
@@ -65,14 +74,14 @@ function EmojiPickerButtonDropdown({isDisabled}: EmojiPickerButtonDropdownProps,
                             style={styles.emojiPickerButtonDropdownIcon}
                             numberOfLines={1}
                         >
-                            {props.value || (
+                            {value ?? (
                                 <Icon
                                     src={Expensicons.Emoji}
                                     fill={StyleUtils.getIconFillColor(CONST.BUTTON_STATES.DISABLED)}
                                 />
                             )}
                         </Text>
-                        <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled, styles.rotate90]}>
+                        <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, disabled && styles.cursorDisabled, styles.rotate90]}>
                             <Icon
                                 src={Expensicons.ArrowRight}
                                 fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
