@@ -1,9 +1,10 @@
-import type {VideoReadyForDisplayEvent} from 'expo-av';
+import type {AVPlaybackStatus} from 'expo-av/build/AV';
+import type {VideoFullscreenUpdateEvent, VideoReadyForDisplayEvent} from 'expo-av/build/Video.types';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 type VideoPlayerProps = {
     url: string;
-    onVideoLoaded: (event?: VideoReadyForDisplayEvent) => void | undefined;
+    onVideoLoaded: (e: VideoReadyForDisplayEvent) => void; //??
     resizeMode: string;
     isLooping: boolean;
     // style for the whole video player component
@@ -12,14 +13,14 @@ type VideoPlayerProps = {
     videoPlayerStyle: StyleProp<ViewStyle>;
     // style for the video element inside the video player
     videoStyle: StyleProp<ViewStyle>;
-    videoControlsStyle: ViewStyle;
+    videoControlsStyle: StyleProp<ViewStyle>;
     videoDuration: number;
     shouldUseSharedVideoElement: boolean;
     shouldUseSmallVideoControls: boolean;
     shouldShowVideoControls: boolean;
     isVideoHovered: boolean;
-    onFullscreenUpdate: PropTypes.func;
-    onPlaybackStatusUpdate: PropTypes.func;
+    onFullscreenUpdate: (e: VideoFullscreenUpdateEvent) => void; //??
+    onPlaybackStatusUpdate: (e: AVPlaybackStatus) => void; //??
 };
 
 export default VideoPlayerProps;

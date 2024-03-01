@@ -1,5 +1,7 @@
 /* eslint-disable no-underscore-dangle */
-import {AVPlaybackStatus, Video, VideoFullscreenUpdate} from 'expo-av';
+import type {AVPlaybackStatus, VideoFullscreenUpdateEvent} from 'expo-av';
+import {ResizeMode, Video, VideoFullscreenUpdate} from 'expo-av';
+import type {MutableRefObject} from 'react';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
@@ -40,13 +42,12 @@ function BaseVideoPlayer({
     // isVideoHovered caused a bug with unexpected video switching. We are investigating the root cause of the issue,
     // but current workaround is just not to use it here for now. This causes not displaying the video controls when
     // user hovers the mouse over the carousel arrows, but this UI bug feels much less troublesome for now.
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     isVideoHovered,
 }: VideoPlayerProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {pauseVideo, playVideo, currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, shareVideoPlayerElements, currentVideoPlayerRef, updateCurrentlyPlayingURL} =
-        usePlaybackContext();
+    const {pauseVideo, playVideo, currentlyPlayingURL, sharedElement, originalParent, shareVideoPlayerElements, currentVideoPlayerRef, updateCurrentlyPlayingURL} = usePlaybackContext();
     const [duration, setDuration] = useState(videoDuration * 1000);
     const [position, setPosition] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -55,10 +56,10 @@ function BaseVideoPlayer({
     const [sourceURL] = useState(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url));
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
-    const videoPlayerRef = useRef<>(null);
-    const videoPlayerElementParentRef = useRef(null);
-    const videoPlayerElementRef = useRef(null);
-    const sharedVideoPlayerParentRef = useRef(null);
+    const videoPlayerRef = useRef<Video | null>(null);
+    const videoPlayerElementParentRef = useRef<View | HTMLDivElement | null>(null);
+    const videoPlayerElementRef = useRef<View | HTMLDivElement | null>(null);
+    const sharedVideoPlayerParentRef = useRef<View | HTMLDivElement | null>(null);
     const videoResumeTryNumber = useRef(0);
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
     const isCurrentlyURLSet = currentlyPlayingURL === url;
@@ -75,9 +76,12 @@ function BaseVideoPlayer({
         }
     }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url]);
 
-    const showPopoverMenu = (event: GestureResponderEvent) => {
-        setPopoverAnchorPosition({horizontal: event.nativeEvent.pageX, vertical: event.nativeEvent.pageY});
+    const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
         setIsPopoverVisible(true);
+        if (!event || !('nativeEvent' in event)) {
+            return;
+        }
+        setPopoverAnchorPosition({horizontal: event.nativeEvent.pageX, vertical: event.nativeEvent.pageY});
     };
 
     const hidePopoverMenu = () => {
@@ -100,17 +104,23 @@ function BaseVideoPlayer({
 
     const handlePlaybackStatusUpdate = useCallback(
         (status: AVPlaybackStatus) => {
-            if (!status.isLoaded){
+            if (!status.isLoaded) {
+                setIsLoading(true);
+                preventPausingWhenExitingFullscreen(false);
+                setIsBuffering(false);
+                setPosition(0);
                 return;
             }
             if (shouldReplayVideo(status, isPlaying, duration, position)) {
-                videoPlayerRef.current?.setStatusAsync?.({positionMillis: 0, shouldPlay: true});
+                videoPlayerRef.current?.setStatusAsync({positionMillis: 0, shouldPlay: true});
             }
-            const isVideoPlaying = status.isPlaying || false;
+            const isVideoPlaying = status.isPlaying;
             preventPausingWhenExitingFullscreen(isVideoPlaying);
             setIsPlaying(isVideoPlaying);
-            setIsLoading(!status.isLoaded || Number.isNaN(status.durationMillis)); // when video is ready to display duration is not NaN
-            setIsBuffering(status.isBuffering || false);
+            setIsLoading(Number.isNaN(status.durationMillis)); // when video is ready to display duration is not NaN
+            setIsBuffering(status.isBuffering);
+            // in this case nullish coalescing has different behaviour than logical or
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             setDuration(status.durationMillis || videoDuration * 1000);
             setPosition(status.positionMillis || 0);
 
@@ -120,7 +130,7 @@ function BaseVideoPlayer({
     );
 
     const handleFullscreenUpdate = useCallback(
-        (event) => {
+        (event: VideoFullscreenUpdateEvent) => {
             onFullscreenUpdate(event);
             // fix for iOS native and mWeb: when switching to fullscreen and then exiting
             // the fullscreen mode while playing, the video pauses
@@ -138,10 +148,16 @@ function BaseVideoPlayer({
     );
 
     const bindFunctions = useCallback(() => {
-        currentVideoPlayerRef.current._onPlaybackStatusUpdate = handlePlaybackStatusUpdate;
-        currentVideoPlayerRef.current._onFullscreenUpdate = handleFullscreenUpdate;
+        const currentVideoPlayer = currentVideoPlayerRef.current;
+        if (!currentVideoPlayer) {
+            return;
+        }
+        currentVideoPlayer._onPlaybackStatusUpdate = handlePlaybackStatusUpdate;
+        if ('_onFullscreenUpdate' in currentVideoPlayer) {
+            currentVideoPlayer._onFullscreenUpdate = handleFullscreenUpdate;
+        }
         // update states after binding
-        currentVideoPlayerRef.current.getStatusAsync().then((status) => {
+        currentVideoPlayer.getStatusAsync().then((status) => {
             handlePlaybackStatusUpdate(status);
         });
     }, [currentVideoPlayerRef, handleFullscreenUpdate, handlePlaybackStatusUpdate]);
@@ -151,26 +167,25 @@ function BaseVideoPlayer({
         if (shouldUseSharedVideoElement || url !== currentlyPlayingURL) {
             return;
         }
-        shareVideoPlayerElements(videoPlayerRef.current, videoPlayerElementParentRef.current, videoPlayerElementRef.current, isUploading);
-    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, updateSharedElements, url, isUploading]);
+        shareVideoPlayerElements(videoPlayerRef.current, videoPlayerElementParentRef.current as View | null, videoPlayerElementRef.current as View | null, isUploading);
+    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, url, isUploading]);
 
     // append shared video element to new parent (used for example in attachment modal)
     useEffect(() => {
-        if (url !== currentlyPlayingURL || !sharedElement || !shouldUseSharedVideoElement) {
+        const newParentRef = sharedVideoPlayerParentRef.current;
+        if (url !== currentlyPlayingURL || !sharedElement || !shouldUseSharedVideoElement || !newParentRef) {
             return;
         }
-
-        const newParentRef = sharedVideoPlayerParentRef.current;
         videoPlayerRef.current = currentVideoPlayerRef.current;
-        if (currentlyPlayingURL === url) {
-            newParentRef.appendChild(sharedElement);
+        if (currentlyPlayingURL === url && 'appendChild' in newParentRef) {
+            newParentRef.appendChild(sharedElement as HTMLDivElement);
             bindFunctions();
         }
         return () => {
-            if (!originalParent && !newParentRef.childNodes[0]) {
+            if (!originalParent || ('childNodes' in newParentRef && !newParentRef.childNodes[0]) || !('appendChild' in originalParent)) {
                 return;
             }
-            originalParent.appendChild(sharedElement);
+            originalParent.appendChild(sharedElement as HTMLDivElement);
         };
     }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isSmallScreenWidth, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
 
@@ -183,7 +198,7 @@ function BaseVideoPlayer({
                             {shouldUseSharedVideoElement ? (
                                 <>
                                     <View
-                                        ref={sharedVideoPlayerParentRef}
+                                        ref={sharedVideoPlayerParentRef as MutableRefObject<View | null>}
                                         style={[styles.flex1]}
                                     />
                                     {/* We are adding transparent absolute View between appended video component and control buttons to enable
@@ -198,14 +213,18 @@ function BaseVideoPlayer({
                                         if (!el) {
                                             return;
                                         }
-                                        videoPlayerElementParentRef.current = el;
-                                        if (el.childNodes && el.childNodes[0]) {
-                                            videoPlayerElementRef.current = el.childNodes[0];
+                                        const el2 = el as View | HTMLDivElement;
+
+                                        if ('childNodes' in el2 && el2.childNodes[0]) {
+                                            videoPlayerElementRef.current = el2.childNodes[0] as HTMLDivElement;
+                                            return;
                                         }
+                                        videoPlayerElementParentRef.current = el;
                                     }}
                                 >
                                     <PressableWithoutFeedback
                                         accessibilityRole="button"
+                                        accessible={false}
                                         onPress={() => {
                                             togglePlayCurrentVideo();
                                         }}
@@ -220,7 +239,7 @@ function BaseVideoPlayer({
                                             }}
                                             shouldPlay={false}
                                             useNativeControls={false}
-                                            resizeMode={resizeMode}
+                                            resizeMode={ResizeMode[resizeMode as keyof typeof ResizeMode]}
                                             isLooping={isLooping}
                                             onReadyForDisplay={onVideoLoaded}
                                             onPlaybackStatusUpdate={handlePlaybackStatusUpdate}

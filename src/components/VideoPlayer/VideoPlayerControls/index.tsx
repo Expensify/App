@@ -19,7 +19,7 @@ type VideoPlayerControlsProps = {
     duration: number;
     position: number;
     url: string;
-    videoPlayerRef: MutableRefObject<Video>;
+    videoPlayerRef: MutableRefObject<Video | null>;
     isPlaying: boolean;
     // Defines if component should have small icons and tighter spacing inline
     small: boolean;
@@ -41,12 +41,12 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying
 
     const enterFullScreenMode = useCallback(() => {
         updateCurrentlyPlayingURL(url);
-        videoPlayerRef.current.presentFullscreenPlayer();
+        videoPlayerRef.current?.presentFullscreenPlayer();
     }, [updateCurrentlyPlayingURL, url, videoPlayerRef]);
 
     const seekPosition = useCallback(
         (newPosition: number) => {
-            videoPlayerRef.current.setStatusAsync({positionMillis: newPosition});
+            videoPlayerRef.current?.setStatusAsync({positionMillis: newPosition});
         },
         [videoPlayerRef],
     );

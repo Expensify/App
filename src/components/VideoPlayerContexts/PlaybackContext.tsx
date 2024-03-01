@@ -47,7 +47,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     );
 
     const shareVideoPlayerElements = useCallback(
-        (ref: Video, parent: View, child: View, isUploading: boolean) => {
+        (ref: Video | null, parent: View | null, child: View | null, isUploading: boolean) => {
             currentVideoPlayerRef.current = ref;
             setOriginalParent(parent);
             setSharedElement(child);

@@ -8,10 +8,10 @@ import type CONST from '@src/CONST';
 type PlaybackContext = {
     updateCurrentlyPlayingURL: (url: string) => void;
     currentlyPlayingURL: string | null;
-    originalParent: View | null;
-    sharedElement: View | null;
+    originalParent: View | HTMLDivElement | null;
+    sharedElement: View | HTMLDivElement | null;
     currentVideoPlayerRef: MutableRefObject<Video | null>;
-    shareVideoPlayerElements: (ref: Video, parent: View, child: View, isUploading: boolean) => void;
+    shareVideoPlayerElements: (ref: Video | null, parent: View | null, child: View | null, isUploading: boolean) => void;
     playVideo: () => void;
     pauseVideo: () => void;
     checkVideoPlaying: (statusCallback: StatusCallback) => void;
