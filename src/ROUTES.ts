@@ -489,7 +489,7 @@ const ROUTES = {
     WORKSPACE_WORKFLOWS_PAYER: {
         route: 'workspace/:policyID/settings/workflows/payer',
         getRoute: (policyId: string) => `workspace/${policyId}/settings/workflows/payer` as const,
-    }
+    },
     WORKSPACE_WORKFLOWS_APPROVER: {
         route: 'workspace/:policyID/settings/workflows/approver',
         getRoute: (policyId: string) => `workspace/${policyId}/settings/workflows/approver` as const,
