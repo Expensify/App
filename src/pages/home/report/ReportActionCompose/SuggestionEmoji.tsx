@@ -25,7 +25,7 @@ type SuggestionEmojiOnyxProps = {
     preferredSkinTone: number;
 };
 
-type SuggestionEmojiProps = SuggestionProps &
+type SuggestionEmojiProps = Omit<SuggestionProps, 'reportID'> &
     SuggestionEmojiOnyxProps & {
         /** Function to clear the input */
         resetKeyboardInput?: () => void;

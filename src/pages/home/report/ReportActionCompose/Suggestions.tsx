@@ -46,6 +46,9 @@ type SuggestionProps = {
 
     /** The height of the composer */
     composerHeight?: number;
+
+    /** The report ID */
+    reportID: string;
 };
 
 /**
@@ -66,6 +69,7 @@ function Suggestions(
         measureParentContainer,
         isAutoSuggestionPickerLarge = true,
         isComposerFocused,
+        reportID
     }: SuggestionProps,
     ref: ForwardedRef<SuggestionsRef>,
 ) {
@@ -167,6 +171,7 @@ function Suggestions(
             />
             <SuggestionMention
                 ref={suggestionMentionRef}
+                reportID={reportID}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...baseProps}
             />
