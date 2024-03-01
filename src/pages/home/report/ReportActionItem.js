@@ -337,7 +337,6 @@ function ReportActionItem(props) {
         }
 
         if (ReportActionsUtils.isActionableJoinRequest(props.action)) {
-            console.log(props.action)
             return [
                 {
                     text: 'actionableMentionJoinWorkspaceOptions.accept',
