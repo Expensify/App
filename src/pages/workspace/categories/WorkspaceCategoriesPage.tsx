@@ -111,6 +111,8 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
         Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, category.text));
     };
 
+    const isLoading = !isOffline && policyCategories === undefined;
+
     const settingsButton = (
         <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
             <Button
@@ -143,21 +145,21 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
                     </View>
-                    {!isOffline && policyCategories === undefined && (
+                    {categoryList.length === 0 && isLoading && (
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={[styles.flex1]}
-                            color={theme.textSupporting}
+                            color={theme.spinner}
                         />
                     )}
-                    {(isOffline || Boolean(policyCategories)) && categoryList.length === 0 && (
+                    {categoryList.length === 0 && !isLoading && (
                         <WorkspaceEmptyStateSection
                             title={translate('workspace.categories.emptyCategories.title')}
                             icon={Illustrations.EmptyStateExpenses}
                             subtitle={translate('workspace.categories.emptyCategories.subtitle')}
                         />
                     )}
-                    {(isOffline || Boolean(policyCategories)) && Boolean(categoryList.length) && (
+                    {categoryList.length > 0 && !isLoading && (
                         <SelectionList
                             canSelectMultiple
                             sections={[{data: categoryList, indexOffset: 0, isDisabled: false}]}
