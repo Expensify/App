@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import * as Localize from './Localize';
 import * as NumberFormatUtils from './NumberFormatUtils';
 
@@ -71,7 +72,6 @@ function fromLocaleDigit(locale: Locale, localeDigit: string): string {
  * Formats a number into its localized ordinal representation i.e 1st, 2nd etc
  */
 function toLocaleOrdinal(locale: Locale, number: number): string {
-
     // Defaults to "other" suffix or "th" in English
     let suffixKey = 'workflowsPage.frequencies.ordinals.other';
 
@@ -89,7 +89,7 @@ function toLocaleOrdinal(locale: Locale, number: number): string {
         suffixKey = 'workflowsPage.frequencies.ordinals.few';
     }
 
-    const suffix = Localize.translate(locale, suffixKey);
+    const suffix = Localize.translate(locale, suffixKey as TranslationPaths);
 
     return `${number}${suffix}`;
 }
