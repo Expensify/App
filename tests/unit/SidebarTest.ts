@@ -1,10 +1,8 @@
 import {cleanup, screen} from '@testing-library/react-native';
-import type {NullishDeep} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import * as Localize from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionCollectionDataSet} from '@src/types/onyx/ReportAction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
