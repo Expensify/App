@@ -1,6 +1,6 @@
 type JoinPolicyInviteLinkParams = {
     policyID: string;
-    invitedEmail: string;
+    inviterEmail: string;
 };
 
 export default JoinPolicyInviteLinkParams;

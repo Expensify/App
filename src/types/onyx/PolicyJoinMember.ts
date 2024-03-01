@@ -5,7 +5,7 @@ type PolicyJoinMember = {
     policyID?: string;
 
     /** Email of the user inviting the new member */
-    invitedEmail?: string;
+    inviterEmail?: string;
 
     /**
      * Errors from api calls on the specific user

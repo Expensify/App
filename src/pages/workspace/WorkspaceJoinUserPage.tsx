@@ -4,7 +4,6 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 // import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -28,13 +27,12 @@ type WorkspaceJoinUserPageProps = WorkspaceJoinUserPageRoute & WorkspaceJoinUser
 function WorkspaceJoinUserPage({route, policies}: WorkspaceJoinUserPageProps) {
     const styles = useThemeStyles();
     const policyID = route?.params?.policyID;
-    // const invitedEmail = route?.params?.email;
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const inviterEmail = route?.params?.email;
     const policy = ReportUtils.getPolicy(policyID);
     const executedRef = useRef(false);
 
     useEffect(() => {
-        if (!currentUserPersonalDetails.login || !policy || !policies || executedRef?.current) {
+        if (!policy || !policies || executedRef?.current) {
             return;
         }
         const isPolicyMember = PolicyUtils.isPolicyMember(policyID, policies as Record<string, Policy>);
@@ -44,10 +42,10 @@ function WorkspaceJoinUserPage({route, policies}: WorkspaceJoinUserPageProps) {
         }
         // Will be used later when API return reportID to invited member with the same domain
         // const isSamePrivateDomain = policy?.owner ? areEmailsFromSamePrivateDomain(currentUserPersonalDetails.login, policy?.owner) : false;
-        PolicyAction.inviteMemberToWorkspace(policyID, currentUserPersonalDetails?.login);
+        PolicyAction.inviteMemberToWorkspace(policyID, inviterEmail);
         executedRef.current = true;
         Navigation.navigate(ROUTES.ALL_SETTINGS);
-    }, [currentUserPersonalDetails?.login, policy, policyID, policies]);
+    }, [policy, policyID, policies, inviterEmail]);
 
     return (
         <ScreenWrapper testID={WorkspaceJoinUserPage.displayName}>

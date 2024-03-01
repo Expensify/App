@@ -898,11 +898,11 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
  * Invite member to the specified workspace/policyID
  * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
-function inviteMemberToWorkspace(policyID: string, invitedEmail: string) {
+function inviteMemberToWorkspace(policyID: string, inviterEmail: string) {
     const memberJoinKey = `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}` as const;
 
-    const optimisticMembersState = {policyID, invitedEmail};
-    const failureMembersState = {policyID, invitedEmail};
+    const optimisticMembersState = {policyID, inviterEmail};
+    const failureMembersState = {policyID, inviterEmail};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -920,7 +920,7 @@ function inviteMemberToWorkspace(policyID: string, invitedEmail: string) {
         },
     ];
 
-    const params = {policyID, invitedEmail};
+    const params = {policyID, inviterEmail};
 
     API.write(WRITE_COMMANDS.JOIN_POLICY_VIA_INVITE_LINK, params, {optimisticData, failureData});
 
