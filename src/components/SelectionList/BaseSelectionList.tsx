@@ -179,6 +179,9 @@ function BaseSelectionList<TItem extends ListItem>(
                 />
             ) : null,
         ],
+        // we don't need to add styles here as they change
+        // we don't need to add flattendedSections here as they will change along with sections
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [sections, currentPage],
     );
 
