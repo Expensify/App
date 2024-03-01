@@ -103,14 +103,15 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         ownerAccountID?: number;
 
         /** The accountID of the authorized payer */
-        authorizedPayerAccountID: number;
+        authorizedPayerAccountID?: number;
+
         /** The output currency for the policy */
         outputCurrency: string;
 
         /** The URL for the policy avatar */
         avatar?: string;
 
-        /** Error objects keyed by field name containing errors keyed by microtime */
+        /** Error objects keyed by field name containing errors keyeod by microtime */
         errorFields?: OnyxCommon.ErrorFields;
 
         /** A list of errors keyed by microtime */

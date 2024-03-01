@@ -17,10 +17,10 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import BankAccount from '@libs/models/BankAccount';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
@@ -34,12 +34,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {ReimbursementAccount, Beta} from '@src/types/onyx';
+import type {Beta, ReimbursementAccount} from '@src/types/onyx';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
 import type {AutoReportingFrequencyKey} from './WorkspaceAutoReportingFrequencyPage';
-
 
 type WorkspaceWorkflowsPageOnyxProps = {
     /** Beta features list */
@@ -47,7 +46,10 @@ type WorkspaceWorkflowsPageOnyxProps = {
     /** Reimbursement account details */
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 };
-type WorkspaceWorkflowsPageProps = WithCurrentUserPersonalDetailsProps & WithPolicyProps & WorkspaceWorkflowsPageOnyxProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
+type WorkspaceWorkflowsPageProps = WithCurrentUserPersonalDetailsProps &
+    WithPolicyProps &
+    WorkspaceWorkflowsPageOnyxProps &
+    StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
 function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, currentUserPersonalDetails}: WorkspaceWorkflowsPageProps) {
     const {translate, preferredLocale} = useLocalize();
@@ -65,7 +67,6 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, cur
     const canUseDelayedSubmission = Permissions.canUseWorkflowsDelayedSubmission(betas);
 
     const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policy?.id ?? '')), [policy?.id]);
-
 
     const authorizedPayerAccountID = policy?.authorizedPayerAccountID ?? policy?.ownerAccountID ?? 0;
 
@@ -194,24 +195,22 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, cur
                 isActive: true, // TODO will be done in https://github.com/Expensify/Expensify/issues/368335
             },
         ];
-    },
-        [
-            policy,
-            route.params.policyID,
-            styles,
-            translate,
-            policyOwnerDisplayName,
-            containerStyle,
-            isOffline,
-            StyleUtils,
-            onPressAutoReportingFrequency,
-            preferredLocale,
-            canUseDelayedSubmission,
-            activeRoute,
-            reimbursementAccount,
-            displayNameForAuthorizedPayer
-        ],
-    );
+    }, [
+        policy,
+        route.params.policyID,
+        styles,
+        translate,
+        policyOwnerDisplayName,
+        containerStyle,
+        isOffline,
+        StyleUtils,
+        onPressAutoReportingFrequency,
+        preferredLocale,
+        canUseDelayedSubmission,
+        activeRoute,
+        reimbursementAccount,
+        displayNameForAuthorizedPayer,
+    ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
         <View
@@ -263,14 +262,16 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, cur
 
 WorkspaceWorkflowsPage.displayName = 'WorkspaceWorkflowsPage';
 
-export default withCurrentUserPersonalDetails(withPolicy(
-    withOnyx<WorkspaceWorkflowsPageProps, WorkspaceWorkflowsPageOnyxProps>({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-    })(WorkspaceWorkflowsPage),
-));
+export default withCurrentUserPersonalDetails(
+    withPolicy(
+        withOnyx<WorkspaceWorkflowsPageProps, WorkspaceWorkflowsPageOnyxProps>({
+            betas: {
+                key: ONYXKEYS.BETAS,
+            },
+            // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
+            reimbursementAccount: {
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            },
+        })(WorkspaceWorkflowsPage),
+    ),
+);
