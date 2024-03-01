@@ -1527,6 +1527,11 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        welcomeVideoNavigatorOuterView: {
+            flex: 1,
+            justifyContent: 'flex-end',
+        },
+
         OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>
             ({
                 width: shouldUseNarrowLayout ? 500 : '100%',
@@ -1539,7 +1544,8 @@ const styles = (theme: ThemeColors) =>
         WelcomeVideoNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>
             ({
                 width: shouldUseNarrowLayout ? 500 : '100%',
-                height: shouldUseNarrowLayout ? 500 : '100%',
+                height: 500,
+                backgroundColor: 'red',
                 maxHeight: '100%',
                 borderRadius: shouldUseNarrowLayout ? 16 : 0,
                 overflow: 'hidden',

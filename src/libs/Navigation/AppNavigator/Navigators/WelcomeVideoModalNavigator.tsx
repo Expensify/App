@@ -19,7 +19,7 @@ function WelcomeVideoModalNavigator() {
     return (
         <NoDropZone>
             <Overlay />
-            <View style={styles.onboardingNavigatorOuterView}>
+            <View style={styles.welcomeVideoNavigatorOuterView}>
                 <View style={styles.WelcomeVideoNavigatorInnerView(shouldUseNarrowLayout)}>
                     <Stack.Navigator screenOptions={WelcomeVideoModalNavigatorScreenOptions()}>
                         <Stack.Screen
