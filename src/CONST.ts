@@ -565,7 +565,7 @@ const CONST = {
             TYPE: {
                 ACTIONABLEMENTIONWHISPER: 'ACTIONABLEMENTIONWHISPER',
                 ADDCOMMENT: 'ADDCOMMENT',
-                APPROVED: 'APPROVED', // OldDot Action
+                APPROVED: 'APPROVED',
                 CHANGEFIELD: 'CHANGEFIELD',  // OldDot Action
                 CHANGEPOLICY: 'CHANGEPOLICY', // OldDot Action
                 CHANGETYPE: 'CHANGETYPE', // OldDot Action
