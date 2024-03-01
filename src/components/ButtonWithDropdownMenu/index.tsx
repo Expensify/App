@@ -126,7 +126,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                 />
             )}
-            {options.length > 1 && popoverAnchorPosition && (
+            {(shouldAlwaysShowDropdownMenu || options.length > 1) && popoverAnchorPosition && (
                 <PopoverMenu
                     isVisible={isMenuVisible}
                     onClose={() => setIsMenuVisible(false)}
