@@ -55,7 +55,7 @@ function ChooseMethod({isPlaidDisabled, user, onNext}: AddPersonalBankAccountPag
             )}
             <Button
                 icon={Expensicons.Bank}
-                text={translate('bankAccount.connectOnlineWithPlaid')}
+                text={translate('bankAccount.addBankAccount')}
                 // @ts-ignore
                 onPress={onNext}
                 isDisabled={isPlaidDisabled || !user.validated}

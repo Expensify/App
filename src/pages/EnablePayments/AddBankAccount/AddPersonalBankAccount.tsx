@@ -126,7 +126,6 @@
 //         key: ONYXKEYS.PLAID_DATA,
 //     }
 // })(AddPersonalBankAccount);
-
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -138,6 +137,7 @@ import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import ChooseMethod from '@pages/EnablePayments/AddBankAccount/substeps/ChooseMethod';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
@@ -145,7 +145,6 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {ReimbursementAccount} from '@src/types/onyx';
 import Confirmation from './substeps/Confirmation';
 import Plaid from './substeps/Plaid';
-import ChooseMethod from "@pages/EnablePayments/AddBankAccount/substeps/ChooseMethod";
 
 type BankInfoOnyxProps = {
     /** Plaid SDK token to use to initialize the widget */
@@ -173,11 +172,9 @@ function AddPersonalBankAccount({reimbursementAccount, reimbursementAccountDraft
     const styles = useThemeStyles();
 
     const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '0');
-    const submit = useCallback(() => {
-    }, [ bankAccountID, policyID]);
+    const submit = useCallback(() => {}, [bankAccountID, policyID]);
 
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent: plaidSubsteps, startFrom: 0, onFinished: submit});
-
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
@@ -204,7 +201,7 @@ function AddPersonalBankAccount({reimbursementAccount, reimbursementAccountDraft
             <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
                     startStepIndex={0}
-                    stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
+                    stepNames={CONST.BANK_ACCOUNT.STEP_NAMES.slice(0, 4)}
                 />
             </View>
             <SubStep
@@ -236,4 +233,3 @@ export default withOnyx<BankInfoProps, BankInfoOnyxProps>({
         key: ONYXKEYS.PLAID_DATA,
     },
 })(AddPersonalBankAccount);
-

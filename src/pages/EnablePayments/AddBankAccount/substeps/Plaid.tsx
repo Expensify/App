@@ -57,7 +57,7 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
     }, [isFocused, plaidData]);
 
     const handleNextPress = useCallback(() => {
-
+        onNext();
     }, [plaidData, onNext]);
 
     const bankAccountID = '';
