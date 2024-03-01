@@ -7,8 +7,10 @@ import type {Mention} from '@components/MentionSuggestions';
 import MentionSuggestions from '@components/MentionSuggestions';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import * as LoginUtils from '@libs/LoginUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as SuggestionsUtils from '@libs/SuggestionUtils';
 import * as UserUtils from '@libs/UserUtils';
@@ -45,6 +47,7 @@ function SuggestionMention(
     const previousValue = usePrevious(value);
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMentionSuggestionsMenuVisible = !!suggestionValues.suggestedMentions.length && suggestionValues.shouldShowSuggestionMenu;
 
     const [highlightedMentionIndex, setHighlightedMentionIndex] = useArrowKeyFocusManager({
@@ -56,6 +59,22 @@ function SuggestionMention(
     // Used to decide whether to block the suggestions list from showing to prevent flickering
     const shouldBlockCalc = useRef(false);
 
+    const formatLoginPrivateDomain = useCallback(
+        (displayText = '', userLogin = '') => {
+            if (userLogin !== displayText) {
+                return displayText;
+            }
+            // If the emails are not in the same private domain, we also return the displayText
+            if (!LoginUtils.areEmailsFromSamePrivateDomain(displayText, currentUserPersonalDetails.login ?? '')) {
+                return Str.removeSMSDomain(displayText);
+            }
+
+            // Otherwise, the emails must be of the same private domain, so we should remove the domain part
+            return displayText.split('@')[0];
+        },
+        [currentUserPersonalDetails.login],
+    );
+
     /**
      * Replace the code of mention and update selection
      */
@@ -64,7 +83,9 @@ function SuggestionMention(
             const commentBeforeAtSign = value.slice(0, suggestionValues.atSignIndex);
             const mentionObject = suggestionValues.suggestedMentions[highlightedMentionIndexInner];
             const mentionCode =
-                mentionObject.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT ? CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT : `@${Str.removeSMSDomain(mentionObject.login ?? '')}`;
+                mentionObject.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT
+                    ? CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT
+                    : `@${formatLoginPrivateDomain(mentionObject.login, mentionObject.login)}`;
             const commentAfterMention = value.slice(suggestionValues.atSignIndex + suggestionValues.mentionPrefix.length + 1);
 
             updateComment(`${commentBeforeAtSign}${mentionCode} ${SuggestionsUtils.trimLeadingSpace(commentAfterMention)}`, true);
@@ -77,7 +98,7 @@ function SuggestionMention(
                 suggestedMentions: [],
             }));
         },
-        [value, suggestionValues.atSignIndex, suggestionValues.suggestedMentions, suggestionValues.mentionPrefix, updateComment, setSelection],
+        [value, suggestionValues.atSignIndex, suggestionValues.suggestedMentions, suggestionValues.mentionPrefix, updateComment, setSelection, formatLoginPrivateDomain],
     );
 
     /**
@@ -153,8 +174,8 @@ function SuggestionMention(
             const sortedPersonalDetails = lodashSortBy(filteredPersonalDetails, (detail) => detail?.displayName || detail?.login);
             sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length).forEach((detail) => {
                 suggestions.push({
-                    text: Str.removeSMSDomain(PersonalDetailsUtils.getDisplayNameOrDefault(detail)),
-                    alternateText: formatPhoneNumber(detail?.login ?? ''),
+                    text: formatLoginPrivateDomain(PersonalDetailsUtils.getDisplayNameOrDefault(detail), detail?.login),
+                    alternateText: `@${formatLoginPrivateDomain(detail?.login, detail?.login)}`,
                     login: detail?.login,
                     icons: [
                         {
@@ -169,7 +190,7 @@ function SuggestionMention(
 
             return suggestions;
         },
-        [translate, formatPhoneNumber],
+        [translate, formatPhoneNumber, formatLoginPrivateDomain],
     );
 
     const calculateMentionSuggestion = useCallback(
