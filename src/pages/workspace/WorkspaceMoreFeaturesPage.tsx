@@ -111,6 +111,12 @@ function WorkspaceMoreFeaturesPage({route}: WorkspaceMoreFeaturesPageProps) {
                 isActive: false,
                 pendingAction: undefined,
             },
+        ],
+        [translate],
+    );
+
+    const integrateItems: ToggleSettingOptionRowProps[] = useMemo(
+        () => [
             {
                 icon: Illustrations.Accounting,
                 title: translate('workspace.moreFeatures.connections.title'),
@@ -178,6 +184,18 @@ function WorkspaceMoreFeaturesPage({route}: WorkspaceMoreFeaturesPageProps) {
                                 subtitleMuted
                             >
                                 {organizeItems.map(renderItem)}
+                            </Section>
+                        </View>
+
+                        <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                            <Section
+                                containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
+                                title={translate('workspace.moreFeatures.integrateSection.title')}
+                                titleStyles={styles.textStrong}
+                                subtitle={translate('workspace.moreFeatures.integrateSection.subtitle')}
+                                subtitleMuted
+                            >
+                                {integrateItems.map(renderItem)}
                             </Section>
                         </View>
                     </ScrollView>
