@@ -3,7 +3,6 @@ import CONST from '@src/CONST';
 import * as CurrencyUtils from '@src/libs/CurrencyUtils';
 import LocaleListener from '@src/libs/Localize/LocaleListener';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 // This file can get outdated. In that case, you can follow these steps to update it:
 // - open your browser console and navigate to the Network tab
@@ -37,9 +36,6 @@ describe('CurrencyUtils', () => {
     describe('getLocalizedCurrencySymbol', () => {
         test.each(AVAILABLE_LOCALES)('Returns non empty string for all currencyCode with preferredLocale %s', (prefrredLocale) =>
             Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, prefrredLocale).then(() => {
-                if (isEmptyObject(currencyCodeList)) {
-                    return;
-                }
                 currencyCodeList.forEach((currencyCode: string) => {
                     const localizedSymbol = CurrencyUtils.getLocalizedCurrencySymbol(currencyCode);
 

@@ -1,10 +1,9 @@
-import type {NullishDeep} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as IOUUtils from '@src/libs/IOUUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type Transaction from '@src/types/onyx/Transaction';
+import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import currencyList from './currencyList.json';
 
@@ -30,7 +29,7 @@ describe('IOUUtils', () => {
             const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
             const usdPendingTransaction = TransactionUtils.buildOptimisticTransaction(100, 'USD', iouReport.reportID);
             const aedPendingTransaction = TransactionUtils.buildOptimisticTransaction(100, 'AED', iouReport.reportID);
-            const MergeQueries: Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, NullishDeep<Transaction>> = {};
+            const MergeQueries: TransactionCollectionDataSet = {};
             MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${usdPendingTransaction.transactionID}`] = usdPendingTransaction;
             MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${aedPendingTransaction.transactionID}`] = aedPendingTransaction;
 
@@ -45,7 +44,7 @@ describe('IOUUtils', () => {
             const usdPendingTransaction = TransactionUtils.buildOptimisticTransaction(100, 'USD', iouReport.reportID);
             const aedPendingTransaction = TransactionUtils.buildOptimisticTransaction(100, 'AED', iouReport.reportID);
 
-            const MergeQueries: Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, NullishDeep<Transaction>> = {};
+            const MergeQueries: TransactionCollectionDataSet = {};
             MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${usdPendingTransaction.transactionID}`] = {
                 ...usdPendingTransaction,
                 pendingAction: null,

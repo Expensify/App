@@ -61,9 +61,8 @@ function buildCompareEntry(name: string, compare: Stats, baseline: Stats): Entry
  */
 function compareResults(compareEntries: Metric, baselineEntries: Metric) {
     // Unique test scenario names
-    const compareKeys = Object.keys(compareEntries);
-    const baselineKeys = baselineEntries ? Object.keys(baselineEntries) : [];
-    const names = Array.from(new Set([...compareKeys, ...baselineKeys]));
+    const baselineKeys = Object.keys(baselineEntries ?? {});
+    const names = Array.from(new Set([...baselineKeys]));
 
     const compared: Entry[] = [];
 

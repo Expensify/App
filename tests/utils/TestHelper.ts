@@ -8,7 +8,15 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 
-type MockFetch = ReturnType<typeof jest.fn> & {pause?: () => void; fail?: () => void; succeed?: () => void; resume?: () => Promise<void>};
+type MockFetch = ReturnType<typeof jest.fn> & {
+    pause?: () => void;
+
+    fail?: () => void;
+
+    succeed?: () => void;
+
+    resume?: () => Promise<void>;
+};
 
 type Response = {ok: boolean; json: () => Promise<{jsonCode: number}>};
 type QueueItem = (value: Response | PromiseLike<Response>) => void;

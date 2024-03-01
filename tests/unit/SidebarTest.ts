@@ -5,6 +5,8 @@ import CONST from '@src/CONST';
 import * as Localize from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
+import type {ReportActionCollectionDataSet} from '@src/types/onyx/ReportAction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -38,16 +40,14 @@ describe('Sidebar', () => {
     describe('archived chats', () => {
         it('renders the archive reason as the preview message of the chat', () => {
             const report = {
-                // @ts-expect-error TODO: Remove this once LHNTestUtils (https://github.com/Expensify/App/issues/25320) is migrated to TypeScript.
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3, true),
+                ...LHNTestUtils.getFakeReport([1, 2], 3, true),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             };
 
             const action = {
-                // @ts-expect-error TODO: Remove this once LHNTestUtils (https://github.com/Expensify/App/issues/25320) is migrated to TypeScript.
-                ...LHNTestUtils.getFakeReportAction('email1@test.com', 3, true),
+                ...LHNTestUtils.getFakeReportAction('email1@test.com', 3),
                 actionName: 'CLOSED',
                 originalMessage: {
                     reason: CONST.REPORT.ARCHIVE_REASON.DEFAULT,
@@ -62,14 +62,12 @@ describe('Sidebar', () => {
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() => {
                         const reportCollection = {
-                            // @ts-expect-error TODO: Remove this once LHNTestUtils (https://github.com/Expensify/App/issues/25320) is migrated to TypeScript.
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
-                        } as Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, NullishDeep<OnyxTypes.Report>>;
+                        } as ReportCollectionDataSet;
 
                         const reportAction = {
-                            // @ts-expect-error TODO: Remove this once LHNTestUtils (https://github.com/Expensify/App/issues/25320) is migrated to TypeScript.
-                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionId]: action},
-                        } as Record<`${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`, NullishDeep<OnyxTypes.ReportAction>>;
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionID]: action},
+                        } as ReportActionCollectionDataSet;
 
                         return Onyx.multiSet({
                             [ONYXKEYS.BETAS]: betas,
@@ -93,16 +91,14 @@ describe('Sidebar', () => {
         });
         it('renders the policy deleted archive reason as the preview message of the chat', () => {
             const report = {
-                // @ts-expect-error TODO: Remove this once LHNTestUtils (https://github.com/Expensify/App/issues/25320) is migrated to TypeScript.
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3, true),
+                ...LHNTestUtils.getFakeReport([1, 2], 3, true),
                 policyName: 'Vikings Policy',
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             };
             const action = {
-                // @ts-expect-error TODO: Remove this once LHNTestUtils (https://github.com/Expensify/App/issues/25320) is migrated to TypeScript.
-                ...LHNTestUtils.getFakeReportAction('email1@test.com', 3, true),
+                ...LHNTestUtils.getFakeReportAction('email1@test.com', 3),
                 actionName: 'CLOSED',
                 originalMessage: {
                     policyName: 'Vikings Policy',
@@ -118,14 +114,12 @@ describe('Sidebar', () => {
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() => {
                         const reportCollection = {
-                            // @ts-expect-error TODO: Remove this once LHNTestUtils (https://github.com/Expensify/App/issues/25320) is migrated to TypeScript.
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
-                        } as Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, NullishDeep<OnyxTypes.Report>>;
+                        } as ReportCollectionDataSet;
 
                         const reportAction = {
-                            // @ts-expect-error TODO: Remove this once LHNTestUtils (https://github.com/Expensify/App/issues/25320) is migrated to TypeScript.
-                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionId]: action},
-                        } as Record<`${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`, NullishDeep<OnyxTypes.ReportAction>>;
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionID]: action},
+                        } as ReportActionCollectionDataSet;
 
                         return Onyx.multiSet({
                             [ONYXKEYS.BETAS]: betas,
