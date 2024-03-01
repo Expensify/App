@@ -440,11 +440,19 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightXXXLarge,
         },
 
+        textHeadlineH2: {
+            ...headlineFont,
+            ...whiteSpace.preWrap,
+            color: theme.heading,
+            fontSize: variables.fontSizeh2,
+            lineHeight: variables.lineHeightSizeh2,
+        },
+
         textHeadlineH1: {
             ...headlineFont,
             ...whiteSpace.preWrap,
             color: theme.heading,
-            fontSize: variables.fontSizeh1,
+            fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightSizeh1,
         },
 
@@ -3068,7 +3076,7 @@ const styles = (theme: ThemeColors) =>
         smallEditIcon: {
             alignItems: 'center',
             backgroundColor: theme.buttonDefaultBG,
-            borderColor: theme.appBG,
+            borderColor: theme.cardBG,
             borderRadius: 20,
             borderWidth: 3,
             color: theme.textReversed,
@@ -4028,14 +4036,26 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
         },
 
-        reportPreviewBoxBody: {
+        expenseAndReportPreviewBoxBody: {
             padding: 16,
+        },
+
+        expenseAndReportPreviewTextContainer: {
+            gap: 8,
+        },
+
+        reportPreviewAmountSubtitleContainer: {
+            gap: 4,
+        },
+
+        expenseAndReportPreviewTextButtonContainer: {
+            gap: 16,
         },
 
         reportActionItemImages: {
             flexDirection: 'row',
             margin: 4,
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: 12,
             overflow: 'hidden',
             height: variables.reportActionImagesSingleImageHeight,
         },
@@ -4630,9 +4650,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         workspaceTitleStyle: {
-            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontWeight: '500',
-            fontSize: variables.workspaceProfileName,
+            ...headlineFont,
+            fontSize: variables.fontSizeXLarge,
         },
     } satisfies Styles);
 

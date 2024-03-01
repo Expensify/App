@@ -9,6 +9,7 @@ import type CountrySelector from '@components/CountrySelector';
 import type DatePicker from '@components/DatePicker';
 import type Picker from '@components/Picker';
 import type RadioButtons from '@components/RadioButtons';
+import type RoomNameInput from '@components/RoomNameInput';
 import type SingleChoiceQuestion from '@components/SingleChoiceQuestion';
 import type StatePicker from '@components/StatePicker';
 import type TextInput from '@components/TextInput';
@@ -23,7 +24,7 @@ import type {BaseForm} from '@src/types/form/Form';
  * when adding new inputs or removing old ones.
  *
  * TODO: Add remaining inputs here once these components are migrated to Typescript:
- * EmojiPickerButtonDropdown | RoomNameInput | ValuePicker
+ * EmojiPickerButtonDropdown
  */
 type ValidInputs =
     | typeof TextInput
@@ -36,8 +37,9 @@ type ValidInputs =
     | typeof AmountForm
     | typeof BusinessTypePicker
     | typeof StatePicker
-    | typeof DatePicker
+    | typeof RoomNameInput
     | typeof ValuePicker
+    | typeof DatePicker
     | typeof RadioButtons;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date';

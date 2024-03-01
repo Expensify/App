@@ -30,11 +30,11 @@ type AddressPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCRE
  */
 function updateAddress(values: Address) {
     PersonalDetails.updateAddress(
-        values.addressLine1.trim(),
+        values.addressLine1?.trim() ?? '',
         values.addressLine2?.trim() ?? '',
         values.city.trim(),
         values.state.trim(),
-        values?.zipPostCode.trim().toUpperCase(),
+        values?.zipPostCode?.trim().toUpperCase() ?? '',
         values.country,
     );
 }
