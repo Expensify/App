@@ -47,6 +47,7 @@ function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
     if (!ReportUtils.isChatReport(props.report)) {
         return null;
     }
+
     const icons = ReportUtils.getIcons(props.report, props.personalDetails);
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(props.report);
 
