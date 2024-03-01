@@ -9,9 +9,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import Button from './Button';
 import Lottie from './Lottie';
 import LottieAnimations from './LottieAnimations';
+import Modal from './Modal';
 import Text from './Text';
 import VideoPlayer from './VideoPlayer';
 
@@ -39,6 +41,7 @@ function OnboardingWelcomeVideo() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const containerDimensions = useRef<LayoutRectangle>({width: 0, height: 0, x: 0, y: 0});
+    const [isModalVisible, setIsModalVisible] = useState(true);
     const {isSmallScreenWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
     const [welcomeVideoStatus, setWelcomeVideoStatus] = useState<VideoStatus>('video');
@@ -66,6 +69,7 @@ function OnboardingWelcomeVideo() {
     };
 
     const closeModal = useCallback(() => {
+        setIsModalVisible(false);
         Navigation.goBack();
     }, []);
 
@@ -125,23 +129,28 @@ function OnboardingWelcomeVideo() {
     };
 
     return (
-        <View
-            style={styles.defaultModalContainer}
-            onLayout={storeContainerDimensions}
-        >
-            <View style={{padding: MODAL_PADDING}}>{getWelcomeVideo()}</View>
-            <View style={[shouldUseNarrowLayout ? [styles.mt5, styles.mh8] : [styles.mt3, styles.mh5]]}>
-                <View style={[shouldUseNarrowLayout ? [styles.gap1, styles.mb8] : [styles.gap2, styles.mb10]]}>
-                    <Text style={styles.textHeroSmall}>{translate('onboarding.welcomeVideo.title')}</Text>
-                    <Text style={styles.textSupporting}>{translate('onboarding.welcomeVideo.description')}</Text>
+        <View style={styles.mw75}>
+            <Modal
+                isVisible={isModalVisible}
+                type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.CONFIRM : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+                onClose={closeModal}
+                onLayout={storeContainerDimensions}
+                style={[styles.flex1, styles.justifyContentCenter]}
+            >
+                <View style={{padding: MODAL_PADDING}}>{getWelcomeVideo()}</View>
+                <View style={[shouldUseNarrowLayout ? [styles.mt5, styles.mh8] : [styles.mt3, styles.mh5]]}>
+                    <View style={[shouldUseNarrowLayout ? [styles.gap1, styles.mb8] : [styles.gap2, styles.mb10]]}>
+                        <Text style={styles.textHeroSmall}>{translate('onboarding.welcomeVideo.title')}</Text>
+                        <Text style={styles.textSupporting}>{translate('onboarding.welcomeVideo.description')}</Text>
+                    </View>
+                    <Button
+                        success
+                        pressOnEnter
+                        onPress={closeModal}
+                        text={translate('onboarding.welcomeVideo.button')}
+                    />
                 </View>
-                <Button
-                    success
-                    pressOnEnter
-                    onPress={closeModal}
-                    text={translate('onboarding.welcomeVideo.button')}
-                />
-            </View>
+            </Modal>
         </View>
     );
 }
