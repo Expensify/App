@@ -490,6 +490,14 @@ const ROUTES = {
         route: 'workspace/:policyID/settings/workflows/approver',
         getRoute: (policyId: string) => `workspace/${policyId}/settings/workflows/approver` as const,
     },
+    WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY: {
+        route: 'workspace/:policyID/settings/workflows/auto-reporting-frequency',
+        getRoute: (policyID: string) => `workspace/${policyID}/settings/workflows/auto-reporting-frequency` as const,
+    },
+    WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET: {
+        route: 'workspace/:policyID/settings/workflows/auto-reporting-frequency/monthly-offset',
+        getRoute: (policyID: string) => `workspace/${policyID}/settings/workflows/auto-reporting-frequency/monthly-offset` as const,
+    },
     WORKSPACE_CARD: {
         route: 'workspace/:policyID/card',
         getRoute: (policyID: string) => `workspace/${policyID}/card` as const,
