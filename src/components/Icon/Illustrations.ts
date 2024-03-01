@@ -68,6 +68,7 @@ import Binoculars from '@assets/images/simple-illustrations/simple-illustration_
 import CompanyCard from '@assets/images/simple-illustrations/simple-illustration__company-card.svg';
 import ReceiptUpload from '@assets/images/simple-illustrations/simple-illustration__receiptupload.svg';
 import SplitBill from '@assets/images/simple-illustrations/simple-illustration__splitbill.svg';
+import PiggyBank from '@assets/images/simple-illustrations/simple-illustration__piggybank.svg';
 
 export {
     Abracadabra,
@@ -140,4 +141,5 @@ export {
     CompanyCard,
     ReceiptUpload,
     SplitBill,
+    PiggyBank,
 };

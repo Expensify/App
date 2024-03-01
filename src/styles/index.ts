@@ -3992,11 +3992,15 @@ const styles = (theme: ThemeColors) =>
         },
 
         purposeMenuItem: {
-            background: theme.cardBG,
+            backgroundColor: theme.cardBG,
             borderRadius: 8,
             paddingHorizontal: 8,
             alignItems: 'center',
             marginBottom: 8,
+        },
+
+        purposeMenuItemSelected: {
+            backgroundColor: theme.activeComponentBG,
         },
 
         willChangeTransform: {
