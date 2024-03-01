@@ -1,4 +1,3 @@
-import Str from 'expensify-common/lib/str';
 import React, {useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -17,7 +16,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
-import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {getSearchValueForPhoneOrEmail} from '@libs/PhoneNumber';

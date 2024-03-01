@@ -2,8 +2,8 @@
 import {parsePhoneNumber as originalParsePhoneNumber} from 'awesome-phonenumber';
 import type {ParsedPhoneNumber, ParsedPhoneNumberInvalid, PhoneNumberParseOptions} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
-import * as LoginUtils from '@libs/LoginUtils';
 import CONST from '@src/CONST';
+import * as LoginUtils from './LoginUtils';
 
 /**
  * Wraps awesome-phonenumber's parsePhoneNumber function to handle the case where we want to treat
