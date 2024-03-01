@@ -1735,6 +1735,7 @@ export default {
             settings: 'Configuración',
             reimburse: 'Reembolsos',
             categories: 'Categorías',
+            tags: 'Etiquetas',
             bills: 'Pagar facturas',
             invoices: 'Enviar facturas',
             travel: 'Viajes',
@@ -1770,6 +1771,15 @@ export default {
             emptyCategories: {
                 title: 'No has creado ninguna categoría',
                 subtitle: 'Añade una categoría para organizar tu gasto.',
+            },
+        },
+        tags: {
+            requiresTag: 'Los miembros deben etiquetar todos los gastos',
+            enableTag: 'Habilitar etiqueta',
+            subtitle: 'Las etiquetas agregan formas más detalladas de clasificar los costos.',
+            emptyTags: {
+                title: 'No has creado ninguna etiqueta',
+                subtitle: 'Agregue una etiqueta para realizar un seguimiento de proyectos, ubicaciones, departamentos y más.',
             },
         },
         emptyWorkspace: {

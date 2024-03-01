@@ -214,6 +214,7 @@ const SCREENS = {
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
         CATEGORIES: 'Workspace_Categories',
+        TAGS: 'Workspace_Tags',
         CURRENCY: 'Workspace_Profile_Currency',
         WORKFLOWS: 'Workspace_Workflows',
         DESCRIPTION: 'Workspace_Profile_Description',

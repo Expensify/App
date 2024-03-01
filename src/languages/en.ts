@@ -1711,6 +1711,7 @@ export default {
             settings: 'Settings',
             reimburse: 'Reimbursements',
             categories: 'Categories',
+            tags: 'Tags',
             bills: 'Bills',
             invoices: 'Invoices',
             travel: 'Travel',
@@ -1746,6 +1747,15 @@ export default {
             emptyCategories: {
                 title: "You haven't created any categories",
                 subtitle: 'Add a category to organize your spend.',
+            },
+        },
+        tags: {
+            requiresTag: 'Members must tag all spend',
+            enableTag: 'Enable tag',
+            subtitle: 'Tags add more detailed ways to classify costs.',
+            emptyTags: {
+                title: "You haven't created any tags",
+                subtitle: 'Add a tag to track projects, locations, departments, and more.',
             },
         },
         emptyWorkspace: {

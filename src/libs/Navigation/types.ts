@@ -81,6 +81,9 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.CATEGORIES]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.TAGS]: {
+        policyID: string;
+    };
 };
 
 type WorkspaceSwitcherNavigatorParamList = {
