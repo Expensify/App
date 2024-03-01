@@ -200,6 +200,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
+        accountID: string;
+    },
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };

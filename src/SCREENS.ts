@@ -225,6 +225,7 @@ const SCREENS = {
         NAME: 'Workspace_Profile_Name',
         CATEGORY_SETTINGS: 'Category_Settings',
         CATEGORIES_SETTINGS: 'Categories_Settings',
+        MEMBER_DETAILS: 'Workspace_Member_Details',
     },
 
     EDIT_REQUEST: {
