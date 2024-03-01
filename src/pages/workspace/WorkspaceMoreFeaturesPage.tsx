@@ -131,6 +131,27 @@ function WorkspaceMoreFeaturesPage({route}: WorkspaceMoreFeaturesPageProps) {
         [translate],
     );
 
+    const sections = useMemo(
+        () => [
+            {
+                title: translate('workspace.moreFeatures.spendSection.title'),
+                subtitle: translate('workspace.moreFeatures.spendSection.subtitle'),
+                items: spendItems,
+            },
+            {
+                title: translate('workspace.moreFeatures.organizeSection.title'),
+                subtitle: translate('workspace.moreFeatures.organizeSection.subtitle'),
+                items: organizeItems,
+            },
+            {
+                title: translate('workspace.moreFeatures.integrateSection.title'),
+                subtitle: translate('workspace.moreFeatures.integrateSection.subtitle'),
+                items: integrateItems,
+            },
+        ],
+        [integrateItems, organizeItems, spendItems, translate],
+    );
+
     const renderItem = (item: ToggleSettingOptionRowProps) => (
         <View
             key={item.title}
@@ -144,6 +165,23 @@ function WorkspaceMoreFeaturesPage({route}: WorkspaceMoreFeaturesPageProps) {
                 isActive={item.isActive}
                 pendingAction={item.pendingAction}
             />
+        </View>
+    );
+
+    const renderSection = (section: (typeof sections)[0]) => (
+        <View
+            key={section.title}
+            style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}
+        >
+            <Section
+                containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
+                title={section.title}
+                titleStyles={styles.textStrong}
+                subtitle={section.subtitle}
+                subtitleMuted
+            >
+                {section.items.map(renderItem)}
+            </Section>
         </View>
     );
 
@@ -162,43 +200,7 @@ function WorkspaceMoreFeaturesPage({route}: WorkspaceMoreFeaturesPageProps) {
                         shouldShowBackButton={isSmallScreenWidth}
                     />
 
-                    <ScrollView>
-                        <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                            <Section
-                                containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
-                                title={translate('workspace.moreFeatures.spendSection.title')}
-                                titleStyles={styles.textStrong}
-                                subtitle={translate('workspace.moreFeatures.spendSection.subtitle')}
-                                subtitleMuted
-                            >
-                                {spendItems.map(renderItem)}
-                            </Section>
-                        </View>
-
-                        <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                            <Section
-                                containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
-                                title={translate('workspace.moreFeatures.organizeSection.title')}
-                                titleStyles={styles.textStrong}
-                                subtitle={translate('workspace.moreFeatures.organizeSection.subtitle')}
-                                subtitleMuted
-                            >
-                                {organizeItems.map(renderItem)}
-                            </Section>
-                        </View>
-
-                        <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                            <Section
-                                containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
-                                title={translate('workspace.moreFeatures.integrateSection.title')}
-                                titleStyles={styles.textStrong}
-                                subtitle={translate('workspace.moreFeatures.integrateSection.subtitle')}
-                                subtitleMuted
-                            >
-                                {integrateItems.map(renderItem)}
-                            </Section>
-                        </View>
-                    </ScrollView>
+                    <ScrollView>{sections.map(renderSection)}</ScrollView>
                 </ScreenWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>
