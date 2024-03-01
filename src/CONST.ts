@@ -3338,6 +3338,10 @@ const CONST = {
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
     },
+
+    AUTH_TOKEN_TYPE: {
+        ANONYMOUS: 'anonymousAccount',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

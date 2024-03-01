@@ -438,7 +438,7 @@ Onyx.connect({
 
         currentUserEmail = value.email;
         currentUserAccountID = value.accountID;
-        isAnonymousUser = value.authTokenType === 'anonymousAccount';
+        isAnonymousUser = value.authTokenType === CONST.AUTH_TOKEN_TYPE.ANONYMOUS;
         currentUserPrivateDomain = isEmailPublicDomain(currentUserEmail ?? '') ? '' : Str.extractEmailDomain(currentUserEmail ?? '');
     },
 });
