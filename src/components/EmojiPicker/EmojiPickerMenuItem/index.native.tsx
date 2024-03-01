@@ -1,25 +1,24 @@
 import React, {useEffect, useRef} from 'react';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
-import getButtonState from '@libs/getButtonState';
-import CONST from '@src/CONST';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type EmojiPickerMenuItemProps from './types'
+import getButtonState from '@libs/getButtonState';
+import CONST from '@src/CONST';
+import type EmojiPickerMenuItemProps from './types';
 
 function EmojiPickerMenuItem({emoji, onPress, onHoverIn, onHoverOut, onFocus, onBlur, isFocused, isHighlighted, isUsingKeyboardMovement}: EmojiPickerMenuItemProps) {
-
     const ref = useRef<HTMLDivElement | null>(null);
     const StyleUtils = useStyleUtils();
     const themeStyles = useThemeStyles();
 
     useEffect(() => {
-        if(!isFocused) {
+        if (!isFocused) {
             return;
         }
 
         ref?.current?.focus();
-    }, [isFocused])
+    }, [isFocused]);
 
     return (
         <PressableWithoutFeedback

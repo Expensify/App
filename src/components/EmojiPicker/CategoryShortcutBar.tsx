@@ -1,16 +1,16 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {HeaderIndice} from '@libs/EmojiUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {HeaderIndice} from '@libs/EmojiUtils';
 import CategoryShortcutButton from './CategoryShortcutButton';
 
 type CategoryShortcutBarProps = {
     /** The function to call when an emoji is selected */
-    onPress: (index: number) => void,
+    onPress: (index: number) => void;
 
     /** The emojis consisting emoji code and indices that the icons should link to */
-    headerEmojis: HeaderIndice[]
-}
+    headerEmojis: HeaderIndice[];
+};
 
 function CategoryShortcutBar({onPress, headerEmojis}: CategoryShortcutBarProps) {
     const styles = useThemeStyles();

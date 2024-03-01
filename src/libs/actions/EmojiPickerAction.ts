@@ -9,7 +9,7 @@ import type CONST from '@src/CONST';
 type AnchorOrigin = {
     horizontal: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL>;
     vertical: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_VERTICAL>;
-    shiftVertical?: number
+    shiftVertical?: number;
 };
 
 type EmojiPopoverAnchor = MutableRefObject<View | HTMLDivElement | TextInput | null>;

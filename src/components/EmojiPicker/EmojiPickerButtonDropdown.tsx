@@ -6,28 +6,27 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
-import useLocalize from '@hooks/useLocalize';
 
 type EmojiPickerButtonDropdownProps = {
     /** Flag to disable the emoji picker button */
-    isDisabled?: boolean,
+    isDisabled?: boolean;
 
-    onModalHide: EmojiPickerAction.OnModalHideValue,
+    onModalHide: EmojiPickerAction.OnModalHideValue;
 
-    onInputChange: (emoji: string) => void,
+    onInputChange: (emoji: string) => void;
 
-    value?: string
+    value?: string;
 
-    disabled?: boolean
+    disabled?: boolean;
 
-    style: StyleProp<ViewStyle>
-
-}
+    style: StyleProp<ViewStyle>;
+};
 
 function EmojiPickerButtonDropdown({isDisabled, onModalHide, onInputChange, value, disabled, style}: EmojiPickerButtonDropdownProps) {
     const styles = useThemeStyles();

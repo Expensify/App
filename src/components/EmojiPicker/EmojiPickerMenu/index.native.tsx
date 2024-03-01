@@ -1,7 +1,7 @@
+import lodashDebounce from 'lodash/debounce';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {runOnUI, scrollTo} from 'react-native-reanimated';
-import lodashDebounce from 'lodash/debounce';
 import type {PickerEmojis} from '@assets/emojis/types';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
@@ -14,9 +14,9 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import BaseEmojiPickerMenu from './BaseEmojiPickerMenu';
 import type {EmojiPickerMenuProps, RenderItemProps} from './types';
 import useEmojiPickerMenu from './useEmojiPickerMenu';
-import BaseEmojiPickerMenu from './BaseEmojiPickerMenu';
 
 function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps) {
     const styles = useThemeStyles();

@@ -2,17 +2,17 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, 
 import type {ForwardedRef, RefObject} from 'react';
 import {Dimensions} from 'react-native';
 import type {View} from 'react-native';
+import type {Emoji} from '@assets/emojis/types';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
+import type {AnchorOrigin, EmojiPickerRef, EmojiPopoverAnchor, OnEmojiSelected, OnModalHideValue, OnWillShowPicker} from '@libs/actions/EmojiPickerAction';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
 import CONST from '@src/CONST';
-import type {OnModalHideValue, OnEmojiSelected, EmojiPopoverAnchor, AnchorOrigin, OnWillShowPicker, EmojiPickerRef} from '@libs/actions/EmojiPickerAction';
-import type {Emoji} from '@assets/emojis/types';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import EmojiPickerMenu from './EmojiPickerMenu';
 
 const DEFAULT_ANCHOR_ORIGIN = {
@@ -21,10 +21,10 @@ const DEFAULT_ANCHOR_ORIGIN = {
 };
 
 type EmojiPickerProps = {
-    viewportOffsetTop: number,
-}
+    viewportOffsetTop: number;
+};
 
-function EmojiPicker ({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<EmojiPickerRef>) {
+function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<EmojiPickerRef>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
@@ -66,14 +66,22 @@ function EmojiPicker ({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<E
      * @param id - Unique id for EmojiPicker
      * @param activeEmojiValue - Selected emoji to be highlighted
      */
-    const showEmojiPicker = (onModalHideValue: OnModalHideValue, onEmojiSelectedValue: OnEmojiSelected, emojiPopoverAnchorValue: EmojiPopoverAnchor, anchorOrigin?: AnchorOrigin, onWillShow?: OnWillShowPicker, id?: string, activeEmojiValue?: string) => {
+    const showEmojiPicker = (
+        onModalHideValue: OnModalHideValue,
+        onEmojiSelectedValue: OnEmojiSelected,
+        emojiPopoverAnchorValue: EmojiPopoverAnchor,
+        anchorOrigin?: AnchorOrigin,
+        onWillShow?: OnWillShowPicker,
+        id?: string,
+        activeEmojiValue?: string,
+    ) => {
         onModalHide.current = onModalHideValue;
         onEmojiSelected.current = onEmojiSelectedValue;
         activeEmoji.current = activeEmojiValue;
         emojiPopoverAnchorRef.current = emojiPopoverAnchorValue;
         const emojiPopoverAnchor = getEmojiPopoverAnchor();
         // Drop focus to avoid blue focus ring.
-        ((emojiPopoverAnchor?.current) as HTMLDivElement)?.blur();
+        (emojiPopoverAnchor?.current as HTMLDivElement)?.blur();
 
         const anchorOriginValue = anchorOrigin ?? DEFAULT_ANCHOR_ORIGIN;
 
@@ -220,7 +228,7 @@ function EmojiPicker ({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<E
             />
         </PopoverWithMeasuredContent>
     );
-};
+}
 
 EmojiPicker.displayName = 'EmojiPicker';
 export default withViewportOffsetTop(forwardRef(EmojiPicker));

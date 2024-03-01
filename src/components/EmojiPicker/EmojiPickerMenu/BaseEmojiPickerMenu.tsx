@@ -4,6 +4,7 @@ import React, {useMemo} from 'react';
 import type {LegacyRef} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {Emoji, HeaderEmoji, PickerEmoji, PickerEmojis} from '@assets/emojis/types';
 import CategoryShortcutBar from '@components/EmojiPicker/CategoryShortcutBar';
 import EmojiSkinToneList from '@components/EmojiPicker/EmojiSkinToneList';
 import Text from '@components/Text';
@@ -11,41 +12,40 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
-import type {Emoji, HeaderEmoji, PickerEmoji, PickerEmojis} from '@assets/emojis/types';
 import type {OnyxValue} from '@src/ONYXKEYS';
 import type {EmojiPropTypes, RenderItemProps} from './types';
 
 type BaseEmojiPickerMenuProps = {
     /** Indicates if the emoji list is filtered or not */
-    isFiltered: boolean,
+    isFiltered: boolean;
 
     /** Array of header emojis */
-    headerEmojis: EmojiPropTypes[],
+    headerEmojis: EmojiPropTypes[];
 
     /** Function to scroll to a specific header in the emoji list */
-    scrollToHeader: (headerIndex: number) => void,
+    scrollToHeader: (headerIndex: number) => void;
 
     /** Style to be applied to the list wrapper */
-    listWrapperStyle?: StyleProp<ViewStyle>,
+    listWrapperStyle?: StyleProp<ViewStyle>;
 
     /** The data for the emoji list */
-    data: PickerEmoji[],
+    data: PickerEmoji[];
 
     /** Function to render each item in the list */
-    renderItem: ({item, target}: RenderItemProps) => void,
+    renderItem: ({item, target}: RenderItemProps) => void;
 
     /** Extra data to be passed to the list for re-rendering */
     // eslint-disable-next-line react/forbid-prop-types
-    extraData?: Array<PickerEmojis | OnyxValue<'preferredEmojiSkinTone'> | ((skinTone: number) => void)>,
+    extraData?: Array<PickerEmojis | OnyxValue<'preferredEmojiSkinTone'> | ((skinTone: number) => void)>;
 
     /** Array of indices for the sticky headers */
-    stickyHeaderIndices?: number[],
+    stickyHeaderIndices?: number[];
 
     /** Whether the list should always bounce vertically */
-    alwaysBounceVertical?: boolean,
-}
+    alwaysBounceVertical?: boolean;
+};
 
-type GetItemTypeProps = Partial<HeaderEmoji> & Partial<Emoji>
+type GetItemTypeProps = Partial<HeaderEmoji> & Partial<Emoji>;
 
 /**
  * Improves FlashList's recycling when there are different types of items
@@ -86,7 +86,10 @@ function ListEmptyComponent() {
     return <Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>;
 }
 
-function BaseEmojiPickerMenu({headerEmojis, scrollToHeader, isFiltered, listWrapperStyle, data, renderItem, stickyHeaderIndices, extraData, alwaysBounceVertical}: BaseEmojiPickerMenuProps, forwardedRef: LegacyRef<FlashList<PickerEmoji>>) {
+function BaseEmojiPickerMenu(
+    {headerEmojis, scrollToHeader, isFiltered, listWrapperStyle, data, renderItem, stickyHeaderIndices, extraData, alwaysBounceVertical}: BaseEmojiPickerMenuProps,
+    forwardedRef: LegacyRef<FlashList<PickerEmoji>>,
+) {
     const styles = useThemeStyles();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
 
