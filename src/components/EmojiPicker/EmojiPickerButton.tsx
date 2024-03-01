@@ -24,9 +24,13 @@ type EmojiPickerButtonProps = WithNavigationFocusProps & {
 
     /** Emoji popup anchor offset shift vertical */
     shiftVertical?: number,
+
+    onModalHide: EmojiPickerAction.OnModalHideValue,
+    
+    onEmojiSelected: EmojiPickerAction.OnEmojiSelected,
 }
 
-function EmojiPickerButton({isDisabled, id, emojiPickerID, shiftVertical, isFocused}: EmojiPickerButtonProps) {
+function EmojiPickerButton({isDisabled, id, emojiPickerID, shiftVertical, isFocused, onModalHide, onEmojiSelected}: EmojiPickerButtonProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
@@ -44,7 +48,7 @@ function EmojiPickerButton({isDisabled, id, emojiPickerID, shiftVertical, isFocu
                     if (!isFocused) {
                         return;
                     }
-                    if (!EmojiPickerAction.emojiPickerRef.current.isEmojiPickerVisible) {
+                    if (!EmojiPickerAction.emojiPickerRef?.current?.isEmojiPickerVisible) {
                         EmojiPickerAction.showEmojiPicker(
                             onModalHide,
                             onEmojiSelected,
@@ -52,7 +56,7 @@ function EmojiPickerButton({isDisabled, id, emojiPickerID, shiftVertical, isFocu
                             {
                                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                                shiftVertical: shiftVertical,
+                                shiftVertical,
                             },
                             () => {},
                             emojiPickerID,
