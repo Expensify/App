@@ -315,6 +315,10 @@ export default {
         marginBottom: -4,
     },
 
+    mbn3: {
+        marginBottom: -12,
+    },
+
     mbn5: {
         marginBottom: -20,
     },
