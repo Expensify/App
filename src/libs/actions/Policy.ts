@@ -2296,7 +2296,7 @@ const setWorkspaceRequiresCategory = (policyID: string, requiresCategory: boolea
  * Accept user join request to a workspace
  */
 function acceptJoinRequest(reportId: string, accountID: string, adminsRoomMessageReportActionID: string) {
-    const choice  = 'accept';
+    const choice = 'accept';
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2410,5 +2410,5 @@ export {
     setWorkspaceRequiresCategory,
     inviteMemberToWorkspace,
     acceptJoinRequest,
-    declineJoinRequest
+    declineJoinRequest,
 };

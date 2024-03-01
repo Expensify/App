@@ -37,7 +37,7 @@ function WorkspaceJoinUserPage({route, policies}: WorkspaceJoinUserPageProps) {
         if (!currentUserPersonalDetails.login || !policy || !policies || executedRef?.current) {
             return;
         }
-        const isPolicyMember = PolicyUtils.isPolicyMember(policyID, policies as Record<string, Policy>)
+        const isPolicyMember = PolicyUtils.isPolicyMember(policyID, policies as Record<string, Policy>);
         if (isPolicyMember) {
             Navigation.goBack(undefined, false, true);
             return;
