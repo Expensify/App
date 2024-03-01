@@ -12,6 +12,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setWorkspaceCategoryEnabled} from '@libs/actions/Policy';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
@@ -53,7 +54,7 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
                     <HeaderWithBackButton title={route.params.categoryName} />
                     <View style={styles.flexGrow1}>
                         <OfflineWithFeedback
-                            errors={policyCategory?.errors}
+                            errors={ErrorUtils.getLatestErrorMessageField(policyCategory)}
                             pendingAction={policyCategory?.pendingFields?.enabled}
                             errorRowStyles={styles.mh5}
                             onClose={() => Policy.clearCategoryErrors(route.params.policyID, route.params.categoryName)}
