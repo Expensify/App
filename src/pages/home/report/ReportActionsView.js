@@ -283,6 +283,10 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
+    if (!_.isEqual(oldProps.parentReportAction, newProps.parentReportAction)) {
+        return false;
+    }
+
     if (lodashGet(oldProps.network, 'isOffline') !== lodashGet(newProps.network, 'isOffline')) {
         return false;
     }
