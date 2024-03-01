@@ -1541,10 +1541,6 @@ const styles = (theme: ThemeColors) =>
                 width: shouldUseNarrowLayout ? 500 : '100%',
                 height: 500,
                 maxHeight: '100%',
-                borderRadius: shouldUseNarrowLayout ? 16 : 0,
-                overflow: 'hidden',
-                flex: 1,
-                justifyContent: 'center',
             } satisfies ViewStyle),
 
         onlyEmojisText: {
