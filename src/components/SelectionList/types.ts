@@ -50,7 +50,7 @@ type ListItem = {
     text: string;
 
     /** Alternate text to display */
-    alternateText?: string;
+    alternateText?: string | null;
 
     /** Key used internally by React */
     keyForList: string;
@@ -65,7 +65,7 @@ type ListItem = {
     accountID?: number | null;
 
     /** User login */
-    login?: string;
+    login?: string | null;
 
     /** Element to show on the right side of the item */
     rightElement?: ReactNode;
@@ -88,7 +88,7 @@ type ListItem = {
     index?: number;
 
     /** Whether this option should show subscript */
-    shouldShowSubscript?: boolean;
+    shouldShowSubscript?: boolean | null;
 
     /** Whether to wrap long text up to 2 lines */
     isMultilineSupported?: boolean;
