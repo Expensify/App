@@ -66,8 +66,8 @@ function BaseOptionsSelector(props) {
 
     const shouldDisableRowSelection = useRef(false);
     const relatedTarget = useRef(null);
-    const listRef = useRef();
-    const textInputRef = useRef();
+    const listRef = useRef(null);
+    const textInputRef = useRef(null);
 
     const prevSelectedOptions = usePrevious(props.selectedOptions);
     const prevValue = usePrevious(value);
@@ -182,7 +182,7 @@ function BaseOptionsSelector(props) {
 
     const selectFocusedOption = useCallback(
         (e) => {
-            const focusedItemKey = lodashGet(e, ['target', 'attributes', 'id', 'value']);
+            const focusedItemKey = lodashGet(e, ['target', 'attributes', 'id', 'value'], null);
             const localFocusedOption = focusedItemKey ? _.find(allOptions, (option) => option.keyForList === focusedItemKey) : allOptions[focusedIndex];
 
             if (!localFocusedOption || !isFocused) {
