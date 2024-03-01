@@ -1,6 +1,6 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import AddressForm from '@components/AddressForm';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -10,66 +10,47 @@ import useLocalize from '@hooks/useLocalize';
 import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
+import type {PrivatePersonalDetails} from '@src/types/onyx';
+import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
-const propTypes = {
-    /* Onyx Props */
-
+type AddressPageOnyxProps = {
     /** User's private personal details */
-    privatePersonalDetails: PropTypes.shape({
-        /** User's home address */
-        address: PropTypes.shape({
-            street: PropTypes.string,
-            city: PropTypes.string,
-            state: PropTypes.string,
-            zip: PropTypes.string,
-            country: PropTypes.string,
-        }),
-    }),
-
-    /** Route from navigation */
-    route: PropTypes.shape({
-        /** Params from the route */
-        params: PropTypes.shape({
-            /** Currently selected country */
-            country: PropTypes.string,
-        }),
-    }).isRequired,
+    privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
 };
 
-const defaultProps = {
-    privatePersonalDetails: {
-        address: {
-            street: '',
-            city: '',
-            state: '',
-            zip: '',
-            country: '',
-        },
-    },
-};
+type AddressPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ADDRESS> & AddressPageOnyxProps;
 
 /**
  * Submit form to update user's first and last legal name
- * @param {Object} values - form input values
+ * @param values - form input values
  */
-function updateAddress(values) {
-    PersonalDetails.updateAddress(values.addressLine1.trim(), values.addressLine2.trim(), values.city.trim(), values.state.trim(), values.zipPostCode.trim().toUpperCase(), values.country);
+function updateAddress(values: Address) {
+    PersonalDetails.updateAddress(
+        values.addressLine1?.trim() ?? '',
+        values.addressLine2?.trim() ?? '',
+        values.city.trim(),
+        values.state.trim(),
+        values?.zipPostCode?.trim().toUpperCase() ?? '',
+        values.country,
+    );
 }
 
-function AddressPage({privatePersonalDetails, route}) {
+function AddressPage({privatePersonalDetails, route}: AddressPageProps) {
     const styles = useThemeStyles();
     usePrivatePersonalDetails();
     const {translate} = useLocalize();
-    const address = useMemo(() => lodashGet(privatePersonalDetails, 'address') || {}, [privatePersonalDetails]);
-    const countryFromUrl = lodashGet(route, 'params.country');
-    const [currentCountry, setCurrentCountry] = useState(address.country);
-    const isLoadingPersonalDetails = lodashGet(privatePersonalDetails, 'isLoading', true);
-    const [street1, street2] = (address.street || '').split('\n');
-    const [state, setState] = useState(address.state);
-    const [city, setCity] = useState(address.city);
-    const [zipcode, setZipcode] = useState(address.zip);
+    const address = useMemo(() => privatePersonalDetails?.address, [privatePersonalDetails]);
+    const countryFromUrl = route.params?.country;
+    const [currentCountry, setCurrentCountry] = useState(address?.country);
+    const isLoadingPersonalDetails = privatePersonalDetails?.isLoading ?? true;
+    const [street1, street2] = (address?.street ?? '').split('\n');
+    const [state, setState] = useState(address?.state);
+    const [city, setCity] = useState(address?.city);
+    const [zipcode, setZipcode] = useState(address?.zip);
 
     useEffect(() => {
         if (!address) {
@@ -81,7 +62,7 @@ function AddressPage({privatePersonalDetails, route}) {
         setZipcode(address.zip);
     }, [address]);
 
-    const handleAddressChange = useCallback((value, key) => {
+    const handleAddressChange = useCallback((value: string, key: keyof Address) => {
         if (key !== 'country' && key !== 'state' && key !== 'city' && key !== 'zipPostCode') {
             return;
         }
@@ -143,11 +124,9 @@ function AddressPage({privatePersonalDetails, route}) {
     );
 }
 
-AddressPage.propTypes = propTypes;
-AddressPage.defaultProps = defaultProps;
 AddressPage.displayName = 'AddressPage';
 
-export default withOnyx({
+export default withOnyx<AddressPageProps, AddressPageOnyxProps>({
     privatePersonalDetails: {
         key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
     },

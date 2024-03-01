@@ -1,10 +1,16 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import type {MileageRate, Unit} from '@src/types/onyx/Policy';
+import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
+
+type DefaultMileageRate = {
+    rate?: number;
+    currency?: string;
+    unit: Unit;
+};
 
 /**
  * Retrieves the default mileage rate based on a given policy.
@@ -16,7 +22,7 @@ import * as PolicyUtils from './PolicyUtils';
  * @returns [currency] - The currency associated with the rate.
  * @returns [unit] - The unit of measurement for the distance.
  */
-function getDefaultMileageRate(policy: OnyxEntry<Policy>): MileageRate | null {
+function getDefaultMileageRate(policy: OnyxEntry<Policy>): DefaultMileageRate | null {
     if (!policy?.customUnits) {
         return null;
     }
@@ -33,7 +39,7 @@ function getDefaultMileageRate(policy: OnyxEntry<Policy>): MileageRate | null {
 
     return {
         rate: distanceRate.rate,
-        currency: distanceRate.currency ?? 'USD',
+        currency: distanceRate.currency,
         unit: distanceUnit.attributes.unit,
     };
 }
