@@ -63,6 +63,12 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.REIMBURSE]: {
         policyID: string;
     };
