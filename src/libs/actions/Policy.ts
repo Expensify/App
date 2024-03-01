@@ -2212,7 +2212,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
-                    ...Object.keys(categoriesToUpdate).reduce<Record<string, PolicyCategory>>((acc, key) => {
+                    ...Object.keys(categoriesToUpdate).reduce<PolicyCategories>((acc, key) => {
                         acc[key] = {
                             ...policyCategories[key],
                             ...categoriesToUpdate[key],
@@ -2232,7 +2232,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
-                    ...Object.keys(categoriesToUpdate).reduce<Record<string, PolicyCategory>>((acc, key) => {
+                    ...Object.keys(categoriesToUpdate).reduce<PolicyCategories>((acc, key) => {
                         acc[key] = {
                             ...policyCategories[key],
                             ...categoriesToUpdate[key],
@@ -2252,7 +2252,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
-                    ...Object.keys(categoriesToUpdate).reduce<Record<string, PolicyCategory>>((acc, key) => {
+                    ...Object.keys(categoriesToUpdate).reduce<PolicyCategories>((acc, key) => {
                         acc[key] = {
                             ...policyCategories[key],
                             ...categoriesToUpdate[key],
