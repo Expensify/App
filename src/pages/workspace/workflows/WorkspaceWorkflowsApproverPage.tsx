@@ -144,11 +144,12 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails,
         return sectionsArray;
     }, [formattedPolicyMembers, formattedApprover, searchTerm, translate]);
 
-    const headerMessage = useMemo(() => {
-        return searchTerm && !sections[0].data.length ? translate('common.noResultsFound') : '';
+    const headerMessage = useMemo(
+        () => (searchTerm && !sections[0].data.length ? translate('common.noResultsFound') : ''),
 
-        //eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [translate, sections]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [translate, sections],
+    );
 
     const setPolicyApprover = (member: MemberOption) => {
         if (!policy?.approvalMode || !personalDetails?.[member.accountID]?.login) {
