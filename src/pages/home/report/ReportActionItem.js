@@ -465,8 +465,33 @@ function ReportActionItem(props) {
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
             children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(props.report.reportID, props.action)} />;
         } else if ([
+                CONST.REPORT.ACTIONS.TYPE.CHANGEFIELD,
+                CONST.REPORT.ACTIONS.TYPE.CHANGEPOLICY,
+                CONST.REPORT.ACTIONS.TYPE.CHANGETYPE,
+                CONST.REPORT.ACTIONS.TYPE.DELEGATESUBMIT,
+                CONST.REPORT.ACTIONS.TYPE.DELETEDACCOUNT,
+                CONST.REPORT.ACTIONS.TYPE.DONATION,
+                CONST.REPORT.ACTIONS.TYPE.EXPORTEDTOINTEGRATION,
+                CONST.REPORT.ACTIONS.TYPE.EXPORTEDTOQUICKBOOKS,
+                CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                CONST.REPORT.ACTIONS.TYPE.INTEGRATIONSMESSAGE,
+                CONST.REPORT.ACTIONS.TYPE.MANAGERATTACHRECEIPT,
+                CONST.REPORT.ACTIONS.TYPE.MANAGERDETACHRECEIPT,
                 CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED,
-                CONST.REPORT.ACTIONS.TYPE.UNAPPROVED
+                CONST.REPORT.ACTIONS.TYPE.MARKREIMBURSEDFROMINTEGRATION,
+                CONST.REPORT.ACTIONS.TYPE.OUTDATEDBANKACCOUNT,
+                CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTACHBOUNCE,
+                CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTACHCANCELLED,
+                CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTACCOUNTCHANGED,
+                CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDELAYED,
+                CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTREQUESTED,
+                CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTSETUP,
+                CONST.REPORT.ACTIONS.TYPE.SELECTEDFORRANDOMAUDIT,
+                CONST.REPORT.ACTIONS.TYPE.SHARE,
+                CONST.REPORT.ACTIONS.TYPE.STRIPEPAID,
+                CONST.REPORT.ACTIONS.TYPE.TAKECONTROL,
+                CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
+                CONST.REPORT.ACTIONS.TYPE.UNSHARE
             ].includes(props.action.actionName)) {
             // This handles all historical actions from OldDot that we just want to display the message text
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getMarkedReimbursedMessage(props.action)} />;
