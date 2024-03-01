@@ -53,7 +53,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import type {MeasureParentContainerAndCursorCallback} from '../../../../../components/AutoCompleteSuggestions/types';
+import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 
 type SyncSelection = {
     position: number;

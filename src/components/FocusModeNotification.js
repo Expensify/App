@@ -6,6 +6,7 @@ import * as Link from '@userActions/Link';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ConfirmModal from './ConfirmModal';
+import * as Illustrations from './Icon/Illustrations';
 import Text from './Text';
 import TextLinkWithRef from './TextLink';
 
@@ -34,12 +35,14 @@ function FocusModeNotification() {
                             Link.openLink(href, environmentURL);
                         }}
                     >
-                        {translate('common.here')}
+                        {translate('focusModeUpdateModal.settings')}
                     </TextLinkWithRef>
                     .
                 </Text>
             }
             isVisible
+            image={Illustrations.ThreeLeggedLaptopWoman}
+            titleStyles={[styles.textHeadline, styles.mbn3]}
         />
     );
 }
