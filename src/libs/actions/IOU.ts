@@ -355,6 +355,17 @@ function setMoneyRequestReceipt(transactionID: string, source: string, filename:
     });
 }
 
+/** Set the last selected distance rate for policy */
+// TODO: probably need to be changed
+function setLastSelectedDistanceRates(policyID: string, rateID: string) {
+    Onyx.merge('lastSelectedDistanceRates', {[policyID]: rateID});
+}
+
+/** Update transaction distance rate */
+function updateDistanceRequestRate(transactionID: string, rateID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {customUnitRateID: rateID}}});
+}
+
 /** Reset money request info from the store with its initial value */
 function resetMoneyRequestInfo(id = '') {
     // Disabling this line since currentDate can be an empty string
@@ -4327,4 +4338,6 @@ export {
     cancelPayment,
     navigateToStartStepIfScanFileCannotBeRead,
     savePreferredPaymentMethod,
+    setLastSelectedDistanceRates,
+    updateDistanceRequestRate,
 };

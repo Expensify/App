@@ -1,4 +1,4 @@
-import type {OnyxEntry, OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
@@ -183,12 +183,12 @@ function getDistanceMerchant(
  *
  * @returns An array of mileage rates or an empty array if not found.
  */
-function getMileageRates(policyID?: string): DefaultMileageRate[] | [] {
-    if (!policyID) {
-        return [];
-    }
+function getMileageRates(policyID?: string): Record<string, DefaultMileageRate> {
+    const mileageRates = {};
 
-    const mileageRates: DefaultMileageRate[] = [];
+    if (!policyID) {
+        return mileageRates;
+    }
 
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? null;
 
@@ -201,21 +201,23 @@ function getMileageRates(policyID?: string): DefaultMileageRate[] | [] {
         return mileageRates;
     }
 
-    const rates = Object.values(distanceUnit.rates);
-
-    for (const rate of rates) {
-        if (rate.enabled) {
-            mileageRates.push({
-                rate: rate.rate ?? 0,
-                name: rate.name,
-                currency: rate.currency ?? 'USD',
-                unit: distanceUnit.attributes.unit,
-                customUnitRateID: rate.customUnitRateID,
-            });
-        }
-    }
+    Object.entries(distanceUnit.rates).forEach(([rateID, rate]) => {
+        // TODO: fix TS error
+        mileageRates[rateID] = {
+            rate: rate.rate,
+            currency: rate.currency,
+            unit: distanceUnit.attributes.unit,
+            name: rate.name,
+            customUnitRateID: rate.customUnitRateID,
+        };
+    });
 
     return mileageRates;
+}
+
+// TODO: probably will need to be changed
+function getRateForP2P(currency) {
+    return CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currency] ?? CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE.USD;
 }
 
 /**
@@ -239,4 +241,5 @@ export default {
     getRateForDisplay,
     getMileageRates,
     getDistanceForDisplay,
+    getRateForP2P,
 };

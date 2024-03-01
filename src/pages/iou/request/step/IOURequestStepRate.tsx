@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as IOU from '@libs/actions/IOU';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,12 +43,19 @@ function IOURequestStepRate({
     const {translate, toLocaleDigit} = useLocalize();
     const rates = DistanceRequestUtils.getMileageRates(policy?.id);
 
-    const data = rates.map((rate) => ({
+    const data = Object.values(rates).map((rate) => ({
         text: rate.name ?? '',
         alternateText: DistanceRequestUtils.getRateForDisplay(true, rate.unit, rate.rate, rate.currency, translate, toLocaleDigit),
         keyForList: rate.name ?? '',
         value: rate.customUnitRateID,
     }));
+
+    const selectDistanceRate = (customUnitRateID) => {
+        IOU.setLastSelectedDistanceRates(policy?.id ?? '', customUnitRateID);
+        // TODO: get a proper transaction ID
+        IOU.updateDistanceRequestRate('1', customUnitRateID);
+        Navigation.goBack(backTo);
+    }
 
     return (
         <StepScreenWrapper
@@ -61,7 +69,7 @@ function IOURequestStepRate({
             <SelectionList
                 sections={[{data}]}
                 ListItem={RadioListItem}
-                onSelectRow={() => {}}
+                onSelectRow={({value}) => selectDistanceRate(value)}
                 // TODO: change for lastSelectedDistanceRates
                 initiallyFocusedOptionKey="Default Rate"
             />

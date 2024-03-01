@@ -1,10 +1,10 @@
-import { useIsFocused } from '@react-navigation/native';
-import { format } from 'date-fns';
+import {useIsFocused} from '@react-navigation/native';
+import {format} from 'date-fns';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, { Fragment, useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
-import { View } from 'react-native';
-import { withOnyx } from 'react-native-onyx';
+import React, {useCallback, useEffect, useMemo, useReducer, useRef, useState} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -21,9 +21,9 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import playSound, { SOUNDS } from '@libs/Sound';
+import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import { policyPropTypes } from '@pages/workspace/withPolicy';
+import {policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,8 +44,7 @@ import Switch from './Switch';
 import tagPropTypes from './tagPropTypes';
 import Text from './Text';
 import transactionPropTypes from './transactionPropTypes';
-import withCurrentUserPersonalDetails, { withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes } from './withCurrentUserPersonalDetails';
-
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from './withCurrentUserPersonalDetails';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -239,7 +238,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     session: {accountID},
     shouldShowSmartScanFields,
     transaction,
-    lastSelectedDistanceRate = {},
+    mileageRates,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -250,12 +249,11 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
 
+    // TODO: uncomment after Splits and P2P are enabled https://github.com/Expensify/App/pull/37185, mileageRate prop should be be removed
+    // const mileageRate = transaction.comment.customUnit.customUnitRateID === '_FAKE_P2P_ID_' ? DistanceRequestUtils.getRateForP2P(policy.outputCurrency) : mileageRates[transaction.comment.customUnit.customUnitRateID];
     const {unit, rate, currency} = mileageRate;
 
-    // const rate = transaction.comment.customUnit.customUnitRateID === '_FAKE_P2P_ID_'
-
-    // const {unit, rate, currency} = lastSelectedDistanceRate || mileageRate;
-
+    // will hardcoded rates will have a currency property? If not we have to get currency other way
 
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
     const shouldCalculateDistanceAmount = isDistanceRequest && iouAmount === 0;
@@ -272,8 +270,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     const shouldShowDate = shouldShowSmartScanFields || isDistanceRequest;
     const shouldShowMerchant = shouldShowSmartScanFields && !isDistanceRequest;
-
-    console.log({transaction});
 
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
@@ -633,7 +629,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     // TODO: change for a value from usePermissions [will be added in this PR https://github.com/Expensify/App/pull/37185]
     // change for true for development
-    const canUseP2PDistanceRequests = true;
+    const canUseP2PDistanceRequests = false;
 
     // An intermediate structure that helps us classify the fields as "primary" and "supplementary".
     // The primary fields are always shown to the user, while an extra action is needed to reveal the supplementary ones.
@@ -982,16 +978,16 @@ export default compose(
         policyTags: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
         },
-        // TODO: add NVP_LAST_SELECTED_DISTANCE_RATES
-        // lastSelectedDistanceRates: {
-        //     key: ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
-        // },
         mileageRate: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             selector: DistanceRequestUtils.getDefaultMileageRate,
         },
+        mileageRates: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            selector: (policy) => DistanceRequestUtils.getMileageRates(policy ? policy.id : ''),
+        },
         policy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-        }
+        },
     }),
 )(MoneyTemporaryForRefactorRequestConfirmationList);
