@@ -2630,7 +2630,12 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>): ParentNavigatio
 function navigateToDetailsPage(report: OnyxEntry<Report>) {
     const participantAccountIDs = report?.participantAccountIDs ?? [];
 
-    if (isOneOnOneChat(report) || isSelfDM(report)) {
+    if (isSelfDM(report)) {
+        Navigation.navigate(ROUTES.PROFILE.getRoute(currentUserAccountID ?? 0));
+        return;
+    }
+
+    if (isOneOnOneChat(report)) {
         Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountIDs[0]));
         return;
     }

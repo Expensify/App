@@ -485,8 +485,8 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartOne: '¡La colaboración entre ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' y ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! 🎉 Este es el lugar donde chatear, pedir dinero y pagar.',
-        // todo: confirm this copy and ask for the correct translation
-        beginningOfChatHistorySelfDM: 'This is your personal space. Use it to chat with yourself, take notes, or save links.',
+        // todo: ask for the correct translation
+        beginningOfChatHistorySelfDM: 'This is your personal space. Use it for notes, tasks, drafts, and reminders.',
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
         sayHello: '¡Saluda!',
         // todo: ask for the correct translation
