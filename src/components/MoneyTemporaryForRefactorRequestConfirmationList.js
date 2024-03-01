@@ -239,6 +239,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     session: {accountID},
     shouldShowSmartScanFields,
     transaction,
+    lastSelectedDistanceRate = {},
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -250,6 +251,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
 
     const {unit, rate, currency} = mileageRate;
+
+    // const rate = transaction.comment.customUnit.customUnitRateID === '_FAKE_P2P_ID_'
+
+    // const {unit, rate, currency} = lastSelectedDistanceRate || mileageRate;
+
+
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
     const shouldCalculateDistanceAmount = isDistanceRequest && iouAmount === 0;
     const taxRates = lodashGet(policy, 'taxRates', {});
@@ -265,6 +272,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     const shouldShowDate = shouldShowSmartScanFields || isDistanceRequest;
     const shouldShowMerchant = shouldShowSmartScanFields && !isDistanceRequest;
+
+    console.log({transaction});
 
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
@@ -622,6 +631,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         );
     }, [isReadOnly, iouType, selectedParticipants.length, confirm, bankAccountRoute, iouCurrencyCode, policyID, splitOrRequestOptions, formError, styles.ph1, styles.mb2]);
 
+    // TODO: change for a value from usePermissions [will be added in this PR https://github.com/Expensify/App/pull/37185]
+    // change for true for development
+    const canUseP2PDistanceRequests = true;
+
     // An intermediate structure that helps us classify the fields as "primary" and "supplementary".
     // The primary fields are always shown to the user, while an extra action is needed to reveal the supplementary ones.
     const classifiedFields = [
@@ -681,7 +694,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 <MenuItemWithTopDescription
                     key={translate('common.distance')}
                     shouldShowRightIcon={!isReadOnly && isTypeRequest}
-                    title={DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, translate)}
+                    title={iouMerchant}
                     description={translate('common.distance')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
@@ -690,27 +703,46 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     interactive={!isReadOnly}
                 />
             ),
-            shouldShow: isDistanceRequest,
+            shouldShow: isDistanceRequest && !canUseP2PDistanceRequests,
+            isSupplementary: true,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={translate('common.distance')}
+                    shouldShowRightIcon={!isReadOnly && isTypeRequest}
+                    title={DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate)}
+                    description={translate('common.distance')}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    disabled={didConfirm || !isTypeRequest}
+                    interactive={!isReadOnly}
+                />
+            ),
+            shouldShow: isDistanceRequest && canUseP2PDistanceRequests,
             isSupplementary: true,
         },
         {
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.rate')}
-                    shouldShowRightIcon={!isReadOnly && isTypeRequest}
+                    // TODO: add a condition for splits/request (not to show this for send type?)
+                    shouldShowRightIcon={!isReadOnly && isPolicyExpenseChat}
                     title={DistanceRequestUtils.getRateForDisplay(hasRoute, unit, rate, currency, translate, toLocaleDigit)}
                     description={translate('common.rate')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => {
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_RATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_RATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                        );
                     }}
                     disabled={didConfirm || !isTypeRequest}
-                    interactive={!isReadOnly}
+                    interactive={!isReadOnly && isPolicyExpenseChat}
                 />
             ),
-            // TODO: hide when betas ready
-            shouldShow: isDistanceRequest,
+            shouldShow: isDistanceRequest && canUseP2PDistanceRequests,
             isSupplementary: true,
         },
         {
@@ -950,12 +982,16 @@ export default compose(
         policyTags: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
         },
+        // TODO: add NVP_LAST_SELECTED_DISTANCE_RATES
+        // lastSelectedDistanceRates: {
+        //     key: ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
+        // },
         mileageRate: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             selector: DistanceRequestUtils.getDefaultMileageRate,
         },
         policy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-        },
+        }
     }),
 )(MoneyTemporaryForRefactorRequestConfirmationList);

@@ -12,6 +12,8 @@ type DefaultMileageRate = {
     rate?: number;
     currency?: string;
     unit: Unit;
+    name?: string;
+    customUnitRateID?: string;
 };
 
 const policies: OnyxCollection<Policy> = {};
@@ -55,6 +57,8 @@ function getDefaultMileageRate(policy: OnyxEntry<Policy>): DefaultMileageRate | 
         rate: distanceRate.rate,
         currency: distanceRate.currency,
         unit: distanceUnit.attributes.unit,
+        name: distanceRate.name,
+        customUnitRateID: distanceRate.customUnitRateID,
     };
 }
 
@@ -91,6 +95,7 @@ function getRoundedDistanceInUnits(distanceInMeters: number, unit: Unit): string
     return convertedDistance.toFixed(3);
 }
 
+// TODO: I wonder if it would be better to refactor these functions to pass params in an object
 /**
  * @param hasRoute Whether the route exists for the distance request
  * @param unit Unit that should be used to display the distance
@@ -120,7 +125,7 @@ function getRateForDisplay(
     return `${currencySymbol}${ratePerUnit} / ${singularDistanceUnit}`;
 }
 
-// TODO: I wonder if it would be better to rfactor these functions to pass params in an object
+// TODO: this function will be added in https://github.com/Expensify/App/pull/37185, remove it to avoid conflicts
 /**
  * @param hasRoute Whether the route exists for the distance request
  * @param distanceInMeters Distance traveled
@@ -129,8 +134,8 @@ function getRateForDisplay(
  * @param translate Translate function
  * @returns A string that describes the distance traveled
  */
-function getDistanceForDisplay(hasRoute: boolean, distanceInMeters: number, unit: Unit, translate: LocaleContextProps['translate']): string {
-    if (!hasRoute) {
+function getDistanceForDisplay(hasRoute: boolean, distanceInMeters: number, unit: Unit, rate: number, translate: LocaleContextProps['translate']): string {
+    if (!hasRoute || !rate) {
         return translate('iou.routePending');
     }
 
@@ -165,7 +170,7 @@ function getDistanceMerchant(
         return translate('iou.routePending');
     }
 
-    const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, translate);
+    const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate);
     const ratePerUnit = getRateForDisplay(hasRoute, unit, rate, currency, translate, toLocaleDigit);
 
     return `${distanceInUnits} @ ${ratePerUnit}`;
