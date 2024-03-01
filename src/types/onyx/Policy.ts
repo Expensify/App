@@ -111,7 +111,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The URL for the policy avatar */
         avatar?: string;
 
-        /** Error objects keyed by field name containing errors keyeod by microtime */
+        /** Error objects keyed by field name containing errors keyed by microtime */
         errorFields?: OnyxCommon.ErrorFields;
 
         /** A list of errors keyed by microtime */
