@@ -115,9 +115,7 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails,
 
         if (searchTerm !== '') {
             const filteredOptions = [...formattedApprover, ...formattedPolicyMembers].filter((option) => {
-                const parsedPhoneNumber = parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchTerm)));
-                const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchTerm.toLowerCase();
-
+                const searchValue = getSearchValueForPhoneOrEmail(searchTerm);
                 return !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
             });
             return [
