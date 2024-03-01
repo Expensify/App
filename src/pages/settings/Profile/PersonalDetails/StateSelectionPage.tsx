@@ -86,8 +86,6 @@ function StateSelectionPage() {
         <ScreenWrapper
             testID={StateSelectionPage.displayName}
             includeSafeAreaPaddingBottom={false}
-            style={[styles.pb0]}
-            includePaddingTop={false}
         >
             <HeaderWithBackButton
                 // Label can be an empty string
