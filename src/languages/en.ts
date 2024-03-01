@@ -604,8 +604,10 @@ export default {
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
         receiptScanningFailed: 'Receipt scanning failed. Enter the details manually.',
         transactionPendingText: 'It takes a few days from the date the card was used for the transaction to post.',
-        requestCount: ({count, scanningReceipts = 0}: RequestCountParams) =>
-            `${count} ${Str.pluralize('request', 'requests', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}`,
+        requestCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) =>
+            `${count} ${Str.pluralize('request', 'requests', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${
+                pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''
+            }`,
         deleteRequest: 'Delete request',
         deleteConfirmation: 'Are you sure that you want to delete this request?',
         settledExpensify: 'Paid',
@@ -1290,7 +1292,8 @@ export default {
     },
     focusModeUpdateModal: {
         title: 'Welcome to #focus mode!',
-        prompt: "Read chats will be hidden, unless they have a green dot, which means there's an action you need to take on them. You can change this in your account settings ",
+        prompt: "Stay on top of things by only seeing unread chats or chats that need your attention. Don't worry, you can change this at any point in ",
+        settings: 'settings',
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'The chat you are looking for cannot be found.',
