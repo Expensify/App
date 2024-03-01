@@ -75,7 +75,7 @@ try {
 }
 
 // START OF TEST CODE
-const runTests = async () => {
+const runTests = async (): Promise<void> => {
     Logger.info('Installing apps and reversing port');
     await installApp('android', config.MAIN_APP_PACKAGE, mainAppPath);
     await installApp('android', config.DELTA_APP_PACKAGE, deltaAppPath);
@@ -90,8 +90,7 @@ const runTests = async () => {
 
     // Collect results while tests are being executed
     // server.addTestResultListener((testResult) => {
-    server.addTestResultListener((res) => {
-        const testResult = res;
+    server.addTestResultListener((testResult) => {
         if (testResult?.error != null) {
             throw new Error(`Test '${testResult.name}' failed with error: ${testResult.error}`);
         }
@@ -114,12 +113,12 @@ const runTests = async () => {
         }
 
         if (testResult?.branch && testResult?.name) {
-            results[testResult.branch][testResult.name] = (results[testResult.branch][testResult.name] || []).concat(result);
+            results[testResult.branch][testResult.name] = (results[testResult.branch][testResult.name] ?? []).concat(result);
         }
     });
 
     // Function to run a single test iteration
-    async function runTestIteration(appPackage: string, iterationText: string, launchArgs: Record<string, boolean> = {}) {
+    async function runTestIteration(appPackage: string, iterationText: string, launchArgs: Record<string, boolean> = {}): Promise<void> {
         Logger.info(iterationText);
 
         // Making sure the app is really killed (e.g. if a prior test run crashed)
@@ -183,7 +182,7 @@ const runTests = async () => {
 
         // We run each test multiple time to average out the results
         for (let testIteration = 0; testIteration < config.RUNS; testIteration++) {
-            const onError = (e: Error) => {
+            const onError = (e: Error): void => {
                 errorCountRef.errorCount += 1;
                 if (testIteration === 0 || errorCountRef.errorCount === errorCountRef.allowedExceptions) {
                     Logger.error("There was an error running the test and we've reached the maximum number of allowed exceptions. Stopping the test run.");

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import type * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
 import {utcToZonedTime} from 'date-fns-tz';
@@ -55,6 +56,11 @@ jest.mock('react-native-reanimated', () => ({
  */
 let transitionEndCB: () => void | undefined;
 
+type ListenerMock = {
+    triggerTransitionEnd: () => void;
+    addListener: jest.Mock;
+};
+
 /**
  * This is a helper function to create a mock for the addListener function of the react-navigation library.
  * The reason we need this is because we need to trigger the transitionEnd event in our tests to simulate
@@ -64,13 +70,13 @@ let transitionEndCB: () => void | undefined;
  *
  * @returns An object with two functions: triggerTransitionEnd and addListener
  */
-const createAddListenerMock = () => {
+const createAddListenerMock = (): ListenerMock => {
     const transitionEndListeners: Array<() => void> = [];
     const triggerTransitionEnd = () => {
         transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
     };
 
-    const addListener = jest.fn().mockImplementation((listener, callback) => {
+    const addListener: jest.Mock = jest.fn().mockImplementation((listener, callback) => {
         if (listener === 'transitionEnd') {
             transitionEndListeners.push(callback);
         }
@@ -87,24 +93,24 @@ jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual('@react-navigation/native');
     const {triggerTransitionEnd, addListener} = createAddListenerMock();
     transitionEndCB = triggerTransitionEnd;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    const useNavigation = () => ({
-        navigate: jest.fn(),
-        ...actualNav.useNavigation,
-        getState: () => ({
-            routes: [],
-        }),
-        addListener,
-    });
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    const useNavigation = () =>
+        ({
+            navigate: jest.fn(),
+            ...actualNav.useNavigation,
+            getState: () => ({
+                routes: [],
+            }),
+            addListener,
+        } as typeof NativeNavigation.useNavigation);
+
     return {
         ...actualNav,
         useNavigation,
         getState: () => ({
             routes: [],
         }),
-    };
+    } as typeof NativeNavigation;
 });
 
 beforeAll(() => {
@@ -127,7 +133,7 @@ beforeAll(() => {
     });
 });
 
-function scrollUpToRevealNewMessagesBadge() {
+function scrollUpToRevealNewMessagesBadge(): void {
     const hintText = Localize.translateLocal('sidebarScreen.listOfChatMessages');
     fireEvent.scroll(screen.getByLabelText(hintText), {
         nativeEvent: {
@@ -148,19 +154,13 @@ function scrollUpToRevealNewMessagesBadge() {
     });
 }
 
-/**
- * @return
- */
-function isNewMessagesBadgeVisible() {
+function isNewMessagesBadgeVisible(): boolean {
     const hintText = Localize.translateLocal('accessibilityHints.scrollToNewestMessages');
     const badge = screen.queryByAccessibilityHint(hintText);
     return Math.round(badge?.props.style.transform[0].translateY) === -40;
 }
 
-/**
- * @return
- */
-function navigateToSidebar() {
+function navigateToSidebar(): Promise<unknown> {
     const hintText = Localize.translateLocal('accessibilityHints.navigateToChatsList');
     const reportHeaderBackButton = screen.queryByAccessibilityHint(hintText);
     if (reportHeaderBackButton) {
@@ -169,10 +169,6 @@ function navigateToSidebar() {
     return waitForBatchedUpdates();
 }
 
-/**
- * @param index
- * @return
- */
 async function navigateToSidebarOption(index: number): Promise<void> {
     const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
     const optionRows = screen.queryAllByAccessibilityHint(hintText);
@@ -180,10 +176,7 @@ async function navigateToSidebarOption(index: number): Promise<void> {
     await waitForBatchedUpdatesWithAct();
 }
 
-/**
- * @return
- */
-function areYouOnChatListScreen() {
+function areYouOnChatListScreen(): boolean {
     const hintText = Localize.translateLocal('sidebarScreen.listOfChats');
     const sidebarLinks = screen.queryAllByLabelText(hintText);
 
@@ -202,10 +195,8 @@ let reportAction9CreatedDate: string;
 
 /**
  * Sets up a test with a logged in user that has one unread chat from another user. Returns the <App/> test instance.
- *
- * @returns
  */
-function signInAndGetAppWithUnreadChat() {
+function signInAndGetAppWithUnreadChat(): Promise<unknown> {
     // Render the App and sign in as a test user.
     render(<App />);
     return waitForBatchedUpdatesWithAct()
