@@ -140,7 +140,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, cur
                         titleStyle={styles.textLabelSupportingNormal}
                         descriptionTextStyle={styles.textNormalThemeText}
                         description={policyOwnerDisplayName ?? ''}
-                        // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVER.getRoute(route.params.policyID))}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVER.getRoute(route.params.policyID))}
                         // TODO will be done in https://github.com/Expensify/Expensify/issues/368334
                         shouldShowRightIcon
                         wrapperStyle={containerStyle}
