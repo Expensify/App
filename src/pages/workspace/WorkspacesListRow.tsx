@@ -152,38 +152,35 @@ function WorkspacesListRow({
                 >
                     {title}
                 </Text>
-                {isNarrow && (
-                    <>
-                        {!isJoinRequestPending ? (
-                            <>
-                                <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
-                                <ThreeDotsMenu
-                                    menuItems={menuItems}
-                                    anchorPosition={{horizontal: 0, vertical: 0}}
-                                    disabled={shouldDisableThreeDotsMenu}
-                                />
-                            </>
-                        ) : (
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.border, styles.pv1, styles.pl1, styles.pr2]}>
-                                <Icon
-                                    src={Expensicons.Hourglass}
-                                    fill={theme.icon}
-                                    width={variables.iconSizeExtraSmall}
-                                    height={variables.iconSizeExtraSmall}
-                                    additionalStyles={styles.workspaceTypeWrapper}
-                                />
-                                <View style={styles.flex1}>
-                                    <Text
-                                        numberOfLines={1}
-                                        style={styles.labelStrong}
-                                    >
-                                        {translate('workspace.common.requested')}
-                                    </Text>
-                                </View>
+                {isNarrow &&
+                    (!isJoinRequestPending ? (
+                        <>
+                            <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
+                            <ThreeDotsMenu
+                                menuItems={menuItems}
+                                anchorPosition={{horizontal: 0, vertical: 0}}
+                                disabled={shouldDisableThreeDotsMenu}
+                            />
+                        </>
+                    ) : (
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.border, styles.pv1, styles.pl1, styles.pr2]}>
+                            <Icon
+                                src={Expensicons.Hourglass}
+                                fill={theme.icon}
+                                width={variables.iconSizeExtraSmall}
+                                height={variables.iconSizeExtraSmall}
+                                additionalStyles={styles.workspaceTypeWrapper}
+                            />
+                            <View style={styles.flex1}>
+                                <Text
+                                    numberOfLines={1}
+                                    style={styles.labelStrong}
+                                >
+                                    {translate('workspace.common.requested')}
+                                </Text>
                             </View>
-                        )}
-                    </>
-                )}
+                        </View>
+                    ))}
             </View>
             <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
                 {!!ownerDetails && (
@@ -217,7 +214,7 @@ function WorkspacesListRow({
                     height={variables.workspaceTypeIconWidth}
                     additionalStyles={styles.workspaceTypeWrapper}
                 />
-                <View style={styles.flex1}>
+                <View>
                     <Text
                         numberOfLines={1}
                         style={[styles.labelStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
@@ -233,7 +230,7 @@ function WorkspacesListRow({
                 </View>
             </View>
             {isJoinRequestPending && !isNarrow && (
-                <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.flex1, styles.justifyContentEnd, styles.mln4, styles.pr2]}>
+                <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.flex1, styles.justifyContentEnd, styles.mln6, styles.pr4]}>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.border, styles.pv1, styles.pl1, styles.pr2]}>
                         <Icon
                             src={Expensicons.Hourglass}
