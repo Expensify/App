@@ -44,7 +44,6 @@ import type {
     PersonalDetailsList,
     Policy,
     PolicyCategories,
-    PolicyCategory,
     PolicyMember,
     PolicyTagList,
     RecentlyUsedCategories,
