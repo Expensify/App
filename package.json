@@ -19,7 +19,7 @@
     "ipad-sm": "concurrently \"npx react-native run-ios --simulator=\\\"iPad Pro (11-inch) (4th generation)\\\" --mode=\\\"DebugDevelopment\\\" --scheme=\\\"New Expensify Dev\\\"\"",
     "start": "npx react-native start",
     "web": "scripts/set-pusher-suffix.sh && concurrently npm:web-proxy npm:web-server",
-    "web-proxy": "ts-node web/proxy.js",
+    "web-proxy": "ts-node web/proxy.ts",
     "web-server": "webpack-dev-server --open --config config/webpack/webpack.dev.js",
     "build": "webpack --config config/webpack/webpack.common.js --env envFile=.env.production",
     "build-staging": "webpack --config config/webpack/webpack.common.js --env envFile=.env.staging",
