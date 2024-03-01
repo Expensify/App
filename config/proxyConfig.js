@@ -3,7 +3,7 @@
  * We only specify for staging URLs as API requests are sent to the production
  * servers by default.
  */
-export default {
+module.exports = {
     STAGING: '/staging/',
     STAGING_SECURE: '/staging-secure/',
 };
