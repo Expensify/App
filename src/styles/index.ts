@@ -400,6 +400,11 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
         },
 
+        textNormalThemeText: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
+        },
+
         textLarge: {
             fontSize: variables.fontSizeLarge,
         },
@@ -485,6 +490,10 @@ const styles = (theme: ThemeColors) =>
 
         opacity0: {
             opacity: 0,
+        },
+
+        opacitySemiTransparent: {
+            opacity: 0.5,
         },
 
         opacity1: {
@@ -826,6 +835,8 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 1,
             borderRadius: variables.componentBorderRadiusSmall,
             borderColor: theme.border,
+            paddingHorizontal: 12,
+            minHeight: 28,
         },
 
         badgeText: {
@@ -833,6 +844,10 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeSmall,
             ...lineHeightBadge,
             ...whiteSpace.noWrap,
+        },
+
+        activeItemBadge: {
+            borderColor: theme.buttonHoveredBG,
         },
 
         border: {
@@ -1227,6 +1242,13 @@ const styles = (theme: ThemeColors) =>
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeLabel,
             color: theme.textSupporting,
+        },
+
+        textLabelSupportingNormal: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeLabel,
+            color: theme.textSupporting,
+            fontWeight: FontUtils.fontWeight.normal,
         },
 
         textLabelError: {
@@ -2619,7 +2641,7 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 13,
             fontSize: 13,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
-            fontWeight: 400,
+            fontWeight: '400',
             lineHeight: 16,
             color: theme.textSupporting,
         },
@@ -3046,7 +3068,7 @@ const styles = (theme: ThemeColors) =>
         smallEditIcon: {
             alignItems: 'center',
             backgroundColor: theme.buttonDefaultBG,
-            borderColor: theme.appBG,
+            borderColor: theme.cardBG,
             borderRadius: 20,
             borderWidth: 3,
             color: theme.textReversed,
@@ -3059,6 +3081,20 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             right: -8,
             bottom: -8,
+        },
+
+        primaryMediumIcon: {
+            alignItems: 'center',
+            backgroundColor: theme.buttonDefaultBG,
+            borderRadius: 20,
+            color: theme.textReversed,
+            height: 40,
+            width: 40,
+            justifyContent: 'center',
+        },
+
+        primaryMediumText: {
+            fontSize: variables.iconSizeNormal,
         },
 
         workspaceOwnerAvatarWrapper: {
@@ -3093,19 +3129,6 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.border,
             borderBottomWidth: 1,
             ...spacing.pb2,
-        },
-
-        peopleBadge: {
-            backgroundColor: theme.icon,
-            ...spacing.ph3,
-            ...spacing.ml3,
-        },
-
-        peopleBadgeText: {
-            color: theme.textReversed,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightNormal,
-            ...whiteSpace.noWrap,
         },
 
         offlineFeedback: {
@@ -3430,6 +3453,19 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.buttonBorderRadius,
             height: variables.componentSizeLarge,
             alignItems: 'center',
+        },
+
+        emptyCardSectionTitle: {
+            fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightXXLarge,
+            textAlign: 'center',
+        },
+
+        emptyCardSectionSubtitle: {
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightXLarge,
+            color: theme.textSupporting,
+            textAlign: 'center',
         },
 
         transferBalance: {
@@ -4211,6 +4247,17 @@ const styles = (theme: ThemeColors) =>
             marginHorizontal: 20,
         },
 
+        selectionListPressableItemWrapper: {
+            alignItems: 'center',
+            flexDirection: 'row',
+            paddingHorizontal: 16,
+            paddingVertical: 16,
+            marginHorizontal: 20,
+            marginBottom: 12,
+            backgroundColor: theme.highlightBG,
+            borderRadius: 8,
+        },
+
         draggableTopBar: {
             height: 30,
             width: '100%',
@@ -4281,6 +4328,11 @@ const styles = (theme: ThemeColors) =>
             position: 'relative',
             alignSelf: 'center',
             overflow: 'hidden',
+        },
+
+        walletCardNumber: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
         },
 
         walletCardMenuItem: {
@@ -4573,10 +4625,13 @@ const styles = (theme: ThemeColors) =>
             width: variables.updateTextViewContainerWidth,
         },
 
+        widthAuto: {
+            width: 'auto',
+        },
+
         workspaceTitleStyle: {
-            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontWeight: '500',
-            fontSize: variables.workspaceProfileName,
+            ...headlineFont,
+            fontSize: variables.fontSizeXLarge,
         },
     } satisfies Styles);
 

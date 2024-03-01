@@ -563,6 +563,7 @@ function ReportScreen({
                                     <ReportActionsView
                                         reportActions={reportActions}
                                         report={report}
+                                        parentReportAction={parentReportAction}
                                         isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
                                         isLoadingNewerReportActions={reportMetadata.isLoadingNewerReportActions}
                                         isLoadingOlderReportActions={reportMetadata.isLoadingOlderReportActions}
