@@ -29,11 +29,11 @@ type LogOutPreviousUserPageProps = LogOutPreviousUserPageOnyxProps & StackScreen
 //
 // This component should not do any other navigation as that handled in App.setUpPoliciesAndNavigate
 function LogOutPreviousUserPage({session, route, account}: LogOutPreviousUserPageProps) {
-    const initUrl = useContext(InitialUrlContext);
+    const initUrlFromOldApp = useContext(InitialUrlContext);
     useEffect(() => {
         Linking.getInitialURL().then((url) => {
             const sessionEmail = session?.email;
-            const transitionURL = NativeModules.HybridAppModule ? CONST.DEEPLINK_BASE_URL + initUrl : url;
+            const transitionURL = NativeModules.HybridAppModule ? `${CONST.DEEPLINK_BASE_URL}${initUrl}` : url;
             const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL ?? undefined, sessionEmail);
 
             if (isLoggingInAsNewUser) {
@@ -71,7 +71,10 @@ function LogOutPreviousUserPage({session, route, account}: LogOutPreviousUserPag
 LogOutPreviousUserPage.displayName = 'LogOutPreviousUserPage';
 
 export default withOnyx<LogOutPreviousUserPageProps, LogOutPreviousUserPageOnyxProps>({
-    account: {key: ONYXKEYS.ACCOUNT},
+    isAccountLoading: {
+        key: ONYXKEYS.ACCOUNT,
+        selector: (account) => account?.isLoading,
+    },
     session: {
         key: ONYXKEYS.SESSION,
     },
