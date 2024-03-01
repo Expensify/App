@@ -7,7 +7,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import searchCountryOptions from '@libs/searchCountryOptions';
 import type {CountryData} from '@libs/searchCountryOptions';
@@ -26,7 +25,6 @@ type RouteParams = {
 function StateSelectionPage() {
     const route = useRoute();
     const navigation = useNavigation();
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [searchValue, setSearchValue] = useState('');
