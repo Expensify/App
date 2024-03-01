@@ -18,6 +18,7 @@ function UserListItem({
     isDisabled,
     canSelectMultiple,
     onSelectRow,
+    onCheckboxPress,
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
@@ -41,6 +42,7 @@ function UserListItem({
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
+            onCheckboxPress={onCheckboxPress}
             onDismissError={onDismissError}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             rightHandSideComponent={rightHandSideComponent}
@@ -57,28 +59,25 @@ function UserListItem({
         >
             {(hovered) => (
                 <>
-                    {!!item.icons && (
-                        <>
-                            {item.shouldShowSubscript ? (
-                                <SubscriptAvatar
-                                    mainAvatar={item.icons[0]}
-                                    secondaryAvatar={item.icons[1]}
-                                    showTooltip={showTooltip}
-                                    backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                />
-                            ) : (
-                                <MultipleAvatars
-                                    icons={item.icons ?? []}
-                                    shouldShowTooltip={showTooltip}
-                                    secondAvatarStyle={[
-                                        StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                        isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                        hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                                    ]}
-                                />
-                            )}
-                        </>
-                    )}
+                    {!!item.icons &&
+                        (item.shouldShowSubscript ? (
+                            <SubscriptAvatar
+                                mainAvatar={item.icons[0]}
+                                secondaryAvatar={item.icons[1]}
+                                showTooltip={showTooltip}
+                                backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                            />
+                        ) : (
+                            <MultipleAvatars
+                                icons={item.icons ?? []}
+                                shouldShowTooltip={showTooltip}
+                                secondAvatarStyle={[
+                                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                                    isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                                    hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                                ]}
+                            />
+                        ))}
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
