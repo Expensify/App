@@ -265,5 +265,12 @@ describe('getViolationsOnyxData', () => {
             result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
             expect(result.value).toEqual([]);
         });
+        it('should return tagOutOfPolicy when a tag is not enabled in the policy but is set in the transaction', () => {
+            policyTags.Department.tags.Accounting.enabled = false;
+            transaction.tag = 'Accounting:Africa:Project1';
+            result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
+            const violation = {...tagOutOfPolicyViolation, data: {tagName: 'Department'}};
+            expect(result.value).toEqual([violation]);
+        });
     });
 });
