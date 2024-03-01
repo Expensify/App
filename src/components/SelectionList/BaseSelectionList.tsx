@@ -378,7 +378,7 @@ function BaseSelectionList<TItem extends ListItem>(
         CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER,
         (e) => {
             const focusedOption = flattenedSections.allOptions[focusedIndex];
-            if (onConfirm && (flattenedSections.selectedOptions.length || focusedOption)) {
+            if (onConfirm) {
                 onConfirm(e, focusedOption);
                 return;
             }

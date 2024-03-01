@@ -188,15 +188,18 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
      *
      * @param {Object} option
      */
-    const addSingleParticipant = (option) => {
-        onParticipantsAdded([
-            {
-                ..._.pick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText'),
-                selected: true,
-            },
-        ]);
-        onFinish();
-    };
+    const addSingleParticipant = useCallback(
+        (option) => {
+            onParticipantsAdded([
+                {
+                    ..._.pick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText'),
+                    selected: true,
+                },
+            ]);
+            onFinish();
+        },
+        [onFinish, onParticipantsAdded],
+    );
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
@@ -258,13 +261,22 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
     const isAllowedToSplit = iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE;
 
-    const handleConfirmSelection = useCallback(() => {
-        if (shouldShowSplitBillErrorMessage) {
-            return;
-        }
+    const handleConfirmSelection = useCallback(
+        (keyEvent, option) => {
+            const shouldAddSingleParticipant = option && keyEvent && 'key' in keyEvent && keyEvent.key === 'Enter' && !participants.length;
+            if (shouldShowSplitBillErrorMessage || (!participants.length && (!option || keyEvent.key !== 'Enter'))) {
+                return;
+            }
 
-        onFinish(CONST.IOU.TYPE.SPLIT);
-    }, [shouldShowSplitBillErrorMessage, onFinish]);
+            if (shouldAddSingleParticipant) {
+                addSingleParticipant(option);
+                return;
+            }
+
+            onFinish(CONST.IOU.TYPE.SPLIT);
+        },
+        [shouldShowSplitBillErrorMessage, onFinish, addSingleParticipant, participants],
+    );
 
     const footerContent = useMemo(
         () => (
