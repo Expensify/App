@@ -33,7 +33,7 @@ import playSoundExcludingMobile from '@libs/Sound/playSoundExcludingMobile';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {FrequentlyUsedEmoji, Policy} from '@src/types/onyx';
+import type {BlockedFromConcierge, FrequentlyUsedEmoji, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
@@ -46,8 +46,6 @@ import * as Link from './Link';
 import * as OnyxUpdates from './OnyxUpdates';
 import * as Report from './Report';
 import * as Session from './Session';
-
-type BlockedFromConciergeNVP = {expiresAt: number};
 
 let currentUserAccountID = -1;
 let currentEmail = '';
@@ -69,14 +67,6 @@ Onyx.connect({
 
         myPersonalDetails = value[currentUserAccountID];
     },
-});
-
-let allPolicies: OnyxCollection<Policy>;
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (value) => (allPolicies = value),
 });
 
 /**
@@ -455,7 +445,7 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string) {
  * and if so whether the expiresAt date of a user's ban is before right now
  *
  */
-function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromConciergeNVP>): boolean {
+function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromConcierge>): boolean {
     if (isEmptyObject(blockedFromConciergeNVP)) {
         return false;
     }
@@ -785,7 +775,7 @@ function generateStatementPDF(period: string) {
 /**
  * Sets a contact method / secondary login as the user's "Default" contact method.
  */
-function setContactMethodAsDefault(newDefaultContactMethod: string) {
+function setContactMethodAsDefault(newDefaultContactMethod: string, policies: OnyxCollection<Pick<Policy, 'id' | 'ownerAccountID' | 'owner'>>) {
     const oldDefaultContactMethod = currentEmail;
     const optimisticData: OnyxUpdate[] = [
         {
@@ -878,7 +868,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string) {
         },
     ];
 
-    Object.values(allPolicies ?? {}).forEach((policy) => {
+    Object.values(policies ?? {}).forEach((policy) => {
         if (policy?.ownerAccountID !== currentUserAccountID) {
             return;
         }

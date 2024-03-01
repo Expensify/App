@@ -1,4 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -71,6 +71,7 @@ function IOURequestStartPage({
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const navigation = useNavigation();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.requestMoney'),
@@ -120,10 +121,13 @@ function IOURequestStartPage({
             if (newIouType === previousIOURequestType) {
                 return;
             }
+            if (iouType === CONST.IOU.TYPE.SPLIT && transaction.isFromGlobalCreate) {
+                IOU.updateMoneyRequestTypeParams(navigation.getState().routes, CONST.IOU.TYPE.REQUEST, newIouType);
+            }
             IOU.initMoneyRequest(reportID, isFromGlobalCreate, newIouType);
             transactionRequestType.current = newIouType;
         },
-        [previousIOURequestType, reportID, isFromGlobalCreate],
+        [previousIOURequestType, reportID, isFromGlobalCreate, iouType, navigation, transaction.isFromGlobalCreate],
     );
 
     if (!transaction.transactionID) {
