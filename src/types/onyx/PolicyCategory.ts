@@ -21,7 +21,7 @@ type PolicyCategory = OnyxCommon.OnyxValueWithOfflineFeedback<{
     origin: string;
 
     /** A list of errors keyed by microtime */
-    errors?: OnyxCommon.Errors;
+    errors?: OnyxCommon.Errors | null;
 }>;
 
 type PolicyCategories = Record<string, PolicyCategory>;
