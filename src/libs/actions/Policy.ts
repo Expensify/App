@@ -24,6 +24,7 @@ import type {
     SetWorkspaceAutoReportingFrequencyParams,
     SetWorkspaceAutoReportingMonthlyOffsetParams,
     SetWorkspaceAutoReportingParams,
+    SetWorkspaceReimbursementParams,
     UpdateWorkspaceAvatarParams,
     UpdateWorkspaceCustomUnitAndRateParams,
     UpdateWorkspaceDescriptionParams,
@@ -558,6 +559,45 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
 
     const params: SetWorkspaceApprovalModeParams = {policyID, value: JSON.stringify(value)};
     API.write(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, params, {optimisticData, failureData, successData});
+}
+
+function setWorkspaceReimbursement(policyID: string, reimburserEmail: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>) {
+    const value = {reimburserEmail, reimbursementChoice};
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                ...value,
+                pendingFields: {reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {reimbursementChoice: null},
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {reimbursementChoice: null},
+            },
+        },
+    ];
+
+    const params: SetWorkspaceReimbursementParams = {policyID, value: JSON.stringify(value)};
+
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT, params, {optimisticData, failureData, successData});
 }
 
 /**
@@ -2536,4 +2576,5 @@ export {
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,
     clearCategoryErrors,
+    setWorkspaceReimbursement,
 };
