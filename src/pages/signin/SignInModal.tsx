@@ -25,7 +25,7 @@ function SignInModal({session}: SignInModalProps) {
         const isAnonymousUser = session?.authTokenType === 'anonymousAccount';
         if (!isAnonymousUser) {
             // Signing in RHP is only for anonymous users
-            Navigation.isNavigationReady().then(Navigation.dismissModal);
+            Navigation.isNavigationReady().then(() => Navigation.dismissModal());
         }
     }, [session?.authTokenType]);
 
