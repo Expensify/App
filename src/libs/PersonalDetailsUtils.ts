@@ -24,10 +24,10 @@ Onyx.connect({
     },
 });
 
-function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails> | null, defaultValue = '', shouldFallbackToHidden = true, shouldAddCurrentUserPostfix = false): string {
+function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails> | null, defaultValue = '', shouldFallbackToHidden = true, shouldUsePostfix = false, postfix = Localize.translateLocal('common.you').toLowerCase()): string {
     let displayName = passedPersonalDetails?.displayName ? passedPersonalDetails.displayName.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '') : '';
-    if (shouldAddCurrentUserPostfix) {
-        displayName = `${displayName} (${Localize.translateLocal('common.you').toLowerCase()})`;
+    if (shouldUsePostfix && !!displayName) {
+        displayName = `${displayName} (${postfix})`;
     }
 
     const fallbackValue = shouldFallbackToHidden ? Localize.translateLocal('common.hidden') : '';
