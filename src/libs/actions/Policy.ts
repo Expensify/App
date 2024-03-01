@@ -32,8 +32,8 @@ import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import * as NumberUtils from '@libs/NumberUtils';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as PhoneNumber from '@libs/PhoneNumber';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -392,6 +392,9 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 autoReporting: enabled,
+                harvesting: {
+                    enabled: true,
+                },
                 pendingFields: {isAutoApprovalEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             },
         },
@@ -403,7 +406,7 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 autoReporting: !enabled,
-                pendingFields: {isAutoApprovalEnabled: null},
+                pendingFields: {isAutoApprovalEnabled: null, harvesting: null},
             },
         },
     ];
@@ -413,7 +416,7 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                pendingFields: {isAutoApprovalEnabled: null},
+                pendingFields: {isAutoApprovalEnabled: null, harvesting: null},
             },
         },
     ];
@@ -647,7 +650,7 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
     Object.keys(invitedEmailsToAccountIDs).forEach((email) => {
         const accountID = invitedEmailsToAccountIDs[email];
         const cleanAccountID = Number(accountID);
-        const login = OptionsListUtils.addSMSDomainIfPhoneNumber(email);
+        const login = PhoneNumber.addSMSDomainIfPhoneNumber(email);
 
         const oldChat = ReportUtils.getChatByParticipantsAndPolicy([sessionAccountID, cleanAccountID], policyID);
 
@@ -728,7 +731,7 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
  */
 function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs, welcomeNote: string, policyID: string) {
     const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}` as const;
-    const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
+    const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
     const accountIDs = Object.values(invitedEmailsToAccountIDs);
 
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, accountIDs);
@@ -1399,6 +1402,12 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 customUnits,
+                areCategoriesEnabled: true,
+                areTagsEnabled: false,
+                areDistanceRatesEnabled: false,
+                areWorkflowsEnabled: false,
+                areReportFieldsEnabled: false,
+                areConnectionsEnabled: false,
             },
         },
         {
@@ -1800,6 +1809,12 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
         outputCurrency: CONST.CURRENCY.USD,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         customUnits,
+        areCategoriesEnabled: true,
+        areTagsEnabled: false,
+        areDistanceRatesEnabled: false,
+        areWorkflowsEnabled: false,
+        areReportFieldsEnabled: false,
+        areConnectionsEnabled: false,
     };
 
     const optimisticData: OnyxUpdate[] = [
