@@ -22,9 +22,6 @@ import setCursorPosition from './setCursorPosition';
 type MinHrRefs = {hourRef: TextInput | null; minuteRef: TextInput | null};
 
 type TimePickerProps = {
-    /** Refs forwarded to the TextInputWithCurrencySymbol */
-    forwardedRef?: ForwardedRef<MinHrRefs>;
-
     /** Default value for the inputs */
     defaultValue?: string;
 
@@ -106,7 +103,7 @@ function clearSelectedValue(value: string, selection: {start: number; end: numbe
     setSelection({start: newCursorPosition, end: newCursorPosition});
 }
 
-function TimePicker({forwardedRef, defaultValue = '', onSubmit, onInputChange = () => {}}: TimePickerProps) {
+function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: TimePickerProps, ref: ForwardedRef<MinHrRefs>) {
     const {numberFormat, translate} = useLocalize();
     const {isExtraSmallScreenHeight} = useWindowDimensions();
     const styles = useThemeStyles();
@@ -450,14 +447,14 @@ function TimePicker({forwardedRef, defaultValue = '', onSubmit, onInputChange = 
                             lastPressedKey.current = e.nativeEvent.key;
                         }}
                         onChangeAmount={handleHourChange}
-                        ref={(ref) => {
-                            if (typeof forwardedRef === 'function') {
-                                forwardedRef({hourRef: ref as TextInput | null, minuteRef: minuteInputRef.current});
-                            } else if (forwardedRef && 'current' in forwardedRef) {
+                        ref={(tempRef) => {
+                            if (typeof ref === 'function') {
+                                ref({hourRef: tempRef as TextInput | null, minuteRef: minuteInputRef.current});
+                            } else if (ref && 'current' in ref) {
                                 // eslint-disable-next-line no-param-reassign
-                                forwardedRef.current = {hourRef: ref as TextInput | null, minuteRef: minuteInputRef.current};
+                                ref.current = {hourRef: tempRef as TextInput | null, minuteRef: minuteInputRef.current};
                             }
-                            hourInputRef.current = ref as TextInput | null;
+                            hourInputRef.current = tempRef as TextInput | null;
                         }}
                         onSelectionChange={(e) => {
                             setSelectionHour(e.nativeEvent.selection);
@@ -475,15 +472,15 @@ function TimePicker({forwardedRef, defaultValue = '', onSubmit, onInputChange = 
                             handleFocusOnBackspace(e);
                         }}
                         onChangeAmount={handleMinutesChange}
-                        ref={(ref) => {
-                            if (typeof forwardedRef === 'function') {
-                                forwardedRef({hourRef: hourInputRef.current, minuteRef: ref as TextInput | null});
-                            } else if (forwardedRef && 'current' in forwardedRef) {
+                        ref={(tempRef) => {
+                            if (typeof ref === 'function') {
+                                ref({hourRef: hourInputRef.current, minuteRef: tempRef as TextInput | null});
+                            } else if (ref && 'current' in ref) {
                                 // eslint-disable-next-line no-param-reassign
-                                forwardedRef.current = {hourRef: hourInputRef.current, minuteRef: ref as TextInput | null};
+                                ref.current = {hourRef: hourInputRef.current, minuteRef: tempRef as TextInput | null};
                             }
-                            minuteInputRef.current = ref as TextInput | null;
-                            inputCallbackRef(ref as TextInput | null);
+                            minuteInputRef.current = tempRef as TextInput | null;
+                            inputCallbackRef(tempRef as TextInput | null);
                         }}
                         onSelectionChange={(e) => {
                             setSelectionMinute(e.nativeEvent.selection);
@@ -549,12 +546,4 @@ function TimePicker({forwardedRef, defaultValue = '', onSubmit, onInputChange = 
 
 TimePicker.displayName = 'TimePicker';
 
-const TimePickerWithRef = React.forwardRef((props: Omit<TimePickerProps, 'forwardedRef'>, ref: ForwardedRef<MinHrRefs>) => (
-    <TimePicker
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
-
-export default TimePickerWithRef;
+export default React.forwardRef(TimePicker);
