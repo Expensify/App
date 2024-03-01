@@ -46,15 +46,29 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, 
     const [headerMessage, setHeaderMessage] = useState('');
 
     const sections = useMemo(() => {
-        const filteredRecentOptions = recentlyUsedOptions.filter((option) => option.toLowerCase().includes(searchValue.toLowerCase()));
-        const filteredRestOfOptions = fieldOptions.filter((option) => !filteredRecentOptions.includes(option) && option.toLowerCase().includes(searchValue.toLowerCase()));
-        setHeaderMessage(!filteredRecentOptions.length && !filteredRestOfOptions.length ? translate('common.noResultsFound') : '');
+        if (searchValue) {
+            const filteredOptions = fieldOptions.filter((option) => option.toLowerCase().includes(searchValue.toLowerCase()));
+            setHeaderMessage(!filteredOptions.length ? translate('common.noResultsFound') : '');
+            return [
+                {
+                    shouldShow: false,
+                    data: filteredOptions.map((option) => ({
+                        text: option,
+                        keyForList: option,
+                        searchText: option,
+                        tooltipText: option,
+                    })),
+                },
+            ];
+        }
 
+        const restOfOptions = fieldOptions.filter((option) => !recentlyUsedOptions.includes(option));
+        setHeaderMessage(!restOfOptions.length && !recentlyUsedOptions.length ? translate('common.noResultsFound') : '');
         return [
             {
                 title: translate('common.recents'),
-                shouldShow: filteredRecentOptions.length > 0,
-                data: filteredRecentOptions.map((option) => ({
+                shouldShow: recentlyUsedOptions.length > 0,
+                data: recentlyUsedOptions.map((option) => ({
                     text: option,
                     keyForList: option,
                     searchText: option,
@@ -63,8 +77,8 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, 
             },
             {
                 title: translate('common.all'),
-                shouldShow: filteredRestOfOptions.length > 0,
-                data: filteredRestOfOptions.map((option) => ({
+                shouldShow: restOfOptions.length > 0,
+                data: restOfOptions.map((option) => ({
                     text: option,
                     keyForList: option,
                     searchText: option,
