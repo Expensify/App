@@ -20,31 +20,29 @@ function NewChatSelectorPage() {
             shouldEnableMaxHeight
             testID={NewChatSelectorPage.displayName}
         >
-            <>
-                <HeaderWithBackButton
-                    title={translate('sidebarScreen.fabNewChat')}
-                    onBackButtonPress={Navigation.dismissModal}
+            <HeaderWithBackButton
+                title={translate('sidebarScreen.fabNewChat')}
+                onBackButtonPress={Navigation.dismissModal}
+            />
+            <OnyxTabNavigator
+                id={CONST.TAB.NEW_CHAT_TAB_ID}
+                tabBar={({state, navigation, position}) => (
+                    <TabSelector
+                        state={state}
+                        navigation={navigation}
+                        position={position}
+                    />
+                )}
+            >
+                <TopTab.Screen
+                    name={CONST.TAB.NEW_CHAT}
+                    component={NewChatPage}
                 />
-                <OnyxTabNavigator
-                    id={CONST.TAB.NEW_CHAT_TAB_ID}
-                    tabBar={({state, navigation, position}) => (
-                        <TabSelector
-                            state={state}
-                            navigation={navigation}
-                            position={position}
-                        />
-                    )}
-                >
-                    <TopTab.Screen
-                        name={CONST.TAB.NEW_CHAT}
-                        component={NewChatPage}
-                    />
-                    <TopTab.Screen
-                        name={CONST.TAB.NEW_ROOM}
-                        component={WorkspaceNewRoomPage}
-                    />
-                </OnyxTabNavigator>
-            </>
+                <TopTab.Screen
+                    name={CONST.TAB.NEW_ROOM}
+                    component={WorkspaceNewRoomPage}
+                />
+            </OnyxTabNavigator>
         </ScreenWrapper>
     );
 }
