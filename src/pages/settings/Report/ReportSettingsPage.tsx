@@ -43,6 +43,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
 
     const writeCapabilityText = translate(`writeCapabilityPage.writeCapability.${writeCapability}`);
     const shouldAllowWriteCapabilityEditing = useMemo(() => ReportUtils.canEditWriteCapability(report, linkedWorkspace), [report, linkedWorkspace]);
+    const shouldAllowChangeVisibility = useMemo(() => ReportUtils.canEditRoomVisibility(report, linkedWorkspace), [report, linkedWorkspace]);
 
     const shouldShowNotificationPref = !isMoneyRequestReport && report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const roomNameLabel = translate(isMoneyRequestReport ? 'workspace.editor.nameInputLabel' : 'newRoomPage.roomName');
@@ -141,8 +142,17 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                                 />
                             </View>
                         )}
-                        {report?.visibility !== undefined && (
-                            <View style={[styles.pv3]}>
+                    </View>
+                    {report?.visibility !== undefined &&
+                        (shouldAllowChangeVisibility ? (
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={translate(`newRoomPage.visibilityOptions.${report.visibility}`)}
+                                description={translate('newRoomPage.visibility')}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_VISIBILITY.getRoute(report.reportID))}
+                            />
+                        ) : (
+                            <View style={[styles.pv3, styles.ph5]}>
                                 <Text
                                     style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
                                     numberOfLines={1}
@@ -157,8 +167,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                                 </Text>
                                 <Text style={[styles.textLabelSupporting, styles.mt1]}>{translate(`newRoomPage.${report.visibility}Description`)}</Text>
                             </View>
-                        )}
-                    </View>
+                        ))}
                 </ScrollView>
             </FullPageNotFoundView>
         </ScreenWrapper>
