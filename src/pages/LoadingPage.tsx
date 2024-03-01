@@ -1,28 +1,24 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-const propTypes = {
+type LoadingPageProps = {
     /** Method to trigger when pressing back button of the header */
-    onBackButtonPress: PropTypes.func,
-    title: PropTypes.string.isRequired,
+    onBackButtonPress?: () => void;
+
+    title: string;
 };
 
-const defaultProps = {
-    onBackButtonPress: undefined,
-};
-
-function LoadingPage(props) {
+function LoadingPage({onBackButtonPress, title}: LoadingPageProps) {
     const styles = useThemeStyles();
     return (
         <ScreenWrapper testID={LoadingPage.displayName}>
             <HeaderWithBackButton
-                onBackButtonPress={props.onBackButtonPress}
+                onBackButtonPress={onBackButtonPress}
                 shouldShowBackButton
-                title={props.title}
+                title={title}
             />
             <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
         </ScreenWrapper>
@@ -30,7 +26,5 @@ function LoadingPage(props) {
 }
 
 LoadingPage.displayName = 'LoadingPage';
-LoadingPage.propTypes = propTypes;
-LoadingPage.defaultProps = defaultProps;
 
 export default LoadingPage;

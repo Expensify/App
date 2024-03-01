@@ -254,6 +254,10 @@ function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActions
         return false;
     }
 
+    if (!lodashIsEqual(oldProps.parentReportAction, newProps.parentReportAction)) {
+        return false;
+    }
+
     if (oldProps.session?.authTokenType !== newProps.session?.authTokenType) {
         return false;
     }
