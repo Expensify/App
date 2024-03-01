@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
 import * as Emojis from '@assets/emojis';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
@@ -11,9 +10,13 @@ import CONST from '@src/CONST';
 import EmojiPickerMenuItem from './EmojiPickerMenuItem';
 import getSkinToneEmojiFromIndex from './getSkinToneEmojiFromIndex';
 
+type SkinToneEmoji = {
+    skinTone: number,
+}
+
 function EmojiSkinToneList() {
     const styles = useThemeStyles();
-    const [highlightedIndex, setHighlightedIndex] = useState(null);
+    const [highlightedIndex, setHighlightedIndex] = useState<number | null>(null);
     const [isSkinToneListVisible, setIsSkinToneListVisible] = useState(false);
     const {translate} = useLocalize();
     const [preferredSkinTone, setPreferredSkinTone] = usePreferredEmojiSkinTone();
@@ -24,11 +27,13 @@ function EmojiSkinToneList() {
 
     /**
      * Set the preferred skin tone in Onyx and close the skin tone picker
-     * @param {object} skinToneEmoji
+     * @param skinToneEmoji
      */
-    function updateSelectedSkinTone(skinToneEmoji) {
+    function updateSelectedSkinTone(skinToneEmoji: SkinToneEmoji) {
         setHighlightedIndex(skinToneEmoji.skinTone);
-        setPreferredSkinTone(skinToneEmoji.skinTone);
+        if(typeof setPreferredSkinTone === 'function') {
+            setPreferredSkinTone(skinToneEmoji.skinTone);
+        }
     }
 
     useEffect(() => {
@@ -39,7 +44,7 @@ function EmojiSkinToneList() {
         // eslint-disable-next-line react-hooks/exhaustive-deps -- only run when preferredSkinTone updates
     }, [preferredSkinTone]);
 
-    const currentSkinTone = getSkinToneEmojiFromIndex(preferredSkinTone);
+    const currentSkinTone = getSkinToneEmojiFromIndex(preferredSkinTone as number);
     return (
         <View style={[styles.flexRow, styles.p3, styles.ph4, styles.emojiPickerContainer]}>
             {!isSkinToneListVisible && (
