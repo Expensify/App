@@ -2204,7 +2204,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
 }
 
 function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Record<string, {name: string; enabled: boolean}>) {
-    const policyCategories = allPolicyCategories?.[policyID] ?? {};
+    const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -2216,7 +2216,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
                         acc[key] = {
                             ...policyCategories[key],
                             ...categoriesToUpdate[key],
-                            errors: {},
+                            errors: null,
                             pendingFields: {
                                 enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             },
@@ -2236,7 +2236,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
                         acc[key] = {
                             ...policyCategories[key],
                             ...categoriesToUpdate[key],
-                            errors: {},
+                            errors: null,
                             pendingFields: {
                                 enabled: null,
                             },
@@ -2277,7 +2277,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
     API.write('SetWorkspaceCategoriesEnabled', parameters, onyxData);
 }
 
-const setWorkspaceRequiresCategory = (policyID: string, requiresCategory: boolean) => {
+function setWorkspaceRequiresCategory(policyID: string, requiresCategory: boolean) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -2329,7 +2329,21 @@ const setWorkspaceRequiresCategory = (policyID: string, requiresCategory: boolea
     };
 
     API.write('SetWorkspaceRequiresCategory', parameters, onyxData);
-};
+}
+
+function clearCategoryErrors(policyID: string, categoryName: string) {
+    const category = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName];
+
+    if (!category) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {
+        [category.name]: {
+            errors: null,
+        },
+    });
+}
 
 export {
     removeMembers,
@@ -2376,4 +2390,5 @@ export {
     updateWorkspaceDescription,
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,
+    clearCategoryErrors,
 };
