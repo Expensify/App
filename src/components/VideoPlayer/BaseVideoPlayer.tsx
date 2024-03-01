@@ -16,7 +16,6 @@ import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as Browser from '@libs/Browser';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
-import {videoPlayerDefaultProps, videoPlayerPropTypes} from './propTypes';
 import shouldReplayVideo from './shouldReplayVideo';
 import type VideoPlayerProps from './types';
 import VideoPlayerControls from './VideoPlayerControls';
@@ -277,8 +276,6 @@ function BaseVideoPlayer({
     );
 }
 
-BaseVideoPlayer.propTypes = videoPlayerPropTypes;
-BaseVideoPlayer.defaultProps = videoPlayerDefaultProps;
 BaseVideoPlayer.displayName = 'BaseVideoPlayer';
 
 export default BaseVideoPlayer;
