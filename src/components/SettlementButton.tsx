@@ -136,9 +136,11 @@ function SettlementButton({
 
     const policy = ReportUtils.getPolicy(policyID);
     const session = useSession();
+    const chatReport = ReportUtils.getReport(chatReportID);
+    const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicy(iouReport as OnyxEntry<Report>) || ReportUtils.isPaidGroupPolicyExpenseChat(chatReport as OnyxEntry<Report>);
     const shouldShowPaywithExpensifyOption =
-        !shouldHidePaymentOptions && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && policy?.reimburserEmail === session?.email;
-
+        !isPaidGroupPolicy ||
+        (!shouldHidePaymentOptions && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && policy?.reimburserEmail === session?.email);
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
         const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
@@ -195,7 +197,6 @@ function SettlementButton({
         // We don't want to reorder the options when the preferred payment method changes while the button is still visible
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currency, formattedAmount, iouReport, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton]);
-
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
             triggerKYCFlow(event, iouPaymentType);
