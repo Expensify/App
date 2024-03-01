@@ -1780,6 +1780,7 @@ export default {
             collect: 'Recolectar',
         },
         categories: {
+            categoryName: 'Nombre de la categoría',
             requiresCategory: 'Los miembros deben categorizar todos los gastos',
             enableCategory: 'Activar categoría',
             subtitle: 'Obtén una visión general de dónde te gastas el dinero. Utiliza las categorías predeterminadas o añade las tuyas propias.',
@@ -1787,6 +1788,7 @@ export default {
                 title: 'No has creado ninguna categoría',
                 subtitle: 'Añade una categoría para organizar tu gasto.',
             },
+            genericFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
         },
         emptyWorkspace: {
             title: 'Crea un espacio de trabajo',

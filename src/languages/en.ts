@@ -1756,6 +1756,7 @@ export default {
             collect: 'Collect',
         },
         categories: {
+            categoryName: 'Category name',
             requiresCategory: 'Members must categorize all spend',
             enableCategory: 'Enable category',
             subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
@@ -1763,6 +1764,7 @@ export default {
                 title: "You haven't created any categories",
                 subtitle: 'Add a category to organize your spend.',
             },
+            genericFailureMessage: 'An error occurred while updating the category, please try again.',
         },
         emptyWorkspace: {
             title: 'Create a workspace',
