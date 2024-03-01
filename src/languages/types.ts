@@ -99,13 +99,14 @@ type ReportArchiveReasonsPolicyDeletedParams = {
 type RequestCountParams = {
     count: number;
     scanningReceipts: number;
+    pendingReceipts: number;
 };
 
 type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
 
-type RequestAmountParams = {amount: number};
+type RequestAmountParams = {amount: string};
 
 type RequestedAmountMessageParams = {formattedAmount: string; comment?: string};
 
@@ -157,7 +158,7 @@ type EnterMagicCodeParams = {contactMethod: string};
 
 type TransferParams = {amount: string};
 
-type InstantSummaryParams = {rate: number; minAmount: number};
+type InstantSummaryParams = {rate: string; minAmount: string};
 
 type NotYouParams = {user: string};
 
@@ -195,7 +196,7 @@ type OOOEventSummaryFullDayParams = {summary: string; dayCount: number; date: st
 
 type OOOEventSummaryPartialDayParams = {summary: string; timePeriod: string; date: string};
 
-type ParentNavigationSummaryParams = {rootReportName?: string; workspaceName?: string};
+type ParentNavigationSummaryParams = {reportName?: string; workspaceName?: string};
 
 type SetTheRequestParams = {valueName: string; newValueToDisplay: string};
 
@@ -292,6 +293,8 @@ type TermsParams = {amount: string};
 type ElectronicFundsParams = {percentage: string; amount: string};
 
 type LogSizeParams = {size: number};
+
+type HeldRequestParams = {comment: string};
 
 export type {
     AdminCanceledRequestParams,
@@ -395,4 +398,5 @@ export type {
     WelcomeToRoomParams,
     ZipCodeExampleFormatParams,
     LogSizeParams,
+    HeldRequestParams,
 };

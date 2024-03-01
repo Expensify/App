@@ -1,5 +1,5 @@
-const execAsync = require('../utils/execAsync');
-const Logger = require('../utils/logger');
+import execAsync from '../utils/execAsync';
+import * as Logger from '../utils/logger';
 
 const adbBackspace = async () => {
     Logger.log(`🔙 Pressing backspace`);
@@ -7,4 +7,4 @@ const adbBackspace = async () => {
     return true;
 };
 
-module.exports = adbBackspace;
+export default adbBackspace;
