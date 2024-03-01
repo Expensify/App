@@ -95,7 +95,6 @@ function isCreatedAction(reportAction: OnyxEntry<ReportAction>): boolean {
 }
 
 function isDeletedAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): boolean {
-    // A deleted comment has either an empty array or an object with html field with empty string as value
     const message = reportAction?.message ?? [];
 
     // A legacy deleted comment has either an empty array or an object with html field with empty string as value
