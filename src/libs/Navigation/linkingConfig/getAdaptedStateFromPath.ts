@@ -182,6 +182,11 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             // If the root route is type of FullScreenNavigator, the default bottom tab will be added.
             const matchingBottomTabRoute = getMatchingBottomTabRouteForState({routes: [matchingRootRoute]});
             routes.push(createBottomTabNavigator(matchingBottomTabRoute, policyID));
+            // When we open a screen in RHP from FullScreenNavigator, we need to add the appropriate screen in CentralPane.
+            // Then, when we close FullScreenNavigator, we will be redirected to the correct page in CentralPane.
+            if (matchingRootRoute.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR) {
+                routes.push(createCentralPaneNavigator({name: SCREENS.SETTINGS.WORKSPACES}));
+            }
             if (!isNarrowLayout || !isRHPScreenOpenedFromLHN) {
                 routes.push(matchingRootRoute);
             }
