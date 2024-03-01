@@ -828,25 +828,17 @@ function inviteMemberToWorkspace(policyID: string, invitedEmail: string) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: memberJoinKey,
-            value: {},
-        },
-    ];
-
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: memberJoinKey,
-            value: failureMembersState,
+            value: {...failureMembersState, errors: ErrorUtils.getMicroSecondOnyxError('common.genericEditFailureMessage')},
         },
     ];
 
     const params = {policyID, invitedEmail};
 
-    API.write(WRITE_COMMANDS.JOIN_POLICY_VIA_INVITE_LINK, params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.JOIN_POLICY_VIA_INVITE_LINK, params, {optimisticData, failureData});
 
     // When API will return reportID for invited user in the same domain - code below should be uncommented - will be in future tickets
     // if (!isSamePrivateDomain) {
@@ -2300,6 +2292,78 @@ const setWorkspaceRequiresCategory = (policyID: string, requiresCategory: boolea
     API.write('SetWorkspaceRequiresCategory', parameters, onyxData);
 };
 
+/**
+ * Accept user join request to a workspace
+ */
+function acceptJoinRequest(reportId: string, accountID: string, adminsRoomMessageReportActionID: string) {
+    const choice  = 'accept';
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            value: {
+                [adminsRoomMessageReportActionID]: {
+                    originalMessage: {choice},
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            value: {
+                [adminsRoomMessageReportActionID]: {
+                    originalMessage: {choice: ''},
+                },
+            },
+        },
+    ];
+
+    const parameters = {
+        requests: [{policyID: {accountID, adminsRoomMessageReportActionID}}],
+    };
+
+    API.write(WRITE_COMMANDS.ACCEPT_JOIN_REQUEST, parameters, {optimisticData, failureData});
+}
+
+/**
+ * Decline user join request to a workspace
+ */
+function declineJoinRequest(reportId: string, accountID: string, adminsRoomMessageReportActionID: string) {
+    const choice = 'decline';
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            value: {
+                [adminsRoomMessageReportActionID]: {
+                    originalMessage: {choice},
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            value: {
+                [adminsRoomMessageReportActionID]: {
+                    originalMessage: {choice: ''},
+                },
+            },
+        },
+    ];
+
+    const parameters = {
+        requests: [{policyID: {accountID, adminsRoomMessageReportActionID}}],
+    };
+
+    API.write(WRITE_COMMANDS.DECLINE_JOIN_REQUEST, parameters, {optimisticData, failureData});
+}
+
 export {
     removeMembers,
     addMembersToWorkspace,
@@ -2345,4 +2409,6 @@ export {
     updateWorkspaceDescription,
     setWorkspaceRequiresCategory,
     inviteMemberToWorkspace,
+    acceptJoinRequest,
+    declineJoinRequest
 };

@@ -154,12 +154,34 @@ function WorkspacesListRow({
                 </Text>
                 {isNarrow && (
                     <>
-                        <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
-                        <ThreeDotsMenu
-                            menuItems={menuItems}
-                            anchorPosition={{horizontal: 0, vertical: 0}}
-                            disabled={shouldDisableThreeDotsMenu}
-                        />
+                        {!isJoinRequestPending ? (
+                            <>
+                                <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
+                                <ThreeDotsMenu
+                                    menuItems={menuItems}
+                                    anchorPosition={{horizontal: 0, vertical: 0}}
+                                    disabled={shouldDisableThreeDotsMenu}
+                                />
+                            </>
+                        ) : (
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.border, styles.pv1, styles.pl1, styles.pr2]}>
+                                <Icon
+                                    src={Expensicons.Hourglass}
+                                    fill={theme.icon}
+                                    width={variables.iconSizeExtraSmall}
+                                    height={variables.iconSizeExtraSmall}
+                                    additionalStyles={styles.workspaceTypeWrapper}
+                                />
+                                <View style={styles.flex1}>
+                                    <Text
+                                        numberOfLines={1}
+                                        style={styles.labelStrong}
+                                    >
+                                        {translate('workspace.common.requested')}
+                                    </Text>
+                                </View>
+                            </View>
+                        )}
                     </>
                 )}
             </View>
@@ -188,7 +210,7 @@ function WorkspacesListRow({
                     </>
                 )}
             </View>
-            <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
+            <View style={[styles.flexRow, isWide && !isJoinRequestPending && styles.flex1, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
                 <Icon
                     src={workspaceTypeIcon(workspaceType)}
                     width={variables.workspaceTypeIconWidth}
@@ -209,55 +231,51 @@ function WorkspacesListRow({
                         {translate('workspace.common.plan')}
                     </Text>
                 </View>
-                {isJoinRequestPending && (
-                    <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.border, styles.pv1, styles.pl1, styles.pr2]}>
-                            <Icon
-                                src={Expensicons.Hourglass}
-                                fill={theme.icon}
-                                width={variables.iconSizeExtraSmall}
-                                height={variables.iconSizeExtraSmall}
-                                additionalStyles={styles.workspaceTypeWrapper}
-                            />
-                            <View style={styles.flex1}>
-                                <Text
-                                    numberOfLines={1}
-                                    style={styles.labelStrong}
-                                >
-                                    {translate('workspace.common.requested')}
-                                </Text>
-                            </View>
+            </View>
+            {isJoinRequestPending && !isNarrow && (
+                <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.flex1, styles.justifyContentEnd, styles.mln4, styles.pr2]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.border, styles.pv1, styles.pl1, styles.pr2]}>
+                        <Icon
+                            src={Expensicons.Hourglass}
+                            fill={theme.icon}
+                            width={variables.iconSizeExtraSmall}
+                            height={variables.iconSizeExtraSmall}
+                            additionalStyles={styles.workspaceTypeWrapper}
+                        />
+                        <View style={styles.flex1}>
+                            <Text
+                                numberOfLines={1}
+                                style={styles.labelStrong}
+                            >
+                                {translate('workspace.common.requested')}
+                            </Text>
                         </View>
                     </View>
-                )}
-            </View>
+                </View>
+            )}
 
-            {isWide && (
+            {isWide && !isJoinRequestPending && (
                 <>
                     <View style={[styles.flexRow, styles.flex0, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
                         <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
                     </View>
                     <View ref={threeDotsMenuContainerRef}>
-                        {!isJoinRequestPending ? (
-                            <ThreeDotsMenu
-                                onIconPress={() => {
-                                    threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
-                                        setThreeDotsMenuPosition({
-                                            horizontal: x + width,
-                                            vertical: y + height,
-                                        });
+                        <ThreeDotsMenu
+                            onIconPress={() => {
+                                threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
+                                    setThreeDotsMenuPosition({
+                                        horizontal: x + width,
+                                        vertical: y + height,
                                     });
-                                }}
-                                menuItems={menuItems}
-                                anchorPosition={threeDotsMenuPosition}
-                                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                                iconStyles={[styles.mr2]}
-                                shouldOverlay
-                                disabled={shouldDisableThreeDotsMenu}
-                            />
-                        ) : (
-                            <View style={[styles.touchableButtonImage, styles.mr2]} />
-                        )}
+                                });
+                            }}
+                            menuItems={menuItems}
+                            anchorPosition={threeDotsMenuPosition}
+                            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                            iconStyles={[styles.mr2]}
+                            shouldOverlay
+                            disabled={shouldDisableThreeDotsMenu}
+                        />
                     </View>
                 </>
             )}

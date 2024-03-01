@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -28,24 +28,26 @@ type WorkspaceJoinUserPageProps = WorkspaceJoinUserPageRoute & WorkspaceJoinUser
 function WorkspaceJoinUserPage({route, policies}: WorkspaceJoinUserPageProps) {
     const styles = useThemeStyles();
     const policyID = route?.params?.policyID;
-    const invitedEmail = route?.params?.email;
+    // const invitedEmail = route?.params?.email;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const policy = ReportUtils.getPolicy(policyID);
-    const isPolicyMember = useMemo(() => (policyID ? PolicyUtils.isPolicyMember(policyID, policies as Record<string, Policy>) : false), [policyID, policies]);
+    const executedRef = useRef(false);
 
     useEffect(() => {
-        if (!currentUserPersonalDetails.login || !policy || !policies) {
+        if (!currentUserPersonalDetails.login || !policy || !policies || executedRef?.current) {
             return;
         }
-        if (!policy?.isPreventSelfApprovalEnabled || isPolicyMember || currentUserPersonalDetails.login !== invitedEmail) {
+        const isPolicyMember = PolicyUtils.isPolicyMember(policyID, policies as Record<string, Policy>)
+        if (isPolicyMember) {
             Navigation.goBack(undefined, false, true);
             return;
         }
-        // Will be used later when API return reportId to invited member with the same domain
+        // Will be used later when API return reportID to invited member with the same domain
         // const isSamePrivateDomain = policy?.owner ? areEmailsFromSamePrivateDomain(currentUserPersonalDetails.login, policy?.owner) : false;
-        PolicyAction.inviteMemberToWorkspace(policyID, invitedEmail);
-        Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
-    }, [currentUserPersonalDetails.login, policy, policyID, policies, isPolicyMember, invitedEmail]);
+        PolicyAction.inviteMemberToWorkspace(policyID, currentUserPersonalDetails?.login);
+        executedRef.current = true;
+        Navigation.navigate(ROUTES.ALL_SETTINGS);
+    }, [currentUserPersonalDetails?.login, policy, policyID, policies]);
 
     return (
         <ScreenWrapper testID={WorkspaceJoinUserPage.displayName}>

@@ -888,7 +888,7 @@ function isCurrentActionUnread(report: Report | EmptyObject, reportAction: Repor
  * Checks if a given report action corresponds to join user to the workspace.
  * @param reportAction
  */
-function isActionableJoinWorkspaceRequest(reportAction: OnyxEntry<ReportAction>): boolean {
+function isActionableJoinRequest(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLEJOINREQUEST;
 }
 
@@ -944,7 +944,7 @@ export {
     isActionableMentionWhisper,
     getActionableMentionWhisperMessage,
     isCurrentActionUnread,
-    isActionableJoinWorkspaceRequest,
+    isActionableJoinRequest,
 };
 
 export type {LastVisibleMessage};

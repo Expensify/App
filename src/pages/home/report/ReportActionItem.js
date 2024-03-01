@@ -56,6 +56,7 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as store from '@userActions/ReimbursementAccount/store';
 import * as Report from '@userActions/Report';
+import * as Policy from '@userActions/Policy';
 import * as ReportActions from '@userActions/ReportActions';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
@@ -328,25 +329,26 @@ function ReportActionItem(props) {
     const actionableItemButtons = useMemo(() => {
         if (
             !(
-                (ReportActionsUtils.isActionableMentionWhisper(props.action) || ReportActionsUtils.isActionableJoinWorkspaceRequest(props.action)) &&
+                (ReportActionsUtils.isActionableMentionWhisper(props.action) || ReportActionsUtils.isActionableJoinRequest(props.action)) &&
                 !lodashGet(props.action, 'originalMessage.resolution', null)
             )
         ) {
             return [];
         }
 
-        if (ReportActionsUtils.isActionableJoinWorkspaceRequest(props.action)) {
+        if (ReportActionsUtils.isActionableJoinRequest(props.action)) {
+            console.log(props.action)
             return [
                 {
                     text: 'actionableMentionJoinWorkspaceOptions.accept',
                     key: `${props.action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT}`,
-                    onPress: () => Report.acceptJoinRequest(props.report.reportID, props.action.originalMessage.accountID, props.action.reportActionID),
+                    onPress: () => Policy.acceptJoinRequest(props.report.reportID, props.action.actorAccountID, props.action.reportActionID),
                     isPrimary: true,
                 },
                 {
                     text: 'actionableMentionJoinWorkspaceOptions.decline',
                     key: `${props.action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.DECLINE}`,
-                    onPress: () => Report.declineJoinRequest(props.report.reportID, props.action.originalMessage.accountID, props.action.reportActionID),
+                    onPress: () => Policy.declineJoinRequest(props.report.reportID, props.action.actorAccountID, props.action.reportActionID),
                 },
             ];
         }
