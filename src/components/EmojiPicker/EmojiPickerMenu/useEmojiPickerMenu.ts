@@ -1,14 +1,14 @@
+import type {FlashList} from '@shopify/flash-list';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import {useAnimatedRef} from 'react-native-reanimated';
 import emojis from '@assets/emojis';
+import type {PickerEmoji, PickerEmojis} from '@assets/emojis/types';
 import {useFrequentlyUsedEmojis} from '@components/OnyxProvider';
 import useLocalize from '@hooks/useLocalize';
 import usePreferredEmojiSkinTone from '@hooks/usePreferredEmojiSkinTone';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as EmojiUtils from '@libs/EmojiUtils';
-import type {PickerEmoji, PickerEmojis} from '@assets/emojis/types';
-import type {FlashList} from '@shopify/flash-list';
 
 const useEmojiPickerMenu = () => {
     const emojiListRef = useAnimatedRef<FlashList<PickerEmoji>>();
@@ -73,4 +73,3 @@ const useEmojiPickerMenu = () => {
 };
 
 export default useEmojiPickerMenu;
-

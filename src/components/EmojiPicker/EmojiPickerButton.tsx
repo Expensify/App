@@ -5,30 +5,30 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import withNavigationFocus from '@components/withNavigationFocus';
 import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
-import useLocalize from '@hooks/useLocalize';
 
 type EmojiPickerButtonProps = WithNavigationFocusProps & {
     /** Flag to disable the emoji picker button */
-    isDisabled?: boolean,
+    isDisabled?: boolean;
 
     /** Id to use for the emoji picker button */
-    id?: string,
+    id?: string;
 
     /** Unique id for emoji picker */
-    emojiPickerID?: string,
+    emojiPickerID?: string;
 
     /** Emoji popup anchor offset shift vertical */
-    shiftVertical?: number,
+    shiftVertical?: number;
 
-    onModalHide: EmojiPickerAction.OnModalHideValue,
-    
-    onEmojiSelected: EmojiPickerAction.OnEmojiSelected,
-}
+    onModalHide: EmojiPickerAction.OnModalHideValue;
+
+    onEmojiSelected: EmojiPickerAction.OnEmojiSelected;
+};
 
 function EmojiPickerButton({isDisabled, id, emojiPickerID, shiftVertical, isFocused, onModalHide, onEmojiSelected}: EmojiPickerButtonProps) {
     const styles = useThemeStyles();

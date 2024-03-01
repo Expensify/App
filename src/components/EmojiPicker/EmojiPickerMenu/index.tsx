@@ -1,12 +1,14 @@
+import lodashDebounce from 'lodash/debounce';
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import {scrollTo} from 'react-native-reanimated';
-import lodashDebounce from 'lodash/debounce';
+import type {Emoji, PickerEmojis} from '@assets/emojis/types';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -19,11 +21,9 @@ import * as EmojiUtils from '@libs/EmojiUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {Emoji, PickerEmojis} from '@assets/emojis/types';
-import type { TranslationPaths } from '@src/languages/types';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import type {EmojiPickerMenuProps, RenderItemProps} from './types';
+import type {TranslationPaths} from '@src/languages/types';
 import BaseEmojiPickerMenu from './BaseEmojiPickerMenu';
+import type {EmojiPickerMenuProps, RenderItemProps} from './types';
 import useEmojiPickerMenu from './useEmojiPickerMenu';
 
 const throttleTime = Browser.isMobile() ? 200 : 50;
@@ -150,7 +150,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, f
                 if (!item) {
                     return;
                 }
-                const emoji = lodashGet(item, ['types', preferredSkinTone], item.code);                
+                const emoji = lodashGet(item, ['types', preferredSkinTone], item.code);
                 onEmojiSelected(emoji, item as Emoji);
                 // On web, avoid this Enter default input action; otherwise, it will add a new line in the subsequently focused composer.
                 keyBoardEvent.preventDefault();

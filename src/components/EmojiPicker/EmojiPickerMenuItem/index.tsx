@@ -1,11 +1,11 @@
 import React, {useEffect, useRef, useState} from 'react';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import getButtonState from '@libs/getButtonState';
 import CONST from '@src/CONST';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
 import type EmojiPickerMenuItemProps from './types';
 
 function EmojiPickerMenuItem({emoji, onPress, onHoverIn, onHoverOut, onFocus, onBlur, isFocused, isHighlighted}: EmojiPickerMenuItemProps) {
@@ -17,16 +17,15 @@ function EmojiPickerMenuItem({emoji, onPress, onHoverIn, onHoverOut, onFocus, on
     const focusAndScroll = () => {
         ref?.current?.focus({preventScroll: true});
         ref?.current?.scrollIntoView({block: 'nearest'});
-    }
+    };
 
     useEffect(() => {
-        if(!isFocused) {
+        if (!isFocused) {
             return;
         }
         focusAndScroll();
-    }, [isFocused])
+    }, [isFocused]);
 
-    
     return (
         <PressableWithoutFeedback
             shouldUseAutoHitSlop={false}
@@ -64,7 +63,6 @@ function EmojiPickerMenuItem({emoji, onPress, onHoverIn, onHoverOut, onFocus, on
             <Text style={[themeStyles.emojiText]}>{emoji}</Text>
         </PressableWithoutFeedback>
     );
-    
 }
 
 // Significantly speeds up re-renders of the EmojiPickerMenu's FlatList

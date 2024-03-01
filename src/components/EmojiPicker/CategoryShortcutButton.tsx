@@ -9,19 +9,19 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type IconAsset from '@src/types/utils/IconAsset';
 import type {TranslationPaths} from '@src/languages/types';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type CategoryShortcutButtonProps = {
     /** The emoji code of the category header */
-    code: string,
+    code: string;
 
     /** The icon representation of the category that this button links to */
-    icon: IconAsset,
+    icon: IconAsset;
 
     /** The function to call when an emoji is selected */
-    onPress: () => void,
-}
+    onPress: () => void;
+};
 
 function CategoryShortcutButton({code, icon, onPress}: CategoryShortcutButtonProps) {
     const theme = useTheme();

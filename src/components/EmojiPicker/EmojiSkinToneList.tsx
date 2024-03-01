@@ -11,8 +11,8 @@ import EmojiPickerMenuItem from './EmojiPickerMenuItem';
 import getSkinToneEmojiFromIndex from './getSkinToneEmojiFromIndex';
 
 type SkinToneEmoji = {
-    skinTone: number,
-}
+    skinTone: number;
+};
 
 function EmojiSkinToneList() {
     const styles = useThemeStyles();
@@ -31,7 +31,7 @@ function EmojiSkinToneList() {
      */
     function updateSelectedSkinTone(skinToneEmoji: SkinToneEmoji) {
         setHighlightedIndex(skinToneEmoji.skinTone);
-        if(typeof setPreferredSkinTone === 'function') {
+        if (typeof setPreferredSkinTone === 'function') {
             setPreferredSkinTone(skinToneEmoji.skinTone);
         }
     }
