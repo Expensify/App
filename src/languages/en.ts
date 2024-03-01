@@ -1789,9 +1789,12 @@ export default {
         },
         people: {
             genericFailureMessage: 'An error occurred removing a user from the workspace, please try again.',
-            removeMembersPrompt: 'Are you sure you want to remove the selected members from your workspace?',
+            removeMembersPrompt: 'Are you sure you want to remove these members?',
             removeMembersTitle: 'Remove members',
+            makeMember: 'Make member',
+            makeAdmin: 'Make admin',
             selectAll: 'Select all',
+            selected: ({selectedNumber}) => `${selectedNumber} selected`,
             error: {
                 genericAdd: 'There was a problem adding this workspace member.',
                 cannotRemove: 'You cannot remove yourself or the workspace owner.',

@@ -28,6 +28,7 @@ import type {
     UpdateWorkspaceCustomUnitAndRateParams,
     UpdateWorkspaceDescriptionParams,
     UpdateWorkspaceGeneralSettingsParams,
+    UpdateWorkspaceMembersRoleParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
@@ -95,6 +96,12 @@ type NewCustomUnit = {
     name: string;
     attributes: Attributes;
     rates: Rate;
+};
+
+type WorkspaceMembersRoleData = {
+    accountID: number;
+    email: string;
+    role: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER;
 };
 
 const allPolicies: OnyxCollection<Policy> = {};
@@ -716,6 +723,66 @@ function removeMembers(accountIDs: number[], policyID: string) {
     };
 
     API.write(WRITE_COMMANDS.DELETE_MEMBERS_FROM_WORKSPACE, params, {optimisticData, successData, failureData});
+}
+
+function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newRole: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER) {
+    const previousPolicyMembers = {...allPolicyMembers};
+    const memberRoles: WorkspaceMembersRoleData[] = accountIDs.reduce((result: WorkspaceMembersRoleData[], accountID: number) => {
+        if (!allPersonalDetails?.[accountID]?.login) {
+            return result;
+        }
+
+        result.push({
+            accountID,
+            email: allPersonalDetails?.[accountID]?.login ?? '',
+            role: newRole,
+        });
+
+        return result;
+    }, []);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
+            value: {
+                ...memberRoles.reduce((member: Record<number, {role: string}>, current) => {
+                    // eslint-disable-next-line no-param-reassign
+                    member[current.accountID] = {role: current?.role};
+                    return member;
+                }, {}),
+                errors: null,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
+            value: {
+                errors: null,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
+            value: {
+                ...(previousPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`] as Record<string, PolicyMember | null>),
+                errors: ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
+            },
+        },
+    ];
+
+    const params: UpdateWorkspaceMembersRoleParams = {
+        policyID,
+        employees: JSON.stringify(memberRoles.map((item) => ({email: item.email, role: item.role}))),
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData, failureData});
 }
 
 /**
@@ -2422,6 +2489,7 @@ function clearCategoryErrors(policyID: string, categoryName: string) {
 
 export {
     removeMembers,
+    updateWorkspaceMembersRole,
     addMembersToWorkspace,
     isAdminOfFreePolicy,
     hasActiveFreePolicy,

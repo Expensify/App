@@ -1813,9 +1813,12 @@ export default {
         },
         people: {
             genericFailureMessage: 'Se ha producido un error al intentar eliminar a un usuario del espacio de trabajo. Por favor, inténtalo más tarde.',
-            removeMembersPrompt: '¿Estás seguro que quieres eliminar a los miembros seleccionados de tu espacio de trabajo?',
+            removeMembersPrompt: '¿Estás seguro de que deseas eliminar a estos miembros?',
             removeMembersTitle: 'Eliminar miembros',
+            makeMember: 'Hacer miembro',
+            makeAdmin: 'Hacer administrador',
             selectAll: 'Seleccionar todo',
+            selected: ({selectedNumber}) => `${selectedNumber} seleccionados`,
             error: {
                 genericAdd: 'Ha ocurrido un problema al añadir el miembro al espacio de trabajo.',
                 cannotRemove: 'No puedes eliminarte ni a ti mismo ni al dueño del espacio de trabajo.',

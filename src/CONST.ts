@@ -1388,6 +1388,11 @@ const CONST = {
         },
         ID_FAKE: '_FAKE_',
         EMPTY: 'EMPTY',
+        MEMBERS_BULK_ACTION_TYPES: {
+            REMOVE: 'remove',
+            MAKE_MEMBER: 'makeMember',
+            MAKE_ADMIN: 'makeAdmin',
+        },
     },
 
     CUSTOM_UNITS: {
