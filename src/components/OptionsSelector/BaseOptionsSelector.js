@@ -84,6 +84,7 @@ class BaseOptionsSelector extends Component {
         const allOptions = this.flattenSections();
         const sections = this.sliceSections();
         const focusedIndex = this.getInitiallyFocusedIndex(allOptions);
+        this.focusedOption = allOptions[focusedIndex];
 
         this.state = {
             sections,
@@ -146,6 +147,10 @@ class BaseOptionsSelector extends Component {
             });
         }
 
+        if (prevState.focusedIndex !== this.state.focusedIndex) {
+            this.focusedOption = this.state.allOptions[this.state.focusedIndex];
+        }
+
         if (_.isEqual(this.props.sections, prevProps.sections)) {
             return;
         }
@@ -162,13 +167,14 @@ class BaseOptionsSelector extends Component {
         }
         const newFocusedIndex = this.props.selectedOptions.length;
         const isNewFocusedIndex = newFocusedIndex !== this.state.focusedIndex;
-
+        const prevFocusedOption = _.find(newOptions, (option) => this.focusedOption && option.keyForList === this.focusedOption.keyForList);
+        const prevFocusedOptionIndex = prevFocusedOption ? _.findIndex(newOptions, (option) => this.focusedOption && option.keyForList === this.focusedOption.keyForList) : undefined;
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState(
             {
                 sections: newSections,
                 allOptions: newOptions,
-                focusedIndex: _.isNumber(this.props.focusedIndex) ? this.props.focusedIndex : newFocusedIndex,
+                focusedIndex: prevFocusedOptionIndex || (_.isNumber(this.props.focusedIndex) ? this.props.focusedIndex : newFocusedIndex),
             },
             () => {
                 // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
@@ -192,6 +198,19 @@ class BaseOptionsSelector extends Component {
         }
 
         this.unSubscribeFromKeyboardShortcut();
+    }
+
+    handleFocusIn() {
+        const activeElement = document.activeElement;
+        this.setState({
+            disableEnterShortCut: activeElement && this.accessibilityRoles.includes(activeElement.role) && activeElement.role !== CONST.ROLE.PRESENTATION,
+        });
+    }
+
+    handleFocusOut() {
+        this.setState({
+            disableEnterShortCut: false,
+        });
     }
 
     /**
@@ -260,19 +279,6 @@ class BaseOptionsSelector extends Component {
         this.props.onChangeText(value);
     }
 
-    handleFocusIn() {
-        const activeElement = document.activeElement;
-        this.setState({
-            disableEnterShortCut: activeElement && this.accessibilityRoles.includes(activeElement.role) && activeElement.role !== CONST.ROLE.PRESENTATION,
-        });
-    }
-
-    handleFocusOut() {
-        this.setState({
-            disableEnterShortCut: false,
-        });
-    }
-
     subscribeActiveElement() {
         if (!this.isWebOrDesktop) {
             return;
@@ -281,6 +287,7 @@ class BaseOptionsSelector extends Component {
         document.addEventListener('focusout', this.handleFocusOut);
     }
 
+    // eslint-disable-next-line react/no-unused-class-component-methods
     unSubscribeActiveElement() {
         if (!this.isWebOrDesktop) {
             return;
@@ -360,6 +367,7 @@ class BaseOptionsSelector extends Component {
         }
     }
 
+    // eslint-disable-next-line react/no-unused-class-component-methods
     focus() {
         if (!this.textInput) {
             return;
