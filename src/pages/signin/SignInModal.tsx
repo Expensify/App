@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Session} from '@src/types/onyx';
@@ -22,7 +23,7 @@ function SignInModal({session}: SignInModalProps) {
     const StyleUtils = useStyleUtils();
 
     useEffect(() => {
-        const isAnonymousUser = session?.authTokenType === 'anonymousAccount';
+        const isAnonymousUser = session?.authTokenType === CONST.AUTH_TOKEN_TYPE.ANONYMOUS;
         if (!isAnonymousUser) {
             // Signing in RHP is only for anonymous users
             Navigation.isNavigationReady().then(() => Navigation.dismissModal());
