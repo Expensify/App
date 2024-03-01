@@ -8,6 +8,8 @@ import {withOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -83,6 +85,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     const prevPersonalDetails = usePrevious(personalDetails);
     const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const dropdownButtonRef = useRef(null);
 
     /**
      * Get filtered personalDetails list with current policyMembers
@@ -301,6 +304,8 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 }
             }
 
+            const isSelected = selectedEmployees.includes(accountID);
+
             const isOwner = policy?.owner === details.login;
             const isAdmin = session?.email === details.login || policyMember.role === CONST.POLICY.ROLE.ADMIN;
 
@@ -310,7 +315,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                     <Badge
                         text={isOwner ? translate('common.owner') : translate('common.admin')}
                         textStyles={styles.textStrong}
-                        badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered]}
+                        badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered, isSelected && styles.activeItemBadge]}
                     />
                 );
             }
@@ -318,7 +323,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
             result.push({
                 keyForList: accountIDKey,
                 accountID,
-                isSelected: selectedEmployees.includes(accountID),
+                isSelected,
                 isDisabled:
                     accountID === session?.accountID ||
                     details.login === policy?.owner ||
@@ -358,7 +363,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
 
     const getHeaderContent = () => (
         <>
-            <Text style={[styles.pl5, styles.mb5, styles.mt3, styles.textSupporting]}>{translate('workspace.people.membersListTitle')}</Text>
+            <Text style={[styles.pl5, styles.mb4, styles.mt3, styles.textSupporting]}>{translate('workspace.people.membersListTitle')}</Text>
             {!isEmptyObject(invitedPrimaryToSecondaryLogins) && (
                 <MessagesRow
                     type="success"
@@ -372,9 +377,9 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     );
 
     const getCustomListHeader = () => (
-        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, StyleUtils.getPaddingLeft(64)]}>
+        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
             <View>
-                <Text style={styles.searchInputStyle}>{translate('common.member')}</Text>
+                <Text style={[styles.searchInputStyle, styles.ml3]}>{translate('common.member')}</Text>
             </View>
             <View style={[StyleUtils.getMinimumWidth(60)]}>
                 <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('common.role')}</Text>
@@ -382,26 +387,73 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
         </View>
     );
 
+    const changeUserRole = (role: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER) => {
+        if (!isEmptyObject(errors)) {
+            return;
+        }
+
+        const accountIDsToUpdate = selectedEmployees.filter((id) => policyMembers?.[id].role !== role);
+
+        Policy.updateWorkspaceMembersRole(route.params.policyID, accountIDsToUpdate, role);
+        setSelectedEmployees([]);
+    };
+
+    const getBulkActionsButtonOptions = () => {
+        const options: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [
+            {
+                text: translate('workspace.people.removeMembersTitle'),
+                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
+                icon: Expensicons.RemoveMembers,
+                onSelected: askForConfirmationToRemove,
+            },
+        ];
+
+        if (selectedEmployees.find((employee) => policyMembers?.[employee]?.role === CONST.POLICY.ROLE.ADMIN)) {
+            options.push({
+                text: translate('workspace.people.makeMember'),
+                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
+                icon: Expensicons.User,
+                onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
+            });
+        }
+
+        if (selectedEmployees.find((employee) => policyMembers?.[employee]?.role === CONST.POLICY.ROLE.USER)) {
+            options.push({
+                text: translate('workspace.people.makeAdmin'),
+                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
+                icon: Expensicons.MakeAdmin,
+                onSelected: () => changeUserRole(CONST.POLICY.ROLE.ADMIN),
+            });
+        }
+
+        return options;
+    };
+
     const getHeaderButtons = () => (
-        <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
-            <Button
-                medium
-                success
-                onPress={inviteUser}
-                text={translate('workspace.invite.member')}
-                icon={Expensicons.Plus}
-                iconStyles={{transform: [{scale: 0.6}]}}
-                innerStyles={[isSmallScreenWidth && styles.alignItemsCenter]}
-                style={[isSmallScreenWidth && styles.flexGrow1]}
-            />
-            <Button
-                medium
-                danger
-                style={[styles.ml2, isSmallScreenWidth && styles.w50]}
-                isDisabled={selectedEmployees.length === 0}
-                text={translate('common.remove')}
-                onPress={askForConfirmationToRemove}
-            />
+        <View style={styles.w100}>
+            {selectedEmployees.length > 0 ? (
+                <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
+                    shouldAlwaysShowDropdownMenu
+                    pressOnEnter
+                    customText={translate('workspace.people.selected', {selectedNumber: selectedEmployees.length})}
+                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                    onPress={() => null}
+                    options={getBulkActionsButtonOptions()}
+                    buttonRef={dropdownButtonRef}
+                    style={[isSmallScreenWidth && styles.flexGrow1]}
+                />
+            ) : (
+                <Button
+                    medium
+                    success
+                    onPress={inviteUser}
+                    text={translate('workspace.invite.member')}
+                    icon={Expensicons.Plus}
+                    iconStyles={{transform: [{scale: 0.6}]}}
+                    innerStyles={[isSmallScreenWidth && styles.alignItemsCenter]}
+                    style={[isSmallScreenWidth && styles.flexGrow1]}
+                />
+            )}
         </View>
     );
 

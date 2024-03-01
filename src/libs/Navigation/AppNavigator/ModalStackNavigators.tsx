@@ -252,6 +252,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.DESCRIPTION]: () => require('../../../pages/workspace/WorkspaceProfileDescriptionPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.SHARE]: () => require('../../../pages/workspace/WorkspaceProfileSharePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.CURRENCY]: () => require('../../../pages/workspace/WorkspaceProfileCurrencyPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: () => require('../../../pages/workspace/categories/CategorySettingsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: () => require('../../../pages/workspace/categories/WorkspaceCategoriesSettingsPage').default as React.ComponentType,
     [SCREENS.REIMBURSEMENT_ACCOUNT]: () => require('../../../pages/ReimbursementAccount/ReimbursementAccountPage').default as React.ComponentType,
     [SCREENS.GET_ASSISTANCE]: () => require('../../../pages/GetAssistancePage').default as React.ComponentType,
@@ -261,6 +262,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: () => require('../../../pages/settings/ExitSurvey/ExitSurveyReasonPage').default as React.ComponentType,
     [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: () => require('../../../pages/settings/ExitSurvey/ExitSurveyResponsePage').default as React.ComponentType,
     [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: () => require('../../../pages/settings/ExitSurvey/ExitSurveyConfirmPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: () => require('../../../pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: () => require('../../../pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage').default as React.ComponentType,
 });
 
 const EnablePaymentsStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({

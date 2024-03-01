@@ -1,6 +1,8 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {FlatList, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
@@ -10,7 +12,9 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import Permissions from '@libs/Permissions';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
@@ -19,14 +23,23 @@ import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
+import type {Beta} from '@src/types/onyx';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
+import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
+import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
+import type {AutoReportingFrequencyKey} from './WorkspaceAutoReportingFrequencyPage';
 
-type WorkspaceWorkflowsPageProps = WithPolicyProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
+type WorkspaceWorkflowsPageOnyxProps = {
+    /** Beta features list */
+    betas: OnyxEntry<Beta[]>;
+};
+type WorkspaceWorkflowsPageProps = WithPolicyProps & WorkspaceWorkflowsPageOnyxProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
-function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
-    const {translate} = useLocalize();
+function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPageProps) {
+    const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -35,32 +48,42 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const ownerPersonalDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([policy?.ownerAccountID ?? 0], CONST.EMPTY_OBJECT), false);
     const policyOwnerDisplayName = ownerPersonalDetails[0]?.displayName;
     const containerStyle = useMemo(() => [styles.ph8, styles.mhn8, styles.ml11, styles.pv3, styles.pr0, styles.pl4, styles.mr0, styles.widthAuto, styles.mt4], [styles]);
+    const canUseDelayedSubmission = Permissions.canUseWorkflowsDelayedSubmission(betas);
+
+    const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policy?.id ?? '')), [policy?.id]);
 
     const items: ToggleSettingOptionRowProps[] = useMemo(
         () => [
-            {
-                icon: Illustrations.ReceiptEnvelope,
-                title: translate('workflowsPage.delaySubmissionTitle'),
-                subtitle: translate('workflowsPage.delaySubmissionDescription'),
-                onToggle: (isEnabled: boolean) => {
-                    Policy.setWorkspaceAutoReporting(route.params.policyID, isEnabled);
-                },
-                subMenuItems: (
-                    <MenuItem
-                        title={translate('workflowsPage.submissionFrequency')}
-                        titleStyle={styles.textLabelSupportingNormal}
-                        descriptionTextStyle={styles.textNormalThemeText}
-                        // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY).getRoute(route.params.policyID))}
-                        // TODO will be done in https://github.com/Expensify/Expensify/issues/368332
-                        description={translate('workflowsPage.weeklyFrequency')}
-                        shouldShowRightIcon
-                        wrapperStyle={containerStyle}
-                        hoverAndPressStyle={[styles.mr0, styles.br2]}
-                    />
-                ),
-                isActive: policy?.harvesting?.enabled ?? false,
-                pendingAction: policy?.pendingFields?.isAutoApprovalEnabled,
-            },
+            ...(canUseDelayedSubmission
+                ? [
+                      {
+                          icon: Illustrations.ReceiptEnvelope,
+                          title: translate('workflowsPage.delaySubmissionTitle'),
+                          subtitle: translate('workflowsPage.delaySubmissionDescription'),
+                          onToggle: (isEnabled: boolean) => {
+                              Policy.setWorkspaceAutoReporting(route.params.policyID, isEnabled);
+                          },
+                          subMenuItems: (
+                              <MenuItem
+                                  title={translate('workflowsPage.submissionFrequency')}
+                                  titleStyle={styles.textLabelSupportingNormal}
+                                  descriptionTextStyle={styles.textNormalThemeText}
+                                  onPress={onPressAutoReportingFrequency}
+                                  description={
+                                      getAutoReportingFrequencyDisplayNames(preferredLocale)[
+                                          (policy?.autoReportingFrequency as AutoReportingFrequencyKey) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY
+                                      ]
+                                  }
+                                  shouldShowRightIcon
+                                  wrapperStyle={containerStyle}
+                                  hoverAndPressStyle={[styles.mr0, styles.br2]}
+                              />
+                          ),
+                          isActive: policy?.harvesting?.enabled ?? false,
+                          pendingAction: policy?.pendingFields?.isAutoApprovalEnabled,
+                      },
+                  ]
+                : []),
             {
                 icon: Illustrations.Approval,
                 title: translate('workflowsPage.addApprovalsTitle'),
@@ -108,7 +131,19 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 isActive: false, // TODO will be done in https://github.com/Expensify/Expensify/issues/368335
             },
         ],
-        [policy, route.params.policyID, styles, translate, policyOwnerDisplayName, containerStyle, isOffline, StyleUtils],
+        [
+            policy,
+            route.params.policyID,
+            styles,
+            translate,
+            policyOwnerDisplayName,
+            containerStyle,
+            isOffline,
+            StyleUtils,
+            onPressAutoReportingFrequency,
+            preferredLocale,
+            canUseDelayedSubmission,
+        ],
     );
 
     const renderItem = ({item}: {item: ToggleSettingOptionRowProps}) => (
@@ -159,4 +194,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
 WorkspaceWorkflowsPage.displayName = 'WorkspaceWorkflowsPage';
 
-export default withPolicy(WorkspaceWorkflowsPage);
+export default withPolicy(
+    withOnyx<WorkspaceWorkflowsPageProps, WorkspaceWorkflowsPageOnyxProps>({
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+    })(WorkspaceWorkflowsPage),
+);
