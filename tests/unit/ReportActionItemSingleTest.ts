@@ -1,7 +1,7 @@
 import {cleanup, screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {PersonalDetailsList} from '@src/types/onyx';
-import type {PolicyCollectionDataSet} from '@src/types/onyx/Policy';
+import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -59,9 +59,7 @@ describe('ReportActionItemSingle', () => {
             });
 
             function setup() {
-                const policyCollectionDataSet: PolicyCollectionDataSet = {
-                    [`${ONYXKEYS.COLLECTION.POLICY}${fakeReport.policyID}`]: fakePolicy,
-                };
+                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [fakePolicy], (item) => item.id);
 
                 return waitForBatchedUpdates().then(() =>
                     Onyx.multiSet({

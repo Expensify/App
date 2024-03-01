@@ -107,22 +107,22 @@ test('[SelectionList] should render 1 section and a thousand items', () => {
 });
 
 test('[SelectionList] should press a list item', () => {
-    const scenario = (screen: RenderResult) => {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    const scenario = async (screen: RenderResult) => {
         fireEvent.press(screen.getByText('Item 5'));
     };
 
-    // @ts-expect-error scenario is expected to be an async function
     measurePerformance(<SelectionListWrapper />, {scenario});
 });
 
 test('[SelectionList] should render multiple selection and select 3 items', () => {
-    const scenario = (screen: RenderResult) => {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    const scenario = async (screen: RenderResult) => {
         fireEvent.press(screen.getByText('Item 1'));
         fireEvent.press(screen.getByText('Item 2'));
         fireEvent.press(screen.getByText('Item 3'));
     };
 
-    // @ts-expect-error scenario is expected to be an async function
     measurePerformance(<SelectionListWrapper canSelectMultiple />, {scenario});
 });
 
@@ -145,7 +145,8 @@ test('[SelectionList] should scroll and select a few items', () => {
         },
     };
 
-    const scenario = (screen: RenderResult) => {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    const scenario = async (screen: RenderResult) => {
         fireEvent.press(screen.getByText('Item 1'));
         // see https://github.com/callstack/react-native-testing-library/issues/1540
         fireEvent(screen.getByTestId('selection-list'), 'onContentSizeChange', eventData.nativeEvent.contentSize.width, eventData.nativeEvent.contentSize.height);
@@ -154,6 +155,5 @@ test('[SelectionList] should scroll and select a few items', () => {
         fireEvent.press(screen.getByText('Item 15'));
     };
 
-    // @ts-expect-error scenario is expected to be an async function
     measurePerformance(<SelectionListWrapper canSelectMultiple />, {scenario});
 });

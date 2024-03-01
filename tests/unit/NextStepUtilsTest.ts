@@ -1,12 +1,12 @@
 import {format, lastDayOfMonth, setDate} from 'date-fns';
 import Onyx from 'react-native-onyx';
+import DateUtils from '@libs/DateUtils';
+import * as NextStepUtils from '@libs/NextStepUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
-import type {PolicyCollectionDataSet} from '@src/types/onyx/Policy';
-import DateUtils from '../../src/libs/DateUtils';
-import * as NextStepUtils from '../../src/libs/NextStepUtils';
-import * as ReportUtils from '../../src/libs/ReportUtils';
+import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 Onyx.init({keys: ONYXKEYS});
@@ -41,9 +41,7 @@ describe('libs/NextStepUtils', () => {
         const report = ReportUtils.buildOptimisticExpenseReport('fake-chat-report-id-1', policyID, 1, -500, CONST.CURRENCY.USD) as Report;
 
         beforeAll(() => {
-            const policyCollectionDataSet: PolicyCollectionDataSet = {
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: policy,
-            };
+            const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (item) => item.id);
 
             Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
