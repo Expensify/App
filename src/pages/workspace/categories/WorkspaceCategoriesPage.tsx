@@ -27,6 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import useNetwork from '@hooks/useNetwork';
 
 type PolicyForList = {
     value: string;
@@ -50,8 +51,14 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
     const {translate} = useLocalize();
     const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
 
-    useEffect(() => {
+    function fetchCategories() {
         Policy.openPolicyCategoriesPage(route.params.policyID);
+    }
+
+    const {isOffline} = useNetwork({onReconnect: fetchCategories});
+
+    useEffect(() => {
+        fetchCategories();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -136,21 +143,21 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
                     </View>
-                    {policyCategories === undefined && (
+                    {!isOffline && policyCategories === undefined && (
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={[styles.flex1]}
                             color={theme.textSupporting}
                         />
                     )}
-                    {Boolean(policyCategories) && categoryList.length === 0 && (
+                    {(isOffline || Boolean(policyCategories)) && categoryList.length === 0 && (
                         <WorkspaceEmptyStateSection
                             title={translate('workspace.categories.emptyCategories.title')}
                             icon={Illustrations.EmptyStateExpenses}
                             subtitle={translate('workspace.categories.emptyCategories.subtitle')}
                         />
                     )}
-                    {Boolean(policyCategories) && Boolean(categoryList.length) && (
+                    {(isOffline || Boolean(policyCategories)) && Boolean(categoryList.length) && (
                         <SelectionList
                             canSelectMultiple
                             sections={[{data: categoryList, indexOffset: 0, isDisabled: false}]}
