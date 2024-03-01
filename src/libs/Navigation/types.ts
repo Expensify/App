@@ -97,8 +97,13 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.TIMEZONE_SELECT]: undefined;
     [SCREENS.SETTINGS.PROFILE.LEGAL_NAME]: undefined;
     [SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH]: undefined;
-    [SCREENS.SETTINGS.PROFILE.ADDRESS]: undefined;
-    [SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY]: undefined;
+    [SCREENS.SETTINGS.PROFILE.ADDRESS]: {
+        country?: string;
+    };
+    [SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY]: {
+        backTo?: Routes;
+        country: string;
+    };
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: {
         backTo: Routes;
     };
@@ -173,6 +178,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
         policyID: string;
     };
     [SCREENS.GET_ASSISTANCE]: {
@@ -502,6 +510,7 @@ type PublicScreensParamList = {
         shortLivedAuthToken?: string;
         shortLivedToken?: string;
         exitTo?: Routes | HybridAppRoute;
+        domain?: Routes;
     };
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;

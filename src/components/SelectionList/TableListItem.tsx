@@ -15,6 +15,7 @@ function TableListItem({
     isDisabled,
     canSelectMultiple,
     onSelectRow,
+    onCheckboxPress,
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
@@ -29,14 +30,15 @@ function TableListItem({
     return (
         <BaseListItem
             item={item}
-            pressableStyle={[[styles.selectionListPressableItemWrapper, isFocused && styles.activeComponentBG]]}
-            wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter, isFocused && styles.sidebarLinkActive]}
+            pressableStyle={[[styles.selectionListPressableItemWrapper, isFocused && styles.sidebarLinkActive]]}
+            wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter]}
             selectMultipleStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
+            onCheckboxPress={onCheckboxPress}
             onDismissError={onDismissError}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             rightHandSideComponent={rightHandSideComponent}
