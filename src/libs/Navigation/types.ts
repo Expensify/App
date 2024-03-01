@@ -100,8 +100,13 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.TIMEZONE_SELECT]: undefined;
     [SCREENS.SETTINGS.PROFILE.LEGAL_NAME]: undefined;
     [SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH]: undefined;
-    [SCREENS.SETTINGS.PROFILE.ADDRESS]: undefined;
-    [SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY]: undefined;
+    [SCREENS.SETTINGS.PROFILE.ADDRESS]: {
+        country?: string;
+    };
+    [SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY]: {
+        backTo?: Routes;
+        country: string;
+    };
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: {
         backTo: Routes;
     };
