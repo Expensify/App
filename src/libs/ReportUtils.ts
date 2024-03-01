@@ -1805,7 +1805,6 @@ function buildOptimisticCancelPaymentReportAction(expenseReportID: string, amoun
 function getLastVisibleMessage(reportID: string | undefined, actionsToMerge: ReportActions = {}): LastVisibleMessage {
     const report = getReport(reportID);
     const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID ?? '', actionsToMerge);
-
     // For Chat Report with deleted parent actions, let us fetch the correct message
     if (ReportActionsUtils.isDeletedParentAction(lastVisibleAction) && !isEmptyObject(report) && isChatReport(report)) {
         const lastMessageText = getDeletedParentActionMessageForChatReport(lastVisibleAction);
@@ -1813,7 +1812,7 @@ function getLastVisibleMessage(reportID: string | undefined, actionsToMerge: Rep
             lastMessageText,
         };
     }
-
+    
     // Fetch the last visible message for report represented by reportID and based on actions to merge.
     return ReportActionsUtils.getLastVisibleMessage(reportID ?? '', actionsToMerge);
 }

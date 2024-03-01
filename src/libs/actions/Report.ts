@@ -1169,7 +1169,7 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
-    const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportUtils.getLastVisibleMessage(originalReportID, optimisticReportActions as ReportActions);
+    const {lastMessageText = '', lastMessageTranslationKey = '', lastMessageHtml = ''} = ReportUtils.getLastVisibleMessage(originalReportID, optimisticReportActions as ReportActions);
     if (lastMessageText || lastMessageTranslationKey) {
         const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions as ReportActions);
         const lastVisibleActionCreated = lastVisibleAction?.created;
@@ -1179,6 +1179,7 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
             lastMessageText,
             lastVisibleActionCreated,
             lastActorAccountID,
+            lastMessageHtml
         };
     }
 
