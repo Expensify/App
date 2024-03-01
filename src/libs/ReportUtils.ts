@@ -4042,8 +4042,8 @@ function shouldReportBeInOptionList({
         return false;
     }
 
-    if (includeSelfDM && isSelfDM(report)) {
-        return true;
+    if (isSelfDM(report)) {
+        return includeSelfDM;
     }
 
     return true;
