@@ -39,7 +39,7 @@ function hasRouteMatchingPolicyID(route: NavigationPartialRoute<CentralPaneName>
         return false;
     }
 
-    const params = `params` in route?.params ? (route.params.params as Record<string, string | undefined>) : undefined;
+    const params = `params` in route.params ? (route.params.params as Record<string, string | undefined>) : undefined;
 
     // If params are not defined, then we need to check if the policyID exists
     if (!params) {
@@ -67,7 +67,7 @@ function getAlreadyOpenedSettingsScreen(rootState?: State, policyID?: string): k
     }
 
     const settingsScreen =
-        alreadyOpenedSettingsTab?.params && 'screen' in alreadyOpenedSettingsTab?.params ? (alreadyOpenedSettingsTab?.params?.screen as keyof CentralPaneNavigatorParamList) : undefined;
+        alreadyOpenedSettingsTab?.params && 'screen' in alreadyOpenedSettingsTab.params ? (alreadyOpenedSettingsTab?.params?.screen as keyof CentralPaneNavigatorParamList) : undefined;
 
     return settingsScreen;
 }
@@ -84,7 +84,7 @@ function getMatchingCentralPaneRouteForState(state: State<RootStackParamList>, r
 
     if (topmostBottomTabRoute.name === SCREENS.WORKSPACE.INITIAL) {
         // When we go back to the settings tab without switching the workspace id, we want to return to the previously opened screen
-        const policyID = topmostBottomTabRoute?.params && 'policyID' in topmostBottomTabRoute?.params ? (topmostBottomTabRoute.params.policyID as string) : undefined;
+        const policyID = topmostBottomTabRoute?.params && 'policyID' in topmostBottomTabRoute.params ? (topmostBottomTabRoute.params.policyID as string) : undefined;
         const screen = getAlreadyOpenedSettingsScreen(rootState, policyID) ?? centralPaneName;
         return {name: screen, params: topmostBottomTabRoute.params};
     }
