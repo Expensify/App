@@ -304,6 +304,8 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 }
             }
 
+            const isSelected = selectedEmployees.includes(accountID);
+
             const isOwner = policy?.owner === details.login;
             const isAdmin = session?.email === details.login || policyMember.role === CONST.POLICY.ROLE.ADMIN;
 
@@ -313,7 +315,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                     <Badge
                         text={isOwner ? translate('common.owner') : translate('common.admin')}
                         textStyles={styles.textStrong}
-                        badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered]}
+                        badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered, isSelected && styles.activeItemBadge]}
                     />
                 );
             }
@@ -321,7 +323,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
             result.push({
                 keyForList: accountIDKey,
                 accountID,
-                isSelected: selectedEmployees.includes(accountID),
+                isSelected,
                 isDisabled:
                     accountID === session?.accountID ||
                     details.login === policy?.owner ||
