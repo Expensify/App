@@ -1,7 +1,10 @@
 #!/usr/bin/env node
-const portfinder = require('portfinder');
+import {config} from 'dotenv';
+import portfinder from 'portfinder';
+
 const concurrently = require('concurrently');
-require('dotenv').config();
+
+config();
 
 const basePort = 8082;
 
@@ -39,6 +42,8 @@ portfinder
             },
         ];
 
+        // concurrently lib problem
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return concurrently(processes, {
             inputStream: process.stdin,
             prefix: 'name',

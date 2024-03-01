@@ -24,7 +24,7 @@
     "build": "webpack --config config/webpack/webpack.common.js --env envFile=.env.production",
     "build-staging": "webpack --config config/webpack/webpack.common.js --env envFile=.env.staging",
     "build-adhoc": "webpack --config config/webpack/webpack.common.js --env envFile=.env.adhoc",
-    "desktop": "scripts/set-pusher-suffix.sh && ts-node desktop/start.js",
+    "desktop": "scripts/set-pusher-suffix.sh && ts-node desktop/start.ts",
     "desktop-build": "scripts/build-desktop.sh production",
     "desktop-build-staging": "scripts/build-desktop.sh staging",
     "createDocsRoutes": "ts-node .github/scripts/createDocsRoutes.js",

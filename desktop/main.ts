@@ -1,17 +1,21 @@
-const {app, dialog, clipboard, BrowserWindow, Menu, MenuItem, shell, ipcMain} = require('electron');
-const _ = require('underscore');
-const serve = require('electron-serve');
-const contextMenu = require('electron-context-menu');
-const {autoUpdater} = require('electron-updater');
-const log = require('electron-log');
-const {machineId} = require('node-machine-id');
-const ELECTRON_EVENTS = require('./ELECTRON_EVENTS');
-const checkForUpdates = require('../src/libs/checkForUpdates');
-const CONFIG = require('../src/CONFIG').default;
-const CONST = require('../src/CONST').default;
-const Localize = require('../src/libs/Localize');
+import {app, BrowserWindow, clipboard, dialog, ipcMain, Menu, MenuItem, shell} from 'electron';
+import type {BrowserView, MenuItemConstructorOptions, WebContents, WebviewTag} from 'electron';
+import contextMenu from 'electron-context-menu';
+import log from 'electron-log';
+import type {ElectronLog} from 'electron-log';
+import serve from 'electron-serve';
+import {autoUpdater} from 'electron-updater';
+import {machineId} from 'node-machine-id';
+import checkForUpdates from '@libs/checkForUpdates';
+import * as Localize from '@libs/Localize';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
+import type PlatformSpecificUpdater from '@src/setup/platformSetup/types';
+import type {Locale} from '@src/types/onyx';
+import ELECTRON_EVENTS from './ELECTRON_EVENTS';
 
-const port = process.env.PORT || 8082;
+const port = process.env.PORT ?? 8082;
 const {DESKTOP_SHORTCUT_ACCELERATOR, LOCALES} = CONST;
 
 // Setup google api key in process environment, we are setting it this way intentionally. It is required by the
@@ -34,43 +38,46 @@ app.commandLine.appendSwitch('enable-network-information-downlink-max');
 /**
  * Inserts the plain text from the clipboard into the provided browser window's web contents.
  *
- * @param {BrowserWindow} browserWindow - The Electron BrowserWindow instance where the text should be inserted.
+ * @param browserWindow - The Electron BrowserWindow instance where the text should be inserted.
  */
-function pasteAsPlainText(browserWindow) {
+function pasteAsPlainText(browserWindow: BrowserWindow | BrowserView | WebviewTag | WebContents) {
     const text = clipboard.readText();
-    browserWindow.webContents.insertText(text);
+
+    if ('webContents' in browserWindow) {
+        browserWindow.webContents.insertText(text);
+    }
 }
 
 /**
  * Initialize the right-click menu
  * See https://github.com/sindresorhus/electron-context-menu
  *
- * @param {String} preferredLocale - The current user language to be used for translating menu labels.
- * @returns {Function} A dispose function to clean up the created context menu.
+ * @param preferredLocale - The current user language to be used for translating menu labels.
+ * @returns A dispose function to clean up the created context menu.
  */
-
-function createContextMenu(preferredLocale = LOCALES.DEFAULT) {
+function createContextMenu(preferredLocale: Locale = LOCALES.DEFAULT): () => void {
     return contextMenu({
         labels: {
             cut: Localize.translate(preferredLocale, 'desktopApplicationMenu.cut'),
             paste: Localize.translate(preferredLocale, 'desktopApplicationMenu.paste'),
             copy: Localize.translate(preferredLocale, 'desktopApplicationMenu.copy'),
         },
-        append: (defaultActions, parameters, browserWindow) => [
-            new MenuItem({
-                // Only enable the menu item for Editable context which supports paste
-                visible: parameters.isEditable && parameters.editFlags.canPaste,
-                role: 'pasteAndMatchStyle',
-                accelerator: DESKTOP_SHORTCUT_ACCELERATOR.PASTE_AND_MATCH_STYLE,
-                label: Localize.translate(preferredLocale, 'desktopApplicationMenu.pasteAndMatchStyle'),
-            }),
-            new MenuItem({
-                label: Localize.translate(preferredLocale, 'desktopApplicationMenu.pasteAsPlainText'),
-                visible: parameters.isEditable && parameters.editFlags.canPaste && clipboard.readText().length > 0,
-                accelerator: DESKTOP_SHORTCUT_ACCELERATOR.PASTE_AS_PLAIN_TEXT,
-                click: () => pasteAsPlainText(browserWindow),
-            }),
-        ],
+        append: (defaultActions, parameters, browserWindow) =>
+            [
+                new MenuItem({
+                    // Only enable the menu item for Editable context which supports paste
+                    visible: parameters.isEditable && parameters.editFlags.canPaste,
+                    role: 'pasteAndMatchStyle',
+                    accelerator: DESKTOP_SHORTCUT_ACCELERATOR.PASTE_AND_MATCH_STYLE,
+                    label: Localize.translate(preferredLocale, 'desktopApplicationMenu.pasteAndMatchStyle'),
+                }),
+                new MenuItem({
+                    label: Localize.translate(preferredLocale, 'desktopApplicationMenu.pasteAsPlainText'),
+                    visible: parameters.isEditable && parameters.editFlags.canPaste && clipboard.readText().length > 0,
+                    accelerator: DESKTOP_SHORTCUT_ACCELERATOR.PASTE_AS_PLAIN_TEXT,
+                    click: () => pasteAsPlainText(browserWindow),
+                }),
+            ] as unknown as MenuItemConstructorOptions[],
     });
 }
 
@@ -79,11 +86,11 @@ let disposeContextMenu = createContextMenu();
 // Send all autoUpdater logs to a log file: ~/Library/Logs/new.expensify.desktop/main.log
 // See https://www.npmjs.com/package/electron-log
 autoUpdater.logger = log;
-autoUpdater.logger.transports.file.level = 'info';
+(autoUpdater.logger as ElectronLog).transports.file.level = 'info';
 
 // Send all Console logs to a log file: ~/Library/Logs/new.expensify.desktop/main.log
 // See https://www.npmjs.com/package/electron-log
-_.assign(console, log.functions);
+Object.assign(console, log.functions);
 
 // This sets up the command line arguments used to manage the update. When
 // the --expected-update-version flag is set, the app will open pre-hidden
@@ -92,23 +99,24 @@ _.assign(console, log.functions);
 const EXPECTED_UPDATE_VERSION_FLAG = '--expected-update-version';
 const APP_DOMAIN = __DEV__ ? `https://dev.new.expensify.com:${port}` : 'app://-';
 
-let expectedUpdateVersion;
-for (let i = 0; i < process.argv.length; i++) {
-    const arg = process.argv[i];
-    if (arg.startsWith(`${EXPECTED_UPDATE_VERSION_FLAG}=`)) {
-        expectedUpdateVersion = arg.substr(`${EXPECTED_UPDATE_VERSION_FLAG}=`.length);
+let expectedUpdateVersion: string;
+process.argv.forEach((arg) => {
+    if (!arg.startsWith(`${EXPECTED_UPDATE_VERSION_FLAG}=`)) {
+        return;
     }
-}
+
+    expectedUpdateVersion = arg.substr(`${EXPECTED_UPDATE_VERSION_FLAG}=`.length);
+});
 
 // Add the listeners and variables required to ensure that auto-updating
 // happens correctly.
 let hasUpdate = false;
-let downloadedVersion;
+let downloadedVersion: string;
 
 // Note that we have to subscribe to this separately and cannot use Localize.translateLocal,
 // because the only way code can be shared between the main and renderer processes at runtime is via the context bridge
 // So we track preferredLocale separately via ELECTRON_EVENTS.LOCALE_UPDATED
-const preferredLocale = CONST.LOCALES.DEFAULT;
+const preferredLocale: Locale = CONST.LOCALES.DEFAULT;
 
 const appProtocol = CONST.DEEPLINK_BASE_URL.replace('://', '');
 
@@ -120,12 +128,8 @@ const quitAndInstallWithUpdate = () => {
     autoUpdater.quitAndInstall();
 };
 
-/**
- * Menu Item callback to triggers an update check
- * @param {MenuItem} menuItem
- * @param {BrowserWindow} browserWindow
- */
-const manuallyCheckForUpdates = (menuItem, browserWindow) => {
+/** Menu Item callback to triggers an update check */
+const manuallyCheckForUpdates = (menuItem: MenuItem, browserWindow?: BrowserWindow) => {
     // Disable item until the check (and download) is complete
     // eslint: menu item flags like enabled or visible can be dynamically toggled by mutating the object
     // eslint-disable-next-line no-param-reassign
@@ -135,7 +139,11 @@ const manuallyCheckForUpdates = (menuItem, browserWindow) => {
         .checkForUpdates()
         .catch((error) => ({error}))
         .then((result) => {
-            const downloadPromise = result && result.downloadPromise;
+            const downloadPromise = result && 'downloadPromise' in result ? result.downloadPromise : undefined;
+
+            if (!browserWindow) {
+                return;
+            }
 
             if (downloadPromise) {
                 dialog.showMessageBox(browserWindow, {
@@ -144,7 +152,7 @@ const manuallyCheckForUpdates = (menuItem, browserWindow) => {
                     detail: Localize.translate(preferredLocale, 'checkForUpdatesModal.available.message'),
                     buttons: [Localize.translate(preferredLocale, 'checkForUpdatesModal.available.soundsGood')],
                 });
-            } else if (result && result.error) {
+            } else if (result && 'error' in result && result.error) {
                 dialog.showMessageBox(browserWindow, {
                     type: 'error',
                     message: Localize.translate(preferredLocale, 'checkForUpdatesModal.error.title'),
@@ -170,25 +178,30 @@ const manuallyCheckForUpdates = (menuItem, browserWindow) => {
         });
 };
 
-/**
- * Trigger event to show keyboard shortcuts
- * @param {BrowserWindow} browserWindow
- */
-const showKeyboardShortcutsPage = (browserWindow) => {
+/** Trigger event to show keyboard shortcuts */
+const showKeyboardShortcutsPage = (browserWindow: BrowserWindow) => {
     if (!browserWindow.isVisible()) {
         return;
     }
     browserWindow.webContents.send(ELECTRON_EVENTS.KEYBOARD_SHORTCUTS_PAGE);
 };
 
-// Actual auto-update listeners
-const electronUpdater = (browserWindow) => ({
+/** Actual auto-update listeners */
+const electronUpdater = (browserWindow: BrowserWindow): PlatformSpecificUpdater => ({
     init: () => {
         autoUpdater.on(ELECTRON_EVENTS.UPDATE_DOWNLOADED, (info) => {
             const systemMenu = Menu.getApplicationMenu();
+            const updateMenuItem = systemMenu?.getMenuItemById(`update`);
+            const checkForUpdatesMenuItem = systemMenu?.getMenuItemById(`checkForUpdates`);
+
             downloadedVersion = info.version;
-            systemMenu.getMenuItemById(`update`).visible = true;
-            systemMenu.getMenuItemById(`checkForUpdates`).visible = false;
+
+            if (updateMenuItem) {
+                updateMenuItem.visible = true;
+            }
+            if (checkForUpdatesMenuItem) {
+                checkForUpdatesMenuItem.visible = false;
+            }
             if (browserWindow.isVisible()) {
                 browserWindow.webContents.send(ELECTRON_EVENTS.UPDATE_DOWNLOADED, info.version);
             } else {
@@ -204,29 +217,26 @@ const electronUpdater = (browserWindow) => ({
     },
 });
 
-/*
- * @param {Menu} systemMenu
- */
-const localizeMenuItems = (submenu, updatedLocale) =>
-    _.map(submenu, (menu) => {
-        const newMenu = _.clone(menu);
+const localizeMenuItems = (submenu: MenuItemConstructorOptions[], updatedLocale: Locale): MenuItemConstructorOptions[] =>
+    submenu.map((menu) => {
+        const newMenu: MenuItemConstructorOptions = {...menu};
         if (menu.id) {
-            const labelTranslation = Localize.translate(updatedLocale, `desktopApplicationMenu.${menu.id}`);
+            const labelTranslation = Localize.translate(updatedLocale, `desktopApplicationMenu.${menu.id}` as TranslationPaths);
             if (labelTranslation) {
                 newMenu.label = labelTranslation;
             }
         }
         if (menu.submenu) {
-            newMenu.submenu = localizeMenuItems(menu.submenu, updatedLocale);
+            newMenu.submenu = localizeMenuItems(menu.submenu as MenuItemConstructorOptions[], updatedLocale);
         }
         return newMenu;
     });
 
-const mainWindow = () => {
-    let deeplinkUrl;
-    let browserWindow;
+const mainWindow = (): Promise<void> => {
+    let deeplinkUrl: string;
+    let browserWindow: BrowserWindow;
 
-    const loadURL = __DEV__ ? (win) => win.loadURL(`https://dev.new.expensify.com:${port}`) : serve({directory: `${__dirname}/www`});
+    const loadURL = __DEV__ ? (win: BrowserWindow): Promise<void> => win.loadURL(`https://dev.new.expensify.com:${port}`) : serve({directory: `${__dirname}/www`});
 
     // Prod and staging set the icon in the electron-builder config, so only update it here for dev
     if (__DEV__) {
@@ -296,7 +306,9 @@ const mainWindow = () => {
                 if (!__DEV__) {
                     // Modify the origin and referer for requests sent to our API
                     webRequest.onBeforeSendHeaders(validDestinationFilters, (details, callback) => {
+                        // @ts-expect-error need to confirm if it's used
                         details.requestHeaders.origin = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
+                        // @ts-expect-error need to confirm if it's used
                         details.requestHeaders.referer = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
                         callback({requestHeaders: details.requestHeaders});
                     });
@@ -304,9 +316,11 @@ const mainWindow = () => {
 
                 // Modify access-control-allow-origin header and CSP for the response
                 webRequest.onHeadersReceived(validDestinationFilters, (details, callback) => {
-                    details.responseHeaders['access-control-allow-origin'] = [APP_DOMAIN];
-                    if (details.responseHeaders['content-security-policy']) {
-                        details.responseHeaders['content-security-policy'] = _.map(details.responseHeaders['content-security-policy'], (value) =>
+                    if (details.responseHeaders) {
+                        details.responseHeaders['access-control-allow-origin'] = [APP_DOMAIN];
+                    }
+                    if (details.responseHeaders?.['content-security-policy']) {
+                        details.responseHeaders['content-security-policy'] = details.responseHeaders['content-security-policy'].map((value) =>
                             value.startsWith('frame-ancestors') ? `${value} ${APP_DOMAIN}` : value,
                         );
                     }
@@ -319,7 +333,7 @@ const mainWindow = () => {
                     browserWindow.setTitle('New Expensify');
                 }
 
-                const initialMenuTemplate = [
+                const initialMenuTemplate: MenuItemConstructorOptions[] = [
                     {
                         id: 'mainMenu',
                         label: Localize.translate(preferredLocale, `desktopApplicationMenu.mainMenu`),
@@ -404,6 +418,7 @@ const mainWindow = () => {
                         submenu: [
                             {
                                 id: 'back',
+                                // @ts-expect-error role doesn't exist but removing cause problems
                                 role: 'back',
                                 accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Shift+[',
                                 click: () => {
@@ -411,6 +426,7 @@ const mainWindow = () => {
                                 },
                             },
                             {
+                                // @ts-expect-error role doesn't exist but removing cause problems
                                 role: 'back',
                                 visible: false,
                                 accelerator: process.platform === 'darwin' ? 'Cmd+Left' : 'Shift+Left',
@@ -420,6 +436,7 @@ const mainWindow = () => {
                             },
                             {
                                 id: 'forward',
+                                // @ts-expect-error role doesn't exist but removing cause problems
                                 role: 'forward',
                                 accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
                                 click: () => {
@@ -427,6 +444,7 @@ const mainWindow = () => {
                                 },
                             },
                             {
+                                // @ts-expect-error role doesn't exist but removing cause problems
                                 role: 'forward',
                                 visible: false,
                                 accelerator: process.platform === 'darwin' ? 'Cmd+Right' : 'Shift+Right',
@@ -485,7 +503,7 @@ const mainWindow = () => {
                 // When the user clicks a link that has target="_blank" (which is all external links)
                 // open the default browser instead of a new electron window
                 browserWindow.webContents.setWindowOpenHandler(({url}) => {
-                    const denial = {action: 'deny'};
+                    const denial = {action: 'deny'} as const;
 
                     // Make sure local urls stay in electron perimeter
                     if (url.substr(0, 'file://'.length).toLowerCase() === 'file://') {

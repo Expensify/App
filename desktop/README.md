@@ -31,7 +31,7 @@ The New Expensify desktop app is built using [Electron.js](https://www.electronj
 The desktop app is organized in three pieces:
 
 1. The Electron main process 
-   - Implemented in https://github.com/Expensify/App/blob/main/desktop/main.js.
+   - Implemented in https://github.com/Expensify/App/blob/main/desktop/main.ts.
    - This file has access to the full set of Electron and Node.JS APIs. 
 2. The Electron renderer process
    - This is the webpack-bundled version of our react-native-web app (except using `index.desktop.js` files instead of `index.website.js`, where applicable)
@@ -131,7 +131,7 @@ The root [package.json](../package.json) serves for `devDependencies` and shared
 The [desktop/package.json](./package.json) serves for desktop (electron-main) specific dependencies
 We use Webpack with a [desktop specific config](../config/webpack/webpack.desktop.js) to bundle our js code
 Half of the config takes care of packaging root package dependencies - everything related to rendering App in the Electron window. Packaged under `dist/www`
-The other half is about bundling the `main.js` script which initializes Electron and renders `www`
+The other half is about bundling the `main.ts` script which initializes Electron and renders `www`
 
 ## See what is getting packaged in the app
 If you suspect unnecessary items might be getting packaged you can inspect the package content in `desktop-build/`
