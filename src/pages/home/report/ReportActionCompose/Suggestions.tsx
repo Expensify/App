@@ -69,7 +69,7 @@ function Suggestions(
         measureParentContainer,
         isAutoSuggestionPickerLarge = true,
         isComposerFocused,
-        reportID
+        reportID,
     }: SuggestionProps,
     ref: ForwardedRef<SuggestionsRef>,
 ) {
