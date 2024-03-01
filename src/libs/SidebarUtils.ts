@@ -92,6 +92,7 @@ function getOrderedReportIDs(
             policies,
             excludeEmptyChats: true,
             doesReportHaveViolations,
+            includeSelfDM: true,
         });
     });
 
@@ -221,7 +222,13 @@ function getOptionData({
         isDeletedParentAction: false,
     };
 
-    const participantPersonalDetailList = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs ?? [], personalDetails)) as PersonalDetails[];
+    let participantAccountIDs = report.participantAccountIDs ?? [];
+
+    if (ReportUtils.isSelfDM(report)) {
+        participantAccountIDs = [report.ownerAccountID ?? 0];
+    }
+
+    const participantPersonalDetailList = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails)) as PersonalDetails[];
     const personalDetail = participantPersonalDetailList[0] ?? {};
     const hasErrors = Object.keys(result.allReportErrors ?? {}).length !== 0;
 

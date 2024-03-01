@@ -3923,6 +3923,7 @@ function shouldReportBeInOptionList({
     policies,
     excludeEmptyChats,
     doesReportHaveViolations,
+    includeSelfDM = false,
 }: {
     report: OnyxEntry<Report>;
     currentReportId: string;
@@ -3931,6 +3932,7 @@ function shouldReportBeInOptionList({
     policies: OnyxCollection<Policy>;
     excludeEmptyChats: boolean;
     doesReportHaveViolations: boolean;
+    includeSelfDM: boolean;
 }) {
     const isInDefaultMode = !isInGSDMode;
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -3952,7 +3954,8 @@ function shouldReportBeInOptionList({
             !isUserCreatedPolicyRoom(report) &&
             !isArchivedRoom(report) &&
             !isMoneyRequestReport(report) &&
-            !isTaskReport(report))
+            !isTaskReport(report) &&
+            !isSelfDM(report))
     ) {
         return false;
     }
@@ -4012,6 +4015,10 @@ function shouldReportBeInOptionList({
     // Hide chats between two users that haven't been commented on from the LNH
     if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isChatRoom(report) && !isPolicyExpenseChat(report) && canHideReport) {
         return false;
+    }
+
+    if (includeSelfDM && isSelfDM(report)) {
+        return true;
     }
 
     return true;
