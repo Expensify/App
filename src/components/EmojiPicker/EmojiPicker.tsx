@@ -10,7 +10,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
 import CONST from '@src/CONST';
-import type {OnModalHideValue, OnEmojiSelected, EmojiPopoverAnchor, AnchorOrigin, OnWillShowPicker} from '@libs/actions/EmojiPickerAction';
+import type {OnModalHideValue, OnEmojiSelected, EmojiPopoverAnchor, AnchorOrigin, OnWillShowPicker, EmojiPickerRef} from '@libs/actions/EmojiPickerAction';
 import type {Emoji} from '@assets/emojis/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import EmojiPickerMenu from './EmojiPickerMenu';
@@ -24,24 +24,7 @@ type EmojiPickerProps = {
     viewportOffsetTop: number,
 }
 
-type EmojiPickerRef = {
-    showEmojiPicker: (
-        onModalHideValue: OnModalHideValue,
-        onEmojiSelectedValue: OnEmojiSelected,
-        emojiPopoverAnchor: EmojiPopoverAnchor,
-        anchorOrigin?: AnchorOrigin,
-        onWillShow?: OnWillShowPicker,
-        id?: string,
-        activeEmoji?: string,
-    ) => void;
-    isActive: (id: string) => boolean;
-    clearActive: () => void;
-    hideEmojiPicker: (isNavigating?: boolean) => void;
-    isEmojiPickerVisible: boolean;
-    resetEmojiPopoverAnchor: () => void;
-};
-
-function EmojiPicker (props: EmojiPickerProps, ref: ForwardedRef<EmojiPickerRef>) {
+function EmojiPicker ({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<EmojiPickerRef>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
@@ -50,15 +33,15 @@ function EmojiPicker (props: EmojiPickerProps, ref: ForwardedRef<EmojiPickerRef>
         vertical: 0,
     });
     const [emojiPopoverAnchorOrigin, setEmojiPopoverAnchorOrigin] = useState<AnchorOrigin>(DEFAULT_ANCHOR_ORIGIN);
-    const [activeID, setActiveID] = useState<string>();
-    const emojiPopoverAnchorRef = useRef<EmojiPopoverAnchor>();
+    const [activeID, setActiveID] = useState<string | null>();
+    const emojiPopoverAnchorRef = useRef<EmojiPopoverAnchor | null>(null);
     const emojiAnchorDimension = useRef({
         width: 0,
         height: 0,
     });
     const onModalHide = useRef(() => {});
     const onEmojiSelected = useRef<OnEmojiSelected>(() => {});
-    const activeEmoji = useRef<string>();
+    const activeEmoji = useRef<string | undefined>();
     const emojiSearchInput = useRef<BaseTextInputRef | null>();
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
 
@@ -83,21 +66,18 @@ function EmojiPicker (props: EmojiPickerProps, ref: ForwardedRef<EmojiPickerRef>
      * @param id - Unique id for EmojiPicker
      * @param activeEmojiValue - Selected emoji to be highlighted
      */
-    const showEmojiPicker = (onModalHideValue: OnModalHideValue, onEmojiSelectedValue: OnEmojiSelected, emojiPopoverAnchorValue: EmojiPopoverAnchor, anchorOrigin?: AnchorOrigin, onWillShow: OnWillShowPicker, id?: string, activeEmojiValue?: string) => {
+    const showEmojiPicker = (onModalHideValue: OnModalHideValue, onEmojiSelectedValue: OnEmojiSelected, emojiPopoverAnchorValue: EmojiPopoverAnchor, anchorOrigin?: AnchorOrigin, onWillShow?: OnWillShowPicker, id?: string, activeEmojiValue?: string) => {
         onModalHide.current = onModalHideValue;
         onEmojiSelected.current = onEmojiSelectedValue;
         activeEmoji.current = activeEmojiValue;
         emojiPopoverAnchorRef.current = emojiPopoverAnchorValue;
         const emojiPopoverAnchor = getEmojiPopoverAnchor();
-        // if ((emojiPopoverAnchor?.current as View)?.blur) {
-            // Drop focus to avoid blue focus ring.
-            (emojiPopoverAnchor?.current as View)?.blur?.();
-        // }
+        // Drop focus to avoid blue focus ring.
+        ((emojiPopoverAnchor?.current) as HTMLDivElement)?.blur();
 
         const anchorOriginValue = anchorOrigin ?? DEFAULT_ANCHOR_ORIGIN;
 
-        calculateAnchorPosition(emojiPopoverAnchor.current, anchorOriginValue).then((value) => {
-            // eslint-disable-next-line es/no-optional-chaining
+        calculateAnchorPosition(emojiPopoverAnchor.current as View, anchorOriginValue).then((value) => {
             onWillShow?.();
             setIsEmojiPickerVisible(true);
             setEmojiPopoverAnchorPosition({
@@ -127,7 +107,7 @@ function EmojiPicker (props: EmojiPickerProps, ref: ForwardedRef<EmojiPickerRef>
             if (currOnModalHide) {
                 currOnModalHide();
             }
-            emojiPopoverAnchorRef.current = undefined;
+            emojiPopoverAnchorRef.current = null;
         };
         setIsEmojiPickerVisible(false);
     };
@@ -139,7 +119,7 @@ function EmojiPicker (props: EmojiPickerProps, ref: ForwardedRef<EmojiPickerRef>
         if (!emojiSearchInput.current) {
             return;
         }
-        emojiSearchInput.current?.focus();
+        emojiSearchInput.current.focus();
     };
 
     /**
@@ -168,9 +148,9 @@ function EmojiPicker (props: EmojiPickerProps, ref: ForwardedRef<EmojiPickerRef>
      */
     const isActive = (id: string) => !!id && id === activeID;
 
-    const clearActive = () => setActiveID('');
+    const clearActive = () => setActiveID(null);
 
-    const resetEmojiPopoverAnchor = () => (emojiPopoverAnchorRef.current = undefined);
+    const resetEmojiPopoverAnchor = () => (emojiPopoverAnchorRef.current = null);
 
     useImperativeHandle(ref, () => ({showEmojiPicker, isActive, clearActive, hideEmojiPicker, isEmojiPickerVisible, resetEmojiPopoverAnchor}));
 
@@ -227,7 +207,7 @@ function EmojiPicker (props: EmojiPickerProps, ref: ForwardedRef<EmojiPickerRef>
                 height: CONST.EMOJI_PICKER_SIZE.HEIGHT,
             }}
             anchorAlignment={emojiPopoverAnchorOrigin}
-            outerStyle={StyleUtils.getOuterModalStyle(windowHeight, props.viewportOffsetTop)}
+            outerStyle={StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop)}
             innerContainerStyle={styles.popoverInnerContainer}
             anchorDimensions={emojiAnchorDimension.current}
             avoidKeyboard
