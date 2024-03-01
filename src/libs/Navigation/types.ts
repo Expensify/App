@@ -63,9 +63,6 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.WORKFLOWS_APPROVER]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
         policyID: string;
     };
@@ -160,6 +157,12 @@ type SettingsNavigatorParamList = {
         country: string;
         /** domain passed via route /settings/wallet/card/:domain */
         domain: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVER]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: {
+        policyID: string;
     };
     [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: undefined;
     [SCREENS.SETTINGS.WALLET.CHOOSE_TRANSFER_ACCOUNT]: undefined;
