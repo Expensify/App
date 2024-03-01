@@ -52,5 +52,10 @@ function addSMSDomainIfPhoneNumber(login: string): string {
     return login;
 }
 
+function getSearchValueForPhoneOrEmail(searchTerm: string) {
+    const parsedPhoneNumber = parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchTerm)));
+    return parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchTerm.toLowerCase();
+}
+
 // eslint-disable-next-line import/prefer-default-export
-export {parsePhoneNumber, addSMSDomainIfPhoneNumber};
+export {parsePhoneNumber, addSMSDomainIfPhoneNumber, getSearchValueForPhoneOrEmail};
