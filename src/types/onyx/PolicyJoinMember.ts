@@ -1,10 +1,10 @@
-import type * as OnyxCommon from "@src/types/onyx/OnyxCommon";
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 type PolicyJoinMember = {
     /** Role of the user in the policy */
     policyID?: string;
 
-    /** Email of the user inviting the new member*/
+    /** Email of the user inviting the new member */
     invitedEmail?: string;
 
     /**
