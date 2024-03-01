@@ -17,8 +17,8 @@ import compose from '@libs/compose';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import {getSearchValueForPhoneOrEmail} from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as UserUtils from '@libs/UserUtils';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -113,7 +113,7 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails,
 
         if (searchTerm !== '') {
             const filteredOptions = [...formattedApprover, ...formattedPolicyMembers].filter((option) => {
-                const searchValue = getSearchValueForPhoneOrEmail(searchTerm);
+                const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(searchTerm);
                 return !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
             });
             return [

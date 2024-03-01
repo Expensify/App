@@ -3,7 +3,6 @@ import {parsePhoneNumber as originalParsePhoneNumber} from 'awesome-phonenumber'
 import type {ParsedPhoneNumber, ParsedPhoneNumberInvalid, PhoneNumberParseOptions} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
-import * as LoginUtils from './LoginUtils';
 
 /**
  * Wraps awesome-phonenumber's parsePhoneNumber function to handle the case where we want to treat
@@ -52,10 +51,5 @@ function addSMSDomainIfPhoneNumber(login: string): string {
     return login;
 }
 
-function getSearchValueForPhoneOrEmail(searchTerm: string) {
-    const parsedPhoneNumber = parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchTerm)));
-    return parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchTerm.toLowerCase();
-}
-
 // eslint-disable-next-line import/prefer-default-export
-export {parsePhoneNumber, addSMSDomainIfPhoneNumber, getSearchValueForPhoneOrEmail};
+export {parsePhoneNumber, addSMSDomainIfPhoneNumber};

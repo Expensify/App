@@ -785,6 +785,11 @@ function getEnabledCategoriesCount(options: PolicyCategories): number {
     return Object.values(options).filter((option) => option.enabled).length;
 }
 
+function getSearchValueForPhoneOrEmail(searchTerm: string) {
+    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchTerm)));
+    return parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchTerm.toLowerCase();
+}
+
 /**
  * Verifies that there is at least one enabled option
  */
@@ -2007,6 +2012,7 @@ export {
     getMemberInviteOptions,
     getHeaderMessage,
     getHeaderMessageForNonUserList,
+    getSearchValueForPhoneOrEmail,
     getPersonalDetailsForAccountIDs,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
