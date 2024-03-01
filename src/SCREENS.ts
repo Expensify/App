@@ -216,6 +216,7 @@ const SCREENS = {
         CATEGORIES: 'Workspace_Categories',
         CURRENCY: 'Workspace_Profile_Currency',
         WORKFLOWS: 'Workspace_Workflows',
+        WORKFLOWS_PAYER: 'Workspace_Workflows_Payer',
         DESCRIPTION: 'Workspace_Profile_Description',
         SHARE: 'Workspace_Profile_Share',
         NAME: 'Workspace_Profile_Name',

@@ -262,6 +262,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
                             path: ROUTES.WORKSPACE_CATEGORIES_SETTINGS.route,
                         },
+                        [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_PAYER.route,
+                        },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
                             exact: true,
