@@ -176,8 +176,8 @@ function WorkspaceInvitePage({
             filterSelectedOptions = selectedOptions.filter((option) => {
                 const accountID = option.accountID;
                 const isOptionInPersonalDetails = Object.values(personalDetails).some((personalDetail) => personalDetail.accountID === accountID);
-                const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchTerm)));
-                const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchTerm.toLowerCase();
+
+                const searchValue = PhoneNumber.getSearchValueForPhoneOrEmail(searchTerm);
 
                 const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
                 return isPartOfSearchTerm || isOptionInPersonalDetails;
