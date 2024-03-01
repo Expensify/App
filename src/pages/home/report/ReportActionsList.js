@@ -35,6 +35,9 @@ const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
 
+    /** The report's parentReportAction */
+    parentReportAction: PropTypes.shape(reportActionPropTypes),
+
     /** Sorted actions prepared for display */
     sortedReportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)).isRequired,
 
@@ -84,6 +87,7 @@ const defaultProps = {
     isLinkingLoader: false,
     ...withCurrentUserPersonalDetailsDefaultProps,
     policy: {},
+    parentReportAction: {},
 };
 
 const VERTICAL_OFFSET_THRESHOLD = 200;
@@ -128,6 +132,7 @@ function isMessageUnread(message, lastReadTime) {
 
 function ReportActionsList({
     report,
+    parentReportAction,
     isLoadingInitialReportActions,
     isLoadingOlderReportActions,
     isLoadingNewerReportActions,
@@ -442,6 +447,7 @@ function ReportActionsList({
         ({item: reportAction, index}) => (
             <ReportActionsListItemRenderer
                 reportAction={reportAction}
+                parentReportAction={parentReportAction}
                 index={index}
                 report={report}
                 linkedReportActionID={linkedReportActionID}
@@ -451,7 +457,7 @@ function ReportActionsList({
                 shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
             />
         ),
-        [report, linkedReportActionID, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker],
+        [report, linkedReportActionID, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker, parentReportAction],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.

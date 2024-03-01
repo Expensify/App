@@ -616,7 +616,7 @@ function ReportScreen({
                                     <ReportActionsView
                                         reportActions={reportActions}
                                         report={report}
-                                        reportActionID={reportActionIDFromRoute}
+                                        parentReportAction={parentReportAction}
                                         isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
                                         isLoadingNewerReportActions={reportMetadata.isLoadingNewerReportActions}
                                         isLoadingOlderReportActions={reportMetadata.isLoadingOlderReportActions}

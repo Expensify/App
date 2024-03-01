@@ -76,7 +76,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
                 validate={validate}
                 enabledWhenOffline
             >
-                <Text style={[styles.textHeadline, styles.mb6]}>{translate('iou.explainHold')}</Text>
+                <Text style={styles.mb6}>{translate('iou.explainHold')}</Text>
                 <View>
                     <InputWrapper
                         InputComponent={TextInput}
@@ -84,7 +84,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
                         valueType="string"
                         name="comment"
                         defaultValue={undefined}
-                        label="Reason"
+                        label={translate('iou.reason')}
                         accessibilityLabel={translate('iou.reason')}
                         autoFocus
                     />

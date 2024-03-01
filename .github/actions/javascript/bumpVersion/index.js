@@ -104,8 +104,20 @@ exports.updateiOSVersion = function updateiOSVersion(version) {
 /***/ }),
 
 /***/ 8007:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
 
+"use strict";
+__nccwpck_require__.r(__webpack_exports__);
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   "MAX_INCREMENTS": () => (/* binding */ MAX_INCREMENTS),
+/* harmony export */   "SEMANTIC_VERSION_LEVELS": () => (/* binding */ SEMANTIC_VERSION_LEVELS),
+/* harmony export */   "getPreviousVersion": () => (/* binding */ getPreviousVersion),
+/* harmony export */   "getVersionNumberFromString": () => (/* binding */ getVersionNumberFromString),
+/* harmony export */   "getVersionStringFromNumber": () => (/* binding */ getVersionStringFromNumber),
+/* harmony export */   "incrementMinor": () => (/* binding */ incrementMinor),
+/* harmony export */   "incrementPatch": () => (/* binding */ incrementPatch),
+/* harmony export */   "incrementVersion": () => (/* binding */ incrementVersion)
+/* harmony export */ });
 const _ = __nccwpck_require__(5067);
 
 const SEMANTIC_VERSION_LEVELS = {
@@ -235,18 +247,7 @@ function getPreviousVersion(currentVersion, level) {
     return getVersionStringFromNumber(major, minor, patch, build - 1);
 }
 
-module.exports = {
-    getVersionNumberFromString,
-    getVersionStringFromNumber,
-    incrementVersion,
 
-    // For tests
-    MAX_INCREMENTS,
-    SEMANTIC_VERSION_LEVELS,
-    incrementMinor,
-    incrementPatch,
-    getPreviousVersion,
-};
 
 
 /***/ }),
@@ -5954,6 +5955,34 @@ module.exports = underscoreNodeF._;
 /******/ 	}
 /******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__nccwpck_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__nccwpck_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";

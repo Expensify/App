@@ -38,6 +38,7 @@ const MVCPFlatList = React.forwardRef(({maintainVisibleContentPosition, horizont
     const firstVisibleViewRef = React.useRef(null);
     const mutationObserverRef = React.useRef(null);
     const lastScrollOffsetRef = React.useRef(0);
+    const isListRenderedRef = React.useRef(false);
 
     const getScrollOffset = React.useCallback(() => {
         if (scrollRef.current == null) {
@@ -138,9 +139,14 @@ const MVCPFlatList = React.forwardRef(({maintainVisibleContentPosition, horizont
         mutationObserverRef.current = mutationObserver;
     }, [adjustForMaintainVisibleContentPosition, prepareForMaintainVisibleContentPosition, getContentView, getScrollOffset, scrollToOffset]);
 
-    React.useLayoutEffect(() => {
-        prepareForMaintainVisibleContentPosition();
-        setupMutationObserver();
+    React.useEffect(() => {
+        if (!isListRenderedRef.current) {
+            return;
+        }
+        requestAnimationFrame(() => {
+            prepareForMaintainVisibleContentPosition();
+            setupMutationObserver();
+        });
     }, [prepareForMaintainVisibleContentPosition, setupMutationObserver]);
 
     const setMergedRef = useMergeRefs(scrollRef, forwardedRef);
@@ -184,6 +190,10 @@ const MVCPFlatList = React.forwardRef(({maintainVisibleContentPosition, horizont
             onScroll={onScrollInternal}
             scrollEventThrottle={1}
             ref={onRef}
+            onLayout={(e) => {
+                isListRenderedRef.current = true;
+                props.onLayout?.(e);
+            }}
         />
     );
 });

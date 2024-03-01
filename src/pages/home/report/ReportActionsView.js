@@ -37,6 +37,9 @@ const propTypes = {
     /** Array of report actions for this report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
+    /** The report's parentReportAction */
+    parentReportAction: PropTypes.shape(reportActionPropTypes),
+
     /** The report metadata loading states */
     isLoadingInitialReportActions: PropTypes.bool,
 
@@ -81,6 +84,7 @@ const defaultProps = {
     session: {
         authTokenType: '',
     },
+    parentReportAction: {},
 };
 
 const DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST = 120;
@@ -462,6 +466,7 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
         <>
             <ReportActionsList
                 report={props.report}
+                parentReportAction={props.parentReportAction}
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={reportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
@@ -490,6 +495,10 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
     if (!_.isEqual(oldProps.reportActions, newProps.reportActions)) {
+        return false;
+    }
+
+    if (!_.isEqual(oldProps.parentReportAction, newProps.parentReportAction)) {
         return false;
     }
 

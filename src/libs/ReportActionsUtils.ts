@@ -6,7 +6,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ActionName, ChangeLog, OriginalMessageActionableMentionWhisper, OriginalMessageIOU, OriginalMessageReimbursementDequeued} from '@src/types/onyx/OriginalMessage';
+import type {ActionName, ChangeLog, IOUMessage, OriginalMessageActionableMentionWhisper, OriginalMessageIOU, OriginalMessageReimbursementDequeued} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -19,6 +19,7 @@ import * as Localize from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import type {OptimisticIOUReportAction} from './ReportUtils';
 
 type LastVisibleMessage = {
     lastMessageTranslationKey?: string;
@@ -97,7 +98,7 @@ function isCreatedAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 }
 
-function isDeletedAction(reportAction: OnyxEntry<ReportAction>): boolean {
+function isDeletedAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): boolean {
     // A deleted comment has either an empty array or an object with html field with empty string as value
     const message = reportAction?.message ?? [];
     return message.length === 0 || message[0]?.html === '';
@@ -107,8 +108,8 @@ function isDeletedParentAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return (reportAction?.message?.[0]?.isDeletedParentAction ?? false) && (reportAction?.childVisibleActionCount ?? 0) > 0;
 }
 
-function isReversedTransaction(reportAction: OnyxEntry<ReportAction>) {
-    return (reportAction?.message?.[0]?.isReversedTransaction ?? false) && (reportAction?.childVisibleActionCount ?? 0) > 0;
+function isReversedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>) {
+    return (reportAction?.message?.[0]?.isReversedTransaction ?? false) && ((reportAction as ReportAction)?.childVisibleActionCount ?? 0) > 0;
 }
 
 function isPendingRemove(reportAction: OnyxEntry<ReportAction> | EmptyObject): boolean {
@@ -188,9 +189,11 @@ function getParentReportAction(report: OnyxEntry<Report> | EmptyObject): ReportA
 /**
  * Determines if the given report action is sent money report action by checking for 'pay' type and presence of IOUDetails object.
  */
-function isSentMoneyReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
+function isSentMoneyReportAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): boolean {
     return (
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction?.originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !!reportAction?.originalMessage?.IOUDetails
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
+        (reportAction?.originalMessage as IOUMessage)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY &&
+        !!(reportAction?.originalMessage as IOUMessage)?.IOUDetails
     );
 }
 
@@ -564,7 +567,7 @@ function filterOutDeprecatedReportActions(reportActions: ReportActions | null): 
  * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
  * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
  */
-function getSortedReportActionsForDisplay(reportActions: ReportActions | null | ActionableMentionWhisperResolution, shouldIncludeInvisibleActions = false): ReportAction[] {
+function getSortedReportActionsForDisplay(reportActions: ReportActions | null | ReportAction[], shouldIncludeInvisibleActions = false): ReportAction[] {
     let filteredReportActions: ReportAction[] = [];
     if (!reportActions) {
         return [];
@@ -575,7 +578,7 @@ function getSortedReportActionsForDisplay(reportActions: ReportActions | null | 
     } else {
         filteredReportActions = Object.entries(reportActions)
             .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key))
-            .map(([, reportAction]) => reportAction as ReportAction);
+            .map(([, reportAction]) => reportAction);
     }
 
     const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURLInPolicyChangeLogAction(reportAction));
@@ -757,8 +760,8 @@ function getAllReportActions(reportID: string): ReportActions {
 function isReportActionAttachment(reportAction: OnyxEntry<ReportAction>): boolean {
     const message = reportAction?.message?.[0];
 
-    if (reportAction && 'isAttachment' in reportAction) {
-        return reportAction.isAttachment ?? false;
+    if (reportAction && ('isAttachment' in reportAction || 'attachmentInfo' in reportAction)) {
+        return reportAction?.isAttachment ?? !!reportAction?.attachmentInfo ?? false;
     }
 
     if (message) {
@@ -855,14 +858,6 @@ function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): 
         text: reportAction?.message ? reportAction?.message[0].text : '',
         type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
     };
-}
-
-/**
- * MARKEDREIMBURSED reportActions come from marking a report as reimbursed in OldDot. For now, we just
- * concat all of the text elements of the message to create the full message.
- */
-function getMarkedReimbursedMessage(reportAction: OnyxEntry<ReportAction>): string {
-    return reportAction?.message?.map((element) => element.text).join('') ?? '';
 }
 
 function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
@@ -993,7 +988,6 @@ export {
     hasRequestFromCurrentAccount,
     getFirstVisibleReportActionID,
     isMemberChangeAction,
-    getMarkedReimbursedMessage,
     getMemberChangeMessageFragment,
     getMemberChangeMessagePlainText,
     isReimbursementDeQueuedAction,
