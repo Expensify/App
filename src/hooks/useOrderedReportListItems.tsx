@@ -22,6 +22,7 @@ type OnyxProps = {
 
 type WithOrderedReportListItemsContextProviderProps = OnyxProps & {
     children: React.ReactNode;
+    currentReportIDForTests?: string;
 };
 
 const OrderedReportListItemsContext = createContext({});
@@ -35,8 +36,19 @@ function WithOrderedReportListItemsContextProvider({
     transactionViolations,
     policyMembers,
     priorityMode,
+    /**
+     * Only required to make unit tests work, since we
+     * explicitly pass the currentReportID in LHNTestUtils
+     * to SidebarLinksData, so this context doesn't have an
+     * access to currentReportID in that case.
+     *
+     * So this is a work around to have currentReportID available
+     * only in testing environment.
+     */
+    currentReportIDForTests,
 }: WithOrderedReportListItemsContextProviderProps) {
     const currentReportIDValue = useCurrentReportID();
+    const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportID;
     const {activeWorkspaceID} = useActiveWorkspace();
 
     const policyMemberAccountIDs = useMemo(() => getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, getCurrentUserAccountID()), [activeWorkspaceID, policyMembers]);
@@ -65,11 +77,11 @@ function WithOrderedReportListItemsContextProvider({
     // the current report is missing from the list, which should very rarely happen. In this
     // case we re-generate the list a 2nd time with the current report included.
     const orderedReportIDsWithCurrentReport = useMemo(() => {
-        if (currentReportIDValue?.currentReportID && !orderedReportIDs.includes(currentReportIDValue.currentReportID)) {
-            return getOrderedReportIDs(currentReportIDValue.currentReportID);
+        if (derivedCurrentReportID && !orderedReportIDs.includes(derivedCurrentReportID)) {
+            return getOrderedReportIDs(derivedCurrentReportID);
         }
         return orderedReportIDs;
-    }, [getOrderedReportIDs, currentReportIDValue?.currentReportID, orderedReportIDs]);
+    }, [getOrderedReportIDs, derivedCurrentReportID, orderedReportIDs]);
 
     return <OrderedReportListItemsContext.Provider value={orderedReportIDsWithCurrentReport}>{children}</OrderedReportListItemsContext.Provider>;
 }
