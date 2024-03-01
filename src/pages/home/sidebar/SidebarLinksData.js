@@ -188,8 +188,6 @@ function SidebarLinksData({
     currentReportIDRef.current = currentReportID;
     const isActiveReport = useCallback((reportID) => currentReportIDRef.current === reportID, []);
 
-    console.log('SidebarLinksData', optionListItemsWithCurrentReport);
-
     return (
         <View
             accessibilityElementsHidden={!isFocused}
