@@ -19,7 +19,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import setCursorPosition from './setCursorPosition';
 
-type MinHrRefs = {refHour: TextInput | null; minuteRef: TextInput | null};
+type MinHrRefs = {hourRef: TextInput | null; minuteRef: TextInput | null};
 
 type TimePickerProps = {
     /** Refs forwarded to the TextInputWithCurrencySymbol */
@@ -48,7 +48,7 @@ const NUM_PAD_VIEW_ID = 'numPadView';
  *
  * @returns - the modified string with the range (from, to) replaced with the provided value
  */
-function insertAtPosition(originalString: string, newSubstring: string, from: number, to: number) {
+function insertAtPosition(originalString: string, newSubstring: string, from: number, to: number): string {
     // Check for invalid positions
     if (from < 0 || to < 0 || from > originalString.length || to > originalString.length) {
         return originalString;
@@ -74,7 +74,7 @@ function insertAtPosition(originalString: string, newSubstring: string, from: nu
  *
  * @returns - the modified string with the range (from, to) replaced with zeros
  */
-function replaceRangeWithZeros(originalString: string, from: number, to: number) {
+function replaceRangeWithZeros(originalString: string, from: number, to: number): string {
     const normalizedFrom = Math.max(from, 0);
     const normalizedTo = Math.min(to, 2);
     const replacement = '0'.repeat(normalizedTo - normalizedFrom);
@@ -89,17 +89,7 @@ function replaceRangeWithZeros(originalString: string, from: number, to: number)
  * @param setValue - the function that modifies the value of the input
  * @param setSelection - the function that modifies the selection of the input
  */
-function clearSelectedValue(
-    value: string,
-    selection: {start: number; end: number},
-    setValue: React.Dispatch<React.SetStateAction<string>>,
-    setSelection: React.Dispatch<
-        React.SetStateAction<{
-            start: number;
-            end: number;
-        }>
-    >,
-) {
+function clearSelectedValue(value: string, selection: {start: number; end: number}, setValue: (value: string) => void, setSelection: (value: {start: number; end: number}) => void) {
     let newValue;
     let newCursorPosition;
 
@@ -462,10 +452,10 @@ function TimePicker({forwardedRef, defaultValue = '', onSubmit, onInputChange = 
                         onChangeAmount={handleHourChange}
                         ref={(ref) => {
                             if (typeof forwardedRef === 'function') {
-                                forwardedRef({refHour: ref as TextInput | null, minuteRef: minuteInputRef.current});
+                                forwardedRef({hourRef: ref as TextInput | null, minuteRef: minuteInputRef.current});
                             } else if (forwardedRef && 'current' in forwardedRef) {
                                 // eslint-disable-next-line no-param-reassign
-                                forwardedRef.current = {refHour: ref as TextInput | null, minuteRef: minuteInputRef.current};
+                                forwardedRef.current = {hourRef: ref as TextInput | null, minuteRef: minuteInputRef.current};
                             }
                             hourInputRef.current = ref as TextInput | null;
                         }}
@@ -487,10 +477,10 @@ function TimePicker({forwardedRef, defaultValue = '', onSubmit, onInputChange = 
                         onChangeAmount={handleMinutesChange}
                         ref={(ref) => {
                             if (typeof forwardedRef === 'function') {
-                                forwardedRef({refHour: hourInputRef.current, minuteRef: ref as TextInput | null});
+                                forwardedRef({hourRef: hourInputRef.current, minuteRef: ref as TextInput | null});
                             } else if (forwardedRef && 'current' in forwardedRef) {
                                 // eslint-disable-next-line no-param-reassign
-                                forwardedRef.current = {refHour: hourInputRef.current, minuteRef: ref as TextInput | null};
+                                forwardedRef.current = {hourRef: hourInputRef.current, minuteRef: ref as TextInput | null};
                             }
                             minuteInputRef.current = ref as TextInput | null;
                             inputCallbackRef(ref as TextInput | null);
