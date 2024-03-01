@@ -81,7 +81,11 @@ function useOptions({reports}) {
             CONST.REPORT.TYPE.TASK,
         );
 
-        const headerMessage = OptionsListUtils.getHeaderMessage(recentReports?.length + personalDetails?.length !== 0 || currentUserOption, Boolean(userToInvite), debouncedSearchValue);
+        const headerMessage = OptionsListUtils.getHeaderMessage(
+            (recentReports.length || 0 + personalDetails.length || 0) !== 0 || currentUserOption,
+            Boolean(userToInvite),
+            debouncedSearchValue,
+        );
 
         if (isLoading) {
             setIsLoading(false);
@@ -143,7 +147,7 @@ function TaskAssigneeSelectorModal({reports, task, rootParentReportPolicy}) {
             shouldShow: recentReports?.length > 0,
             indexOffset,
         });
-        indexOffset += recentReports?.length;
+        indexOffset += recentReports?.length || 0;
 
         sectionsList.push({
             title: translate('common.contacts'),
@@ -151,7 +155,7 @@ function TaskAssigneeSelectorModal({reports, task, rootParentReportPolicy}) {
             shouldShow: personalDetails?.length > 0,
             indexOffset,
         });
-        indexOffset += personalDetails?.length;
+        indexOffset += personalDetails?.length || 0;
 
         if (userToInvite) {
             sectionsList.push({

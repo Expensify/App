@@ -8,6 +8,7 @@ import OptionsList from '@components/OptionsList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import localeCompare from '@libs/LocaleCompare';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import type * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -69,7 +70,7 @@ const getAllParticipants = (
                 reportID: report?.reportID ?? '',
             };
         })
-        .sort((a, b) => a.displayName.localeCompare(b.displayName.toLowerCase()));
+        .sort((a, b) => localeCompare(a.displayName, b.displayName));
 
 function ReportParticipantsPage({report, personalDetails}: ReportParticipantsPageProps) {
     const {translate} = useLocalize();
