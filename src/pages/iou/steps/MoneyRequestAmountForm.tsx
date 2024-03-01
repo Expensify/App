@@ -104,7 +104,7 @@ function MoneyRequestAmountForm(
      */
     const onMouseDown = (event: React.MouseEvent<Element, MouseEvent>, ids: string[]) => {
         const relatedTargetId = (event.nativeEvent?.target as HTMLElement)?.id;
-        if (ids.includes(relatedTargetId)) {
+        if (!ids.includes(relatedTargetId)) {
             return;
         }
 
@@ -127,7 +127,7 @@ function MoneyRequestAmountForm(
     }, []);
 
     useEffect(() => {
-        if (!currency || typeof amount === 'number') {
+        if (!currency || typeof amount !== 'number') {
             return;
         }
         initializeAmount(amount);

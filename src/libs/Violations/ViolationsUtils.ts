@@ -30,7 +30,7 @@ const ViolationsUtils = {
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
             if (!hasCategoryOutOfPolicyViolation && categoryKey && !isCategoryInPolicy) {
-                newTransactionViolations.push({name: 'categoryOutOfPolicy', type: 'violation', userMessage: ''});
+                newTransactionViolations.push({name: 'categoryOutOfPolicy', type: 'violation'});
             }
 
             // Remove 'categoryOutOfPolicy' violation if category is in policy
@@ -45,72 +45,40 @@ const ViolationsUtils = {
 
             // Add 'missingCategory' violation if category is required and not set
             if (!hasMissingCategoryViolation && policyRequiresCategories && !categoryKey) {
-                newTransactionViolations.push({name: 'missingCategory', type: 'violation', userMessage: ''});
+                newTransactionViolations.push({name: 'missingCategory', type: 'violation'});
             }
         }
 
         if (policyRequiresTags) {
-            const selectedTags = updatedTransaction.tag?.split(CONST.COLON) ?? [];
             const policyTagKeys = Object.keys(policyTagList);
 
-            if (policyTagKeys.length === 0) {
-                newTransactionViolations.push({
-                    name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
-                    type: 'violation',
-                    userMessage: '',
-                });
-            }
-
-            policyTagKeys.forEach((key, index) => {
-                const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAG_OUT_OF_POLICY && violation.data?.tagName === key);
-                const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_TAG && violation.data?.tagName === key);
-                const selectedTag = selectedTags[index];
-                const isTagInPolicy = Boolean(policyTagList[key]?.tags[selectedTag]?.enabled);
+            // At the moment, we only return violations for tags for workspaces with single-level tags
+            if (policyTagKeys.length === 1) {
+                const policyTagListName = policyTagKeys[0];
+                const policyTags = policyTagList[policyTagListName]?.tags;
+                const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAG_OUT_OF_POLICY);
+                const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_TAG);
+                const isTagInPolicy = policyTags ? !!policyTags[updatedTransaction.tag ?? '']?.enabled : false;
 
                 // Add 'tagOutOfPolicy' violation if tag is not in policy
-                if (!hasTagOutOfPolicyViolation && selectedTag && !isTagInPolicy) {
-                    newTransactionViolations.push({
-                        name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
-                        type: 'violation',
-                        userMessage: '',
-                        data: {
-                            tagName: key,
-                        },
-                    });
+                if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy) {
+                    newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: 'violation'});
                 }
 
                 // Remove 'tagOutOfPolicy' violation if tag is in policy
-                if (hasTagOutOfPolicyViolation && selectedTag && isTagInPolicy) {
-                    newTransactionViolations = reject(newTransactionViolations, {
-                        name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
-                        data: {
-                            tagName: key,
-                        },
-                    });
+                if (hasTagOutOfPolicyViolation && updatedTransaction.tag && isTagInPolicy) {
+                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY});
                 }
 
                 // Remove 'missingTag' violation if tag is valid according to policy
                 if (hasMissingTagViolation && isTagInPolicy) {
-                    newTransactionViolations = reject(newTransactionViolations, {
-                        name: CONST.VIOLATIONS.MISSING_TAG,
-                        data: {
-                            tagName: key,
-                        },
-                    });
+                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_TAG});
                 }
-
                 // Add 'missingTag violation' if tag is required and not set
-                if (!hasMissingTagViolation && !selectedTag && policyRequiresTags) {
-                    newTransactionViolations.push({
-                        name: CONST.VIOLATIONS.MISSING_TAG,
-                        type: 'violation',
-                        userMessage: '',
-                        data: {
-                            tagName: key,
-                        },
-                    });
+                if (!hasMissingTagViolation && !updatedTransaction.tag && policyRequiresTags) {
+                    newTransactionViolations.push({name: CONST.VIOLATIONS.MISSING_TAG, type: 'violation'});
                 }
-            });
+            }
         }
 
         return {
