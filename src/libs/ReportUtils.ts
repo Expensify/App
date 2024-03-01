@@ -4333,7 +4333,7 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
  */
 function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[]): Array<ValueOf<typeof CONST.IOU.TYPE>> {
     // In any thread or task report, we do not allow any new money requests yet
-    if (isChatThread(report) || isTaskReport(report)) {
+    if (isChatThread(report) || isTaskReport(report) || isSelfDM(report)){
         return [];
     }
 
@@ -4356,7 +4356,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
     if (
         (isChatRoom(report) && otherParticipants.length > 0) ||
         (isDM(report) && hasMultipleOtherParticipants) ||
-        (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat && !isSelfDM(report))
+        (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat)
     ) {
         options = [CONST.IOU.TYPE.SPLIT];
     }
@@ -4366,7 +4366,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
     }
 
     // Send money option should be visible only in 1:1 DMs
-    if (isDM(report) && hasSingleOtherParticipantInReport && !isSelfDM(report)) {
+    if (isDM(report) && hasSingleOtherParticipantInReport) {
         options = [...options, CONST.IOU.TYPE.SEND];
     }
 
