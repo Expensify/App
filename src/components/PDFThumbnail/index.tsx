@@ -6,10 +6,9 @@ import {Document, pdfjs, Thumbnail} from 'react-pdf';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import './index.css';
 import type PDFThumbnailProps from './types';
 
-function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword = () => {}, isClickable = true}: PDFThumbnailProps) {
+function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword = () => {}}: PDFThumbnailProps) {
     const styles = useThemeStyles();
 
     useEffect(() => {
@@ -33,13 +32,12 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                     onPassword();
                 }}
             >
-                <Thumbnail
-                    pageIndex={0}
-                    className={isClickable ? '' : 'react-pdf__Thumbnail--notClickable'}
-                />
+                <View pointerEvents="none">
+                    <Thumbnail pageIndex={0} />
+                </View>
             </Document>
         ),
-        [isAuthTokenRequired, previewSourceURL, onPassword, isClickable],
+        [isAuthTokenRequired, previewSourceURL, onPassword],
     );
 
     return (

@@ -868,7 +868,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     // We don't support scaning password protected PDF receipt
                     enabled={!isAttachmentInvalid}
                     onPassword={() => setIsAttachmentInvalid(true)}
-                    isClickable={false}
                 />
             ) : (
                 <Image

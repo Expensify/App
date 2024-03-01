@@ -15,9 +15,6 @@ type PDFThumbnailProps = {
 
     /** Callback to call if PDF is password protected */
     onPassword?: () => void;
-
-    /** Whether the PDF thumbnail is clickable */
-    isClickable?: boolean;
 };
 
 export default PDFThumbnailProps;
