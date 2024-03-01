@@ -17,14 +17,15 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import BankAccount from '@libs/models/BankAccount';
-import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import Permissions from '@libs/Permissions';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
-import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Policy from '@userActions/Policy';
@@ -33,22 +34,23 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {ReimbursementAccount} from '@src/types/onyx';
+import type {ReimbursementAccount, Beta} from '@src/types/onyx';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
+import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
+import type {AutoReportingFrequencyKey} from './WorkspaceAutoReportingFrequencyPage';
 
-type WorkspaceWorkflowsPageWithReimbursementAccountProps = {
+
+type WorkspaceWorkflowsPageOnyxProps = {
+    /** Beta features list */
+    betas: OnyxEntry<Beta[]>;
     /** Reimbursement account details */
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 };
+type WorkspaceWorkflowsPageProps = WithCurrentUserPersonalDetailsProps & WithPolicyProps & WorkspaceWorkflowsPageOnyxProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
-type WorkspaceWorkflowsPageProps = WithCurrentUserPersonalDetailsProps &
-    WorkspaceWorkflowsPageWithReimbursementAccountProps &
-    WithPolicyProps &
-    StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
-
-function WorkspaceWorkflowsPage({policy, route, reimbursementAccount, currentUserPersonalDetails}: WorkspaceWorkflowsPageProps) {
-    const {translate} = useLocalize();
+function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, currentUserPersonalDetails}: WorkspaceWorkflowsPageProps) {
+    const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -60,6 +62,10 @@ function WorkspaceWorkflowsPage({policy, route, reimbursementAccount, currentUse
     const ownerPersonalDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([policy?.ownerAccountID ?? 0], CONST.EMPTY_OBJECT), false);
     const policyOwnerDisplayName = ownerPersonalDetails[0]?.displayName;
     const containerStyle = useMemo(() => [styles.ph8, styles.mhn8, styles.ml11, styles.pv3, styles.pr0, styles.pl4, styles.mr0, styles.widthAuto, styles.mt4], [styles]);
+    const canUseDelayedSubmission = Permissions.canUseWorkflowsDelayedSubmission(betas);
+
+    const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policy?.id ?? '')), [policy?.id]);
+
 
     const authorizedPayerAccountID = policy?.authorizedPayerAccountID ?? policy?.ownerAccountID ?? 0;
 
@@ -90,29 +96,36 @@ function WorkspaceWorkflowsPage({policy, route, reimbursementAccount, currentUse
         const hasVBA = state === BankAccount.STATE.OPEN;
         const bankDisplayName = bankName ? `${bankName} ${accountNumber ? `${accountNumber.slice(-5)}` : ''}` : '';
         return [
-            {
-                icon: Illustrations.ReceiptEnvelope,
-                title: translate('workflowsPage.delaySubmissionTitle'),
-                subtitle: translate('workflowsPage.delaySubmissionDescription'),
-                onToggle: (isEnabled: boolean) => {
-                    Policy.setWorkspaceAutoReporting(route.params.policyID, isEnabled);
-                },
-                subMenuItems: (
-                    <MenuItem
-                        title={translate('workflowsPage.submissionFrequency')}
-                        titleStyle={styles.textLabelSupportingNormal}
-                        descriptionTextStyle={styles.textNormalThemeText}
-                        // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY).getRoute(route.params.policyID))}
-                        // TODO will be done in https://github.com/Expensify/Expensify/issues/368332
-                        description={translate('workflowsPage.weeklyFrequency')}
-                        shouldShowRightIcon
-                        wrapperStyle={containerStyle}
-                        hoverAndPressStyle={[styles.mr0, styles.br2]}
-                    />
-                ),
-                isActive: policy?.harvesting?.enabled ?? false,
-                pendingAction: policy?.pendingFields?.isAutoApprovalEnabled,
-            },
+            ...(canUseDelayedSubmission
+                ? [
+                      {
+                          icon: Illustrations.ReceiptEnvelope,
+                          title: translate('workflowsPage.delaySubmissionTitle'),
+                          subtitle: translate('workflowsPage.delaySubmissionDescription'),
+                          onToggle: (isEnabled: boolean) => {
+                              Policy.setWorkspaceAutoReporting(route.params.policyID, isEnabled);
+                          },
+                          subMenuItems: (
+                              <MenuItem
+                                  title={translate('workflowsPage.submissionFrequency')}
+                                  titleStyle={styles.textLabelSupportingNormal}
+                                  descriptionTextStyle={styles.textNormalThemeText}
+                                  onPress={onPressAutoReportingFrequency}
+                                  description={
+                                      getAutoReportingFrequencyDisplayNames(preferredLocale)[
+                                          (policy?.autoReportingFrequency as AutoReportingFrequencyKey) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY
+                                      ]
+                                  }
+                                  shouldShowRightIcon
+                                  wrapperStyle={containerStyle}
+                                  hoverAndPressStyle={[styles.mr0, styles.br2]}
+                              />
+                          ),
+                          isActive: policy?.harvesting?.enabled ?? false,
+                          pendingAction: policy?.pendingFields?.isAutoApprovalEnabled,
+                      },
+                  ]
+                : []),
             {
                 icon: Illustrations.Approval,
                 title: translate('workflowsPage.addApprovalsTitle'),
@@ -181,7 +194,24 @@ function WorkspaceWorkflowsPage({policy, route, reimbursementAccount, currentUse
                 isActive: true, // TODO will be done in https://github.com/Expensify/Expensify/issues/368335
             },
         ];
-    }, [policy, route.params.policyID, styles, translate, policyOwnerDisplayName, containerStyle, isOffline, StyleUtils, activeRoute, reimbursementAccount, displayNameForAuthorizedPayer]);
+    },
+        [
+            policy,
+            route.params.policyID,
+            styles,
+            translate,
+            policyOwnerDisplayName,
+            containerStyle,
+            isOffline,
+            StyleUtils,
+            onPressAutoReportingFrequency,
+            preferredLocale,
+            canUseDelayedSubmission,
+            activeRoute,
+            reimbursementAccount,
+            displayNameForAuthorizedPayer
+        ],
+    );
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
         <View
@@ -233,11 +263,14 @@ function WorkspaceWorkflowsPage({policy, route, reimbursementAccount, currentUse
 
 WorkspaceWorkflowsPage.displayName = 'WorkspaceWorkflowsPage';
 
-const WorkspaceWorkflowsPageWithReimbursementAccount = withOnyx<WorkspaceWorkflowsPageProps, WorkspaceWorkflowsPageWithReimbursementAccountProps>({
-    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    },
-})(WorkspaceWorkflowsPage);
-
-export default withCurrentUserPersonalDetails(withPolicy(WorkspaceWorkflowsPageWithReimbursementAccount));
+export default withCurrentUserPersonalDetails(withPolicy(
+    withOnyx<WorkspaceWorkflowsPageProps, WorkspaceWorkflowsPageOnyxProps>({
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+        // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+    })(WorkspaceWorkflowsPage),
+));
