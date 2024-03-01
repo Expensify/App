@@ -13,22 +13,14 @@ import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import type SCREENS from '@src/SCREENS';
 import AdminPolicyAccessOrNotFoundWrapper from './AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from './PaidPolicyAccessOrNotFoundWrapper';
+import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {ToggleSettingOptionRowProps} from './workflows/ToggleSettingsOptionRow';
 import ToggleSettingOptionRow from './workflows/ToggleSettingsOptionRow';
 
-/**
-areCategoriesEnabled
-areTagsEnabled
-areDistanceRatesEnabled
-areWorkflowsEnabled
-areReportFieldsEnabled
-areConnectionsEnabled
-tax.trackingEnabled (see above)
-*/
+type WorkspaceMoreFeaturesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
 
-type WorkspaceMoreFeaturesPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
-
-function WorkspaceMoreFeaturesPage({route}: WorkspaceMoreFeaturesPageProps) {
+function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPageProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
@@ -42,7 +34,7 @@ function WorkspaceMoreFeaturesPage({route}: WorkspaceMoreFeaturesPageProps) {
                 onToggle: (isEnabled: boolean) => {
                     console.log('isEnabled', isEnabled);
                 },
-                isActive: false,
+                isActive: policy?.areDistanceRatesEnabled ?? false,
                 pendingAction: undefined,
             },
             {
@@ -62,11 +54,11 @@ function WorkspaceMoreFeaturesPage({route}: WorkspaceMoreFeaturesPageProps) {
                 onToggle: (isEnabled: boolean) => {
                     console.log('isEnabled', isEnabled);
                 },
-                isActive: false,
+                isActive: policy?.areWorkflowsEnabled ?? false,
                 pendingAction: undefined,
             },
         ],
-        [translate],
+        [policy?.areDistanceRatesEnabled, policy?.areWorkflowsEnabled, translate],
     );
 
     const organizeItems: ToggleSettingOptionRowProps[] = useMemo(
@@ -78,7 +70,7 @@ function WorkspaceMoreFeaturesPage({route}: WorkspaceMoreFeaturesPageProps) {
                 onToggle: (isEnabled: boolean) => {
                     console.log('isEnabled', isEnabled);
                 },
-                isActive: false,
+                isActive: policy?.areCategoriesEnabled ?? false,
                 pendingAction: undefined,
             },
             {
@@ -88,7 +80,7 @@ function WorkspaceMoreFeaturesPage({route}: WorkspaceMoreFeaturesPageProps) {
                 onToggle: (isEnabled: boolean) => {
                     console.log('isEnabled', isEnabled);
                 },
-                isActive: false,
+                isActive: policy?.areTagsEnabled ?? false,
                 pendingAction: undefined,
             },
             {
@@ -98,7 +90,7 @@ function WorkspaceMoreFeaturesPage({route}: WorkspaceMoreFeaturesPageProps) {
                 onToggle: (isEnabled: boolean) => {
                     console.log('isEnabled', isEnabled);
                 },
-                isActive: false,
+                isActive: policy?.tax?.trackingEnabled ?? false,
                 pendingAction: undefined,
             },
             {
@@ -108,11 +100,11 @@ function WorkspaceMoreFeaturesPage({route}: WorkspaceMoreFeaturesPageProps) {
                 onToggle: (isEnabled: boolean) => {
                     console.log('isEnabled', isEnabled);
                 },
-                isActive: false,
+                isActive: policy?.areReportFieldsEnabled ?? false,
                 pendingAction: undefined,
             },
         ],
-        [translate],
+        [policy?.areCategoriesEnabled, policy?.areReportFieldsEnabled, policy?.areTagsEnabled, policy?.tax?.trackingEnabled, translate],
     );
 
     const integrateItems: ToggleSettingOptionRowProps[] = useMemo(
@@ -124,11 +116,11 @@ function WorkspaceMoreFeaturesPage({route}: WorkspaceMoreFeaturesPageProps) {
                 onToggle: (isEnabled: boolean) => {
                     console.log('isEnabled', isEnabled);
                 },
-                isActive: false,
+                isActive: policy?.areConnectionsEnabled ?? false,
                 pendingAction: undefined,
             },
         ],
-        [translate],
+        [policy?.areConnectionsEnabled, translate],
     );
 
     const sections = useMemo(
@@ -209,4 +201,4 @@ function WorkspaceMoreFeaturesPage({route}: WorkspaceMoreFeaturesPageProps) {
 
 WorkspaceMoreFeaturesPage.displayName = 'WorkspaceMoreFeaturesPage';
 
-export default WorkspaceMoreFeaturesPage;
+export default withPolicyAndFullscreenLoading(WorkspaceMoreFeaturesPage);
