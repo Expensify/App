@@ -16,7 +16,7 @@ import type {AnchorOrigin} from '@userActions/EmojiPickerAction';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
-import type {CloseContextMenuCallback, OpenPickerCallback, PickerRefElement} from './QuickEmojiReactions/types';
+import type {OpenPickerCallback, PickerRefElement} from './QuickEmojiReactions/types';
 
 type AddReactionBubbleProps = {
     /** Whether it is for context menu so we can modify its style */
@@ -32,7 +32,7 @@ type AddReactionBubbleProps = {
     /**
      * Will get called the moment before the picker opens.
      */
-    onWillShowPicker?: (callback: CloseContextMenuCallback) => void;
+    onWillShowPicker?: () => void;
 
     /**
      * Called when the user selects an emoji.
