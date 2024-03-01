@@ -31,7 +31,6 @@ import type {
 import type {Participant} from '@src/types/onyx/IOU';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
 import Timing from './actions/Timing';
@@ -62,6 +61,18 @@ type Tag = {
 
 type Option = Partial<ReportUtils.OptionData>;
 
+/**
+ * A narrowed version of `Option` is used when we have a guarantee that given values exist.
+ */
+type OptionTree = {
+    text: string;
+    keyForList: string;
+    searchText: string;
+    tooltipText: string;
+    isDisabled: boolean;
+    isSelected: boolean;
+} & Option;
+
 type PayeePersonalDetails = {
     text: string;
     alternateText: string;
@@ -72,11 +83,18 @@ type PayeePersonalDetails = {
     keyForList: string;
 };
 
-type CategorySection = {
+type CategorySectionBase = {
     title: string | undefined;
     shouldShow: boolean;
     indexOffset: number;
+};
+
+type CategorySection = CategorySectionBase & {
     data: Option[];
+};
+
+type CategoryTreeSection = CategorySectionBase & {
+    data: OptionTree[];
 };
 
 type Category = {
@@ -143,7 +161,7 @@ type GetOptions = {
     personalDetails: ReportUtils.OptionData[];
     userToInvite: ReportUtils.OptionData | null;
     currentUserOption: ReportUtils.OptionData | null | undefined;
-    categoryOptions: CategorySection[];
+    categoryOptions: CategoryTreeSection[];
     tagOptions: CategorySection[];
     taxRatesOptions: CategorySection[];
 };
@@ -260,17 +278,6 @@ Onyx.connect({
             }, {});
     },
 });
-
-/**
- * Adds expensify SMS domain (@expensify.sms) if login is a phone number and if it's not included yet
- */
-function addSMSDomainIfPhoneNumber(login: string): string {
-    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(login);
-    if (parsedPhoneNumber.possible && !Str.isValidEmail(login)) {
-        return `${parsedPhoneNumber.number?.e164}${CONST.SMS.DOMAIN}`;
-    }
-    return login;
-}
 
 /**
  * @param defaultValues {login: accountID} In workspace invite page, when new user is added we pass available data to opt in
@@ -780,7 +787,7 @@ function isCurrentUser(userDetails: PersonalDetails): boolean {
     }
 
     // If user login is a mobile number, append sms domain if not appended already.
-    const userDetailsLogin = addSMSDomainIfPhoneNumber(userDetails.login ?? '');
+    const userDetailsLogin = PhoneNumber.addSMSDomainIfPhoneNumber(userDetails.login ?? '');
 
     if (currentUserLogin?.toLowerCase() === userDetailsLogin.toLowerCase()) {
         return true;
@@ -795,6 +802,11 @@ function isCurrentUser(userDetails: PersonalDetails): boolean {
  */
 function getEnabledCategoriesCount(options: PolicyCategories): number {
     return Object.values(options).filter((option) => option.enabled).length;
+}
+
+function getSearchValueForPhoneOrEmail(searchTerm: string) {
+    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchTerm)));
+    return parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchTerm.toLowerCase();
 }
 
 /**
@@ -891,8 +903,8 @@ function sortTags(tags: Record<string, Tag> | Tag[]) {
  * @param options[].name - a name of an option
  * @param [isOneLine] - a flag to determine if text should be one line
  */
-function getCategoryOptionTree(options: Record<string, Category> | Category[], isOneLine = false): Option[] {
-    const optionCollection = new Map<string, Option>();
+function getCategoryOptionTree(options: Record<string, Category> | Category[], isOneLine = false): OptionTree[] {
+    const optionCollection = new Map<string, OptionTree>();
     Object.values(options).forEach((option) => {
         if (isOneLine) {
             if (optionCollection.has(option.name)) {
@@ -943,11 +955,11 @@ function getCategoryListSections(
     selectedOptions: Category[],
     searchInputValue: string,
     maxRecentReportsToShow: number,
-): CategorySection[] {
+): CategoryTreeSection[] {
     const sortedCategories = sortCategories(categories);
     const enabledCategories = Object.values(sortedCategories).filter((category) => category.enabled);
 
-    const categorySections: CategorySection[] = [];
+    const categorySections: CategoryTreeSection[] = [];
     const numberOfCategories = enabledCategories.length;
 
     let indexOffset = 0;
@@ -1620,7 +1632,7 @@ function getOptions(
     const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
     const noOptionsMatchExactly = !personalDetailsOptions
         .concat(recentReportOptions)
-        .find((option) => option.login === addSMSDomainIfPhoneNumber(searchValue ?? '').toLowerCase() || option.login === searchValue?.toLowerCase());
+        .find((option) => option.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue ?? '').toLowerCase() || option.login === searchValue?.toLowerCase());
 
     if (
         searchValue &&
@@ -1629,7 +1641,7 @@ function getOptions(
         selectedOptions.every((option) => 'login' in option && option.login !== searchValue) &&
         ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN)) ||
             (parsedPhoneNumber.possible && Str.isValidPhone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? '')))) &&
-        !optionsToExclude.find((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
+        !optionsToExclude.find((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
         (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas)) &&
         !excludeUnknownUsers
     ) {
@@ -1744,7 +1756,7 @@ function getShareLogOptions(reports: OnyxCollection<Report>, personalDetails: On
 /**
  * Build the IOUConfirmation options for showing the payee personalDetail
  */
-function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: PersonalDetails | EmptyObject, amountText: string): PayeePersonalDetails {
+function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: PersonalDetails, amountText: string): PayeePersonalDetails {
     const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail.login ?? '');
     return {
         text: PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, formattedLogin),
@@ -1875,7 +1887,7 @@ function formatMemberForList(member: ReportUtils.OptionData): MemberForList {
         login: member.login ?? '',
         icons: member.icons,
         pendingAction: member.pendingAction,
-        reportID: member.reportID,
+        reportID: member.reportID ?? '',
     };
 }
 
@@ -2010,7 +2022,6 @@ function formatSectionsFromSearchTerm(
 }
 
 export {
-    addSMSDomainIfPhoneNumber,
     getAvatarsForAccountIDs,
     isCurrentUser,
     isPersonalDetailsReady,
@@ -2020,6 +2031,7 @@ export {
     getMemberInviteOptions,
     getHeaderMessage,
     getHeaderMessageForNonUserList,
+    getSearchValueForPhoneOrEmail,
     getPersonalDetailsForAccountIDs,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
