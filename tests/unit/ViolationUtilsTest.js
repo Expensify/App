@@ -196,4 +196,74 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual([missingTagViolation]);
         });
     });
+    describe('policy has multi level tags', () => {
+        beforeEach(() => {
+            policyRequiresTags = true;
+            policyTags = {
+                Department: {
+                    name: "Department",
+                    tags: {
+                        Accounting: {
+                            name: "Accounting",
+                            enabled: true
+                        },
+                        Engineering: {
+                            name: "Engineering",
+                            enabled: false
+                        },
+                    },
+                    required: true
+                },
+                Region: {
+                    name: "Region",
+                    tags: {
+                        Africa: {
+                            name: "Africa",
+                            enabled: true
+                        },
+                    },
+                },
+                Project: {
+                    name: "Project",
+                    tags: {
+                        Project1: {
+                            name: "Project1",
+                            enabled: true
+                        },
+                    },
+                    required: true
+                }
+            };
+        });
+        it('should return someTagLevelsRequired when a required tag is missing', () => {
+            let someTagLevelsRequiredViolation = {
+                name: 'someTagLevelsRequired',
+                type: 'violation',
+                data: {
+                    errorIndexes: [0, 1, 2],
+                },
+            };
+
+            // Test case where transaction has no tags
+            let result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
+            expect(result.value).toEqual([someTagLevelsRequiredViolation]);
+
+            // Test case where transaction has 1 tag
+            transaction.tag = 'Accounting';
+            someTagLevelsRequiredViolation.data = {errorIndexes: [1, 2]};
+            result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
+            expect(result.value).toEqual([someTagLevelsRequiredViolation]);
+
+            // Test case where transaction has 2 tags
+            transaction.tag = 'Accounting::Project1';
+            someTagLevelsRequiredViolation.data = {errorIndexes: [1]};
+            result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
+            expect(result.value).toEqual([someTagLevelsRequiredViolation]);
+
+            // Test case where transaction has all tags
+            transaction.tag = 'Accounting:Africa:Project1';
+            result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
+            expect(result.value).toEqual([]);
+        });
+    });
 });
