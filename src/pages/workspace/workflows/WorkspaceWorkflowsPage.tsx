@@ -1,15 +1,15 @@
-import { useIsFocused } from '@react-navigation/native';
-import type { StackScreenProps } from '@react-navigation/stack';
-import React, { useCallback, useEffect, useMemo } from 'react';
-import { View } from 'react-native';
-import type { OnyxEntry } from 'react-native-onyx';
-import { withOnyx } from 'react-native-onyx';
+import {useIsFocused} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
+import React, {useCallback, useEffect, useMemo} from 'react';
+import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import type { WithCurrentUserPersonalDetailsProps } from '@components/withCurrentUserPersonalDetails';
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -23,22 +23,22 @@ import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import type { CentralPaneNavigatorParamList } from '@navigation/types';
-import type { WithPolicyProps } from '@pages/workspace/withPolicy';
+import type {CentralPaneNavigatorParamList} from '@navigation/types';
+import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Policy from '@userActions/Policy';
-import { navigateToBankAccountRoute } from '@userActions/ReimbursementAccount';
+import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type { Beta, ReimbursementAccount } from '@src/types/onyx';
+import type {Beta, ReimbursementAccount} from '@src/types/onyx';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
-import type { ToggleSettingOptionRowProps } from './ToggleSettingsOptionRow';
-import { getAutoReportingFrequencyDisplayNames } from './WorkspaceAutoReportingFrequencyPage';
-import type { AutoReportingFrequencyKey } from './WorkspaceAutoReportingFrequencyPage';
+import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
+import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
+import type {AutoReportingFrequencyKey} from './WorkspaceAutoReportingFrequencyPage';
 
 type WorkspaceWorkflowsPageOnyxProps = {
     /** Beta features list */
@@ -51,12 +51,12 @@ type WorkspaceWorkflowsPageProps = WithCurrentUserPersonalDetailsProps &
     WorkspaceWorkflowsPageOnyxProps &
     StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
-function WorkspaceWorkflowsPage({ policy, betas, route, reimbursementAccount, currentUserPersonalDetails }: WorkspaceWorkflowsPageProps) {
-    const { translate, preferredLocale } = useLocalize();
+function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, currentUserPersonalDetails}: WorkspaceWorkflowsPageProps) {
+    const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const { isSmallScreenWidth } = useWindowDimensions();
-    const { isOffline } = useNetwork();
+    const {isSmallScreenWidth} = useWindowDimensions();
+    const {isOffline} = useNetwork();
 
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
@@ -93,40 +93,39 @@ function WorkspaceWorkflowsPage({ policy, betas, route, reimbursementAccount, cu
     const activeRoute = Navigation.getActiveRouteWithoutParams();
 
     const items: ToggleSettingOptionRowProps[] = useMemo(() => {
-        const { accountNumber, state, bankName } = reimbursementAccount?.achData ?? {};
+        const {accountNumber, state, bankName} = reimbursementAccount?.achData ?? {};
         const hasVBA = state === BankAccount.STATE.OPEN;
         const bankDisplayName = bankName ? `${bankName} ${accountNumber ? `${accountNumber.slice(-5)}` : ''}` : '';
-        console.log(reimbursementAccount, 'reimbursementAccount---------------->', policy)
         return [
             ...(canUseDelayedSubmission
                 ? [
-                    {
-                        icon: Illustrations.ReceiptEnvelope,
-                        title: translate('workflowsPage.delaySubmissionTitle'),
-                        subtitle: translate('workflowsPage.delaySubmissionDescription'),
-                        onToggle: (isEnabled: boolean) => {
-                            Policy.setWorkspaceAutoReporting(route.params.policyID, isEnabled);
-                        },
-                        subMenuItems: (
-                            <MenuItem
-                                title={translate('workflowsPage.submissionFrequency')}
-                                titleStyle={styles.textLabelSupportingNormal}
-                                descriptionTextStyle={styles.textNormalThemeText}
-                                onPress={onPressAutoReportingFrequency}
-                                description={
-                                    getAutoReportingFrequencyDisplayNames(preferredLocale)[
-                                    (policy?.autoReportingFrequency as AutoReportingFrequencyKey) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY
-                                    ]
-                                }
-                                shouldShowRightIcon
-                                wrapperStyle={containerStyle}
-                                hoverAndPressStyle={[styles.mr0, styles.br2]}
-                            />
-                        ),
-                        isActive: policy?.harvesting?.enabled ?? false,
-                        pendingAction: policy?.pendingFields?.isAutoApprovalEnabled,
-                    },
-                ]
+                      {
+                          icon: Illustrations.ReceiptEnvelope,
+                          title: translate('workflowsPage.delaySubmissionTitle'),
+                          subtitle: translate('workflowsPage.delaySubmissionDescription'),
+                          onToggle: (isEnabled: boolean) => {
+                              Policy.setWorkspaceAutoReporting(route.params.policyID, isEnabled);
+                          },
+                          subMenuItems: (
+                              <MenuItem
+                                  title={translate('workflowsPage.submissionFrequency')}
+                                  titleStyle={styles.textLabelSupportingNormal}
+                                  descriptionTextStyle={styles.textNormalThemeText}
+                                  onPress={onPressAutoReportingFrequency}
+                                  description={
+                                      getAutoReportingFrequencyDisplayNames(preferredLocale)[
+                                          (policy?.autoReportingFrequency as AutoReportingFrequencyKey) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY
+                                      ]
+                                  }
+                                  shouldShowRightIcon
+                                  wrapperStyle={containerStyle}
+                                  hoverAndPressStyle={[styles.mr0, styles.br2]}
+                              />
+                          ),
+                          isActive: policy?.harvesting?.enabled ?? false,
+                          pendingAction: policy?.pendingFields?.isAutoApprovalEnabled,
+                      },
+                  ]
                 : []),
             {
                 icon: Illustrations.Approval,
@@ -155,14 +154,9 @@ function WorkspaceWorkflowsPage({ policy, betas, route, reimbursementAccount, cu
                 title: translate('workflowsPage.makeOrTrackPaymentsTitle'),
                 subtitle: translate('workflowsPage.makeOrTrackPaymentsDescription'),
                 onToggle: () => {
-                    if(!hasVBA) {
-                        navigateToBankAccountRoute(route.params.policyID, activeRoute);
-                        return;
-                    }
                     const isAutoReimbursable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
                     const newReimbursementChoice = isAutoReimbursable ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
-                    const reimburserEmail = newReimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? policy?.owner ?? '' : '';
-                    Policy.setWorkspaceReimbursement(route.params.policyID, reimburserEmail, newReimbursementChoice);
+                    Policy.setWorkspaceReimbursement(route.params.policyID, newReimbursementChoice);
                 },
                 subMenuItems: (
                     <>
