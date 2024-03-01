@@ -150,7 +150,7 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails,
     const headerMessage = useMemo(() => (searchTerm && !sections[0].data.length ? translate('common.noResultsFound') : ''), [translate, sections]);
 
     const setPolicyApprover = (member: MemberOption) => {
-        if (!policy || !policy.approvalMode || !personalDetails?.[member.accountID]?.login) {
+        if (!policy?.approvalMode || !personalDetails?.[member.accountID]?.login) {
             return;
         }
         const approver: string = personalDetails?.[member.accountID]?.login ?? policy.approver ?? policy.owner;
