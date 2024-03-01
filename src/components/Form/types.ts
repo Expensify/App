@@ -42,11 +42,12 @@ type ValidInputs =
     | typeof DatePicker
     | typeof RadioButtons;
 
-type ValueTypeKey = 'string' | 'boolean' | 'date';
+type ValueTypeKey = 'string' | 'boolean' | 'date' | 'null';
 type ValueTypeMap = {
     string: string;
     boolean: boolean;
     date: Date;
+    null: null;
 };
 type FormValue = ValueOf<ValueTypeMap>;
 

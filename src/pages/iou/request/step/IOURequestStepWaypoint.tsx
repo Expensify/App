@@ -126,6 +126,8 @@ function IOURequestStepWaypoint({
             const waypoint = {
                 address: waypointValue,
                 name: values.name,
+                lat: null,
+                lng: null,
             };
             saveWaypoint(waypoint);
         }
