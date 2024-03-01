@@ -486,6 +486,10 @@ const ROUTES = {
         route: 'workspace/:policyID/workflows',
         getRoute: (policyID: string) => `workspace/${policyID}/workflows` as const,
     },
+    WORKSPACE_WORKFLOWS_APPROVER: {
+        route: 'workspace/:policyID/settings/workflows/approver',
+        getRoute: (policyId: string) => `workspace/${policyId}/settings/workflows/approver` as const,
+    },
     WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY: {
         route: 'workspace/:policyID/settings/workflows/auto-reporting-frequency',
         getRoute: (policyID: string) => `workspace/${policyID}/settings/workflows/auto-reporting-frequency` as const,
@@ -533,6 +537,10 @@ const ROUTES = {
     WORKSPACE_CATEGORIES: {
         route: 'workspace/:policyID/categories',
         getRoute: (policyID: string) => `workspace/${policyID}/categories` as const,
+    },
+    WORKSPACE_CATEGORY_SETTINGS: {
+        route: 'workspace/:policyID/categories/:categoryName',
+        getRoute: (policyID: string, categoryName: string) => `workspace/${policyID}/categories/${encodeURI(categoryName)}` as const,
     },
     WORKSPACE_CATEGORIES_SETTINGS: {
         route: 'workspace/:policyID/categories/settings',

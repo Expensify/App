@@ -262,8 +262,17 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.INVITE]: {
                             path: ROUTES.WORKSPACE_INVITE.route,
                         },
+                        [SCREENS.WORKSPACE.WORKFLOWS_APPROVER]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_APPROVER.route,
+                        },
                         [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
                             path: ROUTES.WORKSPACE_INVITE_MESSAGE.route,
+                        },
+                        [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_CATEGORY_SETTINGS.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURI(categoryName),
+                            },
                         },
                         [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
                             path: ROUTES.WORKSPACE_CATEGORIES_SETTINGS.route,

@@ -1756,6 +1756,7 @@ export default {
             collect: 'Collect',
         },
         categories: {
+            categoryName: 'Category name',
             requiresCategory: 'Members must categorize all spend',
             enableCategory: 'Enable category',
             subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
@@ -1763,6 +1764,7 @@ export default {
                 title: "You haven't created any categories",
                 subtitle: 'Add a category to organize your spend.',
             },
+            genericFailureMessage: 'An error occurred while updating the category, please try again.',
         },
         emptyWorkspace: {
             title: 'Create a workspace',
@@ -1787,9 +1789,12 @@ export default {
         },
         people: {
             genericFailureMessage: 'An error occurred removing a user from the workspace, please try again.',
-            removeMembersPrompt: 'Are you sure you want to remove the selected members from your workspace?',
+            removeMembersPrompt: 'Are you sure you want to remove these members?',
             removeMembersTitle: 'Remove members',
+            makeMember: 'Make member',
+            makeAdmin: 'Make admin',
             selectAll: 'Select all',
+            selected: ({selectedNumber}) => `${selectedNumber} selected`,
             error: {
                 genericAdd: 'There was a problem adding this workspace member.',
                 cannotRemove: 'You cannot remove yourself or the workspace owner.',
