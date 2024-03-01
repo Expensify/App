@@ -201,42 +201,42 @@ describe('getViolationsOnyxData', () => {
             policyRequiresTags = true;
             policyTags = {
                 Department: {
-                    name: "Department",
+                    name: 'Department',
                     tags: {
                         Accounting: {
-                            name: "Accounting",
-                            enabled: true
+                            name: 'Accounting',
+                            enabled: true,
                         },
                         Engineering: {
-                            name: "Engineering",
-                            enabled: false
+                            name: 'Engineering',
+                            enabled: false,
                         },
                     },
-                    required: true
+                    required: true,
                 },
                 Region: {
-                    name: "Region",
+                    name: 'Region',
                     tags: {
                         Africa: {
-                            name: "Africa",
-                            enabled: true
+                            name: 'Africa',
+                            enabled: true,
                         },
                     },
                 },
                 Project: {
-                    name: "Project",
+                    name: 'Project',
                     tags: {
                         Project1: {
-                            name: "Project1",
-                            enabled: true
+                            name: 'Project1',
+                            enabled: true,
                         },
                     },
-                    required: true
-                }
+                    required: true,
+                },
             };
         });
         it('should return someTagLevelsRequired when a required tag is missing', () => {
-            let someTagLevelsRequiredViolation = {
+            const someTagLevelsRequiredViolation = {
                 name: 'someTagLevelsRequired',
                 type: 'violation',
                 data: {
@@ -268,7 +268,7 @@ describe('getViolationsOnyxData', () => {
         it('should return tagOutOfPolicy when a tag is not enabled in the policy but is set in the transaction', () => {
             policyTags.Department.tags.Accounting.enabled = false;
             transaction.tag = 'Accounting:Africa:Project1';
-            result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
             const violation = {...tagOutOfPolicyViolation, data: {tagName: 'Department'}};
             expect(result.value).toEqual([violation]);
         });
