@@ -1,4 +1,4 @@
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type * as OnyxCommon from './OnyxCommon';
 
 type PolicyJoinMember = {
     /** Role of the user in the policy */
