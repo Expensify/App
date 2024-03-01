@@ -97,7 +97,6 @@ function OnboardingWelcomeVideo() {
             return (
                 <View
                     style={[
-                        styles.w100,
                         // Prevent layout jumps by reserving height for the video
                         {height: VIDEO_HEIGHT - 2 * MODAL_PADDING},
                     ]}
@@ -129,13 +128,14 @@ function OnboardingWelcomeVideo() {
     };
 
     return (
-        <View style={styles.mw75}>
-            <Modal
-                isVisible={isModalVisible}
-                type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.CONFIRM : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
-                onClose={closeModal}
+        <Modal
+            isVisible={isModalVisible}
+            type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.CENTERED_SMALL : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+            onClose={closeModal}
+        >
+            <View
+                style={{width: 600}}
                 onLayout={storeContainerDimensions}
-                style={[styles.flex1, styles.justifyContentCenter]}
             >
                 <View style={{padding: MODAL_PADDING}}>{getWelcomeVideo()}</View>
                 <View style={[shouldUseNarrowLayout ? [styles.mt5, styles.mh8] : [styles.mt3, styles.mh5]]}>
@@ -150,8 +150,8 @@ function OnboardingWelcomeVideo() {
                         text={translate('onboarding.welcomeVideo.button')}
                     />
                 </View>
-            </Modal>
-        </View>
+            </View>
+        </Modal>
     );
 }
 
