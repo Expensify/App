@@ -57,7 +57,8 @@ function EmojiPickerMenuItem({emoji, onPress, onHoverIn, onHoverOut, onFocus, on
                 Browser.isMobile() && StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
                 themeStyles.emojiItem,
             ]}
-            accessibilityLabel={emoji}
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            accessibilityLabel={emoji!}
             role={CONST.ROLE.BUTTON}
         >
             <Text style={[themeStyles.emojiText]}>{emoji}</Text>

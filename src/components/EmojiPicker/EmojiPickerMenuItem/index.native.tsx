@@ -36,7 +36,8 @@ function EmojiPickerMenuItem({emoji, onPress, onHoverIn, onHoverOut, onFocus, on
                 isHighlighted && !isUsingKeyboardMovement ? themeStyles.emojiItemHighlighted : {},
                 themeStyles.emojiItem,
             ]}
-            accessibilityLabel={emoji}
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            accessibilityLabel={emoji!}
             role={CONST.ROLE.BUTTON}
         >
             <Text style={[themeStyles.emojiText]}>{emoji}</Text>
