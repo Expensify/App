@@ -71,29 +71,25 @@ function fromLocaleDigit(locale: Locale, localeDigit: string): string {
  * Formats a number into its localized ordinal representation i.e 1st, 2nd etc
  */
 function toLocaleOrdinal(locale: Locale, number: number): string {
-    const formatter = new Intl.PluralRules(locale, {type: 'ordinal'});
-    const rule = formatter.select(number);
 
-    const suffixes: Record<string, Record<string, string>> = {
-        en: {
-            one: Localize.translate(locale, 'workflowsPage.frequencies.ordinals.one'),
-            two: Localize.translate(locale, 'workflowsPage.frequencies.ordinals.two'),
-            few: Localize.translate(locale, 'workflowsPage.frequencies.ordinals.few'),
-            other: Localize.translate(locale, 'workflowsPage.frequencies.ordinals.other'),
-        },
-        es: {
-            one: Localize.translate(locale, 'workflowsPage.frequencies.ordinals.one'),
-            two: Localize.translate(locale, 'workflowsPage.frequencies.ordinals.two'),
-            few: Localize.translate(locale, 'workflowsPage.frequencies.ordinals.few'),
-            other: Localize.translate(locale, 'workflowsPage.frequencies.ordinals.other'),
-        },
-    };
+    // Defaults to "other" suffix or "th" in English
+    let suffixKey = 'workflowsPage.frequencies.ordinals.other';
 
-    const lang = locale.substring(0, 2);
+    // Calculate last digit of the number to determine basic ordinality
+    const lastDigit = number % 10;
 
-    const languageSuffixes = suffixes[lang] || suffixes.en;
+    // Calculate last two digits to handle exceptions in the 11-13 range
+    const lastTwoDigits = number % 100;
 
-    const suffix = languageSuffixes[rule] || languageSuffixes.other;
+    if (lastDigit === 1 && lastTwoDigits !== 11) {
+        suffixKey = 'workflowsPage.frequencies.ordinals.one';
+    } else if (lastDigit === 2 && lastTwoDigits !== 12) {
+        suffixKey = 'workflowsPage.frequencies.ordinals.two';
+    } else if (lastDigit === 3 && lastTwoDigits !== 13) {
+        suffixKey = 'workflowsPage.frequencies.ordinals.few';
+    }
+
+    const suffix = Localize.translate(locale, suffixKey);
 
     return `${number}${suffix}`;
 }
