@@ -26,6 +26,7 @@ import type {
     FormattedMaxLengthParams,
     GoBackMessageParams,
     GoToRoomParams,
+    HeldRequestParams,
     InstantSummaryParams,
     LocalTimeParams,
     LoggedInAsParams,
@@ -120,6 +121,7 @@ export default {
         no: 'No',
         ok: 'OK',
         buttonConfirm: 'Got it',
+        name: 'Name',
         attachment: 'Attachment',
         to: 'To',
         optional: 'Optional',
@@ -204,6 +206,7 @@ export default {
         iAcceptThe: 'I accept the ',
         remove: 'Remove',
         admin: 'Admin',
+        owner: 'Owner',
         dateFormat: 'YYYY-MM-DD',
         send: 'Send',
         notifications: 'Notifications',
@@ -307,6 +310,8 @@ export default {
         of: 'of',
         default: 'Default',
         update: 'Update',
+        member: 'Member',
+        role: 'Role',
     },
     location: {
         useCurrent: 'Use current location',
@@ -627,7 +632,7 @@ export default {
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
         adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager} cancelled the ${amount} payment.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
-            `Canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
+            `canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
         paidElsewhereWithAmount: ({payer, amount}: PaidElsewhereWithAmountParams) => `${payer ? `${payer} ` : ''}paid ${amount} elsewhere`,
@@ -666,8 +671,10 @@ export default {
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Started settling up, payment is held until ${submitterDisplayName} enables their Wallet`,
         enableWallet: 'Enable Wallet',
         hold: 'Hold',
-        holdRequest: 'Hold Request',
-        unholdRequest: 'Unhold Request',
+        holdRequest: 'Hold request',
+        unholdRequest: 'Unhold request',
+        heldRequest: ({comment}: HeldRequestParams) => `held this request with the comment: ${comment}`,
+        unheldRequest: 'unheld this request',
         explainHold: "Explain why you're holding this request.",
         reason: 'Reason',
         holdReasonRequired: 'A reason is required when holding.',
@@ -853,7 +860,6 @@ export default {
             noLogsAvailable: 'No logs available',
             logSizeTooLarge: ({size}: LogSizeParams) => `Log size exceeds the limit of ${size} MB. Please use "Save log" to download the log file instead.`,
         },
-        goToExpensifyClassic: 'Go to Expensify Classic',
         security: 'Security',
         signOut: 'Sign out',
         signOutConfirmationText: "You'll lose any offline changes if you sign-out.",
@@ -1022,6 +1028,25 @@ export default {
             updateAddress: 'Update address',
         },
         cardDetailsLoadingFailure: 'An error occurred while loading the card details. Please check your internet connection and try again.',
+    },
+    workflowsPage: {
+        workflowTitle: 'Spend',
+        workflowDescription: 'Configure a workflow from the moment spend occurs, including approval and payment.',
+        delaySubmissionTitle: 'Delay submissions',
+        delaySubmissionDescription: 'Expenses are shared right away for better spend visibility. Set a slower cadence if needed.',
+        submissionFrequency: 'Submission frequency',
+        weeklyFrequency: 'Weekly',
+        monthlyFrequency: 'Monthly',
+        twiceAMonthFrequency: 'Twice a month',
+        byTripFrequency: 'By trip',
+        manuallyFrequency: 'Manually',
+        dailyFrequency: 'Daily',
+        addApprovalsTitle: 'Add approvals',
+        approver: 'Approver',
+        connectBankAccount: 'Connect bank account',
+        addApprovalsDescription: 'Require additional approval before authorizing a payment.',
+        makeOrTrackPaymentsTitle: 'Make or track payments',
+        makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify, or simply track payments made elsewhere.',
     },
     reportFraudPage: {
         title: 'Report virtual card fraud',
@@ -1265,7 +1290,8 @@ export default {
     },
     focusModeUpdateModal: {
         title: 'Welcome to #focus mode!',
-        prompt: "Read chats will be hidden, unless they have a green dot, which means there's an action you need to take on them. You can change this in your account settings ",
+        prompt: "Stay on top of things by only seeing unread chats or chats that need your attention. Don't worry, you can change this at any point in ",
+        settings: 'settings',
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'The chat you are looking for cannot be found.',
@@ -1676,11 +1702,15 @@ export default {
     workspace: {
         common: {
             card: 'Cards',
+            workflows: 'Workflows',
             workspace: 'Workspace',
             edit: 'Edit workspace',
+            enabled: 'Enabled',
+            disabled: 'Disabled',
             delete: 'Delete workspace',
             settings: 'Settings',
             reimburse: 'Reimbursements',
+            categories: 'Categories',
             bills: 'Bills',
             invoices: 'Invoices',
             travel: 'Travel',
@@ -1708,6 +1738,15 @@ export default {
             free: 'Free',
             control: 'Control',
             collect: 'Collect',
+        },
+        categories: {
+            requiresCategory: 'Members must categorize all spend',
+            enableCategory: 'Enable category',
+            subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
+            emptyCategories: {
+                title: "You haven't created any categories",
+                subtitle: 'Add a category to organize your spend.',
+            },
         },
         emptyWorkspace: {
             title: 'Create a workspace',
@@ -1742,6 +1781,7 @@ export default {
             },
             addedWithPrimary: 'Some users were added with their primary logins.',
             invitedBySecondaryLogin: ({secondaryLogin}) => `Added by secondary login ${secondaryLogin}.`,
+            membersListTitle: 'Directory of all workspace members.',
         },
         card: {
             header: 'Unlock free Expensify Cards',
@@ -2132,7 +2172,7 @@ export default {
         reply: 'Reply',
         from: 'From',
         in: 'in',
-        parentNavigationSummary: ({rootReportName, workspaceName}: ParentNavigationSummaryParams) => `From ${rootReportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
+        parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `From ${reportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
     },
     qrCodes: {
         copy: 'Copy URL',
@@ -2199,7 +2239,6 @@ export default {
         address: 'Address',
         waypointDescription: {
             start: 'Start',
-            finish: 'Finish',
             stop: 'Stop',
         },
         mapPending: {
@@ -2340,5 +2379,29 @@ export default {
         expand: 'Expand',
         mute: 'Mute',
         unmute: 'Unmute',
+    },
+    exitSurvey: {
+        header: 'Before you go',
+        reasonPage: {
+            title: "Please tell us why you're leaving",
+            subtitle: 'Before you go, please tell us why you’d like to switch to Expensify Classic.',
+        },
+        reasons: {
+            [CONST.EXIT_SURVEY.REASONS.FEATURE_NOT_AVAILABLE]: "I need a feature that's only available in Expensify Classic.",
+            [CONST.EXIT_SURVEY.REASONS.DONT_UNDERSTAND]: "I don't understand how to use New Expensify.",
+            [CONST.EXIT_SURVEY.REASONS.PREFER_CLASSIC]: 'I understand how to use New Expensify, but I prefer Expensify Classic.',
+        },
+        prompts: {
+            [CONST.EXIT_SURVEY.REASONS.FEATURE_NOT_AVAILABLE]: "What feature do you need that isn't available in New Expensify?",
+            [CONST.EXIT_SURVEY.REASONS.DONT_UNDERSTAND]: 'What are you trying to do?',
+            [CONST.EXIT_SURVEY.REASONS.PREFER_CLASSIC]: 'Why do you prefer Expensify Classic?',
+        },
+        responsePlaceholder: 'Your response',
+        thankYou: 'Thanks for the feedback!',
+        thankYouSubtitle: 'Your responses will help us build a better product to get stuff done. Thank you so much!',
+        goToExpensifyClassic: 'Switch to Expensify Classic',
+        offlineTitle: "Looks like you're stuck here...",
+        offline:
+            "You appear to be offline. Unfortunately, Expensify Classic doesn't work offline, but New Expensify does. If you prefer to use Expensify Classic, try again when you have an internet connection.",
     },
 } satisfies TranslationBase;
