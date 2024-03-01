@@ -44,6 +44,8 @@ function LogCommand(parameters: LogCommandParameters): Promise<{requestID: strin
 
 // eslint-disable-next-line
 type ServerLoggingCallbackOptions = {api_setCookie: boolean; logPacket: string};
+
+// Random comment
 type RequestParams = Merge<ServerLoggingCallbackOptions, {shouldProcessImmediately: boolean; shouldRetry: boolean; expensifyCashAppVersion: string; parameters: string}>;
 
 /**
