@@ -98,7 +98,6 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                         descriptionTextStyle={styles.textNormalThemeText}
                         description={policyApproverName ?? ''}
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVER.getRoute(route.params.policyID))}
-                        // TODO will be done in https://github.com/Expensify/Expensify/issues/368334
                         shouldShowRightIcon
                         wrapperStyle={containerStyle}
                         hoverAndPressStyle={[styles.mr0, styles.br2]}
