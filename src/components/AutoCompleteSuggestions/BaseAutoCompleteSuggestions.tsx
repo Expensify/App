@@ -38,8 +38,8 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
      * Render a suggestion menu item component.
      */
     const renderItem = useCallback(
-      ({item, index}: RenderSuggestionMenuItemProps<TSuggestion>): ReactElement => (
-          <PressableWithFeedback
+        ({item, index}: RenderSuggestionMenuItemProps<TSuggestion>): ReactElement => (
+            <PressableWithFeedback
                 style={({hovered}) => StyleUtils.getAutoCompleteSuggestionItemStyle(highlightedSuggestionIndex, CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT, hovered, index)}
                 hoverDimmingValue={1}
                 onMouseDown={(e) => e.preventDefault()}
