@@ -77,6 +77,7 @@ import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import reportActionPropTypes from './reportActionPropTypes';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
+import ReportDateIndicator from './ReportDateIndicator';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -124,6 +125,9 @@ const propTypes = {
 
     /** Callback to be called on onPress */
     onPress: PropTypes.func,
+
+    /** Should we show the date indicator? */
+    showDateIndicator: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
@@ -755,6 +759,7 @@ function ReportActionItem(props) {
     const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedToAccountIDs);
     const whisperedToPersonalDetails = isWhisper ? _.filter(personalDetails, (details) => _.includes(whisperedToAccountIDs, details.accountID)) : [];
     const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
+    const indicatorTimestamp = props.action.reportActionTimestamp || 0;
     return (
         <PressableWithSecondaryInteraction
             ref={popoverAnchorRef}
@@ -767,6 +772,7 @@ function ReportActionItem(props) {
             withoutFocusOnSecondaryInteraction
             accessibilityLabel={props.translate('accessibilityHints.chatMessage')}
         >
+            {props.showDateIndicator && <ReportDateIndicator created={indicatorTimestamp} />}
             <Hoverable
                 shouldHandleScroll
                 isDisabled={!_.isUndefined(props.draftMessage)}

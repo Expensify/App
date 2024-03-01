@@ -15,8 +15,11 @@ const withLocalizePropTypes = {
     /** Converts a datetime into a localized string representation that's relative to current moment in time */
     datetimeToRelative: PropTypes.func.isRequired,
 
-    /** Formats a datetime to local date and time string */
+    /** Formats a datetime to local date */
     datetimeToCalendarTime: PropTypes.func.isRequired,
+
+    /** Formats a datetime to local time string */
+    datetimeToLocalString: PropTypes.func.isRequired,
 
     /** Updates date-fns internal locale */
     updateLocale: PropTypes.func.isRequired,

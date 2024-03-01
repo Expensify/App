@@ -7,6 +7,7 @@ import {
     endOfDay,
     endOfMonth,
     endOfWeek,
+    endOfYear,
     format,
     formatDistanceToNow,
     getDate,
@@ -22,6 +23,7 @@ import {
     setDefaultOptions,
     startOfDay,
     startOfWeek,
+    startOfYear,
     subDays,
     subMilliseconds,
     subMinutes,
@@ -176,44 +178,70 @@ function isYesterday(date: Date, timeZone: SelectedTimezone): boolean {
 }
 
 /**
- * Formats an ISO-formatted datetime string to local date and time string
+ * Formats datetime to selected format type
+ *
+ * eg.
+ *
+ * Dec 14, 2023
+ */
+function formatDate(datetime: string, formatString: string = CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) {
+    const date = new Date(datetime);
+    return format(date, formatString);
+}
+
+/**
+ * Formats an ISO-formatted datetime string to local date
  *
  * e.g.
  *
- * Jan 20 at 5:30 PM          within the past year
- * Jan 20, 2019 at 5:30 PM    anything over 1 year ago
+ * Jan 20           within current year
+ * Jan 20, 2019     anything before current year
  */
-function datetimeToCalendarTime(locale: Locale, datetime: string, includeTimeZone = false, currentSelectedTimezone: SelectedTimezone = timezone.selected, isLowercase = false): string {
-    const date = getLocalDateFromDatetime(locale, datetime, currentSelectedTimezone);
-    const tz = includeTimeZone ? ' [UTC]Z' : '';
-    let todayAt = Localize.translate(locale, 'common.todayAt');
-    let tomorrowAt = Localize.translate(locale, 'common.tomorrowAt');
-    let yesterdayAt = Localize.translate(locale, 'common.yesterdayAt');
-    const at = Localize.translate(locale, 'common.conjunctionAt');
-    const weekStartsOn = getWeekStartsOn();
+function datetimeToCalendarTime(locale: Locale, timestamp: string, currentSelectedTimezone: SelectedTimezone = timezone.selected, isLowercase = false): string {
+    const timestampToDate = formatDate(timestamp);
+    const date = getLocalDateFromDatetime(locale, timestampToDate, currentSelectedTimezone);
 
-    const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn});
-    const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn});
+    let today = Localize.translate(locale, 'common.today');
+    let tomorrow = Localize.translate(locale, 'common.tomorrow');
+    let yesterday = Localize.translate(locale, 'common.yesterday');
+
+    const startOfCurrentYear = startOfYear(new Date());
+    const endOfCurrentYear = endOfYear(new Date());
 
     if (isLowercase) {
-        todayAt = todayAt.toLowerCase();
-        tomorrowAt = tomorrowAt.toLowerCase();
-        yesterdayAt = yesterdayAt.toLowerCase();
+        today = today.toLowerCase();
+        tomorrow = tomorrow.toLowerCase();
+        yesterday = yesterday.toLowerCase();
     }
 
     if (isToday(date, currentSelectedTimezone)) {
-        return `${todayAt} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
+        return today;
     }
     if (isTomorrow(date, currentSelectedTimezone)) {
-        return `${tomorrowAt} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
+        return tomorrow;
     }
     if (isYesterday(date, currentSelectedTimezone)) {
-        return `${yesterdayAt} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
+        return yesterday;
     }
-    if (date >= startOfCurrentWeek && date <= endOfCurrentWeek) {
-        return `${format(date, CONST.DATE.MONTH_DAY_ABBR_FORMAT)} ${at} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
+    if (date >= startOfCurrentYear && date <= endOfCurrentYear) {
+        return format(date, CONST.DATE.MONTH_DAY_ABBR_FORMAT);
     }
-    return `${format(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT)} ${at} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
+    return format(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
+}
+
+/**
+ * Formats an ISO-formatted datetime string to time string
+ *
+ * e.g.
+ *
+ * 5:30 PM
+ */
+
+function datetimeToLocalString(locale: Locale, datetime: string, currentSelectedTimezone: SelectedTimezone = timezone.selected, includeTimeZone = false): string {
+    const date = getLocalDateFromDatetime(locale, datetime, currentSelectedTimezone);
+    const tz = includeTimeZone ? ' [UTC]Z' : '';
+
+    return `${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
 }
 
 /**
@@ -773,6 +801,7 @@ const DateUtils = {
     getZoneAbbreviation,
     datetimeToRelative,
     datetimeToCalendarTime,
+    datetimeToLocalString,
     startCurrentDateUpdater,
     getLocalDateFromDatetime,
     getCurrentTimezone,
@@ -812,6 +841,7 @@ const DateUtils = {
     formatToSupportedTimezone,
     enrichMoneyRequestTimestamp,
     getLastBusinessDayOfMonth,
+    formatDate,
 };
 
 export default DateUtils;

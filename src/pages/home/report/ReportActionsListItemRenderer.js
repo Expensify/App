@@ -36,6 +36,9 @@ const propTypes = {
 
     /** Linked report action ID */
     linkedReportActionID: PropTypes.string,
+
+    /** should we display? */
+    showDateIndicator: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
@@ -54,6 +57,7 @@ function ReportActionsListItemRenderer({
     shouldHideThreadDividerLine,
     shouldDisplayNewMarker,
     linkedReportActionID,
+    showDateIndicator,
 }) {
     const shouldDisplayParentAction =
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && ReportUtils.isChatThread(report) && !ReportActionsUtils.isTransactionThread(parentReportAction);
@@ -91,6 +95,7 @@ function ReportActionsListItemRenderer({
             childReportName: reportAction.childReportName,
             childManagerAccountID: reportAction.childManagerAccountID,
             childMoneyRequestCount: reportAction.childMoneyRequestCount,
+            reportActionTimestamp: reportAction.reportActionTimestamp,
         }),
         [
             reportAction.actionName,
@@ -120,6 +125,7 @@ function ReportActionsListItemRenderer({
             reportAction.childReportName,
             reportAction.childManagerAccountID,
             reportAction.childMoneyRequestCount,
+            reportAction.reportActionTimestamp,
         ],
     );
 
@@ -146,6 +152,7 @@ function ReportActionsListItemRenderer({
             }
             isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
             index={index}
+            showDateIndicator={showDateIndicator}
         />
     );
 }

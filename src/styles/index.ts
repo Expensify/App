@@ -4422,6 +4422,25 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.icon,
         },
 
+        chatItemDateIndicatorWrapper: {
+            zIndex: 1,
+        },
+
+        chatItemDateIndicator: {
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusSmall,
+            borderColor: theme.border,
+            backgroundColor: theme.componentBG,
+            paddingHorizontal: 12,
+        },
+
+        chatItemDateIndicatorText: {
+            fontSize: variables.fontSizeLabel,
+            lineHeight: 14,
+            fontWeight: FontUtils.fontWeight.bold,
+            color: theme.text,
+        },
+
         interactiveStepHeaderContainer: {
             flex: 1,
             alignSelf: 'center',

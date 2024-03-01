@@ -32,12 +32,12 @@ type ReportActionItemThreadProps = {
 function ReportActionItemThread({numberOfReplies, icons, mostRecentReply, childReportID, isHovered, onSecondaryInteraction}: ReportActionItemThreadProps) {
     const styles = useThemeStyles();
 
-    const {translate, datetimeToCalendarTime} = useLocalize();
+    const {translate, datetimeToLocalString} = useLocalize();
 
     const numberOfRepliesText = numberOfReplies > CONST.MAX_THREAD_REPLIES_PREVIEW ? `${CONST.MAX_THREAD_REPLIES_PREVIEW}+` : `${numberOfReplies}`;
     const replyText = numberOfReplies === 1 ? translate('threads.reply') : translate('threads.replies');
 
-    const timeStamp = datetimeToCalendarTime(mostRecentReply, false);
+    const timeStamp = datetimeToLocalString(mostRecentReply, false);
 
     return (
         <View style={[styles.chatItemMessage]}>

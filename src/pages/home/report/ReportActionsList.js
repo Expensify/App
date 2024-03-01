@@ -2,7 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {DeviceEventEmitter, InteractionManager} from 'react-native';
+import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
 import InvertedFlatList from '@components/InvertedFlatList';
@@ -26,6 +26,8 @@ import FloatingMessageCounter from './FloatingMessageCounter';
 import ListBoundaryLoader from './ListBoundaryLoader/ListBoundaryLoader';
 import reportActionPropTypes from './reportActionPropTypes';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
+import ReportDateIndicator from './ReportDateIndicator';
+import reportDateIndicatorMargin from './ReportDateIndicatorMargin';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -164,6 +166,11 @@ function ReportActionsList({
     const hasFooterRendered = useRef(false);
     const lastVisibleActionCreatedRef = useRef(report.lastVisibleActionCreated);
     const lastReadTimeRef = useRef(report.lastReadTime);
+    const [dateIndicatorLabel, setDateIndicatorLabel] = useState('');
+    const [visibleItemIndex, setVisibleItemIndex] = useState(0);
+    const [listWidth, setListWidth] = useState(0);
+    const [contentWidth, setContentWidth] = useState(0);
+    const [scrollBarWidth, setScrollBarWidth] = useState(0);
 
     const sortedVisibleReportActions = useMemo(
         () => _.filter(sortedReportActions, (s) => isOffline || s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || s.errors),
@@ -183,6 +190,48 @@ function ReportActionsList({
     const animatedStyles = useAnimatedStyle(() => ({
         opacity: opacity.value,
     }));
+
+    useEffect(() => {
+        if (visibleItemIndex === -1 || visibleItemIndex === sortedReportActions.length - 1) {
+            setDateIndicatorLabel('');
+        }
+        setDateIndicatorLabel(sortedReportActions[visibleItemIndex]);
+    }, [sortedReportActions, visibleItemIndex]);
+
+    /**
+     * Determines whether we should display the date indicator label in chat messages
+     * @return {Boolean}
+     */
+    const shouldShowStaticDateIndicator = useCallback(
+        (index) => {
+            if (index === sortedReportActions.length - 1) {
+                return true;
+            }
+
+            const currentItem = sortedReportActions[index];
+            const nextItem = sortedReportActions[index + 1];
+
+            if (nextItem.reportActionTimestamp && currentItem.reportActionTimestamp) {
+                return DateUtils.formatDate(currentItem.reportActionTimestamp) !== DateUtils.formatDate(nextItem.reportActionTimestamp);
+            }
+            return false;
+        },
+        [sortedReportActions],
+    );
+
+    const onViewableItemsChanged = useCallback(
+        ({viewableItems}) => {
+            if (viewableItems.length <= 0) {
+                return null;
+            }
+
+            const {index, isViewable} = viewableItems[viewableItems.length - 1];
+            if (isViewable) {
+                setVisibleItemIndex(index);
+            }
+        },
+        [setVisibleItemIndex],
+    );
 
     useEffect(() => {
         opacity.value = withTiming(1, {duration: 100});
@@ -415,19 +464,39 @@ function ReportActionsList({
 
     const renderItem = useCallback(
         ({item: reportAction, index}) => (
-            <ReportActionsListItemRenderer
-                reportAction={reportAction}
-                parentReportAction={parentReportAction}
-                index={index}
-                report={report}
-                linkedReportActionID={linkedReportActionID}
-                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedReportActions, index)}
-                mostRecentIOUReportActionID={mostRecentIOUReportActionID}
-                shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
-            />
+            <View
+                onLayout={(e) => {
+                    if (contentWidth === e.nativeEvent.layout.width) {
+                        return;
+                    }
+                    setContentWidth(e.nativeEvent.layout.width);
+                }}
+            >
+                <ReportActionsListItemRenderer
+                    reportAction={reportAction}
+                    parentReportAction={parentReportAction}
+                    index={index}
+                    report={report}
+                    linkedReportActionID={linkedReportActionID}
+                    displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedReportActions, index)}
+                    mostRecentIOUReportActionID={mostRecentIOUReportActionID}
+                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                    shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
+                    showDateIndicator={shouldShowStaticDateIndicator(index)}
+                />
+            </View>
         ),
-        [report, linkedReportActionID, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker, parentReportAction],
+        [
+            parentReportAction,
+            report,
+            linkedReportActionID,
+            sortedReportActions,
+            mostRecentIOUReportActionID,
+            shouldHideThreadDividerLine,
+            shouldDisplayNewMarker,
+            shouldShowStaticDateIndicator,
+            contentWidth,
+        ],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
@@ -464,6 +533,7 @@ function ReportActionsList({
 
     const onLayoutInner = useCallback(
         (event) => {
+            setListWidth(event.nativeEvent.layout.width);
             onLayout(event);
         },
         [onLayout],
@@ -483,12 +553,25 @@ function ReportActionsList({
         );
     }, [isLoadingNewerReportActions, isOffline]);
 
+    useEffect(() => {
+        if (listWidth - contentWidth < 0) {
+            return;
+        }
+        setScrollBarWidth(reportDateIndicatorMargin(listWidth, contentWidth));
+    }, [listWidth, contentWidth, scrollBarWidth]);
+
     return (
         <>
             <FloatingMessageCounter
                 isActive={isFloatingMessageCounterVisible && !!currentUnreadMarker}
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
+            {!isFloatingMessageCounterVisible && dateIndicatorLabel.reportActionTimestamp ? (
+                <ReportDateIndicator
+                    created={dateIndicatorLabel.reportActionTimestamp}
+                    style={[styles.pAbsolute, styles.t0, styles.l0, styles.r0, styles.chatItemDateIndicatorWrapper, {marginRight: scrollBarWidth}]}
+                />
+            ) : null}
             <Animated.View style={[animatedStyles, styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}>
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
@@ -511,6 +594,7 @@ function ReportActionsList({
                     onScroll={trackVerticalScrolling}
                     onScrollToIndexFailed={() => {}}
                     extraData={extraData}
+                    onViewableItemsChanged={onViewableItemsChanged}
                 />
             </Animated.View>
         </>
