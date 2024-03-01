@@ -1760,6 +1760,10 @@ export default {
                 title: 'Organize',
                 subtitle: 'Group and analyze spend, record every tax paid.',
             },
+            integrateSection: {
+                title: 'Integrate',
+                subtitle: 'Connect Expensify to popular financial products.',
+            },
             distanceRates: {
                 title: 'Distance rates',
                 subtitle: 'Add, update and enforce rates.',
@@ -1786,11 +1790,11 @@ export default {
             },
             reportFields: {
                 title: 'Report fields',
-                subtitle: 'Subtitle...',
+                subtitle: 'Set up custom fields for spend.',
             },
             connections: {
                 title: 'Connections',
-                subtitle: 'Subtitle...',
+                subtitle: 'Sync your chart of accounts and more.',
             },
         },
         emptyWorkspace: {

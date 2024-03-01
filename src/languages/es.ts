@@ -1784,6 +1784,10 @@ export default {
                 title: 'Organizar',
                 subtitle: 'Agrupar y analizar el gasto, registrar cada impuesto pagado.',
             },
+            integrateSection: {
+                title: 'Integrar',
+                subtitle: 'Conectar gastos de expensización a productos financieros populares.',
+            },
             distanceRates: {
                 title: 'Tasas de distancia',
                 subtitle: 'Agregar, actualizar y hacer cumplir las tarifas.',
@@ -1810,11 +1814,11 @@ export default {
             },
             reportFields: {
                 title: 'Campos de informes',
-                subtitle: 'Subtitle...',
+                subtitle: 'Configurar campos personalizados para gastar.',
             },
             connections: {
                 title: 'Conexión',
-                subtitle: 'Subtitle...',
+                subtitle: 'Sincronice su gráfico de cuentas y más.',
             },
         },
         emptyWorkspace: {
