@@ -61,6 +61,18 @@ type Tag = {
 
 type Option = Partial<ReportUtils.OptionData>;
 
+/**
+ * A narrowed version of `Option` is used when we have a guarantee that given values exist.
+ */
+type OptionTree = {
+    text: string;
+    keyForList: string;
+    searchText: string;
+    tooltipText: string;
+    isDisabled: boolean;
+    isSelected: boolean;
+} & Option;
+
 type PayeePersonalDetails = {
     text: string;
     alternateText: string;
@@ -71,11 +83,18 @@ type PayeePersonalDetails = {
     keyForList: string;
 };
 
-type CategorySection = {
+type CategorySectionBase = {
     title: string | undefined;
     shouldShow: boolean;
     indexOffset: number;
+};
+
+type CategorySection = CategorySectionBase & {
     data: Option[];
+};
+
+type CategoryTreeSection = CategorySectionBase & {
+    data: OptionTree[];
 };
 
 type Category = {
@@ -142,7 +161,7 @@ type GetOptions = {
     personalDetails: ReportUtils.OptionData[];
     userToInvite: ReportUtils.OptionData | null;
     currentUserOption: ReportUtils.OptionData | null | undefined;
-    categoryOptions: CategorySection[];
+    categoryOptions: CategoryTreeSection[];
     tagOptions: CategorySection[];
     taxRatesOptions: CategorySection[];
 };
@@ -879,8 +898,8 @@ function sortTags(tags: Record<string, Tag> | Tag[]) {
  * @param options[].name - a name of an option
  * @param [isOneLine] - a flag to determine if text should be one line
  */
-function getCategoryOptionTree(options: Record<string, Category> | Category[], isOneLine = false): Option[] {
-    const optionCollection = new Map<string, Option>();
+function getCategoryOptionTree(options: Record<string, Category> | Category[], isOneLine = false): OptionTree[] {
+    const optionCollection = new Map<string, OptionTree>();
     Object.values(options).forEach((option) => {
         if (isOneLine) {
             if (optionCollection.has(option.name)) {
@@ -931,11 +950,11 @@ function getCategoryListSections(
     selectedOptions: Category[],
     searchInputValue: string,
     maxRecentReportsToShow: number,
-): CategorySection[] {
+): CategoryTreeSection[] {
     const sortedCategories = sortCategories(categories);
     const enabledCategories = Object.values(sortedCategories).filter((category) => category.enabled);
 
-    const categorySections: CategorySection[] = [];
+    const categorySections: CategoryTreeSection[] = [];
     const numberOfCategories = enabledCategories.length;
 
     let indexOffset = 0;

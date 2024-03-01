@@ -21,11 +21,14 @@ import type {
     OpenWorkspaceParams,
     OpenWorkspaceReimburseViewParams,
     SetWorkspaceApprovalModeParams,
+    SetWorkspaceAutoReportingFrequencyParams,
+    SetWorkspaceAutoReportingMonthlyOffsetParams,
     SetWorkspaceAutoReportingParams,
     UpdateWorkspaceAvatarParams,
     UpdateWorkspaceCustomUnitAndRateParams,
     UpdateWorkspaceDescriptionParams,
     UpdateWorkspaceGeneralSettingsParams,
+    UpdateWorkspaceMembersRoleParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
@@ -43,6 +46,7 @@ import type {
     InvitedEmailsToAccountIDs,
     PersonalDetailsList,
     Policy,
+    PolicyCategories,
     PolicyMember,
     PolicyTagList,
     RecentlyUsedCategories,
@@ -92,6 +96,12 @@ type NewCustomUnit = {
     name: string;
     attributes: Attributes;
     rates: Rate;
+};
+
+type WorkspaceMembersRoleData = {
+    accountID: number;
+    email: string;
+    role: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER;
 };
 
 const allPolicies: OnyxCollection<Policy> = {};
@@ -198,6 +208,13 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS,
     waitForCollectionCallback: true,
     callback: (val) => (allRecentlyUsedTags = val),
+});
+
+let allPolicyCategories: OnyxCollection<PolicyCategories> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
+    waitForCollectionCallback: true,
+    callback: (val) => (allPolicyCategories = val),
 });
 
 /**
@@ -425,6 +442,80 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean) {
     API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING, params, {optimisticData, failureData, successData});
 }
 
+function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                autoReportingFrequency: frequency,
+                pendingFields: {autoReportingFrequency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {autoReportingFrequency: null},
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {autoReportingFrequency: null},
+            },
+        },
+    ];
+
+    const params: SetWorkspaceAutoReportingFrequencyParams = {policyID, frequency};
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_FREQUENCY, params, {optimisticData, failureData, successData});
+}
+
+function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingOffset: number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>) {
+    const value = JSON.stringify({autoReportingOffset: autoReportingOffset.toString()});
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                autoReportingOffset,
+                pendingFields: {autoReportingOffset: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {autoReportingOffset: null},
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {autoReportingOffset: null},
+            },
+        },
+    ];
+
+    const params: SetWorkspaceAutoReportingMonthlyOffsetParams = {policyID, value};
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET, params, {optimisticData, failureData, successData});
+}
+
 function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>) {
     const isAutoApprovalEnabled = approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC;
 
@@ -632,6 +723,66 @@ function removeMembers(accountIDs: number[], policyID: string) {
     };
 
     API.write(WRITE_COMMANDS.DELETE_MEMBERS_FROM_WORKSPACE, params, {optimisticData, successData, failureData});
+}
+
+function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newRole: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER) {
+    const previousPolicyMembers = {...allPolicyMembers};
+    const memberRoles: WorkspaceMembersRoleData[] = accountIDs.reduce((result: WorkspaceMembersRoleData[], accountID: number) => {
+        if (!allPersonalDetails?.[accountID]?.login) {
+            return result;
+        }
+
+        result.push({
+            accountID,
+            email: allPersonalDetails?.[accountID]?.login ?? '',
+            role: newRole,
+        });
+
+        return result;
+    }, []);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
+            value: {
+                ...memberRoles.reduce((member: Record<number, {role: string}>, current) => {
+                    // eslint-disable-next-line no-param-reassign
+                    member[current.accountID] = {role: current?.role};
+                    return member;
+                }, {}),
+                errors: null,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
+            value: {
+                errors: null,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
+            value: {
+                ...(previousPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`] as Record<string, PolicyMember | null>),
+                errors: ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
+            },
+        },
+    ];
+
+    const params: UpdateWorkspaceMembersRoleParams = {
+        policyID,
+        employees: JSON.stringify(memberRoles.map((item) => ({email: item.email, role: item.role}))),
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData, failureData});
 }
 
 /**
@@ -2194,7 +2345,81 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
     return policyID;
 }
 
-const setWorkspaceRequiresCategory = (policyID: string, requiresCategory: boolean) => {
+function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Record<string, {name: string; enabled: boolean}>) {
+    const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    ...Object.keys(categoriesToUpdate).reduce<PolicyCategories>((acc, key) => {
+                        acc[key] = {
+                            ...policyCategories[key],
+                            ...categoriesToUpdate[key],
+                            errors: null,
+                            pendingFields: {
+                                enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                        };
+
+                        return acc;
+                    }, {}),
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    ...Object.keys(categoriesToUpdate).reduce<PolicyCategories>((acc, key) => {
+                        acc[key] = {
+                            ...policyCategories[key],
+                            ...categoriesToUpdate[key],
+                            errors: null,
+                            pendingFields: {
+                                enabled: null,
+                            },
+                        };
+
+                        return acc;
+                    }, {}),
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    ...Object.keys(categoriesToUpdate).reduce<PolicyCategories>((acc, key) => {
+                        acc[key] = {
+                            ...policyCategories[key],
+                            ...categoriesToUpdate[key],
+                            errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.genericFailureMessage'),
+                            pendingFields: {
+                                enabled: null,
+                            },
+                        };
+
+                        return acc;
+                    }, {}),
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        categories: JSON.stringify(Object.keys(categoriesToUpdate).map((key) => categoriesToUpdate[key])),
+    };
+
+    API.write('SetWorkspaceCategoriesEnabled', parameters, onyxData);
+}
+
+function setWorkspaceRequiresCategory(policyID: string, requiresCategory: boolean) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -2246,10 +2471,25 @@ const setWorkspaceRequiresCategory = (policyID: string, requiresCategory: boolea
     };
 
     API.write('SetWorkspaceRequiresCategory', parameters, onyxData);
-};
+}
+
+function clearCategoryErrors(policyID: string, categoryName: string) {
+    const category = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName];
+
+    if (!category) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {
+        [category.name]: {
+            errors: null,
+        },
+    });
+}
 
 export {
     removeMembers,
+    updateWorkspaceMembersRole,
     addMembersToWorkspace,
     isAdminOfFreePolicy,
     hasActiveFreePolicy,
@@ -2290,6 +2530,10 @@ export {
     setWorkspaceInviteMessageDraft,
     setWorkspaceAutoReporting,
     setWorkspaceApprovalMode,
+    setWorkspaceAutoReportingFrequency,
+    setWorkspaceAutoReportingMonthlyOffset,
     updateWorkspaceDescription,
+    setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,
+    clearCategoryErrors,
 };

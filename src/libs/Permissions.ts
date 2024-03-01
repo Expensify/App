@@ -26,6 +26,10 @@ function canUseViolations(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.VIOLATIONS) || canUseAllBetas(betas);
 }
 
+function canUseWorkflowsDelayedSubmission(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.WORKFLOWS_DELAYED_SUBMISSION) || canUseAllBetas(betas);
+}
+
 /**
  * Link previews are temporarily disabled.
  */
@@ -40,4 +44,5 @@ export default {
     canUseLinkPreviews,
     canUseViolations,
     canUseReportFields,
+    canUseWorkflowsDelayedSubmission,
 };
