@@ -3,10 +3,16 @@ import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MileageRate, Unit} from '@src/types/onyx/Policy';
+import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
+
+type DefaultMileageRate = {
+    rate?: number;
+    currency?: string;
+    unit: Unit;
+};
 
 const policies: OnyxCollection<Policy> = {};
 Onyx.connect({
@@ -30,7 +36,7 @@ Onyx.connect({
  * @returns [currency] - The currency associated with the rate.
  * @returns [unit] - The unit of measurement for the distance.
  */
-function getDefaultMileageRate(policy: OnyxEntry<Policy>): MileageRate | null {
+function getDefaultMileageRate(policy: OnyxEntry<Policy>): DefaultMileageRate | null {
     if (!policy?.customUnits) {
         return null;
     }
@@ -47,7 +53,7 @@ function getDefaultMileageRate(policy: OnyxEntry<Policy>): MileageRate | null {
 
     return {
         rate: distanceRate.rate,
-        currency: distanceRate.currency ?? 'USD',
+        currency: distanceRate.currency,
         unit: distanceUnit.attributes.unit,
     };
 }
@@ -172,12 +178,12 @@ function getDistanceMerchant(
  *
  * @returns An array of mileage rates or an empty array if not found.
  */
-function getMileageRates(policyID?: string): MileageRate[] | [] {
+function getMileageRates(policyID?: string): DefaultMileageRate[] | [] {
     if (!policyID) {
         return [];
     }
 
-    const mileageRates: MileageRate[] = [];
+    const mileageRates: DefaultMileageRate[] = [];
 
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? null;
 
