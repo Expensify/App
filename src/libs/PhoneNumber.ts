@@ -2,6 +2,7 @@
 import {parsePhoneNumber as originalParsePhoneNumber} from 'awesome-phonenumber';
 import type {ParsedPhoneNumber, ParsedPhoneNumberInvalid, PhoneNumberParseOptions} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
+import * as LoginUtils from '@libs/LoginUtils';
 import CONST from '@src/CONST';
 
 /**
