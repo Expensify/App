@@ -157,6 +157,7 @@ function IOURequestStepDistance({
             }
 
             const newWaypoints = {};
+            let emptyWaypointIndex = -1;
             _.each(data, (waypoint, index) => {
                 newWaypoints[`waypoint${index}`] = lodashGet(waypoints, waypoint, {});
                 // Find waypoint that BECOMES empty after dragging
@@ -171,7 +172,7 @@ function IOURequestStepDistance({
                 setOptimisticWaypoints(null);
             });
         },
-        [transactionID, waypoints, waypointsList],
+        [transactionID, transaction, waypoints, waypointsList],
     );
 
     const submitWaypoints = useCallback(() => {
