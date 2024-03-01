@@ -22,7 +22,6 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type DismissedReferralBanners from '@src/types/onyx/DismissedReferralBanners';
 
 type NewChatPageWithOnyxProps = {
     /** All reports shared with the user */
@@ -34,7 +33,7 @@ type NewChatPageWithOnyxProps = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
 
     /** An object that holds data about which referral banners have been dismissed */
-    dismissedReferralBanners: DismissedReferralBanners;
+    dismissedReferralBanners: OnyxEntry<OnyxTypes.DismissedReferralBanners>;
 
     /** Whether we are searching for reports in the server */
     isSearchingForReports: OnyxEntry<boolean>;
@@ -265,7 +264,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                             shouldShowOptions={isOptionsDataReady && didScreenTransitionEnd}
                             shouldShowConfirmButton
-                            shouldShowReferralCTA={!dismissedReferralBanners[CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]}
+                            shouldShowReferralCTA={!dismissedReferralBanners?.[CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]}
                             referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}
                             confirmButtonText={selectedOptions.length > 1 ? translate('newChatPage.createGroup') : translate('newChatPage.createChat')}
                             textInputAlert={isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : ''}
