@@ -15,7 +15,7 @@ type WorkspaceMemberBulkActionType = DeepValueOf<
 type DropdownOption<TValueType> = {
     value: TValueType;
     text: string;
-    icon?: IconAsset;
+    icon: IconAsset;
     iconWidth?: number;
     iconHeight?: number;
     iconDescription?: string;
