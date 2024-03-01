@@ -44,7 +44,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
         ];
     }, [selectedCategory]);
 
-    const [sections, headerMessage, shouldShowTextInput, selectedOptionKey] = useMemo(() => {
+    const [sections, headerMessage, shouldShowTextInput] = useMemo(() => {
         const validPolicyRecentlyUsedCategories = policyRecentlyUsedCategories?.filter((p) => !isEmptyObject(p));
         const {categoryOptions} = OptionsListUtils.getFilteredOptions(
             {},
@@ -67,10 +67,10 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
         const isCategoriesCountBelowThreshold = policiesCount < CONST.CATEGORY_LIST_THRESHOLD;
         const showInput = !isCategoriesCountBelowThreshold;
 
-        const selectedKey = categoryData.filter((category) => category.searchText === selectedCategory)[0]?.keyForList;
+        return [categoryOptions, header, showInput];
+    }, [policyRecentlyUsedCategories, debouncedSearchValue, selectedOptions, policyCategories]);
 
-        return [categoryOptions, header, showInput, selectedKey];
-    }, [policyRecentlyUsedCategories, debouncedSearchValue, selectedOptions, policyCategories, selectedCategory]);
+    const selectedOptionKey = useMemo(() => (sections?.[0]?.data ?? []).filter((category) => category.searchText === selectedCategory)[0]?.keyForList, [sections, selectedCategory]);
 
     return (
         <SelectionList
