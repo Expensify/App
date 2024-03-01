@@ -1812,7 +1812,7 @@ function getLastVisibleMessage(reportID: string | undefined, actionsToMerge: Rep
             lastMessageText,
         };
     }
-    
+
     // Fetch the last visible message for report represented by reportID and based on actions to merge.
     return ReportActionsUtils.getLastVisibleMessage(reportID ?? '', actionsToMerge);
 }

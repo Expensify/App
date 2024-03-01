@@ -1179,7 +1179,7 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
             lastMessageText,
             lastVisibleActionCreated,
             lastActorAccountID,
-            lastMessageHtml
+            lastMessageHtml,
         };
     }
 
