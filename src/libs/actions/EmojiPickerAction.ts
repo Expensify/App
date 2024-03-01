@@ -113,4 +113,4 @@ function resetEmojiPopoverAnchor() {
 }
 
 export {emojiPickerRef, showEmojiPicker, hideEmojiPicker, isActive, clearActive, isEmojiPickerVisible, resetEmojiPopoverAnchor};
-export type {AnchorOrigin, EmojiPickerRef, OnModalHideValue, OnEmojiSelected, EmojiPopoverAnchor, OnWillShowPicker};
+export type {AnchorOrigin, OnModalHideValue, OnEmojiSelected, EmojiPopoverAnchor, OnWillShowPicker, EmojiPickerRef};

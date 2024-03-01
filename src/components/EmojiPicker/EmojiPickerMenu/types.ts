@@ -5,7 +5,7 @@ type EmojiPickerMenuProps = {
     /** Function to add the selected emoji to the main compose text input */
     onEmojiSelected: (emoji: string, emojiObject: Emoji) => void,
 
-    activeEmoji: string,
+    activeEmoji?: string,
 };
 
 type RenderItemProps = {
