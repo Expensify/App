@@ -4,7 +4,7 @@ import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react'
 import type {View} from 'react-native';
 // We take ScrollView from this package to properly handle the scrolling of AutoCompleteSuggestions in chats since one scroll is nested inside another
 import {ScrollView} from 'react-native-gesture-handler';
-import Animated, {Easing, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -38,8 +38,8 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
      * Render a suggestion menu item component.
      */
     const renderItem = useCallback(
-        ({item, index}: RenderSuggestionMenuItemProps<TSuggestion>): ReactElement => (
-            <PressableWithFeedback
+      ({item, index}: RenderSuggestionMenuItemProps<TSuggestion>): ReactElement => (
+          <PressableWithFeedback
                 style={({hovered}) => StyleUtils.getAutoCompleteSuggestionItemStyle(highlightedSuggestionIndex, CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT, hovered, index)}
                 hoverDimmingValue={1}
                 onMouseDown={(e) => e.preventDefault()}
@@ -82,7 +82,6 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
         <Animated.View
             ref={viewForwardedRef(ref)}
             style={[styles.autoCompleteSuggestionsContainer, animatedStyles, StyleUtils.getAutoCompleteSuggestionContainerStyle(measuredHeightOfSuggestionRows)]}
-            exiting={FadeOut.duration(100).easing(Easing.inOut(Easing.ease))}
         >
             <ColorSchemeWrapper>
                 <FlashList
