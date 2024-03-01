@@ -131,7 +131,7 @@ function ProfilePage(props) {
 
     const navigateBackTo = lodashGet(props.route, 'params.backTo');
 
-    const shouldShowNotificationPreference = !_.isEmpty(props.report) && props.report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN && !isSelfDM;
+   const shouldShowNotificationPreference = !_.isEmpty(props.report) && !isSelfDM && props.report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const notificationPreference = shouldShowNotificationPreference ? props.translate(`notificationPreferencesPage.notificationPreferences.${props.report.notificationPreference}`) : '';
 
     // eslint-disable-next-line rulesdir/prefer-early-return
