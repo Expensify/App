@@ -38,5 +38,3 @@ export default function useSingleExecution() {
 
     return {isExecuting, singleExecution};
 }
-
-export type {Action};
