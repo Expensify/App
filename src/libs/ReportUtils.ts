@@ -3932,7 +3932,7 @@ function shouldReportBeInOptionList({
     policies: OnyxCollection<Policy>;
     excludeEmptyChats: boolean;
     doesReportHaveViolations: boolean;
-    includeSelfDM: boolean;
+    includeSelfDM?: boolean;
 }) {
     const isInDefaultMode = !isInGSDMode;
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
