@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -46,8 +46,10 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails,
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
-    const isDeletedPolicyMember = (policyMember: PolicyMember): boolean =>
-        !isOffline && policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyMember.errors);
+    const isDeletedPolicyMember = useCallback(
+        (policyMember: PolicyMember) => !isOffline && policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyMember.errors),
+        [isOffline],
+    );
 
     const [formattedPolicyMembers, formattedApprover] = useMemo(() => {
         const policyMemberDetails: MemberOption[] = [];
