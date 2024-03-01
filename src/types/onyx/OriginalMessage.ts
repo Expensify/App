@@ -222,7 +222,13 @@ type OriginalMessagePolicyChangeLog = {
 
 type OriginalMessageJoinPolicyChangeLog = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLEJOINREQUEST;
-    originalMessage: ChangeLog;
+    originalMessage: {
+        choice: string;
+        email: string;
+        inviterEmail: string;
+        lastModified: string;
+        policyID: string;
+    };
 };
 
 type OriginalMessageRoomChangeLog = {
