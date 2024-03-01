@@ -18,6 +18,7 @@ function UserListItem({
     isDisabled,
     canSelectMultiple,
     onSelectRow,
+    onCheckboxPress,
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
@@ -41,6 +42,7 @@ function UserListItem({
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
+            onCheckboxPress={onCheckboxPress}
             onDismissError={onDismissError}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             rightHandSideComponent={rightHandSideComponent}
@@ -80,7 +82,7 @@ function UserListItem({
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
                             text={item.text}
-                            textStyles={[
+                            style={[
                                 styles.optionDisplayName,
                                 isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
                                 styles.sidebarLinkTextBold,
@@ -92,7 +94,7 @@ function UserListItem({
                             <TextWithTooltip
                                 shouldShowTooltip={showTooltip}
                                 text={item.alternateText}
-                                textStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                             />
                         )}
                     </View>

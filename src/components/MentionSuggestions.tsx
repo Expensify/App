@@ -1,4 +1,5 @@
 import React, {useCallback} from 'react';
+import type {MeasureInWindowOnSuccessCallback} from 'react-native';
 import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -18,7 +19,7 @@ type Mention = {
     alternateText: string;
 
     /** Email/phone number of the user */
-    login: string;
+    login?: string;
 
     /** Array of icons of the user. We use the first element of this array */
     icons: Icon[];
@@ -32,7 +33,7 @@ type MentionSuggestionsProps = {
     mentions: Mention[];
 
     /** Fired when the user selects a mention */
-    onSelect: () => void;
+    onSelect: (highlightedMentionIndex: number) => void;
 
     /** Mention prefix that follows the @ sign  */
     prefix: string;
@@ -43,7 +44,7 @@ type MentionSuggestionsProps = {
     isMentionPickerLarge: boolean;
 
     /** Measures the parent container's position and dimensions. */
-    measureParentContainer: () => void;
+    measureParentContainer: (callback: MeasureInWindowOnSuccessCallback) => void;
 };
 
 /**
@@ -142,3 +143,5 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
 MentionSuggestions.displayName = 'MentionSuggestions';
 
 export default MentionSuggestions;
+
+export type {Mention};
