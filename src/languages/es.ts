@@ -1045,6 +1045,7 @@ export default {
         addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
         makeOrTrackPaymentsTitle: 'Realizar o seguir pagos',
         makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify, o simplemente realiza un seguimiento de los pagos realizados en otro lugar.',
+        authorizedPayer: 'Authorized payer',
     },
     reportFraudPage: {
         title: 'Reportar fraude con la tarjeta virtual',

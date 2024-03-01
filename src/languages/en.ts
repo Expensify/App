@@ -1049,6 +1049,7 @@ export default {
         addApprovalsDescription: 'Require additional approval before authorizing a payment.',
         makeOrTrackPaymentsTitle: 'Make or track payments',
         makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify, or simply track payments made elsewhere.',
+        authorizedPayer: 'Authorized payer',
     },
     reportFraudPage: {
         title: 'Report virtual card fraud',

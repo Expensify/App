@@ -102,6 +102,8 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The accountID of the policy owner */
         ownerAccountID?: number;
 
+        /** The accountID of the authorized payer */
+        authorizedPayerAccountID: number;
         /** The output currency for the policy */
         outputCurrency: string;
 
