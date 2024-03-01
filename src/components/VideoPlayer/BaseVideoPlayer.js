@@ -54,7 +54,7 @@ function BaseVideoPlayer({
     const [isLoading, setIsLoading] = useState(true);
     const [isBuffering, setIsBuffering] = useState(true);
     const cachedUrl = url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url);
-    const [sourceURL] = useState(convertToProxyURL(cachedUrl));
+    const [sourceURL] = useState(convertToProxyURL(cachedUrl) || cachedUrl);
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
     const videoPlayerRef = useRef(null);
