@@ -195,6 +195,7 @@ function ReportScreen({
             reportFields: reportProp.reportFields,
             ownerAccountID: reportProp.ownerAccountID,
             currency: reportProp.currency,
+            unheldTotal: reportProp.unheldTotal,
             participantAccountIDs: reportProp.participantAccountIDs,
             isWaitingOnBankAccount: reportProp.isWaitingOnBankAccount,
             iouReportID: reportProp.iouReportID,

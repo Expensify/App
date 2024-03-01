@@ -4941,7 +4941,10 @@ function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>): string[] {
         return [CurrencyUtils.convertToDisplayString(unheldTotal, iouReport?.currency ?? ''), CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * -1, iouReport?.currency ?? '')];
     }
 
-    return [CurrencyUtils.convertToDisplayString(iouReport?.unheldTotal ?? 0, iouReport?.currency ?? ''), CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * -1, iouReport?.currency ?? '')];
+    return [
+        CurrencyUtils.convertToDisplayString((iouReport?.unheldTotal ?? 0) * -1, iouReport?.currency ?? ''),
+        CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * -1, iouReport?.currency ?? ''),
+    ];
 }
 
 /**

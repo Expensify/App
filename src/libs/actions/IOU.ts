@@ -3299,7 +3299,13 @@ function getSendMoneyParams(
     };
 }
 
-function getPayMoneyRequestParams(chatReport: OnyxTypes.Report, iouReport: OnyxTypes.Report, recipient: Participant, paymentMethodType: PaymentMethodType, full: boolean): PayMoneyRequestData {
+function getPayMoneyRequestParams(
+    chatReport: OnyxTypes.Report,
+    iouReport: OnyxTypes.Report,
+    recipient: Participant,
+    paymentMethodType: PaymentMethodType,
+    full: boolean,
+): PayMoneyRequestData {
     const total = iouReport.total ?? 0;
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
@@ -3516,7 +3522,7 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
             statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             pendingFields: {
                 partial: full ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-            }
+            },
         },
     };
     const optimisticNextStepData: OnyxUpdate = {
@@ -3542,7 +3548,7 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
             value: {
                 pendingFields: {
                     partial: null,
-                }
+                },
             },
         },
     ];
@@ -3563,7 +3569,7 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
             value: {
                 pendingFields: {
                     partial: null,
-                }
+                },
             },
         },
         {
