@@ -13,7 +13,7 @@ const fs = __nccwpck_require__(7147);
 
 const run = () => {
     // Prefix path to the graphite metric
-    const GRAPHITE_PATH = 'bucket1.reassure';
+    const GRAPHITE_PATH = 'reassure';
 
     let regressionOutput;
     try {
@@ -44,10 +44,10 @@ const run = () => {
             // Graphite doesn't accept metrics name with space, we replace spaces with "-"
             const formattedName = current.name.split(' ').join('-');
 
-            const meanDurationString = `${GRAPHITE_PATH}.meanDuration.PR-${prNumber}.${formattedName} ${current.meanDuration} ${timestamp}`;
-            const meanCountString = `${GRAPHITE_PATH}.meanCount.PR-${prNumber}.${formattedName} ${current.meanCount} ${timestamp}`;
+            const renderDurationString = `${GRAPHITE_PATH}.PR-${prNumber}.${formattedName}.renderDuration ${current.meanDuration} ${timestamp}`;
+            const renderCountString = `${GRAPHITE_PATH}.PR-${prNumber}.${formattedName}.renderCount ${current.meanCount} ${timestamp}`;
 
-            return `${meanDurationString}\n${meanCountString}`;
+            return `${renderDurationString}\n${renderCountString}`;
         })
         .join('\n');
 
