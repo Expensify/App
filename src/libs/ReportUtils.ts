@@ -1377,9 +1377,15 @@ function canShowReportRecipientLocalTime(personalDetails: OnyxCollection<Persona
 /**
  * Shorten last message text to fixed length and trim spaces.
  */
-function formatReportLastMessageText(lastMessageText: string, isModifiedExpenseMessage = false): string {
+function formatReportLastMessageText(lastMessageText: string, isModifiedExpenseMessage = false, isAddComment = false): string {
     if (isModifiedExpenseMessage) {
         return String(lastMessageText).trim().replace(CONST.REGEX.LINE_BREAK, '').trim();
+    }
+    if (isAddComment) {
+        return String(lastMessageText)
+            .trim()
+            .replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, ' '.repeat(CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH))
+            .substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
     }
     return String(lastMessageText).trim().replace(CONST.REGEX.LINE_BREAK, ' ').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
 }

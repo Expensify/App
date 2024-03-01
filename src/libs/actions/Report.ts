@@ -399,13 +399,12 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     const lastAction = attachmentAction ?? reportCommentAction;
     const currentTime = DateUtils.getDBTimeWithSkew();
     const lastComment = lastAction?.message?.[0];
-    const lastCommentText = ReportUtils.formatReportLastMessageText(lastComment?.text ?? '');
 
     const optimisticReport: Partial<Report> = {
         lastVisibleActionCreated: currentTime,
         lastMessageTranslationKey: lastComment?.translationKey ?? '',
-        lastMessageText: lastCommentText,
-        lastMessageHtml: lastCommentText,
+        lastMessageText: text,
+        lastMessageHtml: text,
         lastActorAccountID: currentUserAccountID,
         lastReadTime: currentTime,
     };

@@ -1,4 +1,5 @@
 /* eslint-disable no-continue */
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 // eslint-disable-next-line you-dont-need-lodash-underscore/get
 import lodashGet from 'lodash/get';
@@ -585,8 +586,13 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     } else if (ReportActionUtils.isCreatedTaskReportAction(lastReportAction)) {
         lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
     }
-
-    return lastMessageTextFromReport || (report?.lastMessageText ?? '');
+    const parser = new ExpensiMark();
+    return (
+        lastMessageTextFromReport ||
+        (lastActionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
+            ? ReportUtils.formatReportLastMessageText(parser.htmlToText(report?.lastMessageHtml ?? ''), false, true)
+            : report?.lastMessageText ?? '')
+    );
 }
 
 /**
