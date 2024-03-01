@@ -72,6 +72,7 @@ function VisibilityPage({report}: VisibilityProps) {
                         }
                         changeVisibility(option.value);
                     }}
+                    shouldDebounceRowSelect
                     initiallyFocusedOptionKey={visibilityOptions.find((visibility) => visibility.isSelected)?.keyForList}
                     ListItem={RadioListItem}
                 />

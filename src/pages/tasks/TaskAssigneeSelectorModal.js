@@ -210,6 +210,7 @@ function TaskAssigneeSelectorModal({reports, task, rootParentReportPolicy}) {
                             sections={didScreenTransitionEnd && !isLoading ? sections : CONST.EMPTY_ARRAY}
                             ListItem={UserListItem}
                             onSelectRow={selectReport}
+                            shouldDebounceRowSelect
                             onChangeText={onChangeText}
                             textInputValue={searchValue}
                             headerMessage={headerMessage}
