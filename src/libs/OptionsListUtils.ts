@@ -1477,11 +1477,7 @@ function getOptions(
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
         const isSelfDM = ReportUtils.isSelfDM(report);
-        let accountIDs = report.visibleChatMemberAccountIDs ?? [];
-
-        if (isSelfDM) {
-            accountIDs = [currentUserAccountID ?? 0];
-        }
+        const accountIDs = isSelfDM ? [currentUserAccountID ?? 0] : report.visibleChatMemberAccountIDs ?? [];
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
             return;
