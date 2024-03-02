@@ -86,7 +86,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
 
     useEffect(() => {
-        // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if network is offline or if report is a self DM
+        // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if the network is offline, or if the report is a self DM.
         if (isPrivateNotesFetchTriggered || isOffline || isSelfDM) {
             return;
         }
