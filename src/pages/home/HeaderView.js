@@ -94,10 +94,7 @@ function HeaderView(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const isSelfDM = ReportUtils.isSelfDM(props.report);
-    let participants = lodashGet(props.report, 'participantAccountIDs', []);
-    if (isSelfDM) {
-        participants = [props.session.accountID];
-    }
+    const participants = isSelfDM ? [props.session.accountID] : lodashGet(props.report, 'participantAccountIDs', []);
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant, undefined, isSelfDM);
