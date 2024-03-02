@@ -11,26 +11,29 @@ import OptionsSelector from './OptionsSelector';
 
 type TaxPickerProps = {
     /** Collection of tax rates attached to a policy */
-    policyTaxRates: PolicyTaxRateWithDefault;
+    taxRates: PolicyTaxRateWithDefault;
 
     /** The selected tax rate of an expense */
     selectedTaxRate?: string;
 
-    /** Safe area insets */
+    /**
+     * Safe area insets required for reflecting the portion of the view,
+     * that is not covered by navigation bars, tab bars, toolbars, and other ancestor views.
+     */
     insets?: EdgeInsets;
 
     /** Callback to fire when a tax is pressed */
     onSubmit: () => void;
 };
 
-function TaxPicker({selectedTaxRate = '', policyTaxRates, insets, onSubmit}: TaxPickerProps) {
+function TaxPicker({selectedTaxRate = '', taxRates, insets, onSubmit}: TaxPickerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
-    const policyTaxRatesCount = TransactionUtils.getEnabledTaxRateCount(policyTaxRates.taxes);
-    const isTaxRatesCountBelowThreshold = policyTaxRatesCount < CONST.TAX_RATES_LIST_THRESHOLD;
+    const taxRatesCount = TransactionUtils.getEnabledTaxRateCount(taxRates.taxes);
+    const isTaxRatesCountBelowThreshold = taxRatesCount < CONST.TAX_RATES_LIST_THRESHOLD;
 
     const shouldShowTextInput = !isTaxRatesCountBelowThreshold;
 
@@ -49,28 +52,10 @@ function TaxPicker({selectedTaxRate = '', policyTaxRates, insets, onSubmit}: Tax
     }, [selectedTaxRate]);
 
     const sections = useMemo(() => {
-        const {policyTaxRatesOptions} = OptionsListUtils.getFilteredOptions(
-            {},
-            {},
-            [],
-            searchValue,
-            selectedOptions,
-            [],
-            false,
-            false,
-            false,
-            {},
-            [],
-            false,
-            {},
-            [],
-            false,
-            false,
-            true,
-            policyTaxRates,
-        );
-        return policyTaxRatesOptions;
-    }, [policyTaxRates, searchValue, selectedOptions]);
+        const {taxRatesOptions} = OptionsListUtils.getFilteredOptions({}, {}, [], searchValue, selectedOptions, [], false, false, false, {}, [], false, {}, [], false, false, true, taxRates);
+        return taxRatesOptions;
+    }, [taxRates, searchValue, selectedOptions]);
+
     const selectedOptionKey = sections?.[0]?.data?.find((taxRate) => taxRate.searchText === selectedTaxRate)?.keyForList;
 
     return (

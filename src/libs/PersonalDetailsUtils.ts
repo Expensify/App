@@ -56,6 +56,10 @@ function getPersonalDetailsByIDs(accountIDs: number[], currentUserAccountID: num
     return result;
 }
 
+function getPersonalDetailByEmail(email: string): PersonalDetails | undefined {
+    return (Object.values(allPersonalDetails ?? {}) as PersonalDetails[]).find((detail) => detail?.login === email);
+}
+
 /**
  * Given a list of logins, find the associated personal detail and return related accountIDs.
  *
@@ -64,7 +68,7 @@ function getPersonalDetailsByIDs(accountIDs: number[], currentUserAccountID: num
  */
 function getAccountIDsByLogins(logins: string[]): number[] {
     return logins.reduce<number[]>((foundAccountIDs, login) => {
-        const currentDetail = personalDetails.find((detail) => detail?.login === login);
+        const currentDetail = personalDetails.find((detail) => detail?.login === login?.toLowerCase());
         if (!currentDetail) {
             // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
             foundAccountIDs.push(UserUtils.generateAccountID(login));
@@ -179,8 +183,8 @@ function getStreetLines(street = '') {
  * @param privatePersonalDetails - details object
  * @returns - formatted address
  */
-function getFormattedAddress(privatePersonalDetails: PrivatePersonalDetails): string {
-    const {address} = privatePersonalDetails;
+function getFormattedAddress(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): string {
+    const {address} = privatePersonalDetails ?? {};
     const [street1, street2] = getStreetLines(address?.street);
     const formattedAddress =
         formatPiece(street1) + formatPiece(street2) + formatPiece(address?.city) + formatPiece(address?.state) + formatPiece(address?.zip) + formatPiece(address?.country);
@@ -263,6 +267,7 @@ export {
     isPersonalDetailsEmpty,
     getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
+    getPersonalDetailByEmail,
     getAccountIDsByLogins,
     getLoginsByAccountIDs,
     getNewPersonalDetailsOnyxData,

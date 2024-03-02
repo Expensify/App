@@ -10,9 +10,9 @@ declare -r GIT_REMOTE="$HOME/dummyGitRemotes/DumDumRepo"
 declare -r SEMVER_LEVEL_BUILD='BUILD'
 declare -r SEMVER_LEVEL_PATCH='PATCH'
 
-declare -r bumpVersion="$TEST_DIR/utils/bumpVersion.mjs"
-declare -r getPreviousVersion="$TEST_DIR/utils/getPreviousVersion.mjs"
-declare -r getPullRequestsMergedBetween="$TEST_DIR/utils/getPullRequestsMergedBetween.mjs"
+declare -r bumpVersion="$TEST_DIR/utils/bumpVersion.ts"
+declare -r getPreviousVersion="$TEST_DIR/utils/getPreviousVersion.ts"
+declare -r getPullRequestsMergedBetween="$TEST_DIR/utils/getPullRequestsMergedBetween.ts"
 
 source "$SCRIPTS_DIR/shellUtils.sh"
 
@@ -76,7 +76,7 @@ function bump_version {
   info "Bumping version..."
   setup_git_as_osbotify
   git switch main
-  npm --no-git-tag-version version "$(node "$bumpVersion" "$(print_version)" "$1")"
+  npm --no-git-tag-version version "$(ts-node "$bumpVersion" "$(print_version)" "$1")"
   git add package.json package-lock.json
   git commit -m "Update version to $(print_version)"
   git push origin main
@@ -142,7 +142,7 @@ function cherry_pick_pr {
 
   checkout_repo
   setup_git_as_osbotify
-  PREVIOUS_PATCH_VERSION="$(node "$getPreviousVersion" "$(print_version)" "$SEMVER_LEVEL_PATCH")"
+  PREVIOUS_PATCH_VERSION="$(ts-node "$getPreviousVersion" "$(print_version)" "$SEMVER_LEVEL_PATCH")"
   git fetch origin main staging --no-tags --shallow-exclude="$PREVIOUS_PATCH_VERSION"
 
   git switch staging
@@ -201,7 +201,7 @@ function deploy_production {
 
 function assert_prs_merged_between {
   checkout_repo
-  output=$(node "$getPullRequestsMergedBetween" "$1" "$2")
+  output=$(ts-node "$getPullRequestsMergedBetween" "$1" "$2")
   info "Checking output of getPullRequestsMergedBetween $1 $2"
   assert_equal "$output" "$3"
 }

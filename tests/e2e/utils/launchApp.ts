@@ -1,8 +1,7 @@
-/* eslint-disable rulesdir/prefer-underscore-method */
-import {ACTIVITY_PATH, MAIN_APP_PACKAGE} from '../config';
+import config from '../config';
 import execAsync from './execAsync';
 
-const launchApp = (platform = 'android', packageName = MAIN_APP_PACKAGE, activityPath = ACTIVITY_PATH, launchArgs: Record<string, boolean> = {}) => {
+const launchApp = (platform = 'android', packageName = config.MAIN_APP_PACKAGE, activityPath = config.ACTIVITY_PATH, launchArgs: Record<string, boolean> = {}) => {
     if (platform !== 'android') {
         throw new Error(`launchApp() missing implementation for platform: ${platform}`);
     }
