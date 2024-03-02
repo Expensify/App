@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 function NewChatSelectorPage() {
     const {translate} = useLocalize();
     return (
-        <ScreenWrapper
+        <ScreenWrapper 
             shouldEnableKeyboardAvoidingView={false}
             includeSafeAreaPaddingBottom={false}
             shouldShowOfflineIndicator={false}
