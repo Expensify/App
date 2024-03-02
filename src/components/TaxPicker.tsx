@@ -4,14 +4,14 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import type {PolicyTaxRateWithDefault} from '@libs/OptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
+import type {TaxRatesWithDefault} from '@src/types/onyx';
 import OptionsSelector from './OptionsSelector';
 
 type TaxPickerProps = {
     /** Collection of tax rates attached to a policy */
-    taxRates: PolicyTaxRateWithDefault;
+    taxRates: TaxRatesWithDefault;
 
     /** The selected tax rate of an expense */
     selectedTaxRate?: string;
