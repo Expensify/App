@@ -24,6 +24,7 @@ import type {
     SetWorkspaceAutoReportingFrequencyParams,
     SetWorkspaceAutoReportingMonthlyOffsetParams,
     SetWorkspaceAutoReportingParams,
+    SetWorkspacePayerParams,
     SetWorkspaceReimbursementParams,
     UpdateWorkspaceAvatarParams,
     UpdateWorkspaceCustomUnitAndRateParams,
@@ -561,8 +562,8 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
     API.write(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, params, {optimisticData, failureData, successData});
 }
 
-function setWorkspaceReimbursement(policyID: string, reimburserEmail: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>) {
-    const value = {reimburserEmail, reimbursementChoice};
+function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>) {
+    const value = {reimbursementChoice};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -598,6 +599,42 @@ function setWorkspaceReimbursement(policyID: string, reimburserEmail: string, re
     const params: SetWorkspaceReimbursementParams = {policyID, value: JSON.stringify(value)};
 
     API.write(WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT, params, {optimisticData, failureData, successData});
+}
+
+function setWorkspacePayer(policyID: string, accountID: number) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                authorizedPayerAccountID: accountID,
+                pendingFields: {authorizedPayerAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {authorizedPayerAccountID: null},
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {authorizedPayerAccountID: null},
+            },
+        },
+    ];
+
+    const params: SetWorkspacePayerParams = {policyID, authorizedPayerAccountID: accountID};
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_PAYER, params, {optimisticData, failureData, successData});
 }
 
 /**
@@ -2577,4 +2614,5 @@ export {
     setWorkspaceRequiresCategory,
     clearCategoryErrors,
     setWorkspaceReimbursement,
+    setWorkspacePayer,
 };

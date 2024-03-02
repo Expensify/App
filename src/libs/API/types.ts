@@ -13,6 +13,7 @@ const WRITE_COMMANDS = {
     SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET: 'UpdatePolicy',
     SET_WORKSPACE_APPROVAL_MODE: 'SetWorkspaceApprovalMode',
     SET_WORKSPACE_REIMBURSEMENT: 'SetWorkspaceReimbursement',
+    SET_WORKSPACE_PAYER: 'SetWorkspacePayer',
     DISMISS_REFERRAL_BANNER: 'DismissReferralBanner',
     UPDATE_PREFERRED_LOCALE: 'UpdatePreferredLocale',
     OPEN_APP: 'OpenApp',
@@ -311,6 +312,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET]: Parameters.SetWorkspaceAutoReportingMonthlyOffsetParams;
     [WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE]: Parameters.SetWorkspaceApprovalModeParams;
     [WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT]: Parameters.SetWorkspaceReimbursementParams;
+    [WRITE_COMMANDS.SET_WORKSPACE_PAYER]: Parameters.SetWorkspacePayerParams;
     [WRITE_COMMANDS.SWITCH_TO_OLD_DOT]: Parameters.SwitchToOldDotParams;
 };
 

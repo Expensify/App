@@ -13,21 +13,17 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import * as BankAccounts from '@userActions/BankAccounts';
 import * as Policy from '@userActions/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
@@ -54,15 +50,14 @@ type WorkspaceWorkflowsPageProps = WithCurrentUserPersonalDetailsProps &
 function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, currentUserPersonalDetails}: WorkspaceWorkflowsPageProps) {
     const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
 
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
 
-    const ownerPersonalDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([policy?.ownerAccountID ?? 0], CONST.EMPTY_OBJECT), false);
-    const policyOwnerDisplayName = ownerPersonalDetails[0]?.displayName;
+    const policyApproverEmail = policy?.approver;
+    const policyApproverName = useMemo(() => PersonalDetailsUtils.getPersonalDetailByEmail(policyApproverEmail ?? '')?.displayName ?? policyApproverEmail, [policyApproverEmail]);
     const containerStyle = useMemo(() => [styles.ph8, styles.mhn8, styles.ml11, styles.pv3, styles.pr0, styles.pl4, styles.mr0, styles.widthAuto, styles.mt4], [styles]);
     const canUseDelayedSubmission = Permissions.canUseWorkflowsDelayedSubmission(betas);
 
@@ -73,13 +68,9 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, cur
     const displayNameForAuthorizedPayer = PersonalDetailsUtils.getPersonalDetailsByIDs([authorizedPayerAccountID], currentUserPersonalDetails.accountID)[0]?.displayName;
 
     const fetchData = useCallback(() => {
-        // Instead of setting the reimbursement account loading within the optimistic data of the API command, use a separate action so that the Onyx value is updated right away.
-        // openWorkspaceReimburseView uses API.read which will not make the request until all WRITE requests in the sequential queue have finished responding, so there would be a delay in
-        // updating Onyx with the optimistic data.
         if (!policy?.id) {
             return;
         }
-        BankAccounts.setReimbursementAccountLoading(true);
         Policy.openWorkspaceReimburseView(policy?.id);
     }, [policy]);
 
@@ -88,7 +79,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, cur
             return;
         }
         fetchData();
-    }, [fetchData, isOffline, isFocused, prevIsFocused]);
+    }, [isFocused, isOffline, prevIsFocused, fetchData]);
 
     const activeRoute = Navigation.getActiveRouteWithoutParams();
 
@@ -139,7 +130,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, cur
                         title={translate('workflowsPage.approver')}
                         titleStyle={styles.textLabelSupportingNormal}
                         descriptionTextStyle={styles.textNormalThemeText}
-                        description={policyOwnerDisplayName ?? ''}
+                        description={policyApproverName ?? ''}
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVER.getRoute(route.params.policyID))}
                         shouldShowRightIcon
                         wrapperStyle={containerStyle}
@@ -161,27 +152,20 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, cur
                 subMenuItems: (
                     <>
                         <MenuItem
-                            descriptionTextStyle={
-                                isOffline ? StyleUtils.getWorkspaceWorkflowsOfflineDescriptionStyle([styles.textNormal, styles.textSupporting]) : [styles.textNormal, styles.textSupporting]
-                            }
-                            title={hasVBA ? translate('common.bankAccount') : undefined}
                             titleStyle={styles.textLabelSupportingNormal}
+                            descriptionTextStyle={styles.textNormalThemeText}
+                            title={hasVBA ? translate('common.bankAccount') : undefined}
                             description={state !== BankAccount.STATE.OPEN ? translate('workflowsPage.connectBankAccount') : bankDisplayName}
                             onPress={() => navigateToBankAccountRoute(route.params.policyID, activeRoute)}
-                            // TODO will be done in https://github.com/Expensify/Expensify/issues/368335
                             shouldShowRightIcon
                             wrapperStyle={containerStyle}
                             hoverAndPressStyle={[styles.mr0, styles.br2]}
                         />
                         {hasVBA && (
                             <MenuItem
-                                descriptionTextStyle={
-                                    isOffline
-                                        ? StyleUtils.getWorkspaceWorkflowsOfflineDescriptionStyle([styles.textNormal, styles.textSupporting])
-                                        : [styles.textNormal, styles.textSupporting]
-                                }
-                                title={translate('workflowsPage.authorizedPayer')}
                                 titleStyle={styles.textLabelSupportingNormal}
+                                descriptionTextStyle={styles.textNormalThemeText}
+                                title={translate('workflowsPage.authorizedPayer')}
                                 description={displayNameForAuthorizedPayer}
                                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(route.params.policyID))}
                                 shouldShowRightIcon
@@ -193,6 +177,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, cur
                 ),
                 isEndOptionRow: true,
                 isActive: policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                pendingAction: policy?.pendingFields?.reimbursementChoice,
             },
         ];
     }, [
@@ -200,15 +185,13 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, cur
         route.params.policyID,
         styles,
         translate,
-        policyOwnerDisplayName,
+        policyApproverName,
         containerStyle,
-        isOffline,
-        StyleUtils,
         onPressAutoReportingFrequency,
         preferredLocale,
         canUseDelayedSubmission,
         activeRoute,
-        reimbursementAccount,
+        reimbursementAccount?.achData,
         displayNameForAuthorizedPayer,
     ]);
 
@@ -242,7 +225,6 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, cur
             shouldShowNotFoundPage={!isPaidGroupPolicy || !isPolicyAdmin}
             shouldUseScrollView
             shouldSkipVBBACall
-            shouldShowLoading={isFocused !== prevIsFocused}
         >
             <View style={[styles.mt3, styles.textStrong, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                 <Section

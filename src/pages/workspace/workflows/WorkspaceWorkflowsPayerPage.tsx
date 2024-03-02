@@ -27,6 +27,7 @@ import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAcce
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -159,6 +160,19 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
         [translate, sections],
     );
 
+    const setPolicyAuthorizedPayer = (member: MemberOption) => {
+        if (policy?.authorizedPayerAccountID === member.accountID) {
+            return;
+        }
+
+        if (policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+            return;
+        }
+
+        Policy.setWorkspacePayer(policy?.id, member.accountID);
+        Navigation.goBack();
+    };
+
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
@@ -178,7 +192,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
                         onChangeText={setSearchTerm}
                         headerMessage={headerMessage}
                         ListItem={UserListItem}
-                        onSelectRow={(admin) => console.log(admin)}
+                        onSelectRow={(admin) => setPolicyAuthorizedPayer(admin)}
                         showScrollIndicator
                     />
                 </ScreenWrapper>
