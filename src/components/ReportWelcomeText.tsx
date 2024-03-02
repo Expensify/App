@@ -55,7 +55,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
         Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
     };
 
-    const getWelcomeHeroText = useMemo(() => {
+    const welcomeHeroText = useMemo(() => {
         if (isChatRoom) {
             return translate('reportActionsView.welcomeToRoom', {roomName: reportName});
         }
@@ -70,7 +70,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     return (
         <>
             <View>
-                <Text style={[styles.textHero]}>{getWelcomeHeroText}</Text>
+                <Text style={[styles.textHero]}>{welcomeHeroText}</Text>
             </View>
             <View style={[styles.mt3, styles.mw100]}>
                 {isPolicyExpenseChat &&
