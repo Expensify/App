@@ -224,7 +224,7 @@ function getOptionData({
 
     let participantAccountIDs = report.participantAccountIDs ?? [];
 
-    // At present, the currentUser is not included in the participantAccountIDs. so for selfDM, we need to add the currentUser as participants.
+    // Currently, currentUser is not included in participantAccountIDs, so for selfDM we need to add the currentUser(report owner) as participants.
     if (ReportUtils.isSelfDM(report)) {
         participantAccountIDs = [report.ownerAccountID ?? 0];
     }

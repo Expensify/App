@@ -94,6 +94,7 @@ function HeaderView(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const isSelfDM = ReportUtils.isSelfDM(props.report);
+    // Currently, currentUser is not included in participantAccountIDs, so for selfDM, we need to add the currentUser as participants.
     const participants = isSelfDM ? [props.session.accountID] : lodashGet(props.report, 'participantAccountIDs', []);
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
