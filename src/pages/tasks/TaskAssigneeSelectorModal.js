@@ -78,6 +78,7 @@ function useOptions({reports}) {
             false,
             false,
             {},
+            false,
             CONST.REPORT.TYPE.TASK,
         );
 

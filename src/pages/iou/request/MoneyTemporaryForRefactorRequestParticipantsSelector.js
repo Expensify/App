@@ -136,6 +136,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             false,
             false,
             {},
+            false,
             actionTypeForParticipants,
         );
 
@@ -149,6 +150,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             personalDetails,
             true,
         );
+
         newSections.push(formatResults.section);
         indexOffset = formatResults.newIndexOffset;
 
