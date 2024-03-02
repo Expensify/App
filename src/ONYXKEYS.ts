@@ -399,8 +399,8 @@ const ONYXKEYS = {
         EXIT_SURVEY_RESPONSE_FORM_DRAFT: 'exitSurveyResponseFormDraft',
         IDOLOGY_QUESTIONS_FORM: 'idologyQuestionsForm',
         IDOLOGY_QUESTIONS_FORM_DRAFT: 'idologyQuestionsFormDraft',
-        WALLET_ADDITIONAL_DETAILS: 'walletAdditionalDetailsForm',
-        WALLET_ADDITIONAL_DETAILS_DRAFT: 'walletAdditionalDetailsFormDraft',
+        WALLET_ADDITIONAL_DETAILS: 'walletAdditionalDetails',
+        WALLET_ADDITIONAL_DETAILS_DRAFT: 'walletAdditionalDetailsDraft',
     },
 } as const;
 

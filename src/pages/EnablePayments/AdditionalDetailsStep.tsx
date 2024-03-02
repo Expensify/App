@@ -237,6 +237,7 @@ AdditionalDetailsStep.displayName = 'AdditionalDetailsStep';
 
 export default withCurrentUserPersonalDetails(
     withOnyx<AdditionalDetailsStepProps, AdditionalDetailsStepOnyxProps>({
+        // @ts-expect-error: ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS
         walletAdditionalDetails: {
             key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
         },
