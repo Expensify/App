@@ -1448,8 +1448,8 @@ function getOptions(
             policies,
             doesReportHaveViolations,
             isInGSDMode: false,
-
             excludeEmptyChats: false,
+            includeSelfDM,
         });
     });
 
