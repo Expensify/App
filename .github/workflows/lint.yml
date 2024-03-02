@@ -7,8 +7,13 @@ on:
     branches-ignore: [staging, production]
     paths: ['**.js', '**.ts', '**.tsx', '**.json', '**.mjs', '**.cjs', 'config/.editorconfig', '.watchmanconfig', '.imgbotconfig']
 
+concurrency:
+  group: "${{ github.ref }}-lint"
+  cancel-in-progress: true
+
 jobs:
   lint:
+    name: Run ESLint
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
     steps:
