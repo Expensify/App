@@ -207,10 +207,6 @@ describe('getViolationsOnyxData', () => {
                             name: 'Accounting',
                             enabled: true,
                         },
-                        Engineering: {
-                            name: 'Engineering',
-                            enabled: false,
-                        },
                     },
                     required: true,
                 },
