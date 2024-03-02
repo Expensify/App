@@ -98,7 +98,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         const items: ReportDetailsPageMenuItem[] = [];
 
         if (isSelfDM) {
-            return items;
+            return [];
         }
 
         if (!isGroupDMChat) {
