@@ -28,12 +28,11 @@ function getDisplayNameOrDefault(
     passedPersonalDetails?: Partial<PersonalDetails> | null,
     defaultValue = '',
     shouldFallbackToHidden = true,
-    shouldUsePostfix = false,
-    postfix = Localize.translateLocal('common.you').toLowerCase(),
+    shouldAddCurrentUserPostfix = false,
 ): string {
     let displayName = passedPersonalDetails?.displayName ? passedPersonalDetails.displayName.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '') : '';
-    if (shouldUsePostfix && !!displayName) {
-        displayName = `${displayName} (${postfix})`;
+    if (shouldAddCurrentUserPostfix && !!displayName) {
+        displayName = `${displayName} (${Localize.translateLocal('common.you').toLowerCase()})`;
     }
 
     const fallbackValue = shouldFallbackToHidden ? Localize.translateLocal('common.hidden') : '';
