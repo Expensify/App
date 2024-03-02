@@ -23,21 +23,19 @@ import SCREENS from '@src/SCREENS';
 // This is not translated because it is a message coming from concierge, which only supports english
 const messageCopy = {
     [CONST.INTRO_CHOICES.TRACK]:
-        'Great! To track your expenses, I suggest you create a workspace to keep everything contained:\n' +
+        'To track your expenses, create a workspace first to keep everything organized:\n' +
         '\n' +
-        '1. Press your avatar icon\n' +
-        '2. Choose Workspaces\n' +
-        '3. Choose New Workspace\n' +
-        '4. Name your workspace something meaningful (eg, "My Business Expenses")\n' +
+        '1. Click the green *+* > *New workspace*.\n' +
+        '2. Your new workspace is now active.\n' +
+        '3. To update your workspace name, click *Profile* > *Name*.\n' +
         '\n' +
-        'Once you have your workspace set up, you can add expenses to it as follows:\n' +
+        'Next, start adding expenses to your workspace:\n' +
         '\n' +
-        '1. Choose My Business Expenses (or whatever you named it) in the list of chat rooms\n' +
-        '2. Choose the + button in the chat compose window\n' +
-        '3. Choose Request money\n' +
-        "4. Choose what kind of expense you'd like to log, whether a manual expense, scanned receipt, or tracked distance.\n" +
+        '1. Click the green *+* > *Request money*.\n' +
+        '2. Add an expense of scan a receipt.\n' +
+        '3. Choose your workspace as the destination.\n' +
         '\n' +
-        "That'll be stored in your My Business Expenses room for your later access. Thanks for asking, and let me know how it goes!",
+        'Be sure to track all of your expenses in your new workspace to keep everything in one place. Let me know how it goes!',
     [CONST.INTRO_CHOICES.SUBMIT]:
         'Hi there, to submit expenses for reimbursement, please:\n' +
         '\n' +
