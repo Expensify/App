@@ -6,10 +6,9 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -42,12 +41,9 @@ type WorkspaceWorkflowsPageOnyxProps = {
     /** Reimbursement account details */
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 };
-type WorkspaceWorkflowsPageProps = WithCurrentUserPersonalDetailsProps &
-    WithPolicyProps &
-    WorkspaceWorkflowsPageOnyxProps &
-    StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
+type WorkspaceWorkflowsPageProps = WithPolicyProps & WorkspaceWorkflowsPageOnyxProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
-function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, currentUserPersonalDetails}: WorkspaceWorkflowsPageProps) {
+function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: WorkspaceWorkflowsPageProps) {
     const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -63,9 +59,11 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, cur
 
     const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policy?.id ?? '')), [policy?.id]);
 
-    const authorizedPayerAccountID = policy?.authorizedPayerAccountID ?? policy?.ownerAccountID ?? 0;
-
-    const displayNameForAuthorizedPayer = PersonalDetailsUtils.getPersonalDetailsByIDs([authorizedPayerAccountID], currentUserPersonalDetails.accountID)[0]?.displayName;
+    const authorizedPayerEmail = policy?.reimburserEmail;
+    const displayNameForAuthorizedPayer = useMemo(
+        () => PersonalDetailsUtils.getPersonalDetailByEmail(authorizedPayerEmail ?? '')?.displayName ?? authorizedPayerEmail,
+        [authorizedPayerEmail],
+    );
 
     const fetchData = useCallback(() => {
         if (!policy?.id) {
@@ -145,9 +143,8 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, cur
                 title: translate('workflowsPage.makeOrTrackPaymentsTitle'),
                 subtitle: translate('workflowsPage.makeOrTrackPaymentsDescription'),
                 onToggle: () => {
-                    const isAutoReimbursable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
-                    const newReimbursementChoice = isAutoReimbursable ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
-                    Policy.setWorkspaceReimbursement(route.params.policyID, newReimbursementChoice);
+                    // todo: we still need a action to set auto reimburse enable i.e. const.policy.reimbursement_choices.reimbursement_yes
+                    // todo: after enable we need to get VBA owner(?) email and set it to policy.reimburser_email with Policy.setWorkspaceReimbursement
                 },
                 subMenuItems: (
                     <>
@@ -162,16 +159,18 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, cur
                             hoverAndPressStyle={[styles.mr0, styles.br2]}
                         />
                         {hasVBA && (
-                            <MenuItem
-                                titleStyle={styles.textLabelSupportingNormal}
-                                descriptionTextStyle={styles.textNormalThemeText}
-                                title={translate('workflowsPage.authorizedPayer')}
-                                description={displayNameForAuthorizedPayer}
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(route.params.policyID))}
-                                shouldShowRightIcon
-                                wrapperStyle={containerStyle}
-                                hoverAndPressStyle={[styles.mr0, styles.br2]}
-                            />
+                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.reimburserEmail}>
+                                <MenuItem
+                                    titleStyle={styles.textLabelSupportingNormal}
+                                    descriptionTextStyle={styles.textNormalThemeText}
+                                    title={translate('workflowsPage.authorizedPayer')}
+                                    description={displayNameForAuthorizedPayer}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(route.params.policyID))}
+                                    shouldShowRightIcon
+                                    wrapperStyle={containerStyle}
+                                    hoverAndPressStyle={[styles.mr0, styles.br2]}
+                                />
+                            </OfflineWithFeedback>
                         )}
                     </>
                 ),
@@ -244,16 +243,14 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, cur
 
 WorkspaceWorkflowsPage.displayName = 'WorkspaceWorkflowsPage';
 
-export default withCurrentUserPersonalDetails(
-    withPolicy(
-        withOnyx<WorkspaceWorkflowsPageProps, WorkspaceWorkflowsPageOnyxProps>({
-            betas: {
-                key: ONYXKEYS.BETAS,
-            },
-            // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-            reimbursementAccount: {
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-            },
-        })(WorkspaceWorkflowsPage),
-    ),
+export default withPolicy(
+    withOnyx<WorkspaceWorkflowsPageProps, WorkspaceWorkflowsPageOnyxProps>({
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+        // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+    })(WorkspaceWorkflowsPage),
 );

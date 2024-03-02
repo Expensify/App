@@ -7,6 +7,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MessagesRow from '@components/MessagesRow';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem, Section} from '@components/SelectionList/types';
@@ -16,6 +17,7 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -94,7 +96,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
             const formattedMember = {
                 keyForList: accountIDKey,
                 accountID,
-                isSelected: policy?.authorizedPayerAccountID === accountID,
+                isSelected: policy?.reimburserEmail === details?.login,
                 isDisabled: policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyMember.errors),
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
@@ -111,14 +113,14 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
                 pendingAction: policyMember.pendingAction,
             };
 
-            if (policy?.authorizedPayerAccountID === accountID) {
+            if (policy?.reimburserEmail === details?.login) {
                 authorizedPayerDetails.push(formattedMember);
             } else {
                 policyAdminDetails.push(formattedMember);
             }
         });
         return [policyAdminDetails, authorizedPayerDetails];
-    }, [personalDetails, policyMembers, translate, policy?.authorizedPayerAccountID, isDeletedPolicyMember, policy?.owner, styles, StyleUtils]);
+    }, [personalDetails, policyMembers, translate, policy?.reimburserEmail, isDeletedPolicyMember, policy?.owner, styles, StyleUtils]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArray: MembersSection[] = [];
@@ -161,7 +163,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
     );
 
     const setPolicyAuthorizedPayer = (member: MemberOption) => {
-        if (policy?.authorizedPayerAccountID === member.accountID) {
+        const authorizedPayer = personalDetails?.[member.accountID]?.login ?? '';
+        if (policy?.reimburserEmail === authorizedPayer) {
             return;
         }
 
@@ -169,7 +172,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
             return;
         }
 
-        Policy.setWorkspacePayer(policy?.id, member.accountID);
+        Policy.setWorkspaceReimbursement(policy?.id, authorizedPayer);
         Navigation.goBack();
     };
 
@@ -184,6 +187,12 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
                         title={translate('workflowsPage.authorizedPayer')}
                         subtitle={policyName}
                         onBackButtonPress={Navigation.goBack}
+                    />
+                    <MessagesRow
+                        type="error"
+                        messages={ErrorUtils.getLatestErrorField(policy ?? {}, 'reimburserEmail')}
+                        containerStyles={[styles.mh5, styles.mv3]}
+                        onClose={() => Policy.clearWorkspaceReimbursementError(route.params.policyID)}
                     />
                     <SelectionList
                         sections={sections}

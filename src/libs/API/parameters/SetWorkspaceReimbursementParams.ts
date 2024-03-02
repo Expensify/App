@@ -1,6 +1,6 @@
 type SetWorkspaceReimbursementParams = {
     policyID: string;
-    value: string;
+    reimburserEmail: string;
 };
 
 export default SetWorkspaceReimbursementParams;

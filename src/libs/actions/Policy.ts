@@ -562,16 +562,19 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
     API.write(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, params, {optimisticData, failureData, successData});
 }
 
-function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>) {
-    const value = {reimbursementChoice};
+function setWorkspaceReimbursement(policyID: string, reimburserEmail: string) {
+    const policy = ReportUtils.getPolicy(policyID);
+
+    const currentPolicyReimburserEmail = policy.reimburserEmail;
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                ...value,
-                pendingFields: {reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                reimburserEmail,
+                errorFields: {reimburserEmail: null},
+                pendingFields: {reimburserEmail: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             },
         },
     ];
@@ -581,7 +584,9 @@ function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueO
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                pendingFields: {reimbursementChoice: null},
+                reimburserEmail: currentPolicyReimburserEmail,
+                errorFields: {reimburserEmail: ErrorUtils.getMicroSecondOnyxError('workflowsPage.genericErrorMessage.authorizedPayer')},
+                pendingFields: {reimburserEmail: null},
             },
         },
     ];
@@ -591,14 +596,19 @@ function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueO
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                pendingFields: {reimbursementChoice: null},
+                errorFields: {reimburserEmail: null},
+                pendingFields: {reimburserEmail: null},
             },
         },
     ];
 
-    const params: SetWorkspaceReimbursementParams = {policyID, value: JSON.stringify(value)};
+    const params: SetWorkspaceReimbursementParams = {policyID, reimburserEmail};
 
     API.write(WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT, params, {optimisticData, failureData, successData});
+}
+
+function clearWorkspaceReimbursementError(policyID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {reimburserEmail: null}});
 }
 
 function setWorkspacePayer(policyID: string, accountID: number) {
@@ -2614,5 +2624,6 @@ export {
     setWorkspaceRequiresCategory,
     clearCategoryErrors,
     setWorkspaceReimbursement,
+    clearWorkspaceReimbursementError,
     setWorkspacePayer,
 };

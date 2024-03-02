@@ -1051,6 +1051,10 @@ export default {
         editor: {
             submissionFrequency: 'Choose how long Expensify should wait before sharing error-free spend.',
         },
+        // TODO: confirm copy
+        genericErrorMessage: {
+            authorizedPayer: 'The authorized payer could not be updated. Please try again.',
+        },
         frequencies: {
             weekly: 'Weekly',
             monthly: 'Monthly',
