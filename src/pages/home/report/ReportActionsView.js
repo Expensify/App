@@ -140,7 +140,7 @@ function ReportActionsView(props) {
     }, [props.network, isReportFullyVisible]);
 
     useEffect(() => {
-        const wasLoginChangedDetected = prevAuthTokenType === 'anonymousAccount' && !props.session.authTokenType;
+        const wasLoginChangedDetected = prevAuthTokenType === CONST.AUTH_TOKEN_TYPE.ANONYMOUS && !props.session.authTokenType;
         if (wasLoginChangedDetected && didUserLogInDuringSession() && isUserCreatedPolicyRoom(props.report)) {
             if (isReportFullyVisible) {
                 openReportIfNecessary();
