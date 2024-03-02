@@ -15,6 +15,10 @@ on:
         type: string
         required: true
 
+concurrency:
+  group: "${{ github.ref }}-e2e"
+  cancel-in-progress: true
+
 jobs:
   buildBaseline:
     runs-on: ubuntu-latest-xl

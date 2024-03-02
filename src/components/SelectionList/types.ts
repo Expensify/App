@@ -61,6 +61,9 @@ type ListItem = {
     /** Whether this option is disabled for selection */
     isDisabled?: boolean;
 
+    /** List title is bold by default. Use this props to customize it */
+    isBold?: boolean;
+
     /** User accountID */
     accountID?: number | null;
 
