@@ -130,7 +130,7 @@ function ProfilePage(props) {
 
     const navigateBackTo = lodashGet(props.route, 'params.backTo');
 
-   const shouldShowNotificationPreference = !_.isEmpty(props.report) && !isSelfDM && props.report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    const shouldShowNotificationPreference = !_.isEmpty(props.report) && !isCurrentUser && props.report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const notificationPreference = shouldShowNotificationPreference ? props.translate(`notificationPreferencesPage.notificationPreferences.${props.report.notificationPreference}`) : '';
 
     // eslint-disable-next-line rulesdir/prefer-early-return
@@ -224,7 +224,7 @@ function ProfilePage(props) {
                                     wrapperStyle={[styles.mtn6, styles.mb5]}
                                 />
                             )}
-                            {!isCurrentUser && !Session.isAnonymousUser() && !isSelfDM && (
+                            {!isCurrentUser && !Session.isAnonymousUser() && (
                                 <MenuItem
                                     title={`${props.translate('common.message')}${displayName}`}
                                     titleStyle={styles.flex1}
@@ -234,7 +234,7 @@ function ProfilePage(props) {
                                     shouldShowRightIcon
                                 />
                             )}
-                            {!_.isEmpty(props.report) && !isSelfDM && (
+                            {!_.isEmpty(props.report) && !isCurrentUser && (
                                 <MenuItem
                                     title={`${props.translate('privateNotes.title')}`}
                                     titleStyle={styles.flex1}

@@ -4333,7 +4333,7 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
  */
 function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[]): Array<ValueOf<typeof CONST.IOU.TYPE>> {
     // In any thread or task report, we do not allow any new money requests yet
-    if (isChatThread(report) || isTaskReport(report) || isSelfDM(report)){
+    if (isChatThread(report) || isTaskReport(report) || isSelfDM(report)) {
         return [];
     }
 
@@ -4353,11 +4353,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
     // unless there are no other participants at all (e.g. #admins room for a policy with only 1 admin)
     // DM chats will have the Split Bill option only when there are at least 2 other people in the chat.
     // Your own workspace chats will have the split bill option.
-    if (
-        (isChatRoom(report) && otherParticipants.length > 0) ||
-        (isDM(report) && hasMultipleOtherParticipants) ||
-        (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat)
-    ) {
+    if ((isChatRoom(report) && otherParticipants.length > 0) || (isDM(report) && hasMultipleOtherParticipants) || (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat)) {
         options = [CONST.IOU.TYPE.SPLIT];
     }
 
