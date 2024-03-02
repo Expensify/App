@@ -56,6 +56,10 @@ function getPersonalDetailsByIDs(accountIDs: number[], currentUserAccountID: num
     return result;
 }
 
+function getPersonalDetailByEmail(email: string): PersonalDetails | undefined {
+    return (Object.values(allPersonalDetails ?? {}) as PersonalDetails[]).find((detail) => detail?.login === email);
+}
+
 /**
  * Given a list of logins, find the associated personal detail and return related accountIDs.
  *
@@ -263,6 +267,7 @@ export {
     isPersonalDetailsEmpty,
     getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
+    getPersonalDetailByEmail,
     getAccountIDsByLogins,
     getLoginsByAccountIDs,
     getNewPersonalDetailsOnyxData,
