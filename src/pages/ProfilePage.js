@@ -95,10 +95,10 @@ const getPhoneNumber = (details) => {
 function ProfilePage(props) {
     const styles = useThemeStyles();
     const accountID = Number(lodashGet(props.route.params, 'accountID', 0));
-    const isSelfDM = ReportUtils.isSelfDM(props.report);
+    const isCurrentUser = props.session.accountID === accountID;
 
     const details = lodashGet(props.personalDetails, accountID, ValidationUtils.isValidAccountRoute(accountID) ? {} : {isloading: false});
-    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details, undefined, undefined, isSelfDM);
+    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser);
     const avatar = lodashGet(details, 'avatar', UserUtils.getDefaultAvatar());
     const fallbackIcon = lodashGet(details, 'fallbackIcon', '');
     const login = lodashGet(details, 'login', '');
@@ -117,7 +117,6 @@ function ProfilePage(props) {
     const phoneNumber = getPhoneNumber(details);
     const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : login;
 
-    const isCurrentUser = props.session.accountID === accountID;
     const hasMinimumDetails = !_.isEmpty(details.avatar);
     const isLoading = lodashGet(details, 'isLoading', false) || _.isEmpty(details);
 
