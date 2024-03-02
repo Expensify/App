@@ -43,8 +43,8 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
 
     const {transactionID, reportID, backTo} = route.params;
 
-    const reportData = ReportUtils.getReport(reportID);
-    const parentReportAction = ReportActionsUtils.getReportAction(reportData?.parentReportID ?? '', reportData?.parentReportActionID ?? '');
+    const report = ReportUtils.getReport(reportID);
+    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
 
     const navigateBack = () => {
         Navigation.navigate(backTo);
