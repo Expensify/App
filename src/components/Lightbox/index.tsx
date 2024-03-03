@@ -1,9 +1,10 @@
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
-import type {LayoutChangeEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import Image from '@components/Image';
+import type {ImageOnLoadEvent} from '@components/Image/types';
 import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCanvas';
 import type {CanvasSize, ContentSize, OnScaleChangedCallback, ZoomRange} from '@components/MultiGestureCanvas/types';
 import {getCanvasFitScale} from '@components/MultiGestureCanvas/utils';
@@ -12,8 +13,6 @@ import NUMBER_OF_CONCURRENT_LIGHTBOXES from './numberOfConcurrentLightboxes';
 
 const DEFAULT_IMAGE_SIZE = 200;
 const DEFAULT_IMAGE_DIMENSION: ContentSize = {width: DEFAULT_IMAGE_SIZE, height: DEFAULT_IMAGE_SIZE};
-
-type ImageOnLoadEvent = NativeSyntheticEvent<ContentSize>;
 
 const cachedImageDimensions = new Map<string, ContentSize | undefined>();
 

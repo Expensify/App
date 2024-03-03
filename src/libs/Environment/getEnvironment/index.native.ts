@@ -1,3 +1,4 @@
+import {NativeModules} from 'react-native';
 import Config from 'react-native-config';
 import betaChecker from '@libs/Environment/betaChecker';
 import CONST from '@src/CONST';
@@ -25,6 +26,12 @@ function getEnvironment(): Promise<Environment> {
         if ((Config?.ENVIRONMENT ?? CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.ADHOC) {
             environment = CONST.ENVIRONMENT.ADHOC;
             resolve(environment);
+            return;
+        }
+
+        // If we don't use Development, and we're in the HybridApp, we should use Production
+        if (NativeModules.HybridAppModule) {
+            environment = CONST.ENVIRONMENT.PRODUCTION;
             return;
         }
 

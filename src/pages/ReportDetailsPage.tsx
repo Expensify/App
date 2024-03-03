@@ -83,17 +83,23 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
 
+    const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
+
     useEffect(() => {
-        // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if network is offline.
-        if (isPrivateNotesFetchTriggered || isOffline) {
+        // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if the network is offline, or if the report is a self DM.
+        if (isPrivateNotesFetchTriggered || isOffline || isSelfDM) {
             return;
         }
 
         Report.getReportPrivateNote(report?.reportID ?? '');
-    }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered]);
+    }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isSelfDM]);
 
     const menuItems: ReportDetailsPageMenuItem[] = useMemo(() => {
         const items: ReportDetailsPageMenuItem[] = [];
+
+        if (isSelfDM) {
+            return [];
+        }
 
         if (!isGroupDMChat) {
             items.push({
@@ -162,7 +168,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         }
 
         return items;
-    }, [isArchivedRoom, participants.length, isThread, isMoneyRequestReport, report, isGroupDMChat, isPolicyMember, isUserCreatedPolicyRoom, session]);
+    }, [isArchivedRoom, participants.length, isThread, isMoneyRequestReport, report, isGroupDMChat, isPolicyMember, isUserCreatedPolicyRoom, session, isSelfDM]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
