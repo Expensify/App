@@ -598,6 +598,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             />
         ) : (
             <ButtonWithDropdownMenu
+                success
                 pressOnEnter
                 isDisabled={shouldDisableButton}
                 onPress={(_event, value) => confirm(value)}
@@ -908,7 +909,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
                 </View>
             )}
-            {shouldShowAllFields && <>{supplementaryFields}</>}
+            {shouldShowAllFields && supplementaryFields}
         </OptionsSelector>
     );
 }
