@@ -267,9 +267,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
-    // Check if it is the multiple levels tags or not
-    const isMultipleLevelsTags = policyTagLists && policyTagLists.length > 1;
-
     // A flag for showing the tags field
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
 
@@ -782,11 +779,11 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem]}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
-                    rightLabel={(isMultipleLevelsTags ? required : isTagRequired) ? translate('common.required') : ''}
+                    rightLabel={required ? translate('common.required') : ''}
                 />
             ),
             shouldShow: shouldShowTags,
-            isSupplementary: !isTagRequired,
+            isSupplementary: !required,
         })),
         {
             item: (
