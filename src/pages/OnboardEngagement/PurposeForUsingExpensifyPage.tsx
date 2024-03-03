@@ -23,7 +23,7 @@ import SCREENS from '@src/SCREENS';
 // This is not translated because it is a message coming from concierge, which only supports english
 const messageCopy = {
     [CONST.INTRO_CHOICES.TRACK]:
-        'Here's how to start tracking business spend for taxes:\n' +
+        'Here\'s how to start tracking business spend for taxes:\n' +
         '\n' +
         '1. Click the green *+* > *New workspace*.\n' +
         '2. Your new workspace is now active.\n' +
@@ -37,23 +37,23 @@ const messageCopy = {
         '\n' +
         'Be sure to track all of your expenses in your new workspace to keep everything organized. Let me know how it goes!',
     [CONST.INTRO_CHOICES.SUBMIT]:
-        'Here's how to submit expenses for reimbursement:\n' +
+        'Here\'s how to submit expenses for reimbursement:\n' +
         '\n' +
         '1. Click the green *+* > *Request money*.\n' +
         '2. Add an expense or scan a receipt.\n' +
-        '3. Enter your reimburser's email or phone number.\n' +
+        '3. Enter your reimburser\'s email or phone number.\n' +
         '\n' +
         "And we'll take it from there to get you paid back. Give it a shot and let me know how it goes!",
     [CONST.INTRO_CHOICES.MANAGE_TEAM]: '',
     [CONST.INTRO_CHOICES.CHAT_SPLIT]:
-        'Here's how to split expenses with friends:\n' +
+        'Here\'s how to split expenses with friends:\n' +
         '\n' +
         '1. Tap the green *+* > *Request money*.\n' +
         '2. Add an expense or scan a receipt.\n' +
-        '3. Enter your friend's email or phone number.\n' +
+        '3. Enter your friend\'s email or phone number.\n' +
         '4. Tap *Split* next to their contact info.\n' +
         '5. Repeat for any additional friends.\n' +
-        '6. Tap *Add to split* when you're done.\n' +
+        '6. Tap *Add to split* when you\'re done.\n' +
         '7. Review and tap *Split* to send your request(s).\n' +
         '\n' +
         "We'll send a money request to each of your friends and make sure you get paid back. Let me know how it goes!",
