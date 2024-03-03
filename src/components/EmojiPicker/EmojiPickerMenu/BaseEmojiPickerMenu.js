@@ -112,11 +112,11 @@ function ListEmptyComponent() {
 function BaseEmojiPickerMenu({headerEmojis, scrollToHeader, isFiltered, listWrapperStyle, forwardedRef, data, renderItem, stickyHeaderIndices, extraData, alwaysBounceVertical}) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     // Estimated list size should be a whole integer to avoid floating point precision errors
     // More info: https://github.com/Expensify/App/issues/34522
-    const listWidth = shouldUseNarrowLayout ? Math.floor(windowWidth) : CONST.EMOJI_PICKER_SIZE.WIDTH;
+    const listWidth = isSmallScreenWidth ? Math.floor(windowWidth) : CONST.EMOJI_PICKER_SIZE.WIDTH;
 
     const flattenListWrapperStyle = useMemo(() => StyleSheet.flatten(listWrapperStyle), [listWrapperStyle]);
 
