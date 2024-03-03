@@ -77,6 +77,12 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, ...
     );
 
     useEffect(() => {
+        // Use window height changes to toggle the keyboard. To maintain keyboard state
+        // on all platforms we also use focus/blur events. So we need to make sure here
+        // that we avoid redundant keyboard toggling.
+        // Minus 100px is needed to make sure that when the internet connection is
+        // disabled in android chrome and a small 'No internet connection' text box appears,
+        // we do not take it as a sign to open the keyboard
         if (!isKeyboardOpen && windowHeight < prevWindowHeight - 100) {
             toggleKeyboardOnSmallScreens(true);
         } else if (isKeyboardOpen && windowHeight > prevWindowHeight) {
