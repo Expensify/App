@@ -49,7 +49,7 @@ function BaseModal(
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowWidth, windowHeight} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const keyboardStateContextValue = useKeyboardState();
 
     const safeAreaInsets = useSafeAreaInsets();
@@ -145,12 +145,12 @@ function BaseModal(
                     windowWidth,
                     windowHeight,
                 },
-                shouldUseNarrowLayout,
+                isSmallScreenWidth,
                 popoverAnchorPosition,
                 innerContainerStyle,
                 outerStyle,
             ),
-        [StyleUtils, type, windowWidth, windowHeight, shouldUseNarrowLayout, popoverAnchorPosition, innerContainerStyle, outerStyle],
+        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle],
     );
 
     const {
