@@ -110,6 +110,13 @@ function isAnonymousUser(): boolean {
     return sessionAuthTokenType === CONST.AUTH_TOKEN_TYPE.ANONYMOUS;
 }
 
+/**
+ * Checks if the user is authenticated
+ */
+function isAuthenticated(): boolean {
+    return !!sessionAuthToken;
+}
+
 function signOutAndRedirectToSignIn(shouldReplaceCurrentScreen?: boolean) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
@@ -929,4 +936,5 @@ export {
     validateTwoFactorAuth,
     waitForUserSignIn,
     canAccessRouteByAnonymousUser,
+    isAuthenticated,
 };
