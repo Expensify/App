@@ -1,5 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {format} from 'date-fns';
+import {isUndefined} from 'lodash';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {Fragment, useCallback, useEffect, useMemo, useReducer, useRef, useState} from 'react';
@@ -493,10 +494,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     // Auto select the tag if there is only one enabled tag and it is required
     useEffect(() => {
         let updatedTagsString = TransactionUtils.getTag(transaction);
-        const isMultipleLevelsTags = policyTagLists && policyTagLists.length > 1;
         policyTagLists.forEach((tagList, index) => {
             const enabledTags = _.filter(tagList.tags, (tag) => tag.enabled);
-            if (enabledTags.length !== 1 || (isMultipleLevelsTags ? !tagList.required : !isTagRequired) || TransactionUtils.getTag(transaction, index)) {
+            if (isUndefined(tagList.required) || enabledTags.length !== 1 || !tagList.required || TransactionUtils.getTag(transaction, index)) {
                 return;
             }
             updatedTagsString = IOUUtils.insertTagIntoTransactionTagsString(updatedTagsString, enabledTags[0] ? enabledTags[0].name : '', index);
