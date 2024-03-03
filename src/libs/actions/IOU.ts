@@ -1833,9 +1833,9 @@ function createSplitsAndOnyxData(
 
         // STEP 2: Get existing IOU/Expense report and update its total OR build a new optimistic one
         let oneOnOneIOUReport: OneOnOneIOUReport = oneOnOneChatReport.iouReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`] : null;
-        const shouldCreateNewMoneyRequestReport = ReportUtils.shouldBuildOptimisticMoneyRequestReport(oneOnOneIOUReport, oneOnOneChatReport);
+        const shouldCreateNewOneOnOneIOUReport = ReportUtils.shouldBuildOptimisticMoneyRequestReport(oneOnOneIOUReport, oneOnOneChatReport);
 
-        if (!oneOnOneIOUReport || shouldCreateNewMoneyRequestReport) {
+        if (!oneOnOneIOUReport || shouldCreateNewOneOnOneIOUReport) {
             oneOnOneIOUReport = isOwnPolicyExpenseChat
                 ? ReportUtils.buildOptimisticExpenseReport(oneOnOneChatReport.reportID, oneOnOneChatReport.policyID ?? '', currentUserAccountID, splitAmount, currency)
                 : ReportUtils.buildOptimisticIOUReport(currentUserAccountID, accountID, splitAmount, oneOnOneChatReport.reportID, currency);
@@ -1938,7 +1938,7 @@ function createSplitsAndOnyxData(
             isNewOneOnOneChatReport,
             optimisticTransactionThread,
             optimisticCreatedActionForTransactionThread,
-            shouldCreateNewMoneyRequestReport,
+            shouldCreateNewOneOnOneIOUReport,
         );
 
         const individualSplit = {
@@ -2471,9 +2471,9 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
         }
 
         let oneOnOneIOUReport: OneOnOneIOUReport = oneOnOneChatReport?.iouReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`] : null;
-        const shouldCreateNewOneOnOneMoneyRequestReport = ReportUtils.shouldBuildOptimisticMoneyRequestReport(oneOnOneIOUReport, oneOnOneChatReport);
+        const shouldCreateNewOneOnOneIOUReport = ReportUtils.shouldBuildOptimisticMoneyRequestReport(oneOnOneIOUReport, oneOnOneChatReport);
 
-        if (!oneOnOneIOUReport || shouldCreateNewOneOnOneMoneyRequestReport) {
+        if (!oneOnOneIOUReport || shouldCreateNewOneOnOneIOUReport) {
             oneOnOneIOUReport = isPolicyExpenseChat
                 ? ReportUtils.buildOptimisticExpenseReport(oneOnOneChatReport?.reportID ?? '', participant.policyID ?? '', sessionAccountID, splitAmount, currency ?? '')
                 : ReportUtils.buildOptimisticIOUReport(sessionAccountID, participant.accountID ?? -1, splitAmount, oneOnOneChatReport?.reportID ?? '', currency ?? '');
@@ -2540,7 +2540,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             isNewOneOnOneChatReport,
             optimisticTransactionThread,
             optimisticCreatedActionForTransactionThread,
-            shouldCreateNewOneOnOneMoneyRequestReport,
+            shouldCreateNewOneOnOneIOUReport,
         );
 
         splits.push({

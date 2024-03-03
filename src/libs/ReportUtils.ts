@@ -5037,7 +5037,7 @@ function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
    - we have one, but it's waiting on the payee adding a bank account
    - we have one but we can't add more transactions to it due to: report is approved or settled, or report is processing and policy isn't on Instant submit reporting frequency
  */
-function shouldBuildOptimisticMoneyRequestReport(existingIOUReport: OnyxEntry<Report> | undefined | null, chatReport: OnyxEntry<Report> | null): boolean {
+function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxEntry<Report> | undefined | null, chatReport: OnyxEntry<Report> | null): boolean {
     return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddTransactionsToMoneyRequest(existingIOUReport);
 }
 
@@ -5243,7 +5243,7 @@ export {
     canEditPolicyDescription,
     getPolicyDescriptionText,
     canAddTransactionsToMoneyRequest,
-    shouldBuildOptimisticMoneyRequestReport,
+    shouldCreateNewMoneyRequestReport,
 };
 
 export type {
