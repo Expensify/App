@@ -1,15 +1,18 @@
 import {useMemo} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {UserLocation} from '@src/types/onyx';
+import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
 /**
  * Construct the rectangular boundary based on user location and waypoints
  */
-export default function useLocationBias(allWaypoints: Record<string, {lng?: number; lat?: number}>, userLocation?: {latitude: number; longitude: number}) {
+export default function useLocationBias(allWaypoints: WaypointCollection, userLocation?: OnyxEntry<UserLocation>) {
     return useMemo(() => {
         const hasFilledWaypointCount = Object.values(allWaypoints).some((waypoint) => Object.keys(waypoint).length > 0);
         // If there are no filled wayPoints and if user's current location cannot be retrieved,
         // it is futile to arrive at a biased location. Let's return
         if (!hasFilledWaypointCount && userLocation === undefined) {
-            return null;
+            return undefined;
         }
 
         // Gather the longitudes and latitudes from filled waypoints.
@@ -29,8 +32,8 @@ export default function useLocationBias(allWaypoints: Record<string, {lng?: numb
         // When no filled waypoints are available but the current location of the user is available,
         // let us consider the current user's location to construct a rectangular bound
         if (!hasFilledWaypointCount && userLocation !== undefined) {
-            longitudes.push(userLocation.longitude);
-            latitudes.push(userLocation.latitude);
+            longitudes.push(userLocation?.longitude ?? 0);
+            latitudes.push(userLocation?.latitude ?? 0);
         }
 
         // Extend the rectangular bound by 0.5 degree (roughly around 25-30 miles in US)

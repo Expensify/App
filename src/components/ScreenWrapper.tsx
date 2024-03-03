@@ -84,6 +84,9 @@ type ScreenWrapperProps = {
     /** Whether to avoid scroll on virtual viewport */
     shouldAvoidScrollOnVirtualViewport?: boolean;
 
+    /** Whether to use cached virtual viewport height  */
+    shouldUseCachedViewportHeight?: boolean;
+
     /**
      * The navigation prop is passed by the navigator. It is used to trigger the onEntryTransitionEnd callback
      * when the screen transition ends.
@@ -116,6 +119,7 @@ function ScreenWrapper(
         navigation: navigationProp,
         shouldAvoidScrollOnVirtualViewport = true,
         shouldShowOfflineIndicatorInWideScreen = false,
+        shouldUseCachedViewportHeight = false,
     }: ScreenWrapperProps,
     ref: ForwardedRef<View>,
 ) {
@@ -128,7 +132,7 @@ function ScreenWrapper(
      */
     const navigationFallback = useNavigation<StackNavigationProp<RootStackParamList>>();
     const navigation = navigationProp ?? navigationFallback;
-    const {windowHeight} = useWindowDimensions(shouldEnableMaxHeight);
+    const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();

@@ -178,6 +178,7 @@ const CONST = {
     DATE: {
         SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
+        FNS_DATE_TIME_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss',
         LOCAL_TIME_FORMAT: 'h:mm a',
         YEAR_MONTH_FORMAT: 'yyyyMM',
         MONTH_FORMAT: 'MMMM',
@@ -307,6 +308,7 @@ const CONST = {
         BETA_COMMENT_LINKING: 'commentLinking',
         VIOLATIONS: 'violations',
         REPORT_FIELDS: 'reportFields',
+        WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -689,6 +691,7 @@ const CONST = {
             DOMAIN_ALL: 'domainAll',
             POLICY_ROOM: 'policyRoom',
             POLICY_EXPENSE_CHAT: 'policyExpenseChat',
+            SELF_DM: 'selfDM',
         },
         WORKSPACE_CHAT_ROOMS: {
             ANNOUNCE: '#announce',
@@ -951,6 +954,9 @@ const CONST = {
     EMOJI_FREQUENT_ROW_COUNT: 3,
 
     EMOJI_DEFAULT_SKIN_TONE: -1,
+
+    // Amount of emojis to render ahead at the end of the update cycle
+    EMOJI_DRAW_AMOUNT: 250,
 
     INVISIBLE_CODEPOINTS: ['fe0f', '200d', '2066'],
 
@@ -1383,6 +1389,11 @@ const CONST = {
         },
         ID_FAKE: '_FAKE_',
         EMPTY: 'EMPTY',
+        MEMBERS_BULK_ACTION_TYPES: {
+            REMOVE: 'remove',
+            MAKE_MEMBER: 'makeMember',
+            MAKE_ADMIN: 'makeAdmin',
+        },
     },
 
     CUSTOM_UNITS: {
@@ -1539,6 +1550,8 @@ const CONST = {
         PATH_WITHOUT_POLICY_ID: /\/w\/[a-zA-Z0-9]+(\/|$)/,
 
         POLICY_ID_FROM_PATH: /\/w\/([a-zA-Z0-9]+)(\/|$)/,
+
+        SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#]+(?:\\.[\\w\\-\\'\\+]+)*`, 'gim'),
     },
 
     PRONOUNS: {
@@ -1555,6 +1568,7 @@ const CONST = {
         WORKSPACE_INVOICES: 'WorkspaceSendInvoices',
         WORKSPACE_TRAVEL: 'WorkspaceBookTravel',
         WORKSPACE_MEMBERS: 'WorkspaceManageMembers',
+        WORKSPACE_WORKFLOWS: 'WorkspaceWorkflows',
         WORKSPACE_BANK_ACCOUNT: 'WorkspaceBankAccount',
         WORKSPACE_SETTINGS: 'WorkspaceSettings',
     },
@@ -3108,6 +3122,8 @@ const CONST = {
      */
     ADDITIONAL_ALLOWED_CHARACTERS: 20,
 
+    VALIDATION_REIMBURSEMENT_INPUT_LIMIT: 20,
+
     REFERRAL_PROGRAM: {
         CONTENT_TYPES: {
             MONEY_REQUEST: 'request',
@@ -3270,6 +3286,12 @@ const CONST = {
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 
+    /** Dimensions for illustration shown in Confirmation Modal */
+    CONFIRM_CONTENT_SVG_SIZE: {
+        HEIGHT: 220,
+        WIDTH: 130,
+    },
+
     DEBUG_CONSOLE: {
         LEVELS: {
             INFO: 'INFO',
@@ -3304,6 +3326,22 @@ const CONST = {
             SSN: 2,
             ADDRESS: 3,
         },
+    },
+
+    EXIT_SURVEY: {
+        REASONS: {
+            FEATURE_NOT_AVAILABLE: 'featureNotAvailable',
+            DONT_UNDERSTAND: 'dontUnderstand',
+            PREFER_CLASSIC: 'preferClassic',
+        },
+    },
+
+    SESSION_STORAGE_KEYS: {
+        INITIAL_URL: 'INITIAL_URL',
+    },
+
+    AUTH_TOKEN_TYPE: {
+        ANONYMOUS: 'anonymousAccount',
     },
 } as const;
 

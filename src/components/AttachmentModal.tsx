@@ -90,7 +90,7 @@ type AttachmentModalProps = AttachmentModalOnyxProps & {
     source?: AvatarSource;
 
     /** Optional callback to fire when we want to preview an image and approve it for use. */
-    onConfirm?: ((file: Partial<FileObject>) => void) | null;
+    onConfirm?: ((file: FileObject) => void) | null;
 
     /** Whether the modal should be open by default */
     defaultOpen?: boolean;
@@ -266,7 +266,7 @@ function AttachmentModal({
         }
 
         if (onConfirm) {
-            onConfirm(Object.assign(file ?? {}, {source: sourceState}));
+            onConfirm(Object.assign(file ?? {}, {source: sourceState} as FileObject));
         }
 
         setIsModalOpen(false);
@@ -320,7 +320,7 @@ function AttachmentModal({
 
     const validateAndDisplayFileToUpload = useCallback(
         (data: FileObject) => {
-            if (!isDirectoryCheck(data)) {
+            if (!data || !isDirectoryCheck(data)) {
                 return;
             }
             let fileObject = data;
@@ -619,4 +619,4 @@ export default withOnyx<AttachmentModalProps, AttachmentModalOnyxProps>({
     },
 })(memo(AttachmentModal));
 
-export type {Attachment};
+export type {Attachment, FileObject};

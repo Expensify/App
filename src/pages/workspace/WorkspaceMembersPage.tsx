@@ -1,4 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -6,8 +5,11 @@ import type {TextInput} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -15,14 +17,15 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import MessagesRow from '@components/MessagesRow';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -41,7 +44,6 @@ import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, PolicyMember, PolicyMembers, Session} from '@src/types/onyx';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import SearchInputManager from './SearchInputManager';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -70,10 +72,10 @@ type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 
 function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, session, currentUserPersonalDetails, isLoadingReportData = true}: WorkspaceMembersPageProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [errors, setErrors] = useState({});
-    const [searchValue, setSearchValue] = useState('');
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
     const accountIDs = useMemo(() => Object.keys(policyMembers ?? {}).map((accountID) => Number(accountID)), [policyMembers]);
@@ -83,19 +85,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     const prevPersonalDetails = usePrevious(personalDetails);
     const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-
-    const isFocusedScreen = useIsFocused();
-
-    useEffect(() => {
-        setSearchValue(SearchInputManager.searchInput);
-    }, [isFocusedScreen]);
-
-    useEffect(
-        () => () => {
-            SearchInputManager.searchInput = '';
-        },
-        [],
-    );
+    const dropdownButtonRef = useRef(null);
 
     /**
      * Get filtered personalDetails list with current policyMembers
@@ -176,7 +166,6 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
      * Open the modal to invite a user
      */
     const inviteUser = () => {
-        setSearchValue('');
         Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID));
     };
 
@@ -306,30 +295,6 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 return;
             }
 
-            // If search value is provided, filter out members that don't match the search value
-            if (searchValue.trim()) {
-                let memberDetails = '';
-                if (details.login) {
-                    memberDetails += ` ${details.login.toLowerCase()}`;
-                }
-                if (details.firstName) {
-                    memberDetails += ` ${details.firstName.toLowerCase()}`;
-                }
-                if (details.lastName) {
-                    memberDetails += ` ${details.lastName.toLowerCase()}`;
-                }
-                if (details.displayName) {
-                    memberDetails += ` ${details.displayName.toLowerCase()}`;
-                }
-                if (details.phoneNumber) {
-                    memberDetails += ` ${details.phoneNumber.toLowerCase()}`;
-                }
-
-                if (!OptionsListUtils.isSearchStringMatch(searchValue.trim(), memberDetails)) {
-                    return;
-                }
-            }
-
             // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
             // We don't want to show guides as policy members unless the user is a guide. Some customers get confused when they
             // see random people added to their policy, but guides having access to the policies help set them up.
@@ -339,12 +304,26 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 }
             }
 
+            const isSelected = selectedEmployees.includes(accountID);
+
+            const isOwner = policy?.owner === details.login;
             const isAdmin = session?.email === details.login || policyMember.role === CONST.POLICY.ROLE.ADMIN;
+
+            let roleBadge = null;
+            if (isOwner || isAdmin) {
+                roleBadge = (
+                    <Badge
+                        text={isOwner ? translate('common.owner') : translate('common.admin')}
+                        textStyles={styles.textStrong}
+                        badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered, isSelected && styles.activeItemBadge]}
+                    />
+                );
+            }
 
             result.push({
                 keyForList: accountIDKey,
                 accountID,
-                isSelected: selectedEmployees.includes(accountID),
+                isSelected,
                 isDisabled:
                     accountID === session?.accountID ||
                     details.login === policy?.owner ||
@@ -352,11 +331,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                     !isEmptyObject(policyMember.errors),
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
-                rightElement: isAdmin ? (
-                    <View style={[styles.badge, styles.peopleBadge]}>
-                        <Text style={styles.peopleBadgeText}>{translate('common.admin')}</Text>
-                    </View>
-                ) : undefined,
+                rightElement: roleBadge,
                 icons: [
                     {
                         source: UserUtils.getAvatar(details.avatar, accountID),
@@ -383,44 +358,102 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
         if (isOfflineAndNoMemberDataAvailable) {
             return translate('workspace.common.mustBeOnlineToViewMembers');
         }
-        return searchValue.trim() && !data.length ? translate('workspace.common.memberNotFound') : '';
+        return !data.length ? translate('workspace.common.memberNotFound') : '';
     };
 
-    const getHeaderContent = () => {
-        if (isEmptyObject(invitedPrimaryToSecondaryLogins)) {
-            return null;
+    const getHeaderContent = () => (
+        <>
+            <Text style={[styles.pl5, styles.mb4, styles.mt3, styles.textSupporting]}>{translate('workspace.people.membersListTitle')}</Text>
+            {!isEmptyObject(invitedPrimaryToSecondaryLogins) && (
+                <MessagesRow
+                    type="success"
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    messages={{0: 'workspace.people.addedWithPrimary'}}
+                    containerStyles={[styles.pb5, styles.ph5]}
+                    onClose={() => Policy.dismissAddedWithPrimaryLoginMessages(policyID)}
+                />
+            )}
+        </>
+    );
+
+    const getCustomListHeader = () => (
+        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
+            <View>
+                <Text style={[styles.searchInputStyle, styles.ml3]}>{translate('common.member')}</Text>
+            </View>
+            <View style={[StyleUtils.getMinimumWidth(60)]}>
+                <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('common.role')}</Text>
+            </View>
+        </View>
+    );
+
+    const changeUserRole = (role: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER) => {
+        if (!isEmptyObject(errors)) {
+            return;
         }
-        return (
-            <MessagesRow
-                type="success"
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                messages={{'0': 'workspace.people.addedWithPrimary'}}
-                containerStyles={[styles.pb5, styles.ph5]}
-                onClose={() => Policy.dismissAddedWithPrimaryLoginMessages(policyID)}
-            />
-        );
+
+        const accountIDsToUpdate = selectedEmployees.filter((id) => policyMembers?.[id].role !== role);
+
+        Policy.updateWorkspaceMembersRole(route.params.policyID, accountIDsToUpdate, role);
+        setSelectedEmployees([]);
+    };
+
+    const getBulkActionsButtonOptions = () => {
+        const options: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [
+            {
+                text: translate('workspace.people.removeMembersTitle'),
+                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
+                icon: Expensicons.RemoveMembers,
+                onSelected: askForConfirmationToRemove,
+            },
+        ];
+
+        if (selectedEmployees.find((employee) => policyMembers?.[employee]?.role === CONST.POLICY.ROLE.ADMIN)) {
+            options.push({
+                text: translate('workspace.people.makeMember'),
+                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
+                icon: Expensicons.User,
+                onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
+            });
+        }
+
+        if (selectedEmployees.find((employee) => policyMembers?.[employee]?.role === CONST.POLICY.ROLE.USER)) {
+            options.push({
+                text: translate('workspace.people.makeAdmin'),
+                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
+                icon: Expensicons.MakeAdmin,
+                onSelected: () => changeUserRole(CONST.POLICY.ROLE.ADMIN),
+            });
+        }
+
+        return options;
     };
 
     const getHeaderButtons = () => (
-        <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
-            <Button
-                medium
-                success
-                onPress={inviteUser}
-                text={translate('workspace.invite.member')}
-                icon={Expensicons.Plus}
-                iconStyles={{transform: [{scale: 0.6}]}}
-                innerStyles={[isSmallScreenWidth && styles.alignItemsCenter]}
-                style={[isSmallScreenWidth && styles.flexGrow1]}
-            />
-            <Button
-                medium
-                danger
-                style={[styles.ml2, isSmallScreenWidth && styles.w50]}
-                isDisabled={selectedEmployees.length === 0}
-                text={translate('common.remove')}
-                onPress={askForConfirmationToRemove}
-            />
+        <View style={styles.w100}>
+            {selectedEmployees.length > 0 ? (
+                <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
+                    shouldAlwaysShowDropdownMenu
+                    pressOnEnter
+                    customText={translate('workspace.people.selected', {selectedNumber: selectedEmployees.length})}
+                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                    onPress={() => null}
+                    options={getBulkActionsButtonOptions()}
+                    buttonRef={dropdownButtonRef}
+                    style={[isSmallScreenWidth && styles.flexGrow1]}
+                />
+            ) : (
+                <Button
+                    medium
+                    success
+                    onPress={inviteUser}
+                    text={translate('workspace.invite.member')}
+                    icon={Expensicons.Plus}
+                    iconStyles={{transform: [{scale: 0.6}]}}
+                    innerStyles={[isSmallScreenWidth && styles.alignItemsCenter]}
+                    style={[isSmallScreenWidth && styles.flexGrow1]}
+                />
+            )}
         </View>
     );
 
@@ -434,13 +467,13 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
             <FullPageNotFoundView
                 shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
+                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
             >
                 <HeaderWithBackButton
                     title={translate('workspace.common.members')}
                     icon={Illustrations.ReceiptWrangler}
                     onBackButtonPress={() => {
-                        setSearchValue('');
                         Navigation.goBack();
                     }}
                     shouldShowBackButton={isSmallScreenWidth}
@@ -471,13 +504,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                     <SelectionList
                         canSelectMultiple
                         sections={[{data, indexOffset: 0, isDisabled: false}]}
-                        ListItem={UserListItem}
-                        textInputLabel={translate('optionsSelector.findMember')}
-                        textInputValue={searchValue}
-                        onChangeText={(value) => {
-                            SearchInputManager.searchInput = value;
-                            setSearchValue(value);
-                        }}
+                        ListItem={TableListItem}
                         disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                         headerMessage={getHeaderMessage()}
                         headerContent={getHeaderContent()}
@@ -488,6 +515,8 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                         showScrollIndicator
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         ref={textInputRef}
+                        customListHeader={getCustomListHeader()}
+                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                     />
                 </View>
             </FullPageNotFoundView>

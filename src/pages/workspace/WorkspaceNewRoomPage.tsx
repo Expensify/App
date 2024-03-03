@@ -23,6 +23,7 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -77,7 +78,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                     label: policy.name,
                     value: policy.id,
                 }))
-                .sort((a, b) => a.label.toLowerCase().localeCompare(b.label.toLowerCase())) ?? [],
+                .sort((a, b) => localeCompare(a.label, b.label)) ?? [],
         [policies],
     );
     const [policyID, setPolicyID] = useState<string>(() => {
@@ -265,7 +266,6 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                                     ref={inputCallbackRef}
                                     inputID={INPUT_IDS.ROOM_NAME}
                                     isFocused={isFocused}
-                                    // @ts-expect-error TODO: Remove this once RoomNameInput (https://github.com/Expensify/App/issues/25090) is migrated to TypeScript.
                                     shouldDelayFocus
                                     autoFocus
                                 />

@@ -609,7 +609,7 @@ function MenuItem(
                                         />
                                     </View>
                                 )}
-                                {!!rightLabel && (
+                                {!title && !!rightLabel && (
                                     <View style={styles.justifyContentCenter}>
                                         <Text style={styles.rightLabelMenuItem}>{rightLabel}</Text>
                                     </View>
