@@ -1,5 +1,5 @@
 ---
-title: Set Up the Card for your Company
+title: Set Up the Expensify Visa® Commercial Card for your Company
 description: Details on setting up the Expensify Card for your company as an admin
 ---
 # Overview
