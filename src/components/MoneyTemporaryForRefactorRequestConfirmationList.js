@@ -1,6 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
 import {format} from 'date-fns';
-import {isTag} from 'domhandler';
 import {isUndefined} from 'lodash';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
