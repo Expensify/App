@@ -7,6 +7,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Text from '@components/Text';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -41,7 +42,8 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     const [failedToLoadPDF, setFailedToLoadPDF] = useState(false);
     const [successToLoadPDF, setSuccessToLoadPDF] = useState(false);
     const [password, setPassword] = useState('');
-    const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const themeStyles = useThemeStyles();
     const {isKeyboardShown} = useKeyboardState();
@@ -125,7 +127,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
             pdfStyles.push(themeStyles.invisible);
         }
 
-        const containerStyles = shouldRequestPassword && isSmallScreenWidth ? [themeStyles.w100, themeStyles.flex1] : [themeStyles.alignItemsCenter, themeStyles.flex1];
+        const containerStyles = shouldRequestPassword && shouldUseNarrowLayout ? [themeStyles.w100, themeStyles.flex1] : [themeStyles.alignItemsCenter, themeStyles.flex1];
 
         return (
             <View style={containerStyles}>
