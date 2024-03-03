@@ -926,7 +926,7 @@ function getMoneyRequestInformation(
         false,
         currentTime,
     );
-    const optimisticTransactionThread = ReportUtils.buildTransactionThread(iouAction, iouReport.reportID);
+    const optimisticTransactionThread = ReportUtils.buildTransactionThread(iouAction, iouReport);
     iouAction.childReportID = optimisticTransactionThread.reportID;
     const optimisticCreatedActionForTransactionThread = ReportUtils.buildOptimisticCreatedReportAction(payeeEmail);
 
@@ -1934,7 +1934,7 @@ function createSplitsAndOnyxData(
         const optimisticPolicyRecentlyUsedTags = isPolicyExpenseChat ? Policy.buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag) : {};
 
         // Create optimistic transactionThread
-        const optimisticTransactionThread = ReportUtils.buildTransactionThread(oneOnOneIOUAction, oneOnOneIOUReport.reportID);
+        const optimisticTransactionThread = ReportUtils.buildTransactionThread(oneOnOneIOUAction, oneOnOneIOUReport);
         oneOnOneIOUAction.childReportID = optimisticTransactionThread.reportID;
         const optimisticCreatedActionForTransactionThread = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
 
@@ -2054,7 +2054,7 @@ function splitBill(
 }
 
 /**
- * @param amount - always in smallest currency unit
+ * @param amount - always in the smallest currency unit
  */
 function splitBillAndOpenReport(
     participants: Participant[],
@@ -2539,7 +2539,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             oneOnOneReportPreviewAction = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction);
         }
 
-        const optimisticTransactionThread = ReportUtils.buildTransactionThread(oneOnOneIOUAction, oneOnOneIOUReport.reportID);
+        const optimisticTransactionThread = ReportUtils.buildTransactionThread(oneOnOneIOUAction, oneOnOneIOUReport);
         oneOnOneIOUAction.childReportID = optimisticTransactionThread.reportID;
         const optimisticCreatedActionForTransactionThread = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
 
@@ -3267,7 +3267,7 @@ function getSendMoneyParams(
 
     const reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticIOUReport);
 
-    const optimisticTransactionThread = ReportUtils.buildTransactionThread(optimisticIOUReportAction, optimisticIOUReport.reportID);
+    const optimisticTransactionThread = ReportUtils.buildTransactionThread(optimisticIOUReportAction, optimisticIOUReport);
     optimisticIOUReportAction.childReportID = optimisticTransactionThread.reportID;
     const optimisticCreatedActionForTransactionThread = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
 

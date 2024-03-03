@@ -210,13 +210,6 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                 hideContextMenu(false);
                 const childReportID = reportAction?.childReportID ?? '0';
-                if (!childReportID) {
-                    const thread = ReportUtils.buildTransactionThread(reportAction, reportID);
-                    const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs ?? []);
-                    Report.openReport(thread.reportID, userLogins, thread, reportAction?.reportActionID);
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(thread.reportID));
-                    return;
-                }
                 Report.openReport(childReportID);
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 return;
