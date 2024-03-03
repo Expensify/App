@@ -24,9 +24,14 @@ Onyx.connect({
     },
 });
 
-function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails> | null, defaultValue = '', shouldFallbackToHidden = true): string {
-    const displayName = passedPersonalDetails?.displayName ? passedPersonalDetails.displayName.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '') : '';
+function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails> | null, defaultValue = '', shouldFallbackToHidden = true, shouldAddCurrentUserPostfix = false): string {
+    let displayName = passedPersonalDetails?.displayName ? passedPersonalDetails.displayName.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '') : '';
+    if (shouldAddCurrentUserPostfix && !!displayName) {
+        displayName = `${displayName} (${Localize.translateLocal('common.you').toLowerCase()})`;
+    }
+
     const fallbackValue = shouldFallbackToHidden ? Localize.translateLocal('common.hidden') : '';
+
     return displayName || defaultValue || fallbackValue;
 }
 
@@ -54,6 +59,10 @@ function getPersonalDetailsByIDs(accountIDs: number[], currentUserAccountID: num
         });
 
     return result;
+}
+
+function getPersonalDetailByEmail(email: string): PersonalDetails | undefined {
+    return (Object.values(allPersonalDetails ?? {}) as PersonalDetails[]).find((detail) => detail?.login === email);
 }
 
 /**
@@ -263,6 +272,7 @@ export {
     isPersonalDetailsEmpty,
     getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
+    getPersonalDetailByEmail,
     getAccountIDsByLogins,
     getLoginsByAccountIDs,
     getNewPersonalDetailsOnyxData,
