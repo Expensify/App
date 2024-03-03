@@ -32,7 +32,7 @@ const messageCopy = {
         'Next, start adding expenses to your workspace:\n' +
         '\n' +
         '1. Click the green *+* > *Request money*.\n' +
-        '2. Add an expense of scan a receipt.\n' +
+        '2. Add an expense or scan a receipt.\n' +
         '3. Choose your workspace as the destination.\n' +
         '\n' +
         'Be sure to track all of your expenses in your new workspace to keep everything in one place. Let me know how it goes!',
