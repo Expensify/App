@@ -1,3 +1,4 @@
+import type {ParamListBase, StackNavigationState} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import {format} from 'date-fns';
 import fastMerge from 'expensify-common/lib/fastMerge';
@@ -34,8 +35,8 @@ import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as NextStepUtils from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
+import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -43,7 +44,7 @@ import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUR
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as UserUtils from '@libs/UserUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
-import type {MoneyRequestNavigatorParamList} from '@navigation/types';
+import type {MoneyRequestNavigatorParamList, NavigationPartialRoute} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -57,6 +58,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, Receipt, ReceiptSource, TaxRate, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Policy from './Policy';
 import * as Report from './Report';
 
@@ -260,6 +262,28 @@ function clearMoneyRequest(transactionID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
 }
 
+/**
+ * Update money request-related pages IOU type params
+ */
+function updateMoneyRequestTypeParams(routes: StackNavigationState<ParamListBase>['routes'] | NavigationPartialRoute[], newIouType: string, tab: string) {
+    routes.forEach((route) => {
+        const tabList = [CONST.TAB_REQUEST.DISTANCE, CONST.TAB_REQUEST.MANUAL, CONST.TAB_REQUEST.SCAN] as string[];
+        if (!route.name.startsWith('Money_Request_') && !tabList.includes(route.name)) {
+            return;
+        }
+        const newParams: Record<string, unknown> = {iouType: newIouType};
+        if (route.name === 'Money_Request_Create') {
+            // Both screen and nested params are needed to properly update the nested tab navigator
+            newParams.params = {...newParams};
+            newParams.screen = tab;
+        }
+        Navigation.setParams(newParams, route.key ?? '');
+
+        // Recursively update nested money request tab params
+        updateMoneyRequestTypeParams(route.state?.routes ?? [], newIouType, tab);
+    });
+}
+
 // eslint-disable-next-line @typescript-eslint/naming-convention
 function startMoneyRequest_temporaryForRefactor(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string) {
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
@@ -324,9 +348,9 @@ function setMoneyRequestParticipants_temporaryForRefactor(transactionID: string,
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants});
 }
 
-function setMoneyRequestReceipt(transactionID: string, source: string, filename: string, isDraft: boolean) {
+function setMoneyRequestReceipt(transactionID: string, source: string, filename: string, isDraft: boolean, type?: string) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        receipt: {source},
+        receipt: {source, type: type ?? ''},
         filename,
     });
 }
@@ -361,9 +385,25 @@ function getReceiptError(receipt?: Receipt, filename?: string, isScanRequest = t
         : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: receipt.source?.toString() ?? '', filename: filename ?? ''});
 }
 
-/** Return the object to update hasOutstandingChildRequest */
-function getOutstandingChildRequest(needsToBeManuallySubmitted: boolean, policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject = null): OutstandingChildRequest {
-    if (!needsToBeManuallySubmitted) {
+function needsToBeManuallySubmitted(iouReport: OnyxTypes.Report) {
+    const isPolicyExpenseChat = ReportUtils.isExpenseReport(iouReport);
+
+    if (isPolicyExpenseChat) {
+        const policy = ReportUtils.getPolicy(iouReport.policyID);
+        const isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy);
+
+        // If the scheduled submit is turned off on the policy, user needs to manually submit the report which is indicated by GBR in LHN
+        return isFromPaidPolicy && !policy.harvesting?.enabled;
+    }
+
+    return true;
+}
+
+/**
+ * Return the object to update hasOutstandingChildRequest
+ */
+function getOutstandingChildRequest(policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject, iouReport: OnyxTypes.Report): OutstandingChildRequest {
+    if (!needsToBeManuallySubmitted(iouReport)) {
         return {
             hasOutstandingChildRequest: false,
         };
@@ -375,8 +415,9 @@ function getOutstandingChildRequest(needsToBeManuallySubmitted: boolean, policy:
         };
     }
 
-    // We don't need to update hasOutstandingChildRequest in this case
-    return {};
+    return {
+        hasOutstandingChildRequest: iouReport.managerID === userAccountID && iouReport.total !== 0,
+    };
 }
 
 /** Builds the Onyx data for a money request */
@@ -399,10 +440,9 @@ function buildOnyxDataForMoneyRequest(
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     optimisticNextStep?: OnyxTypes.ReportNextStep | null,
-    needsToBeManuallySubmitted = true,
 ): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
-    const outstandingChildRequest = getOutstandingChildRequest(needsToBeManuallySubmitted, policy);
+    const outstandingChildRequest = getOutstandingChildRequest(policy ?? {}, iouReport);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const optimisticData: OnyxUpdate[] = [];
 
@@ -761,7 +801,7 @@ function getMoneyRequestInformation(
     payeeEmail = currentUserEmail,
     moneyRequestReportID = '',
 ): MoneyRequestInformation {
-    const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login ?? '');
+    const payerEmail = PhoneNumber.addSMSDomainIfPhoneNumber(participant.login ?? '');
     const payerAccountID = Number(participant.accountID);
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
 
@@ -795,14 +835,9 @@ function getMoneyRequestInformation(
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
     }
 
-    // Check if the Scheduled Submit is enabled in case of expense report
-    let needsToBeManuallySubmitted = true;
     let isFromPaidPolicy = false;
     if (isPolicyExpenseChat) {
         isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy ?? null);
-
-        // If the scheduled submit is turned off on the policy, user needs to manually submit the report which is indicated by GBR in LHN
-        needsToBeManuallySubmitted = isFromPaidPolicy && !policy?.harvesting?.enabled;
 
         // If the linked expense report on paid policy is not draft and not instantly submitted, we need to create a new draft expense report
         if (iouReport && isFromPaidPolicy && !ReportUtils.isDraftExpenseReport(iouReport) && !ReportUtils.isExpenseReportWithInstantSubmittedState(iouReport)) {
@@ -943,7 +978,6 @@ function getMoneyRequestInformation(
         policyTagList,
         policyCategories,
         optimisticNextStep,
-        needsToBeManuallySubmitted,
     );
 
     return {
@@ -1210,11 +1244,21 @@ function getUpdateMoneyRequestParams(
     }
     updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, transactionDetails?.currency);
 
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-        value: updatedMoneyRequestReport,
-    });
+    optimisticData.push(
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+            value: updatedMoneyRequestReport,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.parentReportID}`,
+            value: {
+                hasOutstandingChildRequest:
+                    iouReport && needsToBeManuallySubmitted(iouReport) && updatedMoneyRequestReport.managerID === userAccountID && updatedMoneyRequestReport.total !== 0,
+            },
+        },
+    );
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
@@ -1602,7 +1646,7 @@ function createSplitsAndOnyxData(
     existingSplitChatReportID = '',
     billable = false,
 ): SplitsAndOnyxData {
-    const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
+    const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
     const existingSplitChatReport =
         existingSplitChatReportID || participants[0].reportID
@@ -1770,7 +1814,7 @@ function createSplitsAndOnyxData(
 
         // In case the participant is a workspace, email & accountID should remain undefined and won't be used in the rest of this code
         // participant.login is undefined when the request is initiated from a group DM with an unknown user, so we need to add a default
-        const email = isOwnPolicyExpenseChat || isPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login ?? '').toLowerCase();
+        const email = isOwnPolicyExpenseChat || isPolicyExpenseChat ? '' : PhoneNumber.addSMSDomainIfPhoneNumber(participant.login ?? '').toLowerCase();
         const accountID = isOwnPolicyExpenseChat || isPolicyExpenseChat ? 0 : Number(participant.accountID);
         if (email === currentUserEmailForIOUSplit) {
             return;
@@ -2066,7 +2110,7 @@ function startSplitBill(
     existingSplitChatReportID = '',
     billable = false,
 ) {
-    const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
+    const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
     const existingSplitChatReport =
         existingSplitChatReportID || participants[0].reportID
@@ -2230,7 +2274,7 @@ function startSplitBill(
     participants.forEach((participant) => {
         // Disabling this line since participant.login can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const email = participant.isOwnPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login || participant.text || '').toLowerCase();
+        const email = participant.isOwnPolicyExpenseChat ? '' : PhoneNumber.addSMSDomainIfPhoneNumber(participant.login || participant.text || '').toLowerCase();
         const accountID = participant.isOwnPolicyExpenseChat ? 0 : Number(participant.accountID);
         if (email === currentUserEmailForIOUSplit) {
             return;
@@ -2339,7 +2383,7 @@ function startSplitBill(
  * @param sessionEmail - email of the current user
  */
 function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportAction, updatedTransaction: OnyxTypes.Transaction, sessionAccountID: number, sessionEmail: string) {
-    const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(sessionEmail);
+    const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(sessionEmail);
     const {transactionID} = updatedTransaction;
     const unmodifiedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
@@ -2995,6 +3039,13 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
                 [reportPreviewAction?.reportActionID ?? '']: updatedReportPreviewAction,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
+            value: {
+                hasOutstandingChildRequest: iouReport && needsToBeManuallySubmitted(iouReport) && updatedIOUReport?.managerID === userAccountID && updatedIOUReport.total !== 0,
+            },
+        },
     );
 
     if (!shouldDeleteIOUReport && updatedReportPreviewAction.childMoneyRequestCount === 0) {
@@ -3139,6 +3190,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
 
     // STEP 6: Make the API request
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
+    CachedPDFPaths.clearByKey(transactionID);
 
     // STEP 7: Navigate the user depending on which page they are on and which resources were deleted
     if (iouReport && isSingleTransactionView && shouldDeleteTransactionThread && !shouldDeleteIOUReport) {
@@ -3166,7 +3218,7 @@ function getSendMoneyParams(
     managerID: number,
     recipient: Participant,
 ): SendMoneyParamsData {
-    const recipientEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(recipient.login ?? '');
+    const recipientEmail = PhoneNumber.addSMSDomainIfPhoneNumber(recipient.login ?? '');
     const recipientAccountID = Number(recipient.accountID);
     const newIOUReportDetails = JSON.stringify({
         amount,
@@ -4193,6 +4245,7 @@ function navigateToStartStepIfScanFileCannotBeRead(
     iouType: ValueOf<typeof CONST.IOU.TYPE>,
     transactionID: string,
     reportID: string,
+    receiptType: string,
 ) {
     if (!receiptFilename || !receiptPath) {
         return;
@@ -4206,7 +4259,7 @@ function navigateToStartStepIfScanFileCannotBeRead(
         }
         IOUUtils.navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
     };
-    FileUtils.readFileAsync(receiptPath, receiptFilename, onSuccess, onFailure);
+    FileUtils.readFileAsync(receiptPath, receiptFilename, onSuccess, onFailure, receiptType);
 }
 
 /** Save the preferred payment method for a policy */
@@ -4233,6 +4286,8 @@ export {
     initMoneyRequest,
     startMoneyRequest_temporaryForRefactor,
     resetMoneyRequestInfo,
+    clearMoneyRequest,
+    updateMoneyRequestTypeParams,
     setMoneyRequestAmount_temporaryForRefactor,
     setMoneyRequestBillable_temporaryForRefactor,
     setMoneyRequestCreated,
