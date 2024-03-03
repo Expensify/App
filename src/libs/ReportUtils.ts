@@ -1382,12 +1382,10 @@ function formatReportLastMessageText(lastMessageText: string, isModifiedExpenseM
         return String(lastMessageText).trim().replace(CONST.REGEX.LINE_BREAK, '').trim();
     }
     if (isAddComment) {
-        return (
-            String(lastMessageText)
-                .trim()
-                .replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, ' '.repeat(CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH))
-                .substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH) + '\u200B'
-        );
+        return String(lastMessageText)
+            .trim()
+            .replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, ' '.repeat(CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH))
+            .substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
     }
     return String(lastMessageText).trim().replace(CONST.REGEX.LINE_BREAK, ' ').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
 }

@@ -618,7 +618,7 @@ describe('Unread Indicators', () => {
                     const hintText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
                     const alternateText = screen.queryAllByLabelText(hintText);
                     expect(alternateText).toHaveLength(1);
-                    expect(alternateText[0].props.children).toBe('Current User Comment 1');
+                    expect(alternateText[0].props.children).toBe('Current User Comment 1\u200B');
 
                     Report.deleteReportComment(REPORT_ID, lastReportAction);
                     return waitForBatchedUpdates();
@@ -627,7 +627,7 @@ describe('Unread Indicators', () => {
                     const hintText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
                     const alternateText = screen.queryAllByLabelText(hintText);
                     expect(alternateText).toHaveLength(1);
-                    expect(alternateText[0].props.children).toBe('Comment 9');
+                    expect(alternateText[0].props.children).toBe('Comment 9\u200B');
                 })
         );
     });
