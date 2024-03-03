@@ -310,7 +310,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const isMerchantRequired = isPolicyExpenseChat && !isScanRequest && shouldShowMerchant;
 
     const isCategoryRequired = canUseViolations && lodashGet(policy, 'requiresCategory', false);
-    const isTagRequired = canUseViolations && lodashGet(policy, 'requiresTag', false);
 
     useEffect(() => {
         if ((!isMerchantRequired && isMerchantEmpty) || !merchantError) {
