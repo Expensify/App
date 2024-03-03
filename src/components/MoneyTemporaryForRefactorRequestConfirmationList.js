@@ -1,5 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import {format} from 'date-fns';
+import {isTag} from 'domhandler';
+import {isUndefined} from 'lodash';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {Fragment, useCallback, useEffect, useMemo, useReducer, useRef, useState} from 'react';
@@ -762,28 +764,38 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             shouldShow: shouldShowCategories,
             isSupplementary: !isCategoryRequired,
         },
-        ..._.map(policyTagLists, ({name, required}, index) => ({
-            item: (
-                <MenuItemWithTopDescription
-                    key={name}
-                    shouldShowRightIcon={!isReadOnly}
-                    title={TransactionUtils.getTagForDisplay(transaction, index)}
-                    description={name}
-                    numberOfLinesTitle={2}
-                    onPress={() =>
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.CREATE, iouType, index, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
-                        )
-                    }
-                    style={[styles.moneyRequestMenuItem]}
-                    disabled={didConfirm}
-                    interactive={!isReadOnly}
-                    rightLabel={required ? translate('common.required') : ''}
-                />
-            ),
-            shouldShow: shouldShowTags,
-            isSupplementary: !required,
-        })),
+        ..._.map(policyTagLists, ({name, required}, index) => {
+            const isTagRequired = !isUndefined(required) && required;
+            return {
+                item: (
+                    <MenuItemWithTopDescription
+                        key={name}
+                        shouldShowRightIcon={!isReadOnly}
+                        title={TransactionUtils.getTagForDisplay(transaction, index)}
+                        description={name}
+                        numberOfLinesTitle={2}
+                        onPress={() =>
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
+                                    CONST.IOU.ACTION.CREATE,
+                                    iouType,
+                                    index,
+                                    transaction.transactionID,
+                                    reportID,
+                                    Navigation.getActiveRouteWithoutParams(),
+                                ),
+                            )
+                        }
+                        style={[styles.moneyRequestMenuItem]}
+                        disabled={didConfirm}
+                        interactive={!isReadOnly}
+                        rightLabel={isTagRequired ? translate('common.required') : ''}
+                    />
+                ),
+                shouldShow: shouldShowTags,
+                isSupplementary: !isTagRequired,
+            };
+        }),
         {
             item: (
                 <MenuItemWithTopDescription
