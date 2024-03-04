@@ -152,27 +152,25 @@ function MoneyRequestPreviewContent({
 
         let message = translate('iou.cash');
         if (shouldShowRBR && transaction) {
-            if (hasFieldErrors) {
-                const isMerchantMissing = TransactionUtils.isMerchantMissing(transaction);
-                const isAmountMissing = TransactionUtils.isAmountMissing(transaction);
-
-                if (isAmountMissing && isMerchantMissing) {
-                    message += ` • ${translate('violations.reviewRequired')}`;
-                } else if (isAmountMissing) {
-                    message += ` • ${translate('iou.missingAmount')}`;
-                } else {
-                    message += ` • ${translate('iou.missingMerchant')}`;
-                }
-
-                return message;
-            }
-
             const violations = TransactionUtils.getTransactionViolations(transaction.transactionID, transactionViolations);
             if (violations?.[0]) {
                 const violationMessage = ViolationsUtils.getViolationTranslation(violations[0], translate);
                 const isTooLong = violations.filter((v) => v.type === 'violation').length > 1 || violationMessage.length > 15;
-                message += ` • ${isTooLong ? translate('violations.reviewRequired') : violationMessage}`;
+
+                return `${message} • ${isTooLong ? translate('violations.reviewRequired') : violationMessage}`;
             }
+
+            const isMerchantMissing = TransactionUtils.isMerchantMissing(transaction);
+            const isAmountMissing = TransactionUtils.isAmountMissing(transaction);
+
+            if (isAmountMissing && isMerchantMissing) {
+                message += ` • ${translate('violations.reviewRequired')}`;
+            } else if (isAmountMissing) {
+                message += ` • ${translate('iou.missingAmount')}`;
+            } else {
+                message += ` • ${translate('iou.missingMerchant')}`;
+            }
+
         } else if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID)) {
             message += ` • ${translate('iou.approved')}`;
         } else if (iouReport?.isWaitingOnBankAccount) {
