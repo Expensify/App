@@ -50,7 +50,7 @@ const messageCopy = {
         '\n' +
         '1. Tap the green *+* > *Request money*.\n' +
         '2. Add an expense or scan a receipt.\n' +
-        '3. Enter your friend\'s email or phone number.\n' +
+        "3. Enter your friend's email or phone number.\n" +
         '4. Tap *Split* next to their contact info.\n' +
         '5. Repeat for any additional friends.\n' +
         '6. Tap *Add to split* when you\'re done.\n' +
