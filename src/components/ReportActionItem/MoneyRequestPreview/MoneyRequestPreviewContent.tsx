@@ -162,7 +162,6 @@ function MoneyRequestPreviewContent({
 
             const isMerchantMissing = TransactionUtils.isMerchantMissing(transaction);
             const isAmountMissing = TransactionUtils.isAmountMissing(transaction);
-
             if (isAmountMissing && isMerchantMissing) {
                 message += ` • ${translate('violations.reviewRequired')}`;
             } else if (isAmountMissing) {
@@ -170,7 +169,6 @@ function MoneyRequestPreviewContent({
             } else {
                 message += ` • ${translate('iou.missingMerchant')}`;
             }
-
         } else if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID)) {
             message += ` • ${translate('iou.approved')}`;
         } else if (iouReport?.isWaitingOnBankAccount) {
