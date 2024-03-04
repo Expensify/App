@@ -22,22 +22,22 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 jest.mock('lodash/debounce', () =>
-    jest.fn((fn) => {
+    jest.fn((fn: Record<string, jest.Mock<jest.Func>>) => {
         // eslint-disable-next-line no-param-reassign
         fn.cancel = jest.fn();
         return fn;
     }),
 );
 
-jest.mock('../../src/libs/Log');
+jest.mock('@src/libs/Log');
 
-jest.mock('../../src/libs/API', () => ({
+jest.mock('@src/libs/API', () => ({
     write: jest.fn(),
     makeRequestWithSideEffects: jest.fn(),
     read: jest.fn(),
 }));
 
-jest.mock('../../src/libs/Navigation/Navigation');
+jest.mock('@src/libs/Navigation/Navigation');
 
 const mockedNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
@@ -57,7 +57,7 @@ jest.mock('@react-navigation/native', () => {
     } as typeof NativeNavigation;
 });
 
-jest.mock('../../src/components/withNavigationFocus', () => (Component: ComponentType<WithNavigationFocusProps>) => {
+jest.mock('@src/components/withNavigationFocus', () => (Component: ComponentType<WithNavigationFocusProps>) => {
     function WithNavigationFocus(props: WithNavigationFocusProps) {
         return (
             <Component
