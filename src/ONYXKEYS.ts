@@ -397,8 +397,6 @@ const ONYXKEYS = {
         EXIT_SURVEY_REASON_FORM_DRAFT: 'exitSurveyReasonFormDraft',
         EXIT_SURVEY_RESPONSE_FORM: 'exitSurveyResponseForm',
         EXIT_SURVEY_RESPONSE_FORM_DRAFT: 'exitSurveyResponseFormDraft',
-        IDOLOGY_QUESTIONS_FORM: 'idologyQuestionsForm',
-        IDOLOGY_QUESTIONS_FORM_DRAFT: 'idologyQuestionsFormDraft',
         WALLET_ADDITIONAL_DETAILS: 'walletAdditionalDetails',
         WALLET_ADDITIONAL_DETAILS_DRAFT: 'walletAdditionalDetailsDraft',
     },
@@ -446,7 +444,6 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT]: FormTypes.PersonalBankAccountForm;
     [ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM]: FormTypes.WorkspaceDescriptionForm;
     [ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS]: FormTypes.AdditionalDetailStepForm;
-    [ONYXKEYS.FORMS.IDOLOGY_QUESTIONS_FORM]: FormTypes.IdologyQuestionsForm;
 };
 
 type OnyxFormDraftValuesMapping = {

@@ -233,7 +233,7 @@ function answerQuestionsForWallet(answers: WalletQuestionAnswer[], idNumber: str
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.IDOLOGY_QUESTIONS_FORM,
+            key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
             value: {
                 isLoading: true,
             },
@@ -243,7 +243,7 @@ function answerQuestionsForWallet(answers: WalletQuestionAnswer[], idNumber: str
     const finallyData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.IDOLOGY_QUESTIONS_FORM,
+            key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
             value: {
                 isLoading: false,
             },

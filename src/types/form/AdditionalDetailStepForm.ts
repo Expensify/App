@@ -11,6 +11,7 @@ const INPUT_IDS = {
     ADDRESS_STATE: 'addressState',
     DOB: 'dob',
     SSN: 'ssn',
+    ANSWER: 'answer',
 } as const;
 
 type InputID = ValueOf<typeof INPUT_IDS>;
@@ -27,6 +28,7 @@ type AdditionalDetailStepForm = Form<
         [INPUT_IDS.ADDRESS_STATE]: string;
         [INPUT_IDS.DOB]: string;
         [INPUT_IDS.SSN]: string;
+        [INPUT_IDS.ANSWER]: string;
     }
 >;
 

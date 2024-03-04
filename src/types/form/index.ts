@@ -38,5 +38,4 @@ export type {WorkspaceSettingsForm} from './WorkspaceSettingsForm';
 export type {ReportPhysicalCardForm} from './ReportPhysicalCardForm';
 export type {WorkspaceDescriptionForm} from './WorkspaceDescriptionForm';
 export type {AdditionalDetailStepForm} from './AdditionalDetailStepForm';
-export type {IdologyQuestionsForm} from './IdologyQuestionsForm';
 export type {default as Form} from './Form';

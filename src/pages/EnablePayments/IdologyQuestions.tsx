@@ -92,7 +92,7 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
         }
     };
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.IDOLOGY_QUESTIONS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.IDOLOGY_QUESTIONS_FORM> => {
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
         const errors: Errors = {};
         if (!values.answer) {
             errors.answer = translate('additionalDetailsStep.selectAnswer');
@@ -112,7 +112,7 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
                 </TextLink>
             </View>
             <FormProvider
-                formID={ONYXKEYS.FORMS.IDOLOGY_QUESTIONS_FORM}
+                formID={ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS}
                 onSubmit={submitAnswers}
                 key={currentQuestionIndex}
                 validate={validate}
