@@ -86,6 +86,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const dropdownButtonRef = useRef(null);
+    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
 
     /**
      * Get filtered personalDetails list with current policyMembers
@@ -428,33 +429,39 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
         return options;
     };
 
-    const getHeaderButtons = () => (
-        <View style={styles.w100}>
-            {selectedEmployees.length > 0 ? (
-                <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
-                    shouldAlwaysShowDropdownMenu
-                    pressOnEnter
-                    customText={translate('workspace.people.selected', {selectedNumber: selectedEmployees.length})}
-                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    onPress={() => null}
-                    options={getBulkActionsButtonOptions()}
-                    buttonRef={dropdownButtonRef}
-                    style={[isSmallScreenWidth && styles.flexGrow1]}
-                />
-            ) : (
-                <Button
-                    medium
-                    success
-                    onPress={inviteUser}
-                    text={translate('workspace.invite.member')}
-                    icon={Expensicons.Plus}
-                    iconStyles={{transform: [{scale: 0.6}]}}
-                    innerStyles={[isSmallScreenWidth && styles.alignItemsCenter]}
-                    style={[isSmallScreenWidth && styles.flexGrow1]}
-                />
-            )}
-        </View>
-    );
+    const getHeaderButtons = () => {
+        if (!isPolicyAdmin) {
+            return null;
+        }
+
+        return (
+            <View style={styles.w100}>
+                {selectedEmployees.length > 0 ? (
+                    <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
+                        shouldAlwaysShowDropdownMenu
+                        pressOnEnter
+                        customText={translate('workspace.people.selected', {selectedNumber: selectedEmployees.length})}
+                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                        onPress={() => null}
+                        options={getBulkActionsButtonOptions()}
+                        buttonRef={dropdownButtonRef}
+                        style={[isSmallScreenWidth && styles.flexGrow1]}
+                    />
+                ) : (
+                    <Button
+                        medium
+                        success
+                        onPress={inviteUser}
+                        text={translate('workspace.invite.member')}
+                        icon={Expensicons.Plus}
+                        iconStyles={{transform: [{scale: 0.6}]}}
+                        innerStyles={[isSmallScreenWidth && styles.alignItemsCenter]}
+                        style={[isSmallScreenWidth && styles.flexGrow1]}
+                    />
+                )}
+            </View>
+        );
+    };
 
     return (
         <ScreenWrapper
