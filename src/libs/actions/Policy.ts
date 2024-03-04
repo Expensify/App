@@ -590,7 +590,7 @@ function setWorkspaceReimbursement(policyID: string, reimburserEmail: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 reimburserEmail: currentPolicyReimburserEmail,
-                errorFields: {reimburserEmail: ErrorUtils.getMicroSecondOnyxError('workflowsPage.genericErrorMessage.authorizedPayer')},
+                errorFields: {reimburserEmail: ErrorUtils.getMicroSecondOnyxError('workflowsPayerPage.genericErrorMessage')},
                 pendingFields: {reimburserEmail: null},
             },
         },

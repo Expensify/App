@@ -147,7 +147,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
         });
 
         sectionsArray.push({
-            title: translate('workflowsPage.admins'),
+            title: translate('workflowsPayerPage.admins'),
             data: formattedPolicyAdmins,
             shouldShow: true,
             indexOffset: 0,
@@ -199,7 +199,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
                         testID={WorkspaceWorkflowsPayerPage.displayName}
                     >
                         <HeaderWithBackButton
-                            title={translate('workflowsPage.authorizedPayer')}
+                            title={translate('workflowsPayerPage.title')}
                             subtitle={policyName}
                             onBackButtonPress={Navigation.goBack}
                         />

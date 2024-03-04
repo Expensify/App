@@ -159,7 +159,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
                                 <MenuItem
                                     titleStyle={styles.textLabelSupportingNormal}
                                     descriptionTextStyle={styles.textNormalThemeText}
-                                    title={translate('workflowsPage.authorizedPayer')}
+                                    title={translate('workflowsPayerPage.title')}
                                     description={displayNameForAuthorizedPayer}
                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(route.params.policyID))}
                                     shouldShowRightIcon

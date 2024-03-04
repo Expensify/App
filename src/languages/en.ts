@@ -1046,13 +1046,8 @@ export default {
         addApprovalsDescription: 'Require additional approval before authorizing a payment.',
         makeOrTrackPaymentsTitle: 'Make or track payments',
         makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify, or simply track payments made elsewhere.',
-        authorizedPayer: 'Authorized payer',
-        admins: 'Admins',
         editor: {
             submissionFrequency: 'Choose how long Expensify should wait before sharing error-free spend.',
-        },
-        genericErrorMessage: {
-            authorizedPayer: 'The authorized payer could not be changed. Please try again.',
         },
         frequencies: {
             weekly: 'Weekly',
@@ -1070,6 +1065,11 @@ export default {
                 other: 'th',
             },
         },
+    },
+    workflowsPayerPage: {
+        title: 'Authorized payer',
+        genericErrorMessage: 'The authorized payer could not be changed. Please try again.',
+        admins: 'Admins',
     },
     reportFraudPage: {
         title: 'Report virtual card fraud',

@@ -1042,16 +1042,8 @@ export default {
         addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
         makeOrTrackPaymentsTitle: 'Realizar o seguir pagos',
         makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify, o simplemente realiza un seguimiento de los pagos realizados en otro lugar.',
-        // todo: add translations and cofirm copy
-        authorizedPayer: 'Authorized payer',
-        // todo: add translations and cofirm copy
-        admins: 'Administradores',
         editor: {
             submissionFrequency: 'Elige cuánto tiempo Expensify debe esperar antes de compartir los gastos sin errores.',
-        },
-        // todo: add translations and cofirm copy
-        genericErrorMessage: {
-            authorizedPayer: 'The authorized payer could not be updated. Please try again.',
         },
         frequencies: {
             weekly: 'Semanal',
@@ -1069,6 +1061,11 @@ export default {
                 other: '.º',
             },
         },
+    },
+    workflowsPayerPage: {
+        title: 'Pagador autorizado',
+        genericErrorMessage: 'El pagador autorizado no se pudo cambiar. Por favor, inténtalo mas tarde.',
+        admins: 'Administradores',
     },
     reportFraudPage: {
         title: 'Reportar fraude con la tarjeta virtual',
