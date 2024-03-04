@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -103,7 +103,7 @@ type AvatarWithImagePickerProps = {
     isFocused: boolean;
 
     /** Style applied to the avatar */
-    avatarStyle: StyleProp<ViewStyle>;
+    avatarStyle: StyleProp<ViewStyle & ImageStyle>;
 
     /** Indicates if picker feature should be disabled */
     disabled?: boolean;
@@ -279,8 +279,6 @@ function AvatarWithImagePicker({
                 vertical: y + height + variables.spacing2,
             });
         });
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isMenuVisible, windowWidth]);
 
     return (
