@@ -107,7 +107,7 @@ function OnboardingPurpose() {
                 iconFill={theme.iconColorfulBackground}
                 progressBarPercentage={66.6}
             />
-            <View style={[styles.flex1, styles.dFlex, styles.flexGrow1, styles.mv5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}>
+            <View style={[styles.flex1, styles.flexGrow1, styles.mv5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}>
                 <View style={styles.flex1}>
                     <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
                         <Text style={styles.textHeroSmall}>{translate('onboarding.purpose.title')} </Text>
