@@ -202,7 +202,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
             });
         });
 
-        result = result.sort((value1, value2) => localeCompare(value1?.text ?? '', value2?.text ?? ''));
+        result = result.sort((value1, value2) => localeCompare(value1.text ?? '', value2.text ?? ''));
 
         return result;
     };

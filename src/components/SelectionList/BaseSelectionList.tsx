@@ -462,7 +462,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                     getItemLayout={getItemLayout}
                                     onScroll={onScroll}
                                     onScrollBeginDrag={onScrollBeginDrag}
-                                    keyExtractor={(item) => item.keyForList ?? ''}
+                                    keyExtractor={(item, index) => item.keyForList ?? `${index}`}
                                     extraData={focusedIndex}
                                     indicatorStyle="white"
                                     keyboardShouldPersistTaps="always"
