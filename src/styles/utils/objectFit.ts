@@ -1,4 +1,4 @@
-import {ViewStyle} from 'react-native';
+import type {ViewStyle} from 'react-native';
 
 export default {
     oFCover: {

@@ -24,7 +24,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import NewDistanceRequestPage from './NewDistanceRequestPage';
-import ReceiptSelector from './ReceiptSelector';
+import IOURequestStepScan from './request/step/IOURequestStepScan';
 import NewRequestAmountPage from './steps/NewRequestAmountPage';
 
 const propTypes = {
@@ -119,24 +119,14 @@ function MoneyRequestSelectorPage(props) {
                                 <OnyxTabNavigator
                                     id={CONST.TAB.RECEIPT_TAB_ID}
                                     selectedTab={props.selectedTab}
-                                    tabBar={({state, navigation, position}) => (
-                                        <TabSelector
-                                            state={state}
-                                            navigation={navigation}
-                                            position={position}
-                                        />
-                                    )}
+                                    tabBar={TabSelector}
                                 >
                                     <TopTab.Screen
                                         name={CONST.TAB_REQUEST.MANUAL}
                                         component={NewRequestAmountPage}
                                         initialParams={{reportID, iouType}}
                                     />
-                                    <TopTab.Screen
-                                        name={CONST.TAB_REQUEST.SCAN}
-                                        component={ReceiptSelector}
-                                        initialParams={{reportID, iouType, pageIndex: 1}}
-                                    />
+                                    <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>{() => <IOURequestStepScan route={props.route} />}</TopTab.Screen>
                                     {shouldDisplayDistanceRequest && (
                                         <TopTab.Screen
                                             name={CONST.TAB_REQUEST.DISTANCE}

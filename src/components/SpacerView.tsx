@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import usePrevious from '@hooks/usePrevious';
 import CONST from '@src/CONST';

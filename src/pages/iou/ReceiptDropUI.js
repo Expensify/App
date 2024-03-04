@@ -1,9 +1,10 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import ImageSVG from '@components/ImageSVG';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';

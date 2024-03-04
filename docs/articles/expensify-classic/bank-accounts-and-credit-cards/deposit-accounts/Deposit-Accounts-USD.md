@@ -56,7 +56,7 @@ You should be all set! The bank account will display as a deposit-only business 
 1. Navigate to **Settings > Account > Payments > Bank Accounts** 
 2. Click the **Delete** next to the bank account you want to remove
 
-# FAQ  
+{% include faq-begin.md %}  
 
 ## **What happens if my bank requires an additional security check before adding it to a third-party?**  
 
@@ -73,3 +73,5 @@ There are a few reasons a reimbursement may be unsuccessful. The first step is t
     - Your account wasn’t set up for Direct Deposit/ACH. You may want to contact your bank to confirm. 
 
 If you aren’t sure, please reach out to Concierge and we can assist!
+
+{% include faq-end.md %}

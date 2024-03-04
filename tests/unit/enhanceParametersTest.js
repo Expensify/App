@@ -18,6 +18,7 @@ test('Enhance parameters adds correct parameters for Log command with no authTok
             testParameter: 'test',
             api_setCookie: false,
             email,
+            isFromDevEnv: true,
             platform: 'ios',
             referer: CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER,
         });
@@ -36,6 +37,7 @@ test('Enhance parameters adds correct parameters for a command that requires aut
             testParameter: 'test',
             api_setCookie: false,
             email,
+            isFromDevEnv: true,
             platform: 'ios',
             authToken,
             referer: CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER,

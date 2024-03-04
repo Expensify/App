@@ -1,5 +1,5 @@
 import CONFIG from '@src/CONFIG';
-import {CanCaptureOnyxMetrics, CanCapturePerformanceMetrics} from './types';
+import type {CanCaptureOnyxMetrics, CanCapturePerformanceMetrics} from './types';
 
 /**
  * Is capturing performance stats enabled.

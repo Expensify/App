@@ -1,5 +1,5 @@
 import * as KeyCommand from 'react-native-key-command';
-import {KeyCommandEvent} from './bindHandlerToKeydownEvent/types';
+import type {KeyCommandEvent} from './bindHandlerToKeydownEvent/types';
 
 const keyModifierControl = KeyCommand?.constants.keyModifierControl ?? 'keyModifierControl';
 const keyModifierCommand = KeyCommand?.constants.keyModifierCommand ?? 'keyModifierCommand';

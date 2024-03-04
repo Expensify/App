@@ -1,5 +1,8 @@
-import React, {ReactElement} from 'react';
-import {StyleProp, Text, View, ViewStyle} from 'react-native';
+import type {ReactElement} from 'react';
+import React from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {View} from 'react-native';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -18,7 +21,7 @@ type ReportActionItemMessageProps = {
     displayAsGroup: boolean;
 
     /** Additional styles to add after local styles. */
-    style?: StyleProp<ViewStyle>;
+    style?: StyleProp<ViewStyle & TextStyle>;
 
     /** Whether or not the message is hidden by moderation */
     isHidden?: boolean;
@@ -38,13 +41,15 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
         const fragment = ReportActionsUtils.getMemberChangeMessageFragment(action);
 
         return (
-            <TextCommentFragment
-                fragment={fragment}
-                displayAsGroup={displayAsGroup}
-                style={style}
-                source=""
-                styleAsDeleted={false}
-            />
+            <View style={[styles.chatItemMessage, style]}>
+                <TextCommentFragment
+                    fragment={fragment}
+                    displayAsGroup={displayAsGroup}
+                    style={style}
+                    source=""
+                    styleAsDeleted={false}
+                />
+            </View>
         );
     }
 
@@ -53,11 +58,13 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
         const originalMessage = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? action.originalMessage : null;
         const iouReportID = originalMessage?.IOUReportID;
         if (iouReportID) {
-            iouMessage = ReportUtils.getReportPreviewMessage(ReportUtils.getReport(iouReportID), action);
+            iouMessage = ReportUtils.getIOUReportActionDisplayMessage(action);
         }
     }
 
     const isApprovedOrSubmittedReportAction = [CONST.REPORT.ACTIONS.TYPE.APPROVED, CONST.REPORT.ACTIONS.TYPE.SUBMITTED].some((type) => type === action.actionName);
+
+    const isHoldReportAction = [CONST.REPORT.ACTIONS.TYPE.HOLD, CONST.REPORT.ACTIONS.TYPE.UNHOLD].some((type) => type === action.actionName);
 
     /**
      * Get the ReportActionItemFragments
@@ -72,18 +79,19 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
                 fragment={fragment}
                 iouMessage={iouMessage}
                 isThreadParentMessage={ReportActionsUtils.isThreadParentMessage(action, reportID)}
-                attachmentInfo={action.attachmentInfo}
                 pendingAction={action.pendingAction}
                 source={(action.originalMessage as OriginalMessageAddComment['originalMessage'])?.source}
-                accountID={action.actorAccountID}
+                accountID={action.actorAccountID ?? 0}
                 style={style}
                 displayAsGroup={displayAsGroup}
                 isApprovedOrSubmittedReportAction={isApprovedOrSubmittedReportAction}
+                isHoldReportAction={isHoldReportAction}
                 // Since system messages from Old Dot begin with the person who performed the action,
                 // the first fragment will contain the person's display name and their email. We'll use this
                 // to decide if the fragment should be from left to right for RTL display names e.g. Arabic for proper
                 // formatting.
                 isFragmentContainingDisplayName={index === 0}
+                moderationDecision={action.message?.[0].moderationDecision?.decision}
             />
         ));
 

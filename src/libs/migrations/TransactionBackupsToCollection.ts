@@ -1,7 +1,8 @@
-import Onyx, {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Transaction} from '@src/types/onyx';
+import type {Transaction} from '@src/types/onyx';
 
 /**
  * This migration moves all the transaction backups stored in the transaction collection, ONYXKEYS.COLLECTION.TRANSACTION, to a reserved collection that only

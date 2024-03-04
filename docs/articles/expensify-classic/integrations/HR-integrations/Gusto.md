@@ -34,7 +34,7 @@ Expensify's direct integration with Gusto will automatically:
 2. Click **Save** in the bottom right corner to sync employees into Expensify
 3. If the connection is successful, you'll see a summary of how many employees were synced. If any employees were skipped, we'll tell you why.
 
-# FAQ
+{% include faq-begin.md %}
 ## Can I import different sets of employees into different Expensify workspaces?
 
 No - Gusto will add all employees to one Expensify workspace, so if you have more than one workspace, you'll need to choose when connecting.
@@ -53,3 +53,5 @@ If your employees are set up in Expensify with their company emails, but with th
 
 To resolve this, you can ask each affected employee to merge their existing Expensify account with the new Expensify account by navigating to **Settings > Account > Account Details** and scrolling down to **Merge Accounts**.
 
+
+{% include faq-end.md %}

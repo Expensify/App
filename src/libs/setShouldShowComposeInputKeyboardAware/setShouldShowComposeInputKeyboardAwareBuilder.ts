@@ -1,11 +1,10 @@
-import {EmitterSubscription, Keyboard} from 'react-native';
-import {KeyboardEventName} from 'react-native/Libraries/Components/Keyboard/Keyboard';
+import type {EmitterSubscription} from 'react-native';
+import {Keyboard} from 'react-native';
+import type {KeyboardEventName} from 'react-native/Libraries/Components/Keyboard/Keyboard';
 import * as Composer from '@userActions/Composer';
-import SetShouldShowComposeInputKeyboardAware from './types';
+import type SetShouldShowComposeInputKeyboardAware from './types';
 
 let keyboardEventListener: EmitterSubscription | null = null;
-// On iOS, there is a visible delay in displaying input after the keyboard has been closed with the `keyboardDidHide` event
-// Because of that - on iOS we can use `keyboardWillHide` that is not available on android
 
 const setShouldShowComposeInputKeyboardAwareBuilder: (keyboardEvent: KeyboardEventName) => SetShouldShowComposeInputKeyboardAware =
     (keyboardEvent: KeyboardEventName) => (shouldShow: boolean) => {

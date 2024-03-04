@@ -1,4 +1,4 @@
-import ChildrenProps from '@src/types/utils/ChildrenProps';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type CollapsibleProps = ChildrenProps & {
     /** Whether the section should start expanded. False by default */

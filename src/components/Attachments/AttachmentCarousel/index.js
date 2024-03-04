@@ -49,6 +49,10 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
         const initialPage = _.findIndex(attachmentsFromReport, compareImage);
 
+        if (_.isEqual(attachments, attachmentsFromReport)) {
+            return;
+        }
+
         // Dismiss the modal when deleting an attachment during its display in preview.
         if (initialPage === -1 && _.find(attachments, compareImage)) {
             Navigation.dismissModal();
@@ -64,8 +68,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                 onNavigate(attachmentsFromReport[initialPage]);
             }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportActions, parentReportActions, compareImage]);
+    }, [attachments, reportActions, parentReportActions, compareImage, report.parentReportActionID, setDownloadButtonVisibility, onNavigate]);
 
     /**
      * Updates the page state when the user navigates between attachments
@@ -137,15 +140,18 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
      * @returns {JSX.Element}
      */
     const renderItem = useCallback(
-        ({item}) => (
+        ({item, index}) => (
             <CarouselItem
                 item={item}
                 isFocused={activeSource === item.source}
                 isSingleItem={attachments.length === 1}
-                onPress={canUseTouchScreen ? () => setShouldShowArrows(!shouldShowArrows) : undefined}
+                onPress={canUseTouchScreen ? () => setShouldShowArrows((oldState) => !oldState) : undefined}
+                isModalHovered={shouldShowArrows}
+                index={index}
+                activeIndex={page}
             />
         ),
-        [activeSource, attachments.length, canUseTouchScreen, setShouldShowArrows, shouldShowArrows],
+        [activeSource, attachments.length, canUseTouchScreen, page, setShouldShowArrows, shouldShowArrows],
     );
 
     return (

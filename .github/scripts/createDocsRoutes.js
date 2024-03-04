@@ -16,7 +16,12 @@ const platformNames = {
  * @returns {String}
  */
 function toTitleCase(str) {
-    return str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1));
+    return _.map(str.split(' '), (word, i) => {
+        if (i !== 0 && (word.toLowerCase() === 'a' || word.toLowerCase() === 'the' || word.toLowerCase() === 'and')) {
+            return word.toLowerCase();
+        }
+        return word.charAt(0).toUpperCase() + word.substring(1);
+    }).join(' ');
 }
 
 /**

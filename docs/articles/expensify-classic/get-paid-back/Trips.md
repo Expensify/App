@@ -28,10 +28,12 @@ To view details about your past or upcoming trips, follow these steps within the
 2. Navigate to the "Menu" option (top left ≡ icon)
 3. Select **Trips**
 
-# FAQ
+{% include faq-begin.md %}
 
 ## How do I capture Trip receipts sent to my personal email address?
 If you received your receipt in an email that is not associated with your Expensify account, you can add this email as a [secondary login](https://help.expensify.com/articles/expensify-classic/account-settings/Account-Details#how-to-add-a-secondary-login) to directly forward the receipt into your account.
 
 ## How do I upload Trip receipts that were not sent to me by email?
 If your trip receipt was not sent to you by email, you can manually upload the receipt to your account. Check out this resource for more information on [manually uploading receipts](https://help.expensify.com/articles/expensify-classic/get-paid-back/expenses/Upload-Receipts#manually-upload).
+
+{% include faq-end.md %}

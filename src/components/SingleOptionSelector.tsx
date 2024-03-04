@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import {TranslationPaths} from '@src/languages/types';
+import type {TranslationPaths} from '@src/languages/types';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import SelectCircle from './SelectCircle';
 import Text from './Text';

@@ -2,7 +2,7 @@
  * Web browsers have a tab title and favicon which can be updated to show there are unread comments
  */
 import CONFIG from '@src/CONFIG';
-import UpdateUnread from './types';
+import type UpdateUnread from './types';
 
 let unreadTotalCount = 0;
 /**

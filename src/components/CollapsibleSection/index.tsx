@@ -7,7 +7,7 @@ import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import Collapsible from './Collapsible';
 
 type CollapsibleSectionProps = ChildrenProps & {

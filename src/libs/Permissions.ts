@@ -1,6 +1,6 @@
-import {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import Beta from '@src/types/onyx/Beta';
+import type Beta from '@src/types/onyx/Beta';
 
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.ALL);
@@ -22,17 +22,12 @@ function canUseReportFields(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.REPORT_FIELDS) || canUseAllBetas(betas);
 }
 
-/**
- * We're requiring you to be added to the policy rooms beta on dev,
- * since contributors have been reporting a number of false issues related to the feature being under development.
- * See https://expensify.slack.com/archives/C01GTK53T8Q/p1641921996319400?thread_ts=1641598356.166900&cid=C01GTK53T8Q
- */
-function canUsePolicyRooms(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.POLICY_ROOMS) || canUseAllBetas(betas);
-}
-
 function canUseViolations(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.VIOLATIONS) || canUseAllBetas(betas);
+}
+
+function canUseWorkflowsDelayedSubmission(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.WORKFLOWS_DELAYED_SUBMISSION) || canUseAllBetas(betas);
 }
 
 /**
@@ -46,8 +41,8 @@ export default {
     canUseChronos,
     canUseDefaultRooms,
     canUseCommentLinking,
-    canUsePolicyRooms,
     canUseLinkPreviews,
     canUseViolations,
     canUseReportFields,
+    canUseWorkflowsDelayedSubmission,
 };

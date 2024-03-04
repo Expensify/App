@@ -1,20 +1,21 @@
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as MemoryOnlyKeys from '@userActions/MemoryOnlyKeys/MemoryOnlyKeys';
 import * as OnyxUpdates from '@userActions/OnyxUpdates';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import Middleware from './types';
+import type Middleware from './types';
 
 // If we're executing any of these requests, we don't need to trigger our OnyxUpdates flow to update the current data even if our current value is out of
 // date because all these requests are updating the app to the most current state.
-const requestsToIgnoreLastUpdateID = ['OpenApp', 'ReconnectApp', 'GetMissingOnyxMessages'];
+const requestsToIgnoreLastUpdateID: string[] = [WRITE_COMMANDS.OPEN_APP, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES];
 
 const SaveResponseInOnyx: Middleware = (requestResponse, request) =>
     requestResponse.then((response = {}) => {
         const onyxUpdates = response?.onyxData ?? [];
 
-        // Sometimes we call requests that are successfull but they don't have any response or any success/failure data to set. Let's return early since
+        // Sometimes we call requests that are successfull but they don't have any response or any success/failure/finally data to set. Let's return early since
         // we don't need to store anything here.
-        if (!onyxUpdates && !request.successData && !request.failureData) {
+        if (!onyxUpdates && !request.successData && !request.failureData && !request.finallyData) {
             return Promise.resolve(response);
         }
 

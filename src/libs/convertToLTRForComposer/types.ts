@@ -1,3 +1,3 @@
-type ConvertToLTRForComposer = (text: string, isComposerEmpty?: boolean) => string;
+type ConvertToLTRForComposer = (text: string) => string;
 
 export default ConvertToLTRForComposer;

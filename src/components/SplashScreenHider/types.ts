@@ -1,4 +1,4 @@
-import {ReactNode} from 'react';
+import type {ReactNode} from 'react';
 
 type SplashScreenHiderProps = {
     /** Splash screen has been hidden */

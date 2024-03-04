@@ -1,5 +1,5 @@
-import React from 'react';
-import {NativeSyntheticEvent} from 'react-native';
+import type React from 'react';
+import type {NativeSyntheticEvent} from 'react-native';
 import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
 

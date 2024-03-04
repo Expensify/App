@@ -6,7 +6,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import {PendingMapViewProps} from './MapViewTypes';
+import type {PendingMapViewProps} from './MapViewTypes';
 
 function PendingMapView({title = '', subtitle = '', style}: PendingMapViewProps) {
     const hasTextContent = !_.isEmpty(title) || !_.isEmpty(subtitle);

@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import NetworkConnection from '@libs/NetworkConnection';
 import * as ValidationUtils from '@libs/ValidationUtils';
+// eslint-disable-next-line no-restricted-imports
 import {defaultStyles} from '@styles/index';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
@@ -67,7 +68,7 @@ function Template(args) {
                 label="Street"
                 inputID="street"
                 containerStyles={[defaultStyles.mt4]}
-                hint="No PO box"
+                hint="common.noPO"
             />
             <InputWrapper
                 InputComponent={DatePicker}
@@ -129,6 +130,7 @@ function Template(args) {
                 InputComponent={CheckboxWithLabel}
                 inputID="checkbox"
                 style={[defaultStyles.mb4, defaultStyles.mt5]}
+                // eslint-disable-next-line react/no-unstable-nested-components
                 LabelComponent={() => <Text>I accept the Expensify Terms of Service</Text>}
             />
         </FormProvider>

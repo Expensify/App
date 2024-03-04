@@ -1,4 +1,4 @@
-import UserSelectStyles from './types';
+import type UserSelectStyles from './types';
 
 const userSelect: UserSelectStyles = {
     userSelectText: {

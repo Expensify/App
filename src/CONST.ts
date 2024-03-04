@@ -37,6 +37,9 @@ const keyInputRightArrow = KeyCommand?.constants?.keyInputRightArrow ?? 'keyInpu
 // describes if a shortcut key can cause navigation
 const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
 
+// Explicit type annotation is required
+const cardActiveStates: number[] = [2, 3, 4, 7];
+
 const CONST = {
     ANDROID_PACKAGE_NAME,
     ANIMATED_TRANSITION: 300,
@@ -46,6 +49,9 @@ const CONST = {
         IN: 'in',
         OUT: 'out',
     },
+    // Multiplier for gyroscope animation in order to make it a bit more subtle
+    ANIMATION_GYROSCOPE_VALUE: 0.4,
+    BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     ARROW_HIDE_DELAY: 3000,
 
     API_ATTACHMENT_VALIDATIONS: {
@@ -92,16 +98,24 @@ const CONST = {
 
     DISPLAY_NAME: {
         MAX_LENGTH: 50,
-        RESERVED_FIRST_NAMES: ['Expensify', 'Concierge'],
+        RESERVED_NAMES: ['Expensify', 'Concierge'],
     },
 
     LEGAL_NAME: {
         MAX_LENGTH: 40,
     },
 
+    REPORT_DESCRIPTION: {
+        MAX_LENGTH: 500,
+    },
+
     PULL_REQUEST_NUMBER,
 
     MERCHANT_NAME_MAX_LENGTH: 255,
+
+    REQUEST_PREVIEW: {
+        MAX_LENGTH: 83,
+    },
 
     CALENDAR_PICKER: {
         // Numbers were arbitrarily picked.
@@ -112,7 +126,7 @@ const CONST = {
     },
 
     DATE_BIRTH: {
-        MIN_AGE: 5,
+        MIN_AGE: 0,
         MIN_AGE_FOR_PAYMENT: 18,
         MAX_AGE: 150,
     },
@@ -134,23 +148,23 @@ const CONST = {
         SMALL_SCREEN: {
             IMAGE_HEIGHT: 300,
             CONTAINER_MINHEIGHT: 200,
-            VIEW_HEIGHT: 185,
+            VIEW_HEIGHT: 240,
         },
         WIDE_SCREEN: {
             IMAGE_HEIGHT: 450,
             CONTAINER_MINHEIGHT: 500,
-            VIEW_HEIGHT: 275,
+            VIEW_HEIGHT: 390,
         },
-        MONEY_REPORT: {
+        MONEY_OR_TASK_REPORT: {
             SMALL_SCREEN: {
                 IMAGE_HEIGHT: 300,
                 CONTAINER_MINHEIGHT: 280,
-                VIEW_HEIGHT: 220,
+                VIEW_HEIGHT: 240,
             },
             WIDE_SCREEN: {
                 IMAGE_HEIGHT: 450,
                 CONTAINER_MINHEIGHT: 280,
-                VIEW_HEIGHT: 275,
+                VIEW_HEIGHT: 390,
             },
         },
     },
@@ -164,6 +178,7 @@ const CONST = {
     DATE: {
         SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
+        FNS_DATE_TIME_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss',
         LOCAL_TIME_FORMAT: 'h:mm a',
         YEAR_MONTH_FORMAT: 'yyyyMM',
         MONTH_FORMAT: 'MMMM',
@@ -178,11 +193,33 @@ const CONST = {
         UNIX_EPOCH: '1970-01-01 00:00:00.000',
         MAX_DATE: '9999-12-31',
         MIN_DATE: '0001-01-01',
+        ORDINAL_DAY_OF_MONTH: 'do',
     },
     SMS: {
         DOMAIN: '@expensify.sms',
     },
     BANK_ACCOUNT: {
+        BENEFICIAL_OWNER_INFO_STEP: {
+            SUBSTEP: {
+                IS_USER_UBO: 1,
+                IS_ANYONE_ELSE_UBO: 2,
+                UBO_DETAILS_FORM: 3,
+                ARE_THERE_MORE_UBOS: 4,
+                UBOS_LIST: 5,
+            },
+            BENEFICIAL_OWNER_DATA: {
+                BENEFICIAL_OWNER_KEYS: 'beneficialOwnerKeys',
+                PREFIX: 'beneficialOwner',
+                FIRST_NAME: 'firstName',
+                LAST_NAME: 'lastName',
+                DOB: 'dob',
+                SSN_LAST_4: 'ssnLast4',
+                STREET: 'street',
+                CITY: 'city',
+                STATE: 'state',
+                ZIP_CODE: 'zipCode',
+            },
+        },
         PLAID: {
             ALLOWED_THROTTLED_COUNT: 2,
             ERROR: {
@@ -202,14 +239,18 @@ const CONST = {
         STEP: {
             // In the order they appear in the VBA flow
             BANK_ACCOUNT: 'BankAccountStep',
-            COMPANY: 'CompanyStep',
             REQUESTOR: 'RequestorStep',
+            COMPANY: 'CompanyStep',
+            BENEFICIAL_OWNERS: 'BeneficialOwnersStep',
             ACH_CONTRACT: 'ACHContractStep',
             VALIDATION: 'ValidationStep',
             ENABLE: 'EnableStep',
         },
+        STEP_NAMES: ['1', '2', '3', '4', '5'],
+        STEPS_HEADER_HEIGHT: 40,
         SUBSTEP: {
             MANUAL: 'manual',
+            PLAID: 'plaid',
         },
         VERIFICATIONS: {
             ERROR_MESSAGE: 'verifications.errorMessage',
@@ -265,9 +306,9 @@ const CONST = {
         CHRONOS_IN_CASH: 'chronosInCash',
         DEFAULT_ROOMS: 'defaultRooms',
         BETA_COMMENT_LINKING: 'commentLinking',
-        POLICY_ROOMS: 'policyRooms',
         VIOLATIONS: 'violations',
         REPORT_FIELDS: 'reportFields',
+        WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -437,6 +478,14 @@ const CONST = {
     },
     CURRENCY: {
         USD: 'USD',
+        AUD: 'AUD',
+        CAD: 'CAD',
+        GBP: 'GBP',
+        NZD: 'NZD',
+        EUR: 'EUR',
+    },
+    get DIRECT_REIMBURSEMENT_CURRENCIES() {
+        return [this.CURRENCY.USD, this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.GBP, this.CURRENCY.NZD, this.CURRENCY.EUR];
     },
     EXAMPLE_PHONE_NUMBER: '+15005550006',
     CONCIERGE_CHAT_NAME: 'Concierge',
@@ -444,9 +493,9 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     USE_EXPENSIFY_URL,
-    NEW_ZOOM_MEETING_URL: 'https://zoom.us/start/videomeeting',
-    NEW_GOOGLE_MEET_MEETING_URL: 'https://meet.google.com/new',
     GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
+    GOOGLE_DOC_IMAGE_LINK_MATCH: 'googleusercontent.com',
+    IMAGE_BASE64_MATCH: 'base64',
     DEEPLINK_BASE_URL: 'new-expensify://',
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     CLOUDFRONT_DOMAIN_REGEX: /^https:\/\/\w+\.cloudfront\.net/i,
@@ -474,9 +523,16 @@ const CONST = {
     ONFIDO_FACIAL_SCAN_POLICY_URL: 'https://onfido.com/facial-scan-policy-and-release/',
     ONFIDO_PRIVACY_POLICY_URL: 'https://onfido.com/privacy/',
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
+    LIST_OF_RESTRICTED_BUSINESSES: 'https://community.expensify.com/discussion/6191/list-of-restricted-businesses',
+
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
-    EXPENSIFY_INBOX_URL: 'https://www.expensify.com/inbox',
+    OLDDOT_URLS: {
+        ADMIN_POLICIES_URL: 'admin_policies',
+        ADMIN_DOMAINS_URL: 'admin_domains',
+        INBOX: 'inbox',
+        DISMMISSED_REASON: '?dismissedReason=missingFeatures',
+    },
 
     SIGN_IN_FORM_WIDTH: 300,
 
@@ -511,7 +567,9 @@ const CONST = {
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
+                HOLD: 'HOLD',
                 IOU: 'IOU',
+                MARKEDREIMBURSED: 'MARKEDREIMBURSED',
                 MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
                 MOVED: 'MOVED',
                 REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
@@ -523,6 +581,7 @@ const CONST = {
                 TASKCOMPLETED: 'TASKCOMPLETED',
                 TASKEDITED: 'TASKEDITED',
                 TASKREOPENED: 'TASKREOPENED',
+                ACTIONABLEMENTIONWHISPER: 'ACTIONABLEMENTIONWHISPER',
                 POLICYCHANGELOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_BUDGET: 'POLICYCHANGELOG_ADD_BUDGET',
@@ -549,6 +608,8 @@ const CONST = {
                     INDIVIDUAL_BUDGET_NOTIFICATION: 'POLICYCHANGELOG_INDIVIDUAL_BUDGET_NOTIFICATION',
                     INVITE_TO_ROOM: 'POLICYCHANGELOG_INVITETOROOM',
                     REMOVE_FROM_ROOM: 'POLICYCHANGELOG_REMOVEFROMROOM',
+                    LEAVE_ROOM: 'POLICYCHANGELOG_LEAVEROOM',
+                    REPLACE_CATEGORIES: 'POLICYCHANGELOG_REPLACE_CATEGORIES',
                     SET_AUTOREIMBURSEMENT: 'POLICYCHANGELOG_SET_AUTOREIMBURSEMENT',
                     SET_AUTO_JOIN: 'POLICYCHANGELOG_SET_AUTO_JOIN',
                     SET_CATEGORY_NAME: 'POLICYCHANGELOG_SET_CATEGORY_NAME',
@@ -576,6 +637,7 @@ const CONST = {
                     UPDATE_MAX_EXPENSE_AMOUNT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT',
                     UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT',
                     UPDATE_NAME: 'POLICYCHANGELOG_UPDATE_NAME',
+                    UPDATE_DESCRIPTION: 'POLICYCHANGELOG_UPDATE_DESCRIPTION',
                     UPDATE_OWNERSHIP: 'POLICYCHANGELOG_UPDATE_OWNERSHIP',
                     UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
                     UPDATE_REPORT_FIELD: 'POLICYCHANGELOG_UPDATE_REPORT_FIELD',
@@ -590,9 +652,19 @@ const CONST = {
                 ROOMCHANGELOG: {
                     INVITE_TO_ROOM: 'INVITETOROOM',
                     REMOVE_FROM_ROOM: 'REMOVEFROMROOM',
-                    JOIN_ROOM: 'JOINROOM',
+                    LEAVE_ROOM: 'LEAVEROOM',
+                    UPDATE_ROOM_DESCRIPTION: 'UPDATEROOMDESCRIPTION',
                 },
+                UNHOLD: 'UNHOLD',
             },
+            THREAD_DISABLED: ['CREATED'],
+        },
+        CANCEL_PAYMENT_REASONS: {
+            ADMIN: 'CANCEL_REASON_ADMIN',
+        },
+        ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
+            INVITE: 'invited',
+            NOTHING: 'nothing',
         },
         ARCHIVE_REASON: {
             DEFAULT: 'default',
@@ -619,23 +691,19 @@ const CONST = {
             DOMAIN_ALL: 'domainAll',
             POLICY_ROOM: 'policyRoom',
             POLICY_EXPENSE_CHAT: 'policyExpenseChat',
+            SELF_DM: 'selfDM',
         },
         WORKSPACE_CHAT_ROOMS: {
             ANNOUNCE: '#announce',
             ADMINS: '#admins',
         },
-        STATE: {
-            OPEN: 'OPEN',
-            SUBMITTED: 'SUBMITTED',
-            PROCESSING: 'PROCESSING',
-        },
         STATE_NUM: {
             OPEN: 0,
-            PROCESSING: 1,
-            SUBMITTED: 2,
+            SUBMITTED: 1,
+            APPROVED: 2,
             BILLING: 3,
         },
-        STATUS: {
+        STATUS_NUM: {
             OPEN: 0,
             SUBMITTED: 1,
             CLOSED: 2,
@@ -708,6 +776,7 @@ const CONST = {
         REPORT_INITIAL_RENDER: 'report_initial_render',
         SWITCH_REPORT: 'switch_report',
         SIDEBAR_LOADED: 'sidebar_loaded',
+        LOAD_SEARCH_OPTIONS: 'load_search_options',
         COLD: 'cold',
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
@@ -717,6 +786,7 @@ const CONST = {
         TRIE_INITIALIZATION: 'trie_initialization',
         COMMENT_LENGTH_DEBOUNCE_TIME: 500,
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
+        RESIZE_DEBOUNCE_TIME: 100,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -771,6 +841,7 @@ const CONST = {
         EXP_ERROR: 666,
         MANY_WRITES_ERROR: 665,
         UNABLE_TO_RETRY: 'unableToRetry',
+        UPDATE_REQUIRED: 426,
     },
     HTTP_STATUS: {
         // When Cloudflare throttles
@@ -801,6 +872,9 @@ const CONST = {
         GATEWAY_TIMEOUT: 'Gateway Timeout',
         EXPENSIFY_SERVICE_INTERRUPTED: 'Expensify service interrupted',
         DUPLICATE_RECORD: 'A record already exists with this ID',
+
+        // The "Upgrade" is intentional as the 426 HTTP code means "Upgrade Required" and sent by the API. We use the "Update" language everywhere else in the front end when this gets returned.
+        UPDATE_REQUIRED: 'Upgrade Required',
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',
@@ -820,9 +894,11 @@ const CONST = {
         MAX_PENDING_TIME_MS: 10 * 1000,
         MAX_REQUEST_RETRIES: 10,
     },
+    WEEK_STARTS_ON: 1, // Monday
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
     DEFAULT_CLOSE_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
+    DEFAULT_NETWORK_DATA: {isOffline: false},
     FORMS: {
         LOGIN_FORM: 'LoginForm',
         VALIDATE_CODE_FORM: 'ValidateCodeForm',
@@ -850,7 +926,7 @@ const CONST = {
     // It's copied here so that the same regex pattern can be used in form validations to be consistent with the server.
     VALIDATE_FOR_HTML_TAG_REGEX: /<([^>\s]+)(?:[^>]*?)>/g,
 
-    VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX: /<([\s]+[\s\w~!@#$%^&*(){}[\];':"`|?.,/\\+\-=<]+.*[\s]*)>/g,
+    VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX: /<([\s]+.+[\s]*)>/g,
 
     WHITELISTED_TAGS: [/<>/, /< >/, /<->/, /<-->/, /<br>/, /<br\/>/],
 
@@ -879,6 +955,9 @@ const CONST = {
 
     EMOJI_DEFAULT_SKIN_TONE: -1,
 
+    // Amount of emojis to render ahead at the end of the update cycle
+    EMOJI_DRAW_AMOUNT: 250,
+
     INVISIBLE_CODEPOINTS: ['fe0f', '200d', '2066'],
 
     UNICODE: {
@@ -900,6 +979,7 @@ const CONST = {
     KEYBOARD_TYPE: {
         VISIBLE_PASSWORD: 'visible-password',
         ASCII_CAPABLE: 'ascii-capable',
+        NUMBER_PAD: 'number-pad',
     },
 
     INPUT_MODE: {
@@ -922,6 +1002,10 @@ const CONST = {
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
     ATTACHMENT_LOCAL_URL_PREFIX: ['blob:', 'file:'],
+    ATTACHMENT_THUMBNAIL_URL_ATTRIBUTE: 'data-expensify-thumbnail-url',
+    ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE: 'data-expensify-width',
+    ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE: 'data-expensify-height',
+    ATTACHMENT_DURATION_ATTRIBUTE: 'data-expensify-duration',
 
     ATTACHMENT_PICKER_TYPE: {
         FILE: 'file',
@@ -957,6 +1041,7 @@ const CONST = {
     SMALL_EMOJI_PICKER_SIZE: {
         WIDTH: '100%',
     },
+    MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM: 83,
     NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
     NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT_WEB: 200,
     EMOJI_PICKER_ITEM_HEIGHT: 32,
@@ -967,7 +1052,6 @@ const CONST = {
         SUGGESTER_INNER_PADDING: 8,
         SUGGESTION_ROW_HEIGHT: 40,
         SMALL_CONTAINER_HEIGHT_FACTOR: 2.5,
-        MIN_AMOUNT_OF_SUGGESTIONS: 3,
         MAX_AMOUNT_OF_SUGGESTIONS: 20,
         MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER: 5,
         HERE_TEXT: '@here',
@@ -976,6 +1060,7 @@ const CONST = {
     CHAT_FOOTER_SECONDARY_ROW_HEIGHT: 15,
     CHAT_FOOTER_SECONDARY_ROW_PADDING: 5,
     CHAT_FOOTER_MIN_HEIGHT: 65,
+    CHAT_FOOTER_HORIZONTAL_PADDING: 40,
     CHAT_SKELETON_VIEW: {
         AVERAGE_ROW_HEIGHT: 80,
         HEIGHT_FOR_ROW_COUNT: {
@@ -984,6 +1069,7 @@ const CONST = {
             3: 100,
         },
     },
+    CENTRAL_PANE_ANIMATION_HEIGHT: 200,
     LHN_SKELETON_VIEW_ITEM_HEIGHT: 64,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EMAIL: {
@@ -1171,6 +1257,11 @@ const CONST = {
             EXPENSIFY: 'Expensify',
             VBBA: 'ACH',
         },
+        ACTION: {
+            EDIT: 'edit',
+            CREATE: 'create',
+        },
+        DEFAULT_AMOUNT: 0,
         TYPE: {
             SEND: 'send',
             SPLIT: 'split',
@@ -1267,6 +1358,7 @@ const CONST = {
             USER: 'user',
         },
         AUTO_REPORTING_FREQUENCIES: {
+            INSTANT: 'instant',
             IMMEDIATE: 'immediate',
             WEEKLY: 'weekly',
             SEMI_MONTHLY: 'semimonthly',
@@ -1274,10 +1366,34 @@ const CONST = {
             TRIP: 'trip',
             MANUAL: 'manual',
         },
+        AUTO_REPORTING_OFFSET: {
+            LAST_BUSINESS_DAY_OF_MONTH: 'lastBusinessDayOfMonth',
+            LAST_DAY_OF_MONTH: 'lastDayOfMonth',
+        },
+        APPROVAL_MODE: {
+            OPTIONAL: 'OPTIONAL',
+            BASIC: 'BASIC',
+            ADVANCED: 'ADVANCED',
+            DYNAMICEXTERNAL: 'DYNAMIC_EXTERNAL',
+            SMARTREPORT: 'SMARTREPORT',
+            BILLCOM: 'BILLCOM',
+        },
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
         OWNER_EMAIL_FAKE: '_FAKE_',
         OWNER_ACCOUNT_ID_FAKE: 0,
+        REIMBURSEMENT_CHOICES: {
+            REIMBURSEMENT_YES: 'reimburseYes',
+            REIMBURSEMENT_NO: 'reimburseNo',
+            REIMBURSEMENT_MANUAL: 'reimburseManual',
+        },
+        ID_FAKE: '_FAKE_',
+        EMPTY: 'EMPTY',
+        MEMBERS_BULK_ACTION_TYPES: {
+            REMOVE: 'remove',
+            MAKE_MEMBER: 'makeMember',
+            MAKE_ADMIN: 'makeAdmin',
+        },
     },
 
     CUSTOM_UNITS: {
@@ -1294,6 +1410,12 @@ const CONST = {
         CFPB_COMPLAINT: 'cfpb.gov/complaint',
         FDIC_PREPAID: 'fdic.gov/deposit/deposits/prepaid.html',
         USE_EXPENSIFY_FEES: 'use.expensify.com/fees',
+    },
+
+    LAYOUT_WIDTH: {
+        WIDE: 'wide',
+        NARROW: 'narrow',
+        NONE: 'none',
     },
 
     ICON_TYPE_ICON: 'icon',
@@ -1334,7 +1456,7 @@ const CONST = {
             CLOSED: 6,
             STATE_SUSPENDED: 7,
         },
-        ACTIVE_STATES: [2, 3, 4, 7],
+        ACTIVE_STATES: cardActiveStates,
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
@@ -1349,6 +1471,7 @@ const CONST = {
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
         ALPHABETIC_AND_LATIN_CHARS: /^[\p{Script=Latin} ]*$/u,
         NON_ALPHABETIC_AND_NON_LATIN_CHARS: /[^\p{Script=Latin}]/gu,
+        ACCENT_LATIN_CHARS: /[\u00C0-\u017F]/g,
         POSITIVE_INTEGER: /^\d+$/,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,
@@ -1366,6 +1489,8 @@ const CONST = {
         EMOJI: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJIS: /[\p{Extended_Pictographic}](\u200D[\p{Extended_Pictographic}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/gu,
+        // eslint-disable-next-line max-len, no-misleading-character-class
+        EMOJI_SKIN_TONES: /[\u{1f3fb}-\u{1f3ff}]/gu,
 
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
@@ -1406,6 +1531,7 @@ const CONST = {
         ROUTES: {
             VALIDATE_LOGIN: /\/v($|(\/\/*))/,
             UNLINK_LOGIN: /\/u($|(\/\/*))/,
+            REDUNDANT_SLASHES: /(\/{2,})|(\/$)/g,
         },
 
         TIME_STARTS_01: /^01:\d{2} [AP]M$/,
@@ -1418,6 +1544,14 @@ const CONST = {
         INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
 
         OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
+
+        REPORT_FIELD_TITLE: /{report:([a-zA-Z]+)}/g,
+
+        PATH_WITHOUT_POLICY_ID: /\/w\/[a-zA-Z0-9]+(\/|$)/,
+
+        POLICY_ID_FROM_PATH: /\/w\/([a-zA-Z0-9]+)(\/|$)/,
+
+        SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#]+(?:\\.[\\w\\-\\'\\+]+)*`, 'gim'),
     },
 
     PRONOUNS: {
@@ -1427,14 +1561,16 @@ const CONST = {
     GUIDES_CALL_TASK_IDS: {
         CONCIERGE_DM: 'NewExpensifyConciergeDM',
         WORKSPACE_INITIAL: 'WorkspaceHome',
-        WORKSPACE_SETTINGS: 'WorkspaceGeneralSettings',
+        WORKSPACE_PROFILE: 'WorkspaceProfile',
         WORKSPACE_CARD: 'WorkspaceCorporateCards',
         WORKSPACE_REIMBURSE: 'WorkspaceReimburseReceipts',
         WORKSPACE_BILLS: 'WorkspacePayBills',
         WORKSPACE_INVOICES: 'WorkspaceSendInvoices',
         WORKSPACE_TRAVEL: 'WorkspaceBookTravel',
         WORKSPACE_MEMBERS: 'WorkspaceManageMembers',
+        WORKSPACE_WORKFLOWS: 'WorkspaceWorkflows',
         WORKSPACE_BANK_ACCOUNT: 'WorkspaceBankAccount',
+        WORKSPACE_SETTINGS: 'WorkspaceSettings',
     },
     get EXPENSIFY_EMAILS() {
         return [
@@ -1477,6 +1613,15 @@ const CONST = {
         ];
     },
 
+    // Emails that profile view is prohibited
+    get RESTRICTED_EMAILS(): readonly string[] {
+        return [this.EMAIL.NOTIFICATIONS];
+    },
+    // Account IDs that profile view is prohibited
+    get RESTRICTED_ACCOUNT_IDS() {
+        return [this.ACCOUNT_ID.NOTIFICATIONS];
+    },
+
     // Auth limit is 60k for the column but we store edits and other metadata along the html so let's use a lower limit to accommodate for it.
     MAX_COMMENT_LENGTH: 10000,
 
@@ -1488,6 +1633,10 @@ const CONST = {
     FORM_CHARACTER_LIMIT: 50,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
     LOGIN_CHARACTER_LIMIT: 254,
+
+    TITLE_CHARACTER_LIMIT: 100,
+    DESCRIPTION_LIMIT: 500,
+
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
     AVATAR_CROP_MODAL: {
         // The next two constants control what is min and max value of the image crop scale.
@@ -1516,7 +1665,6 @@ const CONST = {
         INVITE: 'invite',
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
-        WELCOME_MESSAGE: 'welcomeMessage',
         PRIVATE_NOTES: 'privateNotes',
     },
     EDIT_REQUEST_FIELD: {
@@ -2703,7 +2851,7 @@ const CONST = {
         EXPECTED_OUTPUT: 'FCFA 123,457',
     },
 
-    PATHS_TO_TREAT_AS_EXTERNAL: ['NewExpensify.dmg'],
+    PATHS_TO_TREAT_AS_EXTERNAL: ['NewExpensify.dmg', 'docs/index.html'],
 
     // Test tool menu parameters
     TEST_TOOL: {
@@ -2873,8 +3021,10 @@ const CONST = {
         ATTACHMENT: 'common.attachment',
     },
     TEACHERS_UNITE: {
-        PUBLIC_ROOM_ID: '7470147100835202',
-        POLICY_ID: 'B795B6319125BDF2',
+        PROD_PUBLIC_ROOM_ID: '7470147100835202',
+        PROD_POLICY_ID: 'B795B6319125BDF2',
+        TEST_PUBLIC_ROOM_ID: '207591744844000',
+        TEST_POLICY_ID: 'ABD1345ED7293535',
         POLICY_NAME: 'Expensify.org / Teachers Unite!',
         PUBLIC_ROOM_NAME: '#teachers-unite',
     },
@@ -2933,10 +3083,12 @@ const CONST = {
     PARENT_CHILD_SEPARATOR: ': ',
     CATEGORY_LIST_THRESHOLD: 8,
     TAG_LIST_THRESHOLD: 8,
+    TAX_RATES_LIST_THRESHOLD: 8,
     COLON: ':',
     MAPBOX: {
         PADDING: 50,
         DEFAULT_ZOOM: 10,
+        SINGLE_MARKER_ZOOM: 15,
         DEFAULT_COORDINATE: [-122.4021, 37.7911],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
     },
@@ -2970,6 +3122,8 @@ const CONST = {
      */
     ADDITIONAL_ALLOWED_CHARACTERS: 20,
 
+    VALIDATION_REIMBURSEMENT_INPUT_LIMIT: 20,
+
     REFERRAL_PROGRAM: {
         CONTENT_TYPES: {
             MONEY_REQUEST: 'request',
@@ -3000,13 +3154,6 @@ const CONST = {
     MAX_OPTIONS_SELECTOR_PAGE_LENGTH: 500,
 
     /**
-     * Performance test setup - run the same test multiple times to get a more accurate result
-     */
-    PERFORMANCE_TESTS: {
-        RUNS: 20,
-    },
-
-    /**
      * Bank account names
      */
     BANK_NAMES: {
@@ -3034,11 +3181,53 @@ const CONST = {
     },
 
     /**
-     * Constants for maxToRenderPerBatch parameter that is used for FlatList or SectionList. This controls the amount of items rendered per batch, which is the next chunk of items rendered on every scroll.
+     * Constants for maxToRenderPerBatch parameter that is used for FlatList or SectionList. This controls the amount of items rendered per batch, which is the next chunk of items
+     * rendered on every scroll.
      */
     MAX_TO_RENDER_PER_BATCH: {
         DEFAULT: 5,
         CAROUSEL: 3,
+    },
+
+    /**
+     * Constants for types of violations.
+     * Defined here because they need to be referenced by the type system to generate the
+     * ViolationNames type.
+     */
+    VIOLATIONS: {
+        ALL_TAG_LEVELS_REQUIRED: 'allTagLevelsRequired',
+        AUTO_REPORTED_REJECTED_EXPENSE: 'autoReportedRejectedExpense',
+        BILLABLE_EXPENSE: 'billableExpense',
+        CASH_EXPENSE_WITH_NO_RECEIPT: 'cashExpenseWithNoReceipt',
+        CATEGORY_OUT_OF_POLICY: 'categoryOutOfPolicy',
+        CONVERSION_SURCHARGE: 'conversionSurcharge',
+        CUSTOM_UNIT_OUT_OF_POLICY: 'customUnitOutOfPolicy',
+        DUPLICATED_TRANSACTION: 'duplicatedTransaction',
+        FIELD_REQUIRED: 'fieldRequired',
+        FUTURE_DATE: 'futureDate',
+        INVOICE_MARKUP: 'invoiceMarkup',
+        MAX_AGE: 'maxAge',
+        MISSING_CATEGORY: 'missingCategory',
+        MISSING_COMMENT: 'missingComment',
+        MISSING_TAG: 'missingTag',
+        MODIFIED_AMOUNT: 'modifiedAmount',
+        MODIFIED_DATE: 'modifiedDate',
+        NON_EXPENSIWORKS_EXPENSE: 'nonExpensiworksExpense',
+        OVER_AUTO_APPROVAL_LIMIT: 'overAutoApprovalLimit',
+        OVER_CATEGORY_LIMIT: 'overCategoryLimit',
+        OVER_LIMIT: 'overLimit',
+        OVER_LIMIT_ATTENDEE: 'overLimitAttendee',
+        PER_DAY_LIMIT: 'perDayLimit',
+        RECEIPT_NOT_SMART_SCANNED: 'receiptNotSmartScanned',
+        RECEIPT_REQUIRED: 'receiptRequired',
+        RTER: 'rter',
+        SMARTSCAN_FAILED: 'smartscanFailed',
+        SOME_TAG_LEVELS_REQUIRED: 'someTagLevelsRequired',
+        TAG_OUT_OF_POLICY: 'tagOutOfPolicy',
+        TAX_AMOUNT_CHANGED: 'taxAmountChanged',
+        TAX_OUT_OF_POLICY: 'taxOutOfPolicy',
+        TAX_RATE_CHANGED: 'taxRateChanged',
+        TAX_REQUIRED: 'taxRequired',
     },
 
     /** Context menu types */
@@ -3048,6 +3237,116 @@ const CONST = {
         EMAIL: 'EMAIL',
         REPORT: 'REPORT',
     },
+
+    THUMBNAIL_IMAGE: {
+        SMALL_SCREEN: {
+            SIZE: 250,
+        },
+        WIDE_SCREEN: {
+            SIZE: 350,
+        },
+        NAN_ASPECT_RATIO: 1.5,
+    },
+
+    VIDEO_PLAYER: {
+        POPOVER_Y_OFFSET: -30,
+        PLAYBACK_SPEEDS: [0.25, 0.5, 1, 1.5, 2],
+        HIDE_TIME_TEXT_WIDTH: 250,
+        MIN_WIDTH: 170,
+        MIN_HEIGHT: 120,
+        CONTROLS_POSITION: {
+            NATIVE: 32,
+            NORMAL: 8,
+        },
+        DEFAULT_VIDEO_DIMENSIONS: {width: 1900, height: 1400},
+    },
+
+    INTRO_CHOICES: {
+        TRACK: 'newDotTrack',
+        SUBMIT: 'newDotSubmit',
+        MANAGE_TEAM: 'newDotManageTeam',
+        CHAT_SPLIT: 'newDotSplitChat',
+    },
+
+    MANAGE_TEAMS_CHOICE: {
+        MULTI_LEVEL: 'multiLevelApproval',
+        CUSTOM_EXPENSE: 'customExpenseCoding',
+        CARD_TRACKING: 'companyCardTracking',
+        ACCOUNTING: 'accountingIntegrations',
+        RULE: 'ruleEnforcement',
+    },
+
+    MINI_CONTEXT_MENU_MAX_ITEMS: 4,
+
+    WORKSPACE_SWITCHER: {
+        NAME: 'Expensify',
+        SUBSCRIPT_ICON_SIZE: 8,
+        MINIMUM_WORKSPACES_TO_SHOW_SEARCH: 8,
+    },
+
+    REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
+
+    /** Dimensions for illustration shown in Confirmation Modal */
+    CONFIRM_CONTENT_SVG_SIZE: {
+        HEIGHT: 220,
+        WIDTH: 130,
+    },
+
+    DEBUG_CONSOLE: {
+        LEVELS: {
+            INFO: 'INFO',
+            ERROR: 'ERROR',
+            RESULT: 'RESULT',
+            DEBUG: 'DEBUG',
+        },
+    },
+    REIMBURSEMENT_ACCOUNT_SUBSTEP_INDEX: {
+        BANK_ACCOUNT: {
+            ACCOUNT_NUMBERS: 0,
+        },
+        PERSONAL_INFO: {
+            LEGAL_NAME: 0,
+            DATE_OF_BIRTH: 1,
+            SSN: 2,
+            ADDRESS: 3,
+        },
+        BUSINESS_INFO: {
+            BUSINESS_NAME: 0,
+            TAX_ID_NUMBER: 1,
+            COMPANY_WEBSITE: 2,
+            PHONE_NUMBER: 3,
+            COMPANY_ADDRESS: 4,
+            COMPANY_TYPE: 5,
+            INCORPORATION_DATE: 6,
+            INCORPORATION_STATE: 7,
+        },
+        UBO: {
+            LEGAL_NAME: 0,
+            DATE_OF_BIRTH: 1,
+            SSN: 2,
+            ADDRESS: 3,
+        },
+    },
+
+    EXIT_SURVEY: {
+        REASONS: {
+            FEATURE_NOT_AVAILABLE: 'featureNotAvailable',
+            DONT_UNDERSTAND: 'dontUnderstand',
+            PREFER_CLASSIC: 'preferClassic',
+        },
+    },
+
+    SESSION_STORAGE_KEYS: {
+        INITIAL_URL: 'INITIAL_URL',
+    },
+
+    AUTH_TOKEN_TYPE: {
+        ANONYMOUS: 'anonymousAccount',
+    },
 } as const;
+
+type Country = keyof typeof CONST.ALL_COUNTRIES;
+
+export type {Country};
 
 export default CONST;

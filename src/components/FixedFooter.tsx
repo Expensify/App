@@ -1,5 +1,7 @@
-import React, {ReactNode} from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
+import type {ReactNode} from 'react';
+import React from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 type FixedFooterProps = {

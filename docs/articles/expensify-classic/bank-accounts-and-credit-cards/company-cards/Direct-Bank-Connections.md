@@ -72,7 +72,7 @@ If you need to connect a separate card program from the same bank (that's access
 
 To fix this, you would need to contact your bank and request to combine all of your cards under a single set of login credentials. That way, you can connect all of your cards from that bank to Expensify using a single set of login credentials. 
 
-# FAQ
+{% include faq-begin.md %}
 ## How can I connect and manage my company’s cards centrally if I’m not a domain admin?
  If you cannot access Domains, you must request Domain Admin access to an existing Domain Admin (usually the workspace owner).
  
@@ -112,3 +112,5 @@ If you've answered "yes" to any of these questions, you'll need to update this i
 A Domain Admin can fix the connection by heading to **Settings > Domains > _Domain Name_ > Company Cards > Fix**. You will be prompted to enter the new credentials/updated information, and this should reestablish the connection.
 If you are still experiencing issues with the card connection, please search for company card troubleshooting or contact Expensify Support for help.
 
+
+{% include faq-end.md %}

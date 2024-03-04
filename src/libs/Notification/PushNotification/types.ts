@@ -1,5 +1,6 @@
-import {ValueOf} from 'type-fest';
-import NotificationType, {NotificationDataMap} from './NotificationType';
+import type {ValueOf} from 'type-fest';
+import type {NotificationDataMap} from './NotificationType';
+import type NotificationType from './NotificationType';
 
 type Init = () => void;
 type Register = (notificationID: string | number) => void;

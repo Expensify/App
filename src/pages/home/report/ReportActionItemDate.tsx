@@ -1,5 +1,5 @@
 import React, {memo} from 'react';
-import {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withCurrentDate} from '@components/OnyxProvider';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';

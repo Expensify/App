@@ -19,6 +19,8 @@ To reimburse directly in Expensify, the following needs to be already configured
 
 If all of those settings are in place, to reimburse a report, you will click **Reimburse** on the report and then select **Via Direct Deposit (ACH)**.
 
+![Reimbursing Reports Dropdown]({{site.url}}/assets/images/Reimbursing Reports Dropdown.png){:width="100%"}
+
 ## Indirect or Manual Reimbursement 
 
 If you don't have the option to utilize direct reimbursement, you can choose to mark a report as reimbursed by clicking the **Reimburse** button at the top of the report and then selecting **I’ll do it manually – just mark as reimbursed**. 
@@ -63,7 +65,7 @@ If either limit has been reached, you can expect funds deposited within your ban
 
 Rapid Reimbursement is not available for non-US-based reimbursement. If you are receiving a reimbursement to a non-US-based deposit account, you should expect to see the funds deposited in your bank account within four business days.
 
-# FAQ
+{% include faq-begin.md %}
 
 ## Who can reimburse reports? 
 Only a workspace admin who has added a verified business bank account to their Expensify account can reimburse employees.
@@ -73,3 +75,7 @@ Only a workspace admin who has added a verified business bank account to their E
 Instead of a bulk reimbursement option, you can set up automatic reimbursement. With this configured, reports below a certain threshold (defined by you) will be automatically reimbursed via ACH as soon as they're "final approved."
 
 To set your manual reimbursement threshold, head to **Settings > Workspace > Group > _[Workspace Name]_ > Reimbursement > Manual Reimbursement**.
+
+![Manual Reimbursement]({{site.url}}/assets/images/Reimbursing Manual.png){:width="100%"}
+
+{% include faq-end.md %}

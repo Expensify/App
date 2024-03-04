@@ -1,5 +1,5 @@
 import LinearGradientNative from 'react-native-linear-gradient';
-import LinearGradient from './types';
+import type LinearGradient from './types';
 
 const LinearGradientImplementation: LinearGradient = LinearGradientNative;
 

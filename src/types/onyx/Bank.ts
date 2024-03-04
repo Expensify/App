@@ -1,7 +1,7 @@
-import {ViewStyle} from 'react-native';
-import {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
-import IconAsset from '@src/types/utils/IconAsset';
+import type {ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type BankIcon = {
     icon: IconAsset;

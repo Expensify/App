@@ -1,4 +1,4 @@
-import {ComposerProps} from '@components/Composer/types';
+import type {ComposerProps} from '@components/Composer/types';
 import CONST from '@src/CONST';
 
 /**

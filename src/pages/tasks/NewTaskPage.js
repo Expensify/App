@@ -17,6 +17,7 @@ import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as Task from '@userActions/Task';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -110,20 +111,21 @@ function NewTaskPage(props) {
     // the response
     function onSubmit() {
         if (!props.task.title && !props.task.shareDestination) {
-            setErrorMessage(props.translate('newTaskPage.confirmError'));
+            setErrorMessage('newTaskPage.confirmError');
             return;
         }
 
         if (!props.task.title) {
-            setErrorMessage(props.translate('newTaskPage.pleaseEnterTaskName'));
+            setErrorMessage('newTaskPage.pleaseEnterTaskName');
             return;
         }
 
         if (!props.task.shareDestination) {
-            setErrorMessage(props.translate('newTaskPage.pleaseEnterTaskDestination'));
+            setErrorMessage('newTaskPage.pleaseEnterTaskDestination');
             return;
         }
 
+        playSound(SOUNDS.DONE);
         Task.createTaskAndNavigate(
             parentReport.reportID,
             props.task.title,

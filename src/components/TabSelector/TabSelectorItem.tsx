@@ -2,7 +2,7 @@ import React from 'react';
 import {Animated, StyleSheet} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useThemeStyles from '@hooks/useThemeStyles';
-import IconAsset from '@src/types/utils/IconAsset';
+import type IconAsset from '@src/types/utils/IconAsset';
 import TabIcon from './TabIcon';
 import TabLabel from './TabLabel';
 

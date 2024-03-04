@@ -147,7 +147,7 @@ As you go through each violation, click View to look at the expense in more deta
 Click Next to move on to the next item.
 Click Finish to complete the review process when you’re done.
 
-# FAQ
+{% include faq-begin.md %}
 
 ## Is there a difference between Expense Reports, Bills, and Invoices?
 
@@ -164,3 +164,5 @@ If someone external to the business sends you an invoice for their services, you
 ## When should I submit my report?
 
 Your Company Admin can answer this one, and they may have configured the workspace’s [Scheduled Submit] setting to enforce a regular cadence for you. If not, you can still set this up under your [Individual workspace].
+
+{% include faq-end.md %}

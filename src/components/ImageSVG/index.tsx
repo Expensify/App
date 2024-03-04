@@ -1,6 +1,6 @@
 import React from 'react';
-import {SvgProps} from 'react-native-svg';
-import ImageSVGProps from './types';
+import type {SvgProps} from 'react-native-svg';
+import type ImageSVGProps from './types';
 
 function ImageSVG({src, width = '100%', height = '100%', fill, hovered = false, pressed = false, style, pointerEvents, preserveAspectRatio}: ImageSVGProps) {
     const ImageSvgComponent = src as React.FC<SvgProps>;

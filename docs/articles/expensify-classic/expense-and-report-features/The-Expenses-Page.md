@@ -55,7 +55,7 @@ Select the expenses you want to export by checking the box to the left of each e
 Then, click **Export To** in the upper right corner of the page, and choose our default CSV format or create your own custom CSV template.
 
 
-# FAQ 
+{% include faq-begin.md %} 
 
 ## Can I use the filters and analytics features on the mobile app? 
 The various features on the Expenses Page are only available while logged into your web account. 
@@ -71,3 +71,4 @@ We have more about company card expense reconciliation in this [support article]
 ## Can I edit multiple expenses at once?
 Yes! Select the expenses you want to edit and click **Edit Multiple**. 
 
+{% include faq-end.md %}

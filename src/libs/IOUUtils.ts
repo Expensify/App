@@ -1,10 +1,9 @@
-import {OnyxEntry} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import {Report, Transaction} from '@src/types/onyx';
+import type {Report, Transaction} from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
-import * as FileUtils from './fileDownload/FileUtils';
 import Navigation from './Navigation/Navigation';
 import * as TransactionUtils from './TransactionUtils';
 
@@ -21,25 +20,6 @@ function navigateToStartMoneyRequestStep(requestType: ValueOf<typeof CONST.IOU.R
             Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(iouType, transactionID, reportID));
             break;
     }
-}
-
-type SuccessCallback = (file?: File) => void;
-// eslint-disable-next-line rulesdir/no-negated-variables
-function navigateToStartStepIfScanFileCannotBeRead(
-    receiptFilename: string,
-    receiptPath: string,
-    onSuccess: SuccessCallback,
-    requestType: ValueOf<typeof CONST.IOU.REQUEST_TYPE>,
-    iouType: ValueOf<typeof CONST.IOU.TYPE>,
-    transactionID: string,
-    reportID: string,
-) {
-    if (!receiptFilename || !receiptPath) {
-        return;
-    }
-
-    const onFailure = () => navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
-    FileUtils.readFileAsync(receiptPath, receiptFilename, onSuccess, onFailure);
 }
 
 /**
@@ -73,28 +53,38 @@ function calculateAmount(numberOfParticipants: number, total: number, currency: 
  * If user1 requests $17 from user2, then we have: {ownerAccountID: user1, managerID: user2, total: $7 (still a positive amount, but now owed to user1)}
  *
  * @param isDeleting - whether the user is deleting the request
+ * @param isUpdating - whether the user is updating the request
  */
-function updateIOUOwnerAndTotal(iouReport: OnyxEntry<Report>, actorAccountID: number, amount: number, currency: string, isDeleting = false): OnyxEntry<Report> {
-    if (currency !== iouReport?.currency) {
+function updateIOUOwnerAndTotal<TReport extends OnyxEntry<Report>>(
+    iouReport: TReport,
+    actorAccountID: number,
+    amount: number,
+    currency: string,
+    isDeleting = false,
+    isUpdating = false,
+): TReport {
+    // For the update case, we have calculated the diff amount in the calculateDiffAmount function so there is no need to compare currencies here
+    if ((currency !== iouReport?.currency && !isUpdating) || !iouReport) {
         return iouReport;
     }
 
     // Make a copy so we don't mutate the original object
-    const iouReportUpdate: Report = {...iouReport};
+    const iouReportUpdate = {...iouReport};
 
-    if (iouReportUpdate.total) {
-        if (actorAccountID === iouReport.ownerAccountID) {
-            iouReportUpdate.total += isDeleting ? -amount : amount;
-        } else {
-            iouReportUpdate.total += isDeleting ? amount : -amount;
-        }
+    // Let us ensure a valid value before updating the total amount.
+    iouReportUpdate.total = iouReportUpdate.total ?? 0;
 
-        if (iouReportUpdate.total < 0) {
-            // The total sign has changed and hence we need to flip the manager and owner of the report.
-            iouReportUpdate.ownerAccountID = iouReport.managerID;
-            iouReportUpdate.managerID = iouReport.ownerAccountID;
-            iouReportUpdate.total = -iouReportUpdate.total;
-        }
+    if (actorAccountID === iouReport.ownerAccountID) {
+        iouReportUpdate.total += isDeleting ? -amount : amount;
+    } else {
+        iouReportUpdate.total += isDeleting ? amount : -amount;
+    }
+
+    if (iouReportUpdate.total < 0) {
+        // The total sign has changed and hence we need to flip the manager and owner of the report.
+        iouReportUpdate.ownerAccountID = iouReport.managerID;
+        iouReportUpdate.managerID = iouReport.ownerAccountID;
+        iouReportUpdate.total = -iouReportUpdate.total;
     }
 
     return iouReportUpdate;
@@ -118,4 +108,19 @@ function isValidMoneyRequestType(iouType: string): boolean {
     return moneyRequestType.includes(iouType);
 }
 
-export {calculateAmount, updateIOUOwnerAndTotal, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType, navigateToStartMoneyRequestStep, navigateToStartStepIfScanFileCannotBeRead};
+/**
+ * Inserts a newly selected tag into the already existing tags like a string
+ *
+ * @param transactionTags - currently selected tags for a report
+ * @param tag - a newly selected tag, that should be added to the transactionTags
+ * @param tagIndex - the index of a tag list
+ * @returns
+ */
+function insertTagIntoTransactionTagsString(transactionTags: string, tag: string, tagIndex: number): string {
+    const tagArray = TransactionUtils.getTagArrayFromName(transactionTags);
+    tagArray[tagIndex] = tag;
+
+    return tagArray.join(CONST.COLON).replace(/:*$/, '');
+}
+
+export {calculateAmount, updateIOUOwnerAndTotal, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType, navigateToStartMoneyRequestStep, insertTagIntoTransactionTagsString};

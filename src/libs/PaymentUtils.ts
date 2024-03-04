@@ -1,9 +1,9 @@
 import getBankIcon from '@components/Icon/BankIcons';
-import {type ThemeStyles} from '@styles/index';
+import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
-import BankAccount from '@src/types/onyx/BankAccount';
-import Fund from '@src/types/onyx/Fund';
-import PaymentMethod from '@src/types/onyx/PaymentMethod';
+import type BankAccount from '@src/types/onyx/BankAccount';
+import type Fund from '@src/types/onyx/Fund';
+import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import * as Localize from './Localize';
 import BankAccountModel from './models/BankAccount';
 
@@ -40,7 +40,7 @@ function getPaymentMethodDescription(accountType: AccountType, account: BankAcco
 /**
  * Get the PaymentMethods list
  */
-function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fundList: Record<string, Fund>, styles: ThemeStyles): PaymentMethod[] {
+function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fundList: Record<string, Fund> | Fund[], styles: ThemeStyles): PaymentMethod[] {
     const combinedPaymentMethods: PaymentMethod[] = [];
 
     Object.values(bankAccountList).forEach((bankAccount) => {

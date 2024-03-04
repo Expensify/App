@@ -5,6 +5,7 @@ import lodashGet from 'lodash/get';
 import React from 'react';
 import {AppState, DeviceEventEmitter, Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
+import FontUtils from '@styles/utils/FontUtils';
 import App from '../../src/App';
 import CONFIG from '../../src/CONFIG';
 import CONST from '../../src/CONST';
@@ -20,7 +21,6 @@ import * as Pusher from '../../src/libs/Pusher/pusher';
 import PusherConnectionManager from '../../src/libs/PusherConnectionManager';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import appSetup from '../../src/setup';
-import fontWeightBold from '../../src/styles/utils/fontWeight/bold';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -30,6 +30,7 @@ jest.setTimeout(30000);
 
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/Icon/Expensicons');
+jest.mock('../../src/components/ConfirmedRoute.tsx');
 
 // Needed for: https://stackoverflow.com/questions/76903168/mocking-libraries-in-jest
 jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
@@ -38,6 +39,12 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
         ignoreLogs: jest.fn(),
         ignoreAllLogs: jest.fn(),
     },
+}));
+
+jest.mock('react-native-reanimated', () => ({
+    ...jest.requireActual('react-native-reanimated/mock'),
+    createAnimatedPropAdapter: jest.fn,
+    useReducedMotion: jest.fn,
 }));
 
 /**
@@ -222,6 +229,7 @@ function signInAndGetAppWithUnreadChat() {
                 lastVisibleActionCreated: reportAction9CreatedDate,
                 lastMessageText: 'Test',
                 participantAccountIDs: [USER_B_ACCOUNT_ID],
+                lastActorAccountID: USER_B_ACCOUNT_ID,
                 type: CONST.REPORT.TYPE.CHAT,
             });
             const createdReportActionID = NumberUtils.rand64();
@@ -289,7 +297,7 @@ describe('Unread Indicators', () => {
                 // And that the text is bold
                 const displayNameHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameText = screen.queryByLabelText(displayNameHintText);
-                expect(lodashGet(displayNameText, ['props', 'style', 'fontWeight'])).toBe(fontWeightBold);
+                expect(lodashGet(displayNameText, ['props', 'style', 'fontWeight'])).toBe(FontUtils.fontWeight.bold);
 
                 return navigateToSidebarOption(0);
             })
@@ -381,6 +389,7 @@ describe('Unread Indicators', () => {
                                     lastReadTime: '',
                                     lastVisibleActionCreated: DateUtils.getDBTime(utcToZonedTime(NEW_REPORT_FIST_MESSAGE_CREATED_DATE, 'UTC').valueOf()),
                                     lastMessageText: 'Comment 1',
+                                    lastActorAccountID: USER_C_ACCOUNT_ID,
                                     participantAccountIDs: [USER_C_ACCOUNT_ID],
                                     type: CONST.REPORT.TYPE.CHAT,
                                 },
@@ -432,12 +441,12 @@ describe('Unread Indicators', () => {
                 const displayNameTexts = screen.queryAllByLabelText(displayNameHintTexts);
                 expect(displayNameTexts).toHaveLength(2);
                 const firstReportOption = displayNameTexts[0];
-                expect(lodashGet(firstReportOption, ['props', 'style', 'fontWeight'])).toBe(fontWeightBold);
-                expect(lodashGet(firstReportOption, ['props', 'children'])).toBe('C User');
+                expect(lodashGet(firstReportOption, ['props', 'style', 'fontWeight'])).toBe(FontUtils.fontWeight.bold);
+                expect(lodashGet(firstReportOption, ['props', 'children', 0])).toBe('C User');
 
                 const secondReportOption = displayNameTexts[1];
-                expect(lodashGet(secondReportOption, ['props', 'style', 'fontWeight'])).toBe(fontWeightBold);
-                expect(lodashGet(secondReportOption, ['props', 'children'])).toBe('B User');
+                expect(lodashGet(secondReportOption, ['props', 'style', 'fontWeight'])).toBe(FontUtils.fontWeight.bold);
+                expect(lodashGet(secondReportOption, ['props', 'children', 0])).toBe('B User');
 
                 // Tap the new report option and navigate back to the sidebar again via the back button
                 return navigateToSidebarOption(0);
@@ -450,9 +459,9 @@ describe('Unread Indicators', () => {
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(2);
                 expect(lodashGet(displayNameTexts[0], ['props', 'style', 'fontWeight'])).toBe(undefined);
-                expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('C User');
-                expect(lodashGet(displayNameTexts[1], ['props', 'style', 'fontWeight'])).toBe(fontWeightBold);
-                expect(lodashGet(displayNameTexts[1], ['props', 'children'])).toBe('B User');
+                expect(lodashGet(displayNameTexts[0], ['props', 'children', 0])).toBe('C User');
+                expect(lodashGet(displayNameTexts[1], ['props', 'style', 'fontWeight'])).toBe(FontUtils.fontWeight.bold);
+                expect(lodashGet(displayNameTexts[1], ['props', 'children', 0])).toBe('B User');
             }));
 
     xit('Manually marking a chat message as unread shows the new line indicator and updates the LHN', () =>
@@ -483,8 +492,8 @@ describe('Unread Indicators', () => {
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
-                expect(lodashGet(displayNameTexts[0], ['props', 'style', 'fontWeight'])).toBe(fontWeightBold);
-                expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('B User');
+                expect(lodashGet(displayNameTexts[0], ['props', 'style', 'fontWeight'])).toBe(FontUtils.fontWeight.bold);
+                expect(lodashGet(displayNameTexts[0], ['props', 'children', 0])).toBe('B User');
 
                 // Navigate to the report again and back to the sidebar
                 return navigateToSidebarOption(0);
@@ -496,7 +505,7 @@ describe('Unread Indicators', () => {
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
                 expect(lodashGet(displayNameTexts[0], ['props', 'style', 'fontWeight'])).toBe(undefined);
-                expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('B User');
+                expect(lodashGet(displayNameTexts[0], ['props', 'children', 0])).toBe('B User');
 
                 // Navigate to the report again and verify the new line indicator is missing
                 return navigateToSidebarOption(0);

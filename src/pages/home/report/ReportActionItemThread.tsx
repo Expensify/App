@@ -1,7 +1,8 @@
 import React from 'react';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@userActions/Report';

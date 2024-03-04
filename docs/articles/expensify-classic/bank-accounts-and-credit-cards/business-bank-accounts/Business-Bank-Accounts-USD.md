@@ -127,7 +127,7 @@ If you get a generic error message that indicates, "Something's gone wrong", ple
 8. If you have another phone available, try to follow these steps on that device
 If the issue persists, please contact your Account Manager or Concierge for further troubleshooting assistance.
 
-# FAQ
+{% include faq-begin.md %}
 ## What is a Beneficial Owner?
 
 A Beneficial Owner refers to an **individual** who owns 25% or more of the business. If no individual owns 25% or more of the business, the company does not have a Beneficial Owner.
@@ -157,3 +157,5 @@ It's a good idea to wait till the end of that second business day. If you still 
 
 Make sure to reach out to your Account Manager or to Concierge once you have done so and our team will be able to re-trigger those 3 transactions!
 
+
+{% include faq-end.md %}

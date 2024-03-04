@@ -15,6 +15,14 @@ function insertText(text: string, selection: Selection, textToInsert: string): s
 }
 
 /**
+ * Insert a white space at given index of text
+ * @param text - text that needs whitespace to be appended to
+ */
+function insertWhiteSpaceAtIndex(text: string, index: number) {
+    return `${text.slice(0, index)} ${text.slice(index)}`;
+}
+
+/**
  * Check whether we can skip trigger hotkeys on some specific devices.
  */
 function canSkipTriggerHotkeys(isSmallScreenWidth: boolean, isKeyboardShown: boolean): boolean {
@@ -23,4 +31,23 @@ function canSkipTriggerHotkeys(isSmallScreenWidth: boolean, isKeyboardShown: boo
     return (isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen()) || isKeyboardShown;
 }
 
-export {getNumberOfLines, updateNumberOfLines, insertText, canSkipTriggerHotkeys};
+/**
+ * Finds the length of common suffix between two texts
+ */
+function findCommonSuffixLength(str1: string, str2: string, cursorPosition: number) {
+    let commonSuffixLength = 0;
+    const minLength = Math.min(str1.length - cursorPosition, str2.length);
+
+    for (let i = 1; i <= minLength; i++) {
+        if (str1.charAt(str1.length - i) === str2.charAt(str2.length - i)) {
+            commonSuffixLength++;
+        } else {
+            break;
+        }
+    }
+
+    return commonSuffixLength;
+}
+
+export {getNumberOfLines, updateNumberOfLines, insertText, canSkipTriggerHotkeys, insertWhiteSpaceAtIndex, findCommonSuffixLength};
+export type {Selection};

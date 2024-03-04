@@ -1,5 +1,6 @@
 import React from 'react';
-import {Animated, StyleSheet, Text, View} from 'react-native';
+import {Animated, StyleSheet, View} from 'react-native';
+import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 type TabLabelProps = {

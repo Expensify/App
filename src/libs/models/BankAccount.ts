@@ -1,7 +1,8 @@
 import Str from 'expensify-common/lib/str';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import BankAccountJSON, {AdditionalData} from '@src/types/onyx/BankAccount';
+import type {AdditionalData} from '@src/types/onyx/BankAccount';
+import type BankAccountJSON from '@src/types/onyx/BankAccount';
 
 type State = ValueOf<typeof BankAccount.STATE>;
 

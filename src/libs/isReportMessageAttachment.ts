@@ -1,5 +1,6 @@
+import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
-import {Message} from '@src/types/onyx/ReportAction';
+import type {Message} from '@src/types/onyx/ReportAction';
 
 /**
  * Check whether a report action is Attachment or not.
@@ -17,5 +18,5 @@ export default function isReportMessageAttachment({text, html, translationKey}: 
     }
 
     const regex = new RegExp(` ${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="(.*)"`, 'i');
-    return text === CONST.ATTACHMENT_MESSAGE_TEXT && (!!html.match(regex) || html === CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML);
+    return (text === CONST.ATTACHMENT_MESSAGE_TEXT || !!Str.isVideo(text)) && (!!html.match(regex) || html === CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML);
 }

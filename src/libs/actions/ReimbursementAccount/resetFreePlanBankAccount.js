@@ -9,8 +9,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
  * Reset user's reimbursement account. This will delete the bank account.
  * @param {Number} bankAccountID
  * @param {Object} session
+ * @param {String} policyID
  */
-function resetFreePlanBankAccount(bankAccountID, session) {
+function resetFreePlanBankAccount(bankAccountID, session, policyID) {
     if (!bankAccountID) {
         throw new Error('Missing bankAccountID when attempting to reset free plan bank account');
     }
@@ -23,6 +24,7 @@ function resetFreePlanBankAccount(bankAccountID, session) {
         {
             bankAccountID,
             ownerEmail: session.email,
+            policyID,
         },
         {
             optimisticData: [
@@ -45,6 +47,11 @@ function resetFreePlanBankAccount(bankAccountID, session) {
                 },
                 {
                     onyxMethod: Onyx.METHOD.SET,
+                    key: ONYXKEYS.ONFIDO_APPLICANT_ID,
+                    value: '',
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
                     key: ONYXKEYS.PLAID_DATA,
                     value: PlaidDataProps.plaidDataDefaultProps,
                 },
@@ -60,7 +67,7 @@ function resetFreePlanBankAccount(bankAccountID, session) {
                 },
                 {
                     onyxMethod: Onyx.METHOD.SET,
-                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+                    key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
                     value: {},
                 },
             ],

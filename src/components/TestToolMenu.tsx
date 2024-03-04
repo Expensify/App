@@ -1,5 +1,6 @@
 import React from 'react';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ApiUtils from '@libs/ApiUtils';
 import compose from '@libs/compose';
@@ -8,8 +9,7 @@ import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
-import NetworkOnyx from '@src/types/onyx/Network';
-import UserOnyx from '@src/types/onyx/User';
+import type {Network as NetworkOnyx, User as UserOnyx} from '@src/types/onyx';
 import Button from './Button';
 import {withNetwork} from './OnyxProvider';
 import Switch from './Switch';
@@ -25,7 +25,6 @@ type TestToolMenuProps = TestToolMenuOnyxProps & {
     /** Network object in Onyx */
     network: OnyxEntry<NetworkOnyx>;
 };
-
 const USER_DEFAULT: UserOnyx = {shouldUseStagingServer: undefined, isSubscribedToNewsletter: false, validated: false, isFromPublicDomain: false, isUsingExpensifyCard: false};
 
 function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
@@ -40,7 +39,6 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
             >
                 Test Preferences
             </Text>
-
             {/* Option to switch between staging and default api endpoints.
         This enables QA, internal testers and external devs to take advantage of sandbox environments for 3rd party services like Plaid and Onfido.
         This toggle is not rendered for internal devs as they make environment changes directly to the .env file. */}

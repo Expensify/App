@@ -1,5 +1,5 @@
-const execAsync = require('../utils/execAsync');
-const Logger = require('../utils/logger');
+import execAsync from '../utils/execAsync';
+import * as Logger from '../utils/logger';
 
 const adbTypeText = async (text) => {
     Logger.log(`📝 Typing text: ${text}`);
@@ -7,4 +7,4 @@ const adbTypeText = async (text) => {
     return true;
 };
 
-module.exports = adbTypeText;
+export default adbTypeText;

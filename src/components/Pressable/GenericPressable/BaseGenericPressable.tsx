@@ -1,6 +1,8 @@
-import React, {ForwardedRef, forwardRef, useCallback, useEffect, useMemo} from 'react';
+import type {ForwardedRef} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo} from 'react';
+import type {GestureResponderEvent, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import {GestureResponderEvent, Pressable, View} from 'react-native';
+import {Pressable} from 'react-native';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -8,7 +10,8 @@ import Accessibility from '@libs/Accessibility';
 import HapticFeedback from '@libs/HapticFeedback';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import CONST from '@src/CONST';
-import PressableProps, {PressableRef} from './types';
+import type {PressableRef} from './types';
+import type PressableProps from './types';
 
 function GenericPressable(
     {
@@ -65,7 +68,7 @@ function GenericPressable(
         if (shouldUseDisabledCursor) {
             return styles.cursorDisabled;
         }
-        if ([rest.accessibilityRole, rest.role].includes('text')) {
+        if ([rest.accessibilityRole, rest.role].includes(CONST.ROLE.PRESENTATION)) {
             return styles.cursorText;
         }
         return styles.cursorPointer;
@@ -106,11 +109,18 @@ function GenericPressable(
             if (ref && 'current' in ref) {
                 ref.current?.blur();
             }
-            onPress(event);
-
+            const onPressResult = onPress(event);
             Accessibility.moveAccessibilityFocus(nextFocusRef);
+            return onPressResult;
         },
         [shouldUseHapticsOnPress, onPress, nextFocusRef, ref, isDisabled],
+    );
+
+    const onKeyboardShortcutPressHandler = useCallback(
+        (event?: GestureResponderEvent | KeyboardEvent) => {
+            onPressHandler(event);
+        },
+        [onPressHandler],
     );
 
     useEffect(() => {
@@ -118,8 +128,8 @@ function GenericPressable(
             return () => {};
         }
         const {shortcutKey, descriptionKey, modifiers} = keyboardShortcut;
-        return KeyboardShortcut.subscribe(shortcutKey, onPressHandler, descriptionKey, modifiers, true, false, 0, false);
-    }, [keyboardShortcut, onPressHandler]);
+        return KeyboardShortcut.subscribe(shortcutKey, onKeyboardShortcutPressHandler, descriptionKey, modifiers, true, false, 0, false);
+    }, [keyboardShortcut, onKeyboardShortcutPressHandler]);
 
     return (
         <Pressable

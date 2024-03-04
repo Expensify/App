@@ -10,7 +10,6 @@ on:
 
 env:
   SHOULD_DEPLOY_PRODUCTION: ${{ github.event_name == 'release' }}
-  DEVELOPER_DIR: /Applications/Xcode_14.1.app/Contents/Developer
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}
@@ -174,6 +173,8 @@ jobs:
     name: Build and deploy iOS
     needs: validateActor
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_15.0.1.app/Contents/Developer
     runs-on: macos-13-xlarge
     steps:
       - name: Checkout
@@ -183,6 +184,7 @@ jobs:
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Setup Node
+        id: setup-node
         uses: ./.github/actions/composite/setupNode
 
       - name: Setup Ruby
@@ -192,11 +194,11 @@ jobs:
           bundler-cache: true
 
       - name: Cache Pod dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: pods-cache
         with:
           path: ios/Pods
-          key: ${{ runner.os }}-pods-cache-${{ hashFiles('ios/Podfile.lock') }}
+          key: ${{ runner.os }}-pods-cache-${{ hashFiles('ios/Podfile.lock', 'firebase.json') }}
           restore-keys: ${{ runner.os }}-pods-cache-
 
       - name: Compare Podfile.lock and Manifest.lock
@@ -205,14 +207,19 @@ jobs:
 
       - name: Install cocoapods
         uses: nick-invision/retry@0711ba3d7808574133d713a0d92d2941be03a350
-        if: steps.pods-cache.outputs.cache-hit != 'true' || steps.compare-podfile-and-manifest.outputs.IS_PODFILE_SAME_AS_MANIFEST != 'true'
+        if: steps.pods-cache.outputs.cache-hit != 'true' || steps.compare-podfile-and-manifest.outputs.IS_PODFILE_SAME_AS_MANIFEST != 'true' || steps.setup-node.outputs.cache-hit != 'true'
         with:
           timeout_minutes: 10
           max_attempts: 5
           command: cd ios && bundle exec pod install
 
-      - name: Decrypt profile
-        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output chat_expensify_appstore.mobileprovision chat_expensify_appstore.mobileprovision.gpg
+      - name: Decrypt AppStore profile
+        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AppStore.mobileprovision NewApp_AppStore.mobileprovision.gpg
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
+      - name: Decrypt AppStore Notification Service profile
+        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AppStore_Notification_Service.mobileprovision NewApp_AppStore_Notification_Service.mobileprovision.gpg
         env:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
@@ -295,7 +302,7 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Setup Cloudflare CLI
-        run: pip3 install cloudflare
+        run: pip3 install cloudflare==2.19.0
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -332,13 +339,13 @@ jobs:
 
       - name: Purge production Cloudflare cache
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: /home/runner/.local/bin/cli4 --delete hosts=["new.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
+        run: /home/runner/.local/bin/cli4 --verbose --delete hosts=["new.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 
       - name: Purge staging Cloudflare cache
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: /home/runner/.local/bin/cli4 --delete hosts=["staging.new.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
+        run: /home/runner/.local/bin/cli4 --verbose --delete hosts=["staging.new.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 

@@ -1,10 +1,12 @@
-import React, {ForwardedRef, forwardRef, KeyboardEvent as ReactKeyboardEvent} from 'react';
-import {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
+import React, {forwardRef} from 'react';
+import type {ForwardedRef, MouseEventHandler, KeyboardEvent as ReactKeyboardEvent} from 'react';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
@@ -29,7 +31,7 @@ type CheckboxProps = Partial<ChildrenProps> & {
     containerStyle?: StyleProp<ViewStyle>;
 
     /** Callback that is called when mousedown is triggered. */
-    onMouseDown?: () => void;
+    onMouseDown?: MouseEventHandler;
 
     /** The size of the checkbox container */
     containerSize?: number;

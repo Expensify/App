@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     // The app calls this endpoint to know which test to run
     testConfig: '/test_config',
 
@@ -10,4 +10,10 @@ module.exports = {
 
     // Commands to execute from the host machine (there are pre-defined types like scroll or type)
     testNativeCommand: '/test_native_command',
+
+    // Updates the network cache
+    testUpdateNetworkCache: '/test_update_network_cache',
+
+    // Gets the network cache
+    testGetNetworkCache: '/test_get_network_cache',
 };

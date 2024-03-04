@@ -1,9 +1,9 @@
-import {parsePhoneNumber} from 'awesome-phonenumber';
 import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {parsePhoneNumber} from './PhoneNumber';
 
 let countryCodeByIP: number;
 Onyx.connect({
@@ -41,7 +41,7 @@ function validateNumber(values: string): string {
     const parsedPhoneNumber = parsePhoneNumber(values);
 
     if (parsedPhoneNumber.possible && Str.isValidPhone(values.slice(0))) {
-        return parsedPhoneNumber.number?.e164 + CONST.SMS.DOMAIN;
+        return `${parsedPhoneNumber.number?.e164}${CONST.SMS.DOMAIN}`;
     }
 
     return '';
@@ -59,4 +59,14 @@ function getPhoneLogin(partnerUserID: string): string {
     return appendCountryCode(getPhoneNumberWithoutSpecialChars(partnerUserID));
 }
 
-export {getPhoneNumberWithoutSpecialChars, appendCountryCode, isEmailPublicDomain, validateNumber, getPhoneLogin};
+/**
+ * Check whether 2 emails have the same private domain
+ */
+function areEmailsFromSamePrivateDomain(email1: string, email2: string): boolean {
+    if (isEmailPublicDomain(email1) || isEmailPublicDomain(email2)) {
+        return false;
+    }
+    return Str.extractEmailDomain(email1).toLowerCase() === Str.extractEmailDomain(email2).toLowerCase();
+}
+
+export {getPhoneNumberWithoutSpecialChars, appendCountryCode, isEmailPublicDomain, validateNumber, getPhoneLogin, areEmailsFromSamePrivateDomain};

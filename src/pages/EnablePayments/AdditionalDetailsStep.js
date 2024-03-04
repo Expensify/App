@@ -1,4 +1,3 @@
-import {parsePhoneNumber} from 'awesome-phonenumber';
 import {subYears} from 'date-fns';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -17,9 +16,10 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import AddressForm from '@pages/ReimbursementAccount/AddressForm';
-import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -87,7 +87,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
     const shouldAskForFullSSN = walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN;
 
     /**
-     * @param {Object} values The values object is passed from Form.js and contains info for each form element that has an inputID
+     * @param {Object} values The values object is passed from FormProvider and contains info for each form element that has an inputID
      * @returns {Object}
      */
     const validate = (values) => {
@@ -128,19 +128,19 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
     };
 
     /**
-     * @param {Object} values The values object is passed from Form.js and contains info for each form element that has an inputID
+     * @param {Object} values The values object is passed from FormProvider and contains info for each form element that has an inputID
      */
     const activateWallet = (values) => {
         const personalDetails = {
-            phoneNumber: parsePhoneNumber(values.phoneNumber, {regionCode: CONST.COUNTRY.US}).number.significant,
-            legalFirstName: values.legalFirstName,
-            legalLastName: values.legalLastName,
-            addressStreet: values.addressStreet,
-            addressCity: values.addressCity,
-            addressState: values.addressState,
-            addressZip: values.addressZipCode,
-            dob: values.dob,
-            ssn: values.ssn,
+            phoneNumber: parsePhoneNumber(values.phoneNumber, {regionCode: CONST.COUNTRY.US}).number.significant || '',
+            legalFirstName: values.legalFirstName || '',
+            legalLastName: values.legalLastName || '',
+            addressStreet: values.addressStreet || '',
+            addressCity: values.addressCity || '',
+            addressState: values.addressState || '',
+            addressZip: values.addressZipCode || '',
+            dob: values.dob || '',
+            ssn: values.ssn || '',
         };
         // Attempt to set the personal details
         Wallet.updatePersonalDetails(personalDetails);
@@ -194,7 +194,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         label={translate(fieldNameTranslationKeys.legalFirstName)}
                         accessibilityLabel={translate(fieldNameTranslationKeys.legalFirstName)}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).firstName}
+                        defaultValue={PersonalDetailsUtils.extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).firstName}
                         shouldSaveDraft
                     />
                     <InputWrapper
@@ -204,7 +204,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         label={translate(fieldNameTranslationKeys.legalLastName)}
                         accessibilityLabel={translate(fieldNameTranslationKeys.legalLastName)}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).lastName}
+                        defaultValue={PersonalDetailsUtils.extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).lastName}
                         shouldSaveDraft
                     />
                     <AddressForm

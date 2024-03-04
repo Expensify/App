@@ -1,54 +1,49 @@
 ---
-title: Expensify Referral Program
-description: Send your joining link, submit a receipt or invoice, and we'll pay you if your referral adopts Expensify.
+title: Earn money with Expensify referrals
+description: Get paid with the Expensify referral program! Share your link, earn $250 per successful sign-up, and enjoy unlimited income potential. It’s that easy.
 redirect_from: articles/other/Referral-Program/
 ---
 <!-- The lines above are required by Jekyll to process the .md file -->
 
-# About
+# Earn money with Expensify referrals
 
-Expensify has grown thanks to our users who love Expensify so much that they tell their friends, colleagues, managers, and fellow business founders to use it, too. 
+Picture this: You've found Expensify and it's transformed your approach to expense management and financial organization. You love it so much that you can't help but recommend it to friends, family, and colleagues. Wouldn’t it be nice if you could get rewarded just for spreading the word?
 
-As a thank you, every time you bring a new user into the platform who directly or indirectly leads to the adoption of a paid annual plan on Expensify, you will earn $250. 
+With Expensify referrals, you can. Every time someone you invite to the platform signs up for a paid annual plan on Expensify, you’ll earn $250. Think of it as a thank-you gift from us to you!  
 
-# How to get paid for referring people to Expensify
+## How to get paid for Expensify referrals
 
-1. Submit a report or invoice, or share your referral link with anyone you know who is spending too much time on expenses, or works at a company that could benefit from using Expensify. 
+Here are a few easy ways to get paid for Expensify friend referrals:
 
-2. You will get $250 for any referred business that commits to an annual subscription, has 2 or more active users, and makes two monthly payments.
+- Submit an expense report to your boss (even just one receipt!)
+- Send an invoice to a client or customer
+- Share your referral link with a friend
+  - To find your referral link, open your Expensify mobile app and go to **Settings > Refer a friend, earn cash! > Share invite link**.
 
-That’s right! You can refer anyone working at any company you know. 
+**If the person you referred commits to an annual subscription with two or more active users and makes two monthly payments, you’ll get $250. Cha-ching!**
 
-If their company goes on to become an Expensify customer with an annual subscription, and you are the earliest recorded referrer of a user on that company’s paid Expensify Policy, you'll get paid a referral reward. 
+## Who can you refer?
 
-The best way to start is to submit any receipt to your manager (you'll get paid back and set yourself up for $250 if they start a subscription: win-win!)
+You can refer anyone who might benefit from Expensify. Seriously. Anybody. 
 
-Referral rewards for the Spring/Summer 2023 campaign will be paid by direct deposit.
+Know a small business owner? Refer them! An [accountant](https://use.expensify.com/accountants-program)? Refer them! A best friend from childhood who keeps losing paper receipts? Refer them! 
 
-# FAQ
+Plus, you can [refer an unlimited amount of new users](https://use.expensify.com/blog/earn-50000-by-referring-your-friends-to-expensify/) with the Expensify referral program, so your earning potential is truly sky-high.
 
-- **How will I know if I am the first person to refer a company to Expensify?**
+## Common questions about Expensify benefits
 
-Successful referrers are notified after their referral pays for 2 months of an annual subscription.  We will check for the earliest recorded referrer of a user on the policy, and if that is you, then we will let you know. 
+Still have questions about the Expensify referral program? We’ve got answers. Check out our FAQ below.
 
-- **How will you pay me if I am successful?**
+### How will I know if I am the first person to refer someone to Expensify?
 
-In the Spring 2023 campaign, Expensify will be paying successful referrers via direct deposit to the Deposit-Only account you have on file. Referral payouts will happen once a month for the duration of the campaign. If you do not have a Deposit-Only account at the time of your referral payout, your deposit will be processed in the next batch. 
+You’ll know if you’re the first person to refer someone to Expensify if we reach out to let you know that they’ve successfully adopted Expensify and have paid for two months of an annual subscription. 
 
-Learn how to add a Deposit-Only account [here](https://community.expensify.com/discussion/4641/how-to-add-a-deposit-only-bank-account-both-personal-and-business).
+Simply put, we check for the earliest recorded referrer of a member on the workspace, and if that’s you, then we’ll let you know.
 
-- **I’m outside of the US, how do I get paid?**
+### My referral wasn’t counted! How can I appeal?
 
-While our referral payouts are in USD, you will be able to get paid via a Wise Borderless account. Learn more [here](https://community.expensify.com/discussion/5940/how-to-get-reimbursed-outside-the-us-with-wise-for-non-us-employees).
+If you think your Expensify friend referral wasn’t counted, please send a message to concierge@expensify.com with the email of the person you referred. Our team will review the referral and get back to you.
 
-- **My referral wasn’t counted! How can I appeal?**
+## Share the Expensify love — and get paid in the process
 
-Expensify reserves the right to modify the terms of the referral program at any time, and pays out referral bonuses for eligible companies at its own discretion.
-
-Please send a message to concierge@expensify.com with the billing owner of the company you have referred and our team will review the referral and get back to you.
-
-- **Where can I find my referral link?**
-
-Expensify members who are opted-in for our newsletters will have received an email containing their unique referral link. 
-
-On the mobile app, go to **Settings** > **Invite a Friend** > **Share Invite Link** to retrieve your referral link.
+Who needs a side hustle when you have Expensify? With Expensify benefits, it’s not just about managing your expenses — it's about expanding your income too. Share your Expensify referral link now or send over an invoice to unlock unlimited earning potential.

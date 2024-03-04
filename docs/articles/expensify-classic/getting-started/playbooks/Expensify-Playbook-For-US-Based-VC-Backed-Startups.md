@@ -18,11 +18,11 @@ This playbook is built based on best practices we’ve developed after processin
 ## Step 1: Create your Expensify account
 If you don't already have one, go to *[new.expensify.com](https://new.expensify.com)* and sign up for an account with your work email address. The account is free so don’t worry about the cost at this stage.
 
-## Step 2: Create a Control Policy
-There are three policy types, but for your needs we recommend the Control Policy for the following reasons:
+## Step 2: Upgrade to a paid policy
+There are three paid policies; Individual, Collect, and Control, but for your needs we recommend the Control Policy for the following reasons:
 
 - You can cap spend on certain expense types, and set compliance controls so Expensify’s built-in Concierge Audit Tracking can detect violations on your behalf
-- As a growing business with VC-funding, the Control plan will scale with you as your team grows and you start to introduce more sophisticated approval workflows
+- As a growing business with VC-funding, the Control plan will scale with you as your team grows and you start to introduce more sophisticated [approval workflows](https://help.expensify.com/articles/expensify-classic/manage-employees-and-report-approvals/Approval-Workflows) (see Step 8 below). 
 
 To create your Control Policy:
 
@@ -30,7 +30,7 @@ To create your Control Policy:
 2. Select *Group* and click the button that says *New Policy*
 3. Click *Select* under Control
 
-The Control plan also gives you access to a dedicated Setup Specialist. You can find yours by looking at your policy's #admins room at *[new.expensify.com](https://new.expensify.com)*, and chatting with them there. The Control plan is bundled with the Expensify Card is $9 per user per month when you commit annually, which is a 75% discount off our standard unbundled price point. The Control plan also gives you access to a dedicated Setup Specialist. You can find yours by looking at your policy's *#admins* room in *[new.expensify.com](https://new.expensify.com)*, and chat with them there.
+The Control plan also gives you access to a dedicated Setup Specialist. You can find yours by looking at your policy's #admins room at *[new.expensify.com](https://new.expensify.com)*, and chatting with them there. The Control plan is bundled with the  Expensify Visa® Commercial Card is $9 per user per month when you commit annually, which is a 75% discount off our standard unbundled price point. The Control plan also gives you access to a dedicated Setup Specialist. You can find yours by looking at your policy's *#admins* room in *[new.expensify.com](https://new.expensify.com)*, and chat with them there.
 
 ## Step 3: Connect your accounting system
 As a VC-backed company, your investors will want to see that your books are managed properly. That means making sure that:
@@ -80,7 +80,7 @@ For an efficiency-focused company, we recommend setting up [Scheduled Submit](ht
 4. You’ll notice *Scheduled Submit* is located directly under *Report Basics*
 5. Choose *Daily*
 
-Between Expensify's SmartScan technology, direct corporate card feed import, automatic categorization, and [DoubleCheck](https://community.expensify.com/discussion/5738/deep-dive-how-does-concierge-receipt-audit-work) features, your employees shouldn't need to do anything more than swipe their Expensify Card or scan their receipt.
+Between Expensify's SmartScan technology, direct corporate card feed import, automatic categorization, and [DoubleCheck](https://community.expensify.com/discussion/5738/deep-dive-how-does-concierge-receipt-audit-work) features, your employees shouldn't need to do anything more than swipe their Expensify Visa® Commercial Card or scan their receipt.
 
 Scheduled Submit will ensure all expenses are submitted automatically. Any expenses that do not fall within the rules you’ve set up for your policy will be escalated to you for manual review.
 
@@ -155,7 +155,7 @@ The Expensify Card has many benefits for your company. Two in particular are wor
 ### If you don't have a corporate card, use the Expensify Card
 Expensify provides a corporate card with the following features:
 
-- Up to 2% cash back
+- Up to 2% cash back (Applies to USD purchases only)
 - [SmartLimits](https://community.expensify.com/discussion/4851/deep-dive-what-are-unapproved-expense-limits#latest)
 - Unlimited Virtual Cards - single-purpose cards with a fixed or monthly limit for specific company purchases
 - A stable, unbreakable connection (third-party bank feeds can run into connectivity issues)

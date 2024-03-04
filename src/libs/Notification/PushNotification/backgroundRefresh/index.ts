@@ -1,4 +1,4 @@
-import BackgroundRefresh from './types';
+import type BackgroundRefresh from './types';
 
 /**
  * Runs our reconnectApp action if the app is in the background.

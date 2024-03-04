@@ -1,12 +1,15 @@
+import PropTypes from 'prop-types';
 import * as RNLocalize from 'react-native-localize';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
-import {MessageElementBase, MessageTextElement} from '@libs/MessageElement';
+import type {MessageElementBase, MessageTextElement} from '@libs/MessageElement';
 import Config from '@src/CONFIG';
 import CONST from '@src/CONST';
 import translations from '@src/languages/translations';
-import {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
+import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Locale} from '@src/types/onyx';
+import type {ReceiptError} from '@src/types/onyx/Transaction';
 import LocaleListener from './LocaleListener';
 import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
 
@@ -97,12 +100,23 @@ function translateLocal<TKey extends TranslationPaths>(phrase: TKey, ...variable
     return translate(BaseLocaleListener.getPreferredLocale(), phrase, ...variables);
 }
 
-type MaybePhraseKey = string | [string, Record<string, unknown> & {isTranslated?: true}] | [];
+/**
+ * Traslatable text with phrase key and/or variables
+ * Use MaybePhraseKey for Typescript
+ *
+ * E.g. ['common.error.characterLimitExceedCounter', {length: 5, limit: 20}]
+ */
+const translatableTextPropTypes = PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]);
+
+type MaybePhraseKey = string | null | [string, Record<string, unknown> & {isTranslated?: boolean}] | [];
 
 /**
  * Return translated string for given error.
  */
-function translateIfPhraseKey(message: MaybePhraseKey): string {
+function translateIfPhraseKey(message: MaybePhraseKey): string;
+function translateIfPhraseKey(message: ReceiptError): ReceiptError;
+function translateIfPhraseKey(message: MaybePhraseKey | ReceiptError): string | ReceiptError;
+function translateIfPhraseKey(message: MaybePhraseKey | ReceiptError): string | ReceiptError {
     if (!message || (Array.isArray(message) && message.length === 0)) {
         return '';
     }
@@ -169,9 +183,9 @@ function formatMessageElementList<E extends MessageElementBase>(elements: readon
 /**
  * Returns the user device's preferred language.
  */
-function getDevicePreferredLocale(): string {
+function getDevicePreferredLocale(): Locale {
     return RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES])?.languageTag ?? CONST.LOCALES.DEFAULT;
 }
 
-export {translate, translateLocal, translateIfPhraseKey, formatList, formatMessageElementList, getDevicePreferredLocale};
+export {translatableTextPropTypes, translate, translateLocal, translateIfPhraseKey, formatList, formatMessageElementList, getDevicePreferredLocale};
 export type {PhraseParameters, Phrase, MaybePhraseKey};

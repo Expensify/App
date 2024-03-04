@@ -1,7 +1,7 @@
-const {when} = require('jest-when');
-
-const core = require('@actions/core');
-const GithubUtils = require('../../.github/libs/GithubUtils');
+import * as core from '@actions/core';
+import {when} from 'jest-when';
+import ghAction from '../../.github/actions/javascript/postTestBuildComment/postTestBuildComment';
+import GithubUtils from '../../.github/libs/GithubUtils';
 
 const mockGetInput = jest.fn();
 const mockCreateComment = jest.fn();
@@ -24,8 +24,6 @@ jest.mock('@actions/github', () => ({
         runId: 1234,
     },
 }));
-
-const ghAction = require('../../.github/actions/javascript/postTestBuildComment/postTestBuildComment');
 
 const androidLink = 'https://expensify.app/ANDROID_LINK';
 const iOSLink = 'https://expensify.app/IOS_LINK';

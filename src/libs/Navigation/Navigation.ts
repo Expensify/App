@@ -1,18 +1,25 @@
-import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
-import {CommonActions, EventArg, getPathFromState, NavigationContainerEventMap, NavigationState, PartialState, StackActions} from '@react-navigation/native';
-import findLastIndex from 'lodash/findLastIndex';
+import {findFocusedRoute} from '@react-navigation/core';
+import type {EventArg, NavigationContainerEventMap} from '@react-navigation/native';
+import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import Log from '@libs/Log';
+import * as ReportUtils from '@libs/ReportUtils';
+import {getReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ROUTES, {Route} from '@src/ROUTES';
-import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
-import getStateFromPath from './getStateFromPath';
+import type {HybridAppRoute, Route} from '@src/ROUTES';
+import ROUTES, {HYBRID_APP_ROUTES} from '@src/ROUTES';
+import {PROTECTED_SCREENS} from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import originalDismissModal from './dismissModal';
+import originalDismissModalWithReport from './dismissModalWithReport';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import originalGetTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
 import linkTo from './linkTo';
 import navigationRef from './navigationRef';
-import {StackNavigationAction, StateOrRoute} from './types';
+import switchPolicyID from './switchPolicyID';
+import type {State, StateOrRoute, SwitchPolicyIDParams} from './types';
 
 let resolveNavigationIsReadyPromise: () => void;
 const navigationIsReadyPromise = new Promise<void>((resolve) => {
@@ -44,6 +51,21 @@ const getTopmostReportId = (state = navigationRef.getState()) => originalGetTopm
 // Re-exporting the getTopmostReportActionID here to fill in default value for state. The getTopmostReportActionID isn't defined in this file to avoid cyclic dependencies.
 const getTopmostReportActionId = (state = navigationRef.getState()) => originalGetTopmostReportActionId(state);
 
+// Re-exporting the dismissModal here to fill in default value for navigationRef. The dismissModal isn't defined in this file to avoid cyclic dependencies.
+const dismissModal = (reportID?: string, ref = navigationRef) => {
+    if (!reportID) {
+        originalDismissModal(ref);
+        return;
+    }
+    const report = getReport(reportID);
+    originalDismissModalWithReport({reportID, ...report}, ref);
+};
+
+// Re-exporting the dismissModalWithReport here to fill in default value for navigationRef. The dismissModalWithReport isn't defined in this file to avoid cyclic dependencies.
+// This method is needed because it allows to dismiss the modal and then open the report. Within this method is checked whether the report belongs to a specific workspace. Sometimes the report we want to check, hasn't been added to the Onyx yet.
+// Then we can pass the report as a param without getting it from the Onyx.
+const dismissModalWithReport = (report: Report | EmptyObject, ref = navigationRef) => originalDismissModalWithReport(report, ref);
+
 /** Method for finding on which index in stack we are. */
 function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number | undefined {
     if ('routes' in stateOrRoute && stateOrRoute.routes) {
@@ -56,11 +78,26 @@ function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number
         return getActiveRouteIndex(childActiveRoute, stateOrRoute.state.index ?? 0);
     }
 
-    if ('name' in stateOrRoute && stateOrRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+    if (
+        'name' in stateOrRoute &&
+        (stateOrRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || stateOrRoute.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR || stateOrRoute.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR)
+    ) {
         return 0;
     }
 
     return index;
+}
+
+/**
+ * Function that generates dynamic urls from paths passed from OldDot
+ */
+function parseHybridAppUrl(url: HybridAppRoute | Route): Route {
+    switch (url) {
+        case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE:
+            return ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID());
+        default:
+            return url;
+    }
 }
 
 /**
@@ -69,7 +106,7 @@ function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number
  * @param path - Path that you are looking for.
  * @return - Returns distance to path or -1 if the path is not found in root navigator.
  */
-function getDistanceFromPathInRootNavigator(path: string): number {
+function getDistanceFromPathInRootNavigator(path?: string): number {
     let currentState = navigationRef.getRootState();
 
     for (let index = 0; index < 5; index++) {
@@ -95,6 +132,10 @@ function getActiveRoute(): string {
         return '';
     }
 
+    if (currentRoute?.path) {
+        return currentRoute.path;
+    }
+
     const routeFromState = getPathFromState(navigationRef.getRootState(), linkingConfig.config);
 
     if (routeFromState) {
@@ -114,8 +155,11 @@ function getActiveRoute(): string {
  * @return is active
  */
 function isActiveRoute(routePath: Route): boolean {
-    // We remove First forward slash from the URL before matching
-    return getActiveRoute().substring(1) === routePath;
+    let activeRoute = getActiveRoute();
+    activeRoute = activeRoute.startsWith('/') ? activeRoute.substring(1) : activeRoute;
+
+    // We remove redundant (consecutive and trailing) slashes from path before matching
+    return activeRoute === routePath.replace(CONST.REGEX.ROUTES.REDUNDANT_SLASHES, (match, p1) => (p1 ? '/' : ''));
 }
 
 /**
@@ -138,7 +182,7 @@ function navigate(route: Route = ROUTES.HOME, type?: string) {
  * @param shouldEnforceFallback - Enforces navigation to fallback route
  * @param shouldPopToTop - Should we navigate to LHN on back press
  */
-function goBack(fallbackRoute: Route, shouldEnforceFallback = false, shouldPopToTop = false) {
+function goBack(fallbackRoute?: Route, shouldEnforceFallback = false, shouldPopToTop = false) {
     if (!canNavigate('goBack')) {
         return;
     }
@@ -160,8 +204,8 @@ function goBack(fallbackRoute: Route, shouldEnforceFallback = false, shouldPopTo
     if (isFirstRouteInNavigator) {
         const rootState = navigationRef.getRootState();
         const lastRoute = rootState.routes.at(-1);
-        // If the user comes from a different flow (there is more than one route in RHP) we should go back to the previous flow on UP button press instead of using the fallbackRoute.
-        if (lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && (lastRoute.state?.index ?? 0) > 0) {
+        // If the user comes from a different flow (there is more than one route in ModalNavigator) we should go back to the previous flow on UP button press instead of using the fallbackRoute.
+        if ((lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || lastRoute?.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR) && (lastRoute.state?.index ?? 0) > 0) {
             navigationRef.current.goBack();
             return;
         }
@@ -173,7 +217,7 @@ function goBack(fallbackRoute: Route, shouldEnforceFallback = false, shouldPopTo
     }
 
     const isCentralPaneFocused = findFocusedRoute(navigationRef.current.getState())?.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR;
-    const distanceFromPathInRootNavigator = getDistanceFromPathInRootNavigator(fallbackRoute);
+    const distanceFromPathInRootNavigator = getDistanceFromPathInRootNavigator(fallbackRoute ?? '');
 
     // Allow CentralPane to use UP with fallback route if the path is not found in root navigator.
     if (isCentralPaneFocused && fallbackRoute && distanceFromPathInRootNavigator === -1) {
@@ -191,6 +235,14 @@ function goBack(fallbackRoute: Route, shouldEnforceFallback = false, shouldPopTo
 }
 
 /**
+ * Close the full screen modal.
+ */
+function closeFullScreen() {
+    const rootState = navigationRef.getRootState();
+    navigationRef.dispatch({...StackActions.popToTop(), target: rootState.key});
+}
+
+/**
  * Update route params for the specified route.
  */
 function setParams(params: Record<string, unknown>, routeKey: string) {
@@ -198,45 +250,6 @@ function setParams(params: Record<string, unknown>, routeKey: string) {
         ...CommonActions.setParams(params),
         source: routeKey,
     });
-}
-
-/**
- * Dismisses the last modal stack if there is any
- *
- * @param targetReportID - The reportID to navigate to after dismissing the modal
- */
-function dismissModal(targetReportID?: string) {
-    if (!canNavigate('dismissModal')) {
-        return;
-    }
-    const rootState = navigationRef.getRootState();
-    const lastRoute = rootState.routes.at(-1);
-    switch (lastRoute?.name) {
-        case NAVIGATORS.RIGHT_MODAL_NAVIGATOR:
-        case SCREENS.NOT_FOUND:
-        case SCREENS.REPORT_ATTACHMENTS:
-            // if we are not in the target report, we need to navigate to it after dismissing the modal
-            if (targetReportID && targetReportID !== getTopmostReportId(rootState)) {
-                const state = getStateFromPath(ROUTES.REPORT_WITH_ID.getRoute(targetReportID));
-
-                const action: StackNavigationAction = getActionFromState(state, linkingConfig.config);
-                if (action) {
-                    action.type = 'REPLACE';
-                    navigationRef.current?.dispatch(action);
-                }
-                // If not-found page is in the route stack, we need to close it
-            } else if (targetReportID && rootState.routes.some((route) => route.name === SCREENS.NOT_FOUND)) {
-                const lastRouteIndex = rootState.routes.length - 1;
-                const centralRouteIndex = findLastIndex(rootState.routes, (route) => route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR);
-                navigationRef.current?.dispatch({...StackActions.pop(lastRouteIndex - centralRouteIndex), target: rootState.key});
-            } else {
-                navigationRef.current?.dispatch({...StackActions.pop(), target: rootState.key});
-            }
-            break;
-        default: {
-            Log.hmmm('[Navigation] dismissModal failed because there is no modal stack to dismiss');
-        }
-    }
 }
 
 /**
@@ -286,13 +299,13 @@ function setIsNavigationReady() {
  *
  * @param state - react-navigation state object
  */
-function navContainsProtectedRoutes(state: NavigationState | PartialState<NavigationState> | undefined): boolean {
+function navContainsProtectedRoutes(state: State | undefined): boolean {
     if (!state?.routeNames || !Array.isArray(state.routeNames)) {
         return false;
     }
 
-    const protectedScreensName = Object.values(PROTECTED_SCREENS);
-    return !protectedScreensName.some((screen) => !state.routeNames?.includes(screen));
+    // If one protected screen is in the routeNames then other screens are there as well.
+    return state?.routeNames.includes(PROTECTED_SCREENS.CONCIERGE);
 }
 
 /**
@@ -326,11 +339,20 @@ function waitForProtectedRoutes() {
     });
 }
 
+function navigateWithSwitchPolicyID(params: SwitchPolicyIDParams) {
+    if (!canNavigate('navigateWithSwitchPolicyID')) {
+        return;
+    }
+
+    return switchPolicyID(navigationRef.current, params);
+}
+
 export default {
     setShouldPopAllStateOnUP,
     navigate,
     setParams,
     dismissModal,
+    dismissModalWithReport,
     isActiveRoute,
     getActiveRoute,
     getActiveRouteWithoutParams,
@@ -341,6 +363,9 @@ export default {
     getRouteNameFromStateEvent,
     getTopmostReportActionId,
     waitForProtectedRoutes,
+    parseHybridAppUrl,
+    closeFullScreen,
+    navigateWithSwitchPolicyID,
 };
 
 export {navigationRef};

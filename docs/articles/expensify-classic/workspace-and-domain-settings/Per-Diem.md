@@ -86,7 +86,7 @@ When you _Export to CSV_, Expensify also assigns a Rate ID to each existing rate
 
 Note: _This rate ID corresponds to the Destination+Subrate. You cannot overwrite Destinations, but you can overwrite the Subrate within a Destination by using this rate ID. Always use the “Clear Rate” option with a fresh upload when removing large numbers of rates rather than deleting them individually._
 
-# FAQs
+{% include faq-begin.md %}
 
 ## How do I report on my team's Per Diem expenses?
 
@@ -95,3 +95,4 @@ Great question! We’ve added a Per Diem export for users to export Per Diem exp
 ## What if I need help setting the exact rate amounts and currencies?
 
 Right now, Expensify can't help determine what these should be. They vary widely based on your country of origin, the state within that jurisdiction, your company workspace, and the time (usually year) you traveled. There's a demonstration spreadsheet [here](https://s3-us-west-1.amazonaws.com/concierge-responses-expensify-com/uploads%2F1596692482998-Germany+-+Per+Diem.csv), but it shouldn't be used for actual claims unless verified by your internal finance team or accountants. 
+{% include faq-end.md %}

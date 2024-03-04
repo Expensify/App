@@ -1,5 +1,6 @@
 import React, {Fragment} from 'react';
-import {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -31,6 +32,13 @@ function getTextMatrix(text: string): string[][] {
     return text.split('\n').map((row) => row.split(CONST.REGEX.SPACE_OR_EMOJI).filter((value) => value !== ''));
 }
 
+/**
+ * Validates if the text contains any emoji
+ */
+function containsEmoji(text: string): boolean {
+    return CONST.REGEX.EMOJI.test(text);
+}
+
 function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {
     const styles = useThemeStyles();
 
@@ -53,7 +61,7 @@ function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {
                     style={styles.codeWordWrapper}
                 >
                     <View style={[wordStyles, colIndex === 0 && styles.codeFirstWordStyle, colIndex === rowText.length - 1 && styles.codeLastWordStyle]}>
-                        <Text style={textStyles}>{colText}</Text>
+                        <Text style={[textStyles, !containsEmoji(colText) && styles.codePlainTextStyle]}>{colText}</Text>
                     </View>
                 </View>
             ))}

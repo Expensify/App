@@ -1,7 +1,8 @@
 import React, {useMemo, useState} from 'react';
 import CONST from '@src/CONST';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
-import AnimatedStepContext, {AnimationDirection} from './AnimatedStepContext';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type {AnimationDirection} from './AnimatedStepContext';
+import AnimatedStepContext from './AnimatedStepContext';
 
 function AnimatedStepProvider({children}: ChildrenProps): React.ReactNode {
     const [animationDirection, setAnimationDirection] = useState<AnimationDirection>(CONST.ANIMATION_DIRECTION.IN);

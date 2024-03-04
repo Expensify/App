@@ -1,0 +1,81 @@
+name: Build an Android apk for e2e tests
+description: Build an Android apk for an E2E test build and upload it as an artifact
+
+inputs:
+  ARTIFACT_NAME:
+    description: The name of the workflow artifact where the APK should be uploaded
+    required: true
+  ARTIFACT_RETENTION_DAYS:
+    description: The number of days to retain the artifact
+    required: false
+    # Thats github default:
+    default: "90"
+  PACKAGE_SCRIPT_NAME:
+    description: The name of the npm script to run to build the APK
+    required: true
+  APP_OUTPUT_PATH:
+    description: The path to the built APK
+    required: true
+  MAPBOX_SDK_DOWNLOAD_TOKEN:
+    description: The token to use to download the MapBox SDK
+    required: true
+  PATH_ENV_FILE:
+    description: The path to the .env file to use for the build
+    required: true
+  EXPENSIFY_PARTNER_NAME:
+    description: The name of the Expensify partner to use for the build
+    required: true
+  EXPENSIFY_PARTNER_PASSWORD:
+    description: The password of the Expensify partner to use for the build
+    required: true
+  EXPENSIFY_PARTNER_USER_ID:
+    description: The user ID of the Expensify partner to use for the build
+    required: true
+  EXPENSIFY_PARTNER_USER_SECRET:
+    description: The user secret of the Expensify partner to use for the build
+    required: true
+  EXPENSIFY_PARTNER_PASSWORD_EMAIL:
+    description: The email address of the Expensify partner to use for the build
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Configure MapBox SDK
+      run: ./scripts/setup-mapbox-sdk.sh ${{ inputs.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+      shell: bash
+
+    - uses: Expensify/App/.github/actions/composite/setupNode@main
+
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: "oracle"
+        java-version: "17"
+
+    - uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
+      with:
+        ruby-version: "2.7"
+        bundler-cache: true
+
+    - uses: gradle/gradle-build-action@3fbe033aaae657f011f88f29be9e65ed26bd29ef
+
+    - name: Append environment variables to env file
+      shell: bash
+      run: |
+        echo "EXPENSIFY_PARTNER_NAME=${{ inputs.EXPENSIFY_PARTNER_NAME }}" >> ${{ inputs.PATH_ENV_FILE }}
+        echo "EXPENSIFY_PARTNER_PASSWORD=${{ inputs.EXPENSIFY_PARTNER_PASSWORD }}" >> ${{ inputs.PATH_ENV_FILE }}
+        echo "EXPENSIFY_PARTNER_USER_ID=${{ inputs.EXPENSIFY_PARTNER_USER_ID }}" >> ${{ inputs.PATH_ENV_FILE }}
+        echo "EXPENSIFY_PARTNER_USER_SECRET=${{ inputs.EXPENSIFY_PARTNER_USER_SECRET }}" >> ${{ inputs.PATH_ENV_FILE }}
+        echo "EXPENSIFY_PARTNER_PASSWORD_EMAIL=${{ inputs.EXPENSIFY_PARTNER_PASSWORD_EMAIL }}" >> ${{ inputs.PATH_ENV_FILE }}
+
+    - name: Build APK
+      run: npm run ${{ inputs.PACKAGE_SCRIPT_NAME }}
+      shell: bash
+
+    - name: Upload APK
+      uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3
+      with:
+        name: ${{ inputs.ARTIFACT_NAME }}
+        path: ${{ inputs.APP_OUTPUT_PATH }}
+        retention-days: ${{ inputs.ARTIFACT_RETENTION_DAYS }}

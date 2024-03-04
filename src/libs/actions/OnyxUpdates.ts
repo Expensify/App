@@ -1,11 +1,13 @@
-import Onyx, {OnyxEntry} from 'react-native-onyx';
-import {Merge} from 'type-fest';
+import type {OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {Merge} from 'type-fest';
 import Log from '@libs/Log';
 import PusherUtils from '@libs/PusherUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/onyx';
-import Response from '@src/types/onyx/Response';
+import type {OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/onyx';
+import type Response from '@src/types/onyx/Response';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as QueuedOnyxUpdates from './QueuedOnyxUpdates';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
@@ -43,6 +45,12 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
             return Promise.resolve();
         })
         .then(() => {
+            if (request.finallyData) {
+                return updateHandler(request.finallyData);
+            }
+            return Promise.resolve();
+        })
+        .then(() => {
             console.debug('[OnyxUpdateManager] Done applying HTTPS update');
             return Promise.resolve(response);
         });
@@ -69,11 +77,28 @@ function applyPusherOnyxUpdates(updates: OnyxUpdateEvent[]) {
  */
 function apply({lastUpdateID, type, request, response, updates}: Merge<OnyxUpdatesFromServer, {updates: OnyxUpdateEvent[]; type: 'pusher'}>): Promise<void>;
 function apply({lastUpdateID, type, request, response, updates}: Merge<OnyxUpdatesFromServer, {request: Request; response: Response; type: 'https'}>): Promise<Response>;
+function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer): Promise<Response>;
 function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer): Promise<void | Response> | undefined {
     Log.info(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, false, {command: request?.command});
 
-    if (lastUpdateID && lastUpdateIDAppliedToClient && Number(lastUpdateID) < lastUpdateIDAppliedToClient) {
-        Log.info('[OnyxUpdateManager] Update received was older than current state, returning without applying the updates', false);
+    if (lastUpdateID && lastUpdateIDAppliedToClient && Number(lastUpdateID) <= lastUpdateIDAppliedToClient) {
+        Log.info('[OnyxUpdateManager] Update received was older than or the same as current state, returning without applying the updates other than successData and failureData');
+
+        // In this case, we're already received the OnyxUpdate included in the response, so we don't need to apply it again.
+        // However, we do need to apply the successData and failureData from the request
+        if (
+            type === CONST.ONYX_UPDATE_TYPES.HTTPS &&
+            request &&
+            response &&
+            (!isEmptyObject(request.successData) || !isEmptyObject(request.failureData) || !isEmptyObject(request.finallyData))
+        ) {
+            Log.info('[OnyxUpdateManager] Applying success or failure data from request without onyxData from response');
+
+            // We use a spread here instead of delete because we don't want to change the response for other middlewares
+            const {onyxData, ...responseWithoutOnyxData} = response;
+            return applyHTTPSOnyxUpdates(request, responseWithoutOnyxData);
+        }
+
         return Promise.resolve();
     }
     if (lastUpdateID && (lastUpdateIDAppliedToClient === null || Number(lastUpdateID) > lastUpdateIDAppliedToClient)) {

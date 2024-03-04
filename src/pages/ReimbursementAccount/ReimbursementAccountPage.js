@@ -27,13 +27,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import ACHContractStep from './ACHContractStep';
 import BankAccountStep from './BankAccountStep';
+import BeneficialOwnersStep from './BeneficialOwnersStep';
 import CompanyStep from './CompanyStep';
+import ConnectBankAccount from './ConnectBankAccount/ConnectBankAccount';
 import ContinueBankAccountSetup from './ContinueBankAccountSetup';
-import EnableStep from './EnableStep';
+import EnableBankAccount from './EnableBankAccount/EnableBankAccount';
 import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import RequestorStep from './RequestorStep';
-import ValidationStep from './ValidationStep';
 
 const propTypes = {
     /** Plaid SDK token to use to initialize the widget */
@@ -105,6 +106,7 @@ const defaultProps = {
 const ROUTE_NAMES = {
     COMPANY: 'company',
     PERSONAL_INFORMATION: 'personal-information',
+    BENEFICIAL_OWNERS: 'beneficial-owners',
     CONTRACT: 'contract',
     VALIDATE: 'validate',
     ENABLE: 'enable',
@@ -125,6 +127,8 @@ function getStepToOpenFromRouteParams(route) {
             return CONST.BANK_ACCOUNT.STEP.COMPANY;
         case ROUTE_NAMES.PERSONAL_INFORMATION:
             return CONST.BANK_ACCOUNT.STEP.REQUESTOR;
+        case ROUTE_NAMES.BENEFICIAL_OWNERS:
+            return CONST.BANK_ACCOUNT.STEP.BENEFICIAL_OWNERS;
         case ROUTE_NAMES.CONTRACT:
             return CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT;
         case ROUTE_NAMES.VALIDATE:
@@ -146,6 +150,8 @@ function getRouteForCurrentStep(currentStep) {
             return ROUTE_NAMES.COMPANY;
         case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
             return ROUTE_NAMES.PERSONAL_INFORMATION;
+        case CONST.BANK_ACCOUNT.STEP.BENEFICIAL_OWNERS:
+            return ROUTE_NAMES.BENEFICIAL_OWNERS;
         case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
             return ROUTE_NAMES.CONTRACT;
         case CONST.BANK_ACCOUNT.STEP.VALIDATION:
@@ -210,12 +216,6 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         }
     }
 
-    // Update the data that is returned from back-end to draft value
-    const draftStep = reimbursementAccount.draftStep;
-    if (draftStep) {
-        BankAccounts.updateReimbursementAccountDraft(getBankAccountFields(getFieldsForStep(draftStep)));
-    }
-
     /**
      * Returns true if a VBBA exists in any state other than OPEN or LOCKED
      * @returns {Boolean}
@@ -272,7 +272,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         const stepToOpen = getStepToOpenFromRouteParams(route);
         const subStep = achData.subStep || '';
         const localCurrentStep = achData.currentStep || '';
-        BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, ignoreLocalCurrentStep ? '' : localCurrentStep);
+        BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, ignoreLocalCurrentStep ? '' : localCurrentStep, policyID);
     }
 
     useEffect(
@@ -315,9 +315,21 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
 
             const currentStepRouteParam = getStepToOpenFromRouteParams(route);
             if (currentStepRouteParam === currentStep) {
+                // If the user is connecting online with plaid, reset any bank account errors so we don't persist old data from a potential previous connection
+                if (currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && achData.subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+                    BankAccounts.hideBankAccountErrors();
+                }
+
                 // The route is showing the correct step, no need to update the route param or clear errors.
                 return;
             }
+
+            // Update the data that is returned from back-end to draft value
+            const draftStep = reimbursementAccount.draftStep;
+            if (draftStep) {
+                BankAccounts.updateReimbursementAccountDraft(getBankAccountFields(getFieldsForStep(draftStep)));
+            }
+
             if (currentStepRouteParam !== '') {
                 // When we click "Connect bank account", we load the page without the current step param, if there
                 // was an error when we tried to disconnect or start over, we want the user to be able to see the error,
@@ -326,16 +338,19 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
             }
 
             const backTo = lodashGet(route.params, 'backTo');
-            const policyId = lodashGet(route.params, 'policyID');
+            // eslint-disable-next-line no-shadow
+            const policyID = lodashGet(route.params, 'policyID');
 
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyId, backTo));
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyID, backTo));
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [isOffline, reimbursementAccount, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton],
     );
 
     const continueFunction = () => {
-        setShouldShowContinueSetupButton(false);
+        BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
+            setShouldShowContinueSetupButton(false);
+        });
         fetchData(true);
     };
 
@@ -350,7 +365,6 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     const goBack = () => {
         const subStep = achData.subStep;
         const shouldShowOnfido = onfidoToken && !achData.isOnfidoSetupComplete;
-        const backTo = lodashGet(route.params, 'backTo', ROUTES.HOME);
 
         switch (currentStep) {
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
@@ -361,25 +375,29 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                     BankAccounts.setBankAccountSubStep(null);
                     BankAccounts.setPlaidEvent(null);
                 } else {
-                    Navigation.goBack(backTo);
+                    Navigation.goBack();
                 }
                 break;
 
             case CONST.BANK_ACCOUNT.STEP.COMPANY:
-                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, {subStep: CONST.BANK_ACCOUNT.SUBSTEP.MANUAL});
+                BankAccounts.clearOnfidoToken();
+                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
                 break;
 
             case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
                 if (shouldShowOnfido) {
                     BankAccounts.clearOnfidoToken();
                 } else {
-                    BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
+                    BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
                 }
                 break;
 
+            case CONST.BANK_ACCOUNT.STEP.BENEFICIAL_OWNERS:
+                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
+                break;
+
             case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
-                BankAccounts.clearOnfidoToken();
-                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BENEFICIAL_OWNERS);
                 break;
 
             case CONST.BANK_ACCOUNT.STEP.VALIDATION:
@@ -388,42 +406,47 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 } else if (!isOffline && achData.state === BankAccount.STATE.PENDING) {
                     setShouldShowContinueSetupButton(true);
                 } else {
-                    Navigation.goBack(backTo);
+                    Navigation.goBack();
                 }
                 break;
 
             default:
-                Navigation.goBack(backTo);
+                Navigation.goBack();
         }
     };
 
-    if (_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy)) {
-        return (
-            <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
-                <FullPageNotFoundView
-                    shouldShow
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                    subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
-                />
-            </ScreenWrapper>
-        );
-    }
-
     const isLoading = (isLoadingApp || account.isLoading || reimbursementAccount.isLoading) && (!plaidCurrentEvent || plaidCurrentEvent === CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.EXIT);
     const shouldShowOfflineLoader = !(
-        isOffline && _.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, CONST.BANK_ACCOUNT.STEP.COMPANY, CONST.BANK_ACCOUNT.STEP.REQUESTOR, CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT], currentStep)
+        isOffline &&
+        _.contains(
+            [
+                CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
+                CONST.BANK_ACCOUNT.STEP.COMPANY,
+                CONST.BANK_ACCOUNT.STEP.REQUESTOR,
+                CONST.BANK_ACCOUNT.STEP.BENEFICIAL_OWNERS,
+                CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT,
+            ],
+            currentStep,
+        )
     );
 
     // Show loading indicator when page is first time being opened and props.reimbursementAccount yet to be loaded from the server
     // or when data is being loaded. Don't show the loading indicator if we're offline and restarted the bank account setup process
     // On Android, when we open the app from the background, Onfido activity gets destroyed, so we need to reopen it.
     if ((!hasACHDataBeenLoaded || isLoading) && shouldShowOfflineLoader && (shouldReopenOnfido || !requestorStepRef.current)) {
-        const isSubmittingVerificationsData = _.contains([CONST.BANK_ACCOUNT.STEP.COMPANY, CONST.BANK_ACCOUNT.STEP.REQUESTOR, CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT], currentStep);
+        return <ReimbursementAccountLoadingIndicator onBackButtonPress={goBack} />;
+    }
+
+    if (!isLoading && (_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy))) {
         return (
-            <ReimbursementAccountLoadingIndicator
-                isSubmittingVerificationsData={isSubmittingVerificationsData}
-                onBackButtonPress={goBack}
-            />
+            <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
+                <FullPageNotFoundView
+                    shouldShow
+                    onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
+                    onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
+                    subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
+                />
+            </ScreenWrapper>
         );
     }
 
@@ -446,7 +469,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 <HeaderWithBackButton
                     title={translate('workspace.common.connectBankAccount')}
                     subtitle={policyName}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                    onBackButtonPress={() => Navigation.goBack()}
                 />
                 <View style={[styles.m5, styles.mv3, styles.flex1]}>
                     <Text>{errorText}</Text>
@@ -462,7 +485,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 continue={continueFunction}
                 policyName={policyName}
                 onBackButtonPress={() => {
-                    Navigation.goBack(lodashGet(route.params, 'backTo', ROUTES.HOME));
+                    Navigation.goBack();
                 }}
             />
         );
@@ -484,15 +507,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     }
 
     if (currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY) {
-        return (
-            <CompanyStep
-                reimbursementAccount={reimbursementAccount}
-                reimbursementAccountDraft={reimbursementAccountDraft}
-                onBackButtonPress={goBack}
-                getDefaultStateForField={getDefaultStateForField}
-                policyID={policyID}
-            />
-        );
+        return <CompanyStep onBackButtonPress={goBack} />;
     }
 
     if (currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR) {
@@ -500,41 +515,28 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         return (
             <RequestorStep
                 ref={requestorStepRef}
-                reimbursementAccount={reimbursementAccount}
-                onBackButtonPress={goBack}
                 shouldShowOnfido={Boolean(shouldShowOnfido)}
-                getDefaultStateForField={getDefaultStateForField}
+                onBackButtonPress={goBack}
             />
         );
+    }
+
+    if (currentStep === CONST.BANK_ACCOUNT.STEP.BENEFICIAL_OWNERS) {
+        return <BeneficialOwnersStep onBackButtonPress={goBack} />;
     }
 
     if (currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT) {
-        return (
-            <ACHContractStep
-                reimbursementAccount={reimbursementAccount}
-                reimbursementAccountDraft={reimbursementAccountDraft}
-                onBackButtonPress={goBack}
-                companyName={achData.companyName}
-                getDefaultStateForField={getDefaultStateForField}
-            />
-        );
+        return <ACHContractStep onBackButtonPress={goBack} />;
     }
 
     if (currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION) {
-        return (
-            <ValidationStep
-                reimbursementAccount={reimbursementAccount}
-                onBackButtonPress={goBack}
-                policyID={policyID}
-            />
-        );
+        return <ConnectBankAccount onBackButtonPress={goBack} />;
     }
 
     if (currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE) {
         return (
-            <EnableStep
+            <EnableBankAccount
                 reimbursementAccount={reimbursementAccount}
-                policyName={policyName}
                 onBackButtonPress={goBack}
             />
         );
@@ -551,7 +553,7 @@ export default compose(
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
         reimbursementAccountDraft: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+            key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
         },
         session: {
             key: ONYXKEYS.SESSION,

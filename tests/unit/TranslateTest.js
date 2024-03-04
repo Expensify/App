@@ -1,9 +1,9 @@
-const _ = require('underscore');
-const {error: AnnotationError} = require('@actions/core');
-const Localize = require('../../src/libs/Localize');
-const CONFIG = require('../../src/CONFIG');
-const translations = require('../../src/languages/translations');
-const CONST = require('../../src/CONST').default;
+import {AnnotationError} from '@actions/core';
+import _ from 'underscore';
+import CONFIG from '../../src/CONFIG';
+import CONST from '../../src/CONST';
+import * as translations from '../../src/languages/translations';
+import * as Localize from '../../src/libs/Localize';
 
 const originalTranslations = _.clone(translations);
 translations.default = {
@@ -41,10 +41,10 @@ describe('translate', () => {
     });
 
     test('Test when key is not found in default (Production Mode)', () => {
-        const ORIGINAL_IS_IN_PRODUCTION = CONFIG.default.IS_IN_PRODUCTION;
-        CONFIG.default.IS_IN_PRODUCTION = true;
+        const ORIGINAL_IS_IN_PRODUCTION = CONFIG.IS_IN_PRODUCTION;
+        CONFIG.IS_IN_PRODUCTION = true;
         expect(Localize.translate(CONST.LOCALES.ES_ES, 'testKey4')).toBe('testKey4');
-        CONFIG.default.IS_IN_PRODUCTION = ORIGINAL_IS_IN_PRODUCTION;
+        CONFIG.IS_IN_PRODUCTION = ORIGINAL_IS_IN_PRODUCTION;
     });
 
     it('Test when translation value is a function', () => {

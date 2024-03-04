@@ -1,14 +1,12 @@
-import {ReactElement, ReactNode} from 'react';
+import type {ReactNode} from 'react';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-type TooltipProps = {
+type TooltipProps = ChildrenProps & {
     /** The text to display in the tooltip. If text is ommitted, only children will be rendered. */
     text?: string;
 
     /** Maximum number of lines to show in tooltip */
     numberOfLines?: number;
-
-    /** Children to wrap with Tooltip. */
-    children: ReactElement;
 
     /** Any additional amount to manually adjust the horizontal position of the tooltip.
     A positive value shifts the tooltip to the right, and a negative value shifts it to the left. */
@@ -29,6 +27,8 @@ type TooltipProps = {
 
     /** passes this down to Hoverable component to decide whether to handle the scroll behaviour to show hover once the scroll ends */
     shouldHandleScroll?: boolean;
+
+    shouldForceRenderingBelow?: boolean;
 };
 
 type TooltipExtendedProps = TooltipProps & {

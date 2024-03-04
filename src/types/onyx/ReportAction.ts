@@ -1,11 +1,13 @@
-import {ValueOf} from 'type-fest';
-import {AvatarSource} from '@libs/UserUtils';
-import CONST from '@src/CONST';
-import {EmptyObject} from '@src/types/utils/EmptyObject';
-import * as OnyxCommon from './OnyxCommon';
-import OriginalMessage, {Decision, Reaction} from './OriginalMessage';
-import {NotificationPreference} from './Report';
-import {Receipt} from './Transaction';
+import type {ValueOf} from 'type-fest';
+import type {FileObject} from '@components/AttachmentModal';
+import type {AvatarSource} from '@libs/UserUtils';
+import type CONST from '@src/CONST';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import type * as OnyxCommon from './OnyxCommon';
+import type {Decision, Reaction} from './OriginalMessage';
+import type OriginalMessage from './OriginalMessage';
+import type {NotificationPreference} from './Report';
+import type {Receipt} from './Transaction';
 
 type Message = {
     /** The type of the action item fragment. Used to render a corresponding component */
@@ -40,6 +42,7 @@ type Message = {
     /** Fragment edited flag */
     isEdited?: boolean;
 
+    /** Whether thread's parent message is deleted or not */
     isDeletedParentAction?: boolean;
 
     /** Whether the pending transaction was reversed and didn't post to the card */
@@ -52,6 +55,21 @@ type Message = {
 
     /** ID of a task report */
     taskReportID?: string;
+
+    /** Reason of payment cancellation */
+    cancellationReason?: string;
+
+    /** ID of an expense report */
+    expenseReportID?: string;
+
+    /** Amount of an expense */
+    amount?: number;
+
+    /** Currency of an expense */
+    currency?: string;
+
+    /** resolution for actionable mention whisper */
+    resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | null;
 };
 
 type ImageMetadata = {
@@ -94,7 +112,7 @@ type Person = {
     text?: string;
 };
 
-type ReportActionBase = {
+type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
     reportActionID: string;
 
@@ -105,6 +123,9 @@ type ReportActionBase = {
     previousReportActionID?: string;
 
     actorAccountID?: number;
+
+    /** The account of the last message's actor */
+    actor?: string;
 
     /** Person who created the action */
     person?: Person[];
@@ -139,6 +160,9 @@ type ReportActionBase = {
     /** Type of child report  */
     childType?: string;
 
+    /** The user's ID */
+    accountID?: number;
+
     childOldestFourEmails?: string;
     childOldestFourAccountIDs?: string;
     childCommenterCount?: number;
@@ -148,7 +172,7 @@ type ReportActionBase = {
     childManagerAccountID?: number;
 
     /** The status of the child report */
-    childStatusNum?: ValueOf<typeof CONST.REPORT.STATUS>;
+    childStatusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 
     /** Report action child status name */
     childStateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
@@ -161,7 +185,7 @@ type ReportActionBase = {
     isFirstItem?: boolean;
 
     /** Informations about attachments of report action */
-    attachmentInfo?: File | EmptyObject;
+    attachmentInfo?: FileObject | EmptyObject;
 
     /** Receipt tied to report action */
     receipt?: Receipt;
@@ -169,12 +193,10 @@ type ReportActionBase = {
     /** ISO-formatted datetime */
     lastModified?: string;
 
-    /** Is this action pending? */
-    pendingAction?: OnyxCommon.PendingAction;
-    delegateAccountID?: string;
+    delegateAccountID?: number;
 
     /** Server side errors keyed by microtime */
-    errors?: OnyxCommon.Errors;
+    errors?: OnyxCommon.Errors | OnyxCommon.ErrorFields;
 
     /** Whether the report action is attachment */
     isAttachment?: boolean;
@@ -193,11 +215,14 @@ type ReportActionBase = {
 
     /** We manually add this field while sorting to detect the end of the list */
     isNewestReportAction?: boolean;
-};
+
+    /** Flag for checking if data is from optimistic data */
+    isOptimisticAction?: boolean;
+}>;
 
 type ReportAction = ReportActionBase & OriginalMessage;
 
 type ReportActions = Record<string, ReportAction>;
 
 export default ReportAction;
-export type {ReportActions, ReportActionBase, Message, LinkMetadata};
+export type {ReportActions, ReportActionBase, Message, LinkMetadata, OriginalMessage};

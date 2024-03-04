@@ -1,5 +1,6 @@
 import React from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import AdHocLogo from '@assets/images/expensify-logo--adhoc.svg';
 import DevLogo from '@assets/images/expensify-logo--dev.svg';
 import StagingLogo from '@assets/images/expensify-logo--staging.svg';
@@ -33,21 +34,19 @@ function ExpensifyWordmark({isSmallScreenWidth, style}: ExpensifyWordmarkProps) 
     const LogoComponent = logoComponents[environment];
 
     return (
-        <>
-            <View
-                style={[
-                    StyleUtils.getSignInWordmarkWidthStyle(isSmallScreenWidth, environment),
-                    StyleUtils.getHeight(isSmallScreenWidth ? variables.signInLogoHeightSmallScreen : variables.signInLogoHeight),
-                    isSmallScreenWidth && (environment === CONST.ENVIRONMENT.DEV || environment === CONST.ENVIRONMENT.STAGING) ? styles.ml3 : {},
-                    style,
-                ]}
-            >
-                <ImageSVG
-                    contentFit="contain"
-                    src={LogoComponent}
-                />
-            </View>
-        </>
+        <View
+            style={[
+                StyleUtils.getSignInWordmarkWidthStyle(isSmallScreenWidth, environment),
+                StyleUtils.getHeight(isSmallScreenWidth ? variables.signInLogoHeightSmallScreen : variables.signInLogoHeight),
+                isSmallScreenWidth && (environment === CONST.ENVIRONMENT.DEV || environment === CONST.ENVIRONMENT.STAGING) ? styles.ml3 : {},
+                style,
+            ]}
+        >
+            <ImageSVG
+                contentFit="contain"
+                src={LogoComponent}
+            />
+        </View>
     );
 }
 

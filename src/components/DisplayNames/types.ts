@@ -1,4 +1,4 @@
-import {StyleProp, TextStyle} from 'react-native';
+import type {StyleProp, TextStyle} from 'react-native';
 import type {AvatarSource} from '@libs/UserUtils';
 
 type DisplayNameWithTooltip = {
@@ -12,7 +12,7 @@ type DisplayNameWithTooltip = {
     login?: string;
 
     /** The avatar for the tooltip fallback */
-    avatar: AvatarSource;
+    avatar?: AvatarSource;
 };
 
 type DisplayNamesProps = {
@@ -20,7 +20,7 @@ type DisplayNamesProps = {
     fullTitle: string;
 
     /** Array of objects that map display names to their corresponding tooltip */
-    displayNamesWithTooltips: DisplayNameWithTooltip[];
+    displayNamesWithTooltips?: DisplayNameWithTooltip[];
 
     /** Number of lines before wrapping */
     numberOfLines: number;
@@ -39,6 +39,9 @@ type DisplayNamesProps = {
 
     /** If the full title needs to be displayed */
     shouldUseFullTitle?: boolean;
+
+    /** Additional Text component to render after the displayNames */
+    renderAdditionalText?: () => React.ReactNode;
 };
 
 export default DisplayNamesProps;

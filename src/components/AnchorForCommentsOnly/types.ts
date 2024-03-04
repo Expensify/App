@@ -1,5 +1,5 @@
-import {StyleProp, TextStyle} from 'react-native';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
+import type {StyleProp, TextStyle} from 'react-native';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type AnchorForCommentsOnlyProps = ChildrenProps & {
     /** The URL to open */

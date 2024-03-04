@@ -3,7 +3,7 @@ title:  Cardholder Settings and Features
 description: Expensify Card Settings for Employees
 ---
 
-# How to use your Expensify Card
+# How to use your Expensify Visa® Commercial Card
 Once you receive your card, you can start using it right away. 
 
 First, you'll want to take note of the Smart Limit tied to your card – this is listed in your card settings via **Settings > Account > Credit Card Import**. This limit represents the total amount of unapproved expenses you can have on the card.
@@ -76,9 +76,11 @@ There was suspicious activity
      - If the spending looks suspicious, we may complete a manual due diligence check, and our team will do this as quickly as possible - your cards will all be locked while this happens.  
 - The merchant is located in a restricted country
 
-# FAQ
+{% include faq-begin.md %}
 ## Can I use Smart Limits with a free Expensify account? 
 If you're on the Free plan, you won't have the option to use Smart Limits. Your card limit will simply reset at the end of each calendar month.
 
 ## I still haven't received my Expensify Card. What should I do? 
 For more information on why your card hasn't arrived, you can check out this resource on [Requesting a Card](https://help.expensify.com/articles/expensify-classic/expensify-card/Request-the-Card#what-if-i-havent-received-my-card-after-multiple-weeks).
+
+{% include faq-end.md %}

@@ -24,7 +24,7 @@ Importing your ANZ Visa into Expensify will allow your card transactions to flow
 4. Once you’ve filled out and submitted your Internet Banking data authority form or ANZ Direct Online authority form, ANZ will set up the feed and send all the details directly to Expensify.
 5. Then, we’ll add the card feed to your Expensify account and send you a message to let you know that it has been set up. We'll also include some webinar training resources to ensure you have all the information you need!
 
-# FAQ
+{% include faq-begin.md %}
 ## Are there discounts available for ANZ customers?
 
 As ANZ’s preferred receipt tracking and expense management partner, Expensify offers ANZ business customers a few special perks:
@@ -44,3 +44,5 @@ After the free trial, you’ll get preferred pricing at 50% off the current rate
 
 ## Do I need to sign up for a specific period in order to receive the discount?
 There is no obligation to sign up for a certain period to receive the discount. After your free trial, the 50% discount for the first 12 months, will be applied automatically to your account. After the initial 12 months, the 15% discount will also be applied automatically.
+
+{% include faq-end.md %}

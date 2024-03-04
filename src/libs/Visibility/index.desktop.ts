@@ -1,5 +1,5 @@
-import ELECTRON_EVENTS from '../../../desktop/ELECTRON_EVENTS';
-import {HasFocus, IsVisible, OnVisibilityChange} from './types';
+import ELECTRON_EVENTS from '@desktop/ELECTRON_EVENTS';
+import type {HasFocus, IsVisible, OnVisibilityChange} from './types';
 
 /**
  * Detects whether the app is visible or not. Electron supports document.visibilityState,

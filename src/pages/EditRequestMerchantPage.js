@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/MoneyRequestMerchantForm';
 
 const propTypes = {
     /** Transaction default merchant value */
@@ -18,22 +19,31 @@ const propTypes = {
 
     /** Callback to fire when the Save button is pressed  */
     onSubmit: PropTypes.func.isRequired,
+
+    /** Boolean to enable validation */
+    isPolicyExpenseChat: PropTypes.bool,
 };
 
-function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
+const defaultProps = {
+    isPolicyExpenseChat: false,
+};
+
+function EditRequestMerchantPage({defaultMerchant, onSubmit, isPolicyExpenseChat}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const merchantInputRef = useRef(null);
+    const isEmptyMerchant = defaultMerchant === '' || defaultMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 
-    const validate = useCallback((value) => {
-        const errors = {};
-
-        if (_.isEmpty(value.merchant)) {
-            errors.merchant = 'common.error.fieldRequired';
-        }
-
-        return errors;
-    }, []);
+    const validate = useCallback(
+        (value) => {
+            const errors = {};
+            if (_.isEmpty(value.merchant) && value.merchant.trim() === '' && isPolicyExpenseChat) {
+                errors.merchant = 'common.error.fieldRequired';
+            }
+            return errors;
+        },
+        [isPolicyExpenseChat],
+    );
 
     return (
         <ScreenWrapper
@@ -54,9 +64,9 @@ function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
                 <View style={styles.mb4}>
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID="merchant"
-                        name="merchant"
-                        defaultValue={defaultMerchant}
+                        inputID={INPUT_IDS.MERCHANT}
+                        name={INPUT_IDS.MERCHANT}
+                        defaultValue={isEmptyMerchant ? '' : defaultMerchant}
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
                         role={CONST.ROLE.PRESENTATION}
@@ -69,6 +79,7 @@ function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
 }
 
 EditRequestMerchantPage.propTypes = propTypes;
+EditRequestMerchantPage.defaultProps = defaultProps;
 EditRequestMerchantPage.displayName = 'EditRequestMerchantPage';
 
 export default EditRequestMerchantPage;

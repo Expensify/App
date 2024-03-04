@@ -1,4 +1,4 @@
-import HasHoverSupport from './types';
+import type HasHoverSupport from './types';
 
 /**
  * Allows us to identify whether the platform is hoverable.

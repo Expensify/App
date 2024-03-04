@@ -1,6 +1,7 @@
-import {rand, randAggregation, randBoolean, randPastDate, randWord} from '@ngneat/falso';
+import {rand, randAggregation, randBoolean, randWord} from '@ngneat/falso';
+import {format} from 'date-fns';
 import CONST from '@src/CONST';
-import {ReportAction} from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
 
 type ActionType = keyof typeof CONST.REPORT.ACTIONS.TYPE;
 
@@ -15,6 +16,15 @@ const flattenActionNamesValues = (actionNames: any) => {
         }
     });
     return result;
+};
+
+const getRandomDate = (): string => {
+    const randomTimestamp = Math.random() * new Date().getTime();
+    const randomDate = new Date(randomTimestamp);
+
+    const formattedDate = format(randomDate, CONST.DATE.FNS_DB_FORMAT_STRING);
+
+    return formattedDate;
 };
 
 export default function createRandomReportAction(index: number): ReportAction {
@@ -32,7 +42,7 @@ export default function createRandomReportAction(index: number): ReportAction {
                 text: randWord(),
             },
         ],
-        created: randPastDate().toISOString(),
+        created: getRandomDate(),
         message: [
             {
                 type: randWord(),
@@ -57,15 +67,15 @@ export default function createRandomReportAction(index: number): ReportAction {
         ],
         originalMessage: {
             html: randWord(),
-            type: rand(Object.values(CONST.IOU.REPORT_ACTION_TYPE)),
+            lastModified: getRandomDate(),
         },
         whisperedToAccountIDs: randAggregation(),
         avatar: randWord(),
         automatic: randBoolean(),
         shouldShow: randBoolean(),
-        lastModified: randPastDate().toISOString(),
+        lastModified: getRandomDate(),
         pendingAction: rand(Object.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
-        delegateAccountID: index.toString(),
+        delegateAccountID: index,
         errors: {},
         isAttachment: randBoolean(),
     };

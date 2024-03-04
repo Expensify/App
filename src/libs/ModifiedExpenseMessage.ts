@@ -1,15 +1,17 @@
-import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PolicyTags, ReportAction} from '@src/types/onyx';
+import type {PolicyTagList, ReportAction} from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
+import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
-import {ExpenseOriginalMessage} from './ReportUtils';
+import type {ExpenseOriginalMessage} from './ReportUtils';
+import * as TransactionUtils from './TransactionUtils';
 
-let allPolicyTags: Record<string, PolicyTags | null> = {};
+let allPolicyTags: OnyxCollection<PolicyTagList> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
     waitForCollectionCallback: true,
@@ -38,8 +40,10 @@ function buildMessageFragmentForValue(
     const newValueToDisplay = valueInQuotes ? `"${newValue}"` : newValue;
     const oldValueToDisplay = valueInQuotes ? `"${oldValue}"` : oldValue;
     const displayValueName = shouldConvertToLowercase ? valueName.toLowerCase() : valueName;
+    const isOldValuePartialMerchant = valueName === Localize.translateLocal('common.merchant') && oldValue === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 
-    if (!oldValue) {
+    // In case of a partial merchant value, we want to avoid user seeing the "(none)" value in the message.
+    if (!oldValue || isOldValuePartialMerchant) {
         const fragment = Localize.translateLocal('iou.setTheRequest', {valueName: displayValueName, newValueToDisplay});
         setFragments.push(fragment);
     } else if (!newValue) {
@@ -93,14 +97,12 @@ function getForDistanceRequest(newDistance: string, oldDistance: string, newAmou
  * ModifiedExpense::getNewDotComment in Web-Expensify should match this.
  * If we change this function be sure to update the backend as well.
  */
-function getForReportAction(reportAction: ReportAction): string {
-    if (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
+function getForReportAction(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>): string {
+    if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
         return '';
     }
-    const reportActionOriginalMessage = reportAction.originalMessage as ExpenseOriginalMessage | undefined;
-    const policyID = ReportUtils.getReportPolicyID(reportAction.reportID) ?? '';
-    const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-    const policyTagListName = PolicyUtils.getTagListName(policyTags) || Localize.translateLocal('common.tag');
+    const reportActionOriginalMessage = reportAction?.originalMessage as ExpenseOriginalMessage | undefined;
+    const policyID = ReportUtils.getReportPolicyID(reportID) ?? '';
 
     const removalFragments: string[] = [];
     const setFragments: string[] = [];
@@ -116,7 +118,8 @@ function getForReportAction(reportAction: ReportAction): string {
     const hasModifiedMerchant = reportActionOriginalMessage && 'oldMerchant' in reportActionOriginalMessage && 'merchant' in reportActionOriginalMessage;
     if (hasModifiedAmount) {
         const oldCurrency = reportActionOriginalMessage?.oldCurrency ?? '';
-        const oldAmount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage?.oldAmount ?? 0, oldCurrency);
+        const oldAmountValue = reportActionOriginalMessage?.oldAmount ?? 0;
+        const oldAmount = oldAmountValue > 0 ? CurrencyUtils.convertToDisplayString(reportActionOriginalMessage?.oldAmount ?? 0, oldCurrency) : '';
 
         const currency = reportActionOriginalMessage?.currency ?? '';
         const amount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage?.amount ?? 0, currency);
@@ -143,13 +146,11 @@ function getForReportAction(reportAction: ReportAction): string {
         );
     }
 
-    const hasModifiedCreated = reportActionOriginalMessage && 'oldCreated' in reportActionOriginalMessage && 'created' in reportActionOriginalMessage;
-    if (hasModifiedCreated) {
-        // Take only the YYYY-MM-DD value as the original date includes timestamp
-        let formattedOldCreated: Date | string = new Date(reportActionOriginalMessage?.oldCreated ? reportActionOriginalMessage.oldCreated : 0);
-        formattedOldCreated = format(formattedOldCreated, CONST.DATE.FNS_FORMAT_STRING);
+    if (reportActionOriginalMessage?.oldCreated && reportActionOriginalMessage?.created) {
+        const formattedOldCreated = DateUtils.formatWithUTCTimeZone(reportActionOriginalMessage.oldCreated, CONST.DATE.FNS_FORMAT_STRING);
+
         buildMessageFragmentForValue(
-            reportActionOriginalMessage?.created ?? '',
+            reportActionOriginalMessage.created,
             formattedOldCreated,
             Localize.translateLocal('common.date'),
             false,
@@ -186,16 +187,32 @@ function getForReportAction(reportAction: ReportAction): string {
 
     const hasModifiedTag = reportActionOriginalMessage && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
     if (hasModifiedTag) {
-        buildMessageFragmentForValue(
-            reportActionOriginalMessage?.tag ?? '',
-            reportActionOriginalMessage?.oldTag ?? '',
-            policyTagListName,
-            true,
-            setFragments,
-            removalFragments,
-            changeFragments,
-            policyTagListName === Localize.translateLocal('common.tag'),
-        );
+        const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
+        const transactionTag = reportActionOriginalMessage?.tag ?? '';
+        const oldTransactionTag = reportActionOriginalMessage?.oldTag ?? '';
+        const splittedTag = TransactionUtils.getTagArrayFromName(transactionTag);
+        const splittedOldTag = TransactionUtils.getTagArrayFromName(oldTransactionTag);
+        const localizedTagListName = Localize.translateLocal('common.tag');
+
+        Object.keys(policyTags).forEach((policyTagKey, index) => {
+            const policyTagListName = PolicyUtils.getTagListName(policyTags, index) || localizedTagListName;
+
+            const newTag = splittedTag[index] ?? '';
+            const oldTag = splittedOldTag[index] ?? '';
+
+            if (newTag !== oldTag) {
+                buildMessageFragmentForValue(
+                    PolicyUtils.getCleanedTagName(newTag),
+                    PolicyUtils.getCleanedTagName(oldTag),
+                    policyTagListName,
+                    true,
+                    setFragments,
+                    removalFragments,
+                    changeFragments,
+                    policyTagListName === localizedTagListName,
+                );
+            }
+        });
     }
 
     const hasModifiedBillable = reportActionOriginalMessage && 'oldBillable' in reportActionOriginalMessage && 'billable' in reportActionOriginalMessage;

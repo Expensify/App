@@ -4,6 +4,7 @@ import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
@@ -96,6 +97,8 @@ function TimezoneSelectPage(props) {
                 sections={[{data: timezoneOptions, indexOffset: 0, isDisabled: timezone.automatic}]}
                 initiallyFocusedOptionKey={_.get(_.filter(timezoneOptions, (tz) => tz.text === timezone.selected)[0], 'keyForList')}
                 showScrollIndicator
+                shouldShowTooltips={false}
+                ListItem={RadioListItem}
             />
         </ScreenWrapper>
     );
