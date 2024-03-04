@@ -174,7 +174,12 @@ function BaseVideoPlayer({
 
     return (
         <>
-            <View style={style}>
+            {/* We need to wrap the video component in a component that will catch unhandled pointer events. Otherwise, these
+            events will bubble up the tree, and it will cause unexpected press behavior. */}
+            <PressableWithoutFeedback
+                accessibilityRole="button"
+                style={[styles.cursorDefault, style]}
+            >
                 <Hoverable>
                     {(isHovered) => (
                         <View style={[styles.w100, styles.h100]}>
@@ -246,7 +251,7 @@ function BaseVideoPlayer({
                         </View>
                     )}
                 </Hoverable>
-            </View>
+            </PressableWithoutFeedback>
             <VideoPopoverMenu
                 isPopoverVisible={isPopoverVisible}
                 hidePopover={hidePopoverMenu}
