@@ -23,6 +23,7 @@ const SCREENS = {
     UNLINK_LOGIN: 'UnlinkLogin',
     SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
     TRAVEL: {
+        HOME: 'Travel_Home',
         MY_TRIPS: 'Travel_MyTrips',
     },
     SETTINGS: {

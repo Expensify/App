@@ -514,6 +514,7 @@ type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: undefined;
     [SCREENS.ALL_SETTINGS]: undefined;
     [SCREENS.WORKSPACE.INITIAL]: undefined;
+    [SCREENS.TRAVEL.HOME]: undefined;
 };
 
 type PublicScreensParamList = {

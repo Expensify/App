@@ -2427,4 +2427,7 @@ export default {
         offline:
             "You appear to be offline. Unfortunately, Expensify Classic doesn't work offline, but New Expensify does. If you prefer to use Expensify Classic, try again when you have an internet connection.",
     },
+    travel: {
+        myTrips: 'My trips',
+    },
 } satisfies TranslationBase;

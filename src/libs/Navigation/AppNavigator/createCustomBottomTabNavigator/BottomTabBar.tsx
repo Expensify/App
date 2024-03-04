@@ -91,14 +91,30 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                     </View>
                 </PressableWithFeedback>
             </Tooltip>
-            <BottomTabBarFloatingActionButton />
+            <Tooltip text={translate('workspace.common.travel')}>
+                <PressableWithFeedback
+                    onPress={() => Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS)}
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel={translate('workspace.common.travel')}
+                    wrapperStyle={styles.flexGrow1}
+                    style={styles.bottomTabBarItem}
+                >
+                    <View>
+                        <Icon
+                            src={Expensicons.Luggage}
+                            fill={currentTabName === SCREENS.TRAVEL.HOME ? theme.iconMenu : theme.icon}
+                            width={variables.iconBottomBar}
+                            height={variables.iconBottomBar}
+                        />
+                    </View>
+                </PressableWithFeedback>
+            </Tooltip>
             <Tooltip text={translate('common.settings')}>
                 <PressableWithFeedback
-                    onPress={
-                        () => Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS)
-                        // interceptAnonymousUser(() =>
-                        //     activeWorkspaceID ? Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(activeWorkspaceID)) : Navigation.navigate(ROUTES.ALL_SETTINGS),
-                        // )
+                    onPress={() =>
+                        interceptAnonymousUser(() =>
+                            activeWorkspaceID ? Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(activeWorkspaceID)) : Navigation.navigate(ROUTES.ALL_SETTINGS),
+                        )
                     }
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.settings')}
@@ -116,6 +132,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                     </View>
                 </PressableWithFeedback>
             </Tooltip>
+            <BottomTabBarFloatingActionButton />
         </View>
     );
 }

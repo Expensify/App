@@ -34,6 +34,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     path: ROUTES.WORKSPACE_INITIAL.route,
                     exact: true,
                 },
+                [SCREENS.TRAVEL.HOME]: ROUTES.TRAVEL_HOME,
             },
         },
 
