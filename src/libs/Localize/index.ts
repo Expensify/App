@@ -94,10 +94,41 @@ function translate<TKey extends TranslationPaths>(desiredLanguage: 'en' | 'es' |
 }
 
 /**
+ * Map to store translated values for each locale
+ * This is used to avoid translating the same phrase multiple times.
+ *
+ * The data is stored in the following format:
+ *
+ * {
+ *  "name_en": "Name",
+ *  "name_es": "Nombre",
+ * }
+ *
+ * Note: We are not storing any translated values for phrases with variables,
+ * as they have higher chance of being unique, so we'll end up wasting space
+ * in our cache.
+ */
+const translatedValues = new Map<string, string>();
+
+/**
  * Uses the locale in this file updated by the Onyx subscriber.
  */
 function translateLocal<TKey extends TranslationPaths>(phrase: TKey, ...variables: PhraseParameters<Phrase<TKey>>) {
-    return translate(BaseLocaleListener.getPreferredLocale(), phrase, ...variables);
+    const preferredLocale = BaseLocaleListener.getPreferredLocale();
+    const key = `${phrase}_${preferredLocale}`;
+    const isVariablesEmpty = variables.length === 0;
+
+    // If the phrase is already translated and there are no variables, return the translated value
+    if (translatedValues.has(key) && isVariablesEmpty) {
+        return translatedValues.get(key) as string;
+    }
+    const translatedText = translate(preferredLocale, phrase, ...variables);
+
+    // We don't want to store translated values for phrases with variables
+    if (isVariablesEmpty) {
+        translatedValues.set(key, translatedText);
+    }
+    return translatedText;
 }
 
 /**
