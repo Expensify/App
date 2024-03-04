@@ -145,6 +145,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             personalDetails,
             true,
         );
+
         newSections.push(formatResults.section);
         indexOffset = formatResults.newIndexOffset;
 
