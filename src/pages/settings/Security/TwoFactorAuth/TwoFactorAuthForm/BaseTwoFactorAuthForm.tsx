@@ -1,43 +1,22 @@
 import React, {forwardRef, useCallback, useImperativeHandle, useRef, useState} from 'react';
-import type {ForwardedRef, RefObject} from 'react';
+import type {ForwardedRef, RefAttributes} from 'react';
 import {withOnyx} from 'react-native-onyx';
+import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicCodeInput';
 import MagicCodeInput from '@components/MagicCodeInput';
-import useLocalize from '@hooks/useLocalize';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import type {TwoFactorAuthStepOnyxProps} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthStepProps';
 import * as Session from '@userActions/Session';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {BaseTwoFactorAuthFormOnyxProps, BaseTwoFactorAuthFormRef} from './types';
 
-type AutoCompleteVariant = 'sms-otp' | 'one-time-code' | 'off';
-
-type OnyxDataWithErrors = {
-    errors?: Errors | null;
-};
-
-type BaseTwoFactorAuthFormProps = TwoFactorAuthStepOnyxProps & {
+type BaseTwoFactorAuthFormProps = BaseTwoFactorAuthFormOnyxProps & {
     autoComplete: AutoCompleteVariant;
 };
 
-type MagicCodeInputHandle = {
-    focus: () => void;
-    focusLastSelected: () => void;
-    resetFocus: () => void;
-    clear: () => void;
-    blur: () => void;
-};
-
-type RefType = {
-    validateAndSubmitForm: () => void;
-};
-
-function BaseTwoFactorAuthForm({account, autoComplete}: BaseTwoFactorAuthFormProps, ref: ForwardedRef<RefType>) {
+function BaseTwoFactorAuthForm({account, autoComplete}: BaseTwoFactorAuthFormProps, ref: ForwardedRef<BaseTwoFactorAuthFormRef>) {
     const [formError, setFormError] = useState<{twoFactorAuthCode?: string}>({});
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
     const inputRef = useRef<MagicCodeInputHandle | null>(null);
-    const {translate} = useLocalize();
 
     /**
      * Handle text input and clear formError upon text change
@@ -94,13 +73,13 @@ function BaseTwoFactorAuthForm({account, autoComplete}: BaseTwoFactorAuthFormPro
             value={twoFactorAuthCode}
             onChangeText={onTextInput}
             onFulfill={validateAndSubmitForm}
-            errorText={formError.twoFactorAuthCode ? translate(formError.twoFactorAuthCode as TranslationPaths) : ErrorUtils.getLatestErrorMessage(account as OnyxDataWithErrors)}
+            errorText={formError.twoFactorAuthCode ?? ErrorUtils.getLatestErrorMessage(account)}
             ref={inputRef}
             autoFocus={false}
         />
     );
 }
 
-export default withOnyx<BaseTwoFactorAuthFormProps, TwoFactorAuthStepOnyxProps>({
+export default withOnyx<BaseTwoFactorAuthFormProps & RefAttributes<BaseTwoFactorAuthFormRef>, BaseTwoFactorAuthFormOnyxProps>({
     account: {key: ONYXKEYS.ACCOUNT},
 })(forwardRef(BaseTwoFactorAuthForm));

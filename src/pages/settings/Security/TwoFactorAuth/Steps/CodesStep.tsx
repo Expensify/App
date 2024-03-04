@@ -18,21 +18,20 @@ import localFileDownload from '@libs/localFileDownload';
 import type {BackToParams} from '@libs/Navigation/types';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
-import type {TwoFactorAuthStepOnyxProps} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthStepProps';
+import type {BaseTwoFactorAuthFormOnyxProps} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthForm/types';
 import * as Session from '@userActions/Session';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type CodesStepProps = TwoFactorAuthStepOnyxProps & BackToParams;
+type CodesStepProps = BaseTwoFactorAuthFormOnyxProps & BackToParams;
 
 function CodesStep({account, backTo}: CodesStepProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useWindowDimensions();
-    const [error, setError] = useState<TranslationPaths | ''>('');
+    const [error, setError] = useState('');
 
     const {setStep} = useTwoFactorAuthContext();
 
@@ -125,7 +124,7 @@ function CodesStep({account, backTo}: CodesStepProps) {
                     {Boolean(error) && (
                         <FormHelpMessage
                             isError
-                            message={error ? translate(error) : ''}
+                            message={error}
                             style={[styles.mb3]}
                         />
                     )}
@@ -148,6 +147,6 @@ function CodesStep({account, backTo}: CodesStepProps) {
 
 CodesStep.displayName = 'CodesStep';
 
-export default withOnyx<CodesStepProps, TwoFactorAuthStepOnyxProps>({
+export default withOnyx<CodesStepProps, BaseTwoFactorAuthFormOnyxProps>({
     account: {key: ONYXKEYS.ACCOUNT},
 })(CodesStep);

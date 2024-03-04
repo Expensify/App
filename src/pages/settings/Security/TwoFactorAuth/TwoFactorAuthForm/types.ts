@@ -1,11 +1,9 @@
-import type {RefObject} from 'react';
+import type {ForwardedRef} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {Account} from '@src/types/onyx';
 
-type TwoFactorAuthFormProps = {
-    innerRef: RefObject<HTMLFormElement> | (() => void);
-};
-
-type TwoFactorAuthFormNativeProps = {
-    innerRef: () => void;
+type BaseTwoFactorAuthFormOnyxProps = {
+    account: OnyxEntry<Account>;
 };
 
 type BaseTwoFactorAuthFormRef = {
@@ -13,4 +11,8 @@ type BaseTwoFactorAuthFormRef = {
     focus: () => void;
 };
 
-export type {TwoFactorAuthFormProps, TwoFactorAuthFormNativeProps, BaseTwoFactorAuthFormRef};
+type TwoFactorAuthFormProps = {
+    innerRef: ForwardedRef<BaseTwoFactorAuthFormRef>;
+};
+
+export type {BaseTwoFactorAuthFormOnyxProps, TwoFactorAuthFormProps, BaseTwoFactorAuthFormRef};

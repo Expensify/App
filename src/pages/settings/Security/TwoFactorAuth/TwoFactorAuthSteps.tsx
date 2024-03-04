@@ -16,7 +16,9 @@ import EnabledStep from './Steps/EnabledStep';
 import SuccessStep from './Steps/SuccessStep';
 import VerifyStep from './Steps/VerifyStep';
 import TwoFactorAuthContext from './TwoFactorAuthContext';
-import type {TwoFactorAuthStepOnyxProps, TwoFactorAuthStepProps} from './TwoFactorAuthStepProps';
+import type {BaseTwoFactorAuthFormOnyxProps} from './TwoFactorAuthForm/types';
+
+type TwoFactorAuthStepProps = BaseTwoFactorAuthFormOnyxProps;
 
 function TwoFactorAuthSteps({account}: TwoFactorAuthStepProps) {
     const route = useRoute<RouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.TWO_FACTOR_AUTH>>();
@@ -70,6 +72,6 @@ function TwoFactorAuthSteps({account}: TwoFactorAuthStepProps) {
     return <TwoFactorAuthContext.Provider value={contextValue}>{renderStep()}</TwoFactorAuthContext.Provider>;
 }
 
-export default withOnyx<TwoFactorAuthStepProps, TwoFactorAuthStepOnyxProps>({
+export default withOnyx<TwoFactorAuthStepProps, BaseTwoFactorAuthFormOnyxProps>({
     account: {key: ONYXKEYS.ACCOUNT},
 })(TwoFactorAuthSteps);

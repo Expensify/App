@@ -6,6 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
+import type {StepCounterParams} from '@src/languages/types';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type StepWrapperProps = ChildrenProps & {
@@ -13,14 +14,7 @@ type StepWrapperProps = ChildrenProps & {
     title?: string;
 
     /** Data to display a step counter in the header */
-    stepCounter?: {
-        /** Current step */
-        step: number;
-        /** Total number of steps */
-        total?: number;
-        /** Text to display next to the step counter */
-        text?: string;
-    };
+    stepCounter?: StepCounterParams;
 
     /** Method to trigger when pressing back button of the header */
     onBackButtonPress?: () => void;
