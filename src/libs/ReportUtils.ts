@@ -2539,7 +2539,11 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         }
 
         const isAttachment = ReportActionsUtils.isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : null);
-        const parentReportActionMessage = (parentReportAction?.message?.[0]?.text ?? '').replace(/(\r\n|\n|\r)/gm, ' ');
+        const parentReportActionMessage = (
+            ReportActionsUtils.isApprovedOrSubmittedReportAction(parentReportAction)
+                ? ReportActionsUtils.getReportActionMessageText(parentReportAction)
+                : parentReportAction?.message?.[0]?.text ?? ''
+        ).replace(/(\r\n|\n|\r)/gm, ' ');
         if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
         }
@@ -4523,19 +4527,6 @@ function getReportOfflinePendingActionAndErrors(report: OnyxEntry<Report>): Repo
     return {reportPendingAction, reportErrors};
 }
 
-function getPolicyExpenseChatReportIDByOwner(policyOwner: string): string | null {
-    const policyWithOwner = Object.values(allPolicies ?? {}).find((policy) => policy?.owner === policyOwner);
-    if (!policyWithOwner) {
-        return null;
-    }
-
-    const expenseChat = Object.values(allReports ?? {}).find((report) => isPolicyExpenseChat(report) && report?.policyID === policyWithOwner.id);
-    if (!expenseChat) {
-        return null;
-    }
-    return expenseChat.reportID;
-}
-
 /**
  * Check if the report can create the request with type is iouType
  */
@@ -5219,7 +5210,6 @@ export {
     isDM,
     isSelfDM,
     getPolicy,
-    getPolicyExpenseChatReportIDByOwner,
     getWorkspaceChats,
     shouldDisableRename,
     hasSingleParticipant,
