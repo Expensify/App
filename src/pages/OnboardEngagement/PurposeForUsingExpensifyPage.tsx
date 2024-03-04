@@ -53,7 +53,7 @@ const messageCopy = {
         "3. Enter your friend's email or phone number.\n" +
         '4. Tap *Split* next to their contact info.\n' +
         '5. Repeat for any additional friends.\n' +
-        '6. Tap *Add to split* when you\'re done.\n' +
+        "6. Tap *Add to split* when you're done.\n" +
         '7. Review and tap *Split* to send your request(s).\n' +
         '\n' +
         "We'll send a money request to each of your friends and make sure you get paid back. Let me know how it goes!",
