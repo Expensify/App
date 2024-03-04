@@ -187,7 +187,6 @@ function getGlobalFetchMock() {
         return new Promise((resolve) => {
             queue.push(resolve);
         });
-        
     });
 
     mockFetch.pause = () => (isPaused = true);

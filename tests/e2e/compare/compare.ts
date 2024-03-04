@@ -1,18 +1,9 @@
 import type {Stats} from '../measure/math';
 import getStats from '../measure/math';
 import * as math from './math';
+import type {Entry} from './output/console';
 import printToConsole from './output/console';
 import writeToMarkdown from './output/markdown';
-
-type Entry = {
-    name: string;
-    baseline?: Stats;
-    current?: Stats;
-    diff?: number;
-    relativeDurationDiff?: number;
-    isDurationDiffOfSignificance?: boolean;
-    mean?: number;
-};
 
 type Metric = Record<string, number[]>;
 
@@ -100,5 +91,3 @@ export default (main: Metric, delta: Metric, outputFile: string, outputFormat = 
         return writeToMarkdown(outputFile, outputData);
     }
 };
-
-export type {Entry};
