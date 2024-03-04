@@ -516,6 +516,14 @@ Onyx.connect({
     },
 });
 
+function getCurrentUserAvatarOrDefault(): UserUtils.AvatarSource {
+    return currentUserPersonalDetails?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID);
+}
+
+function getCurrentUserDisplayNameOrEmail(): string | undefined {
+    return currentUserPersonalDetails?.displayName ?? currentUserEmail;
+}
+
 function getChatType(report: OnyxEntry<Report> | Participant | EmptyObject): ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined {
     return report?.chatType;
 }
@@ -1798,7 +1806,7 @@ function buildOptimisticCancelPaymentReportAction(expenseReportID: string, amoun
         person: [
             {
                 style: 'strong',
-                text: currentUserPersonalDetails?.displayName ?? currentUserEmail,
+                text: getCurrentUserDisplayNameOrEmail(),
                 type: 'TEXT',
             },
         ],
@@ -3133,14 +3141,14 @@ function buildOptimisticIOUReportAction(
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: currentUserPersonalDetails?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        avatar: getCurrentUserAvatarOrDefault(),
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(iouReportID, type, amount, comment, currency, paymentType, isSettlingUp),
         person: [
             {
                 style: 'strong',
-                text: currentUserPersonalDetails?.displayName ?? currentUserEmail,
+                text: getCurrentUserDisplayNameOrEmail(),
                 type: 'TEXT',
             },
         ],
@@ -3166,14 +3174,14 @@ function buildOptimisticApprovedReportAction(amount: number, currency: string, e
         actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: currentUserPersonalDetails?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        avatar: getCurrentUserAvatarOrDefault(),
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.APPROVED, Math.abs(amount), '', currency),
         person: [
             {
                 style: 'strong',
-                text: currentUserPersonalDetails?.displayName ?? currentUserEmail,
+                text: getCurrentUserDisplayNameOrEmail(),
                 type: 'TEXT',
             },
         ],
@@ -3208,14 +3216,14 @@ function buildOptimisticMovedReportAction(fromPolicyID: string, toPolicyID: stri
         actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: currentUserPersonalDetails?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        avatar: getCurrentUserAvatarOrDefault(),
         isAttachment: false,
         originalMessage,
         message: movedActionMessage,
         person: [
             {
                 style: 'strong',
-                text: currentUserPersonalDetails?.displayName ?? currentUserEmail,
+                text: getCurrentUserDisplayNameOrEmail(),
                 type: 'TEXT',
             },
         ],
@@ -3241,14 +3249,14 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
         actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: currentUserPersonalDetails?.avatar ?? UserUtils.getDefaultAvatar(currentUserAccountID),
+        avatar: getCurrentUserAvatarOrDefault(),
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, Math.abs(amount), '', currency),
         person: [
             {
                 style: 'strong',
-                text: currentUserPersonalDetails?.displayName ?? currentUserEmail,
+                text: getCurrentUserDisplayNameOrEmail(),
                 type: 'TEXT',
             },
         ],
@@ -3314,7 +3322,7 @@ function buildOptimisticModifiedExpenseReportAction(
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: currentUserPersonalDetails?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        avatar: getCurrentUserAvatarOrDefault(),
         created: DateUtils.getDBTime(),
         isAttachment: false,
         message: [
@@ -3397,7 +3405,7 @@ function buildOptimisticTaskReportAction(taskReportID: string, actionName: Origi
         actionName,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: currentUserPersonalDetails?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        avatar: getCurrentUserAvatarOrDefault(),
         isAttachment: false,
         originalMessage,
         message: [
@@ -3471,14 +3479,6 @@ function buildOptimisticChatReport(
         description,
         writeCapability,
     };
-}
-
-function getCurrentUserAvatarOrDefault(): UserUtils.AvatarSource {
-    return allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID);
-}
-
-function getCurrentUserDisplayNameOrEmail(): string | undefined {
-    return allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail;
 }
 
 /**
@@ -3588,7 +3588,7 @@ function buildOptimisticHoldReportAction(comment: string, created = DateUtils.ge
             },
         ],
         automatic: false,
-        avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        avatar: getCurrentUserAvatarOrDefault(),
         created,
         shouldShow: true,
     };
@@ -3619,7 +3619,7 @@ function buildOptimisticUnHoldReportAction(created = DateUtils.getDBTime()): Opt
             },
         ],
         automatic: false,
-        avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        avatar: getCurrentUserAvatarOrDefault(),
         created,
         shouldShow: true,
     };
