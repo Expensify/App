@@ -1,23 +1,23 @@
-// import Onyx from 'react-native-onyx';
+import MockedOnyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import reactNativeOnyxMock from '../../__mocks__/react-native-onyx';
-import CONST from '../../src/CONST';
-import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
-import * as API from '../../src/libs/API';
-import HttpUtils from '../../src/libs/HttpUtils';
-import * as MainQueue from '../../src/libs/Network/MainQueue';
-import * as NetworkStore from '../../src/libs/Network/NetworkStore';
-import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
-import * as Request from '../../src/libs/Request';
-import * as RequestThrottle from '../../src/libs/RequestThrottle';
-import ONYXKEYS from '../../src/ONYXKEYS';
+import CONST from '@src/CONST';
+import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
+import * as API from '@src/libs/API';
+import HttpUtils from '@src/libs/HttpUtils';
+import * as MainQueue from '@src/libs/Network/MainQueue';
+import * as NetworkStore from '@src/libs/Network/NetworkStore';
+import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
+import * as Request from '@src/libs/Request';
+import * as RequestThrottle from '@src/libs/RequestThrottle';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
-const Onyx = reactNativeOnyxMock;
+const Onyx = MockedOnyx as typeof ReactNativeOnyxMock;
 
-jest.mock('../../src/libs/Log');
+jest.mock('@src/libs/Log');
 
 Onyx.init({
     keys: ONYXKEYS,
@@ -27,14 +27,21 @@ type Response = {
     ok?: boolean;
     status?: ValueOf<typeof CONST.HTTP_STATUS> | ValueOf<typeof CONST.JSON_CODE>;
     jsonCode?: ValueOf<typeof CONST.JSON_CODE>;
+    json?: () => Promise<Response>;
     title?: ValueOf<typeof CONST.ERROR_TITLE>;
     type?: ValueOf<typeof CONST.ERROR_TYPE>;
 };
 
+type XhrCalls = Array<{
+    resolve: (value: Response | PromiseLike<Response>) => void;
+    reject: (value: unknown) => void;
+}>;
+
 const originalXHR = HttpUtils.xhr;
 
 beforeEach(() => {
-    global.fetch = TestHelper.getGlobalFetchMock() as typeof fetch;
+    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+    global.fetch = TestHelper.getGlobalFetchMock();
     HttpUtils.xhr = originalXHR;
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
@@ -136,10 +143,7 @@ describe('APITests', () => {
 
     test('Write request should not be cleared until a backend response occurs', () => {
         // We're setting up xhr handler that will resolve calls programmatically
-        const xhrCalls: Array<{
-            resolve: (value: Response | PromiseLike<Response>) => void;
-            reject: (value: unknown) => void;
-        }> = [];
+        const xhrCalls: XhrCalls = [];
         const promises: Array<Promise<Response>> = [];
 
         jest.spyOn(HttpUtils, 'xhr').mockImplementation(() => {
@@ -205,8 +209,8 @@ describe('APITests', () => {
 
     // Given a retry response create a mock and run some expectations for retrying requests
 
-    const retryExpectations = (Response: Response) => {
-        const successfulResponse = {
+    const retryExpectations = (response: Response) => {
+        const successfulResponse: Response = {
             ok: true,
             jsonCode: CONST.JSON_CODE.SUCCESS,
             // We have to mock response.json() too
@@ -214,7 +218,7 @@ describe('APITests', () => {
         };
 
         // Given a mock where a retry response is returned twice before a successful response
-        global.fetch = jest.fn().mockResolvedValueOnce(Response).mockResolvedValueOnce(Response).mockResolvedValueOnce(successfulResponse);
+        global.fetch = jest.fn().mockResolvedValueOnce(response).mockResolvedValueOnce(response).mockResolvedValueOnce(successfulResponse);
 
         // Given we have a request made while we're offline
         return (
@@ -275,7 +279,7 @@ describe('APITests', () => {
 
     test('write requests are retried when Auth is down', () => {
         // Given the response data returned when auth is down
-        const responseData = {
+        const responseData: Response = {
             ok: true,
             status: CONST.JSON_CODE.SUCCESS,
             jsonCode: CONST.JSON_CODE.EXP_ERROR,

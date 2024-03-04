@@ -3,17 +3,17 @@ import {afterEach, beforeAll, beforeEach, describe, expect, it} from '@jest/glob
 import {utcToZonedTime} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import CONST from '@src/CONST';
+import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
+import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
+import * as Report from '@src/libs/actions/Report';
+import * as User from '@src/libs/actions/User';
+import DateUtils from '@src/libs/DateUtils';
+import Log from '@src/libs/Log';
+import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
+import * as ReportUtils from '@src/libs/ReportUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import CONST from '../../src/CONST';
-import OnyxUpdateManager from '../../src/libs/actions/OnyxUpdateManager';
-import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
-import * as Report from '../../src/libs/actions/Report';
-import * as User from '../../src/libs/actions/User';
-import DateUtils from '../../src/libs/DateUtils';
-import Log from '../../src/libs/Log';
-import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
-import * as ReportUtils from '../../src/libs/ReportUtils';
-import ONYXKEYS from '../../src/ONYXKEYS';
 import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
@@ -21,8 +21,8 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 const UTC = 'UTC';
-jest.mock('../../src/libs/actions/Report', () => {
-    const originalModule: typeof Report = jest.requireActual('../../src/libs/actions/Report');
+jest.mock('@src/libs/actions/Report', () => {
+    const originalModule = jest.requireActual<Report>('@src/libs/actions/Report');
 
     return {
         ...originalModule,
@@ -36,7 +36,6 @@ describe('actions/Report', () => {
         PusherHelper.setup();
         Onyx.init({
             keys: ONYXKEYS,
-            //   registerStorageEventListener: () => {},
         });
     });
 
@@ -53,7 +52,8 @@ describe('actions/Report', () => {
     afterEach(PusherHelper.teardown);
 
     it('should store a new report action in Onyx when onyxApiUpdate event is handled via Pusher', () => {
-        global.fetch = TestHelper.getGlobalFetchMock() as typeof fetch;
+        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+        global.fetch = TestHelper.getGlobalFetchMock();
 
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
@@ -89,7 +89,7 @@ describe('actions/Report', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                const resultAction: OnyxEntry<OnyxTypes.ReportAction> = Object.values(reportActions ?? [])[0];
+                const resultAction: OnyxEntry<OnyxTypes.ReportAction> = Object.values(reportActions ?? {})[0];
                 reportActionID = resultAction.reportActionID;
 
                 expect(resultAction.message).toEqual(REPORT_ACTION.message);
@@ -168,7 +168,8 @@ describe('actions/Report', () => {
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID))
             .then(() => {
-                global.fetch = TestHelper.getGlobalFetchMock() as typeof fetch;
+                // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+                global.fetch = TestHelper.getGlobalFetchMock();
 
                 // WHEN we add enough logs to send a packet
                 for (let i = 0; i <= LOGGER_MAX_LOG_LINES; i++) {
@@ -194,7 +195,8 @@ describe('actions/Report', () => {
 
     it('should be updated correctly when new comments are added, deleted or marked as unread', () => {
         jest.useFakeTimers();
-        global.fetch = TestHelper.getGlobalFetchMock() as typeof fetch;
+        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+        global.fetch = TestHelper.getGlobalFetchMock();
         const REPORT_ID = '1';
         let report: OnyxEntry<OnyxTypes.Report>;
         let reportActionCreatedDate: string;
@@ -427,7 +429,8 @@ describe('actions/Report', () => {
          * already in the comment and the user deleted it on purpose.
          */
 
-        global.fetch = TestHelper.getGlobalFetchMock() as typeof fetch;
+        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+        global.fetch = TestHelper.getGlobalFetchMock();
 
         // User edits comment to add link
         // We should generate link
@@ -539,7 +542,8 @@ describe('actions/Report', () => {
     });
 
     it('should properly toggle reactions on a message', () => {
-        global.fetch = TestHelper.getGlobalFetchMock() as typeof fetch;
+        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+        global.fetch = TestHelper.getGlobalFetchMock();
 
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
@@ -659,7 +663,8 @@ describe('actions/Report', () => {
     });
 
     it("shouldn't add the same reaction twice when changing preferred skin color and reaction doesn't support skin colors", () => {
-        global.fetch = TestHelper.getGlobalFetchMock() as typeof fetch;
+        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+        global.fetch = TestHelper.getGlobalFetchMock();
 
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';

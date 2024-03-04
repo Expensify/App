@@ -1,24 +1,24 @@
 import type {Mock} from 'jest-mock';
-import reactNativeOnyxMock from '../../__mocks__/react-native-onyx';
-// import Onyx from 'react-native-onyx';
-import CONST from '../../src/CONST';
-import OnyxUpdateManager from '../../src/libs/actions/OnyxUpdateManager';
-import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
-import * as PersonalDetails from '../../src/libs/actions/PersonalDetails';
-import * as Session from '../../src/libs/actions/Session';
-import HttpUtils from '../../src/libs/HttpUtils';
-import Log from '../../src/libs/Log';
-import * as Network from '../../src/libs/Network';
-import * as MainQueue from '../../src/libs/Network/MainQueue';
-import * as NetworkStore from '../../src/libs/Network/NetworkStore';
-import NetworkConnection from '../../src/libs/NetworkConnection';
-import ONYXKEYS from '../../src/ONYXKEYS';
+import MockedOnyx from 'react-native-onyx';
+import CONST from '@src/CONST';
+import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
+import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
+import * as PersonalDetails from '@src/libs/actions/PersonalDetails';
+import * as Session from '@src/libs/actions/Session';
+import HttpUtils from '@src/libs/HttpUtils';
+import Log from '@src/libs/Log';
+import * as Network from '@src/libs/Network';
+import * as MainQueue from '@src/libs/Network/MainQueue';
+import * as NetworkStore from '@src/libs/Network/NetworkStore';
+import NetworkConnection from '@src/libs/NetworkConnection';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const Onyx = reactNativeOnyxMock;
+const Onyx = MockedOnyx as typeof ReactNativeOnyxMock;
 
-jest.mock('../../src/libs/Log');
+jest.mock('@src/libs/Log');
 
 Onyx.init({
     keys: ONYXKEYS,
@@ -28,7 +28,8 @@ OnyxUpdateManager();
 const originalXHR = HttpUtils.xhr;
 
 beforeEach(() => {
-    global.fetch = TestHelper.getGlobalFetchMock() as typeof fetch;
+    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+    global.fetch = TestHelper.getGlobalFetchMock();
     HttpUtils.xhr = originalXHR;
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
