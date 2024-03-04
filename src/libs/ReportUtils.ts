@@ -1230,6 +1230,29 @@ function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
 }
 
 /**
+ * Checks if the current user is a payer of the request
+ */
+
+function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>) {
+    const isApproved = isReportApproved(iouReport);
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`] ?? null;
+    const policyType = policy?.type;
+    const isAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isManager = iouReport?.managerID === session?.accountID;
+    if (isPaidGroupPolicy(iouReport)) {
+        if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+            const isReimburser = session?.email === policy?.reimburserEmail;
+            return isReimburser && (isApproved || isManager);
+        }
+        if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
+            return isAdmin && (isApproved || isManager);
+        }
+        return false;
+    }
+    return isAdmin || (isMoneyRequestReport(iouReport) && isManager);
+}
+
+/**
  * Get the notification preference given a report
  */
 function getReportNotificationPreference(report: OnyxEntry<Report>): string | number {
@@ -1611,9 +1634,9 @@ function getIcons(
             name: personalDetails?.[report?.ownerAccountID ?? -1]?.displayName ?? '',
             fallbackIcon: personalDetails?.[report?.ownerAccountID ?? -1]?.fallbackIcon,
         };
-        const isPayer = currentUserAccountID === report?.managerID;
+        const isManager = currentUserAccountID === report?.managerID;
 
-        return isPayer ? [managerIcon, ownerIcon] : [ownerIcon, managerIcon];
+        return isManager ? [managerIcon, ownerIcon] : [ownerIcon, managerIcon];
     }
 
     if (isSelfDM(report)) {
@@ -5215,6 +5238,7 @@ export {
     hasSingleParticipant,
     getReportRecipientAccountIDs,
     isOneOnOneChat,
+    isPayer,
     goBackToDetailsPage,
     getTransactionReportName,
     getTransactionDetails,
