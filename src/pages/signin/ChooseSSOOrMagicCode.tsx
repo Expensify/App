@@ -46,30 +46,28 @@ function ChooseSSOOrMagicCode({account, isUsingRecoveryCode, setIsUsingRecoveryC
     }, [isKeyboardShown]);
 
     return (
-        <>
-            <View>
-                <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !isSmallScreenWidth ? styles.textAlignLeft : {}]}>{translate('samlSignIn.welcomeSAMLEnabled')}</Text>
-                <Button
-                    isDisabled={isOffline}
-                    success
-                    style={[styles.mv3]}
-                    text={translate('samlSignIn.useSingleSignOn')}
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.SAML_SIGN_IN);
-                    }}
-                />
+        <View>
+            <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !isSmallScreenWidth ? styles.textAlignLeft : {}]}>{translate('samlSignIn.welcomeSAMLEnabled')}</Text>
+            <Button
+                isDisabled={isOffline}
+                success
+                style={[styles.mv3]}
+                text={translate('samlSignIn.useSingleSignOn')}
+                onPress={() => {
+                    Navigation.navigate(ROUTES.SAML_SIGN_IN);
+                }}
+            />
 
-                <View style={[styles.mt5]}>
-                    <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !isSmallScreenWidth ? styles.textAlignLeft : {}]}>{loginText}</Text>
-                </View>
-
-                <ValidateCodeForm
-                    isVisible
-                    isUsingRecoveryCode={isUsingRecoveryCode}
-                    setIsUsingRecoveryCode={setIsUsingRecoveryCode}
-                />
+            <View style={[styles.mt5]}>
+                <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !isSmallScreenWidth ? styles.textAlignLeft : {}]}>{loginText}</Text>
             </View>
-        </>
+
+            <ValidateCodeForm
+                isVisible
+                isUsingRecoveryCode={isUsingRecoveryCode}
+                setIsUsingRecoveryCode={setIsUsingRecoveryCode}
+            />
+        </View>
     );
 }
 
