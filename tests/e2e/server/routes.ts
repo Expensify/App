@@ -1,6 +1,4 @@
-type Routes = Record<string, string>;
-
-const routes: Routes = {
+const routes = {
     // The app calls this endpoint to know which test to run
     testConfig: '/test_config',
 
@@ -18,6 +16,6 @@ const routes: Routes = {
 
     // Gets the network cache
     testGetNetworkCache: '/test_get_network_cache',
-};
+} satisfies Record<string, string>;
 
 export default routes;
