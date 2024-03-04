@@ -165,7 +165,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
                                     shouldShowRightIcon
                                     wrapperStyle={containerStyle}
                                     hoverAndPressStyle={[styles.mr0, styles.br2]}
-                                    brickRoadIndicator={isFailedToAddAuthorizedPayer ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                    brickRoadIndicator={hasReimburserEmailError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 />
                             </OfflineWithFeedback>
                         )}
