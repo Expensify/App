@@ -137,8 +137,8 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
                 title: translate('workflowsPage.makeOrTrackPaymentsTitle'),
                 subtitle: translate('workflowsPage.makeOrTrackPaymentsDescription'),
                 onToggle: () => {
-                    const isActive = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
-                    const newReimbursementChoice = isActive ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+                    const isActive = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+                    const newReimbursementChoice = isActive ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
                     Policy.setReimbursementFromChoice(route.params.policyID, newReimbursementChoice);
                     // todo: after enable we need to get VBA owner(?) email and set it to policy.reimburser_email with Policy.setWorkspaceReimbursement
                 },
@@ -172,7 +172,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
                     </>
                 ),
                 isEndOptionRow: true,
-                isActive: policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                isActive: policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 pendingAction: policy?.pendingFields?.reimbursementChoice,
             },
         ];
