@@ -1,14 +1,12 @@
 import React, {useRef} from 'react';
 import Visibility from '@libs/Visibility';
 import CONST from '@src/CONST';
-import {defaultProps, propTypes} from './attachmentPickerPropTypes';
+import type AttachmentPickerProps from './types';
 
 /**
  * Returns acceptable FileTypes based on ATTACHMENT_PICKER_TYPE
- * @param {String} type
- * @returns {String|undefined} Picker will accept all file types when its undefined
  */
-function getAcceptableFileTypes(type) {
+function getAcceptableFileTypes(type: string): string | undefined {
     if (type !== CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
         return;
     }
@@ -22,13 +20,11 @@ function getAcceptableFileTypes(type) {
  * a callback. This is the web/mWeb/desktop version since
  * on a Browser we must append a hidden input to the DOM
  * and listen to onChange event.
- * @param {propTypes} props
- * @returns {JSX.Element}
  */
-function AttachmentPicker(props) {
-    const fileInput = useRef();
-    const onPicked = useRef();
-    const onCanceled = useRef(() => {});
+function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE}: AttachmentPickerProps): React.JSX.Element {
+    const fileInput = useRef<HTMLInputElement>(null);
+    const onPicked = useRef<(file: File) => void>(() => {});
+    const onCanceled = useRef<() => void>(() => {});
 
     return (
         <>
@@ -37,6 +33,10 @@ function AttachmentPicker(props) {
                 type="file"
                 ref={fileInput}
                 onChange={(e) => {
+                    if (!e.target.files) {
+                        return;
+                    }
+
                     const file = e.target.files[0];
 
                     if (file) {
@@ -45,7 +45,9 @@ function AttachmentPicker(props) {
                     }
 
                     // Cleanup after selecting a file to start from a fresh state
-                    fileInput.current.value = null;
+                    if (fileInput.current) {
+                        fileInput.current.value = '';
+                    }
                 }}
                 // We are stopping the event propagation because triggering the `click()` on the hidden input
                 // causes the event to unexpectedly bubble up to anything wrapping this component e.g. Pressable
@@ -72,12 +74,12 @@ function AttachmentPicker(props) {
                         {once: true},
                     );
                 }}
-                accept={getAcceptableFileTypes(props.type)}
+                accept={getAcceptableFileTypes(type)}
             />
-            {props.children({
+            {children({
                 openPicker: ({onPicked: newOnPicked, onCanceled: newOnCanceled = () => {}}) => {
                     onPicked.current = newOnPicked;
-                    fileInput.current.click();
+                    fileInput.current?.click();
                     onCanceled.current = newOnCanceled;
                 },
             })}
@@ -85,6 +87,4 @@ function AttachmentPicker(props) {
     );
 }
 
-AttachmentPicker.propTypes = propTypes;
-AttachmentPicker.defaultProps = defaultProps;
 export default AttachmentPicker;

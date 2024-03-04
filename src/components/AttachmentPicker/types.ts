@@ -1,7 +1,8 @@
-import PropTypes from 'prop-types';
-import CONST from '@src/CONST';
+import type {ReactNode} from 'react';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 
-const propTypes = {
+type AttachmentPickerProps = {
     /**
      * A renderProp with the following interface
      *
@@ -20,14 +21,10 @@ const propTypes = {
      * )}
      * </AttachmentPicker>
      * */
-    children: PropTypes.func.isRequired,
+    children: (openPicker: ({onPicked, onCanceled}: {onPicked: (file: File) => void; onCanceled?: () => void}) => void) => ReactNode;
 
     /** The types of files that can be selected with this picker. */
-    type: PropTypes.oneOf([CONST.ATTACHMENT_PICKER_TYPE.FILE, CONST.ATTACHMENT_PICKER_TYPE.IMAGE]),
+    type?: ValueOf<typeof CONST.ATTACHMENT_PICKER_TYPE>;
 };
 
-const defaultProps = {
-    type: CONST.ATTACHMENT_PICKER_TYPE.FILE,
-};
-
-export {propTypes, defaultProps};
+export default AttachmentPickerProps;
