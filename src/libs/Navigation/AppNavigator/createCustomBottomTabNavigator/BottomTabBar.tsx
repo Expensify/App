@@ -94,10 +94,11 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
             <BottomTabBarFloatingActionButton />
             <Tooltip text={translate('common.settings')}>
                 <PressableWithFeedback
-                    onPress={() =>
-                        interceptAnonymousUser(() =>
-                            activeWorkspaceID ? Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(activeWorkspaceID)) : Navigation.navigate(ROUTES.ALL_SETTINGS),
-                        )
+                    onPress={
+                        () => Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS)
+                        // interceptAnonymousUser(() =>
+                        //     activeWorkspaceID ? Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(activeWorkspaceID)) : Navigation.navigate(ROUTES.ALL_SETTINGS),
+                        // )
                     }
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.settings')}

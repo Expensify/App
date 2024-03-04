@@ -67,6 +67,8 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.WORKSPACE.CATEGORIES]: {
                     path: ROUTES.WORKSPACE_CATEGORIES.route,
                 },
+
+                [SCREENS.TRAVEL.MY_TRIPS]: ROUTES.TRAVEL_MY_TRIPS,
             },
         },
         [SCREENS.NOT_FOUND]: '*',

@@ -90,6 +90,7 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.CATEGORIES]: {
         policyID: string;
     };
+    [SCREENS.TRAVEL.MY_TRIPS]: undefined;
 };
 
 type WorkspaceSwitcherNavigatorParamList = {
