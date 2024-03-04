@@ -1721,6 +1721,7 @@ export default {
             workflows: 'Workflows',
             workspace: 'Workspace',
             edit: 'Edit workspace',
+            enable: 'Enable',
             enabled: 'Enabled',
             disabled: 'Disabled',
             delete: 'Delete workspace',

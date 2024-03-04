@@ -1745,6 +1745,7 @@ export default {
             workflows: 'Flujos de trabajo',
             workspace: 'Espacio de trabajo',
             edit: 'Editar espacio de trabajo',
+            enable: 'Activar',
             enabled: 'Activada',
             disabled: 'Desactivada',
             delete: 'Eliminar espacio de trabajo',
