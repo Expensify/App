@@ -31,8 +31,10 @@ function BaseVideoPlayer({
     shouldUseSharedVideoElement,
     shouldUseSmallVideoControls,
     shouldShowVideoControls,
+    shouldShowProgressVolumeOnly,
     onPlaybackStatusUpdate,
     onFullscreenUpdate,
+    shouldPlay,
     // TODO: investigate what is the root cause of the bug with unexpected video switching
     // isVideoHovered caused a bug with unexpected video switching. We are investigating the root cause of the issue,
     // but current workaround is just not to use it here for now. This causes not displaying the video controls when
@@ -167,6 +169,13 @@ function BaseVideoPlayer({
         };
     }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isSmallScreenWidth, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
 
+    useEffect(() => {
+        if (!shouldPlay) {
+            return;
+        }
+        updateCurrentlyPlayingURL(url);
+    }, [shouldPlay, updateCurrentlyPlayingURL, url]);
+
     return (
         <>
             <View style={style}>
@@ -211,7 +220,7 @@ function BaseVideoPlayer({
                                             source={{
                                                 uri: sourceURL,
                                             }}
-                                            shouldPlay={false}
+                                            shouldPlay={shouldPlay}
                                             useNativeControls={false}
                                             resizeMode={resizeMode}
                                             isLooping={isLooping}
@@ -235,6 +244,7 @@ function BaseVideoPlayer({
                                     small={shouldUseSmallVideoControls}
                                     style={videoControlsStyle}
                                     togglePlayCurrentVideo={togglePlayCurrentVideo}
+                                    progressVolumeOnly={shouldShowProgressVolumeOnly}
                                     showPopoverMenu={showPopoverMenu}
                                 />
                             )}

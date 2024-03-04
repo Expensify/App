@@ -2711,6 +2711,13 @@ export default {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual.',
         },
     },
+    onboarding: {
+        welcomeVideo: {
+            title: 'Bienvenido a Expensify',
+            description: 'Recibir pago es tan fácil como enviar un mensaje.',
+            button: 'Vamos',
+        },
+    },
     reportCardLostOrDamaged: {
         report: 'Notificar la pérdida / daño de la tarjeta física',
         screenTitle: 'Notificar la pérdida o deterioro de la tarjeta',

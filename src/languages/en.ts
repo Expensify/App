@@ -1212,6 +1212,11 @@ export default {
     },
     onboarding: {
         welcome: 'Welcome!',
+        welcomeVideo: {
+            title: 'Welcome to Expensify',
+            description: 'Getting paid is as easy as sending a message.',
+            button: "Let's go",
+        },
         whatsYourName: "What's your name?",
         purpose: {
             title: "What do you want to do today?",

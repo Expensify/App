@@ -1531,6 +1531,7 @@ const styles = (theme: ThemeColors) =>
             ({
                 width: shouldUseNarrowLayout ? 500 : '100%',
                 height: shouldUseNarrowLayout ? 712 : '100%',
+                maxHeight: '100%',
                 borderRadius: shouldUseNarrowLayout ? 16 : 0,
                 overflow: 'hidden',
             } satisfies ViewStyle),
@@ -2744,12 +2745,6 @@ const styles = (theme: ThemeColors) =>
 
         navigationScreenCardStyle: {
             backgroundColor: theme.appBG,
-            height: '100%',
-        },
-
-        navigationOnboardingScreenCardStyle: {
-            backgroundColor: 'transparent',
-            width: '100%',
             height: '100%',
         },
 
@@ -4160,6 +4155,10 @@ const styles = (theme: ThemeColors) =>
 
         emojiStatusLHN: {
             fontSize: 9,
+        },
+
+        onboardingVideoPlayer: {
+            borderRadius: 12,
         },
 
         sidebarStatusAvatarContainer: {

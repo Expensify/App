@@ -43,6 +43,7 @@ import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import LeftModalNavigator from './Navigators/LeftModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
+import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
 
 type AuthScreensProps = {
     /** Session of currently logged in user */
@@ -269,11 +270,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = f
         <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
             <RootStack.Navigator isSmallScreenWidth={isSmallScreenWidth}>
                 <RootStack.Screen
-                    name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
-                    options={onboardingScreenOptions}
-                    component={OnboardingModalNavigator}
-                />
-                <RootStack.Screen
                     name={NAVIGATORS.BOTTOM_TAB_NAVIGATOR}
                     options={screenOptions.bottomTab}
                     component={BottomTabNavigator}
@@ -364,6 +360,16 @@ function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = f
                     name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
                     options={screenOptions.fullScreen}
                     component={DesktopSignInRedirectPage}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR}
+                    options={onboardingScreenOptions}
+                    component={WelcomeVideoModalNavigator}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
+                    options={onboardingScreenOptions}
+                    component={OnboardingModalNavigator}
                 />
             </RootStack.Navigator>
         </View>
