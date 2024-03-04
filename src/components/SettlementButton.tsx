@@ -137,7 +137,7 @@ function SettlementButton({
     const policy = ReportUtils.getPolicy(policyID);
     const session = useSession();
     const chatReport = ReportUtils.getReport(chatReportID);
-    const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicy(iouReport as OnyxEntry<Report>) || ReportUtils.isPaidGroupPolicyExpenseChat(chatReport as OnyxEntry<Report>);
+    const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport as OnyxEntry<Report>);
     const shouldShowPaywithExpensifyOption =
         !isPaidGroupPolicy ||
         (!shouldHidePaymentOptions && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && policy?.reimburserEmail === session?.email);
