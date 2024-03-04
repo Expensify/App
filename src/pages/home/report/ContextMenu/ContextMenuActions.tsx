@@ -36,11 +36,6 @@ function getActionHtml(reportAction: OnyxEntry<ReportAction>): string {
     return message?.html ?? '';
 }
 
-/** Gets the text version of the message in an action */
-function getActionText(reportAction: OnyxEntry<ReportAction>): string {
-    return reportAction?.message?.reduce((acc, curr) => `${acc}${curr.text}`, '') ?? '';
-}
-
 /** Sets the HTML string to Clipboard */
 function setClipboardMessage(content: string) {
     const parser = new ExpensiMark();
@@ -340,7 +335,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         onPress: (closePopover, {reportAction, selection, reportID}) => {
             const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
             const messageHtml = getActionHtml(reportAction);
-            const messageText = getActionText(reportAction);
+            const messageText = ReportActionsUtils.getReportActionMessageText(reportAction);
 
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
             if (!isAttachment) {
