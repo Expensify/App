@@ -178,6 +178,7 @@ const CONST = {
     DATE: {
         SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
+        FNS_DATE_TIME_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss',
         LOCAL_TIME_FORMAT: 'h:mm a',
         YEAR_MONTH_FORMAT: 'yyyyMM',
         MONTH_FORMAT: 'MMMM',
@@ -307,6 +308,7 @@ const CONST = {
         BETA_COMMENT_LINKING: 'commentLinking',
         VIOLATIONS: 'violations',
         REPORT_FIELDS: 'reportFields',
+        WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1386,6 +1388,11 @@ const CONST = {
         },
         ID_FAKE: '_FAKE_',
         EMPTY: 'EMPTY',
+        MEMBERS_BULK_ACTION_TYPES: {
+            REMOVE: 'remove',
+            MAKE_MEMBER: 'makeMember',
+            MAKE_ADMIN: 'makeAdmin',
+        },
     },
 
     CUSTOM_UNITS: {
@@ -1542,6 +1549,8 @@ const CONST = {
         PATH_WITHOUT_POLICY_ID: /\/w\/[a-zA-Z0-9]+(\/|$)/,
 
         POLICY_ID_FROM_PATH: /\/w\/([a-zA-Z0-9]+)(\/|$)/,
+
+        SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#]+(?:\\.[\\w\\-\\'\\+]+)*`, 'gim'),
     },
 
     PRONOUNS: {
@@ -3276,6 +3285,12 @@ const CONST = {
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 
+    /** Dimensions for illustration shown in Confirmation Modal */
+    CONFIRM_CONTENT_SVG_SIZE: {
+        HEIGHT: 220,
+        WIDTH: 130,
+    },
+
     DEBUG_CONSOLE: {
         LEVELS: {
             INFO: 'INFO',
@@ -3318,6 +3333,10 @@ const CONST = {
             DONT_UNDERSTAND: 'dontUnderstand',
             PREFER_CLASSIC: 'preferClassic',
         },
+    },
+
+    SESSION_STORAGE_KEYS: {
+        INITIAL_URL: 'INITIAL_URL',
     },
 } as const;
 

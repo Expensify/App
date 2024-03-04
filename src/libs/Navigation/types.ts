@@ -63,6 +63,12 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.REIMBURSE]: {
         policyID: string;
     };
@@ -97,8 +103,13 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.TIMEZONE_SELECT]: undefined;
     [SCREENS.SETTINGS.PROFILE.LEGAL_NAME]: undefined;
     [SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH]: undefined;
-    [SCREENS.SETTINGS.PROFILE.ADDRESS]: undefined;
-    [SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY]: undefined;
+    [SCREENS.SETTINGS.PROFILE.ADDRESS]: {
+        country?: string;
+    };
+    [SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY]: {
+        backTo?: Routes;
+        country: string;
+    };
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: {
         backTo: Routes;
     };
@@ -174,6 +185,10 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
         policyID: string;
+    };
+    [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
+        policyID: string;
+        categoryName: string;
     };
     [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
         policyID: string;

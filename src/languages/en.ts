@@ -604,8 +604,10 @@ export default {
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
         receiptScanningFailed: 'Receipt scanning failed. Enter the details manually.',
         transactionPendingText: 'It takes a few days from the date the card was used for the transaction to post.',
-        requestCount: ({count, scanningReceipts = 0}: RequestCountParams) =>
-            `${count} ${Str.pluralize('request', 'requests', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}`,
+        requestCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) =>
+            `${count} ${Str.pluralize('request', 'requests', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${
+                pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''
+            }`,
         deleteRequest: 'Delete request',
         deleteConfirmation: 'Are you sure that you want to delete this request?',
         settledExpensify: 'Paid',
@@ -1035,18 +1037,32 @@ export default {
         delaySubmissionTitle: 'Delay submissions',
         delaySubmissionDescription: 'Expenses are shared right away for better spend visibility. Set a slower cadence if needed.',
         submissionFrequency: 'Submission frequency',
-        weeklyFrequency: 'Weekly',
-        monthlyFrequency: 'Monthly',
-        twiceAMonthFrequency: 'Twice a month',
-        byTripFrequency: 'By trip',
-        manuallyFrequency: 'Manually',
-        dailyFrequency: 'Daily',
+        submissionFrequencyDateOfMonth: 'Date of month',
         addApprovalsTitle: 'Add approvals',
         approver: 'Approver',
         connectBankAccount: 'Connect bank account',
         addApprovalsDescription: 'Require additional approval before authorizing a payment.',
         makeOrTrackPaymentsTitle: 'Make or track payments',
         makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify, or simply track payments made elsewhere.',
+        editor: {
+            submissionFrequency: 'Choose how long Expensify should wait before sharing error-free spend.',
+        },
+        frequencies: {
+            weekly: 'Weekly',
+            monthly: 'Monthly',
+            twiceAMonth: 'Twice a month',
+            byTrip: 'By trip',
+            manually: 'Manually',
+            daily: 'Daily',
+            lastDayOfMonth: 'Last day of the month',
+            lastBusinessDayOfMonth: 'Last business day of the month',
+            ordinals: {
+                one: 'st',
+                two: 'nd',
+                few: 'rd',
+                other: 'th',
+            },
+        },
     },
     reportFraudPage: {
         title: 'Report virtual card fraud',
@@ -1290,7 +1306,8 @@ export default {
     },
     focusModeUpdateModal: {
         title: 'Welcome to #focus mode!',
-        prompt: "Read chats will be hidden, unless they have a green dot, which means there's an action you need to take on them. You can change this in your account settings ",
+        prompt: "Stay on top of things by only seeing unread chats or chats that need your attention. Don't worry, you can change this at any point in ",
+        settings: 'settings',
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'The chat you are looking for cannot be found.',
@@ -1739,6 +1756,7 @@ export default {
             collect: 'Collect',
         },
         categories: {
+            categoryName: 'Category name',
             requiresCategory: 'Members must categorize all spend',
             enableCategory: 'Enable category',
             subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
@@ -1746,6 +1764,7 @@ export default {
                 title: "You haven't created any categories",
                 subtitle: 'Add a category to organize your spend.',
             },
+            genericFailureMessage: 'An error occurred while updating the category, please try again.',
         },
         emptyWorkspace: {
             title: 'Create a workspace',
@@ -1770,9 +1789,12 @@ export default {
         },
         people: {
             genericFailureMessage: 'An error occurred removing a user from the workspace, please try again.',
-            removeMembersPrompt: 'Are you sure you want to remove the selected members from your workspace?',
+            removeMembersPrompt: 'Are you sure you want to remove these members?',
             removeMembersTitle: 'Remove members',
+            makeMember: 'Make member',
+            makeAdmin: 'Make admin',
             selectAll: 'Select all',
+            selected: ({selectedNumber}) => `${selectedNumber} selected`,
             error: {
                 genericAdd: 'There was a problem adding this workspace member.',
                 cannotRemove: 'You cannot remove yourself or the workspace owner.',
@@ -2171,7 +2193,7 @@ export default {
         reply: 'Reply',
         from: 'From',
         in: 'in',
-        parentNavigationSummary: ({rootReportName, workspaceName}: ParentNavigationSummaryParams) => `From ${rootReportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
+        parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `From ${reportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
     },
     qrCodes: {
         copy: 'Copy URL',
@@ -2238,7 +2260,6 @@ export default {
         address: 'Address',
         waypointDescription: {
             start: 'Start',
-            finish: 'Finish',
             stop: 'Stop',
         },
         mapPending: {
