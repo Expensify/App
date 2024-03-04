@@ -7,8 +7,8 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -47,8 +47,8 @@ type CardDetailsProps = CardDetailsOnyxProps & {
 
 function CardDetails({pan = '', expiration = '', cvv = '', privatePersonalDetails, domain}: CardDetailsProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     usePrivatePersonalDetails();
+    const {translate} = useLocalize();
 
     const handleCopyToClipboard = () => {
         Clipboard.setString(pan);
