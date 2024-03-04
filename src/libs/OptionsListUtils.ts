@@ -35,6 +35,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
 import Timing from './actions/Timing';
 import * as CollectionUtils from './CollectionUtils';
+import {hasValidDraftComment} from './DraftCommentStore';
 import * as ErrorUtils from './ErrorUtils';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
@@ -660,7 +661,7 @@ function createOption(
         result.ownerAccountID = report.ownerAccountID;
         result.reportID = report.reportID;
         result.isUnread = ReportUtils.isUnread(report);
-        result.hasDraftComment = report.hasDraft;
+        result.hasDraftComment = hasValidDraftComment(report.reportID);
         result.isPinned = report.isPinned;
         result.iouReportID = report.iouReportID;
         result.keyForList = String(report.reportID);

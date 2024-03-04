@@ -18,8 +18,18 @@ Onyx.connect({
 /**
  * Returns a draft comment from the onyx collection.
  * Note: You should use the HOCs/hooks to get onyx data, instead of using this directly.
- * A valid use case to use this is if the value is only needed once for an initial value.
+ * A valid use-case of this function is outside React components, like in utility functions.
  */
-export default function getDraftComment(reportID: string): OnyxEntry<string> {
+function getDraftComment(reportID: string): OnyxEntry<string> {
     return draftCommentMap[reportID];
 }
+
+/**
+ * Returns true if the report has a valid draft comment.
+ * A valid draft comment is a non-empty string.
+ */
+function hasValidDraftComment(reportID: string): boolean {
+    return !!getDraftComment(reportID)?.trim();
+}
+
+export {getDraftComment, hasValidDraftComment};
