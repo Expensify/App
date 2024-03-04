@@ -189,10 +189,9 @@ function MoneyRequestView({
 
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     let receiptURIs;
-    let hasErrors = false;
+    const hasErrors = canEdit && TransactionUtils.hasMissingSmartscanFields(transaction);
     if (hasReceipt) {
         receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction);
-        hasErrors = canEdit && TransactionUtils.hasMissingSmartscanFields(transaction);
     }
 
     const pendingAction = transaction?.pendingAction;
@@ -270,7 +269,7 @@ function MoneyRequestView({
                         </View>
                     </OfflineWithFeedback>
                 )}
-                {!hasReceipt && canEditReceipt && canUseViolations && (
+                {!hasReceipt && canEditReceipt && (
                     <ReceiptEmptyState
                         hasError={hasErrors}
                         onPress={() =>
@@ -293,7 +292,7 @@ function MoneyRequestView({
                         shouldShowTitleIcon={isSettled}
                         titleIcon={Expensicons.Checkmark}
                         description={amountDescription}
-                        titleStyle={styles.newKansasLarge}
+                        titleStyle={styles.textHeadlineH2}
                         interactive={canEditAmount}
                         shouldShowRightIcon={canEditAmount}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
