@@ -39,7 +39,9 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
                         onPress={onPressIn ?? (() => {})}
                         onPressIn={onPressIn}
                         onPressOut={onPressOut}
-                        onLongPress={(event) => onShowContextMenu(() => showContextMenuForReport(event, anchor, report?.reportID ?? '', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report)))}
+                        onLongPress={(event) =>
+                            onShowContextMenu(() => showContextMenuForReport(event, anchor, report?.reportID ?? '', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report)))
+                        }
                         role={CONST.ROLE.PRESENTATION}
                         accessibilityLabel={translate('accessibilityHints.prestyledText')}
                     >

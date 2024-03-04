@@ -1,6 +1,6 @@
-import React, { useContext } from 'react';
-import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import React, {useContext} from 'react';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import BaseQuickEmojiReactions from './BaseQuickEmojiReactions';
 import type {OpenPickerCallback, QuickEmojiReactionsProps} from './types';
 

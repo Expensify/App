@@ -1,91 +1,78 @@
-import React, {useContext, useRef, useEffect} from 'react';
-import type { ViewProps } from 'react-native';
-import Reanimated, {
-    useAnimatedStyle,
-    useDerivedValue,
-    withSpring,
-    useAnimatedReaction,
-    runOnJS,
-    withSequence,
-    withTiming,
-    useSharedValue,
-    interpolate,
-} from 'react-native-reanimated';
-
+import React, {useContext, useEffect, useRef} from 'react';
+import type {ViewProps} from 'react-native';
+import {useKeyboardHandler} from 'react-native-keyboard-controller';
+import Reanimated, {interpolate, runOnJS, useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
-import useThemeStyles from '@hooks/useThemeStyles';
-
-import { useKeyboardHandler } from 'react-native-keyboard-controller';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import useStyleUtils from '@hooks/useStyleUtils';
-
-import {Actions, States, ActionSheetAwareScrollViewContext} from './ActionSheetAwareScrollViewContext';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import {Actions, ActionSheetAwareScrollViewContext, States} from './ActionSheetAwareScrollViewContext';
 
 const KeyboardState = {
     UNKNOWN: 0,
     OPENING: 1,
     OPEN: 2,
     CLOSING: 3,
-    CLOSED: 4
-}
+    CLOSED: 4,
+};
 const useAnimatedKeyboard = () => {
     const state = useSharedValue(KeyboardState.UNKNOWN);
     const height = useSharedValue(0);
     const progress = useSharedValue(0);
     const heightWhenOpened = useSharedValue(0);
 
-    useKeyboardHandler({
-        onStart: (e) => {
-            "worklet";
+    useKeyboardHandler(
+        {
+            onStart: (e) => {
+                'worklet';
 
-            // save the last keyboard height
-            if (e.height === 0) {
-                heightWhenOpened.value = height.value;
-            }
+                // save the last keyboard height
+                if (e.height === 0) {
+                    heightWhenOpened.value = height.value;
+                }
 
-            if (e.height > 0) {
-                state.value = KeyboardState.OPENING;
-            } else {
-                state.value = KeyboardState.CLOSING;
-            }
+                if (e.height > 0) {
+                    state.value = KeyboardState.OPENING;
+                } else {
+                    state.value = KeyboardState.CLOSING;
+                }
+            },
+            onMove: (e) => {
+                'worklet';
+
+                progress.value = e.progress;
+                height.value = e.height;
+            },
+            onEnd: (e) => {
+                'worklet';
+
+                if (e.height > 0) {
+                    state.value = KeyboardState.OPEN;
+                } else {
+                    state.value = KeyboardState.CLOSED;
+                }
+
+                height.value = e.height;
+                progress.value = e.progress;
+            },
         },
-        onMove: (e) => {
-            "worklet";
+        [],
+    );
 
-            progress.value = e.progress;
-            height.value = e.height;
-        },
-        onEnd: (e) => {
-            "worklet";
-
-            if (e.height > 0) {
-                state.value = KeyboardState.OPEN;
-            } else {
-                state.value = KeyboardState.CLOSED;
-            }
-
-            height.value = e.height;
-            progress.value = e.progress;
-        },
-    }, []);
-
-    return { state, height, heightWhenOpened, progress };
+    return {state, height, heightWhenOpened, progress};
 };
 const setInitialValueAndRunAnimation = (value: number, animation: number) => {
-    "worklet";
+    'worklet';
 
-    return withSequence(
-        withTiming(value, { duration: 0 }),
-        animation,
-    )
-}
+    return withSequence(withTiming(value, {duration: 0}), animation);
+};
 
 const useSafeAreaPaddings = () => {
     const StyleUtils = useStyleUtils();
     const insets = useSafeAreaInsets();
     const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(insets ?? undefined);
 
-    return { top: paddingTop, bottom: paddingBottom };
+    return {top: paddingTop, bottom: paddingBottom};
 };
 
 const config = {
@@ -149,7 +136,7 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
         const invertedKeyboardHeight = keyboard.state.value === KeyboardState.CLOSED ? lastKeyboardHeight : 0;
 
         let elementOffset = 0;
-        
+
         if (fy !== undefined && height !== undefined && popoverHeight !== undefined) {
             elementOffset = fy + safeArea.top + height - (windowHeight - popoverHeight);
         }
@@ -159,7 +146,7 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
 
         // it will be NaN when we don't have proper payload
         let previousElementOffset;
-        
+
         if (previousPayload.fy !== undefined && previousPayload.height !== undefined && previousPayload.popoverHeight !== undefined) {
             previousElementOffset = previousPayload.fy + safeArea.top + previousPayload.height - (windowHeight - previousPayload.popoverHeight);
         }

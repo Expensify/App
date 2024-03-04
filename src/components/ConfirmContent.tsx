@@ -1,5 +1,5 @@
 import type {ReactNode} from 'react';
-import React, { useCallback, useContext } from 'react';
+import React, {useCallback, useContext} from 'react';
 import type {LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -11,12 +11,12 @@ import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {Actions, ActionSheetAwareScrollViewContext} from './ActionSheetAwareScrollView';
 import Button from './Button';
 import Header from './Header';
 import Icon from './Icon';
 import ImageSVG from './ImageSVG';
 import Text from './Text';
-import {ActionSheetAwareScrollViewContext, Actions} from './ActionSheetAwareScrollView';
 
 type ConfirmContentProps = {
     /** Title of the modal */
@@ -101,16 +101,19 @@ function ConfirmContent({
     const {isOffline} = useNetwork();
     const StyleUtils = useStyleUtils();
 
-    const onLayout = useCallback((event: LayoutChangeEvent) => {
-        const {height} = event.nativeEvent.layout;
+    const onLayout = useCallback(
+        (event: LayoutChangeEvent) => {
+            const {height} = event.nativeEvent.layout;
 
-        actionSheetAwareScrollViewContext.transitionActionSheetState({
-            type: Actions.MEASURE_CONFIRM_MODAL,
-            payload: {
-                popoverHeight: height,
-            },
-        });
-    }, [actionSheetAwareScrollViewContext]);
+            actionSheetAwareScrollViewContext.transitionActionSheetState({
+                type: Actions.MEASURE_CONFIRM_MODAL,
+                payload: {
+                    popoverHeight: height,
+                },
+            });
+        },
+        [actionSheetAwareScrollViewContext],
+    );
 
     const isCentered = shouldCenterContent;
 
@@ -128,7 +131,10 @@ function ConfirmContent({
                 </View>
             )}
 
-            <View  onLayout={onLayout} style={[styles.m5, contentStyles]}>
+            <View
+                onLayout={onLayout}
+                style={[styles.m5, contentStyles]}
+            >
                 <View style={isCentered ? [styles.alignItemsCenter, styles.mb6] : []}>
                     {typeof iconSource === 'function' && (
                         <View style={[styles.flexRow, styles.mb3]}>

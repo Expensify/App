@@ -63,7 +63,17 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps &
         onShowContextMenu: (callback: () => void) => void;
     };
 
-function TaskPreview({taskReport, taskReportID, action, contextMenuAnchor, chatReportID, checkIfContextMenuActive, currentUserPersonalDetails, onShowContextMenu, isHovered = false}: TaskPreviewProps) {
+function TaskPreview({
+    taskReport,
+    taskReportID,
+    action,
+    contextMenuAnchor,
+    chatReportID,
+    checkIfContextMenuActive,
+    currentUserPersonalDetails,
+    onShowContextMenu,
+    isHovered = false,
+}: TaskPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();

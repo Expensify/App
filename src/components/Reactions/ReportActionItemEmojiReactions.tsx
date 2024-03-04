@@ -42,7 +42,7 @@ type ReportActionItemEmojiReactionsProps = WithCurrentUserPersonalDetailsProps &
      * This is optional, because we don't need it everywhere.
      * For example in the ReportActionContextMenu we don't need it.
      */
-    onPressOpenPicker: PropTypes.func,
+    onPressOpenPicker: PropTypes.func;
 
     /** We disable reacting with emojis on report actions that have errors */
     shouldBlockReactions?: boolean;

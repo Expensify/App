@@ -1,7 +1,7 @@
 import type {ImageContentFit} from 'expo-image';
 import type {RefObject} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
 import React, {useEffect, useRef, useState} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -219,7 +219,10 @@ function PopoverMenu({
             withoutOverlay={withoutOverlay}
             shouldSetModalVisibility={shouldSetModalVisibility}
         >
-            <View onLayout={onLayout} style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
+            <View
+                onLayout={onLayout}
+                style={isSmallScreenWidth ? {} : styles.createMenuContainer}
+            >
                 {!!headerText && <Text style={[styles.createMenuHeaderText, styles.ml3]}>{headerText}</Text>}
                 {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                 {currentMenuItems.map((item, menuIndex) => (

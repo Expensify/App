@@ -1,11 +1,10 @@
-import noop from "lodash/noop"
-import type {PropsWithChildren} from 'react';
-import React, { createContext, useMemo} from 'react';
+import noop from 'lodash/noop';
 import PropTypes from 'prop-types';
-
-import type { ActionWithPayload, State } from '@hooks/useWorkletStateMachine';
+import type {PropsWithChildren} from 'react';
+import React, {createContext, useMemo} from 'react';
+import type {SharedValue} from 'react-native-reanimated';
+import type {ActionWithPayload, State} from '@hooks/useWorkletStateMachine';
 import useWorkletStateMachine from '@hooks/useWorkletStateMachine';
-import type { SharedValue } from 'react-native-reanimated';
 
 type MeasuredElements = {
     fy?: number;
@@ -14,8 +13,8 @@ type MeasuredElements = {
     composerHeight?: number;
 };
 type Context = {
-    currentActionSheetState: SharedValue<State<MeasuredElements>>,
-    transitionActionSheetState: (action: ActionWithPayload) => void,
+    currentActionSheetState: SharedValue<State<MeasuredElements>>;
+    transitionActionSheetState: (action: ActionWithPayload) => void;
     transitionActionSheetStateWorklet: (action: ActionWithPayload) => void;
     resetStateMachine: () => void;
 };
@@ -66,7 +65,7 @@ const Actions = {
     SHOW_ATTACHMENTS_PICKER_POPOVER: 'SHOW_ATTACHMENTS_PICKER_POPOVER',
     CLOSE_EMOJI_PICKER_POPOVER_STANDALONE: 'CLOSE_EMOJI_PICKER_POPOVER_STANDALONE',
     MEASURE_CALL_POPOVER: 'MEASURE_CALL_POPOVER',
-    CLOSE_CALL_POPOVER: 'CLOSE_CALL_POPOVER'
+    CLOSE_CALL_POPOVER: 'CLOSE_CALL_POPOVER',
 };
 
 const States = {
@@ -88,7 +87,7 @@ const States = {
     ATTACHMENTS_POPOVER_WITH_KEYBOARD_OPEN: 'attachmentsPopoverWithKeyboardOpen',
     ATTACHMENTS_POPOVER_WITH_KEYBOARD_CLOSED: 'attachmentsPopoverWithKeyboardClosed',
     MODAL_DELETED: 'modalDeleted',
-    MODAL_WITH_KEYBOARD_OPEN_DELETED: 'modalWithKeyboardOpenDeleted'
+    MODAL_WITH_KEYBOARD_OPEN_DELETED: 'modalWithKeyboardOpenDeleted',
 };
 
 const STATE_MACHINE = {

@@ -53,7 +53,11 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', dow
                     onPressIn={onPressIn}
                     onPressOut={onPressOut}
                     // @ts-expect-error TODO: Remove this once ShowContextMenuContext (https://github.com/Expensify/App/issues/24980) is migrated to TypeScript.
-                    onLongPress={(event) => onShowContextMenu(() => { showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report)) })}
+                    onLongPress={(event) =>
+                        onShowContextMenu(() => {
+                            showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report));
+                        })
+                    }
                     accessibilityLabel={displayName}
                     role={CONST.ROLE.BUTTON}
                 >

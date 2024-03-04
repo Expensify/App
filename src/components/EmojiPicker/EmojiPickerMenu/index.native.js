@@ -1,8 +1,8 @@
 import React, {useCallback, useContext} from 'react';
 import {View} from 'react-native';
 import {runOnUI, scrollTo} from 'react-native-reanimated';
-
 import _ from 'underscore';
+import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -13,7 +13,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import CONST from '@src/CONST';
-import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import BaseEmojiPickerMenu from './BaseEmojiPickerMenu';
 import emojiPickerMenuPropTypes from './emojiPickerMenuPropTypes';
 import useEmojiPickerMenu from './useEmojiPickerMenu';
@@ -124,7 +123,10 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}) {
     );
 
     return (
-        <View onLayout={onLayout} style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(isSmallScreenWidth)]}>
+        <View
+            onLayout={onLayout}
+            style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(isSmallScreenWidth)]}
+        >
             <View style={[styles.ph4, styles.pb1, styles.pt2]}>
                 <TextInput
                     label={translate('common.search')}

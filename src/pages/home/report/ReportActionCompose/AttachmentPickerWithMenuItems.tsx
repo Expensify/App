@@ -1,11 +1,10 @@
-import React, {useCallback, useEffect, useMemo, useContext} from 'react';
 import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useContext, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-
-import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import type {ValueOf} from 'type-fest';
+import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Icon from '@components/Icon';

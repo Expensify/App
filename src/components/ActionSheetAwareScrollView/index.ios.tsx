@@ -1,10 +1,9 @@
-import type { PropsWithChildren} from 'react';
+import type {PropsWithChildren} from 'react';
 import React, {forwardRef} from 'react';
-
-import type { ScrollViewProps} from 'react-native';
+import type {ScrollViewProps} from 'react-native';
 import {ScrollView} from 'react-native';
-import ActionSheetKeyboardSpace from './ActionSheetKeyboardSpace';
 import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
+import ActionSheetKeyboardSpace from './ActionSheetKeyboardSpace';
 
 const ActionSheetAwareScrollView = forwardRef<ScrollView, PropsWithChildren<ScrollViewProps>>((props, ref) => (
     <ScrollView
@@ -12,9 +11,7 @@ const ActionSheetAwareScrollView = forwardRef<ScrollView, PropsWithChildren<Scro
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
     >
-        <ActionSheetKeyboardSpace>
-            {props.children}
-        </ActionSheetKeyboardSpace>
+        <ActionSheetKeyboardSpace>{props.children}</ActionSheetKeyboardSpace>
     </ScrollView>
 ));
 
