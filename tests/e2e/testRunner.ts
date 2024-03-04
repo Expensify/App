@@ -85,24 +85,24 @@ const runTests = async (): Promise<void> => {
     const server = createServerInstance();
     await server.start();
 
+    type Result = Record<string, number[]>;
     // Create a dict in which we will store the run durations for all tests
-    const results: Record<string, Record<string, unknown[]>> = {};
+    const results: Record<string, Result> = {};
 
     // Collect results while tests are being executed
-    // server.addTestResultListener((testResult) => {
     server.addTestResultListener((testResult) => {
         if (testResult?.error != null) {
             throw new Error(`Test '${testResult.name}' failed with error: ${testResult.error}`);
         }
-        let result: number | undefined = 0;
+        let result = 0;
 
-        if (testResult?.duration) {
+        if (testResult?.duration !== undefined) {
             if (testResult.duration < 0) {
                 return;
             }
             result = testResult.duration;
         }
-        if (testResult?.renderCount) {
+        if (testResult?.renderCount !== undefined) {
             result = testResult.renderCount;
         }
 

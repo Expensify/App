@@ -7,6 +7,7 @@ import React from 'react';
 import {AppState, DeviceEventEmitter, Linking} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type Animated from 'react-native-reanimated';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
@@ -44,9 +45,8 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
     },
 }));
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 jest.mock('react-native-reanimated', () => ({
-    ...jest.requireActual('react-native-reanimated/mock'),
+    ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
     createAnimatedPropAdapter: jest.fn,
     useReducedMotion: jest.fn,
 }));
@@ -54,7 +54,7 @@ jest.mock('react-native-reanimated', () => ({
 /**
  * We need to keep track of the transitionEnd callback so we can trigger it in our tests
  */
-let transitionEndCB: () => void | undefined;
+let transitionEndCB: () => void;
 
 type ListenerMock = {
     triggerTransitionEnd: () => void;
@@ -119,7 +119,8 @@ beforeAll(() => {
     // fetch() never gets called so it does not need mocking) or we might have fetch throw an error to test error handling
     // behavior. But here we just want to treat all API requests as a generic "success" and in the cases where we need to
     // simulate data arriving we will just set it into Onyx directly with Onyx.merge() or Onyx.set() etc.
-    global.fetch = TestHelper.getGlobalFetchMock() as typeof global.fetch;
+    // @ts-expect-error -- TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated
+    global.fetch = TestHelper.getGlobalFetchMock();
 
     Linking.setInitialURL('https://new.expensify.com/');
     appSetup();
@@ -315,7 +316,7 @@ describe('Unread Indicators', () => {
                 const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
-                const reportActionID = unreadIndicator?.[0]?.props?.['data-action-id'];
+                const reportActionID = unreadIndicator[0]?.props?.['data-action-id'];
                 expect(reportActionID).toBe('4');
                 // Scroll up and verify that the "New messages" badge appears
                 scrollUpToRevealNewMessagesBadge();
@@ -457,10 +458,10 @@ describe('Unread Indicators', () => {
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(2);
-                expect(displayNameTexts?.[0]?.props?.style?.fontWeight).toBe(undefined);
-                expect(displayNameTexts?.[0]?.props?.children?.[0]).toBe('C User');
-                expect(displayNameTexts?.[1]?.props?.style?.fontWeight).toBe(FontUtils.fontWeight.bold);
-                expect(displayNameTexts?.[1]?.props?.children?.[0]).toBe('B User');
+                expect(displayNameTexts[0]?.props?.style?.fontWeight).toBe(undefined);
+                expect(displayNameTexts[0]?.props?.children?.[0]).toBe('C User');
+                expect(displayNameTexts[1]?.props?.style?.fontWeight).toBe(FontUtils.fontWeight.bold);
+                expect(displayNameTexts[1]?.props?.children?.[0]).toBe('B User');
             }));
 
     xit('Manually marking a chat message as unread shows the new line indicator and updates the LHN', () =>
@@ -478,7 +479,7 @@ describe('Unread Indicators', () => {
                 const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
-                const reportActionID = unreadIndicator?.[0]?.props?.['data-action-id'];
+                const reportActionID = unreadIndicator[0]?.props?.['data-action-id'];
                 expect(reportActionID).toBe('3');
                 // Scroll up and verify the new messages badge appears
                 scrollUpToRevealNewMessagesBadge();
@@ -491,8 +492,8 @@ describe('Unread Indicators', () => {
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
-                expect(displayNameTexts?.[0]?.props?.style?.fontWeight).toBe(FontUtils.fontWeight.bold);
-                expect(displayNameTexts?.[0]?.props?.children?.[0]).toBe('B User');
+                expect(displayNameTexts[0]?.props?.style?.fontWeight).toBe(FontUtils.fontWeight.bold);
+                expect(displayNameTexts[0]?.props?.children?.[0]).toBe('B User');
 
                 // Navigate to the report again and back to the sidebar
                 return navigateToSidebarOption(0);
@@ -503,8 +504,8 @@ describe('Unread Indicators', () => {
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
-                expect(displayNameTexts?.[0]?.props?.style?.fontWeight).toBe(undefined);
-                expect(displayNameTexts?.[0]?.props?.children?.[0]).toBe('B User');
+                expect(displayNameTexts[0]?.props?.style?.fontWeight).toBe(undefined);
+                expect(displayNameTexts[0]?.props?.children?.[0]).toBe('B User');
 
                 // Navigate to the report again and verify the new line indicator is missing
                 return navigateToSidebarOption(0);
@@ -586,7 +587,6 @@ describe('Unread Indicators', () => {
             }));
 
     it('Displays the correct chat message preview in the LHN when a comment is added then deleted', () => {
-        // let reportActions: Record<string, ReportAction>;
         let reportActions: OnyxEntry<ReportActions>;
         let lastReportAction: ReportAction | undefined;
         Onyx.connect({
