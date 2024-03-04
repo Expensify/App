@@ -118,7 +118,14 @@ function IOURequestStepParticipants({
     const goToNextStep = useCallback(
         (selectedIouType) => {
             const isSplit = selectedIouType === CONST.IOU.TYPE.SPLIT;
-            const nextStepIOUType = !isSplit && iouType !== CONST.IOU.TYPE.REQUEST ? CONST.IOU.TYPE.REQUEST : iouType;
+            let nextStepIOUType;
+
+            if (isSplit && iouType !== CONST.IOU.TYPE.REQUEST) {
+                nextStepIOUType = CONST.IOU.TYPE.SPLIT;
+            } else {
+                nextStepIOUType = iouType === CONST.IOU.TYPE.SEND ? CONST.IOU.TYPE.SEND : CONST.IOU.TYPE.REQUEST;
+            }
+
             IOU.setMoneyRequestTag(transactionID, '');
             IOU.setMoneyRequestCategory(transactionID, '');
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(nextStepIOUType, transactionID, selectedReportID.current || reportID));
