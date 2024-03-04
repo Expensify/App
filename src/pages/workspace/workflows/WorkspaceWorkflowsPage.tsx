@@ -1,4 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
@@ -11,7 +10,6 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import BankAccount from '@libs/models/BankAccount';
@@ -49,9 +47,6 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
     const {isSmallScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
 
-    const isFocused = useIsFocused();
-    const prevIsFocused = usePrevious(isFocused);
-
     const policyApproverEmail = policy?.approver;
     const policyApproverName = useMemo(() => PersonalDetailsUtils.getPersonalDetailByEmail(policyApproverEmail ?? '')?.displayName ?? policyApproverEmail, [policyApproverEmail]);
     const containerStyle = useMemo(() => [styles.ph8, styles.mhn8, styles.ml11, styles.pv3, styles.pr0, styles.pl4, styles.mr0, styles.widthAuto, styles.mt4], [styles]);
@@ -73,13 +68,13 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
     }, [policy]);
 
     useEffect(() => {
-        if (isOffline || !isFocused || prevIsFocused === isFocused) {
+        if (isOffline) {
             return;
         }
         fetchData();
-    }, [isFocused, isOffline, prevIsFocused, fetchData]);
+    }, [isOffline, fetchData, reimbursementAccount]);
 
-    const activeRoute = Navigation.getActiveRouteWithoutParams();
+    const activeRoute = Navigation.getActiveRoute();
 
     const items: ToggleSettingOptionRowProps[] = useMemo(() => {
         const {accountNumber, state, bankName} = reimbursementAccount?.achData ?? {};
@@ -144,7 +139,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
                 subtitle: translate('workflowsPage.makeOrTrackPaymentsDescription'),
                 onToggle: () => {
                     const isActive = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
-                    const newReimbursementChoice = isActive ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+                    const newReimbursementChoice = isActive ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
                     Policy.setReimbursementFromChoice(route.params.policyID, newReimbursementChoice);
                     // todo: after enable we need to get VBA owner(?) email and set it to policy.reimburser_email with Policy.setWorkspaceReimbursement
                 },
@@ -155,7 +150,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
                             descriptionTextStyle={styles.textNormalThemeText}
                             title={hasVBA ? translate('common.bankAccount') : undefined}
                             description={state !== BankAccount.STATE.OPEN ? translate('workflowsPage.connectBankAccount') : bankDisplayName}
-                            onPress={() => navigateToBankAccountRoute(route.params.policyID, activeRoute)}
+                            onPress={() => navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID))}
                             shouldShowRightIcon
                             wrapperStyle={containerStyle}
                             hoverAndPressStyle={[styles.mr0, styles.br2]}

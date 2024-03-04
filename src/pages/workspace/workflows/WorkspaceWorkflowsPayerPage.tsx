@@ -6,6 +6,7 @@ import type {SectionListData} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MessagesRow from '@components/MessagesRow';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -23,6 +24,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as UserUtils from '@libs/UserUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
@@ -47,7 +49,7 @@ type WorkspaceWorkflowsPayerPageProps = WorkspaceWorkflowsPayerPageOnyxProps &
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 type MembersSection = SectionListData<MemberOption, Section<MemberOption>>;
 
-function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDetails}: WorkspaceWorkflowsPayerPageProps) {
+function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDetails, isLoadingReportData = true}: WorkspaceWorkflowsPayerPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -168,43 +170,59 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
             return;
         }
 
-        if (policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+        if (policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
             return;
         }
 
-        Policy.setWorkspaceReimbursement(policy?.id, authorizedPayer);
+        Policy.setWorkspaceReimbursement(policy?.id ?? '', authorizedPayer);
         Navigation.goBack();
     };
+
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = useMemo(
+        () =>
+            (isEmptyObject(policy) && !isLoadingReportData) ||
+            PolicyUtils.isPendingDeletePolicy(policy) ||
+            policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+        [policy, isLoadingReportData],
+    );
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    testID={WorkspaceWorkflowsPayerPage.displayName}
+                <FullPageNotFoundView
+                    shouldShow={shouldShowNotFoundPage}
+                    subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
+                    onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
+                    onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
                 >
-                    <HeaderWithBackButton
-                        title={translate('workflowsPage.authorizedPayer')}
-                        subtitle={policyName}
-                        onBackButtonPress={Navigation.goBack}
-                    />
-                    <MessagesRow
-                        type="error"
-                        messages={ErrorUtils.getLatestErrorField(policy ?? {}, 'reimburserEmail')}
-                        containerStyles={[styles.mh5, styles.mv3]}
-                        onClose={() => Policy.clearWorkspaceReimbursementError(route.params.policyID)}
-                    />
-                    <SelectionList
-                        sections={sections}
-                        textInputLabel={translate('optionsSelector.findMember')}
-                        textInputValue={searchTerm}
-                        onChangeText={setSearchTerm}
-                        headerMessage={headerMessage}
-                        ListItem={UserListItem}
-                        onSelectRow={(admin) => setPolicyAuthorizedPayer(admin)}
-                        showScrollIndicator
-                    />
-                </ScreenWrapper>
+                    <ScreenWrapper
+                        includeSafeAreaPaddingBottom={false}
+                        testID={WorkspaceWorkflowsPayerPage.displayName}
+                    >
+                        <HeaderWithBackButton
+                            title={translate('workflowsPage.authorizedPayer')}
+                            subtitle={policyName}
+                            onBackButtonPress={Navigation.goBack}
+                        />
+                        <MessagesRow
+                            type="error"
+                            messages={ErrorUtils.getLatestErrorField(policy ?? {}, 'reimburserEmail')}
+                            containerStyles={[styles.mh5, styles.mv3]}
+                            onClose={() => Policy.clearWorkspaceReimbursementError(route.params.policyID)}
+                        />
+                        <SelectionList
+                            sections={sections}
+                            textInputLabel={translate('optionsSelector.findMember')}
+                            textInputValue={searchTerm}
+                            onChangeText={setSearchTerm}
+                            headerMessage={headerMessage}
+                            ListItem={UserListItem}
+                            onSelectRow={setPolicyAuthorizedPayer}
+                            showScrollIndicator
+                        />
+                    </ScreenWrapper>
+                </FullPageNotFoundView>
             </PaidPolicyAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>
     );

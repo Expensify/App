@@ -79,6 +79,7 @@ const propTypes = {
             /** A step to navigate to if we need to drop the user into a specific point in the flow */
             stepToOpen: PropTypes.string,
             policyID: PropTypes.string,
+            backTo: PropTypes.string,
         }),
     }),
 };
@@ -252,6 +253,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
     const policyName = lodashGet(policy, 'name', '');
     const policyID = lodashGet(route.params, 'policyID', '');
+    const backTo = lodashGet(route.params, 'backTo');
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -275,10 +277,17 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, ignoreLocalCurrentStep ? '' : localCurrentStep, policyID);
     }
 
+    function shouldClearReimbursementAccount() {
+        return backTo !== ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)
+    }
+
     useEffect(
         () => {
             fetchData();
             return () => {
+                if (!shouldClearReimbursementAccount()) {
+                    return;
+                }
                 BankAccounts.clearReimbursementAccount();
             };
         },
@@ -337,9 +346,10 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 BankAccounts.hideBankAccountErrors();
             }
 
-            const backTo = lodashGet(route.params, 'backTo');
             // eslint-disable-next-line no-shadow
             const policyID = lodashGet(route.params, 'policyID');
+            // eslint-disable-next-line no-shadow
+            const backTo = lodashGet(route.params, 'backTo');
 
             Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyID, backTo));
         },
