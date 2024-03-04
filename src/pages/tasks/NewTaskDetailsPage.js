@@ -1,6 +1,6 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import PropTypes from 'prop-types';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -42,12 +42,11 @@ function NewTaskDetailsPage(props) {
     const [taskDescription, setTaskDescription] = useState(props.task.description || '');
 
     const {inputCallbackRef} = useAutoFocusInput();
-    const defaultDescriptionValue = useMemo(() => parser.htmlToMarkdown(parser.replace(taskDescription)), [taskDescription]);
 
     useEffect(() => {
         setTaskTitle(props.task.title);
         setTaskDescription(parser.htmlToMarkdown(parser.replace(props.task.description || '')));
-    }, [props.task.title, props.task.description]);
+    }, [props.task]);
 
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -119,7 +118,7 @@ function NewTaskDetailsPage(props) {
                         autoGrowHeight
                         shouldSubmitForm
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
-                        defaultValue={defaultDescriptionValue}
+                        defaultValue={parser.htmlToMarkdown(parser.replace(taskDescription))}
                         value={taskDescription}
                         onValueChange={(value) => setTaskDescription(value)}
                     />

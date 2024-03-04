@@ -190,7 +190,7 @@ function signOut() {
  * Checks if the account is an anonymous account.
  */
 function isAnonymousUser(): boolean {
-    return session.authTokenType === 'anonymousAccount';
+    return session.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
 }
 
 function hasStashedSession(): boolean {

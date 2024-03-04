@@ -7,13 +7,11 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AutoUpdateTime from '@components/AutoUpdateTime';
 import Avatar from '@components/Avatar';
-import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import CommunicationsLink from '@components/CommunicationsLink';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -30,7 +28,6 @@ import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import variables from '@styles/variables';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
@@ -98,9 +95,10 @@ const getPhoneNumber = (details) => {
 function ProfilePage(props) {
     const styles = useThemeStyles();
     const accountID = Number(lodashGet(props.route.params, 'accountID', 0));
-    const details = lodashGet(props.personalDetails, accountID, ValidationUtils.isValidAccountRoute(accountID) ? {} : {isloading: false});
+    const isCurrentUser = props.session.accountID === accountID;
 
-    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details);
+    const details = lodashGet(props.personalDetails, accountID, ValidationUtils.isValidAccountRoute(accountID) ? {} : {isloading: false});
+    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser);
     const avatar = lodashGet(details, 'avatar', UserUtils.getDefaultAvatar());
     const fallbackIcon = lodashGet(details, 'fallbackIcon', '');
     const login = lodashGet(details, 'login', '');
@@ -119,7 +117,6 @@ function ProfilePage(props) {
     const phoneNumber = getPhoneNumber(details);
     const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : login;
 
-    const isCurrentUser = props.session.accountID === accountID;
     const hasMinimumDetails = !_.isEmpty(details.avatar);
     const isLoading = lodashGet(details, 'isLoading', false) || _.isEmpty(details);
 
@@ -133,7 +130,7 @@ function ProfilePage(props) {
 
     const navigateBackTo = lodashGet(props.route, 'params.backTo');
 
-    const shouldShowNotificationPreference = !_.isEmpty(props.report) && props.report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    const shouldShowNotificationPreference = !_.isEmpty(props.report) && !isCurrentUser && props.report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const notificationPreference = shouldShowNotificationPreference ? props.translate(`notificationPreferencesPage.notificationPreferences.${props.report.notificationPreference}`) : '';
 
     // eslint-disable-next-line rulesdir/prefer-early-return
@@ -145,7 +142,7 @@ function ProfilePage(props) {
 
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>
-            <FullPageNotFoundView shouldShow={CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID)}>
+            <FullPageNotFoundView shouldShow={shouldShowBlockingView || CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID)}>
                 <HeaderWithBackButton
                     title={props.translate('common.profile')}
                     onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
@@ -237,7 +234,7 @@ function ProfilePage(props) {
                                     shouldShowRightIcon
                                 />
                             )}
-                            {!_.isEmpty(props.report) && (
+                            {!_.isEmpty(props.report) && !isCurrentUser && (
                                 <MenuItem
                                     title={`${props.translate('privateNotes.title')}`}
                                     titleStyle={styles.flex1}
@@ -251,16 +248,6 @@ function ProfilePage(props) {
                         </ScrollView>
                     )}
                     {!hasMinimumDetails && isLoading && <FullScreenLoadingIndicator style={styles.flex1} />}
-                    {shouldShowBlockingView && (
-                        <BlockingView
-                            icon={Illustrations.ToddBehindCloud}
-                            iconWidth={variables.modalTopIconWidth}
-                            iconHeight={variables.modalTopIconHeight}
-                            title={props.translate('notFound.notHere')}
-                            shouldShowLink
-                            link={props.translate('notFound.goBackHome')}
-                        />
-                    )}
                 </View>
             </FullPageNotFoundView>
         </ScreenWrapper>

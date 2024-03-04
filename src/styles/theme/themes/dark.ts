@@ -28,6 +28,7 @@ const darkTheme = {
     buttonDefaultBG: colors.productDark400,
     buttonHoveredBG: colors.productDark500,
     buttonPressedBG: colors.productDark600,
+    buttonSuccessText: colors.productLight100,
     danger: colors.red,
     dangerHover: colors.redHover,
     dangerPressed: colors.redHover,
@@ -95,7 +96,7 @@ const darkTheme = {
     // The screen name (see SCREENS.ts) is the name of the screen as far as react-navigation is concerned, and the linkingConfig maps screen names to URLs
     PAGE_THEMES: {
         [SCREENS.HOME]: {
-            backgroundColor: colors.productDark200,
+            backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.REPORT]: {
