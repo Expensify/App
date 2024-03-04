@@ -485,8 +485,10 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartOne: '¡La colaboración entre ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' y ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! 🎉 Este es el lugar donde chatear, pedir dinero y pagar.',
+        beginningOfChatHistorySelfDM: 'Este es tu espacio personal. Úsalo para notas, tareas, borradores y recordatorios.',
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
         sayHello: '¡Saluda!',
+        yourSpace: 'Tu espacio',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `¡Bienvenido a ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `\n¡También puedes usar el botón + de abajo para ${additionalText}, o asignar una tarea!`,
         iouTypes: {
@@ -1751,6 +1753,7 @@ export default {
             settings: 'Configuración',
             reimburse: 'Reembolsos',
             categories: 'Categorías',
+            tags: 'Etiquetas',
             bills: 'Pagar facturas',
             invoices: 'Enviar facturas',
             travel: 'Viajes',
@@ -1789,6 +1792,15 @@ export default {
                 subtitle: 'Añade una categoría para organizar tu gasto.',
             },
             genericFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
+        },
+        tags: {
+            requiresTag: 'Los miembros deben etiquetar todos los gastos',
+            enableTag: 'Habilitar etiqueta',
+            subtitle: 'Las etiquetas añaden formas más detalladas de clasificar los costos.',
+            emptyTags: {
+                title: 'No has creado ninguna etiqueta',
+                subtitle: 'Añade una etiqueta para realizar el seguimiento de proyectos, ubicaciones, departamentos y otros.',
+            },
         },
         emptyWorkspace: {
             title: 'Crea un espacio de trabajo',
