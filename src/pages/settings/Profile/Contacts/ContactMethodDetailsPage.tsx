@@ -308,9 +308,9 @@ export default withOnyx<ContactMethodDetailsPageProps, ContactMethodDetailsPageO
     policies: {
         key: ONYXKEYS.COLLECTION.POLICY,
         selector: (data) => ({
-                id: data?.id ?? '',
-                ownerAccountID: data?.ownerAccountID,
-                owner: data?.owner ?? '',
-            }),
+            id: data?.id ?? '',
+            ownerAccountID: data?.ownerAccountID,
+            owner: data?.owner ?? '',
+        }),
     },
 })(ContactMethodDetailsPage);
