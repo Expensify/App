@@ -21,7 +21,6 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
-import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -38,7 +37,11 @@ const propTypes = {
     /** All report actions for all reports */
 
     /** Object of report actions for this report */
-    allReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+    // eslint-disable-next-line react/forbid-prop-types
+    allReportActions: PropTypes.object,
+
+    // eslint-disable-next-line react/forbid-prop-types
+    allTransactions: PropTypes.object,
 
     /** Whether the reports are loading. When false it means they are ready to be used. */
     isLoadingApp: PropTypes.bool,
@@ -95,12 +98,14 @@ const defaultProps = {
     policyMembers: {},
     transactionViolations: {},
     allReportActions: {},
+    allTransactions: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 function SidebarLinksData({
     isFocused,
     allReportActions,
+    allTransactions,
     betas,
     chatReports,
     currentReportID,
@@ -132,7 +137,7 @@ function SidebarLinksData({
             (errorsMap, reportKey) => {
                 const report = chatReports[reportKey];
                 const allReportsActions = allReportActions[reportKey.replace(ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.COLLECTION.REPORT_ACTIONS)];
-                const errors = OptionsListUtils.getAllReportErrors(report, allReportsActions) || {};
+                const errors = OptionsListUtils.getAllReportErrors(report, allReportsActions, allTransactions) || {};
                 if (_.size(errors) === 0) {
                     return errorsMap;
                 }
@@ -140,7 +145,7 @@ function SidebarLinksData({
             },
             {},
         );
-    }, [allReportActions, chatReports]);
+    }, [allReportActions, allTransactions, chatReports]);
 
     const reportIDsRef = useRef(null);
     const isLoading = isLoadingApp;
@@ -338,6 +343,24 @@ const policySelector = (policy) =>
         avatar: policy.avatar,
     };
 
+/**
+ * @param {Object} [transaction]
+ * @returns {Object|undefined}
+ */
+const transactionSelector = (transaction) =>
+    transaction && {
+        reportID: transaction.reportID,
+        iouRequestType: transaction.iouRequestType,
+        comment: transaction.comment,
+        receipt: transaction.receipt,
+        merchant: transaction.merchant,
+        modifiedMerchant: transaction.modifiedMerchant,
+        amount: transaction.amount,
+        modifiedAmount: transaction.modifiedAmount,
+        created: transaction.created,
+        modifiedCreated: transaction.modifiedCreated,
+    };
+
 export default compose(
     withCurrentReportID,
     withCurrentUserPersonalDetails,
@@ -363,6 +386,11 @@ export default compose(
         allReportActions: {
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
             selector: reportActionsSelector,
+            initialValue: {},
+        },
+        allTransactions: {
+            key: ONYXKEYS.COLLECTION.TRANSACTION,
+            selector: transactionSelector,
             initialValue: {},
         },
         policies: {
