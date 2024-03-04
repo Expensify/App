@@ -105,6 +105,7 @@ function CarouselItem({item, onPress, isFocused, isModalHovered}) {
                     isAuthTokenRequired={item.isAuthTokenRequired}
                     onPress={onPress}
                     transactionID={item.transactionID}
+                    reportActionID={item.reportActionID}
                     isHovered={isModalHovered}
                     isFocused={isFocused}
                     optionalVideoDuration={item.duration}
