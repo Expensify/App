@@ -11,6 +11,7 @@ import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import * as CardUtils from './CardUtils';
 import DateUtils from './DateUtils';
+import type {MaybePhraseKey} from './Localize';
 import * as LoginUtils from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
 import StringUtils from './StringUtils';
@@ -81,7 +82,7 @@ function isValidPastDate(date: string | Date): boolean {
  * Used to validate a value that is "required".
  * @param value - field value
  */
-function isRequiredFulfilled(value?: FormValue): boolean {
+function isRequiredFulfilled(value?: FormValue | number[] | string[] | Record<string, string>): boolean {
     if (!value) {
         return false;
     }
@@ -190,7 +191,7 @@ function meetsMaximumAgeRequirement(date: string): boolean {
 /**
  * Validate that given date is in a specified range of years before now.
  */
-function getAgeRequirementError(date: string, minimumAge: number, maximumAge: number): string | Array<string | Record<string, string>> {
+function getAgeRequirementError(date: string, minimumAge: number, maximumAge: number): MaybePhraseKey {
     const currentDate = startOfDay(new Date());
     const testDate = parse(date, CONST.DATE.FNS_FORMAT_STRING, currentDate);
 
@@ -360,7 +361,7 @@ function isValidPersonName(value: string) {
 /**
  * Checks if the provided string includes any of the provided reserved words
  */
-function doesContainReservedWord(value: string, reservedWords: string[]): boolean {
+function doesContainReservedWord(value: string, reservedWords: typeof CONST.DISPLAY_NAME.RESERVED_NAMES): boolean {
     const valueToCheck = value.trim().toLowerCase();
     return reservedWords.some((reservedWord) => valueToCheck.includes(reservedWord.toLowerCase()));
 }

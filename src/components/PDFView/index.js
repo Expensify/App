@@ -27,6 +27,11 @@ class PDFView extends Component {
         this.toggleKeyboardOnSmallScreens = this.toggleKeyboardOnSmallScreens.bind(this);
         this.getDevicePixelRatio = _.memoize(this.getDevicePixelRatio);
 
+        // const workerURL = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
+        // if (pdfjs.GlobalWorkerOptions.workerSrc !== workerURL) {
+        //     pdfjs.GlobalWorkerOptions.workerSrc = workerURL;
+        // }
+
         this.retrieveCanvasLimits();
     }
 
