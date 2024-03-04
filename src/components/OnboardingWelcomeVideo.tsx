@@ -132,12 +132,13 @@ function OnboardingWelcomeVideo() {
             isVisible={isModalVisible}
             type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.CENTERED_SMALL : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
             onClose={closeModal}
+            innerContainerStyle={shouldUseNarrowLayout ? {} : {paddingTop: MODAL_PADDING, paddingBottom: MODAL_PADDING}}
         >
             <View
-                style={styles.WelcomeVideoNavigatorInnerView(shouldUseNarrowLayout)}
+                style={[shouldUseNarrowLayout ? {width: 500, height: 500} : {}, {maxHeight: '100%'}]}
                 onLayout={storeContainerDimensions}
             >
-                <View style={{padding: MODAL_PADDING}}>{getWelcomeVideo()}</View>
+                <View style={shouldUseNarrowLayout ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{getWelcomeVideo()}</View>
                 <View style={[shouldUseNarrowLayout ? [styles.mt5, styles.mh8] : [styles.mt3, styles.mh5]]}>
                     <View style={[shouldUseNarrowLayout ? [styles.gap1, styles.mb8] : [styles.gap2, styles.mb10]]}>
                         <Text style={styles.textHeroSmall}>{translate('onboarding.welcomeVideo.title')}</Text>
