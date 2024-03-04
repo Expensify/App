@@ -73,11 +73,12 @@ function GrowlNotification(_: unknown, ref: ForwardedRef<GrowlRef>) {
      * @param {Number} val
      */
     const fling = useCallback(
-        (val = INACTIVE_POSITION_Y) =>
+        (val = INACTIVE_POSITION_Y) => {
             Animated.spring(translateY, {
                 toValue: val,
                 useNativeDriver,
-            }).start(),
+                }).start();
+        },
         [translateY],
     );
 
