@@ -291,6 +291,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
         const isSvg = imageType.includes('image/svg');
         const name = isSvg ? 'fileName.png' : imageName;
         const type = isSvg ? 'image/png' : imageType;
+
         cropOrRotateImage(imageUri, [{rotate: rotation.value % 360}, {crop}], {compress: 1, name, type})
             .then((newImage) => {
                 onClose?.();
