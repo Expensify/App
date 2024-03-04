@@ -108,9 +108,9 @@ function OnboardingPurpose() {
                 progressBarPercentage={66.6}
             />
             <View style={[styles.flex1, styles.dFlex, styles.flexGrow1, styles.mv5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}>
-                <View style={[styles.flex1]}>
+                <View style={styles.flex1}>
                     <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                        <Text style={[styles.textHeroSmall]}>{translate('onboarding.purpose.title')} </Text>
+                        <Text style={styles.textHeroSmall}>{translate('onboarding.purpose.title')} </Text>
                     </View>
                     <ScrollView>
                     <MenuItemList
@@ -122,7 +122,7 @@ function OnboardingPurpose() {
                 <Button
                     success
                     onPress={completeEngagement}
-                    isDisabled={selectedPurpose === undefined}
+                    isDisabled={!selectedPurpose}
                     text={translate('common.continue')}
                 />
             </View>
