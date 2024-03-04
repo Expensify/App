@@ -13,13 +13,14 @@ beforeEach(() => {
     Request.clearMiddlewares();
 });
 
+const request: OnyxTypes.Request = {
+    command: 'MockCommand',
+    data: {authToken: 'testToken'},
+};
+
 test('Request.use() can register a middleware and it will run', () => {
     const testMiddleware = jest.fn();
     Request.use(testMiddleware);
-    const request: OnyxTypes.Request = {
-        command: 'MockCommand',
-        data: {authToken: 'testToken'},
-    };
 
     Request.processWithMiddleware(request, true);
     return waitForBatchedUpdates().then(() => {
@@ -52,11 +53,6 @@ test('Request.use() can register two middlewares. They can pass a response to th
 
     Request.use(testMiddleware);
     Request.use(errorThrowingMiddleware);
-
-    const request = {
-        command: 'MockCommand',
-        data: {authToken: 'testToken'},
-    };
 
     const catchHandler = jest.fn();
     Request.processWithMiddleware(request).catch(catchHandler);
