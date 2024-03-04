@@ -1,3 +1,4 @@
+import getSplashBackgroundColor from '@libs/getSplashBackgroundColor';
 import colors from '@styles/theme/colors';
 import type {ThemeColors} from '@styles/theme/types';
 import CONST from '@src/CONST';
@@ -6,7 +7,7 @@ import SCREENS from '@src/SCREENS';
 const lightTheme = {
     // Figma keys
     appBG: colors.productLight100,
-    splashBG: colors.green400,
+    splashBG: getSplashBackgroundColor(),
     highlightBG: colors.productLight200,
     border: colors.productLight400,
     borderLighter: colors.productLight400,
@@ -27,6 +28,7 @@ const lightTheme = {
     buttonDefaultBG: colors.productLight400,
     buttonHoveredBG: colors.productLight500,
     buttonPressedBG: colors.productLight600,
+    buttonSuccessText: colors.productLight100,
     danger: colors.red,
     dangerHover: colors.redHover,
     dangerPressed: colors.redHover,
@@ -94,7 +96,7 @@ const lightTheme = {
     // The screen name (see SCREENS.ts) is the name of the screen as far as react-navigation is concerned, and the linkingConfig maps screen names to URLs
     PAGE_THEMES: {
         [SCREENS.HOME]: {
-            backgroundColor: colors.productLight200,
+            backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
         [SCREENS.REPORT]: {
