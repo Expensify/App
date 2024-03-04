@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
+import reportPropTypes from '@pages/reportPropTypes';
 import {policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -46,6 +47,9 @@ const propTypes = {
 
     /** Collection of tags attached to a policy */
     policyTags: tagPropTypes,
+
+    /** The report currently being looked at */
+    report: reportPropTypes,
 };
 
 const defaultProps = {
@@ -54,6 +58,7 @@ const defaultProps = {
     policy: null,
     policyTags: null,
     policyCategories: null,
+    report: {},
 };
 
 function IOURequestStepMerchant({
@@ -65,6 +70,7 @@ function IOURequestStepMerchant({
     policy,
     policyTags,
     policyCategories,
+    report,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -75,7 +81,7 @@ function IOURequestStepMerchant({
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && isEditing;
     const {merchant} = ReportUtils.getTransactionDetails(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction);
     const isEmptyMerchant = merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
-    const isMerchantRequired = _.some(transaction.participants, (participant) => Boolean(participant.isPolicyExpenseChat));
+    const isMerchantRequired = ReportUtils.isGroupPolicy(report) || _.some(transaction.participants, (participant) => Boolean(participant.isPolicyExpenseChat));
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
