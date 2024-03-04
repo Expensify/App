@@ -11,6 +11,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Session} from '@src/types/onyx';
 import CONST from '@src/CONST';
+import Navigation from '@libs/Navigation/Navigation';
+import ROUTES from '@src/ROUTES';
 
 type LogOutPreviousUserPageOnyxProps = {
     /** The data about the current session which will be set once the user is authenticated and we return to this component as an AuthScreen */
@@ -36,6 +38,11 @@ function LogOutPreviousUserPage({session, route}: LogOutPreviousUserPageProps) {
 
             if (isSupportalLogin) {
                 SessionActions.signInWithSupportAuthToken(route.params.shortLivedAuthToken ?? '');
+                Navigation.isNavigationReady().then(() => {
+                    // We must call goBack() to remove the /transition route from history
+                    Navigation.goBack();
+                    Navigation.navigate(ROUTES.HOME);
+                });
                 return;
             }
 
