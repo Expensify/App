@@ -171,7 +171,6 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
     const isPolicyMember = useMemo(() => (report?.policyID ? PolicyUtils.isPolicyMember(report.policyID, policies as Record<string, Policy>) : false), [report?.policyID, policies]);
     const backRoute = useMemo(() => reportID && (isPolicyMember ? ROUTES.ROOM_MEMBERS.getRoute(reportID) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID)), [isPolicyMember, reportID]);
     const reportName = useMemo(() => ReportUtils.getReportName(report), [report]);
-
     const inviteUsers = useCallback(() => {
         if (!validate()) {
             return;
