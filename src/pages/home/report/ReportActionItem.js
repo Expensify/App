@@ -330,7 +330,7 @@ function ReportActionItem(props) {
         if (
             !(
                 (ReportActionsUtils.isActionableMentionWhisper(props.action) || ReportActionsUtils.isActionableJoinRequest(props.action)) &&
-                !lodashGet(props.action, 'originalMessage.resolution', null)
+                !(lodashGet(props.action, 'originalMessage.resolution', null) || lodashGet(props.action, 'originalMessage.choice', ''))
             )
         ) {
             return [];
@@ -761,6 +761,11 @@ function ReportActionItem(props) {
 
     // if action is actionable mention whisper and resolved by user, then we don't want to render anything
     if (ReportActionsUtils.isActionableMentionWhisper(props.action) && lodashGet(props.action, 'originalMessage.resolution', null)) {
+        return null;
+    }
+
+    // if action is actionable join by invited link and resolved by user, then we don't want to render anything
+    if (ReportActionsUtils.isActionableJoinRequest(props.action) && lodashGet(props.action, 'originalMessage.choice', '')) {
         return null;
     }
 
