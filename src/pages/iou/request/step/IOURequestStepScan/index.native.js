@@ -211,7 +211,9 @@ function IOURequestStepScan({
         }
 
         // Store the receipt on the transaction object in Onyx
-        IOU.setMoneyRequestReceipt(transactionID, file.uri, file.name, action !== CONST.IOU.ACTION.EDIT);
+        // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
+        // So, let us also save the file type in receipt for later use during blob fetch
+        IOU.setMoneyRequestReceipt(transactionID, file.uri, file.name, action !== CONST.IOU.ACTION.EDIT, file.type);
 
         if (action === CONST.IOU.ACTION.EDIT) {
             updateScanAndNavigate(file, file.uri);
@@ -236,7 +238,7 @@ function IOURequestStepScan({
             return;
         }
 
-        camera.current
+        return camera.current
             .takePhoto({
                 qualityPrioritization: 'speed',
                 flash: flash ? 'on' : 'off',
