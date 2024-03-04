@@ -55,7 +55,8 @@
     "gh-actions-unused-styles": "./.github/scripts/findUnusedKeys.sh",
     "workflow-test": "./workflow_tests/scripts/runWorkflowTests.sh",
     "workflow-test:generate": "ts-node workflow_tests/utils/preGenerateTest.js",
-    "setup-https": "mkcert -install && mkcert -cert-file config/webpack/certificate.pem -key-file config/webpack/key.pem dev.new.expensify.com localhost 127.0.0.1"
+    "setup-https": "mkcert -install && mkcert -cert-file config/webpack/certificate.pem -key-file config/webpack/key.pem dev.new.expensify.com localhost 127.0.0.1",
+    "e2e-test-runner-build": "ncc build tests/e2e/testRunner.js -o tests/e2e/dist/"
   },
   "dependencies": {
     "@dotlottie/react-player": "^1.6.3",
@@ -145,7 +146,7 @@
     "react-native-linear-gradient": "^2.8.1",
     "react-native-localize": "^2.2.6",
     "react-native-modal": "^13.0.0",
-    "react-native-onyx": "2.0.7",
+    "react-native-onyx": "2.0.10",
     "react-native-pager-view": "6.2.2",
     "react-native-pdf": "6.7.3",
     "react-native-performance": "^5.1.0",
