@@ -1,6 +1,6 @@
-import * as OnyxCommon from './OnyxCommon';
+import type * as OnyxCommon from './OnyxCommon';
 
-type PolicyMember = {
+type PolicyMember = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Role of the user in the policy */
     role?: string;
 
@@ -9,9 +9,9 @@ type PolicyMember = {
      * {<timestamp>: 'error message', <timestamp2>: 'error message 2'}
      */
     errors?: OnyxCommon.Errors;
+}>;
 
-    /** Is this action pending? */
-    pendingAction?: OnyxCommon.PendingAction;
-};
+type PolicyMembers = Record<string, PolicyMember>;
 
 export default PolicyMember;
+export type {PolicyMembers};

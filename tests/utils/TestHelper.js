@@ -1,12 +1,12 @@
-import _ from 'underscore';
-import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
+import Onyx from 'react-native-onyx';
+import _ from 'underscore';
 import CONST from '../../src/CONST';
 import * as Session from '../../src/libs/actions/Session';
 import HttpUtils from '../../src/libs/HttpUtils';
-import ONYXKEYS from '../../src/ONYXKEYS';
-import waitForPromisesToResolve from './waitForPromisesToResolve';
 import * as NumberUtils from '../../src/libs/NumberUtils';
+import ONYXKEYS from '../../src/ONYXKEYS';
+import waitForBatchedUpdates from './waitForBatchedUpdates';
 
 /**
  * @param {String} login
@@ -25,7 +25,6 @@ function buildPersonalDetails(login, accountID, firstName = 'Test') {
         lastName: 'User',
         pronouns: '',
         timezone: CONST.DEFAULT_TIME_ZONE,
-        payPalMeAddress: '',
         phoneNumber: '',
     };
 }
@@ -73,7 +72,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
 
     // Simulate user entering their login and populating the credentials.login
     Session.beginSignIn(login);
-    return waitForPromisesToResolve()
+    return waitForBatchedUpdates()
         .then(() => {
             // Response is the same for calls to Authenticate and BeginSignIn
             HttpUtils.xhr.mockResolvedValue({
@@ -117,7 +116,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
                 jsonCode: 200,
             });
             Session.signIn(password);
-            return waitForPromisesToResolve();
+            return waitForBatchedUpdates();
         })
         .then(() => {
             HttpUtils.xhr = originalXhr;
@@ -129,7 +128,7 @@ function signOutTestUser() {
     HttpUtils.xhr = jest.fn();
     HttpUtils.xhr.mockResolvedValue({jsonCode: 200});
     Session.signOutAndRedirectToSignIn();
-    return waitForPromisesToResolve().then(() => (HttpUtils.xhr = originalXhr));
+    return waitForBatchedUpdates().then(() => (HttpUtils.xhr = originalXhr));
 }
 
 /**
@@ -168,14 +167,16 @@ function getGlobalFetchMock() {
         if (!isPaused) {
             return Promise.resolve(getResponse());
         }
-        return new Promise((resolve) => queue.push(resolve));
+        return new Promise((resolve) => {
+            queue.push(resolve);
+        });
     });
 
     mockFetch.pause = () => (isPaused = true);
     mockFetch.resume = () => {
         isPaused = false;
         _.each(queue, (resolve) => resolve(getResponse()));
-        return waitForPromisesToResolve();
+        return waitForBatchedUpdates();
     };
     mockFetch.fail = () => (shouldFail = true);
     mockFetch.succeed = () => (shouldFail = false);
@@ -192,7 +193,7 @@ function setPersonalDetails(login, accountID) {
     Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         [accountID]: buildPersonalDetails(login, accountID),
     });
-    return waitForPromisesToResolve();
+    return waitForBatchedUpdates();
 }
 
 /**
@@ -213,4 +214,33 @@ function buildTestReportComment(created, actorAccountID, actionID = null) {
     };
 }
 
-export {getGlobalFetchMock, signInWithTestUser, signOutTestUser, setPersonalDetails, buildPersonalDetails, buildTestReportComment};
+function assertFormDataMatchesObject(formData, obj) {
+    expect(_.reduce(Array.from(formData.entries()), (memo, x) => ({...memo, [x[0]]: x[1]}), {})).toEqual(expect.objectContaining(obj));
+}
+
+/**
+ * This is a helper function to create a mock for the addListener function of the react-navigation library.
+ * The reason we need this is because we need to trigger the transitionEnd event in our tests to simulate
+ * the transitionEnd event that is triggered when the screen transition animation is completed.
+ *
+ * @returns {Object} An object with two functions: triggerTransitionEnd and addListener
+ */
+const createAddListenerMock = () => {
+    const transitionEndListeners = [];
+    const triggerTransitionEnd = () => {
+        transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
+    };
+
+    const addListener = jest.fn().mockImplementation((listener, callback) => {
+        if (listener === 'transitionEnd') {
+            transitionEndListeners.push(callback);
+        }
+        return () => {
+            _.filter(transitionEndListeners, (cb) => cb !== callback);
+        };
+    });
+
+    return {triggerTransitionEnd, addListener};
+};
+
+export {getGlobalFetchMock, signInWithTestUser, signOutTestUser, setPersonalDetails, buildPersonalDetails, buildTestReportComment, assertFormDataMatchesObject, createAddListenerMock};

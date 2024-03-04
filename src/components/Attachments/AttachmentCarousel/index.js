@@ -1,36 +1,39 @@
-import React, {useRef, useCallback, useState, useEffect} from 'react';
-import {View, FlatList, PixelRatio, Keyboard} from 'react-native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {FlatList, Keyboard, PixelRatio, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
-import styles from '../../../styles/styles';
+import BlockingView from '@components/BlockingViews/BlockingView';
+import * as Illustrations from '@components/Icon/Illustrations';
+import withLocalize from '@components/withLocalize';
+import withWindowDimensions from '@components/withWindowDimensions';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import compose from '@libs/compose';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import AttachmentCarouselCellRenderer from './AttachmentCarouselCellRenderer';
+import {defaultProps, propTypes} from './attachmentCarouselPropTypes';
 import CarouselActions from './CarouselActions';
-import withWindowDimensions from '../../withWindowDimensions';
 import CarouselButtons from './CarouselButtons';
-import extractAttachmentsFromReport from './extractAttachmentsFromReport';
-import {propTypes, defaultProps} from './attachmentCarouselPropTypes';
-import ONYXKEYS from '../../../ONYXKEYS';
-import withLocalize from '../../withLocalize';
-import compose from '../../../libs/compose';
-import useCarouselArrows from './useCarouselArrows';
-import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import CarouselItem from './CarouselItem';
-import Navigation from '../../../libs/Navigation/Navigation';
-import BlockingView from '../../BlockingViews/BlockingView';
-import * as Illustrations from '../../Icon/Illustrations';
-import variables from '../../../styles/variables';
+import extractAttachmentsFromReport from './extractAttachmentsFromReport';
+import useCarouselArrows from './useCarouselArrows';
 
-const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 const viewabilityConfig = {
     // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
     // more than 95% visible. When that happens we update the page index in the state.
     itemVisiblePercentThreshold: 95,
 };
 
-function AttachmentCarousel({report, reportActions, source, onNavigate, setDownloadButtonVisibility, translate}) {
+function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const scrollRef = useRef(null);
 
-    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+    const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
     const [containerWidth, setContainerWidth] = useState(0);
     const [page, setPage] = useState(0);
@@ -38,13 +41,20 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
     const [activeSource, setActiveSource] = useState(source);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
 
-    useEffect(() => {
-        const attachmentsFromReport = extractAttachmentsFromReport(report, reportActions);
+    const compareImage = useCallback((attachment) => attachment.source === source, [source]);
 
-        const initialPage = _.findIndex(attachmentsFromReport, (a) => a.source === source);
+    useEffect(() => {
+        const parentReportAction = parentReportActions[report.parentReportActionID];
+        const attachmentsFromReport = extractAttachmentsFromReport(parentReportAction, reportActions);
+
+        const initialPage = _.findIndex(attachmentsFromReport, compareImage);
+
+        if (_.isEqual(attachments, attachmentsFromReport)) {
+            return;
+        }
 
         // Dismiss the modal when deleting an attachment during its display in preview.
-        if (initialPage === -1 && _.find(attachments, (a) => a.source === source)) {
+        if (initialPage === -1 && _.find(attachments, compareImage)) {
             Navigation.dismissModal();
         } else {
             setPage(initialPage);
@@ -54,17 +64,18 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
             setDownloadButtonVisibility(initialPage !== -1);
 
             // Update the parent modal's state with the source and name from the mapped attachments
-            if (!_.isUndefined(attachmentsFromReport[initialPage])) onNavigate(attachmentsFromReport[initialPage]);
+            if (!_.isUndefined(attachmentsFromReport[initialPage])) {
+                onNavigate(attachmentsFromReport[initialPage]);
+            }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [report, reportActions, source]);
+    }, [attachments, reportActions, parentReportActions, compareImage, report.parentReportActionID, setDownloadButtonVisibility, onNavigate]);
 
     /**
      * Updates the page state when the user navigates between attachments
      * @param {Object} item
      * @param {number} index
      */
-    const updatePage = useRef(
+    const updatePage = useCallback(
         ({viewableItems}) => {
             Keyboard.dismiss();
 
@@ -99,7 +110,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
 
             scrollRef.current.scrollToIndex({index: nextIndex, animated: canUseTouchScreen});
         },
-        [attachments, page],
+        [attachments, canUseTouchScreen, page],
     );
 
     /**
@@ -118,29 +129,6 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
     );
 
     /**
-     * Defines how a container for a single attachment should be rendered
-     * @param {Object} cellRendererProps
-     * @returns {JSX.Element}
-     */
-    const renderCell = useCallback(
-        (cellProps) => {
-            // Use window width instead of layout width to address the issue in https://github.com/Expensify/App/issues/17760
-            // considering horizontal margin and border width in centered modal
-            const modalStyles = styles.centeredModalStyles(isSmallScreenWidth, true);
-            const style = [cellProps.style, styles.h100, {width: PixelRatio.roundToNearestPixel(windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2)}];
-
-            return (
-                <View
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...cellProps}
-                    style={style}
-                />
-            );
-        },
-        [isSmallScreenWidth, windowWidth],
-    );
-
-    /**
      * Defines how a single attachment should be rendered
      * @param {Object} item
      * @param {String} item.reportActionID
@@ -152,14 +140,18 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
      * @returns {JSX.Element}
      */
     const renderItem = useCallback(
-        ({item}) => (
+        ({item, index}) => (
             <CarouselItem
                 item={item}
                 isFocused={activeSource === item.source}
-                onPress={canUseTouchScreen ? () => setShouldShowArrows(!shouldShowArrows) : undefined}
+                isSingleItem={attachments.length === 1}
+                onPress={canUseTouchScreen ? () => setShouldShowArrows((oldState) => !oldState) : undefined}
+                isModalHovered={shouldShowArrows}
+                index={index}
+                activeIndex={page}
             />
         ),
-        [activeSource, setShouldShowArrows, shouldShowArrows],
+        [activeSource, attachments.length, canUseTouchScreen, page, setShouldShowArrows, shouldShowArrows],
     );
 
     return (
@@ -172,6 +164,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
             {page === -1 ? (
                 <BlockingView
                     icon={Illustrations.ToddBehindCloud}
+                    iconColor={theme.offline}
                     iconWidth={variables.modalTopIconWidth}
                     iconHeight={variables.modalTopIconHeight}
                     title={translate('notFound.notHere')}
@@ -209,14 +202,14 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
                             initialScrollIndex={page}
                             initialNumToRender={3}
                             windowSize={5}
-                            maxToRenderPerBatch={3}
+                            maxToRenderPerBatch={CONST.MAX_TO_RENDER_PER_BATCH.CAROUSEL}
                             data={attachments}
-                            CellRendererComponent={renderCell}
+                            CellRendererComponent={AttachmentCarouselCellRenderer}
                             renderItem={renderItem}
                             getItemLayout={getItemLayout}
                             keyExtractor={(item) => item.source}
                             viewabilityConfig={viewabilityConfig}
-                            onViewableItemsChanged={updatePage.current}
+                            onViewableItemsChanged={updatePage}
                         />
                     )}
 
@@ -226,13 +219,22 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
         </View>
     );
 }
+
 AttachmentCarousel.propTypes = propTypes;
 AttachmentCarousel.defaultProps = defaultProps;
+AttachmentCarousel.displayName = 'AttachmentCarousel';
 
 export default compose(
     withOnyx({
         reportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+            canEvict: false,
+        },
+        parentReport: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
+        },
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
             canEvict: false,
         },
     }),

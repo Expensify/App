@@ -1,15 +1,16 @@
+import PropTypes from 'prop-types';
 import React, {useContext, useState} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import CONST from '../../../CONST';
-import styles from '../../../styles/styles';
-import useLocalize from '../../../hooks/useLocalize';
-import PressableWithoutFeedback from '../../Pressable/PressableWithoutFeedback';
-import Text from '../../Text';
-import Button from '../../Button';
-import AttachmentView from '../AttachmentView';
-import SafeAreaConsumer from '../../SafeAreaConsumer';
-import ReportAttachmentsContext from '../../../pages/home/report/ReportAttachmentsContext';
+import AttachmentView from '@components/Attachments/AttachmentView';
+import * as AttachmentsPropTypes from '@components/Attachments/propTypes';
+import Button from '@components/Button';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import SafeAreaConsumer from '@components/SafeAreaConsumer';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import ReportAttachmentsContext from '@pages/home/report/ReportAttachmentsContext';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Attachment required information such as the source and file name */
@@ -20,35 +21,44 @@ const propTypes = {
         /** Whether source URL requires authentication */
         isAuthTokenRequired: PropTypes.bool,
 
-        /** The source (URL) of the attachment */
-        source: PropTypes.string,
+        /** URL to full-sized attachment or SVG function */
+        source: AttachmentsPropTypes.attachmentSourcePropType.isRequired,
 
         /** Additional information about the attachment file */
         file: PropTypes.shape({
             /** File name of the attachment */
-            name: PropTypes.string,
-        }),
+            name: PropTypes.string.isRequired,
+        }).isRequired,
 
         /** Whether the attachment has been flagged */
         hasBeenFlagged: PropTypes.bool,
-    }).isRequired,
 
-    /** Whether the attachment is currently being viewed in the carousel */
-    isFocused: PropTypes.bool.isRequired,
+        /** The id of the transaction related to the attachment */
+        transactionID: PropTypes.string,
+
+        duration: PropTypes.number,
+    }).isRequired,
 
     /** onPress callback */
     onPress: PropTypes.func,
+
+    isModalHovered: PropTypes.bool,
+
+    /** Whether the attachment is currently being viewed in the carousel */
+    isFocused: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
     onPress: undefined,
+    isModalHovered: false,
 };
 
-function CarouselItem({item, isFocused, onPress}) {
+function CarouselItem({item, onPress, isFocused, isModalHovered}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isAttachmentHidden} = useContext(ReportAttachmentsContext);
     // eslint-disable-next-line es/no-nullish-coalescing-operators
-    const [isHidden, setIsHidden] = useState(isAttachmentHidden(item.reportActionID) ?? item.hasBeenFlagged);
+    const [isHidden, setIsHidden] = useState(() => isAttachmentHidden(item.reportActionID) ?? item.hasBeenFlagged);
 
     const renderButton = (style) => (
         <Button
@@ -57,8 +67,7 @@ function CarouselItem({item, isFocused, onPress}) {
             onPress={() => setIsHidden(!isHidden)}
         >
             <Text
-                style={styles.buttonSmallText}
-                selectable={false}
+                style={[styles.buttonSmallText, styles.userSelectNone]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 {isHidden ? translate('moderation.revealMessage') : translate('moderation.hideMessage')}
@@ -94,8 +103,12 @@ function CarouselItem({item, isFocused, onPress}) {
                     source={item.source}
                     file={item.file}
                     isAuthTokenRequired={item.isAuthTokenRequired}
-                    isFocused={isFocused}
                     onPress={onPress}
+                    transactionID={item.transactionID}
+                    reportActionID={item.reportActionID}
+                    isHovered={isModalHovered}
+                    isFocused={isFocused}
+                    optionalVideoDuration={item.duration}
                     isUsedInCarousel
                 />
             </View>
@@ -111,5 +124,6 @@ function CarouselItem({item, isFocused, onPress}) {
 
 CarouselItem.propTypes = propTypes;
 CarouselItem.defaultProps = defaultProps;
+CarouselItem.displayName = 'CarouselItem';
 
 export default CarouselItem;

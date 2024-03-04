@@ -1,22 +1,27 @@
 import React, {useEffect, useState} from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import styles from '../../styles/styles';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
-import TextLink from '../../components/TextLink';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
-import CheckboxWithLabel from '../../components/CheckboxWithLabel';
-import Text from '../../components/Text';
-import ShortTermsForm from './TermsPage/ShortTermsForm';
+import CheckboxWithLabel from '@components/CheckboxWithLabel';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import * as BankAccounts from '@userActions/BankAccounts';
+import ONYXKEYS from '@src/ONYXKEYS';
 import LongTermsForm from './TermsPage/LongTermsForm';
-import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
+import ShortTermsForm from './TermsPage/ShortTermsForm';
+import userWalletPropTypes from './userWalletPropTypes';
 import walletTermsPropTypes from './walletTermsPropTypes';
-import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
+    /** The user's wallet */
+    userWallet: userWalletPropTypes,
+
     /** Comes from Onyx. Information about the terms for the wallet */
     walletTerms: walletTermsPropTypes,
 
@@ -24,10 +29,36 @@ const propTypes = {
 };
 
 const defaultProps = {
+    userWallet: {},
     walletTerms: {},
 };
 
+function HaveReadAndAgreeLabel() {
+    const {translate} = useLocalize();
+
+    return (
+        <Text>
+            {`${translate('termsStep.haveReadAndAgree')}`}
+            <TextLink href="https://use.expensify.com/esignagreement">{`${translate('termsStep.electronicDisclosures')}.`}</TextLink>
+        </Text>
+    );
+}
+
+function AgreeToTheLabel() {
+    const {translate} = useLocalize();
+
+    return (
+        <Text>
+            {`${translate('termsStep.agreeToThe')} `}
+            <TextLink href="https://use.expensify.com/privacy">{`${translate('common.privacy')} `}</TextLink>
+            {`${translate('common.and')} `}
+            <TextLink href="https://use.expensify.com/walletagreement">{`${translate('termsStep.walletAgreement')}.`}</TextLink>
+        </Text>
+    );
+}
+
 function TermsStep(props) {
+    const styles = useThemeStyles();
     const [hasAcceptedDisclosure, setHasAcceptedDisclosure] = useState(false);
     const [hasAcceptedPrivacyPolicyAndWalletAgreement, setHasAcceptedPrivacyPolicyAndWalletAgreement] = useState(false);
     const [error, setError] = useState(false);
@@ -59,33 +90,18 @@ function TermsStep(props) {
                 style={styles.flex1}
                 contentContainerStyle={styles.ph5}
             >
-                <ShortTermsForm />
+                <ShortTermsForm userWallet={props.userWallet} />
                 <LongTermsForm />
                 <CheckboxWithLabel
                     accessibilityLabel={props.translate('termsStep.haveReadAndAgree')}
                     style={[styles.mb4, styles.mt4]}
                     onInputChange={toggleDisclosure}
-                    LabelComponent={() => (
-                        <Text>
-                            {`${props.translate('termsStep.haveReadAndAgree')}`}
-                            <TextLink href="https://use.expensify.com/esignagreement">{`${props.translate('termsStep.electronicDisclosures')}.`}</TextLink>
-                        </Text>
-                    )}
+                    LabelComponent={HaveReadAndAgreeLabel}
                 />
                 <CheckboxWithLabel
                     accessibilityLabel={props.translate('termsStep.agreeToThe')}
                     onInputChange={togglePrivacyPolicy}
-                    LabelComponent={() => (
-                        <Text>
-                            {`${props.translate('termsStep.agreeToThe')} `}
-
-                            <TextLink href="https://use.expensify.com/privacy">{`${props.translate('common.privacy')} `}</TextLink>
-
-                            {`${props.translate('common.and')} `}
-
-                            <TextLink href="https://use.expensify.com/walletagreement">{`${props.translate('termsStep.walletAgreement')}.`}</TextLink>
-                        </Text>
-                    )}
+                    LabelComponent={AgreeToTheLabel}
                 />
                 <FormAlertWithSubmitButton
                     buttonText={props.translate('termsStep.enablePayments')}
@@ -98,11 +114,12 @@ function TermsStep(props) {
                         setError(false);
                         BankAccounts.acceptWalletTerms({
                             hasAcceptedTerms: hasAcceptedDisclosure && hasAcceptedPrivacyPolicyAndWalletAgreement,
-                            chatReportID: props.walletTerms.chatReportID,
+                            reportID: props.walletTerms.chatReportID,
                         });
                     }}
                     message={errorMessage}
                     isAlertVisible={error || Boolean(errorMessage)}
+                    isLoading={!!props.walletTerms.isLoading}
                     containerStyles={[styles.mh0, styles.mv4]}
                 />
             </ScrollView>

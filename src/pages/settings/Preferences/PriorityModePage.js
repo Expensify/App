@@ -1,18 +1,18 @@
-import _, {compose} from 'underscore';
+import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import styles from '../../../styles/styles';
-import Text from '../../../components/Text';
-import ONYXKEYS from '../../../ONYXKEYS';
-import * as User from '../../../libs/actions/User';
-import CONST from '../../../CONST';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import SelectionList from '../../../components/SelectionList';
+import _, {compose} from 'underscore';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
+import * as User from '@userActions/User';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** The chat priority mode */
@@ -26,18 +26,19 @@ const defaultProps = {
 };
 
 function PriorityModePage(props) {
-    const priorityModes = _.map(props.translate('priorityModePage.priorityModes'), (mode, key) => ({
-        value: key,
-        text: mode.label,
-        alternateText: mode.description,
-        keyForList: key,
-        isSelected: props.priorityMode === key,
+    const styles = useThemeStyles();
+    const priorityModes = _.map(_.values(CONST.PRIORITY_MODE), (mode) => ({
+        value: mode,
+        text: props.translate(`priorityModePage.priorityModes.${mode}.label`),
+        alternateText: props.translate(`priorityModePage.priorityModes.${mode}.description`),
+        keyForList: mode,
+        isSelected: props.priorityMode === mode,
     }));
 
     const updateMode = useCallback(
         (mode) => {
             if (mode.value === props.priorityMode) {
-                Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+                Navigation.goBack();
                 return;
             }
             User.updateChatPriorityMode(mode.value);
@@ -46,14 +47,18 @@ function PriorityModePage(props) {
     );
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={PriorityModePage.displayName}
+        >
             <HeaderWithBackButton
                 title={props.translate('priorityModePage.priorityMode')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PREFERENCES)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
-            <Text style={[styles.mh5, styles.mv4]}>{props.translate('priorityModePage.explainerText')}</Text>
+            <Text style={[styles.mh5, styles.mv3]}>{props.translate('priorityModePage.explainerText')}</Text>
             <SelectionList
                 sections={[{data: priorityModes}]}
+                ListItem={RadioListItem}
                 onSelectRow={updateMode}
                 initiallyFocusedOptionKey={_.find(priorityModes, (mode) => mode.isSelected).keyForList}
             />

@@ -1,24 +1,31 @@
-import React, {useEffect} from 'react';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import compose from '../libs/compose';
-import CONST from '../CONST';
-import Navigation from '../libs/Navigation/Navigation';
-import ONYXKEYS from '../ONYXKEYS';
-import * as ReportActionsUtils from '../libs/ReportActionsUtils';
-import * as ReportUtils from '../libs/ReportUtils';
-import * as TransactionUtils from '../libs/TransactionUtils';
-import * as Policy from '../libs/actions/Policy';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../components/withCurrentUserPersonalDetails';
-import EditRequestDescriptionPage from './EditRequestDescriptionPage';
-import EditRequestMerchantPage from './EditRequestMerchantPage';
-import EditRequestCreatedPage from './EditRequestCreatedPage';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import categoryPropTypes from '@components/categoryPropTypes';
+import ScreenWrapper from '@components/ScreenWrapper';
+import tagPropTypes from '@components/tagPropTypes';
+import transactionPropTypes from '@components/transactionPropTypes';
+import compose from '@libs/compose';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as IOUUtils from '@libs/IOUUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import EditRequestAmountPage from './EditRequestAmountPage';
+import EditRequestDistancePage from './EditRequestDistancePage';
+import EditRequestReceiptPage from './EditRequestReceiptPage';
+import EditRequestTagPage from './EditRequestTagPage';
+import reportActionPropTypes from './home/report/reportActionPropTypes';
 import reportPropTypes from './reportPropTypes';
-import * as IOU from '../libs/actions/IOU';
-import * as CurrencyUtils from '../libs/CurrencyUtils';
-import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
+import {policyPropTypes} from './workspace/withPolicy';
 
 const propTypes = {
     /** Route from navigation */
@@ -30,105 +37,108 @@ const propTypes = {
 
             /** reportID for the "transaction thread" */
             threadReportID: PropTypes.string,
+
+            /** The index of a tag list */
+            tagIndex: PropTypes.string,
         }),
     }).isRequired,
 
+    /** Onyx props */
     /** The report object for the thread report */
     report: reportPropTypes,
 
-    /** The parent report object for the thread report */
-    parentReport: reportPropTypes,
+    /** The policy of the report */
+    policy: policyPropTypes.policy,
 
-    /** The policy object for the current route */
-    policy: PropTypes.shape({
-        /** The name of the policy */
-        name: PropTypes.string,
+    /** Collection of categories attached to a policy */
+    policyCategories: PropTypes.objectOf(categoryPropTypes),
 
-        /** The URL for the policy avatar */
-        avatar: PropTypes.string,
-    }),
+    /** Collection of tags attached to a policy */
+    policyTags: tagPropTypes,
 
-    /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user email */
-        email: PropTypes.string,
-    }),
+    /** The actions from the parent report */
+    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
-    ...withCurrentUserPersonalDetailsPropTypes,
+    /** Transaction that stores the request data */
+    transaction: transactionPropTypes,
 };
 
 const defaultProps = {
     report: {},
-    parentReport: {},
-    policy: null,
-    session: {
-        email: null,
-    },
+    policy: {},
+    policyCategories: {},
+    policyTags: {},
+    parentReportActions: {},
+    transaction: {},
 };
 
-function EditRequestPage({report, route, parentReport, policy, session}) {
-    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-    const transaction = TransactionUtils.getLinkedTransaction(parentReportAction);
-    const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription, merchant: transactionMerchant} = ReportUtils.getTransactionDetails(transaction);
+function EditRequestPage({report, route, policy, policyCategories, policyTags, parentReportActions, transaction}) {
+    const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
+    const parentReportAction = lodashGet(parentReportActions, parentReportActionID, {});
+    const {amount: transactionAmount, currency: transactionCurrency, tag: transactionTag} = ReportUtils.getTransactionDetails(transaction);
 
     const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
-
-    // Take only the YYYY-MM-DD value
-    const transactionCreated = TransactionUtils.getCreated(transaction);
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
+    const tagIndex = Number(lodashGet(route, ['params', 'tagIndex'], undefined));
 
-    const isDeleted = ReportActionsUtils.isDeletedAction(parentReportAction);
-    const isSettled = ReportUtils.isSettled(parentReport.reportID);
+    const tag = TransactionUtils.getTag(transaction, tagIndex);
+    const policyTagListName = PolicyUtils.getTagListName(policyTags, tagIndex);
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
-    const isAdmin = Policy.isAdminOfFreePolicy([policy]) && ReportUtils.isExpenseReport(parentReport);
-    const isRequestor = ReportUtils.isMoneyRequestReport(parentReport) && lodashGet(session, 'accountID', null) === parentReportAction.actorAccountID;
-    const canEdit = !isSettled && !isDeleted && (isAdmin || isRequestor);
+    // A flag for verifying that the current report is a sub-report of a workspace chat
+    const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
 
-    // Dismiss the modal when the request is paid or deleted
+    // A flag for showing the tags page
+    const shouldShowTags = useMemo(() => isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists)), [isPolicyExpenseChat, policyTagLists, transactionTag]);
+
+    // Decides whether to allow or disallow editing a money request
     useEffect(() => {
-        if (canEdit) {
+        // Do not dismiss the modal, when a current user can edit this property of the money request.
+        if (ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, fieldToEdit)) {
             return;
         }
-        Navigation.dismissModal();
-    }, [canEdit]);
 
-    // Update the transaction object and close the modal
-    function editMoneyRequest(transactionChanges) {
-        IOU.editMoneyRequest(transaction.transactionID, report.reportID, transactionChanges);
-        Navigation.dismissModal();
-    }
+        // Dismiss the modal when a current user cannot edit a money request.
+        Navigation.isNavigationReady().then(() => {
+            Navigation.dismissModal();
+        });
+    }, [parentReportAction, fieldToEdit]);
 
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
-        return (
-            <EditRequestDescriptionPage
-                defaultDescription={transactionDescription}
-                onSubmit={(transactionChanges) => {
-                    // In case the comment hasn't been changed, do not make the API request.
-                    if (transactionChanges.comment.trim() === transactionDescription) {
-                        Navigation.dismissModal();
-                        return;
-                    }
-                    editMoneyRequest({comment: transactionChanges.comment.trim()});
-                }}
-            />
-        );
-    }
+    const saveAmountAndCurrency = useCallback(
+        ({amount, currency: newCurrency}) => {
+            const newAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE) {
-        return (
-            <EditRequestCreatedPage
-                defaultCreated={transactionCreated}
-                onSubmit={(transactionChanges) => {
-                    // In case the date hasn't been changed, do not make the API request.
-                    if (transactionChanges.created === transactionCreated) {
-                        Navigation.dismissModal();
-                        return;
-                    }
-                    editMoneyRequest(transactionChanges);
-                }}
-            />
-        );
-    }
+            // If the value hasn't changed, don't request to save changes on the server and just close the modal
+            if (newAmount === TransactionUtils.getAmount(transaction) && newCurrency === TransactionUtils.getCurrency(transaction)) {
+                Navigation.dismissModal();
+                return;
+            }
+
+            IOU.updateMoneyRequestAmountAndCurrency(transaction.transactionID, report.reportID, newCurrency, newAmount, policy, policyTags, policyCategories);
+            Navigation.dismissModal();
+        },
+        [transaction, report, policy, policyTags, policyCategories],
+    );
+
+    const saveTag = useCallback(
+        ({tag: newTag}) => {
+            let updatedTag = newTag;
+            if (newTag === tag) {
+                // In case the same tag has been selected, reset the tag.
+                updatedTag = '';
+            }
+            IOU.updateMoneyRequestTag(
+                transaction.transactionID,
+                report.reportID,
+                IOUUtils.insertTagIntoTransactionTagsString(transactionTag, updatedTag, tagIndex),
+                policy,
+                policyTags,
+                policyCategories,
+            );
+            Navigation.dismissModal();
+        },
+        [tag, transaction.transactionID, report.reportID, transactionTag, tagIndex, policy, policyTags, policyCategories],
+    );
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT) {
         return (
@@ -136,58 +146,90 @@ function EditRequestPage({report, route, parentReport, policy, session}) {
                 defaultAmount={transactionAmount}
                 defaultCurrency={defaultCurrency}
                 reportID={report.reportID}
-                onSubmit={(transactionChanges) => {
-                    const amount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(transactionChanges));
-                    // In case the amount hasn't been changed, do not make the API request.
-                    if (amount === transactionAmount && transactionCurrency === defaultCurrency) {
-                        Navigation.dismissModal();
-                        return;
-                    }
-                    // Temporarily disabling currency editing and it will be enabled as a quick follow up
-                    editMoneyRequest({
-                        amount,
-                        currency: defaultCurrency,
-                    });
+                onSubmit={saveAmountAndCurrency}
+                onNavigateToCurrency={() => {
+                    const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
+                    Navigation.navigate(ROUTES.EDIT_CURRENCY_REQUEST.getRoute(report.reportID, defaultCurrency, activeRoute));
                 }}
             />
         );
     }
 
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.MERCHANT) {
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.TAG && shouldShowTags) {
         return (
-            <EditRequestMerchantPage
-                defaultMerchant={transactionMerchant}
-                onSubmit={(transactionChanges) => {
-                    // In case the merchant hasn't been changed, do not make the API request.
-                    if (transactionChanges.merchant.trim() === transactionMerchant) {
-                        Navigation.dismissModal();
-                        return;
-                    }
-                    editMoneyRequest({merchant: transactionChanges.merchant.trim()});
-                }}
+            <EditRequestTagPage
+                defaultTag={tag}
+                tagName={policyTagListName}
+                tagIndex={tagIndex}
+                policyID={lodashGet(report, 'policyID', '')}
+                onSubmit={saveTag}
             />
         );
     }
 
-    return <FullPageNotFoundView shouldShow />;
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
+        return (
+            <EditRequestReceiptPage
+                route={route}
+                transactionID={transaction.transactionID}
+            />
+        );
+    }
+
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DISTANCE) {
+        return (
+            <EditRequestDistancePage
+                report={report}
+                transactionID={transaction.transactionID}
+                route={route}
+            />
+        );
+    }
+
+    return (
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
+            testID={EditRequestPage.displayName}
+        >
+            <FullPageNotFoundView shouldShow />
+        </ScreenWrapper>
+    );
 }
 
 EditRequestPage.displayName = 'EditRequestPage';
 EditRequestPage.propTypes = propTypes;
 EditRequestPage.defaultProps = defaultProps;
 export default compose(
-    withCurrentUserPersonalDetails,
     withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`,
         },
     }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
-        parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
-        },
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        },
+        policyCategories: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
+        },
+        policyTags: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+        },
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
+            canEvict: false,
+        },
+    }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
+    withOnyx({
+        transaction: {
+            key: ({report, parentReportActions}) => {
+                const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
+                const parentReportAction = lodashGet(parentReportActions, parentReportActionID);
+                return `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', 0)}`;
+            },
         },
     }),
 )(EditRequestPage);

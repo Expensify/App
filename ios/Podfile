@@ -1,17 +1,30 @@
+require File.join(File.dirname(`node --print "require.resolve('expo/package.json')"`), "scripts/autolinking")
 # Set the type of Mapbox SDK to use
 # This value is used by $RNMapboxMaps
 $RNMapboxMapsImpl = 'mapbox'
 
-# Resolve react_native_pods.rb with node to allow for hoisting
-require Pod::Executable.execute_command('node', ['-p',
-  'require.resolve(
-    "react-native/scripts/react_native_pods.rb",
-    {paths: [process.argv[1]]},
-  )', __dir__]).strip
+def node_require(script)
+  # Resolve script with node to allow for hoisting
+  require Pod::Executable.execute_command('node', ['-p',
+    "require.resolve(
+      '#{script}',
+      {paths: [process.argv[1]]},
+    )", __dir__]).strip
+end
+
+node_require('react-native/scripts/react_native_pods.rb')
+node_require('react-native-permissions/scripts/setup.rb')
 
 # Our min supported iOS version is higher than the default (min_ios_version_supported) to support libraires such as Airship
-platform :ios, 13
+platform :ios, 13.4
 prepare_react_native_project!
+
+setup_permissions([
+  'Camera',
+  'LocationAccuracy',
+  'LocationAlways',
+  'LocationWhenInUse'
+])
 
 # If you are using a `react-native-flipper` your iOS build will fail when `NO_FLIPPER=1` is set.
 # because `react-native-flipper` depends on (FlipperKit,...) that will be excluded
@@ -22,7 +35,7 @@ prepare_react_native_project!
 #   dependencies: {
 #     ...(process.env.NO_FLIPPER ? { 'react-native-flipper': { platforms: { ios: null } } } : {}),
 # ```
-flipper_config = ENV['NO_FLIPPER'] == "1" ? FlipperConfiguration.disabled : FlipperConfiguration.enabled(['Debug Production', 'Debug Development', 'Debug AdHoc'])
+flipper_config = ENV['NO_FLIPPER'] == "1" ? FlipperConfiguration.disabled : FlipperConfiguration.enabled(['DebugProduction', 'DebugDevelopment', 'DebugAdHoc'])
 
 linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
@@ -51,31 +64,28 @@ pre_install do |installer|
 end
 
 target 'NewExpensify' do
+  use_expo_modules!
+  post_integrate do |installer|
+    begin
+      expo_patch_react_imports!(installer)
+    rescue => e
+      Pod::UI.warn e
+    end
+  end
   permissions_path = '../node_modules/react-native-permissions/ios'
 
   project 'NewExpensify',
-    'Debug Development' => :debug,
-    'Debug AdHoc' => :debug,
-    'Debug Production' => :debug,
-    'Release Development' => :release,
-    'Release AdHoc' => :release,
-    'Release Production' => :release
-
-  pod 'Permission-LocationAccuracy', :path => "#{permissions_path}/LocationAccuracy"
-  pod 'Permission-LocationAlways', :path => "#{permissions_path}/LocationAlways"
-  pod 'Permission-LocationWhenInUse', :path => "#{permissions_path}/LocationWhenInUse"
-  pod 'Permission-Camera', :path => "#{permissions_path}/Camera"
+    'DebugDevelopment' => :debug,
+    'DebugAdHoc' => :debug,
+    'DebugProduction' => :debug,
+    'ReleaseDevelopment' => :release,
+    'ReleaseAdHoc' => :release,
+    'ReleaseProduction' => :release
 
   config = use_native_modules!
 
-  # Flags change depending on the env values.
-  flags = get_default_flags()
-
   use_react_native!(
     :path => config[:reactNativePath],
-    # Hermes is now enabled by default. Disable by setting this flag to false.
-    :hermes_enabled => flags[:hermes_enabled],
-    :fabric_enabled => flags[:fabric_enabled],
     # Enables Flipper.
     #
     # Note that if you have use_frameworks! enabled, Flipper will not work and
@@ -101,7 +111,6 @@ target 'NewExpensify' do
       config[:reactNativePath],
       :mac_catalyst_enabled => false
     )
-    __apply_Xcode_12_5_M1_post_install_workaround(installer)
     __apply_Xcode_14_3_RC_post_install_workaround(installer)
 
     installer.pods_project.targets.each do |target|
@@ -112,4 +121,8 @@ target 'NewExpensify' do
       end
     end
   end
+end
+
+target 'NotificationServiceExtension' do
+  pod 'AirshipServiceExtension'
 end

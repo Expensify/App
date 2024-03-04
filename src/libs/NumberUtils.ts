@@ -1,4 +1,4 @@
-import CONST from '../CONST';
+import CONST from '@src/CONST';
 
 /**
  * Generates a random positive 64 bit numeric string by randomly generating the left, middle, and right parts and concatenating them. Used to generate client-side ids.
@@ -59,4 +59,37 @@ function generateRandomInt(a: number, b: number): number {
     return Math.floor(lower + Math.random() * (upper - lower + 1));
 }
 
-export {rand64, generateHexadecimalValue, generateRandomInt};
+/**
+ * Parses a numeric string value containing a decimal separator from any locale.
+ *
+ * @param value the string value to parse
+ * @returns a floating point number parsed from the string value
+ */
+function parseFloatAnyLocale(value: string): number {
+    return parseFloat(value ? value.replace(',', '.') : value);
+}
+
+/**
+ * Given an input number p and another number q, returns the largest number that's less than p and divisible by q.
+ */
+function roundDownToLargestMultiple(p: number, q: number) {
+    return Math.floor(p / q) * q;
+}
+
+/**
+ * Rounds a number to two decimal places.
+ * @returns the rounded value
+ */
+function roundToTwoDecimalPlaces(value: number): number {
+    return Math.round(value * 100) / 100;
+}
+
+/**
+ * Clamps a value between a minimum and maximum value.
+ * @returns the clamped value
+ */
+function clamp(value: number, min: number, max: number): number {
+    return Math.min(Math.max(value, min), max);
+}
+
+export {rand64, generateHexadecimalValue, generateRandomInt, parseFloatAnyLocale, roundDownToLargestMultiple, roundToTwoDecimalPlaces, clamp};

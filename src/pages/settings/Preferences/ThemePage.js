@@ -1,23 +1,20 @@
-import _ from 'underscore';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import SelectionList from '../../../components/SelectionList';
-import styles from '../../../styles/styles';
-import ONYXKEYS from '../../../ONYXKEYS';
-import CONST from '../../../CONST';
-import compose from '../../../libs/compose';
-import Text from '../../../components/Text';
-import * as User from '../../../libs/actions/User';
+import _ from 'underscore';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
+import * as User from '@userActions/User';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
-    ...withLocalizePropTypes,
-
     /** The theme of the app */
     preferredTheme: PropTypes.string,
 };
@@ -27,26 +24,32 @@ const defaultProps = {
 };
 
 function ThemePage(props) {
-    const localesToThemes = _.map(props.translate('themePage.themes'), (theme, key) => ({
-        value: key,
-        text: theme.label,
-        keyForList: key,
-        isSelected: (props.preferredTheme || CONST.THEME.DEFAULT) === key,
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const localesToThemes = _.map(_.values(_.omit(CONST.THEME, 'DEFAULT', 'FALLBACK')), (theme) => ({
+        value: theme,
+        text: translate(`themePage.themes.${theme}.label`),
+        keyForList: theme,
+        isSelected: (props.preferredTheme || CONST.THEME.DEFAULT) === theme,
     }));
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={ThemePage.displayName}
+        >
             <HeaderWithBackButton
-                title={props.translate('themePage.theme')}
+                title={translate('themePage.theme')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES)}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onBackButtonPress={() => Navigation.goBack()}
+                onCloseButtonPress={() => Navigation.dismissModal()}
             />
 
-            <Text style={[styles.mh5, styles.mv4]}>{props.translate('themePage.chooseThemeBelowOrSync')}</Text>
+            <Text style={[styles.mh5, styles.mv4]}>{translate('themePage.chooseThemeBelowOrSync')}</Text>
 
             <SelectionList
                 sections={[{data: localesToThemes}]}
+                ListItem={RadioListItem}
                 onSelectRow={(theme) => User.updateTheme(theme.value)}
                 initiallyFocusedOptionKey={_.find(localesToThemes, (theme) => theme.isSelected).keyForList}
             />
@@ -58,11 +61,8 @@ ThemePage.displayName = 'ThemePage';
 ThemePage.propTypes = propTypes;
 ThemePage.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        preferredTheme: {
-            key: ONYXKEYS.PREFERRED_THEME,
-        },
-    }),
-)(ThemePage);
+export default withOnyx({
+    preferredTheme: {
+        key: ONYXKEYS.PREFERRED_THEME,
+    },
+})(ThemePage);

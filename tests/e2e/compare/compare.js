@@ -1,10 +1,8 @@
-const fs = require('fs/promises');
-const fsSync = require('fs');
-const _ = require('underscore');
-const {OUTPUT_DIR} = require('../config');
-const {computeProbability, computeZ} = require('./math');
-const printToConsole = require('./output/console');
-const writeToMarkdown = require('./output/markdown');
+import _ from 'underscore';
+import getStats from '../measure/math';
+import * as math from './math';
+import printToConsole from './output/console';
+import writeToMarkdown from './output/markdown';
 
 /*
  * base implementation from: https://github.com/callstack/reassure/blob/main/packages/reassure-compare/src/compare.ts
@@ -25,19 +23,7 @@ const PROBABILITY_CONSIDERED_SIGNIFICANCE = 0.02;
  * This is additional filter, in addition to probability threshold above.
  * Too small duration difference might be result of measurement grain of 1 ms.
  */
-const DURATION_DIFF_THRESHOLD_SIGNIFICANCE = 50;
-
-const loadFile = (path) =>
-    fs.readFile(path, 'utf8').then((data) => {
-        const entries = JSON.parse(data);
-
-        const result = {};
-        entries.forEach((entry) => {
-            result[entry.name] = entry;
-        });
-
-        return result;
-    });
+const DURATION_DIFF_THRESHOLD_SIGNIFICANCE = 100;
 
 /**
  *
@@ -50,8 +36,8 @@ function buildCompareEntry(name, compare, baseline) {
     const diff = compare.mean - baseline.mean;
     const relativeDurationDiff = diff / baseline.mean;
 
-    const z = computeZ(baseline.mean, baseline.stdev, compare.mean, compare.runs);
-    const prob = computeProbability(z);
+    const z = math.computeZ(baseline.mean, baseline.stdev, compare.mean, compare.runs);
+    const prob = math.computeProbability(z);
 
     const isDurationDiffOfSignificance = prob < PROBABILITY_CONSIDERED_SIGNIFICANCE && Math.abs(diff) >= DURATION_DIFF_THRESHOLD_SIGNIFICANCE;
 
@@ -84,8 +70,11 @@ function compareResults(compareEntries, baselineEntries) {
         const current = compareEntries[name];
         const baseline = baselineEntries[name];
 
+        const currentStats = getStats(baseline);
+        const deltaStats = getStats(current);
+
         if (baseline && current) {
-            compared.push(buildCompareEntry(name, current, baseline));
+            compared.push(buildCompareEntry(name, deltaStats, currentStats));
         } else if (current) {
             added.push({
                 name,
@@ -101,11 +90,9 @@ function compareResults(compareEntries, baselineEntries) {
 
     const significance = _.chain(compared)
         .filter((item) => item.isDurationDiffOfSignificance)
-        .sort((a, b) => b.diff - a.diff)
         .value();
     const meaningless = _.chain(compared)
         .filter((item) => !item.isDurationDiffOfSignificance)
-        .sort((a, b) => b.diff - a.diff)
         .value();
 
     added.sort((a, b) => b.current.mean - a.current.mean);
@@ -119,25 +106,15 @@ function compareResults(compareEntries, baselineEntries) {
     };
 }
 
-module.exports = (baselineFile = `${OUTPUT_DIR}/baseline.json`, compareFile = `${OUTPUT_DIR}/compare.json`, outputFormat = 'all') => {
-    const hasBaselineFile = fsSync.existsSync(baselineFile);
-    if (!hasBaselineFile) {
-        throw new Error(`Baseline results files "${baselineFile}" does not exists.`);
-    }
-    return loadFile(baselineFile).then((baseline) => {
-        const hasCompareFile = fsSync.existsSync(compareFile);
-        if (!hasCompareFile) {
-            throw new Error(`Compare results files "${compareFile}" does not exists.`);
-        }
-        return loadFile(compareFile).then((compare) => {
-            const outputData = compareResults(compare, baseline);
+export default (main, delta, outputFile, outputFormat = 'all') => {
+    // IMPORTANT NOTE: make sure you are passing the delta/compare results first, then the main/baseline results:
+    const outputData = compareResults(delta, main);
 
-            if (outputFormat === 'console' || outputFormat === 'all') {
-                printToConsole(outputData);
-            }
-            if (outputFormat === 'markdown' || outputFormat === 'all') {
-                return writeToMarkdown(`${OUTPUT_DIR}/output.md`, outputData);
-            }
-        });
-    });
+    if (outputFormat === 'console' || outputFormat === 'all') {
+        printToConsole(outputData);
+    }
+
+    if (outputFormat === 'markdown' || outputFormat === 'all') {
+        return writeToMarkdown(outputFile, outputData);
+    }
 };

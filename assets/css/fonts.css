@@ -54,6 +54,11 @@
     src: url('/fonts/ExpensifyNewKansas-MediumItalic.woff2') format('woff2'),  url('/fonts/ExpensifyNewKansas-MediumItalic.woff') format('woff');
 }
 
+@font-face {
+    font-family: Noto Color Emoji;
+    src: url('/fonts/NotoColorEmoji-Regular.woff2') format('woff2'),  url('/fonts/NotoColorEmoji-Regular.woff') format('woff');
+}
+
 * {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

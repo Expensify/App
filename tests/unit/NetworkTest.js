@@ -1,23 +1,21 @@
-import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-
-import * as TestHelper from '../utils/TestHelper';
-import HttpUtils from '../../src/libs/HttpUtils';
-import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
-import ONYXKEYS from '../../src/ONYXKEYS';
+import _ from 'underscore';
 import CONST from '../../src/CONST';
-import * as Network from '../../src/libs/Network';
-import * as NetworkStore from '../../src/libs/Network/NetworkStore';
-import * as Session from '../../src/libs/actions/Session';
-import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
-import Log from '../../src/libs/Log';
-import * as MainQueue from '../../src/libs/Network/MainQueue';
-import * as App from '../../src/libs/actions/App';
-import NetworkConnection from '../../src/libs/NetworkConnection';
 import OnyxUpdateManager from '../../src/libs/actions/OnyxUpdateManager';
+import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
+import * as PersonalDetails from '../../src/libs/actions/PersonalDetails';
+import * as Session from '../../src/libs/actions/Session';
+import HttpUtils from '../../src/libs/HttpUtils';
+import Log from '../../src/libs/Log';
+import * as Network from '../../src/libs/Network';
+import * as MainQueue from '../../src/libs/Network/MainQueue';
+import * as NetworkStore from '../../src/libs/Network/NetworkStore';
+import NetworkConnection from '../../src/libs/NetworkConnection';
+import ONYXKEYS from '../../src/ONYXKEYS';
+import * as TestHelper from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('../../src/libs/Log');
-jest.useFakeTimers();
 
 Onyx.init({
     keys: ONYXKEYS,
@@ -31,14 +29,13 @@ beforeEach(() => {
     HttpUtils.xhr = originalXHR;
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
-    PersistedRequests.clear();
     NetworkStore.checkRequiredData();
 
     // Wait for any Log command to finish and Onyx to fully clear
-    jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
-    return waitForPromisesToResolve()
+    return waitForBatchedUpdates()
+        .then(() => PersistedRequests.clear())
         .then(() => Onyx.clear())
-        .then(waitForPromisesToResolve);
+        .then(waitForBatchedUpdates);
 });
 
 afterEach(() => {
@@ -104,23 +101,22 @@ describe('NetworkTests', () => {
                 );
 
             // This should first trigger re-authentication and then a Failed to fetch
-            App.confirmReadyToOpenApp();
-            App.openApp();
-            return waitForPromisesToResolve()
+            PersonalDetails.openPersonalDetails();
+            return waitForBatchedUpdates()
                 .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
                 .then(() => {
                     expect(isOffline).toBe(false);
 
                     // Advance the network request queue by 1 second so that it can realize it's back online
                     jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
-                    return waitForPromisesToResolve();
+                    return waitForBatchedUpdates();
                 })
                 .then(() => {
-                    // Then we will eventually have 3 calls to chatList and 2 calls to Authenticate
-                    const callsToOpenApp = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'OpenApp');
+                    // Then we will eventually have 1 call to OpenPersonalDetailsPage and 1 calls to Authenticate
+                    const callsToOpenPersonalDetails = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'OpenPersonalDetailsPage');
                     const callsToAuthenticate = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'Authenticate');
 
-                    expect(callsToOpenApp.length).toBe(1);
+                    expect(callsToOpenPersonalDetails.length).toBe(1);
                     expect(callsToAuthenticate.length).toBe(1);
                 });
         });
@@ -140,7 +136,7 @@ describe('NetworkTests', () => {
                 HttpUtils.xhr = jest.fn();
                 HttpUtils.xhr
 
-                    // And mock the first call to OpenApp return with an expired session code
+                    // And mock the first call to openPersonalDetails return with an expired session code
                     .mockImplementationOnce(() =>
                         Promise.resolve({
                             jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
@@ -168,20 +164,20 @@ describe('NetworkTests', () => {
                         }),
                     );
 
-                // And then make 3 API requests in quick succession with an expired authToken and handle the response
+                // And then make 3 API READ requests in quick succession with an expired authToken and handle the response
                 // It doesn't matter which requests these are really as all the response is mocked we just want to see
                 // that we get re-authenticated
-                App.openApp();
-                App.openApp();
-                App.openApp();
-                return waitForPromisesToResolve();
+                PersonalDetails.openPersonalDetails();
+                PersonalDetails.openPersonalDetails();
+                PersonalDetails.openPersonalDetails();
+                return waitForBatchedUpdates();
             })
             .then(() => {
                 // We should expect to see the three calls to OpenApp, but only one call to Authenticate.
                 // And we should also see the reconnection callbacks triggered.
-                const callsToOpenApp = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'OpenApp');
+                const callsToOpenPersonalDetails = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'OpenPersonalDetailsPage');
                 const callsToAuthenticate = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'Authenticate');
-                expect(callsToOpenApp.length).toBe(3);
+                expect(callsToOpenPersonalDetails.length).toBe(3);
                 expect(callsToAuthenticate.length).toBe(1);
                 expect(reconnectionCallbacksSpy.mock.calls.length).toBe(3);
             });
@@ -214,7 +210,7 @@ describe('NetworkTests', () => {
         // Once credentials are set and we wait for promises to resolve
         Onyx.merge(ONYXKEYS.CREDENTIALS, {login: 'test-login'});
         Onyx.merge(ONYXKEYS.SESSION, {authToken: 'test-auth-token'});
-        return waitForPromisesToResolve().then(() => {
+        return waitForBatchedUpdates().then(() => {
             // Then we should expect the request to have been made since the network is now ready
             expect(spyHttpUtilsXhr).not.toHaveBeenCalled();
         });
@@ -230,16 +226,16 @@ describe('NetworkTests', () => {
         // Given a non-retryable request (that is bound to fail)
         const promise = Network.post('Get');
 
-        return waitForPromisesToResolve()
+        return waitForBatchedUpdates()
             .then(() => {
                 // When network connection is recovered
                 Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
-                return waitForPromisesToResolve();
+                return waitForBatchedUpdates();
             })
             .then(() => {
                 // Advance the network request queue by 1 second so that it can realize it's back online
                 jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
-                return waitForPromisesToResolve();
+                return waitForBatchedUpdates();
             })
             .then(() => {
                 // Then the request should only have been attempted once and we should get an unable to retry
@@ -259,7 +255,7 @@ describe('NetworkTests', () => {
         return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})
             .then(() => {
                 Network.post('MockBadNetworkResponse', {param1: 'value1'});
-                return waitForPromisesToResolve();
+                return waitForBatchedUpdates();
             })
             .then(() => {
                 expect(logHmmmSpy).toHaveBeenCalled();
@@ -275,7 +271,7 @@ describe('NetworkTests', () => {
         return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})
             .then(() => {
                 Network.post('MockBadNetworkResponse', {param1: 'value1'});
-                return waitForPromisesToResolve();
+                return waitForBatchedUpdates();
             })
             .then(() => {
                 expect(logAlertSpy).toHaveBeenCalled();
@@ -294,7 +290,7 @@ describe('NetworkTests', () => {
 
                 // When network calls with are made
                 Network.post('mock command', {param1: 'value1'}).then(onResolved);
-                return waitForPromisesToResolve();
+                return waitForBatchedUpdates();
             })
             .then(() => {
                 const response = onResolved.mock.calls[0][0];
@@ -317,7 +313,7 @@ describe('NetworkTests', () => {
                 Network.post('MockCommandThree');
 
                 // WHEN we wait for the requests to all cancel
-                return waitForPromisesToResolve();
+                return waitForBatchedUpdates();
             })
             .then(() => {
                 // THEN expect our queue to be empty and for no requests to have been retried

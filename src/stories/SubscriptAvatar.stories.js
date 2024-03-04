@@ -1,8 +1,8 @@
 import React from 'react';
-import SubscriptAvatar from '../components/SubscriptAvatar';
-import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
-import * as defaultAvatars from '../components/Icon/DefaultAvatars';
-import CONST from '../CONST';
+import * as defaultAvatars from '@components/Icon/DefaultAvatars';
+import * as Expensicons from '@components/Icon/Expensicons';
+import SubscriptAvatar from '@components/SubscriptAvatar';
+import CONST from '@src/CONST';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -14,7 +14,6 @@ export default {
     component: SubscriptAvatar,
     args: {
         mainAvatar: {source: defaultAvatars.Avatar5, name: '', type: CONST.ICON_TYPE_AVATAR},
-        secondaryAvatar: {source: defaultWorkspaceAvatars.WorkspaceE, name: '', type: CONST.ICON_TYPE_WORKSPACE},
         size: CONST.AVATAR_SIZE.DEFAULT,
     },
     argTypes: {
@@ -39,4 +38,15 @@ AvatarURLStory.args = {
     secondaryAvatar: {source: defaultAvatars.Avatar3, name: '', type: CONST.ICON_TYPE_AVATAR},
 };
 
-export {Default, AvatarURLStory};
+const SubscriptIcon = Template.bind({});
+SubscriptIcon.args = {
+    subscriptIcon: {source: Expensicons.DownArrow, width: 8, height: 8},
+};
+
+const WorkspaceSubscriptIcon = Template.bind({});
+WorkspaceSubscriptIcon.args = {
+    mainAvatar: {source: defaultAvatars.Avatar1, name: '', type: CONST.ICON_TYPE_WORKSPACE},
+    subscriptIcon: {source: Expensicons.DownArrow, width: 8, height: 8},
+};
+
+export {Default, AvatarURLStory, SubscriptIcon, WorkspaceSubscriptIcon};

@@ -1,14 +1,11 @@
 import PropTypes from 'prop-types';
-import * as AttachmentsPropTypes from '../propTypes';
+import * as AttachmentsPropTypes from '@components/Attachments/propTypes';
 
 const attachmentViewPropTypes = {
     /** Whether source url requires authentication */
     isAuthTokenRequired: PropTypes.bool,
 
-    /** URL to full-sized attachment or SVG function */
-    source: AttachmentsPropTypes.attachmentSourcePropType.isRequired,
-
-    /** File object maybe be instance of File or Object */
+    /** File object can be an instance of File or Object */
     file: AttachmentsPropTypes.attachmentFilePropType,
 
     /** Whether this view is the active screen  */
@@ -30,7 +27,9 @@ const attachmentViewDefaultProps = {
         name: '',
     },
     isFocused: false,
+    isSingleElement: false,
     isUsedInCarousel: false,
+    isUsedInAttachmentModal: false,
     onPress: undefined,
     onScaleChanged: () => {},
 };

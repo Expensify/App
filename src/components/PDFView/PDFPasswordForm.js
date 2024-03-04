@@ -1,17 +1,17 @@
-import _ from 'underscore';
-import React, {useState, useRef, useEffect, useMemo} from 'react';
 import PropTypes from 'prop-types';
-import {View, ScrollView} from 'react-native';
-import Button from '../Button';
-import Text from '../Text';
-import TextInput from '../TextInput';
-import styles from '../../styles/styles';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {ScrollView, View} from 'react-native';
+import _ from 'underscore';
+import Button from '@components/Button';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
+import shouldDelayFocus from '@libs/shouldDelayFocus';
+import CONST from '@src/CONST';
 import PDFInfoMessage from './PDFInfoMessage';
-import shouldDelayFocus from '../../libs/shouldDelayFocus';
-import * as Browser from '../../libs/Browser';
-import CONST from '../../CONST';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
-import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     /** If the submitted password is invalid (show an error message) */
@@ -42,6 +42,7 @@ const defaultProps = {
 };
 
 function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicator, onSubmit, onPasswordUpdated, onPasswordFieldFocused}) {
+    const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
 
@@ -50,15 +51,17 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
     const [shouldShowForm, setShouldShowForm] = useState(false);
     const textInputRef = useRef(null);
 
+    const focusTimeoutRef = useRef(null);
+
     const errorText = useMemo(() => {
         if (isPasswordInvalid) {
-            return translate('attachmentView.passwordIncorrect');
+            return 'attachmentView.passwordIncorrect';
         }
         if (!_.isEmpty(validationErrorText)) {
-            return translate(validationErrorText);
+            return validationErrorText;
         }
         return '';
-    }, [isPasswordInvalid, translate, validationErrorText]);
+    }, [isPasswordInvalid, validationErrorText]);
 
     useEffect(() => {
         if (!isFocused) {
@@ -67,7 +70,19 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
         if (!textInputRef.current) {
             return;
         }
-        textInputRef.current.focus();
+        /**
+         * We recommend using setTimeout to wait for the animation to finish and then focus on the input
+         * Relevant thread: https://expensify.slack.com/archives/C01GTK53T8Q/p1694660990479979
+         */
+        focusTimeoutRef.current = setTimeout(() => {
+            textInputRef.current.focus();
+        }, CONST.ANIMATED_TRANSITION);
+        return () => {
+            if (!focusTimeoutRef.current) {
+                return;
+            }
+            clearTimeout(focusTimeoutRef.current);
+        };
     }, [isFocused]);
 
     const updatePassword = (newPassword) => {
@@ -95,11 +110,6 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
         onSubmit(password);
     };
 
-    const validateAndNotifyPasswordBlur = () => {
-        validate();
-        onPasswordFieldFocused(false);
-    };
-
     return shouldShowForm ? (
         <ScrollView
             keyboardShouldPersistTaps="handled"
@@ -113,7 +123,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
                 ref={textInputRef}
                 label={translate('common.password')}
                 accessibilityLabel={translate('common.password')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ROLE.PRESENTATION}
                 /**
                  * This is a workaround to bypass Safari's autofill odd behaviour.
                  * This tricks the browser not to fill the username somewhere else and still fill the password correctly.
@@ -122,11 +132,11 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
                 autoCorrect={false}
                 textContentType="password"
                 onChangeText={updatePassword}
-                returnKeyType="done"
+                enterKeyHint="done"
                 onSubmitEditing={submitPassword}
                 errorText={errorText}
                 onFocus={() => onPasswordFieldFocused(true)}
-                onBlur={validateAndNotifyPasswordBlur}
+                onBlur={() => onPasswordFieldFocused(false)}
                 autoFocus
                 shouldDelayFocus={shouldDelayFocus}
                 secureTextEntry

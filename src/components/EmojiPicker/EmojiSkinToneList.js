@@ -1,59 +1,58 @@
-import _ from 'underscore';
-import React, {useState, useCallback} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import * as Emojis from '../../../assets/emojis';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import Text from '../Text';
+import _ from 'underscore';
+import * as Emojis from '@assets/emojis';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import usePreferredEmojiSkinTone from '@hooks/usePreferredEmojiSkinTone';
+import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import EmojiPickerMenuItem from './EmojiPickerMenuItem';
 import getSkinToneEmojiFromIndex from './getSkinToneEmojiFromIndex';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import CONST from '../../CONST';
 
-const propTypes = {
-    /** Stores user's preferred skin tone */
-    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
-
-    /** Function to sync the selected skin tone with parent, onyx and nvp */
-    updatePreferredSkinTone: PropTypes.func.isRequired,
-
-    /** Props related to translation */
-    ...withLocalizePropTypes,
-};
-
-function EmojiSkinToneList(props) {
+function EmojiSkinToneList() {
+    const styles = useThemeStyles();
     const [highlightedIndex, setHighlightedIndex] = useState(null);
     const [isSkinToneListVisible, setIsSkinToneListVisible] = useState(false);
+    const {translate} = useLocalize();
+    const [preferredSkinTone, setPreferredSkinTone] = usePreferredEmojiSkinTone();
 
     const toggleIsSkinToneListVisible = useCallback(() => {
         setIsSkinToneListVisible((prev) => !prev);
     }, []);
 
     /**
-     * Pass the skinTone to props and hide the picker
+     * Set the preferred skin tone in Onyx and close the skin tone picker
      * @param {object} skinToneEmoji
      */
     function updateSelectedSkinTone(skinToneEmoji) {
-        toggleIsSkinToneListVisible();
         setHighlightedIndex(skinToneEmoji.skinTone);
-        props.updatePreferredSkinTone(skinToneEmoji.skinTone);
+        setPreferredSkinTone(skinToneEmoji.skinTone);
     }
 
-    const currentSkinTone = getSkinToneEmojiFromIndex(props.preferredSkinTone);
+    useEffect(() => {
+        if (!isSkinToneListVisible) {
+            return;
+        }
+        toggleIsSkinToneListVisible();
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- only run when preferredSkinTone updates
+    }, [preferredSkinTone]);
+
+    const currentSkinTone = getSkinToneEmojiFromIndex(preferredSkinTone);
     return (
         <View style={[styles.flexRow, styles.p3, styles.ph4, styles.emojiPickerContainer]}>
             {!isSkinToneListVisible && (
                 <PressableWithoutFeedback
                     onPress={toggleIsSkinToneListVisible}
-                    style={[styles.flex1, styles.flexRow, styles.alignSelfCenter, styles.justifyContentStart, styles.alignItemsCenter]}
-                    accessibilityLabel={props.translate('emojiPicker.skinTonePickerLabel')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    style={[styles.flexRow, styles.alignSelfCenter, styles.justifyContentStart, styles.alignItemsCenter]}
+                    accessibilityLabel={translate('emojiPicker.skinTonePickerLabel')}
+                    role={CONST.ROLE.BUTTON}
                 >
-                    <View style={[styles.emojiItem, styles.justifyContentCenter]}>
+                    <View style={[styles.emojiItem, styles.wAuto, styles.justifyContentCenter]}>
                         <Text style={[styles.emojiText, styles.ph2, styles.textNoWrap]}>{currentSkinTone.code}</Text>
                     </View>
-                    <Text style={[styles.emojiSkinToneTitle]}>{props.translate('emojiPicker.skinTonePickerLabel')}</Text>
+                    <Text style={[styles.emojiSkinToneTitle]}>{translate('emojiPicker.skinTonePickerLabel')}</Text>
                 </PressableWithoutFeedback>
             )}
             {isSkinToneListVisible && (
@@ -74,7 +73,6 @@ function EmojiSkinToneList(props) {
     );
 }
 
-EmojiSkinToneList.propTypes = propTypes;
 EmojiSkinToneList.displayName = 'EmojiSkinToneList';
 
-export default withLocalize(EmojiSkinToneList);
+export default EmojiSkinToneList;

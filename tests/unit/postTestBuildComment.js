@@ -1,20 +1,29 @@
-const {when} = require('jest-when');
-
-const core = require('@actions/core');
-const GithubUtils = require('../../.github/libs/GithubUtils');
+import * as core from '@actions/core';
+import {when} from 'jest-when';
+import ghAction from '../../.github/actions/javascript/postTestBuildComment/postTestBuildComment';
+import GithubUtils from '../../.github/libs/GithubUtils';
 
 const mockGetInput = jest.fn();
 const mockCreateComment = jest.fn();
+const mockListComments = jest.fn();
+const mockGraphql = jest.fn();
+jest.spyOn(GithubUtils, 'octokit', 'get').mockReturnValue({
+    issues: {
+        listComments: mockListComments,
+    },
+});
+jest.spyOn(GithubUtils, 'paginate', 'get').mockReturnValue((endpoint, params) => endpoint(params).then(({data}) => data));
+jest.spyOn(GithubUtils, 'graphql', 'get').mockReturnValue(mockGraphql);
 
 jest.mock('@actions/github', () => ({
     context: {
         repo: {
-            repo: 'repo',
+            owner: 'Expensify',
+            repo: 'App',
         },
+        runId: 1234,
     },
 }));
-
-const ghAction = require('../../.github/actions/javascript/postTestBuildComment/postTestBuildComment');
 
 const androidLink = 'https://expensify.app/ANDROID_LINK';
 const iOSLink = 'https://expensify.app/IOS_LINK';
@@ -26,14 +35,19 @@ const desktopQRCode = `![Desktop](https://api.qrserver.com/v1/create-qr-code/?si
 const iOSQRCode = `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${iOSLink})`;
 const webQRCode = `![Web](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${webLink})`;
 
-const message = `:test_tube::test_tube: Use the links below to test this build in android and iOS. Happy testing! :test_tube::test_tube:
-| android :robot:  | iOS :apple: |
+const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, Desktop, and Web. Happy testing! :test_tube::test_tube:
+| Android :robot:  | iOS :apple: |
 | ------------- | ------------- |
 | ${androidLink}  | ${iOSLink}  |
 | ${androidQRCode}  | ${iOSQRCode}  |
-| desktop :computer: | web :spider_web: |
+| Desktop :computer: | Web :spider_web: |
 | ${desktopLink}  | ${webLink}  |
-| ${desktopQRCode}  | ${webQRCode}  |`;
+| ${desktopQRCode}  | ${webQRCode}  |
+
+---
+
+:eyes: [View the workflow run that generated this build](https://github.com/Expensify/App/actions/runs/1234) :eyes:
+`;
 
 describe('Post test build comments action tests', () => {
     beforeAll(() => {
@@ -42,7 +56,7 @@ describe('Post test build comments action tests', () => {
         GithubUtils.createComment = mockCreateComment;
     });
 
-    test('Test GH action', () => {
+    test('Test GH action', async () => {
         when(core.getInput).calledWith('PR_NUMBER', {required: true}).mockReturnValue(12);
         when(core.getInput).calledWith('ANDROID', {required: true}).mockReturnValue('success');
         when(core.getInput).calledWith('IOS', {required: true}).mockReturnValue('success');
@@ -53,8 +67,26 @@ describe('Post test build comments action tests', () => {
         when(core.getInput).calledWith('WEB_LINK').mockReturnValue('https://expensify.app/WEB_LINK');
         when(core.getInput).calledWith('DESKTOP_LINK').mockReturnValue('https://expensify.app/DESKTOP_LINK');
         GithubUtils.createComment.mockResolvedValue(true);
-        ghAction();
+        mockListComments.mockResolvedValue({
+            data: [
+                {
+                    body: ':test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, Desktop, and Web. Happy testing!',
+                    node_id: 'IC_abcd',
+                },
+            ],
+        });
+        await ghAction();
+        expect(mockGraphql).toBeCalledTimes(1);
+        expect(mockGraphql).toBeCalledWith(`
+            mutation {
+              minimizeComment(input: {classifier: OUTDATED, subjectId: "IC_abcd"}) {
+                minimizedComment {
+                  minimizedReason
+                }
+              }
+            }
+        `);
         expect(GithubUtils.createComment).toBeCalledTimes(1);
-        expect(GithubUtils.createComment).toBeCalledWith('repo', 12, message);
+        expect(GithubUtils.createComment).toBeCalledWith('App', 12, message);
     });
 });

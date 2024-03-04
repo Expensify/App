@@ -1,16 +1,17 @@
+import PropTypes from 'prop-types';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import TextInput from '../components/TextInput';
-import ScreenWrapper from '../components/ScreenWrapper';
-import HeaderWithBackButton from '../components/HeaderWithBackButton';
-import Form from '../components/Form';
-import ONYXKEYS from '../ONYXKEYS';
-import styles from '../styles/styles';
-import Navigation from '../libs/Navigation/Navigation';
-import CONST from '../CONST';
-import useLocalize from '../hooks/useLocalize';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import TextInput from '@components/TextInput';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/MoneyRequestMerchantForm';
 
 const propTypes = {
     /** Transaction default merchant value */
@@ -18,33 +19,41 @@ const propTypes = {
 
     /** Callback to fire when the Save button is pressed  */
     onSubmit: PropTypes.func.isRequired,
+
+    /** Boolean to enable validation */
+    isPolicyExpenseChat: PropTypes.bool,
 };
 
-function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
+const defaultProps = {
+    isPolicyExpenseChat: false,
+};
+
+function EditRequestMerchantPage({defaultMerchant, onSubmit, isPolicyExpenseChat}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const merchantInputRef = useRef(null);
+    const isEmptyMerchant = defaultMerchant === '' || defaultMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 
-    const validate = useCallback((value) => {
-        const errors = {};
-
-        if (_.isEmpty(value.merchant)) {
-            errors.merchant = 'common.error.fieldRequired';
-        }
-
-        return errors;
-    }, []);
+    const validate = useCallback(
+        (value) => {
+            const errors = {};
+            if (_.isEmpty(value.merchant) && value.merchant.trim() === '' && isPolicyExpenseChat) {
+                errors.merchant = 'common.error.fieldRequired';
+            }
+            return errors;
+        },
+        [isPolicyExpenseChat],
+    );
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             onEntryTransitionEnd={() => merchantInputRef.current && merchantInputRef.current.focus()}
+            testID={EditRequestMerchantPage.displayName}
         >
-            <HeaderWithBackButton
-                title={translate('common.merchant')}
-                onBackButtonPress={Navigation.goBack}
-            />
-            <Form
+            <HeaderWithBackButton title={translate('common.merchant')} />
+            <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM}
                 onSubmit={onSubmit}
@@ -53,22 +62,24 @@ function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
                 enabledWhenOffline
             >
                 <View style={styles.mb4}>
-                    <TextInput
-                        inputID="merchant"
-                        name="merchant"
-                        defaultValue={defaultMerchant}
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.MERCHANT}
+                        name={INPUT_IDS.MERCHANT}
+                        defaultValue={isEmptyMerchant ? '' : defaultMerchant}
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         ref={(e) => (merchantInputRef.current = e)}
                     />
                 </View>
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }
 
 EditRequestMerchantPage.propTypes = propTypes;
+EditRequestMerchantPage.defaultProps = defaultProps;
 EditRequestMerchantPage.displayName = 'EditRequestMerchantPage';
 
 export default EditRequestMerchantPage;

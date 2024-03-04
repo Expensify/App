@@ -1,33 +1,36 @@
-import React from 'react';
-import {View, ScrollView} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import BankAccountManualStep from './BankAccountManualStep';
-import BankAccountPlaidStep from './BankAccountPlaidStep';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import MenuItem from '../../components/MenuItem';
-import * as Expensicons from '../../components/Icon/Expensicons';
-import styles from '../../styles/styles';
-import TextLink from '../../components/TextLink';
-import Icon from '../../components/Icon';
-import colors from '../../styles/colors';
-import CONST from '../../CONST';
-import withLocalize from '../../components/withLocalize';
-import Text from '../../components/Text';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
-import ONYXKEYS from '../../ONYXKEYS';
-import compose from '../../libs/compose';
-import Section from '../../components/Section';
-import * as Illustrations from '../../components/Icon/Illustrations';
-import getPlaidDesktopMessage from '../../libs/getPlaidDesktopMessage';
-import CONFIG from '../../CONFIG';
-import ROUTES from '../../ROUTES';
-import Button from '../../components/Button';
-import ScreenWrapper from '../../components/ScreenWrapper';
+import PropTypes from 'prop-types';
+import React from 'react';
+import {ScrollView, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
+import MenuItem from '@components/MenuItem';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Section from '@components/Section';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import withLocalize from '@components/withLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import compose from '@libs/compose';
+import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
+import variables from '@styles/variables';
+import * as BankAccounts from '@userActions/BankAccounts';
+import * as Link from '@userActions/Link';
+import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
+import * as Session from '@userActions/Session';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import BankInfo from './BankInfo/BankInfo';
 import StepPropTypes from './StepPropTypes';
-import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
-import * as Link from '../../libs/actions/Link';
 
 const propTypes = {
     ...StepPropTypes,
@@ -49,6 +52,9 @@ const propTypes = {
 
     /* The workspace name */
     policyName: PropTypes.string,
+
+    /* The workspace ID */
+    policyID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -57,41 +63,53 @@ const defaultProps = {
     user: {},
     isPlaidDisabled: false,
     policyName: '',
+    policyID: '',
 };
 
+const bankInfoStepKeys = INPUT_IDS.BANK_INFO_STEP;
+
 function BankAccountStep(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     let subStep = lodashGet(props.reimbursementAccount, 'achData.subStep', '');
     const shouldReinitializePlaidLink = props.plaidLinkOAuthToken && props.receivedRedirectURI && subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
     if (shouldReinitializePlaidLink) {
         subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
     }
     const plaidDesktopMessage = getPlaidDesktopMessage();
-    const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT}`;
+    const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(
+        'new',
+        props.policyID,
+        ROUTES.WORKSPACE_INITIAL.getRoute(props.policyID),
+    )}`;
 
-    if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
-        return (
-            <BankAccountManualStep
-                reimbursementAccount={props.reimbursementAccount}
-                reimbursementAccountDraft={props.reimbursementAccountDraft}
-                onBackButtonPress={props.onBackButtonPress}
-                getDefaultStateForField={props.getDefaultStateForField}
-            />
-        );
-    }
+    const removeExistingBankAccountDetails = () => {
+        const bankAccountData = {
+            [bankInfoStepKeys.ROUTING_NUMBER]: '',
+            [bankInfoStepKeys.ACCOUNT_NUMBER]: '',
+            [bankInfoStepKeys.PLAID_MASK]: '',
+            [bankInfoStepKeys.IS_SAVINGS]: '',
+            [bankInfoStepKeys.BANK_NAME]: '',
+            [bankInfoStepKeys.PLAID_ACCOUNT_ID]: '',
+            [bankInfoStepKeys.PLAID_ACCESS_TOKEN]: '',
+        };
+        ReimbursementAccount.updateReimbursementAccountDraft(bankAccountData);
+    };
 
-    if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+    if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID || subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
         return (
-            <BankAccountPlaidStep
-                reimbursementAccount={props.reimbursementAccount}
-                reimbursementAccountDraft={props.reimbursementAccountDraft}
+            <BankInfo
                 onBackButtonPress={props.onBackButtonPress}
-                getDefaultStateForField={props.getDefaultStateForField}
+                policyID={props.policyID}
             />
         );
     }
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={BankAccountStep.displayName}
+        >
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithBackButton
                     title={props.translate('workspace.common.connectBankAccount')}
@@ -121,6 +139,7 @@ function BankAccountStep(props) {
                                 if (props.isPlaidDisabled || !props.user.validated) {
                                     return;
                                 }
+                                removeExistingBankAccountDetails();
                                 BankAccounts.openPlaidView();
                             }}
                             isDisabled={props.isPlaidDisabled || !props.user.validated}
@@ -136,7 +155,10 @@ function BankAccountStep(props) {
                                 icon={Expensicons.Connect}
                                 title={props.translate('bankAccount.connectManually')}
                                 disabled={!props.user.validated}
-                                onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
+                                onPress={() => {
+                                    removeExistingBankAccountDetails();
+                                    BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
+                                }}
                                 shouldShowRightIcon
                                 wrapperStyle={[styles.cardMenuItem]}
                             />
@@ -146,9 +168,19 @@ function BankAccountStep(props) {
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
                             <Icon
                                 src={Expensicons.Exclamation}
-                                fill={colors.red}
+                                fill={theme.danger}
                             />
-                            <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>{props.translate('bankAccount.validateAccountError')}</Text>
+
+                            <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>
+                                {props.translate('bankAccount.validateAccountError.phrase1')}
+                                <TextLink
+                                    fontSize={variables.fontSizeLabel}
+                                    onPress={Session.signOutAndRedirectToSignIn}
+                                >
+                                    {props.translate('bankAccount.validateAccountError.phrase2')}
+                                </TextLink>
+                                .
+                            </Text>
                         </View>
                     )}
                     <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
@@ -164,7 +196,7 @@ function BankAccountStep(props) {
                             <View style={[styles.ml1]}>
                                 <Icon
                                     src={Expensicons.Lock}
-                                    fill={colors.blue}
+                                    fill={theme.link}
                                 />
                             </View>
                         </PressableWithoutFeedback>

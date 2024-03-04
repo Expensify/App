@@ -6,14 +6,14 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const dotenv = require('dotenv');
 const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
-const FontPreloadPlugin = require('webpack-font-preload-plugin');
+const PreloadWebpackPlugin = require('@vue/preload-webpack-plugin');
 const CustomVersionFilePlugin = require('./CustomVersionFilePlugin');
 
 const includeModules = [
     'react-native-animatable',
     'react-native-reanimated',
     'react-native-picker-select',
-    '@expensify/react-native-web',
+    'react-native-web',
     'react-native-webview',
     '@react-native-picker',
     'react-native-modal',
@@ -22,6 +22,8 @@ const includeModules = [
     'react-native-google-places-autocomplete',
     'react-native-qrcode-svg',
     'react-native-view-shot',
+    '@react-native/assets',
+    'expo-av',
 ].join('|');
 
 const envToLogoSuffixMap = {
@@ -58,7 +60,9 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         publicPath: '/',
     },
     stats: {
-        warningsFilter: [],
+        // We can ignore the "module not installed" warning from lottie-react-native
+        // because we are not using the library for JSON format of Lottie animations.
+        warningsFilter: ['./node_modules/lottie-react-native/lib/module/LottieView/index.web.js'],
     },
     plugins: [
         new CleanWebpackPlugin(),
@@ -66,11 +70,21 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             template: 'web/index.html',
             filename: 'index.html',
             splashLogo: fs.readFileSync(path.resolve(__dirname, `../../assets/images/new-expensify${mapEnvToLogoSuffix(envFile)}.svg`), 'utf-8'),
-            usePolyfillIO: platform === 'web',
+            isWeb: platform === 'web',
+            isProduction: envFile === '.env.production',
             isStaging: envFile === '.env.staging',
         }),
-        new FontPreloadPlugin({
-            extensions: ['woff2'],
+        new PreloadWebpackPlugin({
+            rel: 'preload',
+            as: 'font',
+            fileWhitelist: [/\.woff2$/],
+            include: 'allAssets',
+        }),
+        new PreloadWebpackPlugin({
+            rel: 'prefetch',
+            as: 'fetch',
+            fileWhitelist: [/\.lottie$/],
+            include: 'allAssets',
         }),
         new ProvidePlugin({
             process: 'process/browser',
@@ -83,8 +97,12 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 {from: 'web/favicon-unread.png'},
                 {from: 'web/og-preview-image.png'},
                 {from: 'web/apple-touch-icon.png'},
+                {from: 'assets/images/expensify-app-icon.svg'},
+                {from: 'web/manifest.json'},
+                {from: 'web/gtm.js'},
                 {from: 'assets/css', to: 'css'},
                 {from: 'assets/fonts/web', to: 'fonts'},
+                {from: 'assets/sounds', to: 'sounds'},
                 {from: 'node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
                 {from: 'node_modules/react-pdf/dist/esm/Page/TextLayer.css', to: 'css/TextLayer.css'},
                 {from: 'assets/images/shadow.png', to: 'images/shadow.png'},
@@ -178,15 +196,30 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 resourceQuery: /raw/,
                 type: 'asset/source',
             },
+            {
+                test: /\.lottie$/,
+                type: 'asset/resource',
+            },
         ],
     },
     resolve: {
         alias: {
             'react-native-config': 'react-web-config',
-            'react-native$': '@expensify/react-native-web',
-            'react-native-web': '@expensify/react-native-web',
-            'react-content-loader/native': 'react-content-loader',
-            'lottie-react-native': 'react-native-web-lottie',
+            'react-native$': 'react-native-web',
+            'react-native-sound': 'react-native-web-sound',
+            // Module alias for web & desktop
+            // https://webpack.js.org/configuration/resolve/#resolvealias
+            '@assets': path.resolve(__dirname, '../../assets'),
+            '@components': path.resolve(__dirname, '../../src/components/'),
+            '@hooks': path.resolve(__dirname, '../../src/hooks/'),
+            '@libs': path.resolve(__dirname, '../../src/libs/'),
+            '@navigation': path.resolve(__dirname, '../../src/libs/Navigation/'),
+            '@pages': path.resolve(__dirname, '../../src/pages/'),
+            '@styles': path.resolve(__dirname, '../../src/styles/'),
+            // This path is provide alias for files like `ONYXKEYS` and `CONST`.
+            '@src': path.resolve(__dirname, '../../src/'),
+            '@userActions': path.resolve(__dirname, '../../src/libs/actions/'),
+            '@desktop': path.resolve(__dirname, '../../desktop'),
         },
 
         // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`
@@ -194,15 +227,37 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         // This is also why we have to use .website.js for our own web-specific files...
         // Because desktop also relies on "web-specific" module implementations
         // This also skips packing web only dependencies to desktop and vice versa
-        extensions: ['.web.js', platform === 'web' ? '.website.js' : '.desktop.js', '.js', '.jsx', '.web.ts', platform === 'web' ? '.website.ts' : '.desktop.ts', '.ts', '.web.tsx', '.tsx'],
+        extensions: [
+            '.web.js',
+            ...(platform === 'desktop' ? ['.desktop.js'] : []),
+            '.website.js',
+            '.js',
+            '.jsx',
+            '.web.ts',
+            ...(platform === 'desktop' ? ['.desktop.ts'] : []),
+            '.website.ts',
+            ...(platform === 'desktop' ? ['.desktop.tsx'] : []),
+            '.website.tsx',
+            '.ts',
+            '.web.tsx',
+            '.tsx',
+        ],
         fallback: {
             'process/browser': require.resolve('process/browser'),
+            crypto: false,
         },
     },
+
     optimization: {
         runtimeChunk: 'single',
         splitChunks: {
             cacheGroups: {
+                // We have to load the whole lottie player to get the player to work in offline mode
+                lottiePlayer: {
+                    test: /[\\/]node_modules[\\/](@dotlottie\/react-player)[\\/]/,
+                    name: 'lottiePlayer',
+                    chunks: 'all',
+                },
                 // Extract all 3rd party dependencies (~75% of App) to separate js file
                 // This gives a more efficient caching - 3rd party deps don't change as often as main source
                 // When dependencies don't change webpack would produce the same js file (and content hash)

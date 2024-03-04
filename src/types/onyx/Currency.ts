@@ -10,6 +10,18 @@ type Currency = {
 
     /** Number of decimals the currency can have, if this is missing, we assume it has 2 decimals */
     decimals?: number;
+
+    /** If currency is retired */
+    retired?: boolean;
+
+    /** Retirement date of the currency */
+    retirementDate?: string;
+
+    /** Cache burst */
+    cacheBurst?: number;
 };
 
+type CurrencyList = Record<string, Currency | null>;
+
 export default Currency;
+export type {CurrencyList};

@@ -3,10 +3,10 @@ type PlaidBankAccount = {
     accountNumber: string;
 
     /** Name of account */
-    addressName: string;
+    addressName?: string;
 
     /** Is the account a savings account? */
-    isSavings: boolean;
+    isSavings?: boolean;
 
     /** Unique identifier for this account in Plaid */
     plaidAccountID: string;
@@ -19,6 +19,9 @@ type PlaidBankAccount = {
 
     /** Plaid access token, used to then retrieve Assets and Balances */
     plaidAccessToken: string;
+
+    /** Name of the bank */
+    bankName?: string;
 };
 
 export default PlaidBankAccount;

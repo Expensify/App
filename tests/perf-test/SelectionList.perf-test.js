@@ -1,7 +1,8 @@
+import {fireEvent} from '@testing-library/react-native';
 import React, {useState} from 'react';
 import {measurePerformance} from 'reassure';
-import {fireEvent} from '@testing-library/react-native';
 import _ from 'underscore';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import SelectionList from '../../src/components/SelectionList';
 import variables from '../../src/styles/variables';
 
@@ -13,24 +14,43 @@ jest.mock('../../src/hooks/useLocalize', () =>
     })),
 );
 
-jest.mock('../../src/components/withLocalize', () => (Component) => (props) => (
-    <Component
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        translate={() => ''}
-    />
-));
+jest.mock('../../src/components/withLocalize', () => (Component) => {
+    function WrappedComponent(props) {
+        return (
+            <Component
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                translate={() => ''}
+            />
+        );
+    }
+    WrappedComponent.displayName = `WrappedComponent`;
+    return WrappedComponent;
+});
 
-jest.mock('../../src/components/withKeyboardState', () => (Component) => (props) => (
-    <Component
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        isKeyboardShown={false}
-    />
-));
+jest.mock('../../src/hooks/useNetwork', () =>
+    jest.fn(() => ({
+        isOffline: false,
+    })),
+);
+
+jest.mock('../../src/components/withKeyboardState', () => (Component) => {
+    function WrappedComponent(props) {
+        return (
+            <Component
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                isKeyboardShown={false}
+            />
+        );
+    }
+    WrappedComponent.displayName = `WrappedComponent`;
+    return WrappedComponent;
+});
 
 jest.mock('@react-navigation/native', () => ({
     useFocusEffect: () => {},
+    useIsFocused: () => true,
     createNavigationContainerRef: jest.fn(),
 }));
 
@@ -67,17 +87,18 @@ function SelectionListWrapper(args) {
             sections={sections}
             onSelectRow={onSelectRow}
             initiallyFocusedOptionKey="item-0"
+            ListItem={RadioListItem}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...args}
         />
     );
 }
 
-test('should render 1 section and a thousand items', () => {
+test('[SelectionList] should render 1 section and a thousand items', () => {
     measurePerformance(<SelectionListWrapper />);
 });
 
-test('should press a list item', () => {
+test('[SelectionList] should press a list item', () => {
     const scenario = (screen) => {
         fireEvent.press(screen.getByText('Item 5'));
     };
@@ -85,7 +106,7 @@ test('should press a list item', () => {
     measurePerformance(<SelectionListWrapper />, {scenario});
 });
 
-test('should render multiple selection and select 3 items', () => {
+test('[SelectionList] should render multiple selection and select 3 items', () => {
     const scenario = (screen) => {
         fireEvent.press(screen.getByText('Item 1'));
         fireEvent.press(screen.getByText('Item 2'));
@@ -95,7 +116,7 @@ test('should render multiple selection and select 3 items', () => {
     measurePerformance(<SelectionListWrapper canSelectMultiple />, {scenario});
 });
 
-test('should scroll and select a few items', () => {
+test('[SelectionList] should scroll and select a few items', () => {
     const eventData = {
         nativeEvent: {
             contentOffset: {
@@ -116,6 +137,8 @@ test('should scroll and select a few items', () => {
 
     const scenario = (screen) => {
         fireEvent.press(screen.getByText('Item 1'));
+        // see https://github.com/callstack/react-native-testing-library/issues/1540
+        fireEvent(screen.getByTestId('selection-list'), 'onContentSizeChange', eventData.nativeEvent.contentSize.width, eventData.nativeEvent.contentSize.height);
         fireEvent.scroll(screen.getByTestId('selection-list'), eventData);
         fireEvent.press(screen.getByText('Item 7'));
         fireEvent.press(screen.getByText('Item 15'));

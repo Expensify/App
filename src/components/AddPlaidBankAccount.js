@@ -1,26 +1,28 @@
-import _ from 'underscore';
-import React, {useEffect, useRef, useCallback} from 'react';
-import {ActivityIndicator, View} from 'react-native';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import Log from '../libs/Log';
-import PlaidLink from './PlaidLink';
-import * as App from '../libs/actions/App';
-import * as BankAccounts from '../libs/actions/BankAccounts';
-import ONYXKEYS from '../ONYXKEYS';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import Picker from './Picker';
-import {plaidDataPropTypes} from '../pages/ReimbursementAccount/plaidDataPropTypes';
-import Text from './Text';
-import getBankIcon from './Icon/BankIcons';
-import Icon from './Icon';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {ActivityIndicator, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import KeyboardShortcut from '@libs/KeyboardShortcut';
+import Log from '@libs/Log';
+import {plaidDataPropTypes} from '@pages/ReimbursementAccount/plaidDataPropTypes';
+import * as App from '@userActions/App';
+import * as BankAccounts from '@userActions/BankAccounts';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
-import CONST from '../CONST';
-import KeyboardShortcut from '../libs/KeyboardShortcut';
-import useLocalize from '../hooks/useLocalize';
-import useNetwork from '../hooks/useNetwork';
+import FormHelpMessage from './FormHelpMessage';
+import Icon from './Icon';
+import getBankIcon from './Icon/BankIcons';
+import Picker from './Picker';
+import PlaidLink from './PlaidLink';
+import RadioButtons from './RadioButtons';
+import Text from './Text';
 
 const propTypes = {
     /** If the user has been throttled from Plaid */
@@ -55,6 +57,15 @@ const propTypes = {
 
     /** Are we adding a withdrawal account? */
     allowDebit: PropTypes.bool,
+
+    /** Is displayed in new VBBA */
+    isDisplayedInNewVBBA: PropTypes.bool,
+
+    /** Text to display on error message */
+    errorText: PropTypes.string,
+
+    /** Function called whenever radio button value changes */
+    onInputChange: PropTypes.func,
 };
 
 const defaultProps = {
@@ -68,6 +79,9 @@ const defaultProps = {
     allowDebit: false,
     bankAccountID: 0,
     isPlaidDisabled: false,
+    isDisplayedInNewVBBA: false,
+    errorText: '',
+    onInputChange: () => {},
 };
 
 function AddPlaidBankAccount({
@@ -82,9 +96,23 @@ function AddPlaidBankAccount({
     bankAccountID,
     allowDebit,
     isPlaidDisabled,
+    isDisplayedInNewVBBA,
+    errorText,
+    onInputChange,
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const plaidBankAccounts = lodashGet(plaidData, 'bankAccounts', []);
+    const defaultSelectedPlaidAccount = _.find(plaidBankAccounts, (account) => account.plaidAccountID === selectedPlaidAccountID);
+    const defaultSelectedPlaidAccountID = lodashGet(defaultSelectedPlaidAccount, 'plaidAccountID', '');
+    const defaultSelectedPlaidAccountMask = lodashGet(
+        _.find(plaidBankAccounts, (account) => account.plaidAccountID === selectedPlaidAccountID),
+        'mask',
+        '',
+    );
     const subscribedKeyboardShortcuts = useRef([]);
     const previousNetworkState = useRef();
+    const [selectedPlaidAccountMask, setSelectedPlaidAccountMask] = useState(defaultSelectedPlaidAccountMask);
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -160,16 +188,27 @@ function AddPlaidBankAccount({
         previousNetworkState.current = isOffline;
     }, [allowDebit, bankAccountID, isAuthenticatedWithPlaid, isOffline]);
 
-    const plaidBankAccounts = lodashGet(plaidData, 'bankAccounts') || [];
     const token = getPlaidLinkToken();
     const options = _.map(plaidBankAccounts, (account) => ({
         value: account.plaidAccountID,
-        label: `${account.addressName} ${account.mask}`,
+        label: account.addressName,
     }));
-    const {icon, iconSize} = getBankIcon();
+    const {icon, iconSize, iconStyles} = getBankIcon({styles});
     const plaidErrors = lodashGet(plaidData, 'errors');
     const plaidDataErrorMessage = !_.isEmpty(plaidErrors) ? _.chain(plaidErrors).values().first().value() : '';
     const bankName = lodashGet(plaidData, 'bankName');
+
+    /**
+     * @param {String} plaidAccountID
+     *
+     * When user selects one of plaid accounts we need to set the mask in order to display it on UI
+     */
+    const handleSelectingPlaidAccount = (plaidAccountID) => {
+        const mask = _.find(plaidBankAccounts, (account) => account.plaidAccountID === plaidAccountID).mask;
+        setSelectedPlaidAccountMask(mask);
+        onSelect(plaidAccountID);
+        onInputChange(plaidAccountID);
+    };
 
     if (isPlaidDisabled) {
         return (
@@ -179,49 +218,91 @@ function AddPlaidBankAccount({
         );
     }
 
+    const renderPlaidLink = () => {
+        if (Boolean(token) && !bankName) {
+            return (
+                <PlaidLink
+                    token={token}
+                    onSuccess={({publicToken, metadata}) => {
+                        Log.info('[PlaidLink] Success!');
+                        BankAccounts.openPlaidBankAccountSelector(publicToken, metadata.institution.name, allowDebit, bankAccountID);
+                    }}
+                    onError={(error) => {
+                        Log.hmmm('[PlaidLink] Error: ', error.message);
+                    }}
+                    onEvent={(event, metadata) => {
+                        BankAccounts.setPlaidEvent(event);
+                        // Handle Plaid login errors (will potentially reset plaid token and item depending on the error)
+                        if (event === 'ERROR') {
+                            Log.hmmm('[PlaidLink] Error: ', metadata);
+                            if (bankAccountID && metadata && metadata.error_code) {
+                                BankAccounts.handlePlaidError(bankAccountID, metadata.error_code, metadata.error_message, metadata.request_id);
+                            }
+                        }
+
+                        // Limit the number of times a user can submit Plaid credentials
+                        if (event === 'SUBMIT_CREDENTIALS') {
+                            App.handleRestrictedEvent(event);
+                        }
+                    }}
+                    // User prematurely exited the Plaid flow
+                    // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                    onExit={onExitPlaid}
+                    receivedRedirectURI={receivedRedirectURI}
+                />
+            );
+        }
+
+        if (plaidDataErrorMessage) {
+            return <Text style={[styles.formError, styles.mh5]}>{plaidDataErrorMessage}</Text>;
+        }
+
+        if (lodashGet(plaidData, 'isLoading')) {
+            return (
+                <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                    <ActivityIndicator
+                        color={theme.spinner}
+                        size="large"
+                    />
+                </View>
+            );
+        }
+
+        return <View />;
+    };
+
     // Plaid Link view
     if (!plaidBankAccounts.length) {
+        return <FullPageOfflineBlockingView>{renderPlaidLink()}</FullPageOfflineBlockingView>;
+    }
+
+    if (isDisplayedInNewVBBA) {
         return (
             <FullPageOfflineBlockingView>
-                {lodashGet(plaidData, 'isLoading') && (
-                    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                        <ActivityIndicator
-                            color={themeColors.spinner}
-                            size="large"
-                        />
-                    </View>
-                )}
-                {Boolean(plaidDataErrorMessage) && <Text style={[styles.formError, styles.mh5]}>{plaidDataErrorMessage}</Text>}
-                {Boolean(token) && !bankName && (
-                    <PlaidLink
-                        token={token}
-                        onSuccess={({publicToken, metadata}) => {
-                            Log.info('[PlaidLink] Success!');
-                            BankAccounts.openPlaidBankAccountSelector(publicToken, metadata.institution.name, allowDebit, bankAccountID);
-                        }}
-                        onError={(error) => {
-                            Log.hmmm('[PlaidLink] Error: ', error.message);
-                        }}
-                        onEvent={(event, metadata) => {
-                            // Handle Plaid login errors (will potentially reset plaid token and item depending on the error)
-                            if (event === 'ERROR') {
-                                Log.hmmm('[PlaidLink] Error: ', metadata);
-                                if (bankAccountID && metadata.error_code) {
-                                    BankAccounts.handlePlaidError(bankAccountID, metadata.error_code, metadata.error_message, metadata.request_id);
-                                }
-                            }
-
-                            // Limit the number of times a user can submit Plaid credentials
-                            if (event === 'SUBMIT_CREDENTIALS') {
-                                App.handleRestrictedEvent(event);
-                            }
-                        }}
-                        // User prematurely exited the Plaid flow
-                        // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                        onExit={onExitPlaid}
-                        receivedRedirectURI={receivedRedirectURI}
+                <Text style={[styles.mb3, styles.textHeadline]}>{translate('bankAccount.chooseAnAccount')}</Text>
+                {!_.isEmpty(text) && <Text style={[styles.mb6, styles.textSupporting]}>{text}</Text>}
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb6]}>
+                    <Icon
+                        src={icon}
+                        height={iconSize}
+                        width={iconSize}
+                        additionalStyles={iconStyles}
                     />
-                )}
+                    <View>
+                        <Text style={[styles.ml3, styles.textStrong]}>{bankName}</Text>
+                        {selectedPlaidAccountMask.length > 0 && (
+                            <Text style={[styles.ml3, styles.textLabelSupporting]}>{`${translate('bankAccount.accountEnding')} ${selectedPlaidAccountMask}`}</Text>
+                        )}
+                    </View>
+                </View>
+                <Text style={[styles.textLabelSupporting]}>{`${translate('bankAccount.chooseAnAccountBelow')}:`}</Text>
+                <RadioButtons
+                    items={options}
+                    defaultCheckedValue={defaultSelectedPlaidAccountID}
+                    onPress={handleSelectingPlaidAccount}
+                    radioButtonStyle={[styles.mb6]}
+                />
+                <FormHelpMessage message={errorText} />
             </FullPageOfflineBlockingView>
         );
     }
@@ -235,10 +316,11 @@ function AddPlaidBankAccount({
                     src={icon}
                     height={iconSize}
                     width={iconSize}
+                    additionalStyles={iconStyles}
                 />
                 <Text style={[styles.ml3, styles.textStrong]}>{bankName}</Text>
             </View>
-            <View style={[styles.mb5]}>
+            <View>
                 <Picker
                     label={translate('addPersonalBankAccountPage.chooseAccountLabel')}
                     onInputChange={onSelect}

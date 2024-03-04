@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
-import CONST from '../CONST';
-import participantPropTypes from './participantPropTypes';
+import CONST from '@src/CONST';
 import avatarPropTypes from './avatarPropTypes';
+import participantPropTypes from './participantPropTypes';
 
 export default PropTypes.shape({
     // Text to display
@@ -40,9 +40,6 @@ export default PropTypes.shape({
     // Whether the report corresponds to a chat room
     isChatRoom: PropTypes.bool,
 
-    // Whether the option has an outstanding IOU
-    hasOutstandingIOU: PropTypes.bool,
-
     // Custom icon to render on the right side of the option
     customIcon: PropTypes.shape({
         // The icon source
@@ -68,6 +65,4 @@ export default PropTypes.shape({
     brickRoadIndicator: PropTypes.oneOf([CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, '']),
 
     phoneNumber: PropTypes.string,
-
-    payPalMeAddress: PropTypes.string,
 });

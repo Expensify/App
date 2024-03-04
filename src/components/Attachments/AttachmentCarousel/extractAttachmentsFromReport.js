@@ -1,67 +1,59 @@
 import {Parser as HtmlParser} from 'htmlparser2';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
-import * as TransactionUtils from '../../../libs/TransactionUtils';
-import * as ReceiptUtils from '../../../libs/ReceiptUtils';
-import CONST from '../../../CONST';
-import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import CONST from '@src/CONST';
 
 /**
  * Constructs the initial component state from report actions
- * @param {Object} report
- * @param {Array} reportActions
+ * @param {Object} parentReportAction
+ * @param {Object} reportActions
+ * @param {Object} transaction
  * @returns {Array}
  */
-function extractAttachmentsFromReport(report, reportActions) {
-    const actions = [ReportActionsUtils.getParentReportAction(report), ...ReportActionsUtils.getSortedReportActions(_.values(reportActions))];
+function extractAttachmentsFromReport(parentReportAction, reportActions) {
+    const actions = [parentReportAction, ...ReportActionsUtils.getSortedReportActions(_.values(reportActions))];
     const attachments = [];
 
     const htmlParser = new HtmlParser({
         onopentag: (name, attribs) => {
-            if (name !== 'img' || !attribs.src) {
+            if (name === 'video') {
+                const splittedUrl = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE].split('/');
+                attachments.unshift({
+                    reportActionID: null,
+                    source: tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
+                    isAuthTokenRequired: Boolean(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
+                    file: {name: splittedUrl[splittedUrl.length - 1]},
+                    duration: Number(attribs[CONST.ATTACHMENT_DURATION_ATTRIBUTE]),
+                    isReceipt: false,
+                    hasBeenFlagged: false,
+                });
                 return;
             }
 
-            const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
+            if (name === 'img' && attribs.src) {
+                const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
+                const source = tryResolveUrlFromApiRoot(expensifySource || attribs.src);
+                const fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${source}`);
 
-            // By iterating actions in chronological order and prepending each attachment
-            // we ensure correct order of attachments even across actions with multiple attachments.
-            attachments.unshift({
-                reportActionID: attribs['data-id'],
-                source: tryResolveUrlFromApiRoot(expensifySource || attribs.src),
-                isAuthTokenRequired: Boolean(expensifySource),
-                file: {name: attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE]},
-                isReceipt: false,
-                hasBeenFlagged: attribs['data-flagged'] === 'true',
-            });
+                // By iterating actions in chronological order and prepending each attachment
+                // we ensure correct order of attachments even across actions with multiple attachments.
+                attachments.unshift({
+                    reportActionID: attribs['data-id'],
+                    source,
+                    isAuthTokenRequired: Boolean(expensifySource),
+                    file: {name: fileName},
+                    isReceipt: false,
+                    hasBeenFlagged: attribs['data-flagged'] === 'true',
+                });
+            }
         },
     });
 
     _.forEach(actions, (action, key) => {
-        if (!ReportActionsUtils.shouldReportActionBeVisible(action, key)) {
+        if (!ReportActionsUtils.shouldReportActionBeVisible(action, key) || ReportActionsUtils.isMoneyRequestAction(action)) {
             return;
-        }
-
-        // We're handling receipts differently here because receipt images are not
-        // part of the report action message, the images are constructed client-side
-        if (ReportActionsUtils.isMoneyRequestAction(action)) {
-            const transactionID = lodashGet(action, ['originalMessage', 'IOUTransactionID']);
-            if (!transactionID) {
-                return;
-            }
-
-            const transaction = TransactionUtils.getTransaction(transactionID);
-            if (TransactionUtils.hasReceipt(transaction)) {
-                const {image} = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
-                attachments.unshift({
-                    source: tryResolveUrlFromApiRoot(image),
-                    isAuthTokenRequired: true,
-                    file: {name: transaction.filename},
-                    isReceipt: true,
-                });
-                return;
-            }
         }
 
         const decision = _.get(action, ['message', 0, 'moderationDecision', 'decision'], '');

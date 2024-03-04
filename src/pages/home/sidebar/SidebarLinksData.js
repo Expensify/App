@@ -1,21 +1,29 @@
-import React, {useCallback, useMemo, useRef} from 'react';
-import _ from 'underscore';
 import {deepEqual} from 'fast-equals';
-import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import lodashMap from 'lodash/map';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
-import SidebarUtils from '../../../libs/SidebarUtils';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import networkPropTypes from '@components/networkPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import withCurrentReportID from '@components/withCurrentReportID';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import withNavigationFocus from '@components/withNavigationFocus';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
+import useThemeStyles from '@hooks/useThemeStyles';
+import compose from '@libs/compose';
+import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import SidebarUtils from '@libs/SidebarUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import * as Policy from '@userActions/Policy';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SidebarLinks, {basePropTypes} from './SidebarLinks';
-import withCurrentReportID from '../../../components/withCurrentReportID';
-import compose from '../../../libs/compose';
-import ONYXKEYS from '../../../ONYXKEYS';
-import reportPropTypes from '../../reportPropTypes';
-import CONST from '../../../CONST';
-import useLocalize from '../../../hooks/useLocalize';
-import styles from '../../../styles/styles';
-import withNavigationFocus from '../../../components/withNavigationFocus';
-import * as SessionUtils from '../../../libs/SessionUtils';
 
 const propTypes = {
     ...basePropTypes,
@@ -25,6 +33,8 @@ const propTypes = {
     chatReports: PropTypes.objectOf(reportPropTypes),
 
     /** All report actions for all reports */
+
+    /** Object of report actions for this report */
     allReportActions: PropTypes.objectOf(
         PropTypes.arrayOf(
             PropTypes.shape({
@@ -41,7 +51,7 @@ const propTypes = {
     ),
 
     /** Whether the reports are loading. When false it means they are ready to be used. */
-    isLoadingReportData: PropTypes.bool,
+    isLoadingApp: PropTypes.bool,
 
     /** The chat priority mode */
     priorityMode: PropTypes.string,
@@ -49,37 +59,130 @@ const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
+    network: networkPropTypes.isRequired,
+
     /** The policies which the user has access to */
     // eslint-disable-next-line react/forbid-prop-types
     policies: PropTypes.object,
+
+    // eslint-disable-next-line react/forbid-prop-types
+    policyMembers: PropTypes.object,
+
+    /** All of the transaction violations */
+    transactionViolations: PropTypes.shape({
+        violations: PropTypes.arrayOf(
+            PropTypes.shape({
+                /** The transaction ID */
+                transactionID: PropTypes.number,
+
+                /** The transaction violation type */
+                type: PropTypes.string,
+
+                /** The transaction violation message */
+                message: PropTypes.string,
+
+                /** The transaction violation data */
+                data: PropTypes.shape({
+                    /** The transaction violation data field */
+                    field: PropTypes.string,
+
+                    /** The transaction violation data value */
+                    value: PropTypes.string,
+                }),
+            }),
+        ),
+    }),
+
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     chatReports: {},
-    allReportActions: {},
-    isLoadingReportData: true,
+    isLoadingApp: true,
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     betas: [],
-    policies: [],
+    policies: {},
+    policyMembers: {},
+    transactionViolations: {},
+    allReportActions: {},
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, isSmallScreenWidth, onLinkClick, policies, priorityMode}) {
+function SidebarLinksData({
+    isFocused,
+    allReportActions,
+    betas,
+    chatReports,
+    currentReportID,
+    insets,
+    isLoadingApp,
+    onLinkClick,
+    policies,
+    priorityMode,
+    network,
+    policyMembers,
+    transactionViolations,
+    currentUserPersonalDetails,
+}) {
+    const styles = useThemeStyles();
+    const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
+    const prevPriorityMode = usePrevious(priorityMode);
+
+    const policyMemberAccountIDs = getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, currentUserPersonalDetails.accountID);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => Policy.openWorkspace(activeWorkspaceID, policyMemberAccountIDs), [activeWorkspaceID]);
 
     const reportIDsRef = useRef(null);
-    const isLoading = SessionUtils.didUserLogInDuringSession() && isLoadingReportData;
+    const isLoading = isLoadingApp;
     const optionListItems = useMemo(() => {
-        const reportIDs = SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, allReportActions);
+        const reportIDs = SidebarUtils.getOrderedReportIDs(
+            null,
+            chatReports,
+            betas,
+            policies,
+            priorityMode,
+            allReportActions,
+            transactionViolations,
+            activeWorkspaceID,
+            policyMemberAccountIDs,
+        );
+
         if (deepEqual(reportIDsRef.current, reportIDs)) {
             return reportIDsRef.current;
         }
 
-        // We need to update existing reports only once while loading because they are updated several times during loading and causes this regression: https://github.com/Expensify/App/issues/24596#issuecomment-1681679531
-        if (!isLoading || !reportIDsRef.current || (_.isEmpty(reportIDsRef.current) && currentReportID)) {
+        // 1. We need to update existing reports only once while loading because they are updated several times during loading and causes this regression: https://github.com/Expensify/App/issues/24596#issuecomment-1681679531
+        // 2. If the user is offline, we need to update the reports unconditionally, since the loading of report data might be stuck in this case.
+        // 3. Changing priority mode to Most Recent will call OpenApp. If there is an existing reports and the priority mode is updated, we want to immediately update the list instead of waiting the OpenApp request to complete
+        if (!isLoading || !reportIDsRef.current || network.isOffline || (reportIDsRef.current && prevPriorityMode !== priorityMode)) {
             reportIDsRef.current = reportIDs;
         }
         return reportIDsRef.current || [];
-    }, [allReportActions, betas, chatReports, currentReportID, policies, priorityMode, isLoading]);
+    }, [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, isLoading, network.isOffline, prevPriorityMode]);
+
+    // We need to make sure the current report is in the list of reports, but we do not want
+    // to have to re-generate the list every time the currentReportID changes. To do that
+    // we first generate the list as if there was no current report, then here we check if
+    // the current report is missing from the list, which should very rarely happen. In this
+    // case we re-generate the list a 2nd time with the current report included.
+    const optionListItemsWithCurrentReport = useMemo(() => {
+        if (currentReportID && !_.contains(optionListItems, currentReportID)) {
+            return SidebarUtils.getOrderedReportIDs(
+                currentReportID,
+                chatReports,
+                betas,
+                policies,
+                priorityMode,
+                allReportActions,
+                transactionViolations,
+                activeWorkspaceID,
+                policyMemberAccountIDs,
+            );
+        }
+        return optionListItems;
+    }, [currentReportID, optionListItems, chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs]);
 
     const currentReportIDRef = useRef(currentReportID);
     currentReportIDRef.current = currentReportID;
@@ -95,12 +198,12 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
                 // Forwarded props:
                 onLinkClick={onLinkClick}
                 insets={insets}
-                isSmallScreenWidth={isSmallScreenWidth}
                 priorityMode={priorityMode}
                 // Data props:
                 isActiveReport={isActiveReport}
                 isLoading={isLoading}
-                optionListItems={optionListItems}
+                optionListItems={optionListItemsWithCurrentReport}
+                activeWorkspaceID={activeWorkspaceID}
             />
         </View>
     );
@@ -119,11 +222,11 @@ SidebarLinksData.displayName = 'SidebarLinksData';
 const chatReportSelector = (report) =>
     report && {
         reportID: report.reportID,
-        participants: report.participants,
         participantAccountIDs: report.participantAccountIDs,
         hasDraft: report.hasDraft,
         isPinned: report.isPinned,
         isHidden: report.isHidden,
+        notificationPreference: report.notificationPreference,
         errorFields: {
             addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
         },
@@ -131,7 +234,8 @@ const chatReportSelector = (report) =>
         lastVisibleActionCreated: report.lastVisibleActionCreated,
         iouReportID: report.iouReportID,
         total: report.total,
-        hasOutstandingIOU: report.hasOutstandingIOU,
+        nonReimbursableTotal: report.nonReimbursableTotal,
+        hasOutstandingChildRequest: report.hasOutstandingChildRequest,
         isWaitingOnBankAccount: report.isWaitingOnBankAccount,
         statusNum: report.statusNum,
         stateNum: report.stateNum,
@@ -151,6 +255,8 @@ const chatReportSelector = (report) =>
         // Other important less obivous properties for filtering:
         parentReportActionID: report.parentReportActionID,
         parentReportID: report.parentReportID,
+        isDeletedParentAction: report.isDeletedParentAction,
+        isUnreadWithMention: ReportUtils.isUnreadWithMention(report),
     };
 
 /**
@@ -159,14 +265,23 @@ const chatReportSelector = (report) =>
  */
 const reportActionsSelector = (reportActions) =>
     reportActions &&
-    _.map(reportActions, (reportAction) => ({
-        errors: lodashGet(reportAction, 'errors', []),
-        message: [
-            {
-                moderationDecision: {decision: lodashGet(reportAction, 'message[0].moderationDecision.decision')},
-            },
-        ],
-    }));
+    lodashMap(reportActions, (reportAction) => {
+        const {reportActionID, parentReportActionID, actionName, errors = [], originalMessage} = reportAction;
+        const decision = lodashGet(reportAction, 'message[0].moderationDecision.decision');
+
+        return {
+            reportActionID,
+            parentReportActionID,
+            actionName,
+            errors,
+            message: [
+                {
+                    moderationDecision: {decision},
+                },
+            ],
+            originalMessage,
+        };
+    });
 
 /**
  * @param {Object} [policy]
@@ -181,28 +296,42 @@ const policySelector = (policy) =>
 
 export default compose(
     withCurrentReportID,
+    withCurrentUserPersonalDetails,
     withNavigationFocus,
+    withNetwork(),
     withOnyx({
         chatReports: {
             key: ONYXKEYS.COLLECTION.REPORT,
             selector: chatReportSelector,
+            initialValue: {},
         },
-        isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+        isLoadingApp: {
+            key: ONYXKEYS.IS_LOADING_APP,
         },
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,
+            initialValue: CONST.PRIORITY_MODE.DEFAULT,
         },
         betas: {
             key: ONYXKEYS.BETAS,
+            initialValue: [],
         },
         allReportActions: {
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
             selector: reportActionsSelector,
+            initialValue: {},
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
             selector: policySelector,
+            initialValue: {},
+        },
+        policyMembers: {
+            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
+        },
+        transactionViolations: {
+            key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+            initialValue: {},
         },
     }),
 )(SidebarLinksData);

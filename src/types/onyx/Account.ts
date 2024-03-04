@@ -1,10 +1,27 @@
-import {ValueOf} from 'type-fest';
-import CONST from '../../CONST';
-import * as OnyxCommon from './OnyxCommon';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+import type * as OnyxCommon from './OnyxCommon';
 
 type TwoFactorAuthStep = ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS> | '';
 
+type DismissedReferralBanners = {
+    [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST]?: boolean;
+    [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]?: boolean;
+    [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY]?: boolean;
+    [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]?: boolean;
+    [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE]?: boolean;
+};
+
 type Account = {
+    /** Whether SAML is enabled for the current account */
+    isSAMLEnabled?: boolean;
+
+    /** Whether SAML is required for the current account */
+    isSAMLRequired?: boolean;
+
+    /** Is this account having trouble receiving emails? */
+    hasEmailDeliveryFailure?: boolean;
+
     /** URL to the assigned guide's appointment booking calendar */
     guideCalendarLink?: string;
 
@@ -47,11 +64,15 @@ type Account = {
     /** Whether a sign is loading */
     isLoading?: boolean;
 
-    errors?: OnyxCommon.Errors;
+    /** The active policy ID. Initiating a SmartScan will create an expense on this policy by default. */
+    activePolicyID?: string;
+
+    errors?: OnyxCommon.Errors | null;
     success?: string;
     codesAreCopied?: boolean;
     twoFactorAuthStep?: TwoFactorAuthStep;
+    dismissedReferralBanners?: DismissedReferralBanners;
 };
 
 export default Account;
-export type {TwoFactorAuthStep};
+export type {TwoFactorAuthStep, DismissedReferralBanners};

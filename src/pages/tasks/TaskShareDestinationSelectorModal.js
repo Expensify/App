@@ -1,132 +1,111 @@
-/* eslint-disable es/no-optional-chaining */
-import React, {useState, useEffect, useMemo, useCallback} from 'react';
-import _ from 'underscore';
-import {View} from 'react-native';
+import keys from 'lodash/keys';
+import reduce from 'lodash/reduce';
 import PropTypes from 'prop-types';
+import React, {useEffect, useMemo} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import OptionsSelector from '../../components/OptionsSelector';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import ONYXKEYS from '../../ONYXKEYS';
-import styles from '../../styles/styles';
-import Navigation from '../../libs/Navigation/Navigation';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import CONST from '../../CONST';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
-import personalDetailsPropType from '../personalDetailsPropType';
-import reportPropTypes from '../reportPropTypes';
-import * as Task from '../../libs/actions/Task';
-import * as ReportUtils from '../../libs/ReportUtils';
-import ROUTES from '../../ROUTES';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {usePersonalDetails} from '@components/OnyxProvider';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/UserListItem';
+import useDebouncedState from '@hooks/useDebouncedState';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
+import * as Report from '@libs/actions/Report';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import * as Task from '@userActions/Task';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
-    /* Onyx Props */
-
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
-    /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
-
-    ...withLocalizePropTypes,
+    /** Whether or not we are searching for reports on the server */
+    isSearchingForReports: PropTypes.bool,
 };
 
 const defaultProps = {
-    betas: [],
-    personalDetails: {},
     reports: {},
+    isSearchingForReports: false,
 };
 
-function TaskShareDestinationSelectorModal(props) {
-    const [searchValue, setSearchValue] = useState('');
-    const [headerMessage, setHeaderMessage] = useState('');
-    const [filteredRecentReports, setFilteredRecentReports] = useState([]);
+const selectReportHandler = (option) => {
+    if (!option || !option.reportID) {
+        return;
+    }
 
-    const filteredReports = useMemo(() => {
-        const reports = {};
-        _.keys(props.reports).forEach((reportKey) => {
-            if (ReportUtils.shouldDisableWriteActions(props.reports[reportKey]) || ReportUtils.isExpensifyOnlyParticipantInReport(props.reports[reportKey])) {
-                return;
+    Task.setShareDestinationValue(option.reportID);
+    Navigation.goBack(ROUTES.NEW_TASK);
+};
+
+const reportFilter = (reports) =>
+    reduce(
+        keys(reports),
+        (filtered, reportKey) => {
+            const report = reports[reportKey];
+            if (ReportUtils.canUserPerformWriteAction(report) && ReportUtils.canCreateTaskInReport(report) && !ReportUtils.isCanceledTaskReport(report)) {
+                return {...filtered, [reportKey]: report};
             }
-            reports[reportKey] = props.reports[reportKey];
-        });
-        return reports;
-    }, [props.reports]);
-    const updateOptions = useCallback(() => {
-        const {recentReports} = OptionsListUtils.getShareDestinationOptions(filteredReports, props.personalDetails, props.betas, searchValue.trim(), [], CONST.EXPENSIFY_EMAILS, true);
+            return filtered;
+        },
+        {},
+    );
 
-        setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReports?.length !== 0, false, searchValue));
+function TaskShareDestinationSelectorModal({reports, isSearchingForReports}) {
+    const styles = useThemeStyles();
+    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const {translate} = useLocalize();
+    const personalDetails = usePersonalDetails();
+    const {isOffline} = useNetwork();
 
-        setFilteredRecentReports(recentReports);
-    }, [props, searchValue, filteredReports]);
+    const textInputHint = useMemo(() => (isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''), [isOffline, translate]);
+
+    const options = useMemo(() => {
+        const filteredReports = reportFilter(reports);
+
+        const {recentReports} = OptionsListUtils.getShareDestinationOptions(filteredReports, personalDetails, [], debouncedSearchValue.trim(), [], CONST.EXPENSIFY_EMAILS, true);
+
+        const headerMessage = OptionsListUtils.getHeaderMessage(recentReports && recentReports.length !== 0, false, debouncedSearchValue);
+
+        const sections = recentReports && recentReports.length > 0 ? [{data: recentReports, shouldShow: true}] : [];
+
+        return {sections, headerMessage};
+    }, [personalDetails, reports, debouncedSearchValue]);
 
     useEffect(() => {
-        const debouncedSearch = _.debounce(updateOptions, 150);
-        debouncedSearch();
-        return () => {
-            debouncedSearch.cancel();
-        };
-    }, [updateOptions]);
+        Report.searchInServer(debouncedSearchValue);
+    }, [debouncedSearchValue]);
 
-    const onChangeText = (newSearchTerm = '') => {
-        setSearchValue(newSearchTerm);
-    };
-
-    const getSections = () => {
-        const sections = [];
-        let indexOffset = 0;
-
-        if (filteredRecentReports?.length > 0) {
-            sections.push({
-                data: filteredRecentReports,
-                shouldShow: true,
-                indexOffset,
-            });
-            indexOffset += filteredRecentReports?.length;
-        }
-
-        return sections;
-    };
-
-    const selectReport = (option) => {
-        if (!option) {
-            return;
-        }
-
-        if (option.reportID) {
-            // Clear out the state value, set the assignee and navigate back to the NewTaskPage
-            setSearchValue('');
-            Task.setShareDestinationValue(option.reportID);
-            Navigation.goBack(ROUTES.NEW_TASK);
-        }
-    };
-
-    const sections = getSections();
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID="TaskShareDestinationSelectorModal"
+        >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
-                        title={props.translate('newTaskPage.shareSomewhere')}
+                        title={translate('newTaskPage.shareSomewhere')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
                     />
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                        <OptionsSelector
-                            sections={sections}
-                            value={searchValue}
-                            onSelectRow={selectReport}
-                            onChangeText={onChangeText}
-                            headerMessage={headerMessage}
-                            hideSection
-                            Headers
-                            showTitleTooltip
-                            shouldShowOptions={didScreenTransitionEnd}
-                            textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                        <SelectionList
+                            ListItem={UserListItem}
+                            sections={didScreenTransitionEnd ? options.sections : CONST.EMPTY_ARRAY}
+                            onSelectRow={selectReportHandler}
+                            onChangeText={setSearchValue}
+                            textInputValue={searchValue}
+                            headerMessage={options.headerMessage}
+                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                            showLoadingPlaceholder={!didScreenTransitionEnd}
+                            isLoadingNewOptions={isSearchingForReports}
+                            textInputHint={textInputHint}
                         />
                     </View>
                 </>
@@ -139,17 +118,12 @@ TaskShareDestinationSelectorModal.displayName = 'TaskShareDestinationSelectorMod
 TaskShareDestinationSelectorModal.propTypes = propTypes;
 TaskShareDestinationSelectorModal.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-    }),
-)(TaskShareDestinationSelectorModal);
+export default withOnyx({
+    reports: {
+        key: ONYXKEYS.COLLECTION.REPORT,
+    },
+    isSearchingForReports: {
+        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+        initWithStoredValues: false,
+    },
+})(TaskShareDestinationSelectorModal);

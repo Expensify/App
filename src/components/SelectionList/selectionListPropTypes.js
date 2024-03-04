@@ -1,8 +1,37 @@
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import CONST from '../../CONST';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
+import CONST from '@src/CONST';
 
-const checkboxListItemPropTypes = {
+const commonListItemPropTypes = {
+    /** Whether this item is focused (for arrow key controls) */
+    isFocused: PropTypes.bool,
+
+    /** Style to be applied to Text */
+    textStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Style to be applied on the alternate text */
+    alternateTextStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Whether this item is disabled */
+    isDisabled: PropTypes.bool,
+
+    /** Whether this item should show Tooltip */
+    showTooltip: PropTypes.bool.isRequired,
+
+    /** Whether to use the Checkbox (multiple selection) instead of the Checkmark (single selection) */
+    canSelectMultiple: PropTypes.bool,
+
+    /** Callback to fire when the item is selected */
+    onSelectRow: PropTypes.func.isRequired,
+
+    /** Callback to fire when an error is dismissed */
+    onDismissError: PropTypes.func,
+};
+
+const userListItemPropTypes = {
+    ...commonListItemPropTypes,
+
     /** The section list item */
     item: PropTypes.shape({
         /** Text to display */
@@ -29,12 +58,14 @@ const checkboxListItemPropTypes = {
         /** Element to show on the right side of the item */
         rightElement: PropTypes.element,
 
-        /** Avatar for the user */
-        avatar: PropTypes.shape({
-            source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
-            name: PropTypes.string,
-            type: PropTypes.string,
-        }),
+        /** Icons for the user (can be multiple if it's a Workspace) */
+        icons: PropTypes.arrayOf(
+            PropTypes.shape({
+                source: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]).isRequired,
+                name: PropTypes.string,
+                type: PropTypes.string,
+            }),
+        ),
 
         /** Errors that this user may contain */
         errors: PropTypes.objectOf(PropTypes.string),
@@ -42,18 +73,11 @@ const checkboxListItemPropTypes = {
         /** The type of action that's pending  */
         pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
     }).isRequired,
-
-    /** Whether this item is focused (for arrow key controls) */
-    isFocused: PropTypes.bool,
-
-    /** Callback to fire when the item is pressed */
-    onSelectRow: PropTypes.func.isRequired,
-
-    /** Callback to fire when an error is dismissed */
-    onDismissError: PropTypes.func,
 };
 
 const radioListItemPropTypes = {
+    ...commonListItemPropTypes,
+
     /** The section list item */
     item: PropTypes.shape({
         /** Text to display */
@@ -68,15 +92,12 @@ const radioListItemPropTypes = {
         /** Whether this option is selected */
         isSelected: PropTypes.bool,
     }).isRequired,
+};
 
-    /** Whether this item is focused (for arrow key controls) */
-    isFocused: PropTypes.bool,
-
-    /** Whether this item is disabled */
-    isDisabled: PropTypes.bool,
-
-    /** Callback to fire when the item is pressed */
-    onSelectRow: PropTypes.func.isRequired,
+const baseListItemPropTypes = {
+    ...commonListItemPropTypes,
+    item: PropTypes.oneOfType([PropTypes.shape(userListItemPropTypes.item), PropTypes.shape(radioListItemPropTypes.item)]),
+    shouldPreventDefaultFocusOnSelectRow: PropTypes.bool,
 };
 
 const propTypes = {
@@ -90,7 +111,7 @@ const propTypes = {
             indexOffset: PropTypes.number,
 
             /** Array of options */
-            data: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.shape(checkboxListItemPropTypes.item), PropTypes.shape(radioListItemPropTypes.item)])),
+            data: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.shape(userListItemPropTypes.item), PropTypes.shape(radioListItemPropTypes.item)])),
 
             /** Whether this section items disabled for selection */
             isDisabled: PropTypes.bool,
@@ -124,8 +145,8 @@ const propTypes = {
     /** Callback to fire when the text input changes */
     onChangeText: PropTypes.func,
 
-    /** Keyboard type for the text input */
-    keyboardType: PropTypes.string,
+    /** Input mode for the text input */
+    inputMode: PropTypes.string,
 
     /** Item `keyForList` to focus initially */
     initiallyFocusedOptionKey: PropTypes.string,
@@ -153,6 +174,30 @@ const propTypes = {
 
     /** Whether to show the default confirm button */
     showConfirmButton: PropTypes.bool,
+
+    /** Whether to stop automatic form submission on pressing enter key or not */
+    shouldStopPropagation: PropTypes.bool,
+
+    /** Whether to prevent default focusing of options and focus the textinput when selecting an option */
+    shouldPreventDefaultFocusOnSelectRow: PropTypes.bool,
+
+    /** A ref to forward to the TextInput */
+    inputRef: PropTypes.oneOfType([PropTypes.object]),
+
+    /** Custom content to display in the header */
+    headerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
+
+    /** Custom content to display in the footer */
+    footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
+
+    /** Whether to show the toolip text */
+    shouldShowTooltips: PropTypes.bool,
+
+    /** Whether to use dynamic maxToRenderPerBatch depending on the visible number of elements */
+    shouldUseDynamicMaxToRenderPerBatch: PropTypes.bool,
+
+    /** Right hand side component to display in the list item. Function has list item passed as the param */
+    rightHandSideComponent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 };
 
-export {propTypes, radioListItemPropTypes, checkboxListItemPropTypes};
+export {propTypes, baseListItemPropTypes, radioListItemPropTypes, userListItemPropTypes};

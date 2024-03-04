@@ -18,7 +18,9 @@
             "es2021.weakref",
             "es2022.array",
             "es2022.object",
-            "es2022.string"
+            "es2022.string",
+            "ES2021.Intl",
+            "ES2023.Array"
         ],
         "allowJs": true,
         "checkJs": false,
@@ -30,8 +32,22 @@
         "resolveJsonModule": true,
         "allowSyntheticDefaultImports": true,
         "skipLibCheck": true,
-        "incremental": true
+        "incremental": true,
+        "baseUrl": ".",
+        "paths": {
+            "@assets/*": ["./assets/*"],
+            "@components/*": ["./src/components/*"],
+            "@desktop/*": ["./desktop/*"],
+            "@hooks/*": ["./src/hooks/*"],
+            "@libs/*": ["./src/libs/*"],
+            "@navigation/*": ["./src/libs/Navigation/*"],
+            "@pages/*": ["./src/pages/*"],
+            "@styles/*": ["./src/styles/*"],
+            "@src/*": ["./src/*"],
+            "@userActions/*": ["./src/libs/actions/*"]
+        }
     },
-    "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js"],
-    "include": ["src", "desktop", "web", "docs", "assets", "config", "tests", "jest", "__mocks__", ".github/**/*", ".storybook/**/*"]
+    "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "**/docs/*"],
+    "include": ["src", "desktop", "web", "website", "docs", "assets", "config", "tests", "jest", "__mocks__", ".github/**/*", ".storybook/**/*"],
+    "extends": "expo/tsconfig.base"
 }

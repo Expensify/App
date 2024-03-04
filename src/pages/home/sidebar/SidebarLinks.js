@@ -1,35 +1,26 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
-import React from 'react';
-import {View} from 'react-native';
-import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import styles from '../../../styles/styles';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import ONYXKEYS from '../../../ONYXKEYS';
-import safeAreaInsetPropTypes from '../../safeAreaInsetPropTypes';
-import compose from '../../../libs/compose';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import Icon from '../../../components/Icon';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import Tooltip from '../../../components/Tooltip';
-import CONST from '../../../CONST';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import * as App from '../../../libs/actions/App';
-import withWindowDimensions from '../../../components/withWindowDimensions';
-import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
-import SidebarUtils from '../../../libs/SidebarUtils';
-import Header from '../../../components/Header';
-import defaultTheme from '../../../styles/themes/default';
-import OptionsListSkeletonView from '../../../components/OptionsListSkeletonView';
-import variables from '../../../styles/variables';
-import LogoComponent from '../../../../assets/images/expensify-wordmark.svg';
-import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
-import * as Session from '../../../libs/actions/Session';
-import KeyboardShortcut from '../../../libs/KeyboardShortcut';
-import onyxSubscribe from '../../../libs/onyxSubscribe';
-import * as ReportActionContextMenu from '../report/ContextMenu/ReportActionContextMenu';
-import SignInOrAvatarWithOptionalStatus from './SignInOrAvatarWithOptionalStatus';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import {InteractionManager, StyleSheet, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import Breadcrumbs from '@components/Breadcrumbs';
+import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
+import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
+import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import KeyboardShortcut from '@libs/KeyboardShortcut';
+import Navigation from '@libs/Navigation/Navigation';
+import onyxSubscribe from '@libs/onyxSubscribe';
+import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import safeAreaInsetPropTypes from '@pages/safeAreaInsetPropTypes';
+import * as App from '@userActions/App';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const basePropTypes = {
     /** Toggles the navigation menu open and closed */
@@ -37,9 +28,6 @@ const basePropTypes = {
 
     /** Safe area insets required for mobile devices margins */
     insets: safeAreaInsetPropTypes.isRequired,
-
-    /** Whether we are viewing below the responsive breakpoint */
-    isSmallScreenWidth: PropTypes.bool.isRequired,
 };
 
 const propTypes = {
@@ -49,47 +37,45 @@ const propTypes = {
 
     isLoading: PropTypes.bool.isRequired,
 
+    // eslint-disable-next-line react/require-default-props
     priorityMode: PropTypes.oneOf(_.values(CONST.PRIORITY_MODE)),
 
     isActiveReport: PropTypes.func.isRequired,
-
-    ...withLocalizePropTypes,
 };
 
-const defaultProps = {
-    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
-};
+function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport, isCreateMenuOpen, activePolicy}) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const modal = useRef({});
+    const {translate, updateLocale} = useLocalize();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
-class SidebarLinks extends React.PureComponent {
-    constructor(props) {
-        super(props);
+    useEffect(() => {
+        App.confirmReadyToOpenApp();
+    }, []);
 
-        this.showSearchPage = this.showSearchPage.bind(this);
-        this.showReportPage = this.showReportPage.bind(this);
+    useEffect(() => {
+        InteractionManager.runAfterInteractions(() => {
+            requestAnimationFrame(() => {
+                updateLocale();
+            });
+        });
 
-        if (this.props.isSmallScreenWidth) {
-            App.confirmReadyToOpenApp();
-        }
-    }
-
-    componentDidMount() {
-        App.setSidebarLoaded();
-        SidebarUtils.setIsSidebarLoadedReady();
-        this.isSidebarLoaded = true;
-
-        let modal = {};
-        this.unsubscribeOnyxModal = onyxSubscribe({
+        const unsubscribeOnyxModal = onyxSubscribe({
             key: ONYXKEYS.MODAL,
             callback: (modalArg) => {
-                modal = modalArg;
+                if (_.isNull(modalArg) || typeof modalArg !== 'object') {
+                    return;
+                }
+                modal.current = modalArg;
             },
         });
 
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
-        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(
+        const unsubscribeEscapeKey = KeyboardShortcut.subscribe(
             shortcutConfig.shortcutKey,
             () => {
-                if (modal.willAlertModalBecomeVisible) {
+                if (modal.current.willAlertModalBecomeVisible) {
                     return;
                 }
 
@@ -102,26 +88,17 @@ class SidebarLinks extends React.PureComponent {
         );
 
         ReportActionContextMenu.hideContextMenu(false);
-    }
 
-    componentWillUnmount() {
-        SidebarUtils.resetIsSidebarLoadedReadyPromise();
-        if (this.unsubscribeEscapeKey) {
-            this.unsubscribeEscapeKey();
-        }
-        if (this.unsubscribeOnyxModal) {
-            this.unsubscribeOnyxModal();
-        }
-    }
-
-    showSearchPage() {
-        if (this.props.isCreateMenuOpen) {
-            // Prevent opening Search page when click Search icon quickly after clicking FAB icon
-            return;
-        }
-
-        Navigation.navigate(ROUTES.SEARCH);
-    }
+        return () => {
+            if (unsubscribeEscapeKey) {
+                unsubscribeEscapeKey();
+            }
+            if (unsubscribeOnyxModal) {
+                unsubscribeOnyxModal();
+            }
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     /**
      * Show Report page with selected report id
@@ -129,70 +106,71 @@ class SidebarLinks extends React.PureComponent {
      * @param {Object} option
      * @param {String} option.reportID
      */
-    showReportPage(option) {
-        // Prevent opening Report page when clicking LHN row quickly after clicking FAB icon
-        // or when clicking the active LHN row on large screens
-        // or when continuously clicking different LHNs, only apply to small screen
-        // since getTopmostReportId always returns on other devices
-        if (
-            this.props.isCreateMenuOpen ||
-            (!this.props.isSmallScreenWidth && this.props.isActiveReport(option.reportID)) ||
-            (this.props.isSmallScreenWidth && Navigation.getTopmostReportId())
-        ) {
-            return;
-        }
-        Navigation.navigate(ROUTES.getReportRoute(option.reportID));
-        this.props.onLinkClick();
-    }
+    const showReportPage = useCallback(
+        (option) => {
+            // Prevent opening Report page when clicking LHN row quickly after clicking FAB icon
+            // or when clicking the active LHN row on large screens
+            // or when continuously clicking different LHNs, only apply to small screen
+            // since getTopmostReportId always returns on other devices
+            const reportActionID = Navigation.getTopmostReportActionId();
+            if (isCreateMenuOpen || (option.reportID === Navigation.getTopmostReportId() && !reportActionID) || (isSmallScreenWidth && isActiveReport(option.reportID) && !reportActionID)) {
+                return;
+            }
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));
+            onLinkClick();
+        },
+        [isCreateMenuOpen, isSmallScreenWidth, isActiveReport, onLinkClick],
+    );
 
-    render() {
-        const viewMode = this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
+    const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
 
-        return (
-            <View style={[styles.flex1, styles.h100]}>
-                <View
-                    style={[styles.flexRow, styles.ph5, styles.pv3, styles.justifyContentBetween, styles.alignItemsCenter]}
-                    dataSet={{dragArea: true}}
-                >
-                    <Header
-                        title={
-                            <LogoComponent
-                                fill={defaultTheme.textLight}
-                                width={variables.lhnLogoWidth}
-                                height={variables.lhnLogoHeight}
-                            />
-                        }
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        shouldShowEnvironmentBadge
-                    />
-                    <Tooltip text={this.props.translate('common.search')}>
-                        <PressableWithoutFeedback
-                            accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                            style={[styles.flexRow, styles.ph5]}
-                            onPress={Session.checkIfActionIsAllowed(this.showSearchPage)}
-                        >
-                            <Icon src={Expensicons.MagnifyingGlass} />
-                        </PressableWithoutFeedback>
-                    </Tooltip>
-                    <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={this.props.isCreateMenuOpen} />
-                </View>
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const contentContainerStyles = useMemo(() => StyleSheet.flatten([styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]), [insets]);
 
+    return (
+        <View style={[styles.flex1, styles.h100]}>
+            <Breadcrumbs
+                breadcrumbs={[
+                    activePolicy
+                        ? {
+                              type: CONST.BREADCRUMB_TYPE.STRONG,
+                              text: lodashGet(activePolicy, 'name', ''),
+                          }
+                        : {
+                              type: CONST.BREADCRUMB_TYPE.ROOT,
+                          },
+                    {
+                        text: translate('common.chats'),
+                    },
+                ]}
+                style={[styles.mb5, styles.ph5]}
+            />
+            <View style={[styles.pRelative, styles.flex1]}>
                 <LHNOptionsList
-                    style={[this.props.isLoading ? styles.flexShrink1 : styles.flex1]}
-                    contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom}]}
-                    data={this.props.optionListItems}
-                    onSelectRow={this.showReportPage}
-                    shouldDisableFocusOptions={this.props.isSmallScreenWidth}
+                    style={styles.flex1}
+                    contentContainerStyles={contentContainerStyles}
+                    data={optionListItems}
+                    onSelectRow={showReportPage}
+                    shouldDisableFocusOptions={isSmallScreenWidth}
                     optionMode={viewMode}
+                    onFirstItemRendered={App.setSidebarLoaded}
                 />
-                {this.props.isLoading && <OptionsListSkeletonView shouldAnimate />}
+                {isLoading && optionListItems.length === 0 && (
+                    <View style={[StyleSheet.absoluteFillObject, styles.appBG]}>
+                        <OptionsListSkeletonView shouldAnimate />
+                    </View>
+                )}
             </View>
-        );
-    }
+        </View>
+    );
 }
 
 SidebarLinks.propTypes = propTypes;
-SidebarLinks.defaultProps = defaultProps;
-export default compose(withLocalize, withWindowDimensions)(SidebarLinks);
+SidebarLinks.displayName = 'SidebarLinks';
+
+export default withOnyx({
+    activePolicy: {
+        key: ({activeWorkspaceID}) => `${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID}`,
+    },
+})(SidebarLinks);
 export {basePropTypes};

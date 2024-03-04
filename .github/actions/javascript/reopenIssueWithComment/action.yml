@@ -11,5 +11,5 @@ inputs:
     description: The comment string we want to leave on the issue after we reopen it.
     required: true
 runs:
-  using: 'node16'
+  using: 'node20'
   main: './index.js'

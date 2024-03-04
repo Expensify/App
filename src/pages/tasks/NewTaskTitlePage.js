@@ -1,26 +1,25 @@
-import React, {useRef} from 'react';
+import PropTypes from 'prop-types';
+import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Navigation from '../../libs/Navigation/Navigation';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import styles from '../../styles/styles';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as ErrorUtils from '../../libs/ErrorUtils';
-import Form from '../../components/Form';
-import TextInput from '../../components/TextInput';
-import Permissions from '../../libs/Permissions';
-import ROUTES from '../../ROUTES';
-import * as Task from '../../libs/actions/Task';
-import CONST from '../../CONST';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapperWithRef from '@components/Form/InputWrapper';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import TextInput from '@components/TextInput';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useThemeStyles from '@hooks/useThemeStyles';
+import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as Task from '@userActions/Task';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/NewTaskForm';
 
 const propTypes = {
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** Grab the Share title of the Task */
     task: PropTypes.shape({
         /** Title of the Task */
@@ -31,14 +30,14 @@ const propTypes = {
 };
 
 const defaultProps = {
-    betas: [],
     task: {
         title: '',
     },
 };
 
 function NewTaskTitlePage(props) {
-    const inputRef = useRef(null);
+    const styles = useThemeStyles();
+    const {inputCallbackRef} = useAutoFocusInput();
 
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -50,6 +49,8 @@ function NewTaskTitlePage(props) {
         if (!values.taskTitle) {
             // We error if the user doesn't enter a task name
             ErrorUtils.addErrorMessage(errors, 'taskTitle', 'newTaskPage.pleaseEnterTaskName');
+        } else if (values.taskTitle.length > CONST.TITLE_CHARACTER_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'taskTitle', ['common.error.characterLimitExceedCounter', {length: values.taskTitle.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
         }
 
         return errors;
@@ -62,21 +63,11 @@ function NewTaskTitlePage(props) {
         Navigation.goBack(ROUTES.NEW_TASK);
     }
 
-    if (!Permissions.canUseTasks(props.betas)) {
-        Navigation.dismissModal();
-        return null;
-    }
     return (
         <ScreenWrapper
-            onEntryTransitionEnd={() => {
-                if (!inputRef.current) {
-                    return;
-                }
-
-                inputRef.current.focus();
-            }}
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID={NewTaskTitlePage.displayName}
         >
             <HeaderWithBackButton
                 title={props.translate('task.title')}
@@ -84,7 +75,7 @@ function NewTaskTitlePage(props) {
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
             />
-            <Form
+            <FormProvider
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
                 submitButtonText={props.translate('common.next')}
                 style={[styles.mh5, styles.flexGrow1]}
@@ -93,16 +84,17 @@ function NewTaskTitlePage(props) {
                 enabledWhenOffline
             >
                 <View style={styles.mb5}>
-                    <TextInput
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    <InputWrapperWithRef
+                        InputComponent={TextInput}
+                        role={CONST.ROLE.PRESENTATION}
                         defaultValue={props.task.title}
-                        ref={(el) => (inputRef.current = el)}
-                        inputID="taskTitle"
+                        ref={inputCallbackRef}
+                        inputID={INPUT_IDS.TASK_TITLE}
                         label={props.translate('task.title')}
                         accessibilityLabel={props.translate('task.title')}
                     />
                 </View>
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }
@@ -113,9 +105,6 @@ NewTaskTitlePage.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         task: {
             key: ONYXKEYS.TASK,
         },

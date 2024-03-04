@@ -26,11 +26,11 @@ on:
       LARGE_SECRET_PASSPHRASE:
         description: Passphrase used to decrypt GPG key
         required: true
-      OS_BOTIFY_TOKEN:
-        description: Token for the OSBotify user
-        required: true
       SLACK_WEBHOOK:
         description: Webhook used to comment in slack
+        required: true
+      OS_BOTIFY_COMMIT_TOKEN:
+        description: OSBotify personal access token, used to workaround committing to protected branch
         required: true
 
 jobs:
@@ -43,7 +43,7 @@ jobs:
         id: getUserPermissions
         run: echo "PERMISSION=$(gh api /repos/${{ github.repository }}/collaborators/${{ github.actor }}/permission | jq -r '.permission')" >> "$GITHUB_OUTPUT"
         env:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
 
   createNewVersion:
     runs-on: macos-latest
@@ -54,26 +54,32 @@ jobs:
       NEW_VERSION: ${{ steps.bumpVersion.outputs.NEW_VERSION }}
 
     steps:
-      - uses: softprops/turnstyle@ca99add00ff0c9cbc697d22631d2992f377e5bd5
+      - name: Run turnstyle
+        uses: softprops/turnstyle@ca99add00ff0c9cbc697d22631d2992f377e5bd5
         with:
           poll-interval-seconds: 10
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - uses: actions/checkout@v3
+      - name: Check out
+        uses: actions/checkout@v4
         with:
           ref: main
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          # The OS_BOTIFY_COMMIT_TOKEN is a personal access token tied to osbotify
+          # This is a workaround to allow pushes to a protected branch
+          token: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
 
-      - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
+      - name: Setup git for OSBotify
+        uses: ./.github/actions/composite/setupGitForOSBotify
+        id: setupGitForOSBotify
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Generate version
         id: bumpVersion
-        uses: Expensify/App/.github/actions/javascript/bumpVersion@main
+        uses: ./.github/actions/javascript/bumpVersion
         with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
           SEMVER_LEVEL: ${{ inputs.SEMVER_LEVEL }}
 
       - name: Commit new version
@@ -83,13 +89,15 @@ jobs:
             ./package-lock.json \
             ./android/app/build.gradle \
             ./ios/NewExpensify/Info.plist \
-            ./ios/NewExpensifyTests/Info.plist
+            ./ios/NewExpensifyTests/Info.plist \
+            ./ios/NotificationServiceExtension/Info.plist
           git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
 
       - name: Update main branch
         run: git push origin main
 
-      - if: ${{ failure() }}
-        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
+      - name: Announce failed workflow in Slack
+        if: ${{ failure() }}
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

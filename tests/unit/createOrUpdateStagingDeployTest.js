@@ -1,13 +1,18 @@
 /**
  * @jest-environment node
  */
-const core = require('@actions/core');
-const moment = require('moment');
-const CONST = require('../../.github/libs/CONST');
-const GitUtils = require('../../.github/libs/GitUtils');
-const GithubUtils = require('../../.github/libs/GithubUtils');
-const run = require('../../.github/actions/javascript/createOrUpdateStagingDeploy/createOrUpdateStagingDeploy');
+import * as core from '@actions/core';
+import * as fns from 'date-fns';
+import {vol} from 'memfs';
+import path from 'path';
+import run from '../../.github/actions/javascript/createOrUpdateStagingDeploy/createOrUpdateStagingDeploy';
+import CONST from '../../.github/libs/CONST';
+import GithubUtils from '../../.github/libs/GithubUtils';
+import GitUtils from '../../.github/libs/GitUtils';
 
+const PATH_TO_PACKAGE_JSON = path.resolve(__dirname, '../../package.json');
+
+jest.mock('fs');
 const mockGetInput = jest.fn();
 const mockListIssues = jest.fn();
 const mockGetPullRequestsMergedBetween = jest.fn();
@@ -50,6 +55,11 @@ beforeAll(() => {
 
     // Mock GitUtils
     GitUtils.getPullRequestsMergedBetween = mockGetPullRequestsMergedBetween;
+
+    vol.reset();
+    vol.fromJSON({
+        [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.2-1'}),
+    });
 });
 
 afterEach(() => {
@@ -139,14 +149,15 @@ describe('createOrUpdateStagingDeployCash', () => {
     const baseNewPullRequests = [6, 7, 8];
 
     test('creates new issue when there is none open', async () => {
+        vol.reset();
+        vol.fromJSON({
+            [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.2-1'}),
+        });
         mockGetInput.mockImplementation((arg) => {
-            if (arg === 'GITHUB_TOKEN') {
-                return 'fake_token';
+            if (arg !== 'GITHUB_TOKEN') {
+                return;
             }
-
-            if (arg === 'NPM_VERSION') {
-                return '1.0.2-1';
-            }
+            return 'fake_token';
         });
 
         mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
@@ -168,7 +179,7 @@ describe('createOrUpdateStagingDeployCash', () => {
         expect(result).toStrictEqual({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
-            title: `Deploy Checklist: New Expensify ${moment().format('YYYY-MM-DD')}`,
+            title: `Deploy Checklist: New Expensify ${fns.format(new Date(), 'yyyy-MM-dd')}`,
             labels: [CONST.LABELS.STAGING_DEPLOY],
             html_url: 'https://github.com/Expensify/App/issues/29',
             assignees: [CONST.APPLAUSE_BOT],
@@ -231,14 +242,15 @@ describe('createOrUpdateStagingDeployCash', () => {
         ];
 
         test('with NPM_VERSION input, pull requests, and deploy blockers', async () => {
+            vol.reset();
+            vol.fromJSON({
+                [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.2-2'}),
+            });
             mockGetInput.mockImplementation((arg) => {
-                if (arg === 'GITHUB_TOKEN') {
-                    return 'fake_token';
+                if (arg !== 'GITHUB_TOKEN') {
+                    return;
                 }
-
-                if (arg === 'NPM_VERSION') {
-                    return '1.0.2-2';
-                }
+                return 'fake_token';
             });
 
             // New pull requests to add to open StagingDeployCash
@@ -309,6 +321,10 @@ describe('createOrUpdateStagingDeployCash', () => {
         });
 
         test('without NPM_VERSION input, just a new deploy blocker', async () => {
+            vol.reset();
+            vol.fromJSON({
+                [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.2-1'}),
+            });
             mockGetInput.mockImplementation((arg) => {
                 if (arg !== 'GITHUB_TOKEN') {
                     return;

@@ -3,19 +3,6 @@
 @import 'fonts';
 @import 'search-bar';
 
-$color-appBG: $color-green-appBG;
-$color-highlightBG: $color-green-highlightBG;
-$color-accent : $color-green400;
-$color-borders: $color-green-borders;
-$color-icons: $color-green-icons;
-$color-text: $color-white;
-$color-link: $color-blue300;
-$color-link-hovered: $color-blue200;
-$color-success: $color-green400;
-$color-text-supporting: $color-light-gray-green;
-$color-green-hover: $color-green-hover;
-$color-gray-label: $color-gray-label;
-
 * {
     margin: 0;
     padding: 0;
@@ -35,8 +22,8 @@ html {
 }
 
 table {
-    border-collapse: collapse;
     border-spacing: 0;
+    border-collapse: collapse;
 }
 
 caption,
@@ -59,7 +46,6 @@ blockquote {
 
 article,
 aside,
-details,
 figcaption,
 figure,
 footer,
@@ -68,8 +54,7 @@ hgroup,
 main,
 menu,
 nav,
-section,
-summary {
+section {
     display: block;
 }
 
@@ -78,6 +63,7 @@ body {
     height: 100%;
     min-height: 100%;
     background: $color-appBG;
+    color: $color-text-supporting;
 }
 
 hr {
@@ -111,7 +97,8 @@ h2,
 h3,
 h4,
 h5,
-h6 {
+h6, 
+summary {
     color: $color-text;
     font-weight: bold;
     padding-bottom: 12px;
@@ -125,7 +112,25 @@ h6 {
     margin-top: 20px;
 }
 
-h1 {
+#faq::marker {
+    font-size: 1.5em;
+}
+
+details summary { 
+    cursor: pointer;
+    user-select: none;
+}
+
+details > summary {
+    list-style-image: url("/assets/images/arrow-right.svg");
+}
+
+details[open] > summary {
+    list-style-image: url("/assets/images/down.svg");
+}
+
+h1, 
+summary {
     font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
     font-weight: 500;
     font-size: larger;
@@ -148,7 +153,7 @@ textarea {
     font-weight: 400;
     font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif;
     font-size: 16px;
-    color: $color-text;
+    color: $color-text-supporting;
 }
 
 button {
@@ -159,7 +164,7 @@ button {
     font-weight: bold;
 
     &.success {
-        background-color: $color-success;
+        background-color: $color-button-success-background;
         color: $color-text;
         width: 100%;
         border-radius: 100px;
@@ -167,7 +172,7 @@ button {
         padding-right: 20px;
 
         &:hover {
-            background-color: desaturate($color-success, 15%);
+            background-color: $color-button-success-background-hover;
             cursor: pointer;
         }
 
@@ -262,6 +267,7 @@ button {
 
     .lhn-header {
         padding: 24px;
+
         @include breakpoint($breakpoint-tablet) {
             padding: 44px;
         }
@@ -269,6 +275,7 @@ button {
         #header-button {
             display: block;
             padding-right: 24px;
+
             @include breakpoint($breakpoint-tablet) {
                 display: none;
             }
@@ -282,7 +289,7 @@ button {
             margin-right: auto;
 
             @include breakpoint($breakpoint-desktop) {
-                width: 210px;
+                width: 180px;
                 align-content: normal;
                 display: flex;
                 margin-left: 0;
@@ -299,7 +306,6 @@ button {
     }
 
     .selected {
-        cursor: auto;
         font-weight: bold;
         color: $color-text;
     }
@@ -344,14 +350,18 @@ button {
     h1 {
         &.title {
             font-size: 2.25em;
+            flex: 1;
         }
     }
 
     .article {
+        .hidden {
+            display: none;
+        }
         img {
             display: block;
             margin: 20px auto;
-            border-radius: 10px;
+            border-radius: 16px;
 
             @include maxBreakpoint($breakpoint-tablet) {
                 width: 100%;
@@ -366,15 +376,69 @@ button {
             }
         }
 
+        table {
+            margin-bottom: 20px;
+            border-radius: 8px;
+
+            // Box shadow is used here because border-radius and border-collapse don't work together. It leads to double borders.
+            // https://stackoverflow.com/questions/628301/the-border-radius-property-and-border-collapsecollapse-dont-mix-how-can-i-use
+            border-style: hidden;
+            box-shadow: 0 0 0 1px $color-borders;
+        }
+
+        th:first-child {
+            border-top-left-radius: 8px;
+        }
+
+        th:last-child {
+            border-top-right-radius: 8px;
+        }
+
+        tr:last-child > td:first-child {
+            border-bottom-left-radius: 8px;
+        }
+
+        tr:last-child > td:last-child {
+            border-bottom-right-radius: 8px;
+        }
+
+        th,
+        td {
+            padding: 6px 13px;
+            border: 1px solid $color-borders;
+        }
+
+        thead tr th {
+            font-weight: bold;
+            background-color: $color-highlightBG;
+        }
+
         .img-wrap {
             display: flex;
             justify-content: space-around;
             flex-wrap: wrap;
         }
 
+        h1, summary {
+            font-size: 1.5em;
+            padding: 20px 0 12px 0;
+        }
+
+        h2 {
+            font-size: 1.125em;
+            font-weight: 500;
+            font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+        }
+
+        h3 {
+            font-size: 1em;
+            font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+        }
+
         h2,
         h3 {
-            font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+            margin: 0;
+            padding: 12px 0 12px 0;
         }
 
         blockquote {
@@ -398,17 +462,80 @@ button {
                 opacity: 0.8;
             }
         }
+
+        .selector-container {
+            background-color: $color-highlightBG;
+            display: flex;
+            flex-direction: row-reverse;
+            gap: 20px;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            justify-content: space-between;
+            * > ol, ul {
+                padding: 0;
+            }
+
+            @include maxBreakpoint($breakpoint-tablet) {
+                flex-direction: column;
+            }
+        }
+
+        select {
+            height: 28px;
+            border-radius: 20px;
+            padding: 0px 26px 0px 12px;
+            color: $color-text;
+            font-size: 11px;
+            font-weight: 700;
+            text-align: center;
+            cursor: pointer;
+
+            @include maxBreakpoint($breakpoint-tablet) {
+                width: 100px;
+            }
+
+        }
+
+        select {
+            background: url("/assets/images/down.svg") no-repeat right $color-button-background;
+            background-size: 12px;
+            background-position-x: 85%;
+            appearance: none !important;
+            -moz-appearance: none !important;
+            -webkit-appearance: none !important;
+        }
+
+        .info {
+            padding: 12px;
+            border-radius: 8px;
+            background-color: $color-highlightBG;
+            color: $color-text;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        
+            img {
+                height: 16px;
+                width: 16px;
+            }
+
+            * {
+                padding: 0;
+                margin: 0;
+            }
+        }
     }
 
 }
 
 .link {
     display: inline;
-    color: $color-link;
+    color: $color-text-supporting;
     cursor: pointer;
 
     &:hover {
-        color: $color-link-hovered;
+        color: $color-link;
     }
 }
 
@@ -457,6 +584,15 @@ button {
     }
 }
 
+
+.platform-cards-group {
+    @extend .cards-group;
+
+    @include breakpoint($breakpoint-desktop) {
+        grid-template-columns: 33.33% 33.33% 33.33%;
+    }
+}
+
 .card {
     display: flex;
     flex-wrap: nowrap;
@@ -468,7 +604,7 @@ button {
     background-color: $color-highlightBG;
 
     &:hover {
-        background-color: darken($color-highlightBG, 1%);
+        background-color: $color-row-hover;
     }
 
     .row {
@@ -476,20 +612,54 @@ button {
         flex-basis:100%;
     }
 
-    .left-icon {
+    .body {
         display: flex;
-        align-items: center;
-        padding-right: 28px;
-
-        img {
-            width: 64px;
-        }
+        flex-wrap: nowrap;
+        flex-direction: column;
+        flex-grow: 2;
     }
+
+    h3.title {
+        font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+    }
+
+    h3.title,
+    h4.title {
+        padding: 0;
+        margin: 0;
+    }
+
+    p.description,
+    p.url {
+        margin: 0;
+        font-weight: normal;
+    }
+}
+
+.article-card {
+    @extend .card;
 
     .right-icon {
         display: flex;
         align-items: center;
         padding-left: 16px;
+    }
+}
+
+.platform-card {
+    @extend .card;
+    .row {
+        flex-direction: column;
+    }
+
+    .platform-screenshot {
+        display: flex;
+        align-items: center;
+
+        img {
+            border-radius: 16px;
+            width: 100%;
+        }
     }
 
     .submit-button {
@@ -505,27 +675,64 @@ button {
     }
 
     .body {
-        display: flex;
-        flex-wrap: nowrap;
-        flex-direction: column;
-        flex-grow: 2;
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            .select-button {
+                display: flex;
+                .success {
+                    align-items: flex-end;
+                    font-size: 0.8em;
+                }
+            }
+        }
     }
 
-    h3.title {
-        padding: 0;
-        margin: 0;
-
+    h3.title,
+    h4.title {
         &.with-margin {
             margin: 0 0 4px 0;
         }
     }
 
+    h3.title {
+        font-size: 1.4em;
+        font-weight: normal;
+    }
 
+    p.description {
+        color: $color-text-supporting;
+        padding: 20px 0 20px 0;
+    }
+
+    p.url {
+        padding: 0;
+        font-size: 0.8em;
+        color: $color-text-supporting;
+    }
+}
+
+.hub-card {
+    @extend .card;
+    padding: 24px;
+
+    .row {
+        flex-direction: column;
+    }
+
+    h3.title {
+        font-size: 1.2em;
+        font-weight: normal;
+        &.with-margin {
+            margin: 20px 0 8px 0;
+        }
+    }
 
     p.description {
         padding: 0;
-        margin: 0;
-        font-weight: normal;
+        color: $color-text-supporting;
 
         &.with-min-height {
             min-height: 68px;
@@ -564,30 +771,13 @@ button {
 }
 
 .centered-content {
-    height: 240px;
+    width: 100%;
+    height: calc(100vh - 56px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
-    font-size: larger;
-    position: absolute;
-    top: calc((100vh - 240px) / 2);
-
-    width: 380px;
-    right: calc((100vw - 380px) / 2);
-    @include breakpoint($breakpoint-tablet) {
-        width: 500px;
-        right: calc((100vw - 500px) / 2);
-    }
-
-    &.with-lhn {
-        right: calc((100vw - 380px) / 2);
-
-        @include breakpoint($breakpoint-tablet) {
-            right: calc((100vw - 320px - 500px ) / 2);
-        }
-
-        @include breakpoint($breakpoint-desktop) {
-            right: calc((100vw - 420px - 500px) / 2);
-        }
-    }
 
     div {
         margin-top: 8px;
@@ -606,39 +796,9 @@ button {
     }
 }
 
-#floating-concierge-button-global {
-    position: fixed;
-    display: block;
-    @include breakpoint($breakpoint-tablet) {
-        display: none;
-    }
-}
-
-#floating-concierge-button-lhn {
-    position: absolute;
-    display: none;
-    @include breakpoint($breakpoint-tablet) {
-        display: block;
-    }
-}
-
 .get-help {
     flex-wrap: wrap;
-    margin-top: auto;
-}
-
-.floating-concierge-button {
-    bottom: 2rem;
-    right: 2rem;
-
-    img {
-        width: 4rem;
-        height: 4rem;
-
-        &:hover {
-            filter: saturate(2);
-        }
-    }
+    margin-top: 40px;
 }
 
 .disable-scrollbar {
@@ -658,9 +818,12 @@ button {
 
     h3 {
         color: $color-success;
+        font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
         font-size: 17px;
-        font-weight: 700;
+        font-weight: 500;
+        padding: 0;
         margin-bottom: 16px;
+        margin-top: 0;
     }
 
     ul {
@@ -672,13 +835,13 @@ button {
             margin: 0 0 8px;
 
             a {
-                color: $color-text;
+                color: $color-text-supporting;
                 display: block;
                 padding: 4px 0;
                 word-break: break-word;
 
                 &:hover {
-                    color: $color-success;
+                    color: $color-link;
                 }
             }
         }
@@ -688,11 +851,11 @@ button {
         padding-bottom: 20px;
 
         a {
-            color: $color-text;
+            color: $color-text-supporting;
             display: inline-block;
 
             &:hover {
-                color: $color-success;
+                color: $color-link;
             }
         }
     }
@@ -745,4 +908,46 @@ button {
             width: 25%;
         }
     }
+}
+
+.title-platform-tabs {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    h1 {
+        padding: 0;
+    }
+
+    @include maxBreakpoint($breakpoint-tablet) {
+        flex-direction: column;
+        gap: 20px;
+    }
+}
+
+#platform-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    text-align: center;
+    font-weight: 700;
+    font-size: 13px;
+    gap: 4px;
+}
+
+#platform-tabs > * {
+    cursor: pointer;
+    border-radius: 20px;
+    padding: 10px 20px;
+    box-sizing: border-box;
+    height: 36px;
+    line-height: 16px;
+}
+
+#platform-tabs > .active {
+    color: $color-text;
+    background-color: $color-button-background;
+}
+
+.hidden {
+    display: none;
 }

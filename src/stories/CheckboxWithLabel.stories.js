@@ -1,7 +1,8 @@
 import React from 'react';
-import CheckboxWithLabel from '../components/CheckboxWithLabel';
-import Text from '../components/Text';
-import styles from '../styles/styles';
+import CheckboxWithLabel from '@components/CheckboxWithLabel';
+import Text from '@components/Text';
+// eslint-disable-next-line no-restricted-imports
+import {defaultStyles} from '@styles/index';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -34,9 +35,9 @@ WithLabelComponent.args = {
     onInputChange: () => {},
     LabelComponent: () => (
         <>
-            <Text style={[styles.textLarge]}>Test</Text>
-            <Text style={[styles.textMicroBold]}> Test </Text>
-            <Text style={[styles.textMicroSupporting]}>Test</Text>
+            <Text style={[defaultStyles.textLarge]}>Test</Text>
+            <Text style={[defaultStyles.textMicroBold]}> Test </Text>
+            <Text style={[defaultStyles.textMicroSupporting]}>Test</Text>
         </>
     ),
 };
