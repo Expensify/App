@@ -65,8 +65,14 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, 
         const selectedValue = fieldValue;
 
         setHeaderMessage(!fieldOptions.length && !recentlyUsedOptions.length ? translate('common.noResultsFound') : '');
-        return [
-            {
+
+        const newSections = [];
+
+        const filteredRecentlyUsedOptions = recentlyUsedOptions.filter((option) => option !== selectedValue);
+        const filteredFieldOptions = fieldOptions.filter((option) => option !== selectedValue);
+
+        if (selectedValue) {
+            newSections.push({
                 shouldShow: false,
                 data: [
                     {
@@ -76,32 +82,36 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, 
                         tooltipText: selectedValue,
                     },
                 ],
-            },
-            {
+            });
+        }
+
+        if (filteredRecentlyUsedOptions.length > 0) {
+            newSections.push({
                 title: translate('common.recents'),
-                shouldShow: recentlyUsedOptions.length > 0,
-                data: recentlyUsedOptions
-                    .filter((option) => option !== selectedValue)
-                    .map((option) => ({
-                        text: option,
-                        keyForList: option,
-                        searchText: option,
-                        tooltipText: option,
-                    })),
-            },
-            {
+                shouldShow: true,
+                data: filteredRecentlyUsedOptions.map((option) => ({
+                    text: option,
+                    keyForList: option,
+                    searchText: option,
+                    tooltipText: option,
+                })),
+            });
+        }
+
+        if (filteredFieldOptions.length > 0) {
+            newSections.push({
                 title: translate('common.all'),
-                shouldShow: fieldOptions.length > 0,
-                data: fieldOptions
-                    .filter((option) => option !== selectedValue)
-                    .map((option) => ({
-                        text: option,
-                        keyForList: option,
-                        searchText: option,
-                        tooltipText: option,
-                    })),
-            },
-        ];
+                shouldShow: true,
+                data: filteredFieldOptions.map((option) => ({
+                    text: option,
+                    keyForList: option,
+                    searchText: option,
+                    tooltipText: option,
+                })),
+            });
+        }
+
+        return newSections;
     }, [fieldValue, fieldOptions, recentlyUsedOptions, searchValue, translate]);
 
     return (
