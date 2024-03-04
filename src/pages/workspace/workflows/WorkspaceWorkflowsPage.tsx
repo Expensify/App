@@ -13,10 +13,9 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
@@ -45,8 +44,8 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
     const {isSmallScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
 
-    const ownerPersonalDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([policy?.ownerAccountID ?? 0], CONST.EMPTY_OBJECT), false);
-    const policyOwnerDisplayName = ownerPersonalDetails[0]?.displayName;
+    const policyApproverEmail = policy?.approver;
+    const policyApproverName = useMemo(() => PersonalDetailsUtils.getPersonalDetailByEmail(policyApproverEmail ?? '')?.displayName ?? policyApproverEmail, [policyApproverEmail]);
     const containerStyle = useMemo(() => [styles.ph8, styles.mhn8, styles.ml11, styles.pv3, styles.pr0, styles.pl4, styles.mr0, styles.widthAuto, styles.mt4], [styles]);
     const canUseDelayedSubmission = Permissions.canUseWorkflowsDelayedSubmission(betas);
 
@@ -96,9 +95,8 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                         title={translate('workflowsPage.approver')}
                         titleStyle={styles.textLabelSupportingNormal}
                         descriptionTextStyle={styles.textNormalThemeText}
-                        description={policyOwnerDisplayName ?? ''}
-                        // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVER.getRoute(route.params.policyID))}
-                        // TODO will be done in https://github.com/Expensify/Expensify/issues/368334
+                        description={policyApproverName ?? ''}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVER.getRoute(route.params.policyID))}
                         shouldShowRightIcon
                         wrapperStyle={containerStyle}
                         hoverAndPressStyle={[styles.mr0, styles.br2]}
@@ -132,11 +130,11 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
             },
         ],
         [
+            policyApproverName,
             policy,
             route.params.policyID,
             styles,
             translate,
-            policyOwnerDisplayName,
             containerStyle,
             isOffline,
             StyleUtils,
