@@ -4313,10 +4313,6 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
     return !isPolicyExpenseChat(report) || isOwnPolicyExpenseChat;
 }
 
-function isSelfDM(report: OnyxEntry<Report>): boolean {
-    return getChatType(report) === CONST.REPORT.CHAT_TYPE.SELF_DM;
-}
-
 /**
  * Helper method to define what money request options we want to show for particular method.
  * There are 3 money request options: Request, Split and Send:
