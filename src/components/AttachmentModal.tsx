@@ -4,7 +4,7 @@ import {Animated, Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import { useSharedValue } from 'react-native-reanimated';
+import {useSharedValue} from 'react-native-reanimated';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -29,6 +29,7 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ModalType from '@src/types/utils/ModalType';
 import AttachmentCarousel from './Attachments/AttachmentCarousel';
+import AttachmentCarouselPagerContext from './Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import AttachmentView from './Attachments/AttachmentView';
 import BlockingView from './BlockingViews/BlockingView';
 import Button from './Button';
@@ -40,7 +41,6 @@ import * as Expensicons from './Icon/Expensicons';
 import * as Illustrations from './Icon/Illustrations';
 import Modal from './Modal';
 import SafeAreaConsumer from './SafeAreaConsumer';
-import AttachmentCarouselPagerContext from './Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -469,16 +469,19 @@ function AttachmentModal({
         shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !isReceiptAttachment && !isOffline;
         shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen && threeDotsMenuItems.length !== 0;
     }
-    const context = useMemo(() => ({
-        pagerItems: [],
-        activePage: 0,
-        pagerRef: undefined,
-        isPagerScrolling: nope,
-        isScrollEnabled: nope,
-        onTap: () => {},
-        onScaleChanged: () => {},
-        onSwipeDown: closeModal,
-    }), [closeModal, nope]);
+    const context = useMemo(
+        () => ({
+            pagerItems: [],
+            activePage: 0,
+            pagerRef: undefined,
+            isPagerScrolling: nope,
+            isScrollEnabled: nope,
+            onTap: () => {},
+            onScaleChanged: () => {},
+            onSwipeDown: closeModal,
+        }),
+        [closeModal, nope],
+    );
 
     return (
         <>
