@@ -220,7 +220,7 @@ function IOURequestStepScan({
             return;
         }
 
-        camera.current
+        return camera.current
             .takePhoto({
                 qualityPrioritization: 'speed',
                 flash: flash ? 'on' : 'off',
@@ -231,14 +231,9 @@ function IOURequestStepScan({
                 IOU.setMoneyRequestReceipt(transactionID, source, photo.path, action !== CONST.IOU.ACTION.EDIT);
 
                 if (action === CONST.IOU.ACTION.EDIT) {
-                    FileUtils.readFileAsync(
-                        source,
-                        photo.path,
-                        (file) => {
-                            updateScanAndNavigate(file, source);
-                        },
-                        showCameraAlert,
-                    );
+                    FileUtils.readFileAsync(source, photo.path, (file) => {
+                        updateScanAndNavigate(file, source);
+                    });
                     return;
                 }
 
