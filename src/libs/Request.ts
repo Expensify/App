@@ -4,7 +4,7 @@ import HttpUtils from './HttpUtils';
 import type Middleware from './Middleware/types';
 import enhanceParameters from './Network/enhanceParameters';
 import * as NetworkStore from './Network/NetworkStore';
-import { isSupportalToken } from './actions/Session';
+import { isSupportAuthToken } from './actions/Session';
 
 let middlewares: Middleware[] = [];
 
@@ -13,7 +13,7 @@ function makeXHR(request: Request): Promise<Response | void> {
     return NetworkStore.hasReadRequiredDataFromStorage().then((): Promise<Response | void> => {
         // If we're using the Supportal token and this is not a Supportal request
         // let's just return a promise that will resolve itself.
-        if (isSupportalToken() && !NetworkStore.isSupportRequest(request.command)) {
+        if (isSupportAuthToken() && !NetworkStore.isSupportRequest(request.command)) {
             return new Promise<void>((resolve) => {
                 resolve();
             });
