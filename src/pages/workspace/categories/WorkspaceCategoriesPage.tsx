@@ -57,7 +57,9 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                 isSelected: !!selectedCategories[value.name],
                 rightElement: (
                     <View style={styles.flexRow}>
-                        <Text style={[styles.disabledText, styles.alignSelfCenter]}>{value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}</Text>
+                        <Text style={[styles.disabledText, styles.alignSelfCenter, styles.pl2]}>
+                            {value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}
+                        </Text>
                         <View style={[styles.p1, styles.pl2]}>
                             <Icon
                                 src={Expensicons.ArrowRight}
