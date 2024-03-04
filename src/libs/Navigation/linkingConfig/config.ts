@@ -81,7 +81,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
             },
         },
         [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: {
-            path: ROUTES.WELCOME_VIDEO_ROOT,
             screens: {
                 [SCREENS.WELCOME_VIDEO.ROOT]: {
                     path: ROUTES.WELCOME_VIDEO_ROOT,
