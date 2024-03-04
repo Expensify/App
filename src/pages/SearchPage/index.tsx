@@ -2,6 +2,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -96,7 +97,7 @@ function SearchPage({betas, reports, isSearchingForReports}: SearchPageProps) {
 
         if (recentReports?.length > 0) {
             newSections.push({
-                data: recentReports,
+                data: _.map(recentReports, (report) => ({...report, isBold: report.isUnread})),
                 shouldShow: true,
                 indexOffset,
             });
