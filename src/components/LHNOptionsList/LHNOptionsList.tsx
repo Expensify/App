@@ -46,6 +46,7 @@ function LHNOptionsList({
     const {canUseViolations} = usePermissions();
     const {translate} = useLocalize();
     const {isExtraSmallScreenHeight, isSmallScreenWidth} = useWindowDimensions();
+    const shouldShowEmptyUI = isSmallScreenWidth && data.length === 0;
 
     // When the first item renders we want to call the onFirstItemRendered callback.
     // At this point in time we know that the list is actually displaying items.
@@ -157,33 +158,31 @@ function LHNOptionsList({
         ],
     );
 
-    if (isSmallScreenWidth && data.length === 0) {
-        return (
-            <BlockingView
-                animation={LottieAnimations.Fireworks}
-                animationStyles={styles.emptyLHNAnimation}
-                animationWebStyle={styles.emptyLHNAnimationWeb(isExtraSmallScreenHeight)}
-                title={translate('common.emptyLHN.title')}
-                shouldShowLink={false}
-                renderCustomSubtitle={renderEmptyStateSubtitle}
-            />
-        );
-    }
-
     return (
-        <View style={style ?? styles.flex1}>
-            <FlashList
-                indicatorStyle="white"
-                keyboardShouldPersistTaps="always"
-                contentContainerStyle={StyleSheet.flatten(contentContainerStyles)}
-                data={data}
-                testID="lhn-options-list"
-                keyExtractor={keyExtractor}
-                renderItem={renderItem}
-                estimatedItemSize={optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight}
-                extraData={[currentReportID]}
-                showsVerticalScrollIndicator={false}
-            />
+        <View style={[style ?? styles.flex1, shouldShowEmptyUI ? styles.emptyLHNWrapper : undefined]}>
+            {shouldShowEmptyUI ? (
+                <BlockingView
+                    animation={LottieAnimations.Fireworks}
+                    animationStyles={styles.emptyLHNAnimation}
+                    animationWebStyle={styles.emptyLHNAnimationWeb(isExtraSmallScreenHeight)}
+                    title={translate('common.emptyLHN.title')}
+                    shouldShowLink={false}
+                    renderCustomSubtitle={renderEmptyStateSubtitle}
+                />
+            ) : (
+                <FlashList
+                    indicatorStyle="white"
+                    keyboardShouldPersistTaps="always"
+                    contentContainerStyle={StyleSheet.flatten(contentContainerStyles)}
+                    data={data}
+                    testID="lhn-options-list"
+                    keyExtractor={keyExtractor}
+                    renderItem={renderItem}
+                    estimatedItemSize={optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight}
+                    extraData={[currentReportID]}
+                    showsVerticalScrollIndicator={false}
+                />
+            )}
         </View>
     );
 }
