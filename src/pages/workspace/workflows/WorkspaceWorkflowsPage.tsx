@@ -78,7 +78,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
         const {accountNumber, state, bankName} = reimbursementAccount?.achData ?? {};
         const hasVBA = state === BankAccount.STATE.OPEN;
         const bankDisplayName = bankName ? `${bankName} ${accountNumber ? `${accountNumber.slice(-5)}` : ''}` : '';
-        const isFailedToAddAuthorizedPayer = !!policy?.errorFields?.reimburserEmail;
+        const hasReimburserEmailError = !!policy?.errorFields?.reimburserEmail;
         return [
             ...(canUseDelayedSubmission
                 ? [
