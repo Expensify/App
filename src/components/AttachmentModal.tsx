@@ -498,50 +498,50 @@ function AttachmentModal({
                 propagateSwipe
             >
                 <GestureHandlerRootView style={styles.flex1}>
-                    <AttachmentCarouselPagerContext.Provider value={context}>
-                        {isSmallScreenWidth && <HeaderGap />}
-                        <HeaderWithBackButton
-                            title={headerTitleNew}
-                            shouldShowBorderBottom
-                            shouldShowDownloadButton={shouldShowDownloadButton}
-                            onDownloadButtonPress={() => downloadAttachment()}
-                            shouldShowCloseButton={!isSmallScreenWidth}
-                            shouldShowBackButton={isSmallScreenWidth}
-                            onBackButtonPress={closeModal}
-                            onCloseButtonPress={closeModal}
-                            shouldShowThreeDotsButton={shouldShowThreeDotsButton}
-                            threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
-                            threeDotsMenuItems={threeDotsMenuItems}
-                            shouldOverlayDots
-                        />
-                        <View style={styles.imageModalImageCenterContainer}>
-                            {isLoading && <FullScreenLoadingIndicator />}
-                            {shouldShowNotFoundPage && !isLoading && (
-                                <BlockingView
-                                    icon={Illustrations.ToddBehindCloud}
-                                    iconWidth={variables.modalTopIconWidth}
-                                    iconHeight={variables.modalTopIconHeight}
-                                    title={translate('notFound.notHere')}
-                                    subtitle={translate('notFound.pageNotFound')}
-                                    linkKey="notFound.goBackHome"
-                                    shouldShowLink
-                                    onLinkPress={() => Navigation.dismissModal()}
-                                />
-                            )}
-                            {!isEmptyObject(report) && !isReceiptAttachment ? (
-                                <AttachmentCarousel
-                                    report={report}
-                                    onNavigate={onNavigate}
-                                    onClose={closeModal}
-                                    source={source}
-                                    onToggleKeyboard={updateConfirmButtonVisibility}
-                                    setDownloadButtonVisibility={setDownloadButtonVisibility}
-                                />
-                            ) : (
-                                !!sourceForAttachmentView &&
-                                shouldLoadAttachment &&
-                                !isLoading &&
-                                !shouldShowNotFoundPage && (
+                    {isSmallScreenWidth && <HeaderGap />}
+                    <HeaderWithBackButton
+                        title={headerTitleNew}
+                        shouldShowBorderBottom
+                        shouldShowDownloadButton={shouldShowDownloadButton}
+                        onDownloadButtonPress={() => downloadAttachment()}
+                        shouldShowCloseButton={!isSmallScreenWidth}
+                        shouldShowBackButton={isSmallScreenWidth}
+                        onBackButtonPress={closeModal}
+                        onCloseButtonPress={closeModal}
+                        shouldShowThreeDotsButton={shouldShowThreeDotsButton}
+                        threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
+                        threeDotsMenuItems={threeDotsMenuItems}
+                        shouldOverlayDots
+                    />
+                    <View style={styles.imageModalImageCenterContainer}>
+                        {isLoading && <FullScreenLoadingIndicator />}
+                        {shouldShowNotFoundPage && !isLoading && (
+                            <BlockingView
+                                icon={Illustrations.ToddBehindCloud}
+                                iconWidth={variables.modalTopIconWidth}
+                                iconHeight={variables.modalTopIconHeight}
+                                title={translate('notFound.notHere')}
+                                subtitle={translate('notFound.pageNotFound')}
+                                linkKey="notFound.goBackHome"
+                                shouldShowLink
+                                onLinkPress={() => Navigation.dismissModal()}
+                            />
+                        )}
+                        {!isEmptyObject(report) && !isReceiptAttachment ? (
+                            <AttachmentCarousel
+                                report={report}
+                                onNavigate={onNavigate}
+                                onClose={closeModal}
+                                source={source}
+                                onToggleKeyboard={updateConfirmButtonVisibility}
+                                setDownloadButtonVisibility={setDownloadButtonVisibility}
+                            />
+                        ) : (
+                            !!sourceForAttachmentView &&
+                            shouldLoadAttachment &&
+                            !isLoading &&
+                            !shouldShowNotFoundPage && (
+                                <AttachmentCarouselPagerContext.Provider value={context}>
                                     <AttachmentView
                                         // @ts-expect-error TODO: Remove this once Attachments (https://github.com/Expensify/App/issues/24969) is migrated to TypeScript.
                                         containerStyles={[styles.mh5]}
@@ -555,40 +555,40 @@ function AttachmentModal({
                                         isUsedInAttachmentModal
                                         transactionID={transaction?.transactionID}
                                     />
-                                )
+                                </AttachmentCarouselPagerContext.Provider>
+                            )
+                        )}
+                    </View>
+                    {/* If we have an onConfirm method show a confirmation button */}
+                    {!!onConfirm && (
+                        <SafeAreaConsumer>
+                            {({safeAreaPaddingBottomStyle}) => (
+                                <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
+                                    <Button
+                                        success
+                                        style={[styles.buttonConfirm, isSmallScreenWidth ? {} : styles.attachmentButtonBigScreen]}
+                                        textStyles={[styles.buttonConfirmText]}
+                                        text={translate('common.send')}
+                                        onPress={submitAndClose}
+                                        isDisabled={isConfirmButtonDisabled}
+                                        pressOnEnter
+                                    />
+                                </Animated.View>
                             )}
-                        </View>
-                        {/* If we have an onConfirm method show a confirmation button */}
-                        {!!onConfirm && (
-                            <SafeAreaConsumer>
-                                {({safeAreaPaddingBottomStyle}) => (
-                                    <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
-                                        <Button
-                                            success
-                                            style={[styles.buttonConfirm, isSmallScreenWidth ? {} : styles.attachmentButtonBigScreen]}
-                                            textStyles={[styles.buttonConfirmText]}
-                                            text={translate('common.send')}
-                                            onPress={submitAndClose}
-                                            isDisabled={isConfirmButtonDisabled}
-                                            pressOnEnter
-                                        />
-                                    </Animated.View>
-                                )}
-                            </SafeAreaConsumer>
-                        )}
-                        {isReceiptAttachment && (
-                            <ConfirmModal
-                                title={translate('receipt.deleteReceipt')}
-                                isVisible={isDeleteReceiptConfirmModalVisible}
-                                onConfirm={deleteAndCloseModal}
-                                onCancel={closeConfirmModal}
-                                prompt={translate('receipt.deleteConfirmation')}
-                                confirmText={translate('common.delete')}
-                                cancelText={translate('common.cancel')}
-                                danger
-                            />
-                        )}
-                    </AttachmentCarouselPagerContext.Provider>
+                        </SafeAreaConsumer>
+                    )}
+                    {isReceiptAttachment && (
+                        <ConfirmModal
+                            title={translate('receipt.deleteReceipt')}
+                            isVisible={isDeleteReceiptConfirmModalVisible}
+                            onConfirm={deleteAndCloseModal}
+                            onCancel={closeConfirmModal}
+                            prompt={translate('receipt.deleteConfirmation')}
+                            confirmText={translate('common.delete')}
+                            cancelText={translate('common.cancel')}
+                            danger
+                        />
+                    )}
                 </GestureHandlerRootView>
             </Modal>
             {!isReceiptAttachment && (
