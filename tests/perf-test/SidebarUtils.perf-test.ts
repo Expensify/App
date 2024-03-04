@@ -1,3 +1,4 @@
+import {rand} from '@ngneat/falso';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
@@ -13,14 +14,20 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
-import createRandomReportAction from '../utils/collections/reportActions';
+import createRandomReportAction, {getRandomDate} from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const getMockedReports = (length = 500) =>
+const getMockedReports = (length = 1000) =>
     createCollection<Report>(
         (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
-        (index) => createRandomReport(index),
+        (index) => ({
+            ...createRandomReport(index),
+            type: rand(Object.values(CONST.REPORT.TYPE)),
+            lastVisibleActionCreated: getRandomDate(),
+            statusNum: index % 5 ? 0 : CONST.REPORT.STATUS_NUM.CLOSED,
+            stateNum: index % 5 ? 0 : CONST.REPORT.STATE_NUM.APPROVED,
+        }),
         length,
     );
 
@@ -34,7 +41,7 @@ const personalDetails = createCollection<PersonalDetails>(
     (index) => createPersonalDetails(index),
 );
 
-const mockedResponseMap = getMockedReports(1000) as Record<`${typeof ONYXKEYS.COLLECTION.REPORT}`, Report>;
+const mockedResponseMap = getMockedReports() as Record<`${typeof ONYXKEYS.COLLECTION.REPORT}`, Report>;
 
 describe('SidebarUtils', () => {
     beforeAll(() => {
@@ -45,6 +52,7 @@ describe('SidebarUtils', () => {
 
         Onyx.multiSet({
             ...mockedResponseMap,
+            [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
         });
     });
 
@@ -52,7 +60,7 @@ describe('SidebarUtils', () => {
         Onyx.clear();
     });
 
-    test('[SidebarUtils] getOptionData on 1k reports', async () => {
+    test('[SidebarUtils] getOptionData on 1 reports', async () => {
         const report = createRandomReport(1);
         const preferredLocale = 'en';
         const policy = createRandomPolicy(1);
