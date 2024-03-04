@@ -96,7 +96,7 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, 
                 })),
             },
         ];
-    }, [fieldOptions, recentlyUsedOptions, searchValue, translate]);
+    }, [fieldValue, fieldOptions, recentlyUsedOptions, searchValue, translate]);
 
     return (
         <ScreenWrapper
