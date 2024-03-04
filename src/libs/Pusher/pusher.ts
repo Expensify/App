@@ -22,7 +22,7 @@ type Args = {
     authEndpoint: string;
 };
 
-type PushJSON = OnyxUpdateEvent[] | OnyxUpdatesFromServer;
+type PushJSON = OnyxUpdatesFromServer;
 
 type UserIsTypingEvent = ReportUserIsTyping & {
     userLogin?: string;
