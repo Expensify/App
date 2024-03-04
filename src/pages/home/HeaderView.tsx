@@ -73,10 +73,10 @@ function HeaderView({report, personalDetails, parentReport, policy, session, rep
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const isSelfDM = ReportUtils.isSelfDM(props.report);
+    const isSelfDM = ReportUtils.isSelfDM(report);
     // Currently, currentUser is not included in participantAccountIDs, so for selfDM, we need to add the currentUser as participants.
-    const participants = isSelfDM ? [props.session.accountID] : lodashGet(props.report, 'participantAccountIDs', []);
-    const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, props.personalDetails);
+    const participants = isSelfDM ? [session?.accountID ?? -1] : report?.participantAccountIDs ?? [];
+    const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant, undefined, isSelfDM);
 

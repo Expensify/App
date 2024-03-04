@@ -27,10 +27,7 @@ type ReportFooterOnyxProps = {
     shouldShowComposeInput: OnyxEntry<boolean>;
 
     /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-                                 /** Currently logged in user auth token type */
-                                 authTokenType: PropTypes.string,
-                             }),
+    session: OnyxEntry<OnyxTypes.Session>;
 };
 
 type ReportFooterProps = ReportFooterOnyxProps & {
@@ -72,7 +69,7 @@ function ReportFooter({
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isArchivedRoom = ReportUtils.isArchivedRoom(report);
-    const isAnonymousUser = session.authTokenType === CONST.AUTH_TOKEN_TYPE.ANONYMOUS;
+    const isAnonymousUser = session?.authTokenType === CONST.AUTH_TOKEN_TYPE.ANONYMOUS;
 
     const isSmallSizeLayout = windowWidth - (isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
     const hideComposer = !ReportUtils.canUserPerformWriteAction(report);
@@ -164,7 +161,7 @@ export default withOnyx<ReportFooterProps, ReportFooterOnyxProps>({
         initialValue: false,
     },
     session: {
-            key: ONYXKEYS.SESSION,
+        key: ONYXKEYS.SESSION,
     },
 })(
     memo(
