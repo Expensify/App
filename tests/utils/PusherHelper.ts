@@ -3,7 +3,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import * as Pusher from '@src/libs/Pusher/pusher';
 import PusherConnectionManager from '@src/libs/PusherConnectionManager';
-import asMutable from '@src/types/utils/AsMutable';
+import asMutable from '@src/types/utils/asMutable';
 
 const CHANNEL_NAME = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}1${CONFIG.PUSHER.SUFFIX}`;
 
