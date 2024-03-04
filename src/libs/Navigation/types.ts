@@ -91,6 +91,9 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.CATEGORIES]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.CATEGORY_CREATE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.TAGS]: {
         policyID: string;
     };
