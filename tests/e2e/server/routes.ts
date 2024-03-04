@@ -1,4 +1,4 @@
-export default {
+const routes = {
     // The app calls this endpoint to know which test to run
     testConfig: '/test_config',
 
@@ -16,4 +16,6 @@ export default {
 
     // Gets the network cache
     testGetNetworkCache: '/test_get_network_cache',
-};
+} satisfies Record<string, string>;
+
+export default routes;
