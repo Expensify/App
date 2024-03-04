@@ -4639,9 +4639,6 @@ const styles = (theme: ThemeColors) =>
             padding: 8,
         },
 
-        videoPlayerTimeComponentWidth: {
-            width: 40,
-        },
         colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),
 
         updateAnimation: {
