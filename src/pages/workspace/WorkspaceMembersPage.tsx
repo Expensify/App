@@ -508,13 +508,19 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 />
                 <View style={[styles.w100, styles.flex1]}>
                     <SelectionList
-                        canSelectMultiple
+                        canSelectMultiple={isPolicyAdmin}
                         sections={[{data, indexOffset: 0, isDisabled: false}]}
                         ListItem={TableListItem}
                         disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                         headerMessage={getHeaderMessage()}
                         headerContent={getHeaderContent()}
-                        onSelectRow={(item) => toggleUser(item.accountID)}
+                        onSelectRow={(item) => {
+                            if (!isPolicyAdmin) {
+                                Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
+                                return;
+                            }
+                            toggleUser(item.accountID)
+                        }}
                         onSelectAll={() => toggleAllUsers(data)}
                         onDismissError={dismissError}
                         showLoadingPlaceholder={!isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) || isEmptyObject(policyMembers))}
