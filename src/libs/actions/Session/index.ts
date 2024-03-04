@@ -48,7 +48,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type Credentials from '@src/types/onyx/Credentials';
 import type {AutoAuthState} from '@src/types/onyx/Session';
-import Session from '@src/types/onyx/Session';
+import type Session from '@src/types/onyx/Session';
 import clearCache from './clearCache';
 
 let session: Session = {};
