@@ -3,7 +3,10 @@ import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Alert, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import RNDocumentPicker from 'react-native-document-picker';
+import type {DocumentPickerOptions, DocumentPickerResponse} from 'react-native-document-picker';
+import type {SupportedPlatforms} from 'react-native-document-picker/lib/typescript/fileTypes';
 import {launchImageLibrary} from 'react-native-image-picker';
+import type {Asset, Callback, CameraOptions, ImagePickerResponse} from 'react-native-image-picker';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Popover from '@components/Popover';
@@ -16,9 +19,6 @@ import * as FileUtils from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {DocumentPickerOptions, DocumentPickerResponse} from 'react-native-document-picker'
-import type {SupportedPlatforms} from 'react-native-document-picker/lib/typescript/fileTypes';
-import type {Asset, Callback, CameraOptions, ImagePickerResponse} from 'react-native-image-picker';
 import launchCamera from './launchCamera/launchCamera';
 import type BaseAttachmentPickerProps from './types';
 
@@ -119,9 +119,12 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
     /**
      * A generic handling when we don't know the exact reason for an error
      */
-    const showGeneralAlert = useCallback((message = '') => {
-        Alert.alert(translate('attachmentPicker.attachmentError'), `${message !== '' ? message : translate('attachmentPicker.errorWhileSelectingAttachment')}`);
-    }, [translate]);
+    const showGeneralAlert = useCallback(
+        (message = '') => {
+            Alert.alert(translate('attachmentPicker.attachmentError'), `${message !== '' ? message : translate('attachmentPicker.errorWhileSelectingAttachment')}`);
+        },
+        [translate],
+    );
 
     /**
      * Common image picker handling
@@ -265,19 +268,17 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
              * without this on iOS closing the modal closes the gallery/camera as well */
             onModalHide.current = () => {
                 setTimeout(() => {
-                    item
-                        .pickAttachment()
+                    item.pickAttachment()
                         .then(pickAttachment)
                         .catch(console.error)
                         .finally(() => delete onModalHide.current !== undefined);
                 }, 200);
             };
-    
+
             close();
         },
         [pickAttachment],
     );
-    
 
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ENTER,

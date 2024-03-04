@@ -42,6 +42,13 @@ type MediaType = 'photo' | 'video' | 'mixed';
 type AndroidVideoOptions = 'low' | 'high';
 type IOSVideoOptions = 'low' | 'medium' | 'high';
 type ErrorCode = 'camera_unavailable' | 'permission' | 'others';
-type ErrorLaunchCamera = Error & ErrorCode
+class ErrorLaunchCamera extends Error {
+    errorCode: ErrorCode;
 
+    constructor(message: string, errorCode: ErrorCode) {
+        super(message);
+        this.errorCode = errorCode;
+    }
+}
+export {ErrorLaunchCamera};
 export type {CameraOptions, Callback, ErrorCode, ImagePickerResponse, Asset, ImageLibraryOptions};
