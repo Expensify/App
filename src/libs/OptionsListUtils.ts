@@ -959,7 +959,11 @@ function getCategoryListSections(
     searchInputValue: string,
     maxRecentReportsToShow: number,
 ): CategoryTreeSection[] {
-    const sortedCategories = sortCategories(categories);
+
+    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
+    const sortedCategories = sortCategories(categories).map((o)=>{
+        return {...o, isSelected: selectedOptionNames.includes(o.name)}
+    });
     const enabledCategories = Object.values(sortedCategories).filter((category) => category.enabled);
 
     const categorySections: CategoryTreeSection[] = [];
@@ -993,7 +997,6 @@ function getCategoryListSections(
         return categorySections;
     }
 
-    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
     const enabledAndSelectedCategories = [...selectedOptions, ...sortedCategories.filter((category) => category.enabled && !selectedOptionNames.includes(category.name))];
     const numberOfVisibleCategories = enabledAndSelectedCategories.length;
 
