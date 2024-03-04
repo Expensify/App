@@ -35,8 +35,8 @@ import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as NextStepUtils from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
+import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -385,9 +385,25 @@ function getReceiptError(receipt?: Receipt, filename?: string, isScanRequest = t
         : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: receipt.source?.toString() ?? '', filename: filename ?? ''});
 }
 
-/** Return the object to update hasOutstandingChildRequest */
-function getOutstandingChildRequest(needsToBeManuallySubmitted: boolean, policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject = null): OutstandingChildRequest {
-    if (!needsToBeManuallySubmitted) {
+function needsToBeManuallySubmitted(iouReport: OnyxTypes.Report) {
+    const isPolicyExpenseChat = ReportUtils.isExpenseReport(iouReport);
+
+    if (isPolicyExpenseChat) {
+        const policy = ReportUtils.getPolicy(iouReport.policyID);
+        const isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy);
+
+        // If the scheduled submit is turned off on the policy, user needs to manually submit the report which is indicated by GBR in LHN
+        return isFromPaidPolicy && !policy.harvesting?.enabled;
+    }
+
+    return true;
+}
+
+/**
+ * Return the object to update hasOutstandingChildRequest
+ */
+function getOutstandingChildRequest(policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject, iouReport: OnyxTypes.Report): OutstandingChildRequest {
+    if (!needsToBeManuallySubmitted(iouReport)) {
         return {
             hasOutstandingChildRequest: false,
         };
@@ -399,8 +415,9 @@ function getOutstandingChildRequest(needsToBeManuallySubmitted: boolean, policy:
         };
     }
 
-    // We don't need to update hasOutstandingChildRequest in this case
-    return {};
+    return {
+        hasOutstandingChildRequest: iouReport.managerID === userAccountID && iouReport.total !== 0,
+    };
 }
 
 /** Builds the Onyx data for a money request */
@@ -423,10 +440,9 @@ function buildOnyxDataForMoneyRequest(
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     optimisticNextStep?: OnyxTypes.ReportNextStep | null,
-    needsToBeManuallySubmitted = true,
 ): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
-    const outstandingChildRequest = getOutstandingChildRequest(needsToBeManuallySubmitted, policy);
+    const outstandingChildRequest = getOutstandingChildRequest(policy ?? {}, iouReport);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const optimisticData: OnyxUpdate[] = [];
 
@@ -785,7 +801,7 @@ function getMoneyRequestInformation(
     payeeEmail = currentUserEmail,
     moneyRequestReportID = '',
 ): MoneyRequestInformation {
-    const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login ?? '');
+    const payerEmail = PhoneNumber.addSMSDomainIfPhoneNumber(participant.login ?? '');
     const payerAccountID = Number(participant.accountID);
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
 
@@ -819,14 +835,9 @@ function getMoneyRequestInformation(
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
     }
 
-    // Check if the Scheduled Submit is enabled in case of expense report
-    let needsToBeManuallySubmitted = true;
     let isFromPaidPolicy = false;
     if (isPolicyExpenseChat) {
         isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy ?? null);
-
-        // If the scheduled submit is turned off on the policy, user needs to manually submit the report which is indicated by GBR in LHN
-        needsToBeManuallySubmitted = isFromPaidPolicy && !policy?.harvesting?.enabled;
 
         // If the linked expense report on paid policy is not draft and not instantly submitted, we need to create a new draft expense report
         if (iouReport && isFromPaidPolicy && !ReportUtils.isDraftExpenseReport(iouReport) && !ReportUtils.isExpenseReportWithInstantSubmittedState(iouReport)) {
@@ -967,7 +978,6 @@ function getMoneyRequestInformation(
         policyTagList,
         policyCategories,
         optimisticNextStep,
-        needsToBeManuallySubmitted,
     );
 
     return {
@@ -1234,11 +1244,21 @@ function getUpdateMoneyRequestParams(
     }
     updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, transactionDetails?.currency);
 
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-        value: updatedMoneyRequestReport,
-    });
+    optimisticData.push(
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+            value: updatedMoneyRequestReport,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.parentReportID}`,
+            value: {
+                hasOutstandingChildRequest:
+                    iouReport && needsToBeManuallySubmitted(iouReport) && updatedMoneyRequestReport.managerID === userAccountID && updatedMoneyRequestReport.total !== 0,
+            },
+        },
+    );
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
@@ -1626,7 +1646,7 @@ function createSplitsAndOnyxData(
     existingSplitChatReportID = '',
     billable = false,
 ): SplitsAndOnyxData {
-    const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
+    const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
     const existingSplitChatReport =
         existingSplitChatReportID || participants[0].reportID
@@ -1794,7 +1814,7 @@ function createSplitsAndOnyxData(
 
         // In case the participant is a workspace, email & accountID should remain undefined and won't be used in the rest of this code
         // participant.login is undefined when the request is initiated from a group DM with an unknown user, so we need to add a default
-        const email = isOwnPolicyExpenseChat || isPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login ?? '').toLowerCase();
+        const email = isOwnPolicyExpenseChat || isPolicyExpenseChat ? '' : PhoneNumber.addSMSDomainIfPhoneNumber(participant.login ?? '').toLowerCase();
         const accountID = isOwnPolicyExpenseChat || isPolicyExpenseChat ? 0 : Number(participant.accountID);
         if (email === currentUserEmailForIOUSplit) {
             return;
@@ -2090,7 +2110,7 @@ function startSplitBill(
     existingSplitChatReportID = '',
     billable = false,
 ) {
-    const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
+    const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
     const existingSplitChatReport =
         existingSplitChatReportID || participants[0].reportID
@@ -2254,7 +2274,7 @@ function startSplitBill(
     participants.forEach((participant) => {
         // Disabling this line since participant.login can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const email = participant.isOwnPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login || participant.text || '').toLowerCase();
+        const email = participant.isOwnPolicyExpenseChat ? '' : PhoneNumber.addSMSDomainIfPhoneNumber(participant.login || participant.text || '').toLowerCase();
         const accountID = participant.isOwnPolicyExpenseChat ? 0 : Number(participant.accountID);
         if (email === currentUserEmailForIOUSplit) {
             return;
@@ -2363,7 +2383,7 @@ function startSplitBill(
  * @param sessionEmail - email of the current user
  */
 function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportAction, updatedTransaction: OnyxTypes.Transaction, sessionAccountID: number, sessionEmail: string) {
-    const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(sessionEmail);
+    const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(sessionEmail);
     const {transactionID} = updatedTransaction;
     const unmodifiedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
@@ -3019,6 +3039,13 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
                 [reportPreviewAction?.reportActionID ?? '']: updatedReportPreviewAction,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
+            value: {
+                hasOutstandingChildRequest: iouReport && needsToBeManuallySubmitted(iouReport) && updatedIOUReport?.managerID === userAccountID && updatedIOUReport.total !== 0,
+            },
+        },
     );
 
     if (!shouldDeleteIOUReport && updatedReportPreviewAction.childMoneyRequestCount === 0) {
@@ -3191,7 +3218,7 @@ function getSendMoneyParams(
     managerID: number,
     recipient: Participant,
 ): SendMoneyParamsData {
-    const recipientEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(recipient.login ?? '');
+    const recipientEmail = PhoneNumber.addSMSDomainIfPhoneNumber(recipient.login ?? '');
     const recipientAccountID = Number(recipient.accountID);
     const newIOUReportDetails = JSON.stringify({
         amount,
@@ -3646,14 +3673,14 @@ function sendMoneyWithWallet(report: OnyxTypes.Report, amount: number, currency:
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 
-function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report> | EmptyObject) {
-    const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport?.reportID}`] ?? null;
-    const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(expenseReport?.total ?? 0, expenseReport?.currency ?? '', expenseReport?.reportID ?? '');
+function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
+    const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
+    const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(expenseReport.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID);
     const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.APPROVED);
 
     const optimisticReportActionsData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
         value: {
             [optimisticApprovedReportAction.reportActionID]: {
                 ...(optimisticApprovedReportAction as OnyxTypes.ReportAction),
@@ -3663,7 +3690,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report> | EmptyO
     };
     const optimisticIOUReportData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.reportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
         value: {
             ...expenseReport,
             lastMessageText: optimisticApprovedReportAction.message?.[0].text,
@@ -3674,7 +3701,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report> | EmptyO
     };
     const optimisticNextStepData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport?.reportID}`,
+        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
         value: optimisticNextStep,
     };
     const optimisticData: OnyxUpdate[] = [optimisticIOUReportData, optimisticReportActionsData, optimisticNextStepData];
@@ -3682,7 +3709,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report> | EmptyO
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
             value: {
                 [optimisticApprovedReportAction.reportActionID]: {
                     pendingAction: null,
@@ -3694,22 +3721,22 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report> | EmptyO
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
             value: {
-                [expenseReport?.reportActionID ?? '']: {
+                [expenseReport.reportActionID ?? '']: {
                     errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
                 },
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
             value: currentNextStep,
         },
     ];
 
     const parameters: ApproveMoneyRequestParams = {
-        reportID: expenseReport?.reportID ?? '',
+        reportID: expenseReport.reportID,
         approvedReportActionID: optimisticApprovedReportAction.reportActionID,
     };
 
