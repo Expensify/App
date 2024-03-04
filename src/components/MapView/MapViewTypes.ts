@@ -1,4 +1,4 @@
-import type {ComponentType} from 'react';
+import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 type MapViewProps = {
@@ -49,7 +49,7 @@ type InitialState = {
 type WayPoint = {
     id: string;
     coordinate: [number, number];
-    markerComponent: ComponentType;
+    markerComponent: () => ReactNode;
 };
 
 // Style used for the line that displays direction

@@ -54,7 +54,7 @@ function FeatureList({
     menuItems,
     illustration,
     illustrationStyle,
-    illustrationBackgroundColor = '',
+    illustrationBackgroundColor,
 }: FeatureListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();

@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
@@ -60,6 +61,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
+    const route = useRoute();
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy ?? null), [policy]);
     const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(report?.policyID ?? '', policies), [report?.policyID, policies]);
@@ -81,17 +83,23 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
 
+    const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
+
     useEffect(() => {
-        // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if network is offline.
-        if (isPrivateNotesFetchTriggered || isOffline) {
+        // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if the network is offline, or if the report is a self DM.
+        if (isPrivateNotesFetchTriggered || isOffline || isSelfDM) {
             return;
         }
 
         Report.getReportPrivateNote(report?.reportID ?? '');
-    }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered]);
+    }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isSelfDM]);
 
     const menuItems: ReportDetailsPageMenuItem[] = useMemo(() => {
         const items: ReportDetailsPageMenuItem[] = [];
+
+        if (isSelfDM) {
+            return [];
+        }
 
         if (!isGroupDMChat) {
             items.push({
@@ -160,7 +168,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         }
 
         return items;
-    }, [isArchivedRoom, participants.length, isThread, isMoneyRequestReport, report, isGroupDMChat, isPolicyMember, isUserCreatedPolicyRoom, session]);
+    }, [isArchivedRoom, participants.length, isThread, isMoneyRequestReport, report, isGroupDMChat, isPolicyMember, isUserCreatedPolicyRoom, session, isSelfDM]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
@@ -184,11 +192,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
                 <HeaderWithBackButton
                     title={translate('common.details')}
-                    shouldNavigateToTopMostReport
-                    onBackButtonPress={() => {
-                        Navigation.goBack();
-                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID ?? ''));
-                    }}
+                    onBackButtonPress={Navigation.goBack}
+                    shouldNavigateToTopMostReport={!(route.params && 'backTo' in route.params)}
                 />
                 <ScrollView style={[styles.flex1]}>
                     <View style={styles.reportDetailsTitleContainer}>

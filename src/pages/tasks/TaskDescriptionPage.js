@@ -23,6 +23,7 @@ import reportPropTypes from '@pages/reportPropTypes';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/EditTaskForm';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -116,8 +117,8 @@ function TaskDescriptionPage(props) {
                         <InputWrapper
                             InputComponent={TextInput}
                             role={CONST.ROLE.PRESENTATION}
-                            inputID="description"
-                            name="description"
+                            inputID={INPUT_IDS.DESCRIPTION}
+                            name={INPUT_IDS.DESCRIPTION}
                             label={props.translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
                             defaultValue={parser.htmlToMarkdown((props.report && parser.replace(props.report.description)) || '')}

@@ -1,17 +1,18 @@
 import React, {useCallback, useMemo, useRef} from 'react';
-import {View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, Text as RNText} from 'react-native';
+import type {GestureResponderEvent, Text as RNText, StyleProp, ViewStyle} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
-import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -23,7 +24,6 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type IconAsset from '@src/types/utils/IconAsset';
 import pkg from '../../../../package.json';
 
@@ -44,11 +44,11 @@ type MenuItem = {
     iconRight?: IconAsset;
     action: () => Promise<void>;
     link?: string;
+    wrapperStyle?: StyleProp<ViewStyle>;
 };
 
 function AboutPage() {
     const {translate} = useLocalize();
-    const theme = useTheme();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View | RNText | null>(null);
     const waitForNavigate = useWaitForNavigation();
@@ -87,6 +87,11 @@ function AboutPage() {
                 link: CONST.UPWORK_URL,
             },
             {
+                translationKey: 'initialSettingsPage.aboutPage.troubleshoot',
+                icon: Expensicons.Lightbulb,
+                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_TROUBLESHOOT)),
+            },
+            {
                 translationKey: 'initialSettingsPage.aboutPage.reportABug',
                 icon: Expensicons.Bug,
                 action: waitForNavigate(Report.navigateToConciergeChat),
@@ -105,15 +110,16 @@ function AboutPage() {
                 : undefined,
             ref: popoverAnchor,
             shouldBlockSelection: !!link,
+            wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [translate, waitForNavigate]);
+    }, [styles, translate, waitForNavigate]);
 
     const overlayContent = useCallback(
         () => (
-            <View style={[styles.pAbsolute, styles.w100, styles.h100, styles.justifyContentEnd, styles.pb5]}>
+            <View style={[styles.pAbsolute, styles.w100, styles.h100, styles.justifyContentEnd, styles.pb3]}>
                 <Text
                     selectable
-                    style={[styles.textLabel, styles.textIvoryLight, styles.alignSelfCenter]}
+                    style={[styles.textLabel, styles.textVersion, styles.alignSelfCenter]}
                 >
                     v{Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}${getFlavor()}` : `${pkg.version}${getFlavor()}`}
                 </Text>
@@ -125,48 +131,60 @@ function AboutPage() {
     );
 
     return (
-        <IllustratedHeaderPageLayout
-            title={translate('initialSettingsPage.about')}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
-            shouldShowBackButton={isSmallScreenWidth}
-            illustration={LottieAnimations.Coin}
-            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.ABOUT].backgroundColor}
-            overlayContent={overlayContent}
+        <ScreenWrapper
+            shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            icon={Illustrations.PalmTree}
             testID={AboutPage.displayName}
         >
-            <View style={[styles.settingsPageBody, styles.ph5]}>
-                <Text style={[styles.textHeadline, styles.mb1]}>{translate('footer.aboutExpensify')}</Text>
-                <Text style={styles.mb4}>{translate('initialSettingsPage.aboutPage.description')}</Text>
-            </View>
-            <MenuItemList
-                menuItems={menuItems}
-                shouldUseSingleExecution
+            <HeaderWithBackButton
+                title={translate('initialSettingsPage.about')}
+                shouldShowBackButton={isSmallScreenWidth}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+                icon={Illustrations.PalmTree}
             />
-            <View style={[styles.sidebarFooter]}>
-                <Text
-                    style={[styles.chatItemMessageHeaderTimestamp]}
-                    numberOfLines={1}
-                >
-                    {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase1')}{' '}
-                    <TextLink
-                        style={[styles.textMicroSupporting, styles.link]}
-                        href={CONST.TERMS_URL}
+            <ScrollView contentContainerStyle={styles.pt3}>
+                <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <Section
+                        title={translate('footer.aboutExpensify')}
+                        subtitle={translate('initialSettingsPage.aboutPage.description')}
+                        isCentralPane
+                        subtitleMuted
+                        illustration={LottieAnimations.Coin}
+                        titleStyles={styles.accountSettingsSectionTitle}
+                        overlayContent={overlayContent}
                     >
-                        {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase2')}
-                    </TextLink>{' '}
-                    {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase3')}{' '}
-                    <TextLink
-                        style={[styles.textMicroSupporting, styles.link]}
-                        href={CONST.PRIVACY_URL}
+                        <View style={[styles.flex1, styles.mt5]}>
+                            <MenuItemList
+                                menuItems={menuItems}
+                                shouldUseSingleExecution
+                            />
+                        </View>
+                    </Section>
+                </View>
+                <View style={[styles.sidebarFooter, styles.mb5]}>
+                    <Text
+                        style={[styles.chatItemMessageHeaderTimestamp]}
+                        numberOfLines={1}
                     >
-                        {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase4')}
-                    </TextLink>
-                    .
-                </Text>
-            </View>
-        </IllustratedHeaderPageLayout>
+                        {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase1')}{' '}
+                        <TextLink
+                            style={[styles.textMicroSupporting, styles.link]}
+                            href={CONST.TERMS_URL}
+                        >
+                            {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase2')}
+                        </TextLink>{' '}
+                        {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase3')}{' '}
+                        <TextLink
+                            style={[styles.textMicroSupporting, styles.link]}
+                            href={CONST.PRIVACY_URL}
+                        >
+                            {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase4')}
+                        </TextLink>
+                        .
+                    </Text>
+                </View>
+            </ScrollView>
+        </ScreenWrapper>
     );
 }
 

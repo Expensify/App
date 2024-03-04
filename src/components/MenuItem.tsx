@@ -79,6 +79,9 @@ type MenuItemBaseProps = {
     /** Used to apply styles specifically to the title */
     titleStyle?: ViewStyle;
 
+    /** Any additional styles to apply on the badge element */
+    badgeStyle?: ViewStyle;
+
     /** Any adjustments to style when menu item is hovered or pressed */
     hoverAndPressStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 
@@ -231,6 +234,9 @@ type MenuItemBaseProps = {
 
     /** Is this in the Pane */
     isPaneMenu?: boolean;
+
+    /** Adds padding to the left of the text when there is no icon. */
+    shouldPutLeftPaddingWhenNoIcon?: boolean;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -246,6 +252,7 @@ function MenuItem(
         titleStyle,
         hoverAndPressStyle,
         descriptionTextStyle,
+        badgeStyle,
         viewMode = CONST.OPTION_MODE.DEFAULT,
         numberOfLinesTitle = 1,
         icon,
@@ -297,6 +304,7 @@ function MenuItem(
         displayInDefaultIconColor = false,
         contentFit = 'cover',
         isPaneMenu = false,
+        shouldPutLeftPaddingWhenNoIcon = false,
     }: MenuItemProps,
     ref: ForwardedRef<View>,
 ) {
@@ -317,7 +325,7 @@ function MenuItem(
             styles.flexShrink1,
             styles.popoverMenuText,
             // eslint-disable-next-line no-nested-ternary
-            icon && !Array.isArray(icon) ? (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3) : {},
+            shouldPutLeftPaddingWhenNoIcon || (icon && !Array.isArray(icon)) ? (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3) : {},
             shouldShowBasicTitle ? {} : styles.textStrong,
             numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
             interactive && disabled ? {...styles.userSelectNone} : {},
@@ -444,6 +452,7 @@ function MenuItem(
                                             ]}
                                         />
                                     )}
+                                    {!icon && shouldPutLeftPaddingWhenNoIcon && <View style={[styles.popoverMenuIcon, iconStyles, StyleUtils.getAvatarWidthStyle(avatarSize)]} />}
                                     {icon && !Array.isArray(icon) && (
                                         <View style={[styles.popoverMenuIcon, iconStyles, StyleUtils.getAvatarWidthStyle(avatarSize)]}>
                                             {typeof icon !== 'string' && iconType === CONST.ICON_TYPE_ICON && (
@@ -564,7 +573,14 @@ function MenuItem(
                                 {badgeText && (
                                     <Badge
                                         text={badgeText}
-                                        badgeStyles={[styles.alignSelfCenter, brickRoadIndicator ? styles.mr2 : undefined, focused || isHovered || pressed ? styles.buttonHoveredBG : {}]}
+                                        textStyles={styles.textStrong}
+                                        badgeStyles={[
+                                            styles.alignSelfCenter,
+                                            styles.badgeBordered,
+                                            brickRoadIndicator ? styles.mr2 : undefined,
+                                            focused || isHovered || pressed ? styles.activeItemBadge : {},
+                                            badgeStyle,
+                                        ]}
                                     />
                                 )}
                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
@@ -593,7 +609,7 @@ function MenuItem(
                                         />
                                     </View>
                                 )}
-                                {!!rightLabel && (
+                                {!title && !!rightLabel && (
                                     <View style={styles.justifyContentCenter}>
                                         <Text style={styles.rightLabelMenuItem}>{rightLabel}</Text>
                                     </View>

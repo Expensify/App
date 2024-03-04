@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
@@ -30,6 +30,9 @@ import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
+
+    /** The report's parentReportAction */
+    parentReportAction: PropTypes.shape(reportActionPropTypes),
 
     /** Sorted actions prepared for display */
     sortedReportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)).isRequired,
@@ -79,6 +82,7 @@ const defaultProps = {
     isLoadingNewerReportActions: false,
     ...withCurrentUserPersonalDetailsDefaultProps,
     policy: {},
+    parentReportAction: {},
 };
 
 const VERTICAL_OFFSET_THRESHOLD = 200;
@@ -123,6 +127,7 @@ function isMessageUnread(message, lastReadTime) {
 
 function ReportActionsList({
     report,
+    parentReportAction,
     isLoadingInitialReportActions,
     isLoadingOlderReportActions,
     isLoadingNewerReportActions,
@@ -412,6 +417,7 @@ function ReportActionsList({
         ({item: reportAction, index}) => (
             <ReportActionsListItemRenderer
                 reportAction={reportAction}
+                parentReportAction={parentReportAction}
                 index={index}
                 report={report}
                 linkedReportActionID={linkedReportActionID}
@@ -421,7 +427,7 @@ function ReportActionsList({
                 shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
             />
         ),
-        [report, linkedReportActionID, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker],
+        [report, linkedReportActionID, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker, parentReportAction],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
@@ -515,4 +521,4 @@ ReportActionsList.propTypes = propTypes;
 ReportActionsList.defaultProps = defaultProps;
 ReportActionsList.displayName = 'ReportActionsList';
 
-export default compose(withWindowDimensions, withCurrentUserPersonalDetails)(ReportActionsList);
+export default compose(withWindowDimensions, withCurrentUserPersonalDetails)(memo(ReportActionsList));

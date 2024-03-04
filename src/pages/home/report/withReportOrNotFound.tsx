@@ -7,9 +7,11 @@ import {withOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import * as ReportUtils from '@libs/ReportUtils';
+import type {PrivateNotesNavigatorParamList, ReportDescriptionNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -31,7 +33,7 @@ type WithReportOrNotFoundOnyxProps = {
 };
 
 type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {
-    route: RouteProp<{params: {reportID: string}}>;
+    route: RouteProp<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.EDIT> | RouteProp<ReportDescriptionNavigatorParamList, typeof SCREENS.REPORT_DESCRIPTION_ROOT>;
 
     /** The report currently being looked at */
     report: OnyxTypes.Report;
@@ -117,4 +119,4 @@ export default function (
     };
 }
 
-export type {WithReportOrNotFoundProps};
+export type {WithReportOrNotFoundProps, WithReportOrNotFoundOnyxProps};

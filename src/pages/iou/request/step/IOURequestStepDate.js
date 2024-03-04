@@ -19,6 +19,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {policyPropTypes} from '@src/pages/workspace/withPolicy';
+import INPUT_IDS from '@src/types/form/MoneyRequestDateForm';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -120,7 +121,7 @@ function IOURequestStepDate({
             >
                 <InputWrapper
                     InputComponent={DatePicker}
-                    inputID="moneyRequestCreated"
+                    inputID={INPUT_IDS.MONEY_REQUEST_CREATED}
                     label={translate('common.date')}
                     defaultValue={currentCreated}
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}

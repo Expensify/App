@@ -11,11 +11,10 @@ import type {SafeAreaChildrenProps} from '@components/SafeAreaConsumer/types';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import type {Form} from '@src/types/onyx';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {Form} from '@src/types/form';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {FormProps, InputRefs} from './types';
+import type {FormInputErrors, FormProps, InputRefs} from './types';
 
 type FormWrapperOnyxProps = {
     /** Contains the form state that must be accessed outside the component */
@@ -32,7 +31,7 @@ type FormWrapperProps = ChildrenProps &
         submitFlexEnabled?: boolean;
 
         /** Server side errors keyed by microtime */
-        errors: Errors;
+        errors: FormInputErrors;
 
         /** Assuming refs are React refs */
         inputRefs: RefObject<InputRefs>;
@@ -109,7 +108,7 @@ function FormWrapper({
                         buttonText={submitButtonText}
                         isAlertVisible={((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage}
                         isLoading={!!formState?.isLoading}
-                        message={isEmptyObject(formState?.errorFields) ? errorMessage : undefined}
+                        message={typeof errorMessage === 'string' && isEmptyObject(formState?.errorFields) ? errorMessage : undefined}
                         onSubmit={onSubmit}
                         footerContent={footerContent}
                         onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}

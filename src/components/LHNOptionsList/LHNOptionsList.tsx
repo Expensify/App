@@ -1,6 +1,6 @@
 import {FlashList} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
-import React, {useCallback} from 'react';
+import React, {memo, useCallback} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import withCurrentReportID from '@components/withCurrentReportID';
@@ -158,7 +158,7 @@ export default withCurrentReportID(
         transactionViolations: {
             key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
         },
-    })(LHNOptionsList),
+    })(memo(LHNOptionsList)),
 );
 
 export type {LHNOptionsListProps};
