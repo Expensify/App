@@ -6,13 +6,16 @@ import type AmountForm from '@components/AmountForm';
 import type AmountTextInput from '@components/AmountTextInput';
 import type CheckboxWithLabel from '@components/CheckboxWithLabel';
 import type CountrySelector from '@components/CountrySelector';
+import type DatePicker from '@components/DatePicker';
 import type Picker from '@components/Picker';
+import type RadioButtons from '@components/RadioButtons';
+import type RoomNameInput from '@components/RoomNameInput';
 import type SingleChoiceQuestion from '@components/SingleChoiceQuestion';
 import type StatePicker from '@components/StatePicker';
 import type TextInput from '@components/TextInput';
 import type ValuePicker from '@components/ValuePicker';
+import type {MaybePhraseKey} from '@libs/Localize';
 import type BusinessTypePicker from '@pages/ReimbursementAccount/BusinessInfo/substeps/TypeBusiness/BusinessTypePicker';
-import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
 import type {BaseForm} from '@src/types/form/Form';
 
@@ -21,7 +24,7 @@ import type {BaseForm} from '@src/types/form/Form';
  * when adding new inputs or removing old ones.
  *
  * TODO: Add remaining inputs here once these components are migrated to Typescript:
- * EmojiPickerButtonDropdown | RoomNameInput | ValuePicker
+ * EmojiPickerButtonDropdown
  */
 type ValidInputs =
     | typeof TextInput
@@ -34,7 +37,10 @@ type ValidInputs =
     | typeof AmountForm
     | typeof BusinessTypePicker
     | typeof StatePicker
-    | typeof ValuePicker;
+    | typeof RoomNameInput
+    | typeof ValuePicker
+    | typeof DatePicker
+    | typeof RadioButtons;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date';
 type ValueTypeMap = {
@@ -62,6 +68,9 @@ type InputComponentBaseProps<TValue extends ValueTypeKey = ValueTypeKey> = Input
     isFocused?: boolean;
     measureLayout?: (ref: unknown, callback: MeasureLayoutOnSuccessCallback) => void;
     focus?: () => void;
+    label?: string;
+    minDate?: Date;
+    maxDate?: Date;
     onTouched?: (event: GestureResponderEvent) => void;
     onBlur?: (event: FocusEvent | NativeSyntheticEvent<TextInputFocusEventData>) => void;
     onPressOut?: (event: GestureResponderEvent) => void;
@@ -119,6 +128,6 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
 
 type InputRefs = Record<string, MutableRefObject<InputComponentBaseProps>>;
 
-type FormInputErrors<TFormID extends OnyxFormKey = OnyxFormKey> = Partial<Record<FormOnyxKeys<TFormID>, TranslationPaths>>;
+type FormInputErrors<TFormID extends OnyxFormKey = OnyxFormKey> = Partial<Record<FormOnyxKeys<TFormID>, MaybePhraseKey>>;
 
 export type {FormProps, ValidInputs, InputComponentValueProps, FormValue, ValueTypeKey, FormOnyxValues, FormOnyxKeys, FormInputErrors, InputRefs, InputComponentBaseProps, ValueTypeMap};
