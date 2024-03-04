@@ -53,9 +53,18 @@ function calculateAmount(numberOfParticipants: number, total: number, currency: 
  * If user1 requests $17 from user2, then we have: {ownerAccountID: user1, managerID: user2, total: $7 (still a positive amount, but now owed to user1)}
  *
  * @param isDeleting - whether the user is deleting the request
+ * @param isUpdating - whether the user is updating the request
  */
-function updateIOUOwnerAndTotal<TReport extends OnyxEntry<Report>>(iouReport: TReport, actorAccountID: number, amount: number, currency: string, isDeleting = false): TReport {
-    if (currency !== iouReport?.currency) {
+function updateIOUOwnerAndTotal<TReport extends OnyxEntry<Report>>(
+    iouReport: TReport,
+    actorAccountID: number,
+    amount: number,
+    currency: string,
+    isDeleting = false,
+    isUpdating = false,
+): TReport {
+    // For the update case, we have calculated the diff amount in the calculateDiffAmount function so there is no need to compare currencies here
+    if ((currency !== iouReport?.currency && !isUpdating) || !iouReport) {
         return iouReport;
     }
 
@@ -100,18 +109,18 @@ function isValidMoneyRequestType(iouType: string): boolean {
 }
 
 /**
- * Inserts a newly selected tag into the already existed report tags like a string
+ * Inserts a newly selected tag into the already existing tags like a string
  *
- * @param reportTags - currently selected tags for a report
- * @param tag - a newly selected tag, that should be added to the reportTags
+ * @param transactionTags - currently selected tags for a report
+ * @param tag - a newly selected tag, that should be added to the transactionTags
  * @param tagIndex - the index of a tag list
  * @returns
  */
-function insertTagIntoReportTagsString(reportTags: string, tag: string, tagIndex: number): string {
-    const splittedReportTags = reportTags.split(CONST.COLON);
-    splittedReportTags[tagIndex] = tag;
+function insertTagIntoTransactionTagsString(transactionTags: string, tag: string, tagIndex: number): string {
+    const tagArray = TransactionUtils.getTagArrayFromName(transactionTags);
+    tagArray[tagIndex] = tag;
 
-    return splittedReportTags.join(CONST.COLON).replace(/:*$/, '');
+    return tagArray.join(CONST.COLON).replace(/:*$/, '');
 }
 
-export {calculateAmount, updateIOUOwnerAndTotal, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType, navigateToStartMoneyRequestStep, insertTagIntoReportTagsString};
+export {calculateAmount, updateIOUOwnerAndTotal, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType, navigateToStartMoneyRequestStep, insertTagIntoTransactionTagsString};

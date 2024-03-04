@@ -2,6 +2,7 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import ConfirmedRoute from '@components/ConfirmedRoute';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -109,6 +110,8 @@ function MoneyRequestView({
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : '';
+    const hasPendingWaypoints = transaction?.pendingFields?.waypoints;
+    const showMapAsImage = isDistanceRequest && hasPendingWaypoints;
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && CurrencyUtils.convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const cardProgramName = isCardTransaction && transactionCardID !== undefined ? CardUtils.getCardDescription(transactionCardID) : '';
@@ -135,17 +138,14 @@ function MoneyRequestView({
     // Flags for showing categories and tags
     // transactionCategory can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldShowCategory = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(Object.values(policyCategories ?? {})));
+    const shouldShowCategory = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(policyCategories ?? {}));
     // transactionTag can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowTag = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists));
     const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true));
 
     const {getViolationsForField} = useViolations(transactionViolations ?? []);
-    const hasViolations = useCallback(
-        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data']): boolean => !!canUseViolations && getViolationsForField(field, data).length > 0,
-        [canUseViolations, getViolationsForField],
-    );
+    const hasViolations = useCallback((field: ViolationField): boolean => !!canUseViolations && getViolationsForField(field).length > 0, [canUseViolations, getViolationsForField]);
 
     let amountDescription = `${translate('iou.amount')}`;
 
@@ -189,17 +189,16 @@ function MoneyRequestView({
 
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     let receiptURIs;
-    let hasErrors = false;
+    const hasErrors = canEdit && TransactionUtils.hasMissingSmartscanFields(transaction);
     if (hasReceipt) {
         receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction);
-        hasErrors = canEdit && TransactionUtils.hasMissingSmartscanFields(transaction);
     }
 
     const pendingAction = transaction?.pendingAction;
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => transaction?.pendingFields?.[fieldPath] ?? pendingAction;
 
     const getErrorForField = useCallback(
-        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data']) => {
+        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], shouldShowViolations = true) => {
             // Checks applied when creating a new money request
             // NOTE: receipt field can return multiple violations, so we need to handle it separately
             const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
@@ -225,8 +224,9 @@ function MoneyRequestView({
             }
 
             // Return violations if there are any
-            if (canUseViolations && hasViolations(field, data)) {
-                const violations = getViolationsForField(field, data);
+            // At the moment, we only return violations for tags for workspaces with single-level tags
+            if (canUseViolations && shouldShowViolations && hasViolations(field)) {
+                const violations = getViolationsForField(field);
                 return ViolationsUtils.getViolationTranslation(violations[0], translate);
             }
 
@@ -239,7 +239,8 @@ function MoneyRequestView({
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
             <AnimatedEmptyStateBackground />
             <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
-                {hasReceipt && (
+                {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
+                {(showMapAsImage || hasReceipt) && (
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
                         errors={transaction?.errors}
@@ -248,24 +249,27 @@ function MoneyRequestView({
                             if (!transaction?.transactionID) {
                                 return;
                             }
-
                             Transaction.clearError(transaction.transactionID);
                         }}
                     >
                         <View style={styles.moneyRequestViewImage}>
-                            <ReportActionItemImage
-                                thumbnail={receiptURIs?.thumbnail}
-                                image={receiptURIs?.image}
-                                isLocalFile={receiptURIs?.isLocalFile}
-                                filename={receiptURIs?.filename}
-                                transaction={transaction}
-                                enablePreviewModal
-                                canEditReceipt={canEditReceipt}
-                            />
+                            {showMapAsImage ? (
+                                <ConfirmedRoute transaction={transaction} />
+                            ) : (
+                                <ReportActionItemImage
+                                    thumbnail={receiptURIs?.thumbnail}
+                                    image={receiptURIs?.image}
+                                    isLocalFile={receiptURIs?.isLocalFile}
+                                    filename={receiptURIs?.filename}
+                                    transaction={transaction}
+                                    enablePreviewModal
+                                    canEditReceipt={canEditReceipt}
+                                />
+                            )}
                         </View>
                     </OfflineWithFeedback>
                 )}
-                {!hasReceipt && canEditReceipt && canUseViolations && (
+                {!hasReceipt && canEditReceipt && (
                     <ReceiptEmptyState
                         hasError={hasErrors}
                         onPress={() =>
@@ -288,7 +292,7 @@ function MoneyRequestView({
                         shouldShowTitleIcon={isSettled}
                         titleIcon={Expensicons.Checkmark}
                         description={amountDescription}
-                        titleStyle={styles.newKansasLarge}
+                        titleStyle={styles.textHeadlineH2}
                         interactive={canEditAmount}
                         shouldShowRightIcon={canEditAmount}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
@@ -366,7 +370,11 @@ function MoneyRequestView({
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.CATEGORY))}
+                            onPress={() =>
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID),
+                                )
+                            }
                             brickRoadIndicator={getErrorForField('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             error={getErrorForField('category')}
                         />
@@ -380,7 +388,7 @@ function MoneyRequestView({
                         >
                             <MenuItemWithTopDescription
                                 description={name ?? translate('common.tag')}
-                                title={TransactionUtils.getTag(transaction, index)}
+                                title={TransactionUtils.getTagForDisplay(transaction, index)}
                                 interactive={canEdit}
                                 shouldShowRightIcon={canEdit}
                                 titleStyle={styles.flex1}
@@ -389,16 +397,8 @@ function MoneyRequestView({
                                         ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, index, transaction?.transactionID ?? '', report.reportID),
                                     )
                                 }
-                                brickRoadIndicator={
-                                    getErrorForField('tag', {
-                                        tagName: name,
-                                    })
-                                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                        : undefined
-                                }
-                                error={getErrorForField('tag', {
-                                    tagName: name,
-                                })}
+                                brickRoadIndicator={getErrorForField('tag', {}, policyTagLists.length === 1) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                error={getErrorForField('tag', {}, policyTagLists.length === 1)}
                             />
                         </OfflineWithFeedback>
                     ))}

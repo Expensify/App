@@ -62,7 +62,9 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
         }
     }
 
-    const isApprovedOrSubmittedReportAction = [CONST.REPORT.ACTIONS.TYPE.APPROVED, CONST.REPORT.ACTIONS.TYPE.SUBMITTED].some((type) => type === action.actionName);
+    const isApprovedOrSubmittedReportAction = ReportActionsUtils.isApprovedOrSubmittedReportAction(action);
+
+    const isHoldReportAction = [CONST.REPORT.ACTIONS.TYPE.HOLD, CONST.REPORT.ACTIONS.TYPE.UNHOLD].some((type) => type === action.actionName);
 
     /**
      * Get the ReportActionItemFragments
@@ -83,6 +85,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
                 style={style}
                 displayAsGroup={displayAsGroup}
                 isApprovedOrSubmittedReportAction={isApprovedOrSubmittedReportAction}
+                isHoldReportAction={isHoldReportAction}
                 // Since system messages from Old Dot begin with the person who performed the action,
                 // the first fragment will contain the person's display name and their email. We'll use this
                 // to decide if the fragment should be from left to right for RTL display names e.g. Arabic for proper

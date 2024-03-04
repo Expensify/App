@@ -266,12 +266,12 @@ PODS:
   - lottie-react-native (6.4.1):
     - lottie-ios (~> 4.3.3)
     - React-Core
-  - MapboxCommon (23.6.0)
-  - MapboxCoreMaps (10.14.0):
-    - MapboxCommon (~> 23.6)
-  - MapboxMaps (10.14.0):
-    - MapboxCommon (= 23.6.0)
-    - MapboxCoreMaps (= 10.14.0)
+  - MapboxCommon (23.8.6)
+  - MapboxCoreMaps (10.16.4):
+    - MapboxCommon (~> 23.8)
+  - MapboxMaps (10.16.4):
+    - MapboxCommon (= 23.8.6)
+    - MapboxCoreMaps (= 10.16.4)
     - MapboxMobileEvents (= 1.0.10)
     - Turf (~> 2.0)
   - MapboxMobileEvents (1.0.10)
@@ -280,9 +280,9 @@ PODS:
     - nanopb/encode (= 2.30908.0)
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
-  - Onfido (28.3.1)
-  - onfido-react-native-sdk (8.3.0):
-    - Onfido (~> 28.3.0)
+  - Onfido (29.6.0)
+  - onfido-react-native-sdk (10.6.0):
+    - Onfido (~> 29.6.0)
     - React
   - OpenSSL-Universal (1.1.1100)
   - Plaid (4.7.0)
@@ -1417,14 +1417,14 @@ PODS:
     - React-Core
   - RNLocalize (2.2.6):
     - React-Core
-  - rnmapbox-maps (10.0.11):
-    - MapboxMaps (~> 10.14.0)
+  - rnmapbox-maps (10.1.11):
+    - MapboxMaps (~> 10.16.4)
     - React
     - React-Core
-    - rnmapbox-maps/DynamicLibrary (= 10.0.11)
+    - rnmapbox-maps/DynamicLibrary (= 10.1.11)
     - Turf
-  - rnmapbox-maps/DynamicLibrary (10.0.11):
-    - MapboxMaps (~> 10.14.0)
+  - rnmapbox-maps/DynamicLibrary (10.1.11):
+    - MapboxMaps (~> 10.16.4)
     - React
     - React-Core
     - Turf
@@ -1432,7 +1432,7 @@ PODS:
     - React-Core
   - RNReactNativeHapticFeedback (2.2.0):
     - React-Core
-  - RNReanimated (3.6.1):
+  - RNReanimated (3.7.1):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -1896,13 +1896,13 @@ SPEC CHECKSUMS:
   libwebp: 1786c9f4ff8a279e4dac1e8f385004d5fc253009
   lottie-ios: 3d98679b41fa6fd6aff2352b3953dbd3df8a397e
   lottie-react-native: a2ae9c27c273b060b2affff2957bc0ff7fdca353
-  MapboxCommon: 4a0251dd470ee37e7fadda8e285c01921a5e1eb0
-  MapboxCoreMaps: eb07203bbb0b1509395db5ab89cd3ad6c2e3c04c
-  MapboxMaps: af50ec61a7eb3b032c3f7962c6bd671d93d2a209
+  MapboxCommon: 90f76693dc02438acbb5ea9a5b266a4c0eb1c875
+  MapboxCoreMaps: 7b07d1ca8c454a4381daf09df901b9d6bf90bce0
+  MapboxMaps: cbb38845a9bf49b124f0e937975d560a4e01894e
   MapboxMobileEvents: de50b3a4de180dd129c326e09cd12c8adaaa46d6
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
-  Onfido: 564f60c39819635ec5b549285a1eec278cc9ba67
-  onfido-react-native-sdk: b346a620af5669f9fecb6dc3052314a35a94ad9f
+  Onfido: c52e797b10cc9e6d29ba91996cb62e501000bfdd
+  onfido-react-native-sdk: 4e7f0a7a986ed93cb906d2e0b67a6aab9202de0b
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   Plaid: 431ef9be5314a1345efb451bc5e6b067bfb3b4c6
   PromisesObjC: c50d2056b5253dadbd6c2bea79b0674bd5a52fa4
@@ -1983,10 +1983,10 @@ SPEC CHECKSUMS:
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
   RNLiveMarkdown: 35eeecf7e57eb26fdc279d5d4815982a9a9f7beb
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
-  rnmapbox-maps: 6f638ec002aa6e906a6f766d69cd45f968d98e64
+  rnmapbox-maps: fcf7f1cbdc8bd7569c267d07284e8a5c7bee06ed
   RNPermissions: 9b086c8f05b2e2faa587fdc31f4c5ab4509728aa
   RNReactNativeHapticFeedback: ec56a5f81c3941206fd85625fa669ffc7b4545f9
-  RNReanimated: 57f436e7aa3d277fbfed05e003230b43428157c0
+  RNReanimated: beb07f7f900543928467da8107c175d1e57a1049
   RNScreens: b582cb834dc4133307562e930e8fa914b8c04ef2
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
   RNSVG: ba3e7232f45e34b7b47e74472386cf4e1a676d0a
