@@ -77,7 +77,7 @@ function GrowlNotification(_: unknown, ref: ForwardedRef<GrowlRef>) {
             Animated.spring(translateY, {
                 toValue: val,
                 useNativeDriver,
-                }).start();
+            }).start();
         },
         [translateY],
     );
