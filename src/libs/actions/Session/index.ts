@@ -97,17 +97,13 @@ function signOut() {
     };
 
     API.write(WRITE_COMMANDS.LOG_OUT, params);
-    clearCache().then(() => {
-        Log.info('Cleared all cache data', true, {}, true);
-    });
-    Timing.clearData();
 }
 
 /**
  * Checks if the account is an anonymous account.
  */
 function isAnonymousUser(): boolean {
-    return sessionAuthTokenType === 'anonymousAccount';
+    return sessionAuthTokenType === CONST.AUTH_TOKEN_TYPE.ANONYMOUS;
 }
 
 function signOutAndRedirectToSignIn(shouldReplaceCurrentScreen?: boolean) {
@@ -591,6 +587,10 @@ function cleanupSession() {
     NetworkConnection.clearReconnectionCallbacks();
     SessionUtils.resetDidUserLogInDuringSession();
     resetHomeRouteParams();
+    clearCache().then(() => {
+        Log.info('Cleared all cache data', true, {}, true);
+    });
+    Timing.clearData();
 }
 
 function clearAccountMessages() {
