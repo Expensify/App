@@ -50,7 +50,7 @@ const getAllParticipants = (
                 !!userPersonalDetail?.login && !CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID) ? LocalePhoneNumber.formatPhoneNumber(userPersonalDetail.login) : translate('common.hidden');
             const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(userPersonalDetail);
 
-            const pendingVisibleChatMember = report?.pendingVisibleChatMembers ? report?.pendingVisibleChatMembers.find((member) => member.accountID === accountID.toString()) : undefined;
+            const pendingVisibleChatMember = report?.pendingVisibleChatMembers?.find((member) => member.accountID === accountID.toString());
             return {
                 alternateText: userLogin,
                 pendingAction: pendingVisibleChatMember?.pendingAction ?? undefined,
