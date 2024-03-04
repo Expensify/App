@@ -143,7 +143,9 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
                 title: translate('workflowsPage.makeOrTrackPaymentsTitle'),
                 subtitle: translate('workflowsPage.makeOrTrackPaymentsDescription'),
                 onToggle: () => {
-                    // todo: we still need a action to set auto reimburse enable i.e. const.policy.reimbursement_choices.reimbursement_yes
+                    const isActive = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+                    const newReimbursementChoice = isActive ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+                    Policy.setReimbursementFromChoice(route.params.policyID, newReimbursementChoice);
                     // todo: after enable we need to get VBA owner(?) email and set it to policy.reimburser_email with Policy.setWorkspaceReimbursement
                 },
                 subMenuItems: (
@@ -175,7 +177,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
                     </>
                 ),
                 isEndOptionRow: true,
-                isActive: policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                isActive: policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
                 pendingAction: policy?.pendingFields?.reimbursementChoice,
             },
         ];
