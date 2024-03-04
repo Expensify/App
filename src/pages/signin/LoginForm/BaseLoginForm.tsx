@@ -289,7 +289,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                             onSubmit={validateAndSubmitForm}
                             message={serverErrorText}
                             isAlertVisible={shouldShowServerError}
-                            buttonStyles={[shouldShowServerError ? styles.mt3 : {}]}
+                            buttonStyles={[shouldShowServerError ? styles.mt3 : {}]} 
                             containerStyles={[styles.mh0]}
                         />
                         {
