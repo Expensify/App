@@ -1,5 +1,5 @@
-import {fireEvent, screen, waitFor} from '@testing-library/react-native';
 import type * as NativeNavigation from '@react-navigation/native';
+import {fireEvent, screen, waitFor} from '@testing-library/react-native';
 import type {TextMatch} from '@testing-library/react-native/build/matches';
 import React from 'react';
 import type {ComponentType} from 'react';
@@ -196,7 +196,7 @@ test('[Search Page] should search in selection list', async () => {
 
     const scenario = async () => {
         await screen.findByTestId('SearchPage');
-        await waitFor(triggerTransitionEnd);
+        await waitFor(triggerTransitionEnd as Awaited<() => Promise<void>>);
 
         const input = screen.getByTestId('selection-list-text-input');
         const searchValue = mockedPersonalDetails['88'].login;
@@ -225,7 +225,7 @@ test('[Search Page] should click on list item', async () => {
     const scenario = async () => {
         await screen.findByTestId('SearchPage');
         const input = screen.getByTestId('selection-list-text-input');
-        await waitFor(triggerTransitionEnd);
+        await waitFor(triggerTransitionEnd as Awaited<() => Promise<void>>);
 
         const searchValue = mockedPersonalDetails['4'].login as TextMatch;
         fireEvent.changeText(input, searchValue);
