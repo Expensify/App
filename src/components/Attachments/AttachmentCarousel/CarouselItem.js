@@ -109,6 +109,7 @@ function CarouselItem({item, onPress, isFocused, isModalHovered}) {
                     isHovered={isModalHovered}
                     isFocused={isFocused}
                     optionalVideoDuration={item.duration}
+                    isUsedInCarousel
                 />
             </View>
 

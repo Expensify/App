@@ -87,7 +87,7 @@ function ReportParticipantsPage({report, personalDetails}: ReportParticipantsPag
             testID={ReportParticipantsPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!report || ReportUtils.isArchivedRoom(report)}>
+                <FullPageNotFoundView shouldShow={!report || ReportUtils.isArchivedRoom(report) || ReportUtils.isSelfDM(report)}>
                     <HeaderWithBackButton
                         onBackButtonPress={report ? () => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID)) : undefined}
                         title={translate(

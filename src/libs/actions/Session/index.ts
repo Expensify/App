@@ -107,7 +107,7 @@ function signOut() {
  * Checks if the account is an anonymous account.
  */
 function isAnonymousUser(): boolean {
-    return sessionAuthTokenType === 'anonymousAccount';
+    return sessionAuthTokenType === CONST.AUTH_TOKEN_TYPE.ANONYMOUS;
 }
 
 function signOutAndRedirectToSignIn(shouldReplaceCurrentScreen?: boolean) {

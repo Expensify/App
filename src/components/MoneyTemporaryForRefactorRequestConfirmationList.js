@@ -595,6 +595,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             />
         ) : (
             <ButtonWithDropdownMenu
+                success
                 pressOnEnter
                 isDisabled={shouldDisableButton}
                 onPress={(_event, value) => confirm(value)}
