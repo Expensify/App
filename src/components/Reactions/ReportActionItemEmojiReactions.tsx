@@ -16,8 +16,8 @@ import type {Locale, ReportAction, ReportActionReactions} from '@src/types/onyx'
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import AddReactionBubble from './AddReactionBubble';
 import EmojiReactionBubble from './EmojiReactionBubble';
-import ReactionTooltipContent from './ReactionTooltipContent';
 import type {OpenPickerCallback} from './QuickEmojiReactions/types';
+import ReactionTooltipContent from './ReactionTooltipContent';
 
 type ReportActionItemEmojiReactionsProps = WithCurrentUserPersonalDetailsProps & {
     /** All the emoji reactions for the report action. */
