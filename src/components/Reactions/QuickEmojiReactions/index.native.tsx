@@ -2,7 +2,7 @@ import React, {useContext} from 'react';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import BaseQuickEmojiReactions from './BaseQuickEmojiReactions';
-import type {OpenPickerCallback, QuickEmojiReactionsProps} from './types';
+import type {BaseQuickEmojiReactionsProps, OpenPickerCallback, QuickEmojiReactionsProps} from './types';
 
 function QuickEmojiReactions({closeContextMenu, onEmojiSelected, ...rest}: QuickEmojiReactionsProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
@@ -29,7 +29,7 @@ function QuickEmojiReactions({closeContextMenu, onEmojiSelected, ...rest}: Quick
         });
     };
 
-    const onEmojiSelectedCallback = (emoji, emojiReactions) => {
+    const onEmojiSelectedCallback: BaseQuickEmojiReactionsProps['onEmojiSelected'] = (emoji, emojiReactions) => {
         actionSheetAwareScrollViewContext.transitionActionSheetState({
             type: ActionSheetAwareScrollView.Actions.CLOSE_EMOJI_PICKER_POPOVER,
         });

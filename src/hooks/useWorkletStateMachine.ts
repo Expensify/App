@@ -82,7 +82,7 @@ function useWorkletStateMachine<P>(stateMachine: StateMachine, initialState: Sta
             return;
         }
 
-        runOnJS(Log.client)(`[StateMachine] ${message}`, false, params);
+        runOnJS(Log.client)(`[StateMachine] ${message}. Params: ${params}`);
     }, []);
 
     const transitionWorklet = useCallback((action: ActionWithPayload<P>) => {

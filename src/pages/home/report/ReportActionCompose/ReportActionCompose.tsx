@@ -319,18 +319,6 @@ function ReportActionCompose({
         setIsFullComposerAvailable(false);
     }, [isComposerFullSize, reportID]);
 
-    const measurePopover = useCallback(
-        ({nativeEvent}: LayoutChangeEvent) => {
-            actionSheetAwareScrollViewContext.transitionActionSheetState({
-                type: ActionSheetAwareScrollView.Actions.MEASURE_POPOVER,
-                payload: {
-                    popoverHeight: nativeEvent.layout.height,
-                },
-            });
-        },
-        [actionSheetAwareScrollViewContext],
-    );
-
     // We are returning a callback here as we want to incoke the method on unmount only
     useEffect(
         () => () => {
@@ -424,7 +412,6 @@ function ReportActionCompose({
                             {({displayFileInModal}) => (
                                 <>
                                     <AttachmentPickerWithMenuItems
-                                        onLayout={measurePopover}
                                         displayFileInModal={displayFileInModal}
                                         reportID={reportID}
                                         report={report}
