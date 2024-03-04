@@ -1,7 +1,7 @@
 // https://github.com/Richou/react-native-android-location-enabler/issues/40
 // If we update our react native version, we need to test this file again
 import Geolocation from '@react-native-community/geolocation';
-import RNAndroidLocationEnabler from 'react-native-android-location-enabler';
+import {promptForEnableLocationIfNeeded} from 'react-native-android-location-enabler';
 import type {GetCurrentPosition} from './getCurrentPosition.types';
 import {GeolocationErrorCode} from './getCurrentPosition.types';
 
@@ -15,9 +15,8 @@ const getCurrentPosition: GetCurrentPosition = (success, error, config) => {
     // Prompt's the user to enable geolocation permission with yes/no options
     // If the user selects yes, then this module would enable the native system location
     // Otherwise if user selects no, or we have an issue displaying the prompt, it will return an error
-    RNAndroidLocationEnabler.promptForEnableLocationIfNeeded({
+    promptForEnableLocationIfNeeded({
         interval: 2000, // This updates location after every 2 seconds (required prop). We don't depend on this as we only use the location once.
-        fastInterval: 1, // The shortest time (1 ms) our app is willing to wait for location update. Passing 0 ms short's the internal ternary condition of library to default value.
     })
         .then((permissionState) => {
             if (permissionState === 'enabled') {

@@ -10,21 +10,24 @@ const isAtLeastOneInState = (state: StackState, screenName: string): boolean => 
 
 function adaptStateIfNecessary(state: StackState) {
     const isNarrowLayout = getIsNarrowLayout();
+
+    // There should always be SETTINGS.ROOT screen in the state to make sure go back works properly if we deeplinkg to a subpage of settings.
+    if (!isAtLeastOneInState(state, SCREENS.SETTINGS.ROOT)) {
+        // @ts-expect-error Updating read only property
+        // noinspection JSConstantReassignment
+        state.stale = true; // eslint-disable-line
+
+        // This is necessary for ts to narrow type down to PartialState.
+        if (state.stale === true) {
+            // Unshift the root screen to fill left pane.
+            state.routes.unshift({name: SCREENS.SETTINGS.ROOT});
+        }
+    }
+
     // If the screen is wide, there should be at least two screens inside:
     // - SETINGS.ROOT to cover left pane.
     // - SETTINGS_CENTRAL_PANE to cover central pane.
     if (!isNarrowLayout) {
-        if (!isAtLeastOneInState(state, SCREENS.SETTINGS.ROOT)) {
-            // @ts-expect-error Updating read only property
-            // noinspection JSConstantReassignment
-            state.stale = true; // eslint-disable-line
-
-            // This is necessary for ts to narrow type down to PartialState.
-            if (state.stale === true) {
-                // Unshift the root screen to fill left pane.
-                state.routes.unshift({name: SCREENS.SETTINGS.ROOT});
-            }
-        }
         if (!isAtLeastOneInState(state, SCREENS.SETTINGS_CENTRAL_PANE)) {
             // @ts-expect-error Updating read only property
             // noinspection JSConstantReassignment

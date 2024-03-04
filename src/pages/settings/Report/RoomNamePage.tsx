@@ -7,7 +7,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {OnyxFormValuesFields} from '@components/Form/types';
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RoomNameInput from '@components/RoomNameInput';
@@ -26,6 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import INPUT_IDS from '@src/types/form/RoomNameForm';
 import type {Policy, Report} from '@src/types/onyx';
 
 type RoomNamePageOnyxProps = {
@@ -45,7 +46,7 @@ function RoomNamePage({report, policy, reports}: RoomNamePageProps) {
     const {translate} = useLocalize();
 
     const validate = useCallback(
-        (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.ROOM_NAME_FORM>) => {
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ROOM_NAME_FORM>) => {
             const errors = {};
 
             // We should skip validation hence we return an empty errors and we skip Form submission on the onSubmit method
@@ -65,6 +66,8 @@ function RoomNamePage({report, policy, reports}: RoomNamePageProps) {
             } else if (ValidationUtils.isExistingRoomName(values.roomName, reports, report?.policyID ?? '')) {
                 // The room name can't be set to one that already exists on the policy
                 ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.roomAlreadyExistsError');
+            } else if (values.roomName.length > CONST.TITLE_CHARACTER_LIMIT) {
+                ErrorUtils.addErrorMessage(errors, 'roomName', ['common.error.characterLimitExceedCounter', {length: values.roomName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
             }
 
             return errors;
@@ -95,7 +98,7 @@ function RoomNamePage({report, policy, reports}: RoomNamePageProps) {
                         <InputWrapper
                             InputComponent={RoomNameInput}
                             ref={roomNameInputRef}
-                            inputID="roomName"
+                            inputID={INPUT_IDS.ROOM_NAME}
                             defaultValue={report?.reportName}
                             isFocused={isFocused}
                         />

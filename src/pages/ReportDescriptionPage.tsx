@@ -1,22 +1,14 @@
-import type {RouteProp} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import * as ReportUtils from '@libs/ReportUtils';
-import type * as OnyxTypes from '@src/types/onyx';
+import type {ReportDescriptionNavigatorParamList} from '@navigation/types';
+import type SCREENS from '@src/SCREENS';
+import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import RoomDescriptionPage from './RoomDescriptionPage';
 import TaskDescriptionPage from './tasks/TaskDescriptionPage';
 
-type ReportDescriptionPageProps = {
-    /** The report currently being looked at */
-    report: OnyxTypes.Report;
-
-    /** Policy for the current report */
-    policies: OnyxCollection<OnyxTypes.Policy>;
-
-    /** Route params */
-    route: RouteProp<{params: {reportID: string}}>;
-};
+type ReportDescriptionPageProps = WithReportOrNotFoundProps & StackScreenProps<ReportDescriptionNavigatorParamList, typeof SCREENS.REPORT_DESCRIPTION_ROOT>;
 
 function ReportDescriptionPage(props: ReportDescriptionPageProps) {
     const isTask = ReportUtils.isTaskReport(props.report);

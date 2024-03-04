@@ -35,26 +35,25 @@ const propTypes = {
 
         /** The id of the transaction related to the attachment */
         transactionID: PropTypes.string,
+
+        duration: PropTypes.number,
     }).isRequired,
-
-    /** Whether there is only one element in the attachment carousel */
-    isSingleItem: PropTypes.bool.isRequired,
-
-    /** The index of the carousel item */
-    index: PropTypes.number.isRequired,
-
-    /** The index of the currently active carousel item */
-    activeIndex: PropTypes.number.isRequired,
 
     /** onPress callback */
     onPress: PropTypes.func,
+
+    isModalHovered: PropTypes.bool,
+
+    /** Whether the attachment is currently being viewed in the carousel */
+    isFocused: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
     onPress: undefined,
+    isModalHovered: false,
 };
 
-function CarouselItem({item, index, activeIndex, isSingleItem, onPress}) {
+function CarouselItem({item, onPress, isFocused, isModalHovered}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isAttachmentHidden} = useContext(ReportAttachmentsContext);
@@ -104,12 +103,13 @@ function CarouselItem({item, index, activeIndex, isSingleItem, onPress}) {
                     source={item.source}
                     file={item.file}
                     isAuthTokenRequired={item.isAuthTokenRequired}
-                    isUsedInCarousel
-                    isSingleCarouselItem={isSingleItem}
-                    carouselItemIndex={index}
-                    carouselActiveItemIndex={activeIndex}
                     onPress={onPress}
                     transactionID={item.transactionID}
+                    reportActionID={item.reportActionID}
+                    isHovered={isModalHovered}
+                    isFocused={isFocused}
+                    optionalVideoDuration={item.duration}
+                    isUsedInCarousel
                 />
             </View>
 

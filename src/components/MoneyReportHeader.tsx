@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -17,7 +17,9 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import Button from './Button';
+import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
+import * as Expensicons from './Icon/Expensicons';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import {usePersonalDetails} from './OnyxProvider';
 import SettlementButton from './SettlementButton';
@@ -62,6 +64,16 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
           isPolicyAdmin && (isApproved || isManager)
         : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
     const isDraft = ReportUtils.isDraftExpenseReport(moneyRequestReport);
+    const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
+
+    const cancelPayment = useCallback(() => {
+        if (!chatReport) {
+            return;
+        }
+        IOU.cancelPayment(moneyRequestReport, chatReport);
+        setIsConfirmModalVisible(false);
+    }, [moneyRequestReport, chatReport]);
+
     const isOnInstantSubmitPolicy = PolicyUtils.isInstantSubmitEnabled(policy);
     const isOnSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
     const shouldShowPayButton = useMemo(
@@ -88,11 +100,18 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(
-        () => chatReport?.isOwnPolicyExpenseChat && !(policy.harvesting?.enabled ?? policy.isHarvestingEnabled),
-        [chatReport?.isOwnPolicyExpenseChat, policy.harvesting?.enabled, policy.isHarvestingEnabled],
+        () => chatReport?.isOwnPolicyExpenseChat && !policy.harvesting?.enabled,
+        [chatReport?.isOwnPolicyExpenseChat, policy.harvesting?.enabled],
     );
 
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(moneyRequestReport)];
+    if (isPayer && isSettled && ReportUtils.isExpenseReport(moneyRequestReport)) {
+        threeDotsMenuItems.push({
+            icon: Expensicons.Trashcan,
+            text: translate('iou.cancelPayment'),
+            onSelected: () => setIsConfirmModalVisible(true),
+        });
+    }
 
     return (
         <View style={[styles.pt0]}>
@@ -104,7 +123,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                 policy={policy}
                 personalDetails={personalDetails}
                 shouldShowBackButton={isSmallScreenWidth}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
+                onBackButtonPress={() => Navigation.goBack(undefined, false, true)}
                 // Shows border if no buttons or next steps are showing below the header
                 shouldShowBorderBottom={!(shouldShowAnyButton && isSmallScreenWidth) && !(shouldShowNextStep && !isSmallScreenWidth)}
                 shouldShowThreeDotsButton
@@ -178,6 +197,16 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                     </View>
                 )}
             </View>
+            <ConfirmModal
+                title={translate('iou.cancelPayment')}
+                isVisible={isConfirmModalVisible}
+                onConfirm={cancelPayment}
+                onCancel={() => setIsConfirmModalVisible(false)}
+                prompt={translate('iou.cancelPaymentConfirmation')}
+                confirmText={translate('iou.cancelPayment')}
+                cancelText={translate('common.dismiss')}
+                danger
+            />
         </View>
     );
 }

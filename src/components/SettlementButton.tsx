@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import * as ReportUtils from '@libs/ReportUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as IOU from '@userActions/IOU';
 import * as PaymentMethods from '@userActions/PaymentMethods';
@@ -18,6 +19,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+import type {PaymentType} from './ButtonWithDropdownMenu/types';
 import * as Expensicons from './Icon/Expensicons';
 import KYCWall from './KYCWall';
 
@@ -201,6 +203,7 @@ function SettlementButton({
             return;
         }
 
+        playSound(SOUNDS.DONE);
         onPress(iouPaymentType);
     };
 
@@ -222,7 +225,8 @@ function SettlementButton({
             shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
         >
             {(triggerKYCFlow, buttonRef) => (
-                <ButtonWithDropdownMenu
+                <ButtonWithDropdownMenu<PaymentType>
+                    success
                     buttonRef={buttonRef}
                     isDisabled={isDisabled}
                     isLoading={isLoading}

@@ -66,9 +66,9 @@ const propTypes = {
 };
 const defaultProps = {
     personalDetails: {},
-    policy: {},
-    policyCategories: {},
-    policyTags: {},
+    policy: null,
+    policyCategories: null,
+    policyTags: null,
     report: {},
     transaction: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -92,6 +92,7 @@ function IOURequestStepConfirmation({
     const [receiptFile, setReceiptFile] = useState();
     const receiptFilename = lodashGet(transaction, 'filename');
     const receiptPath = lodashGet(transaction, 'receipt.source');
+    const receiptType = lodashGet(transaction, 'receipt.type');
     const transactionTaxCode = transaction.taxRate && transaction.taxRate.keyForList;
     const transactionTaxAmount = transaction.taxAmount;
     const requestType = TransactionUtils.getRequestType(transaction);
@@ -128,6 +129,14 @@ function IOURequestStepConfirmation({
         IOU.setMoneyRequestBillable_temporaryForRefactor(transactionID, defaultBillable);
     }, [transactionID, defaultBillable]);
 
+    useEffect(() => {
+        if (!transaction.category) {
+            return;
+        }
+        if (policyCategories && policyCategories[transaction.category] && !policyCategories[transaction.category].enabled) {
+            IOU.setMoneyRequestCategory(transactionID, '');
+        }
+    }, [policyCategories, transaction.category, transactionID]);
     const defaultCategory = lodashGet(
         _.find(lodashGet(policy, 'customUnits', {}), (customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE),
         'defaultCategory',
@@ -137,7 +146,7 @@ function IOURequestStepConfirmation({
         if (requestType !== CONST.IOU.REQUEST_TYPE.DISTANCE || !_.isEmpty(transaction.category)) {
             return;
         }
-        IOU.setMoneyRequestCategory_temporaryForRefactor(transactionID, defaultCategory);
+        IOU.setMoneyRequestCategory(transactionID, defaultCategory);
         // Prevent resetting to default when unselect category
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionID, requestType, defaultCategory]);
@@ -146,11 +155,6 @@ function IOURequestStepConfirmation({
         // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
         // back to the participants step
         if (!transaction.participantsAutoAssigned) {
-            // When going back to the participants step, if the iou is a "request" (not a split), then the participants need to be cleared from the
-            // transaction so that the participant can be selected again.
-            if (iouType === CONST.IOU.TYPE.REQUEST) {
-                IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, []);
-            }
             Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
             return;
         }
@@ -171,8 +175,8 @@ function IOURequestStepConfirmation({
             setReceiptFile(receipt);
         };
 
-        IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID);
-    }, [receiptPath, receiptFilename, requestType, iouType, transactionID, reportID]);
+        IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID, receiptType);
+    }, [receiptType, receiptPath, receiptFilename, requestType, iouType, transactionID, reportID]);
 
     useEffect(() => {
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
@@ -277,6 +281,7 @@ function IOURequestStepConfirmation({
                     trimmedComment,
                     transaction.currency,
                     transaction.merchant,
+                    transaction.created,
                     transaction.category,
                     transaction.tag,
                     report.reportID,
@@ -295,6 +300,7 @@ function IOURequestStepConfirmation({
                     trimmedComment,
                     transaction.currency,
                     transaction.merchant,
+                    transaction.created,
                     transaction.category,
                     transaction.tag,
                     transaction.billable,
@@ -303,26 +309,33 @@ function IOURequestStepConfirmation({
             }
 
             if (receiptFile) {
-                getCurrentPosition(
-                    (successData) => {
-                        requestMoney(selectedParticipants, trimmedComment, receiptFile, {
-                            lat: successData.coords.latitude,
-                            long: successData.coords.longitude,
-                        });
-                    },
-                    (errorData) => {
-                        Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
-                        // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                        requestMoney(selectedParticipants, trimmedComment, receiptFile);
-                    },
-                    {
-                        // It's OK to get a cached location that is up to an hour old because the only accuracy needed is the country the user is in
-                        maximumAge: 1000 * 60 * 60,
+                // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
+                if (transaction.amount === 0) {
+                    getCurrentPosition(
+                        (successData) => {
+                            requestMoney(selectedParticipants, trimmedComment, receiptFile, {
+                                lat: successData.coords.latitude,
+                                long: successData.coords.longitude,
+                            });
+                        },
+                        (errorData) => {
+                            Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
+                            // When there is an error, the money can still be requested, it just won't include the GPS coordinates
+                            requestMoney(selectedParticipants, trimmedComment, receiptFile);
+                        },
+                        {
+                            // It's OK to get a cached location that is up to an hour old because the only accuracy needed is the country the user is in
+                            maximumAge: 1000 * 60 * 60,
 
-                        // 15 seconds, don't wait too long because the server can always fall back to using the IP address
-                        timeout: 15000,
-                    },
-                );
+                            // 15 seconds, don't wait too long because the server can always fall back to using the IP address
+                            timeout: 15000,
+                        },
+                    );
+                    return;
+                }
+
+                // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
+                requestMoney(selectedParticipants, trimmedComment, receiptFile);
                 return;
             }
 
@@ -400,9 +413,8 @@ function IOURequestStepConfirmation({
                             },
                         ]}
                     />
-                    {isLoading ? (
-                        <FullScreenLoadingIndicator />
-                    ) : (
+                    {isLoading && <FullScreenLoadingIndicator />}
+                    <View style={[styles.flex1, isLoading && styles.opacity0]}>
                         <MoneyRequestConfirmationList
                             transaction={transaction}
                             hasMultipleParticipants={iouType === CONST.IOU.TYPE.SPLIT}
@@ -413,7 +425,6 @@ function IOURequestStepConfirmation({
                             iouIsBillable={transaction.billable}
                             onToggleBillable={setBillable}
                             iouCategory={transaction.category}
-                            iouTag={transaction.tag}
                             onConfirm={createTransaction}
                             onSendMoney={sendMoney}
                             onSelectParticipant={addNewParticipant}
@@ -435,7 +446,7 @@ function IOURequestStepConfirmation({
                             isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
                             shouldShowSmartScanFields={requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
                         />
-                    )}
+                    </View>
                 </View>
             )}
         </ScreenWrapper>

@@ -16,7 +16,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
-import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,6 +42,12 @@ const propTypes = {
     /** Whether to show the compose input */
     shouldShowComposeInput: PropTypes.bool,
 
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user auth token type */
+        authTokenType: PropTypes.string,
+    }),
+
     ...windowDimensionsPropTypes,
 };
 
@@ -54,6 +59,7 @@ const defaultProps = {
     lastReportAction: null,
     isEmptyChat: true,
     shouldShowComposeInput: false,
+    session: {},
 };
 
 function ReportFooter(props) {
@@ -61,7 +67,7 @@ function ReportFooter(props) {
     const {isOffline} = useNetwork();
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
-    const isAnonymousUser = Session.isAnonymousUser();
+    const isAnonymousUser = props.session.authTokenType === CONST.AUTH_TOKEN_TYPE.ANONYMOUS;
 
     const isSmallSizeLayout = props.windowWidth - (props.isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
     const hideComposer = !ReportUtils.canUserPerformWriteAction(props.report);
@@ -159,6 +165,9 @@ export default compose(
             key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
             initialValue: false,
         },
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
     }),
 )(
     memo(
@@ -173,6 +182,7 @@ export default compose(
             prevProps.shouldShowComposeInput === nextProps.shouldShowComposeInput &&
             prevProps.windowWidth === nextProps.windowWidth &&
             prevProps.isSmallScreenWidth === nextProps.isSmallScreenWidth &&
-            prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay,
+            prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
+            isEqual(prevProps.session, nextProps.session),
     ),
 );

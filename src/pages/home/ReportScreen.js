@@ -206,6 +206,7 @@ function ReportScreen({
             oldPolicyName: reportProp.oldPolicyName,
             policyName: reportProp.policyName,
             isOptimisticReport: reportProp.isOptimisticReport,
+            lastMentionedTime: reportProp.lastMentionedTime,
         }),
         [
             reportProp.lastReadTime,
@@ -242,6 +243,7 @@ function ReportScreen({
             reportProp.oldPolicyName,
             reportProp.policyName,
             reportProp.isOptimisticReport,
+            reportProp.lastMentionedTime,
         ],
     );
 
@@ -280,14 +282,15 @@ function ReportScreen({
     const didSubscribeToReportLeavingEvents = useRef(false);
 
     useEffect(() => {
-        if (!report || !report.reportID || shouldHideReport) {
+        if (!report.reportID || shouldHideReport) {
+            wasReportAccessibleRef.current = false;
             return;
         }
         wasReportAccessibleRef.current = true;
     }, [shouldHideReport, report]);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(ROUTES.HOME, false, true);
+        Navigation.goBack(undefined, false, true);
     }, []);
 
     let headerView = (
@@ -423,7 +426,7 @@ function ReportScreen({
             Navigation.dismissModal();
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
                 Navigation.setShouldPopAllStateOnUP();
-                Navigation.goBack(ROUTES.HOME, false, true);
+                Navigation.goBack(undefined, false, true);
             }
             if (prevReport.parentReportID) {
                 // Prevent navigation to the Money Request Report if it is pending deletion.
@@ -487,6 +490,7 @@ function ReportScreen({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const reportIDFromParams = lodashGet(route.params, 'reportID');
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
         () =>
@@ -497,8 +501,9 @@ function ReportScreen({
                 !reportMetadata.isLoadingInitialReportActions &&
                 !isLoading &&
                 !userLeavingStatus) ||
-            shouldHideReport,
-        [report, reportMetadata, isLoading, shouldHideReport, isOptimisticDelete, userLeavingStatus],
+            shouldHideReport ||
+            (reportIDFromParams && !ReportUtils.isValidReportIDFromPath(reportIDFromParams)),
+        [report, reportMetadata, isLoading, shouldHideReport, isOptimisticDelete, userLeavingStatus, reportIDFromParams],
     );
 
     const actionListValue = useMemo(() => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
@@ -556,6 +561,7 @@ function ReportScreen({
                                     <ReportActionsView
                                         reportActions={reportActions}
                                         report={report}
+                                        parentReportAction={parentReportAction}
                                         isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
                                         isLoadingNewerReportActions={reportMetadata.isLoadingNewerReportActions}
                                         isLoadingOlderReportActions={reportMetadata.isLoadingOlderReportActions}
@@ -667,6 +673,7 @@ export default compose(
             prevProps.userLeavingStatus === nextProps.userLeavingStatus &&
             prevProps.currentReportID === nextProps.currentReportID &&
             prevProps.viewportOffsetTop === nextProps.viewportOffsetTop &&
+            _.isEqual(prevProps.parentReportAction, nextProps.parentReportAction) &&
             _.isEqual(prevProps.report, nextProps.report),
     ),
 );

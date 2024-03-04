@@ -51,15 +51,11 @@ type CustomBaseTextInputProps = {
 
     /**
      * Autogrow input container length based on the entered text.
-     * Note: If you use this prop, the text input has to be controlled
-     * by a value prop.
      */
     autoGrow?: boolean;
 
     /**
      * Autogrow input container height based on the entered text
-     * Note: If you use this prop, the text input has to be controlled
-     * by a value prop.
      */
     autoGrowHeight?: boolean;
 
@@ -87,9 +83,6 @@ type CustomBaseTextInputProps = {
 
     /** Whether we should wait before focusing the TextInput, useful when using transitions  */
     shouldDelayFocus?: boolean;
-
-    /** Indicate whether pressing Enter on multiline input is allowed to submit the form. */
-    submitOnEnter?: boolean;
 
     /** Indicate whether input is multiline */
     multiline?: boolean;

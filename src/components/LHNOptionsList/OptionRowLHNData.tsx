@@ -1,9 +1,7 @@
 import {deepEqual} from 'fast-equals';
 import React, {useEffect, useMemo, useRef} from 'react';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
@@ -27,6 +25,7 @@ function OptionRowLHNData({
     receiptTransactions,
     parentReportAction,
     transaction,
+    lastReportActionTransaction = {},
     transactionViolations,
     canUseViolations,
     ...propsToForward
@@ -34,12 +33,6 @@ function OptionRowLHNData({
     const reportID = propsToForward.reportID;
 
     const optionItemRef = useRef<OptionData>();
-    const linkedTransaction = useMemo(() => {
-        const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
-        const lastReportAction = sortedReportActions[0];
-        return TransactionUtils.getLinkedTransaction(lastReportAction);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fullReport?.reportID, receiptTransactions, reportActions]);
 
     const hasViolations = canUseViolations && ReportUtils.doesTransactionThreadHaveViolations(fullReport, transactionViolations, parentReportAction ?? null);
 
@@ -64,7 +57,19 @@ function OptionRowLHNData({
         // Listen parentReportAction to update title of thread report when parentReportAction changed
         // Listen to transaction to update title of transaction report when transaction changed
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fullReport, linkedTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transaction, transactionViolations, canUseViolations]);
+    }, [
+        fullReport,
+        lastReportActionTransaction,
+        reportActions,
+        personalDetails,
+        preferredLocale,
+        policy,
+        parentReportAction,
+        transaction,
+        transactionViolations,
+        canUseViolations,
+        receiptTransactions,
+    ]);
 
     useEffect(() => {
         if (!optionItem || !!optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {
