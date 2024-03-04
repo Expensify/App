@@ -4,6 +4,7 @@ import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useSta
 import {InteractionManager, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import Button from '@components/Button';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
@@ -62,7 +63,6 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import * as ActionSheetAwareScrollView from '../../../components/ActionSheetAwareScrollView';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';

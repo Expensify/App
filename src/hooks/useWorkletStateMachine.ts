@@ -82,65 +82,69 @@ function useWorkletStateMachine<P>(stateMachine: StateMachine, initialState: Sta
             return;
         }
 
+        // eslint-disable-next-line @typescript-eslint/unbound-method, @typescript-eslint/restrict-template-expressions
         runOnJS(Log.client)(`[StateMachine] ${message}. Params: ${params}`);
     }, []);
 
-    const transitionWorklet = useCallback((action: ActionWithPayload<P>) => {
-        'worklet';
+    const transitionWorklet = useCallback(
+        (action: ActionWithPayload<P>) => {
+            'worklet';
 
-        if (!action) {
-            throw new Error('state machine action is required');
-        }
+            if (!action) {
+                throw new Error('state machine action is required');
+            }
 
-        const state = currentState.value;
+            const state = currentState.value;
 
-        log(`Current STATE: ${state.current.state}`);
-        log(`Next ACTION: ${action.type}`, action.payload);
+            log(`Current STATE: ${state.current.state}`);
+            log(`Next ACTION: ${action.type}`, action.payload);
 
-        const nextMachine = stateMachine[state.current.state];
+            const nextMachine = stateMachine[state.current.state];
 
-        if (!nextMachine) {
-            log(`No next machine found for state: ${state.current.state}`);
-            return;
-        }
+            if (!nextMachine) {
+                log(`No next machine found for state: ${state.current.state}`);
+                return;
+            }
 
-        const nextState = nextMachine[action.type];
+            const nextState = nextMachine[action.type];
 
-        if (!nextState) {
-            log(`No next state found for action: ${action.type}`);
-            return;
-        }
+            if (!nextState) {
+                log(`No next state found for action: ${action.type}`);
+                return;
+            }
 
-        let nextPayload;
+            let nextPayload;
 
-        if (typeof action.payload === 'undefined') {
-            // we save previous payload
-            nextPayload = state.current.payload;
-        } else {
-            // we merge previous payload with the new payload
-            nextPayload = {
-                ...state.current.payload,
-                ...action.payload,
+            if (typeof action.payload === 'undefined') {
+                // we save previous payload
+                nextPayload = state.current.payload;
+            } else {
+                // we merge previous payload with the new payload
+                nextPayload = {
+                    ...state.current.payload,
+                    ...action.payload,
+                };
+            }
+
+            log(`Next STATE: ${nextState}`, nextPayload);
+
+            currentState.value = {
+                previous: state.current,
+                current: {
+                    state: nextState,
+                    payload: nextPayload,
+                },
             };
-        }
-
-        log(`Next STATE: ${nextState}`, nextPayload);
-
-        currentState.value = {
-            previous: state.current,
-            current: {
-                state: nextState,
-                payload: nextPayload,
-            },
-        };
-    }, []);
+        },
+        [currentState, log, stateMachine],
+    );
 
     const resetWorklet = useCallback(() => {
         'worklet';
 
         log('RESET STATE MACHINE');
         currentState.value = initialState;
-    }, []);
+    }, [currentState, initialState, log]);
 
     const reset = useCallback(() => {
         runOnUI(resetWorklet)();

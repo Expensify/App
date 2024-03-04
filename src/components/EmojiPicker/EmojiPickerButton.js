@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {memo, useContext, useEffect, useRef} from 'react';
+import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -12,7 +13,6 @@ import compose from '@libs/compose';
 import getButtonState from '@libs/getButtonState';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
-import * as ActionSheetAwareScrollView from '../ActionSheetAwareScrollView';
 
 const propTypes = {
     /** Flag to disable the emoji picker button */

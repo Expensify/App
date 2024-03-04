@@ -5,6 +5,7 @@ import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 're
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
+import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
@@ -22,7 +23,6 @@ import reportPropTypes from '@pages/reportPropTypes';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
-import * as ActionSheetAwareScrollView from '../../../components/ActionSheetAwareScrollView';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ListBoundaryLoader from './ListBoundaryLoader/ListBoundaryLoader';
 import reportActionPropTypes from './reportActionPropTypes';
