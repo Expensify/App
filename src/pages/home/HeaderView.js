@@ -93,10 +93,13 @@ function HeaderView(props) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const participants = lodashGet(props.report, 'participantAccountIDs', []);
+    const isSelfDM = ReportUtils.isSelfDM(props.report);
+    // Currently, currentUser is not included in participantAccountIDs, so for selfDM, we need to add the currentUser as participants.
+    const participants = isSelfDM ? [props.session.accountID] : lodashGet(props.report, 'participantAccountIDs', []);
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant);
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant, undefined, isSelfDM);
+
     const isChatThread = ReportUtils.isChatThread(props.report);
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
@@ -166,7 +169,7 @@ function HeaderView(props) {
         ),
     );
 
-    const canJoinOrLeave = isChatThread || isUserCreatedPolicyRoom || canLeaveRoom;
+    const canJoinOrLeave = isChatThread || !isSelfDM || isUserCreatedPolicyRoom || canLeaveRoom;
     const canJoin = canJoinOrLeave && !isWhisperAction && props.report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const canLeave = canJoinOrLeave && ((isChatThread && props.report.notificationPreference.length) || isUserCreatedPolicyRoom || canLeaveRoom);
     if (canJoin) {
@@ -194,7 +197,7 @@ function HeaderView(props) {
     );
 
     const renderAdditionalText = () => {
-        if (shouldShowSubtitle() || isPersonalExpenseChat || _.isEmpty(policyName) || !_.isEmpty(parentNavigationSubtitleData)) {
+        if (shouldShowSubtitle() || isPersonalExpenseChat || _.isEmpty(policyName) || !_.isEmpty(parentNavigationSubtitleData) || isSelfDM) {
             return null;
         }
         return (
