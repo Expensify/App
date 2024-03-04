@@ -1794,10 +1794,10 @@ export default {
         tags: {
             requiresTag: 'Los miembros deben etiquetar todos los gastos',
             enableTag: 'Habilitar etiqueta',
-            subtitle: 'Las etiquetas agregan formas más detalladas de clasificar los costos.',
+            subtitle: 'Las etiquetas añaden formas más detalladas de clasificar los costos.',
             emptyTags: {
                 title: 'No has creado ninguna etiqueta',
-                subtitle: 'Agregue una etiqueta para realizar un seguimiento de proyectos, ubicaciones, departamentos y más.',
+                subtitle: 'Añade una etiqueta para realizar el seguimiento de proyectos, ubicaciones, departamentos y otros.',
             },
         },
         emptyWorkspace: {
