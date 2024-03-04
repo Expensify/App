@@ -200,7 +200,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                         id: Number(accountID),
                     },
                 ],
-                pendingAction: pendingVisibleChatMember?.pendingAction ?? undefined,
+                pendingAction: pendingVisibleChatMember?.pendingAction,
             });
         });
 

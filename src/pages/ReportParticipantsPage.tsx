@@ -53,7 +53,7 @@ const getAllParticipants = (
             const pendingVisibleChatMember = report?.pendingVisibleChatMembers?.find((member) => member.accountID === accountID.toString());
             return {
                 alternateText: userLogin,
-                pendingAction: pendingVisibleChatMember?.pendingAction ?? undefined,
+                pendingAction: pendingVisibleChatMember?.pendingAction,
                 displayName,
                 accountID: userPersonalDetail?.accountID ?? accountID,
                 icons: [
