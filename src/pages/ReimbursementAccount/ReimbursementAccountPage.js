@@ -278,7 +278,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     }
 
     function shouldClearReimbursementAccount() {
-        return backTo !== ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)
+        return backTo !== ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID);
     }
 
     useEffect(
