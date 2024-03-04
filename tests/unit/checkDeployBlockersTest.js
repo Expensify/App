@@ -1,10 +1,10 @@
 /**
  * @jest-environment node
  */
-const _ = require('underscore');
-const core = require('@actions/core');
-const GithubUtils = require('../../.github/libs/GithubUtils');
-const run = require('../../.github/actions/javascript/checkDeployBlockers/checkDeployBlockers');
+import * as core from '@actions/core';
+import _ from 'underscore';
+import run from '../../.github/actions/javascript/checkDeployBlockers/checkDeployBlockers';
+import GithubUtils from '../../.github/libs/GithubUtils';
 
 // Static mock function for core.getInput
 const mockGetInput = jest.fn().mockImplementation((arg) => {
