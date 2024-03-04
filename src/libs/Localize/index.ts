@@ -118,9 +118,13 @@ function translateLocal<TKey extends TranslationPaths>(phrase: TKey, ...variable
     const key = `${phrase}_${preferredLocale}`;
     const isVariablesEmpty = variables.length === 0;
 
-    // If the phrase is already translated and there are no variables, return the translated value
-    if (translatedValues.has(key) && isVariablesEmpty) {
-        return translatedValues.get(key) as string;
+    // Directly access and assign the translated value from the cache, instead of
+    // going through map.has() and map.get() to avoid multiple lookups.
+    const valueFromCache = translatedValues.get(key);
+
+    // If the phrase is already translated, return the translated value
+    if (valueFromCache) {
+        return valueFromCache;
     }
     const translatedText = translate(preferredLocale, phrase, ...variables);
 
