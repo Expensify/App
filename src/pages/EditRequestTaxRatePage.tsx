@@ -28,7 +28,6 @@ function EditRequestTaxRatePage({defaultTaxRate, policyID, onSubmit}: EditReques
                 <>
                     <HeaderWithBackButton title={translate('iou.taxRate')} />
                     <TaxPicker
-                        // @ts-expect-error We need to Migrate MoneyRequestAmountForm to TSC for this to work.
                         selectedTaxRate={defaultTaxRate}
                         policyID={policyID}
                         insets={insets}
