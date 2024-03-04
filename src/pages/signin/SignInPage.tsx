@@ -254,7 +254,6 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
             testID={SignInPageInner.displayName}
         >
             <SignInPageLayout
-                account={account ?? {}}
                 welcomeHeader={welcomeHeader}
                 welcomeText={welcomeText}
                 shouldShowWelcomeHeader={shouldShowWelcomeHeader || !shouldUseNarrowLayout}

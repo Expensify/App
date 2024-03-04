@@ -22,7 +22,6 @@ import type {SignInPageLayoutProps, SignInPageLayoutRef} from './types';
 
 function SignInPageLayout(
     {
-        account,
         customHeadline,
         customHeroBody,
         shouldShowWelcomeHeader = false,
@@ -130,10 +129,7 @@ function SignInPageLayout(
                                         customHeadline={customHeadline}
                                         customHeroBody={customHeroBody}
                                     />
-                                    <Footer
-                                        account={account}
-                                        navigateFocus={navigateFocus}
-                                    />
+                                    <Footer navigateFocus={navigateFocus} />
                                 </View>
                             </View>
                         </View>
@@ -164,10 +160,7 @@ function SignInPageLayout(
                         </SignInPageContent>
                     </View>
                     <View style={[styles.flex0]}>
-                        <Footer
-                            account={account}
-                            navigateFocus={navigateFocus}
-                        />
+                        <Footer navigateFocus={navigateFocus} />
                     </View>
                 </ScrollView>
             )}

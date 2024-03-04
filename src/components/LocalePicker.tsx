@@ -13,14 +13,14 @@ import Picker from './Picker';
 import type {PickerSize} from './Picker/types';
 
 type LocalePickerOnyxProps = {
+    /** The details about the account that the user is signing in with */
+    account: OnyxEntry<Account>;
+
     /** Indicates which locale the user currently has selected */
     preferredLocale: OnyxEntry<Locale>;
 };
 
 type LocalePickerProps = LocalePickerOnyxProps & {
-    /** The details about the account that the user is signing in with */
-    account: Account;
-
     /** Indicates size of a picker component and whether to render the label or not */
     size?: PickerSize;
 };
@@ -35,7 +35,7 @@ function LocalePicker({account, preferredLocale = CONST.LOCALES.DEFAULT, size = 
         keyForList: language,
         isSelected: preferredLocale === language,
     }));
-    const shouldDisablePicker = AccountUtils.isValidateCodeFormSubmitting(account);
+    const shouldDisablePicker = AccountUtils.isValidateCodeFormSubmitting(account ?? {});
 
     return (
         <Picker
@@ -62,6 +62,9 @@ function LocalePicker({account, preferredLocale = CONST.LOCALES.DEFAULT, size = 
 LocalePicker.displayName = 'LocalePicker';
 
 export default withOnyx<LocalePickerProps, LocalePickerOnyxProps>({
+    account: {
+        key: ONYXKEYS.ACCOUNT,
+    },
     preferredLocale: {
         key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     },

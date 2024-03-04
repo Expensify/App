@@ -1,5 +1,4 @@
 import type React from 'react';
-import type {Account} from '@src/types/onyx';
 
 type SignInPageLayoutProps = {
     /** The children to show inside the layout */
@@ -24,9 +23,6 @@ type SignInPageLayoutProps = {
 
     /** Override the smaller hero body copy below the headline */
     customHeroBody?: string;
-
-    /** The details about the account that the user is signing in with */
-    account: Account;
 
     navigateFocus?: () => void;
 };

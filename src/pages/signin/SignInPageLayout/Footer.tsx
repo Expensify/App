@@ -19,13 +19,9 @@ import Socials from '@pages/signin/Socials';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {Account} from '@src/types/onyx';
 import type {SignInPageLayoutProps} from './types';
 
-type FooterProps = Pick<SignInPageLayoutProps, 'navigateFocus'> & {
-    /** The details about the account that the user is signing in with */
-    account: Account;
-};
+type FooterProps = Pick<SignInPageLayoutProps, 'navigateFocus'>;
 
 type FooterColumnRow = (LinkProps | PressProps) & {
     translationPath: TranslationPaths;
@@ -147,7 +143,7 @@ const columns = ({navigateFocus = () => {}}: Pick<FooterProps, 'navigateFocus'>)
     },
 ];
 
-function Footer({account, navigateFocus}: FooterProps) {
+function Footer({navigateFocus}: FooterProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -213,7 +209,7 @@ function Footer({account, navigateFocus}: FooterProps) {
                                     )}
                                     {i === 3 && (
                                         <View style={styles.mv4}>
-                                            <Licenses account={account} />
+                                            <Licenses />
                                         </View>
                                     )}
                                 </View>
