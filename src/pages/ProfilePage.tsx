@@ -78,6 +78,7 @@ function ProfilePage({personalDetails, route, session, report, reports}: Profile
     const details: PersonalDetails | EmptyObject = personalDetails?.[accountID] ?? (ValidationUtils.isValidAccountRoute(accountID) ? {} : {isLoading: false, accountID: 0, avatar: ''});
 
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const avatar = details?.avatar || UserUtils.getDefaultAvatar(); // we can have an empty string and in this case, we need to show the default avatar
     const fallbackIcon = details?.fallbackIcon ?? '';
     const login = details?.login ?? '';
