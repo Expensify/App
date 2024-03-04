@@ -93,7 +93,7 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, 
                         boldStyle
                         sections={sections}
                         value={searchValue}
-                        onSelectRow={(option: Record<string, string>) => onSubmit({[fieldID]: option.text})}
+                        onSelectRow={(option: Record<string, string>) => onSubmit({[fieldID]: fieldValue === option.text ? '' : option.text})}
                         onChangeText={setSearchValue}
                         highlightSelectedOptions
                         isRowMultilineSupported

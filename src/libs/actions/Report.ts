@@ -1611,7 +1611,7 @@ function updateReportField(reportID: string, reportField: PolicyReportField, pre
         },
     ];
 
-    if (reportField.type === 'dropdown') {
+    if (reportField.type === 'dropdown' && reportField.value) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.RECENTLY_USED_REPORT_FIELDS,
@@ -1639,7 +1639,7 @@ function updateReportField(reportID: string, reportField: PolicyReportField, pre
         },
     ];
 
-    if (reportField.type === 'dropdown') {
+    if (reportField.type === 'dropdown' && reportField.value) {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.RECENTLY_USED_REPORT_FIELDS,
