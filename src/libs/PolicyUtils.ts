@@ -183,7 +183,7 @@ function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<PolicyTagLi
 
     return Object.values(policyTagList)
         .filter((policyTagListValue) => policyTagListValue !== null)
-        .sort((a, b) => a.orderWeight - b.orderWeight);
+        .sort((tagA, tagB) => tagA.orderWeight - tagB.orderWeight);
 }
 
 /**
