@@ -46,7 +46,6 @@ function ThirdPartySignInPage({account, signInProvider}: ThirdPartySignInPagePro
                 </View>
             ) : (
                 <SignInPageLayout
-                    account={account ?? {}}
                     welcomeHeader={translate('welcomeText.getStarted')}
                     shouldShowWelcomeHeader
                 >
