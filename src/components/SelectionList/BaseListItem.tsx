@@ -4,6 +4,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import useHover from '@hooks/useHover';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,6 +32,7 @@ function BaseListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {hovered, bind} = useHover();
 
     const rightHandSideComponentRender = () => {
         if (canSelectMultiple || !rightHandSideComponent) {
@@ -60,60 +62,59 @@ function BaseListItem<TItem extends ListItem>({
             errorRowStyles={styles.ph5}
         >
             <PressableWithFeedback
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...bind}
                 onPress={() => onSelectRow(item)}
                 disabled={isDisabled}
                 accessibilityLabel={item.text}
                 role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}
-                hoverStyle={styles.hoveredComponentBG}
+                hoverStyle={!item.isSelected && styles.hoveredComponentBG}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
                 nativeID={keyForList}
                 style={pressableStyle}
             >
-                {({hovered}) => (
-                    <>
-                        <View style={wrapperStyle}>
-                            {canSelectMultiple && (
-                                <PressableWithFeedback
-                                    accessibilityLabel={item.text}
-                                    role={CONST.ROLE.BUTTON}
-                                    onPress={handleCheckboxPress}
-                                    style={StyleUtils.getCheckboxPressableStyle()}
-                                >
-                                    <View style={selectMultipleStyle}>
-                                        {item.isSelected && (
-                                            <Icon
-                                                src={Expensicons.Checkmark}
-                                                fill={theme.textLight}
-                                                height={14}
-                                                width={14}
-                                            />
-                                        )}
-                                    </View>
-                                </PressableWithFeedback>
-                            )}
+                <View style={wrapperStyle}>
+                    {canSelectMultiple && (
+                        <PressableWithFeedback
+                            accessibilityLabel={item.text}
+                            role={CONST.ROLE.BUTTON}
+                            disabled={isDisabled}
+                            onPress={handleCheckboxPress}
+                            style={StyleUtils.getCheckboxPressableStyle()}
+                        >
+                            <View style={selectMultipleStyle}>
+                                {item.isSelected && (
+                                    <Icon
+                                        src={Expensicons.Checkmark}
+                                        fill={theme.textLight}
+                                        height={14}
+                                        width={14}
+                                    />
+                                )}
+                            </View>
+                        </PressableWithFeedback>
+                    )}
 
-                            {typeof children === 'function' ? children(hovered) : children}
+                    {typeof children === 'function' ? children(hovered) : children}
 
-                            {!canSelectMultiple && item.isSelected && !rightHandSideComponent && (
-                                <View
-                                    style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
-                                    accessible={false}
-                                >
-                                    <View>
-                                        <Icon
-                                            src={Expensicons.Checkmark}
-                                            fill={theme.success}
-                                        />
-                                    </View>
-                                </View>
-                            )}
-                            {rightHandSideComponentRender()}
+                    {!canSelectMultiple && item.isSelected && !rightHandSideComponent && (
+                        <View
+                            style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
+                            accessible={false}
+                        >
+                            <View>
+                                <Icon
+                                    src={Expensicons.Checkmark}
+                                    fill={theme.success}
+                                />
+                            </View>
                         </View>
-                        {FooterComponent}
-                    </>
-                )}
+                    )}
+                    {rightHandSideComponentRender()}
+                </View>
+                {FooterComponent}
             </PressableWithFeedback>
         </OfflineWithFeedback>
     );
