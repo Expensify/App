@@ -562,7 +562,6 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
     API.write(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, params, {optimisticData, failureData, successData});
 }
 
-
 function setWorkspacePayer(policyID: string, reimburserEmail: string) {
     const policy = ReportUtils.getPolicy(policyID);
 

@@ -168,7 +168,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
             return;
         }
 
-        if (policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
+        if (policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
             return;
         }
 
@@ -181,7 +181,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
         () =>
             (isEmptyObject(policy) && !isLoadingReportData) ||
             PolicyUtils.isPendingDeletePolicy(policy) ||
-            policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+            policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
         [policy, isLoadingReportData],
     );
 
