@@ -122,15 +122,13 @@ function getDistanceMerchant(
         return translate('iou.routePending');
     }
 
-    const distanceInUnits = getRoundedDistanceInUnits(distanceInMeters, unit);
-    const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
+    const formattedDistance = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate);
     const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
-    const unitString = distanceInUnits === '1' ? singularDistanceUnit : distanceUnit;
     const ratePerUnit = PolicyUtils.getUnitRateValue({rate}, toLocaleDigit);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const currencySymbol = CurrencyUtils.getCurrencySymbol(currency) || `${currency} `;
 
-    return `${distanceInUnits} ${unitString} @ ${currencySymbol}${ratePerUnit} / ${singularDistanceUnit}`;
+    return `${formattedDistance} @ ${currencySymbol}${ratePerUnit} / ${singularDistanceUnit}`;
 }
 
 /**
@@ -147,4 +145,4 @@ function getDistanceRequestAmount(distance: number, unit: Unit, rate: number): n
     return Math.round(roundedDistance * rate);
 }
 
-export default {getDefaultMileageRate, getDistanceForDisplay, getDistanceMerchant, getDistanceRequestAmount};
+export default {getDefaultMileageRate, getDistanceMerchant, getDistanceRequestAmount};
