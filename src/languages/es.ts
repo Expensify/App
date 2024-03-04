@@ -1810,10 +1810,6 @@ export default {
                 title: 'Tasas de distancia',
                 subtitle: 'Agregar, actualizar y hacer cumplir las tarifas.',
             },
-            expensifyCard: {
-                title: 'Tarjeta de expensas',
-                subtitle: 'Obtener ideas y control sobre el gasto.',
-            },
             workflows: {
                 title: 'Flujos de trabajo',
                 subtitle: 'Configure cómo se aprueba y paga el gasto.',

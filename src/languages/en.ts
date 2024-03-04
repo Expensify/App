@@ -1786,10 +1786,6 @@ export default {
                 title: 'Distance rates',
                 subtitle: 'Add, update and enforce rates.',
             },
-            expensifyCard: {
-                title: 'Expensify card',
-                subtitle: 'Gain insights and control over spend.',
-            },
             workflows: {
                 title: 'Workflows',
                 subtitle: 'Configure how spend is approved and paid.',

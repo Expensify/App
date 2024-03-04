@@ -38,16 +38,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 pendingAction: undefined,
             },
             {
-                icon: Illustrations.HandCard,
-                title: translate('workspace.moreFeatures.expensifyCard.title'),
-                subtitle: translate('workspace.moreFeatures.expensifyCard.subtitle'),
-                onToggle: (isEnabled: boolean) => {
-                    console.log('isEnabled', isEnabled);
-                },
-                isActive: false,
-                pendingAction: undefined,
-            },
-            {
                 icon: Illustrations.Workflows,
                 title: translate('workspace.moreFeatures.workflows.title'),
                 subtitle: translate('workspace.moreFeatures.workflows.subtitle'),
