@@ -145,7 +145,7 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
                     </View>
-                    {categoryList.length === 0 && isLoading && (
+                    {isLoading && (
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={[styles.flex1]}
@@ -159,7 +159,7 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                             subtitle={translate('workspace.categories.emptyCategories.subtitle')}
                         />
                     )}
-                    {categoryList.length > 0 && !isLoading && (
+                    {categoryList.length > 0 && (
                         <SelectionList
                             canSelectMultiple
                             sections={[{data: categoryList, indexOffset: 0, isDisabled: false}]}
