@@ -20,6 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Account} from '@src/types/onyx';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 type LogInWithShortLivedAuthTokenPageOnyxProps = {
     /** The details about the account that the user is signing in with */
@@ -40,6 +41,11 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
 
         if (!account?.isLoading && authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT) {
             Session.signInWithSupportAuthToken(shortLivedAuthToken);
+            Navigation.isNavigationReady().then(() => {
+                // We must call goBack() to remove the /transition route from history
+                Navigation.goBack();
+                Navigation.navigate(ROUTES.HOME);
+            });
             return;
         }
 
