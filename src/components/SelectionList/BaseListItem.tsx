@@ -78,7 +78,7 @@ function BaseListItem<TItem extends ListItem>({
                 <View style={wrapperStyle}>
                     {canSelectMultiple && (
                         <PressableWithFeedback
-                            accessibilityLabel={item.text}
+                            accessibilityLabel={item.text ?? ''}
                             role={CONST.ROLE.BUTTON}
                             disabled={isDisabled}
                             onPress={handleCheckboxPress}
