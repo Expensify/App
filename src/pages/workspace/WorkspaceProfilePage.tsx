@@ -86,8 +86,9 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
         }
 
         Policy.deleteWorkspace(policy?.id, policyName);
-        Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
-        Navigation.navigateWithSwitchPolicyID({route: ROUTES.ALL_SETTINGS});
+
+        PolicyUtils.goBackFromInvalidPolicy();
+
         setIsDeleteModalOpen(false);
     }, [policy?.id, policyName]);
     return (
