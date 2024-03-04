@@ -23,7 +23,7 @@ import SCREENS from '@src/SCREENS';
 // This is not translated because it is a message coming from concierge, which only supports english
 const messageCopy = {
     [CONST.INTRO_CHOICES.TRACK]:
-        'Here\'s how to start tracking business spend for taxes:\n' +
+        "Here's how to start tracking business spend for taxes:\n" +
         '\n' +
         '1. Click the green *+* > *New workspace*.\n' +
         '2. Your new workspace is now active.\n' +
