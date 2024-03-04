@@ -6,7 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MessagesRow from '@components/MessagesRow';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem, Section} from '@components/SelectionList/types';
@@ -172,7 +172,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
             return;
         }
 
-        Policy.setWorkspacePayer(policy?.id ?? '', authorizedPayer);
+        Policy.setWorkspacePayer(policy?.id ?? '', 'authorizedPayer');
         Navigation.goBack();
     };
 
@@ -203,22 +203,24 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
                             subtitle={policyName}
                             onBackButtonPress={Navigation.goBack}
                         />
-                        <MessagesRow
-                            type="error"
-                            messages={ErrorUtils.getLatestErrorField(policy ?? {}, 'reimburserEmail')}
-                            containerStyles={[styles.mh5, styles.mv3]}
+                        <OfflineWithFeedback
+                            pendingAction={policy?.pendingFields?.reimburserEmail}
+                            errors={ErrorUtils.getEarliestErrorField(policy ?? {}, 'reimburserEmail')}
+                            errorRowStyles={[styles.mh5, styles.mv3]}
                             onClose={() => Policy.clearWorkspaceAuthorizedPayerEmailError(route.params.policyID)}
-                        />
-                        <SelectionList
-                            sections={sections}
-                            textInputLabel={translate('optionsSelector.findMember')}
-                            textInputValue={searchTerm}
-                            onChangeText={setSearchTerm}
-                            headerMessage={headerMessage}
-                            ListItem={UserListItem}
-                            onSelectRow={setPolicyAuthorizedPayer}
-                            showScrollIndicator
-                        />
+                            shouldShowErrorOnTop
+                        >
+                            <SelectionList
+                                sections={sections}
+                                textInputLabel={translate('optionsSelector.findMember')}
+                                textInputValue={searchTerm}
+                                onChangeText={setSearchTerm}
+                                headerMessage={headerMessage}
+                                ListItem={UserListItem}
+                                onSelectRow={setPolicyAuthorizedPayer}
+                                showScrollIndicator
+                            />
+                        </OfflineWithFeedback>
                     </ScreenWrapper>
                 </FullPageNotFoundView>
             </PaidPolicyAccessOrNotFoundWrapper>
