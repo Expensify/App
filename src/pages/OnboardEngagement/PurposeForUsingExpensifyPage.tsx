@@ -37,7 +37,7 @@ const messageCopy = {
         '\n' +
         'Be sure to track all of your expenses in your new workspace to keep everything organized. Let me know how it goes!',
     [CONST.INTRO_CHOICES.SUBMIT]:
-        'Here\'s how to submit expenses for reimbursement:\n' +
+        "Here's how to submit expenses for reimbursement:\n" +
         '\n' +
         '1. Click the green *+* > *Request money*.\n' +
         '2. Add an expense or scan a receipt.\n' +
