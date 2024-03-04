@@ -40,7 +40,7 @@ const propTypes = {
     isActiveReport: PropTypes.func.isRequired,
 };
 
-function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport, isCreateMenuOpen, activePolicy, reportIDsWithErrors}) {
+function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport, isCreateMenuOpen, reportIDsWithErrors}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const modal = useRef({});
