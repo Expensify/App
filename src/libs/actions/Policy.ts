@@ -25,7 +25,7 @@ import type {
     SetWorkspaceAutoReportingFrequencyParams,
     SetWorkspaceAutoReportingMonthlyOffsetParams,
     SetWorkspaceAutoReportingParams,
-    SetWorkspaceReimbursementParams,
+    SetWorkspacePayerParams,
     UpdateWorkspaceAvatarParams,
     UpdateWorkspaceCustomUnitAndRateParams,
     UpdateWorkspaceDescriptionParams,
@@ -562,12 +562,8 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
     API.write(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, params, {optimisticData, failureData, successData});
 }
 
-/**
- *
- * @param policyID
- * @param reimburserEmail
- */
-function setWorkspaceReimbursement(policyID: string, reimburserEmail: string) {
+
+function setWorkspacePayer(policyID: string, reimburserEmail: string) {
     const policy = ReportUtils.getPolicy(policyID);
 
     const currentPolicyReimburserEmail = policy.reimburserEmail;
@@ -607,24 +603,15 @@ function setWorkspaceReimbursement(policyID: string, reimburserEmail: string) {
         },
     ];
 
-    const params: SetWorkspaceReimbursementParams = {policyID, reimburserEmail};
+    const params: SetWorkspacePayerParams = {policyID, reimburserEmail};
 
-    API.write(WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT, params, {optimisticData, failureData, successData});
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_PAYER, params, {optimisticData, failureData, successData});
 }
 
-/**
- * clear the workspace reimbursement error while setting the authorized payer
- * @param policyID
- */
-function clearWorkspaceReimbursementError(policyID: string) {
+function clearWorkspaceAuthorizedPayerEmailError(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {reimburserEmail: null}});
 }
 
-/**
- * set the workspace reimbursement choice
- * @param policyID
- * @param reimbursementChoice
- */
 function setReimbursementFromChoice(policyID: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>) {
     const policy = ReportUtils.getPolicy(policyID);
 
@@ -2646,7 +2633,7 @@ export {
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,
     clearCategoryErrors,
-    setWorkspaceReimbursement,
-    clearWorkspaceReimbursementError,
+    setWorkspacePayer,
+    clearWorkspaceAuthorizedPayerEmailError,
     setReimbursementFromChoice,
 };

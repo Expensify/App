@@ -172,7 +172,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
             return;
         }
 
-        Policy.setWorkspaceReimbursement(policy?.id ?? '', authorizedPayer);
+        Policy.setWorkspacePayer(policy?.id ?? '', authorizedPayer);
         Navigation.goBack();
     };
 
@@ -207,7 +207,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
                             type="error"
                             messages={ErrorUtils.getLatestErrorField(policy ?? {}, 'reimburserEmail')}
                             containerStyles={[styles.mh5, styles.mv3]}
-                            onClose={() => Policy.clearWorkspaceReimbursementError(route.params.policyID)}
+                            onClose={() => Policy.clearWorkspaceAuthorizedPayerEmailError(route.params.policyID)}
                         />
                         <SelectionList
                             sections={sections}
