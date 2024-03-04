@@ -447,9 +447,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                         )}
                                     </View>
                                 )}
-                                <View style={listHeaderWrapperStyle}>
-                                    {!headerMessage && !canSelectMultiple && customListHeader}
-                                </View>
+                                <View style={listHeaderWrapperStyle}>{!headerMessage && !canSelectMultiple && customListHeader}</View>
                                 <SectionList
                                     ref={listRef}
                                     sections={sections}

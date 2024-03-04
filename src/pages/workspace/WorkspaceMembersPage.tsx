@@ -324,12 +324,12 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 keyForList: accountIDKey,
                 accountID,
                 isSelected,
-                isDisabled: 
-                    isPolicyAdmin && (
-                    accountID === session?.accountID ||
-                    accountID === policy?.ownerAccountID ||
-                    policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-                    !isEmptyObject(policyMember.errors)),
+                isDisabled:
+                    isPolicyAdmin &&
+                    (accountID === session?.accountID ||
+                        accountID === policy?.ownerAccountID ||
+                        policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+                        !isEmptyObject(policyMember.errors)),
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
@@ -520,7 +520,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                                 Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
                                 return;
                             }
-                            toggleUser(item.accountID)
+                            toggleUser(item.accountID);
                         }}
                         onSelectAll={() => toggleAllUsers(data)}
                         onDismissError={dismissError}
