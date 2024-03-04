@@ -46,11 +46,29 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, 
     const [headerMessage, setHeaderMessage] = useState('');
 
     const sections = useMemo(() => {
-        const filteredRecentOptions = recentlyUsedOptions.filter((option) => option.toLowerCase().includes(searchValue.toLowerCase()));
-        const filteredRestOfOptions = fieldOptions.filter((option) => !filteredRecentOptions.includes(option) && option.toLowerCase().includes(searchValue.toLowerCase()));
+        const filteredRecentOptions = recentlyUsedOptions.filter((option) => option.toLowerCase().includes(searchValue.toLowerCase()) && option !== fieldValue);
+        const filteredRestOfOptions = fieldOptions.filter(
+            (option) => option !== fieldValue && !filteredRecentOptions.includes(option) && option.toLowerCase().includes(searchValue.toLowerCase()),
+        );
         setHeaderMessage(!filteredRecentOptions.length && !filteredRestOfOptions.length ? translate('common.noResultsFound') : '');
 
         return [
+            ...(fieldValue
+                ? [
+                      {
+                          title: '',
+                          shouldShow: !!false,
+                          data: [
+                              {
+                                  text: fieldValue,
+                                  keyForList: fieldValue,
+                                  searchText: fieldValue,
+                                  tooltipText: fieldValue,
+                              },
+                          ],
+                      },
+                  ]
+                : []),
             {
                 title: translate('common.recents'),
                 shouldShow: filteredRecentOptions.length > 0,
