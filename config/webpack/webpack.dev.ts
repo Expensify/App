@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import path from 'path';
-import portfinder from 'portfinder';
-import {TimeAnalyticsPlugin} from 'time-analytics-webpack-plugin';
-import {DefinePlugin} from 'webpack';
-import {merge} from 'webpack-merge';
-import getCommonConfig from './webpack.common';
+const path = require('path');
+const portfinder = require('portfinder');
+const {TimeAnalyticsPlugin} = require('time-analytics-webpack-plugin');
+const {DefinePlugin} = require('webpack');
+const {merge} = require('webpack-merge');
+const getCommonConfig = require('./webpack.common');
 
 const BASE_PORT = 8082;
 

@@ -1,6 +1,6 @@
-import path from 'path';
-import _ from 'underscore';
-import webpack from 'webpack';
+const path = require('path');
+const _ = require('underscore');
+const webpack = require('webpack');
 
 const desktopDependencies = require('../../desktop/package.json').dependencies;
 const getCommonConfig = require('./webpack.common');
@@ -10,8 +10,8 @@ const getCommonConfig = require('./webpack.common');
  * 1. electron-main - the core that serves the app content
  * 2. web - the app content that would be rendered in electron
  * Everything is placed in desktop/dist and ready for packaging
- * @param {Object} env
- * @returns {webpack.Configuration[]}
+ * @param env
+ * @returns
  */
 module.exports = (env) => {
     const rendererConfig = getCommonConfig({...env, platform: 'desktop'});

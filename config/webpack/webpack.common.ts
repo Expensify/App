@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import PreloadWebpackPlugin from '@vue/preload-webpack-plugin';
 import {CleanWebpackPlugin} from 'clean-webpack-plugin';
 import CopyPlugin from 'copy-webpack-plugin';
