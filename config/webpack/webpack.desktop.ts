@@ -1,6 +1,6 @@
-const path = require('path');
-const webpack = require('webpack');
-const _ = require('underscore');
+import path from 'path';
+import _ from 'underscore';
+import webpack from 'webpack';
 
 const desktopDependencies = require('../../desktop/package.json').dependencies;
 const getCommonConfig = require('./webpack.common');
