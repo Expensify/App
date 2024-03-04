@@ -5,7 +5,7 @@ import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {findNodeHandle, Keyboard, NativeModules, View} from 'react-native';
-import type {NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
+import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
@@ -21,7 +21,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as SuggestionsAction from '@libs/actions/SuggestionsActions';
 import * as Browser from '@libs/Browser';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
@@ -42,6 +41,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import ComposerWithSuggestionsEdit from './ReportActionCompose/ComposerWithSuggestionsEdit/ComposerWithSuggestionsEdit';
+import {useSuggestionsContext} from './ReportActionCompose/ComposerWithSuggestionsEdit/SuggestionsContext';
+import type {SuggestionsRef} from './ReportActionCompose/ReportActionCompose';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -81,6 +82,7 @@ function ReportActionItemMessageEdit(
     const {translate, preferredLocale} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const {updateCurrentActiveSuggestionsRef, clearActiveSuggestionsRef} = useSuggestionsContext();
 
     const getInitialDraft = () => {
         if (draftMessage === action?.message?.[0].html) {
@@ -125,6 +127,7 @@ function ReportActionItemMessageEdit(
     const insertedEmojis = useRef<Emoji[]>([]);
     const draftRef = useRef(draft);
     const containerRef = useRef<View>(null);
+    const suggestionsRef = useRef<SuggestionsRef>(null);
 
     useEffect(() => {
         if (ReportActionsUtils.isDeletedAction(action) || (action.message && draftMessage === action.message[0].html)) {
@@ -257,7 +260,7 @@ function ReportActionItemMessageEdit(
             if (emojis?.length > 0) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
                 if (newEmojis?.length > 0) {
-                    SuggestionsAction.resetSuggestions();
+                    suggestionsRef.current?.resetSuggestions();
                     insertedEmojis.current = [...insertedEmojis.current, ...newEmojis];
                     debouncedUpdateFrequentlyUsedEmojis();
                 }
@@ -352,7 +355,7 @@ function ReportActionItemMessageEdit(
      */
     const triggerSaveOrCancel = useCallback(
         (e: NativeSyntheticEvent<TextInputKeyPressEventData> | KeyboardEvent) => {
-            if (SuggestionsAction.triggerHotkeyActions(e)) {
+            if (suggestionsRef.current?.triggerHotkeyActions(e as KeyboardEvent)) {
                 return;
             }
 
@@ -379,7 +382,7 @@ function ReportActionItemMessageEdit(
     }, [textInputRef]);
 
     const measureContainer = useCallback(
-        (callback: () => void) => {
+        (callback: MeasureInWindowOnSuccessCallback) => {
             if (!containerRef.current) {
                 return;
             }
@@ -465,11 +468,15 @@ function ReportActionItemMessageEdit(
                                 if (!ReportActionContextMenu.isActiveReportAction(action.reportActionID)) {
                                     ReportActionContextMenu.clearActiveReportAction();
                                 }
+
+                                updateCurrentActiveSuggestionsRef(suggestionsRef.current, action.reportActionID);
                             }}
                             onBlur={(event: NativeSyntheticEvent<TextInputFocusEventData>) => {
                                 setIsFocused(false);
                                 // @ts-expect-error TODO: TextInputFocusEventData doesn't contain relatedTarget.
                                 const relatedTargetId = event.nativeEvent?.relatedTarget?.id;
+                                suggestionsRef.current?.resetSuggestions();
+                                clearActiveSuggestionsRef();
                                 if (relatedTargetId && [messageEditInput, emojiButtonID].includes(relatedTargetId)) {
                                     return;
                                 }
@@ -477,14 +484,14 @@ function ReportActionItemMessageEdit(
                             }}
                             selection={selection}
                             onSelectionChange={(e) => {
-                                SuggestionsAction.onSelectionChange(e);
+                                suggestionsRef.current?.onSelectionChange?.(e);
                                 setSelection(e.nativeEvent.selection);
                             }}
                             setValue={setDraft}
                             setSelection={setSelection}
                             isComposerFocused={!!textInputRef.current && textInputRef.current.isFocused()}
                             resetKeyboardInput={resetKeyboardInput}
-                            suggestionsRef={SuggestionsAction.suggestionsRef}
+                            suggestionsRef={suggestionsRef}
                             updateDraft={updateDraft}
                             measureParentContainer={measureContainer}
                         />

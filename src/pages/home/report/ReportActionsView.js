@@ -11,7 +11,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useInitialValue from '@hooks/useInitialValue';
 import usePrevious from '@hooks/usePrevious';
-import * as SuggestionsAction from '@libs/actions/SuggestionsActions';
 import compose from '@libs/compose';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import Performance from '@libs/Performance';
@@ -25,6 +24,7 @@ import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
+import {useSuggestionsContext} from './ReportActionCompose/ComposerWithSuggestionsEdit/SuggestionsContext';
 import reportActionPropTypes from './reportActionPropTypes';
 import ReportActionsList from './ReportActionsList';
 
@@ -88,6 +88,7 @@ const defaultProps = {
 function ReportActionsView(props) {
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
+    const {currentActiveSuggestionsRef} = useSuggestionsContext();
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
     const isFirstRender = useRef(true);
@@ -261,7 +262,12 @@ function ReportActionsView(props) {
                 report={props.report}
                 parentReportAction={props.parentReportAction}
                 onLayout={recordTimeToMeasureItemLayout}
-                onScroll={SuggestionsAction.updateShouldShowSuggestionMenuToFalse}
+                onScroll={() => {
+                    if (!currentActiveSuggestionsRef.current) {
+                        return;
+                    }
+                    currentActiveSuggestionsRef.current.updateShouldShowSuggestionMenuToFalse();
+                }}
                 sortedReportActions={props.reportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 loadOlderChats={loadOlderChats}

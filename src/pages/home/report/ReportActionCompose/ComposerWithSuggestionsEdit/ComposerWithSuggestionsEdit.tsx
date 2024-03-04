@@ -1,24 +1,26 @@
 import type {Dispatch, ForwardedRef, RefObject, SetStateAction} from 'react';
 import React, {useState} from 'react';
-import type {TextInput} from 'react-native';
+import type {MeasureInWindowOnSuccessCallback, TextInput} from 'react-native';
 import Composer from '@components/Composer';
 import type {ComposerProps} from '@components/Composer/types';
-import type {SuggestionsRef} from '@libs/actions/SuggestionsActions';
+import type {SuggestionsRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
 
-type ComposerWithSuggestionsEditProps = {
+type Selection = {
+    start: number;
+    end: number;
+};
+
+type ComposerWithSuggestionsEditProps = ComposerProps & {
     setValue: Dispatch<SetStateAction<string>>;
-    setSelection: Dispatch<
-        SetStateAction<{
-            start: number;
-            end: number;
-        }>
-    >;
+    setSelection: Dispatch<SetStateAction<Selection>>;
     resetKeyboardInput: () => void;
     isComposerFocused: boolean;
     suggestionsRef: RefObject<SuggestionsRef>;
     updateDraft: (newValue: string) => void;
-    measureParentContainer: (callback: () => void) => void;
+    measureParentContainer: (callback: MeasureInWindowOnSuccessCallback) => void;
+    value: string;
+    selection: Selection;
 };
 
 function ComposerWithSuggestionsEdit(
@@ -43,7 +45,7 @@ function ComposerWithSuggestionsEdit(
         updateDraft,
         measureParentContainer,
         id = undefined,
-    }: ComposerWithSuggestionsEditProps & ComposerProps,
+    }: ComposerWithSuggestionsEditProps,
     ref: ForwardedRef<TextInput>,
 ) {
     const [composerHeight, setComposerHeight] = useState(0);
@@ -74,7 +76,6 @@ function ComposerWithSuggestionsEdit(
 
             <Suggestions
                 ref={suggestionsRef}
-                // @ts-expect-error TODO: Remove this once Suggestions is migrated to TypeScript.
                 isComposerFullSize={false}
                 isComposerFocused={isComposerFocused}
                 updateComment={updateDraft}
