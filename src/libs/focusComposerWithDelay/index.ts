@@ -1,15 +1,12 @@
-import type {TextInput} from 'react-native';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
-import shouldSetSelectionRange from '@libs/shouldSetSelectionRange';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
-import type {FocusComposerWithDelay} from './types';
-
-const setSelectionRange = shouldSetSelectionRange();
+import setTextInputSelection from './setTextInputSelection';
+import type {FocusComposerWithDelay, InputType} from './types';
 
 /**
  * Create a function that focuses the composer.
  */
-function focusComposerWithDelay(textInput: TextInput | HTMLTextAreaElement | null): FocusComposerWithDelay {
+function focusComposerWithDelay(textInput: InputType | null): FocusComposerWithDelay {
     /**
      * Focus the text input
      * @param [shouldDelay] Impose delay before focusing the text input
@@ -25,11 +22,7 @@ function focusComposerWithDelay(textInput: TextInput | HTMLTextAreaElement | nul
         if (!shouldDelay) {
             textInput.focus();
             if (forceSetSelection) {
-                if (setSelectionRange) {
-                    (textInput as HTMLTextAreaElement).setSelectionRange(forceSetSelection.start, forceSetSelection.end);
-                } else {
-                    (textInput as TextInput).setSelection(forceSetSelection.start, forceSetSelection.end);
-                }
+                setTextInputSelection(textInput, forceSetSelection);
             }
             return;
         }
@@ -39,11 +32,7 @@ function focusComposerWithDelay(textInput: TextInput | HTMLTextAreaElement | nul
             }
             textInput.focus();
             if (forceSetSelection) {
-                if (setSelectionRange) {
-                    (textInput as HTMLTextAreaElement).setSelectionRange(forceSetSelection.start, forceSetSelection.end);
-                } else {
-                    (textInput as TextInput).setSelection(forceSetSelection.start, forceSetSelection.end);
-                }
+                setTextInputSelection(textInput, forceSetSelection);
             }
         });
     };

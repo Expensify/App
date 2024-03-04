@@ -1,3 +1,5 @@
+import type {TextInput} from 'react-native';
+
 type Selection = {
     start: number;
     end: number;
@@ -5,4 +7,6 @@ type Selection = {
 
 type FocusComposerWithDelay = (shouldDelay?: boolean, forceSetSelection?: Selection) => void;
 
-export type {Selection, FocusComposerWithDelay};
+type InputType = TextInput | HTMLTextAreaElement;
+
+export type {Selection, FocusComposerWithDelay, InputType};
