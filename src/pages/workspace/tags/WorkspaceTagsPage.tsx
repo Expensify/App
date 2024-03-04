@@ -49,8 +49,8 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
     const tagList = useMemo<PolicyForList[]>(
         () =>
             policyTagLists
-                .map((tagList) =>
-                    Object.values(tagList.tags).map((value) => ({
+                .map((policyTagList) =>
+                    Object.values(policyTagList.tags).map((value) => ({
                         value: value.name,
                         text: value.name,
                         keyForList: value.name,
