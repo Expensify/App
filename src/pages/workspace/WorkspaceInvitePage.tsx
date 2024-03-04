@@ -1,7 +1,7 @@
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
-import type {GestureResponderEvent, SectionListData} from 'react-native';
+import type {SectionListData} from 'react-native';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -235,9 +235,9 @@ function WorkspaceInvitePage({
         setSelectedOptions(newSelectedOptions);
     };
 
-    const validate = (options: OptionsListUtils.MemberForList[]): boolean => {
+    const validate = (): boolean => {
         const errors: Errors = {};
-        if (options.length <= 0) {
+        if (selectedOptions.length <= 0) {
             errors.noUserSelected = 'true';
         }
 
@@ -245,25 +245,15 @@ function WorkspaceInvitePage({
         return isEmptyObject(errors);
     };
 
-    const inviteUser = (e?: GestureResponderEvent | KeyboardEvent | undefined, option?: MemberForList) => {
-        const options = [...selectedOptions];
-        if (option && !options.length) {
-            const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option?.login);
-
-            if (option && !isOptionInList) {
-                toggleOption(option);
-                options.push(option);
-            }
-        }
-
-        if (!validate(options)) {
+    const inviteUser = () => {
+        if (!validate()) {
             return;
         }
 
         const invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs = {};
-        options.forEach((selectedOption) => {
-            const login = selectedOption.login ?? '';
-            const accountID = selectedOption.accountID ?? '';
+        selectedOptions.forEach((option) => {
+            const login = option.login ?? '';
+            const accountID = option.accountID ?? '';
             if (!login.toLowerCase().trim() || !accountID) {
                 return;
             }

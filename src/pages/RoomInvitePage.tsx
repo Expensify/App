@@ -2,7 +2,7 @@ import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
 import Str from 'expensify-common/lib/str';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {GestureResponderEvent, SectionListData} from 'react-native';
+import type {SectionListData} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -164,7 +164,7 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
         [selectedOptions],
     );
 
-    const validate = useCallback((options: ReportUtils.OptionData[]) => options.length > 0, []);
+    const validate = useCallback(() => selectedOptions.length > 0, [selectedOptions]);
 
     // Non policy members should not be able to view the participants of a room
     const reportID = report?.reportID;
@@ -172,40 +172,24 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
     const backRoute = useMemo(() => reportID && (isPolicyMember ? ROUTES.ROOM_MEMBERS.getRoute(reportID) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID)), [isPolicyMember, reportID]);
     const reportName = useMemo(() => ReportUtils.getReportName(report), [report]);
 
-    const inviteUsers = useCallback(
-        (e?: GestureResponderEvent | KeyboardEvent | undefined, option?: OptionsListUtils.MemberForList) => {
-            const options = [...selectedOptions];
-
-            // if we got
-            if (option && !options.length) {
-                const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option?.login);
-
-                if (option && !isOptionInList) {
-                    toggleOption(option);
-                    options.push(option);
-                }
-            }
-
-            if (!validate(options)) {
+    const inviteUsers = useCallback(() => {
+        if (!validate()) {
+            return;
+        }
+        const invitedEmailsToAccountIDs: PolicyUtils.MemberEmailsToAccountIDs = {};
+        selectedOptions.forEach((option) => {
+            const login = option.login ?? '';
+            const accountID = option.accountID;
+            if (!login.toLowerCase().trim() || !accountID) {
                 return;
             }
-
-            const invitedEmailsToAccountIDs: PolicyUtils.MemberEmailsToAccountIDs = {};
-            options.forEach((selectedOption) => {
-                const login = selectedOption.login ?? '';
-                const accountID = selectedOption.accountID;
-                if (!login.toLowerCase().trim() || !accountID) {
-                    return;
-                }
-                invitedEmailsToAccountIDs[login] = Number(accountID);
-            });
-            if (reportID) {
-                Report.inviteToRoom(reportID, invitedEmailsToAccountIDs);
-            }
-            Navigation.navigate(backRoute);
-        },
-        [selectedOptions, backRoute, reportID, validate, toggleOption],
-    );
+            invitedEmailsToAccountIDs[login] = Number(accountID);
+        });
+        if (reportID) {
+            Report.inviteToRoom(reportID, invitedEmailsToAccountIDs);
+        }
+        Navigation.navigate(backRoute);
+    }, [selectedOptions, backRoute, reportID, validate]);
 
     const headerMessage = useMemo(() => {
         const searchValue = searchTerm.trim().toLowerCase();
