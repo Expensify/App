@@ -324,11 +324,12 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 keyForList: accountIDKey,
                 accountID,
                 isSelected,
-                isDisabled:
+                isDisabled: 
+                    isPolicyAdmin && (
                     accountID === session?.accountID ||
                     accountID === policy?.ownerAccountID ||
                     policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-                    !isEmptyObject(policyMember.errors),
+                    !isEmptyObject(policyMember.errors)),
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
