@@ -68,32 +68,38 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, 
         return [
             {
                 shouldShow: false,
-                data: [{
-                    text: selectedValue,
-                    keyForList: selectedValue,
-                    searchText: selectedValue,
-                    tooltipText: selectedValue,
-                }],
+                data: [
+                    {
+                        text: selectedValue,
+                        keyForList: selectedValue,
+                        searchText: selectedValue,
+                        tooltipText: selectedValue,
+                    },
+                ],
             },
             {
                 title: translate('common.recents'),
                 shouldShow: recentlyUsedOptions.length > 0,
-                data: recentlyUsedOptions.filter((option) => option !== selectedValue).map((option) => ({
-                    text: option,
-                    keyForList: option,
-                    searchText: option,
-                    tooltipText: option,
-                })),
+                data: recentlyUsedOptions
+                    .filter((option) => option !== selectedValue)
+                    .map((option) => ({
+                        text: option,
+                        keyForList: option,
+                        searchText: option,
+                        tooltipText: option,
+                    })),
             },
             {
                 title: translate('common.all'),
                 shouldShow: fieldOptions.length > 0,
-                data: fieldOptions.filter((option) => option !== selectedValue).map((option) => ({
-                    text: option,
-                    keyForList: option,
-                    searchText: option,
-                    tooltipText: option,
-                })),
+                data: fieldOptions
+                    .filter((option) => option !== selectedValue)
+                    .map((option) => ({
+                        text: option,
+                        keyForList: option,
+                        searchText: option,
+                        tooltipText: option,
+                    })),
             },
         ];
     }, [fieldValue, fieldOptions, recentlyUsedOptions, searchValue, translate]);
