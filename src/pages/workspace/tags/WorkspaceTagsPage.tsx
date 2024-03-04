@@ -71,7 +71,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                     })),
                 )
                 .flat(),
-        [policyTags, selectedTags, styles.alignSelfCenter, styles.disabledText, styles.flexRow, styles.p1, styles.pl2, theme.icon, translate],
+        [policyTagLists, selectedTags, styles.alignSelfCenter, styles.disabledText, styles.flexRow, styles.p1, styles.pl2, theme.icon, translate],
     );
 
     const toggleTag = (tag: PolicyForList) => {
