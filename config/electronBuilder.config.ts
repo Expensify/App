@@ -2,25 +2,25 @@ const {version} = require('../package.json');
 
 const pullRequestNumber = process.env.PULL_REQUEST_NUMBER;
 
-const s3Bucket = {
+const s3Bucket: Record<string, string> = {
     production: 'expensify-cash',
     staging: 'staging-expensify-cash',
     adhoc: 'ad-hoc-expensify-cash',
 };
 
-const s3Path = {
+const s3Path: Record<string, string> = {
     production: '/',
     staging: '/',
     adhoc: process.env.PULL_REQUEST_NUMBER ? `/desktop/${pullRequestNumber}/` : '/',
 };
 
-const macIcon = {
+const macIcon: Record<string, string> = {
     production: './desktop/icon.png',
     staging: './desktop/icon-stg.png',
     adhoc: './desktop/icon-adhoc.png',
 };
 
-const isCorrectElectronEnv = ['production', 'staging', 'adhoc'].includes(process.env.ELECTRON_ENV);
+const isCorrectElectronEnv: boolean = ['production', 'staging', 'adhoc'].includes(process.env.ELECTRON_ENV ?? '');
 
 if (!isCorrectElectronEnv) {
     throw new Error('Invalid ELECTRON_ENV!');
@@ -37,7 +37,7 @@ module.exports = {
     },
     mac: {
         category: 'public.app-category.finance',
-        icon: macIcon[process.env.ELECTRON_ENV],
+        icon: process.env.ELECTRON_ENV ? macIcon[process.env.ELECTRON_ENV] : undefined,
         hardenedRuntime: true,
         entitlements: 'desktop/entitlements.mac.plist',
         entitlementsInherit: 'desktop/entitlements.mac.plist',
@@ -54,9 +54,9 @@ module.exports = {
     publish: [
         {
             provider: 's3',
-            bucket: s3Bucket[process.env.ELECTRON_ENV],
+            bucket: process.env.ELECTRON_ENV ? s3Bucket[process.env.ELECTRON_ENV] : undefined,
             channel: 'latest',
-            path: s3Path[process.env.ELECTRON_ENV],
+            path: process.env.ELECTRON_ENV ? s3Path[process.env.ELECTRON_ENV] : undefined,
         },
     ],
     files: ['dist', '!dist/www/{.well-known,favicon*}'],
