@@ -129,7 +129,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
     const accountMenuItemsData: Menu = useMemo(() => {
         const profileBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(loginList);
         const paymentCardList = fundList;
-
+        const signOutTranslationKey = Session.isSupportAuthToken() && Session.hasStashedSession() ? 'initialSettingsPage.restoreStashed' : 'initialSettingsPage.signOut';
         const defaultMenu: Menu = {
             sectionStyle: styles.accountSettingsSectionContainer,
             sectionTranslationKey: 'initialSettingsPage.account',
@@ -165,7 +165,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                     routeName: ROUTES.SETTINGS_SECURITY,
                 },
                 {
-                    translationKey: 'initialSettingsPage.signOut',
+                    translationKey: signOutTranslationKey,
                     icon: Expensicons.Exit,
                     action: () => {
                         signOut(false);

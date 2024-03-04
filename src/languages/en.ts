@@ -866,6 +866,7 @@ export default {
         },
         security: 'Security',
         signOut: 'Sign out',
+        restoreStashed: 'Restore stashed login',
         signOutConfirmationText: "You'll lose any offline changes if you sign-out.",
         versionLetter: 'v',
         readTheTermsAndPrivacy: {
