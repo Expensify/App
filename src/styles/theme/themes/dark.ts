@@ -28,6 +28,7 @@ const darkTheme = {
     buttonDefaultBG: colors.productDark400,
     buttonHoveredBG: colors.productDark500,
     buttonPressedBG: colors.productDark600,
+    buttonSuccessText: colors.productLight100,
     danger: colors.red,
     dangerHover: colors.redHover,
     dangerPressed: colors.redHover,
