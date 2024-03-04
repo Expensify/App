@@ -2,13 +2,14 @@
  * Utility for formatting text for result outputs.
  * from: https://github.com/callstack/reassure/blob/main/packages/reassure-compare/src/utils/format.ts
  */
+import type {Entry} from './console';
 
-const formatPercent = (value) => {
+const formatPercent = (value: number): string => {
     const valueAsPercent = value * 100;
     return `${valueAsPercent.toFixed(1)}%`;
 };
 
-const formatPercentChange = (value) => {
+const formatPercentChange = (value: number): string => {
     const absValue = Math.abs(value);
 
     // Round to zero
@@ -19,9 +20,9 @@ const formatPercentChange = (value) => {
     return `${value >= 0 ? '+' : '-'}${formatPercent(absValue)}`;
 };
 
-const formatDuration = (duration) => `${duration.toFixed(3)} ms`;
+const formatDuration = (duration: number): string => `${duration.toFixed(3)} ms`;
 
-const formatDurationChange = (value) => {
+const formatDurationChange = (value: number): string => {
     if (value > 0) {
         return `+${formatDuration(value)}`;
     }
@@ -31,7 +32,7 @@ const formatDurationChange = (value) => {
     return '0 ms';
 };
 
-const formatChange = (value) => {
+const formatChange = (value: number): string => {
     if (value > 0) {
         return `+${value}`;
     }
@@ -41,7 +42,7 @@ const formatChange = (value) => {
     return '0';
 };
 
-const getDurationSymbols = (entry) => {
+const getDurationSymbols = (entry: Entry): string => {
     if (!entry.isDurationDiffOfSignificance) {
         if (entry.relativeDurationDiff > 0.15) {
             return '🟡';
@@ -68,7 +69,7 @@ const getDurationSymbols = (entry) => {
     return '';
 };
 
-const formatDurationDiffChange = (entry) => {
+const formatDurationDiffChange = (entry: Entry): string => {
     const {baseline, current} = entry;
 
     let output = `${formatDuration(baseline.mean)} → ${formatDuration(current.mean)}`;

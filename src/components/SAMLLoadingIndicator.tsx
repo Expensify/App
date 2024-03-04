@@ -3,6 +3,7 @@ import {StyleSheet, View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import * as Illustrations from './Icon/Illustrations';
@@ -23,8 +24,13 @@ function SAMLLoadingIndicator() {
                     />
                 </View>
                 <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{translate('samlSignIn.launching')}</Text>
-                <View style={[styles.mt2, styles.mh2, styles.fontSizeNormal, styles.textAlignCenter]}>
-                    <Text style={[styles.textAlignCenter]}>{translate('samlSignIn.oneMoment')}</Text>
+                <View style={[styles.mt2, styles.mh2, styles.textAlignCenter]}>
+                    <Text
+                        style={[styles.textAlignCenter]}
+                        fontSize={variables.fontSizeNormal}
+                    >
+                        {translate('samlSignIn.oneMoment')}
+                    </Text>
                 </View>
             </View>
             <View style={styles.deeplinkWrapperFooter}>
