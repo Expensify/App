@@ -70,34 +70,32 @@ function ReportActionItemParentAction({report, index = 0, shouldHideThreadDivide
     }, []);
 
     return (
-        <>
-            <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
-                <AnimatedEmptyStateBackground />
-                <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]} />
-                {allAncestors.map((ancestor) => (
-                    <OfflineWithFeedback
-                        key={ancestor.reportAction.reportActionID}
-                        shouldDisableOpacity={Boolean(ancestor.reportAction?.pendingAction)}
-                        pendingAction={ancestor.report?.pendingFields?.addWorkspaceRoom ?? ancestor.report?.pendingFields?.createChat}
-                        errors={ancestor.report?.errorFields?.addWorkspaceRoom ?? ancestor.report?.errorFields?.createChat}
-                        errorRowStyles={[styles.ml10, styles.mr2]}
-                        onClose={() => Report.navigateToConciergeChatAndDeleteReport(ancestor.report.reportID)}
-                    >
-                        <ReportActionItem
-                            // @ts-expect-error TODO: Remove this once ReportActionItem (https://github.com/Expensify/App/issues/31982) is migrated to TypeScript.
-                            onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID))}
-                            report={ancestor.report}
-                            action={ancestor.reportAction}
-                            displayAsGroup={false}
-                            isMostRecentIOUReportAction={false}
-                            shouldDisplayNewMarker={ancestor.shouldDisplayNewMarker}
-                            index={index}
-                        />
-                        {!ancestor.shouldHideThreadDividerLine && <View style={[styles.threadDividerLine]} />}
-                    </OfflineWithFeedback>
-                ))}
-            </View>
-        </>
+        <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
+            <AnimatedEmptyStateBackground />
+            <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]} />
+            {allAncestors.map((ancestor) => (
+                <OfflineWithFeedback
+                    key={ancestor.reportAction.reportActionID}
+                    shouldDisableOpacity={Boolean(ancestor.reportAction?.pendingAction)}
+                    pendingAction={ancestor.report?.pendingFields?.addWorkspaceRoom ?? ancestor.report?.pendingFields?.createChat}
+                    errors={ancestor.report?.errorFields?.addWorkspaceRoom ?? ancestor.report?.errorFields?.createChat}
+                    errorRowStyles={[styles.ml10, styles.mr2]}
+                    onClose={() => Report.navigateToConciergeChatAndDeleteReport(ancestor.report.reportID)}
+                >
+                    <ReportActionItem
+                        // @ts-expect-error TODO: Remove this once ReportActionItem (https://github.com/Expensify/App/issues/31982) is migrated to TypeScript.
+                        onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID))}
+                        report={ancestor.report}
+                        action={ancestor.reportAction}
+                        displayAsGroup={false}
+                        isMostRecentIOUReportAction={false}
+                        shouldDisplayNewMarker={ancestor.shouldDisplayNewMarker}
+                        index={index}
+                    />
+                    {!ancestor.shouldHideThreadDividerLine && <View style={[styles.threadDividerLine]} />}
+                </OfflineWithFeedback>
+            ))}
+        </View>
     );
 }
 

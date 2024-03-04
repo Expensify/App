@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -80,7 +80,6 @@ function TaskDescriptionPage(props) {
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
     const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID);
     const isTaskNonEditable = ReportUtils.isTaskReport(props.report) && (!canModifyTask || !isOpen);
-    const defaultDescriptionValue = useMemo(() => parser.htmlToMarkdown((props.report && parser.replace(props.report.description)) || ''), [props.report]);
 
     useFocusEffect(
         useCallback(() => {
@@ -122,7 +121,7 @@ function TaskDescriptionPage(props) {
                             name={INPUT_IDS.DESCRIPTION}
                             label={props.translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
-                            defaultValue={defaultDescriptionValue}
+                            defaultValue={parser.htmlToMarkdown((props.report && parser.replace(props.report.description)) || '')}
                             ref={(el) => {
                                 if (!el) {
                                     return;
