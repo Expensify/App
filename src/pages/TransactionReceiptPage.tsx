@@ -58,7 +58,7 @@ function TransactionReceipt({transaction, report, reportMetadata = {isLoadingIni
             onModalClose={() => {
                 Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? ''));
             }}
-            isLoading={reportMetadata?.isLoadingInitialReportActions}
+            isLoading={!transaction && reportMetadata?.isLoadingInitialReportActions}
             shouldShowNotFoundPage={(report?.parentReportID ?? '') !== transaction?.reportID}
         />
     );

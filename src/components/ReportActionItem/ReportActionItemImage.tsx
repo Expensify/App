@@ -98,7 +98,7 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, tr
                 {({report}) => (
                     <PressableWithoutFocus
                         style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
-                        onPress={() => Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(String(report?.reportID), String(transaction?.transactionID)))}
+                        onPress={() => Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(report?.reportID ?? '', transaction?.transactionID ?? ''))}
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         accessibilityRole={CONST.ROLE.BUTTON}
                     >
