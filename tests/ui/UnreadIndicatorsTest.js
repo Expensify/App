@@ -21,6 +21,7 @@ import * as Pusher from '../../src/libs/Pusher/pusher';
 import PusherConnectionManager from '../../src/libs/PusherConnectionManager';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import appSetup from '../../src/setup';
+import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -375,61 +376,50 @@ describe('Unread Indicators', () => {
                 const NEW_REPORT_FIST_MESSAGE_CREATED_DATE = addSeconds(NEW_REPORT_CREATED_DATE, 1);
                 const createdReportActionID = NumberUtils.rand64();
                 const commentReportActionID = NumberUtils.rand64();
-                const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${USER_A_ACCOUNT_ID}${CONFIG.PUSHER.SUFFIX}`);
-                channel.emit(Pusher.TYPE.MULTIPLE_EVENTS, {
-                    type: 'pusher',
-                    lastUpdateID: null,
-                    previousUpdateID: null,
-                    updates: [
-                        {
-                            eventType: Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE,
-                            data: [
-                                {
-                                    onyxMethod: Onyx.METHOD.MERGE,
-                                    key: `${ONYXKEYS.COLLECTION.REPORT}${NEW_REPORT_ID}`,
-                                    value: {
-                                        reportID: NEW_REPORT_ID,
-                                        reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
-                                        lastReadTime: '',
-                                        lastVisibleActionCreated: DateUtils.getDBTime(utcToZonedTime(NEW_REPORT_FIST_MESSAGE_CREATED_DATE, 'UTC').valueOf()),
-                                        lastMessageText: 'Comment 1',
-                                        lastActorAccountID: USER_C_ACCOUNT_ID,
-                                        participantAccountIDs: [USER_C_ACCOUNT_ID],
-                                        type: CONST.REPORT.TYPE.CHAT,
-                                    },
-                                },
-                                {
-                                    onyxMethod: Onyx.METHOD.MERGE,
-                                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${NEW_REPORT_ID}`,
-                                    value: {
-                                        [createdReportActionID]: {
-                                            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                                            automatic: false,
-                                            created: format(NEW_REPORT_CREATED_DATE, CONST.DATE.FNS_DB_FORMAT_STRING),
-                                            reportActionID: createdReportActionID,
-                                        },
-                                        [commentReportActionID]: {
-                                            actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
-                                            actorAccountID: USER_C_ACCOUNT_ID,
-                                            person: [{type: 'TEXT', style: 'strong', text: 'User C'}],
-                                            created: format(NEW_REPORT_FIST_MESSAGE_CREATED_DATE, CONST.DATE.FNS_DB_FORMAT_STRING),
-                                            message: [{type: 'COMMENT', html: 'Comment 1', text: 'Comment 1'}],
-                                            reportActionID: commentReportActionID,
-                                        },
-                                    },
-                                    shouldNotify: true,
-                                },
-                                {
-                                    onyxMethod: Onyx.METHOD.MERGE,
-                                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                                    value: {
-                                        [USER_C_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_C_EMAIL, USER_C_ACCOUNT_ID, 'C'),
-                                    },
-                                },
-                            ],
+                PusherHelper.emitOnyxUpdate([
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${NEW_REPORT_ID}`,
+                        value: {
+                            reportID: NEW_REPORT_ID,
+                            reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
+                            lastReadTime: '',
+                            lastVisibleActionCreated: DateUtils.getDBTime(utcToZonedTime(NEW_REPORT_FIST_MESSAGE_CREATED_DATE, 'UTC').valueOf()),
+                            lastMessageText: 'Comment 1',
+                            lastActorAccountID: USER_C_ACCOUNT_ID,
+                            participantAccountIDs: [USER_C_ACCOUNT_ID],
+                            type: CONST.REPORT.TYPE.CHAT,
                         },
-                    ],
-                });
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${NEW_REPORT_ID}`,
+                        value: {
+                            [createdReportActionID]: {
+                                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                                automatic: false,
+                                created: format(NEW_REPORT_CREATED_DATE, CONST.DATE.FNS_DB_FORMAT_STRING),
+                                reportActionID: createdReportActionID,
+                            },
+                            [commentReportActionID]: {
+                                actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                                actorAccountID: USER_C_ACCOUNT_ID,
+                                person: [{type: 'TEXT', style: 'strong', text: 'User C'}],
+                                created: format(NEW_REPORT_FIST_MESSAGE_CREATED_DATE, CONST.DATE.FNS_DB_FORMAT_STRING),
+                                message: [{type: 'COMMENT', html: 'Comment 1', text: 'Comment 1'}],
+                                reportActionID: commentReportActionID,
+                            },
+                        },
+                        shouldNotify: true,
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {
+                            [USER_C_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_C_EMAIL, USER_C_ACCOUNT_ID, 'C'),
+                        },
+                    },
+                ]);
                 return waitForBatchedUpdates();
             })
             .then(() => {
