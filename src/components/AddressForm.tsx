@@ -44,10 +44,10 @@ type AddressFormProps = {
     zip?: string;
 
     /** Callback which is executed when the user changes address, city or state */
-    onAddressChanged?: (value: unknown, key: string) => void;
+    onAddressChanged?: (value: unknown, key: unknown) => void;
 
     /** Callback which is executed when the user submits his address changes */
-    onSubmit: () => void;
+    onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM | typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => void;
 
     /** Whether or not should the form data should be saved as draft */
     shouldSaveDraft?: boolean;
@@ -56,7 +56,7 @@ type AddressFormProps = {
     submitButtonText?: string;
 
     /** A unique Onyx key identifying the form */
-    formID: typeof ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM;
+    formID: typeof ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM | typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM;
 };
 
 function AddressForm({
@@ -88,7 +88,7 @@ function AddressForm({
      * @returns - An object containing the errors for each inputID
      */
 
-    const validator = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM>): Errors => {
+    const validator = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM | typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>): Errors => {
         const errors: Errors & {
             zipPostCode?: string | string[];
         } = {};
@@ -147,7 +147,7 @@ function AddressForm({
                     InputComponent={AddressSearch}
                     inputID={INPUT_IDS.ADDRESS_LINE_1}
                     label={translate('common.addressLine', {lineNumber: 1})}
-                    onValueChange={(data: unknown, key: string) => {
+                    onValueChange={(data: unknown, key: unknown) => {
                         onAddressChanged(data, key);
                         // This enforces the country selector to use the country from address instead of the country from URL
                         Navigation.setParams({country: undefined});
