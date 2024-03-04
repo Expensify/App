@@ -2,8 +2,6 @@ import React, {useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
-import _ from 'underscore';
-import OptionsSelector from '@components/OptionsSelector';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,6 +10,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
+import OptionsSelector from './OptionsSelector';
 
 type TaxPickerOnyxProps = {
     /** The policy which the user has access to and which the report is tied to */
@@ -23,7 +22,8 @@ type TaxPickerProps = TaxPickerOnyxProps & {
     selectedTaxRate?: string;
 
     /** ID of the policy */
-    policyID: string;
+    // eslint-disable-next-line react/no-unused-prop-types
+    policyID?: string;
 
     /**
      * Safe area insets required for reflecting the portion of the view,
