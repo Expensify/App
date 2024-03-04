@@ -1213,6 +1213,15 @@ export default {
     onboarding: {
         welcome: 'Welcome!',
         whatsYourName: "What's your name?",
+        purpose: {
+            title: "What do you want to do today?",
+            [CONST.ONBOARDING_CHOICES.TRACK]: "Track business spend for taxes",
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: "Get paid back by my employer",
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
+            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: "Track and budget personal spend",
+            [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: "Chat and split bills with friends",
+            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: "I'm just looking around"
+        },
         error: {
             requiredFirstName: 'Please input your first name to continue',
             requiredLasttName: 'Please input your last name to continue',
