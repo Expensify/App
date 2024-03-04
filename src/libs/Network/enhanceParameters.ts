@@ -16,7 +16,7 @@ function isAuthTokenRequired(command: string): boolean {
 export default function enhanceParameters(command: string, parameters: Record<string, unknown>): Record<string, unknown> {
     const finalParameters = {...parameters};
 
-    if (isAuthTokenRequired(command) && ((NetworkStore.isSupportAuthToken() && NetworkStore.isSupportRequest(command)) || !parameters.authToken)) {
+    if (isAuthTokenRequired(command) && !parameters.authToken) {
         finalParameters.authToken = NetworkStore.getAuthToken();
     }
 
