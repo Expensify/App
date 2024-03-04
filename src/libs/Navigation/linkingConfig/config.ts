@@ -254,6 +254,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.INVITE]: {
                             path: ROUTES.WORKSPACE_INVITE.route,
                         },
+                        [SCREENS.WORKSPACE.WORKFLOWS_APPROVER]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_APPROVER.route,
+                        },
                         [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
                             path: ROUTES.WORKSPACE_INVITE_MESSAGE.route,
                         },
