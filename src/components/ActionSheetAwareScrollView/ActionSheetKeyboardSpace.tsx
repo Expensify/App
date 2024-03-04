@@ -144,7 +144,6 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
         // when the sate is not idle we know for sure we have previous state
         const previousPayload = previous.payload ?? {};
 
-        // it will be NaN when we don't have proper payload
         let previousElementOffset = 0;
 
         if (previousPayload.fy !== undefined && previousPayload.height !== undefined && previousPayload.popoverHeight !== undefined) {

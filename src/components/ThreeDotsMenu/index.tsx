@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -94,19 +94,19 @@ function ThreeDotsMenu({
         setPopupMenuVisible(true);
     };
 
-    const hidePopoverMenu = () => {
+    const hidePopoverMenu = useCallback(() => {
         actionSheetAwareScrollViewContext.transitionActionSheetState({
             type: Actions.CLOSE_CALL_POPOVER,
         });
         setPopupMenuVisible(false);
-    };
+    }, [actionSheetAwareScrollViewContext]);
 
     useEffect(() => {
         if (!isBehindModal || !isPopupMenuVisible) {
             return;
         }
         hidePopoverMenu();
-    }, [isBehindModal, isPopupMenuVisible]);
+    }, [hidePopoverMenu, isBehindModal, isPopupMenuVisible]);
 
     return (
         <>
