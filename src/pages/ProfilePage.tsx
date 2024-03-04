@@ -74,10 +74,10 @@ function ProfilePage({personalDetails, route, session, report, reports}: Profile
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const accountID = Number(route.params?.accountID ?? 0);
+    const isCurrentUser = session?.accountID === accountID;
     const details: PersonalDetails | EmptyObject = personalDetails?.[accountID] ?? (ValidationUtils.isValidAccountRoute(accountID) ? {} : {isLoading: false, accountID: 0, avatar: ''});
 
-    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser);
     const avatar = details?.avatar || UserUtils.getDefaultAvatar(); // we can have an empty string and in this case, we need to show the default avatar
     const fallbackIcon = details?.fallbackIcon ?? '';
     const login = details?.login ?? '';
@@ -96,7 +96,6 @@ function ProfilePage({personalDetails, route, session, report, reports}: Profile
     const phoneNumber = getPhoneNumber(details);
     const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : login;
 
-    const isCurrentUser = session?.accountID === accountID;
     const hasMinimumDetails = !isEmptyObject(details.avatar);
     const isLoading = Boolean(details?.isLoading) || isEmptyObject(details);
 
@@ -110,7 +109,7 @@ function ProfilePage({personalDetails, route, session, report, reports}: Profile
 
     const navigateBackTo = route?.params?.backTo;
 
-    const shouldShowNotificationPreference = !isEmptyObject(report) && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    const shouldShowNotificationPreference = !isEmptyObject(report) && !isCurrentUser && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const notificationPreference = shouldShowNotificationPreference
         ? translate(`notificationPreferencesPage.notificationPreferences.${report.notificationPreference}` as TranslationPaths)
         : '';
@@ -216,7 +215,7 @@ function ProfilePage({personalDetails, route, session, report, reports}: Profile
                                     shouldShowRightIcon
                                 />
                             )}
-                            {!isEmptyObject(report) && (
+                            {!isEmptyObject(report) && !isCurrentUser && (
                                 <MenuItem
                                     title={`${translate('privateNotes.title')}`}
                                     titleStyle={styles.flex1}
