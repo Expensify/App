@@ -433,7 +433,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         ) : (
                             <>
                                 {!headerMessage && canSelectMultiple && shouldShowSelectAll && (
-                                    <View style={[styles.userSelectNone, styles.peopleRow, styles.ph4, styles.pb3, listHeaderWrapperStyle]}>
+                                    <View style={[styles.userSelectNone, styles.peopleRow, styles.ph5, styles.pb3, listHeaderWrapperStyle]}>
                                         <PressableWithFeedback
                                             style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
                                             onPress={selectAllRow}
