@@ -1,13 +1,13 @@
-const path = require('path');
-const fs = require('fs');
-const {IgnorePlugin, DefinePlugin, ProvidePlugin, EnvironmentPlugin} = require('webpack');
-const {CleanWebpackPlugin} = require('clean-webpack-plugin');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const CopyPlugin = require('copy-webpack-plugin');
-const dotenv = require('dotenv');
-const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
-const PreloadWebpackPlugin = require('@vue/preload-webpack-plugin');
-const CustomVersionFilePlugin = require('./CustomVersionFilePlugin');
+import PreloadWebpackPlugin from '@vue/preload-webpack-plugin';
+import {CleanWebpackPlugin} from 'clean-webpack-plugin';
+import CopyPlugin from 'copy-webpack-plugin';
+import dotenv from 'dotenv';
+import fs from 'fs';
+import HtmlWebpackPlugin from 'html-webpack-plugin';
+import path from 'path';
+import {DefinePlugin, EnvironmentPlugin, IgnorePlugin, ProvidePlugin} from 'webpack';
+import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
+import CustomVersionFilePlugin from './CustomVersionFilePlugin';
 
 const includeModules = [
     'react-native-animatable',
@@ -26,14 +26,14 @@ const includeModules = [
     'expo-av',
 ].join('|');
 
-const envToLogoSuffixMap = {
+const envToLogoSuffixMap: Record<string, string> = {
     production: '',
     staging: '-stg',
     dev: '-dev',
     adhoc: '-adhoc',
 };
 
-function mapEnvToLogoSuffix(envFile) {
+function mapEnvToLogoSuffix(envFile: string): string {
     let env = envFile.split('.')[2];
     if (typeof env === 'undefined') {
         env = 'dev';
@@ -43,10 +43,6 @@ function mapEnvToLogoSuffix(envFile) {
 
 /**
  * Get a production grade config for web or desktop
- * @param {Object} env
- * @param {String} env.envFile path to the env file to be used
- * @param {'web'|'desktop'} env.platform
- * @returns {Configuration}
  */
 const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
     mode: 'production',
@@ -276,4 +272,4 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
     },
 });
 
-module.exports = webpackConfig;
+export default webpackConfig;
