@@ -189,7 +189,7 @@ function getWorkspacesUnreadStatuses(): Record<string, boolean> {
             return;
         }
 
-        workspacesUnreadStatuses[policyID] = ReportUtils.isUnread(report);
+        workspacesUnreadStatuses[policyID] = ReportUtils.isUnread(report) && !!report.lastActorAccountID;
     });
 
     return workspacesUnreadStatuses;
