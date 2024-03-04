@@ -178,7 +178,7 @@ describe('Migrations', () => {
                 },
             };
 
-            Onyx.multiSet(setQueries)
+            return Onyx.multiSet(setQueries)
                 .then(CheckForPreviousReportActionID)
                 .then(() => {
                     expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] CheckForPreviousReportActionID Migration: previousReportActionID found. Migration complete');
@@ -217,7 +217,7 @@ describe('Migrations', () => {
             // @ts-expect-error preset null value
             setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4`] = null;
 
-            Onyx.multiSet(setQueries)
+            return Onyx.multiSet(setQueries)
                 .then(CheckForPreviousReportActionID)
                 .then(() => {
                     expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration CheckForPreviousReportActionID because there were no valid reportActions');
@@ -225,8 +225,8 @@ describe('Migrations', () => {
                         key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                         waitForCollectionCallback: true,
                         callback: (allReportActions) => {
-                            Onyx.disconnect(connectionID);
                             const expectedReportAction = {};
+                            Onyx.disconnect(connectionID);
                             expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toBeUndefined();
                             expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]).toMatchObject(expectedReportAction);
                             expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]).toMatchObject(expectedReportAction);
@@ -246,12 +246,15 @@ describe('Migrations', () => {
         it('Should move individual draft to a draft collection of report', () => {
             const setQueries: ReportActionsDraftCollectionDataSet = {};
 
+            // @ts-expect-error preset invalid value
             setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`] = 'a';
+            // @ts-expect-error preset invalid value
             setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_2`] = 'b';
             setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}2`] = {3: 'c'};
+            // @ts-expect-error preset invalid value
             setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}2_4`] = 'd';
 
-            Onyx.multiSet(setQueries)
+            return Onyx.multiSet(setQueries)
                 .then(KeyReportActionsDraftByReportActionID)
                 .then(() => {
                     const connectionID = Onyx.connect({
@@ -280,12 +283,9 @@ describe('Migrations', () => {
         it('Should skip if nothing to migrate', () => {
             const setQueries: ReportActionsDraftCollectionDataSet = {};
 
-            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`] = null;
-            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_2`] = null;
             setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}2`] = {};
-            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}2_4`] = null;
 
-            Onyx.multiSet(setQueries)
+            return Onyx.multiSet(setQueries)
                 .then(KeyReportActionsDraftByReportActionID)
                 .then(() => {
                     expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration KeyReportActionsDraftByReportActionID because there are no actions drafts to migrate');
@@ -307,10 +307,11 @@ describe('Migrations', () => {
         it("Shouldn't move empty individual draft to a draft collection of report", () => {
             const setQueries: ReportActionsDraftCollectionDataSet = {};
 
+            // @ts-expect-error preset empty string value
             setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`] = '';
             setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1`] = {};
 
-            Onyx.multiSet(setQueries)
+            return Onyx.multiSet(setQueries)
                 .then(KeyReportActionsDraftByReportActionID)
                 .then(() => {
                     const connectionID = Onyx.connect({
