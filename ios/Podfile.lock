@@ -280,9 +280,9 @@ PODS:
     - nanopb/encode (= 2.30908.0)
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
-  - Onfido (28.3.1)
-  - onfido-react-native-sdk (8.3.0):
-    - Onfido (~> 28.3.0)
+  - Onfido (29.6.0)
+  - onfido-react-native-sdk (10.6.0):
+    - Onfido (~> 29.6.0)
     - React
   - OpenSSL-Universal (1.1.1100)
   - Plaid (4.7.0)
@@ -1432,7 +1432,7 @@ PODS:
     - React-Core
   - RNReactNativeHapticFeedback (2.2.0):
     - React-Core
-  - RNReanimated (3.6.1):
+  - RNReanimated (3.7.1):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -1901,8 +1901,8 @@ SPEC CHECKSUMS:
   MapboxMaps: cbb38845a9bf49b124f0e937975d560a4e01894e
   MapboxMobileEvents: de50b3a4de180dd129c326e09cd12c8adaaa46d6
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
-  Onfido: 564f60c39819635ec5b549285a1eec278cc9ba67
-  onfido-react-native-sdk: b346a620af5669f9fecb6dc3052314a35a94ad9f
+  Onfido: c52e797b10cc9e6d29ba91996cb62e501000bfdd
+  onfido-react-native-sdk: 4e7f0a7a986ed93cb906d2e0b67a6aab9202de0b
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   Plaid: 431ef9be5314a1345efb451bc5e6b067bfb3b4c6
   PromisesObjC: c50d2056b5253dadbd6c2bea79b0674bd5a52fa4
@@ -1986,7 +1986,7 @@ SPEC CHECKSUMS:
   rnmapbox-maps: fcf7f1cbdc8bd7569c267d07284e8a5c7bee06ed
   RNPermissions: 9b086c8f05b2e2faa587fdc31f4c5ab4509728aa
   RNReactNativeHapticFeedback: ec56a5f81c3941206fd85625fa669ffc7b4545f9
-  RNReanimated: 57f436e7aa3d277fbfed05e003230b43428157c0
+  RNReanimated: beb07f7f900543928467da8107c175d1e57a1049
   RNScreens: b582cb834dc4133307562e930e8fa914b8c04ef2
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
   RNSVG: ba3e7232f45e34b7b47e74472386cf4e1a676d0a

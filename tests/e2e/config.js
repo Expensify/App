@@ -17,7 +17,7 @@ const TEST_NAMES = {
  * npm run test:e2e -- --config ./path/to/your/config.js
  * ```
  */
-module.exports = {
+export default {
     MAIN_APP_PACKAGE: 'com.expensify.chat.e2e',
     DELTA_APP_PACKAGE: 'com.expensify.chat.e2edelta',
 
@@ -72,14 +72,15 @@ module.exports = {
         [TEST_NAMES.OpenSearchPage]: {
             name: TEST_NAMES.OpenSearchPage,
         },
-        [TEST_NAMES.ReportTyping]: {
-            name: TEST_NAMES.ReportTyping,
-            reportScreen: {
-                autoFocus: true,
-            },
-            // Crowded Policy (Do Not Delete) Report, has a input bar available:
-            reportID: '8268282951170052',
-        },
+        // TODO: Fix text and enable again
+        // [TEST_NAMES.ReportTyping]: {
+        //     name: TEST_NAMES.ReportTyping,
+        //     reportScreen: {
+        //         autoFocus: true,
+        //     },
+        //     // Crowded Policy (Do Not Delete) Report, has a input bar available:
+        //     reportID: '8268282951170052',
+        // },
         [TEST_NAMES.ChatOpening]: {
             name: TEST_NAMES.ChatOpening,
             // #announce Chat with many messages

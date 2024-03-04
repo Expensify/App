@@ -51,7 +51,7 @@ function parseMessage(messages: Message[] | undefined) {
 }
 
 type BuildNextStepParameters = {
-    isPaidWithWallet?: boolean;
+    isPaidWithExpensify?: boolean;
 };
 
 /**
@@ -59,17 +59,21 @@ type BuildNextStepParameters = {
  *
  * @param report
  * @param predictedNextStatus - a next expected status of the report
- * @param parameters.isPaidWithWallet - Whether a report has been paid with the wallet or outside of Expensify
+ * @param parameters.isPaidWithExpensify - Whether a report has been paid with Expensify or outside
  * @returns nextStep
  */
-function buildNextStep(report: Report | EmptyObject, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>, {isPaidWithWallet}: BuildNextStepParameters = {}): ReportNextStep | null {
+function buildNextStep(
+    report: Report | EmptyObject,
+    predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>,
+    {isPaidWithExpensify}: BuildNextStepParameters = {},
+): ReportNextStep | null {
     if (!ReportUtils.isExpenseReport(report)) {
         return null;
     }
 
     const {policyID = '', ownerAccountID = -1, managerID = -1} = report;
     const policy = ReportUtils.getPolicy(policyID);
-    const {submitsTo, harvesting, isPreventSelfApprovalEnabled, autoReportingFrequency, autoReportingOffset} = policy;
+    const {submitsTo, harvesting, isPreventSelfApprovalEnabled, preventSelfApprovalEnabled, autoReportingFrequency, autoReportingOffset} = policy;
     const isOwner = currentUserAccountID === ownerAccountID;
     const isManager = currentUserAccountID === managerID;
     const isSelfApproval = currentUserAccountID === submitsTo;
@@ -160,7 +164,7 @@ function buildNextStep(report: Report | EmptyObject, predictedNextStatus: ValueO
             }
 
             // Prevented self submitting
-            if (isPreventSelfApprovalEnabled && isSelfApproval) {
+            if ((isPreventSelfApprovalEnabled ?? preventSelfApprovalEnabled) && isSelfApproval) {
                 optimisticNextStep.message = [
                     {
                         text: "Oops! Looks like you're submitting to ",
@@ -254,14 +258,14 @@ function buildNextStep(report: Report | EmptyObject, predictedNextStatus: ValueO
                         text: 'Waiting for ',
                     },
                     {
-                        text: 'you',
+                        text: managerDisplayName,
                         type: 'strong',
                     },
                     {
                         text: ' to ',
                     },
                     {
-                        text: 'review',
+                        text: 'pay',
                         type: 'strong',
                     },
                     {
@@ -272,10 +276,23 @@ function buildNextStep(report: Report | EmptyObject, predictedNextStatus: ValueO
 
             // Another owner
             if (!isOwner) {
-                optimisticNextStep.title = 'Finished!';
                 optimisticNextStep.message = [
                     {
-                        text: 'No further action required!',
+                        text: 'Waiting for ',
+                    },
+                    {
+                        text: 'you',
+                        type: 'strong',
+                    },
+                    {
+                        text: ' to ',
+                    },
+                    {
+                        text: 'pay',
+                        type: 'strong',
+                    },
+                    {
+                        text: ' %expenses.',
                     },
                 ];
             }
@@ -304,7 +321,7 @@ function buildNextStep(report: Report | EmptyObject, predictedNextStatus: ValueO
             };
 
             // Paid outside of Expensify
-            if (isPaidWithWallet === false) {
+            if (isPaidWithExpensify === false) {
                 optimisticNextStep.message?.push({text: ' outside of Expensify'});
             }
 
