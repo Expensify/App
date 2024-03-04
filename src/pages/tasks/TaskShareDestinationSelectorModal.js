@@ -1,22 +1,22 @@
-/* eslint-disable es/no-optional-chaining */
+import keys from 'lodash/keys';
+import reduce from 'lodash/reduce';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import OptionsSelector from '@components/OptionsSelector';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/UserListItem';
+import useDebouncedState from '@hooks/useDebouncedState';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
-import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
@@ -24,132 +24,88 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 const propTypes = {
-    /* Onyx Props */
-
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
-    /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
-
-    /** Whether we are searching for reports in the server */
+    /** Whether or not we are searching for reports on the server */
     isSearchingForReports: PropTypes.bool,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    betas: [],
-    personalDetails: {},
     reports: {},
     isSearchingForReports: false,
 };
 
-function TaskShareDestinationSelectorModal(props) {
-    const styles = useThemeStyles();
-    const [searchValue, setSearchValue] = useState('');
-    const [headerMessage, setHeaderMessage] = useState('');
-    const [filteredRecentReports, setFilteredRecentReports] = useState([]);
+const selectReportHandler = (option) => {
+    if (!option || !option.reportID) {
+        return;
+    }
 
-    const {inputCallbackRef} = useAutoFocusInput();
-    const {isSearchingForReports} = props;
+    Task.setShareDestinationValue(option.reportID);
+    Navigation.goBack(ROUTES.NEW_TASK);
+};
+
+const reportFilter = (reports) =>
+    reduce(
+        keys(reports),
+        (filtered, reportKey) => {
+            const report = reports[reportKey];
+            if (ReportUtils.canUserPerformWriteAction(report) && ReportUtils.canCreateTaskInReport(report) && !ReportUtils.isCanceledTaskReport(report)) {
+                return {...filtered, [reportKey]: report};
+            }
+            return filtered;
+        },
+        {},
+    );
+
+function TaskShareDestinationSelectorModal({reports, isSearchingForReports}) {
+    const styles = useThemeStyles();
+    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const {translate} = useLocalize();
+    const personalDetails = usePersonalDetails();
     const {isOffline} = useNetwork();
 
-    const filteredReports = useMemo(() => {
-        const reports = {};
-        _.keys(props.reports).forEach((reportKey) => {
-            if (
-                !ReportUtils.canUserPerformWriteAction(props.reports[reportKey]) ||
-                !ReportUtils.canCreateTaskInReport(props.reports[reportKey]) ||
-                ReportUtils.isCanceledTaskReport(props.reports[reportKey])
-            ) {
-                return;
-            }
-            reports[reportKey] = props.reports[reportKey];
-        });
-        return reports;
-    }, [props.reports]);
-    const updateOptions = useCallback(() => {
-        const {recentReports} = OptionsListUtils.getShareDestinationOptions(filteredReports, props.personalDetails, props.betas, searchValue.trim(), [], CONST.EXPENSIFY_EMAILS, true);
+    const textInputHint = useMemo(() => (isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''), [isOffline, translate]);
 
-        setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReports?.length !== 0, false, searchValue));
+    const options = useMemo(() => {
+        const filteredReports = reportFilter(reports);
 
-        setFilteredRecentReports(recentReports);
-    }, [props, searchValue, filteredReports]);
+        const {recentReports} = OptionsListUtils.getShareDestinationOptions(filteredReports, personalDetails, [], debouncedSearchValue.trim(), [], CONST.EXPENSIFY_EMAILS, true);
+
+        const headerMessage = OptionsListUtils.getHeaderMessage(recentReports && recentReports.length !== 0, false, debouncedSearchValue);
+
+        const sections = recentReports && recentReports.length > 0 ? [{data: recentReports, shouldShow: true}] : [];
+
+        return {sections, headerMessage};
+    }, [personalDetails, reports, debouncedSearchValue]);
 
     useEffect(() => {
-        const debouncedSearch = _.debounce(updateOptions, 150);
-        debouncedSearch();
-        return () => {
-            debouncedSearch.cancel();
-        };
-    }, [updateOptions]);
-
-    const getSections = () => {
-        const sections = [];
-        let indexOffset = 0;
-
-        if (filteredRecentReports?.length > 0) {
-            sections.push({
-                data: filteredRecentReports,
-                shouldShow: true,
-                indexOffset,
-            });
-            indexOffset += filteredRecentReports?.length;
-        }
-
-        return sections;
-    };
-
-    const selectReport = (option) => {
-        if (!option) {
-            return;
-        }
-
-        if (option.reportID) {
-            Task.setShareDestinationValue(option.reportID);
-            Navigation.goBack(ROUTES.NEW_TASK);
-        }
-    };
-
-    // When search term updates we will fetch any reports
-    const setSearchTermAndSearchInServer = useCallback((text = '') => {
-        Report.searchInServer(text);
-        setSearchValue(text);
-    }, []);
-
-    const sections = getSections();
+        Report.searchInServer(debouncedSearchValue);
+    }, [debouncedSearchValue]);
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={TaskShareDestinationSelectorModal.displayName}
+            testID="TaskShareDestinationSelectorModal"
         >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
-                        title={props.translate('newTaskPage.shareSomewhere')}
+                        title={translate('newTaskPage.shareSomewhere')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
                     />
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                        <OptionsSelector
-                            sections={sections}
-                            onSelectRow={selectReport}
-                            onChangeText={setSearchTermAndSearchInServer}
-                            headerMessage={headerMessage}
-                            hideSection
-                            Headers
-                            showTitleTooltip
-                            shouldShowOptions={didScreenTransitionEnd}
-                            textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            textInputAlert={isOffline ? [`${props.translate('common.youAppearToBeOffline')} ${props.translate('search.resultsAreLimited')}`, {isTranslated: true}] : ''}
+                        <SelectionList
+                            ListItem={UserListItem}
+                            sections={didScreenTransitionEnd ? options.sections : CONST.EMPTY_ARRAY}
+                            onSelectRow={selectReportHandler}
+                            onChangeText={setSearchValue}
+                            textInputValue={searchValue}
+                            headerMessage={options.headerMessage}
+                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                            autoFocus={false}
-                            ref={inputCallbackRef}
+                            showLoadingPlaceholder={!didScreenTransitionEnd}
                             isLoadingNewOptions={isSearchingForReports}
+                            textInputHint={textInputHint}
                         />
                     </View>
                 </>
@@ -162,21 +118,12 @@ TaskShareDestinationSelectorModal.displayName = 'TaskShareDestinationSelectorMod
 TaskShareDestinationSelectorModal.propTypes = propTypes;
 TaskShareDestinationSelectorModal.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        isSearchingForReports: {
-            key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-            initWithStoredValues: false,
-        },
-    }),
-)(TaskShareDestinationSelectorModal);
+export default withOnyx({
+    reports: {
+        key: ONYXKEYS.COLLECTION.REPORT,
+    },
+    isSearchingForReports: {
+        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+        initWithStoredValues: false,
+    },
+})(TaskShareDestinationSelectorModal);
