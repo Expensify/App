@@ -46,7 +46,7 @@ const messageCopy = {
         "And we'll take it from there to get you paid back. Give it a shot and let me know how it goes!",
     [CONST.INTRO_CHOICES.MANAGE_TEAM]: '',
     [CONST.INTRO_CHOICES.CHAT_SPLIT]:
-        'Here\'s how to split expenses with friends:\n' +
+        "Here's how to split expenses with friends:\n" +
         '\n' +
         '1. Tap the green *+* > *Request money*.\n' +
         '2. Add an expense or scan a receipt.\n' +
