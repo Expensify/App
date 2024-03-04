@@ -37,12 +37,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {AccountData} from '@src/types/onyx';
-import type IconAsset from '@src/types/utils/IconAsset';
-import type {WalletPageOnyxProps, WalletPageProps} from './types';
+import type {FormattedSelectedPaymentMethodIcon, WalletPageOnyxProps, WalletPageProps} from './types';
 
 type FormattedSelectedPaymentMethod = {
     title: string;
-    icon?: IconAsset;
+    icon?: FormattedSelectedPaymentMethodIcon;
     description?: string;
     type?: string;
 };
@@ -151,7 +150,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
         nativeEvent?: GestureResponderEvent | KeyboardEvent,
         accountType?: string,
         account?: AccountData,
-        icon?: IconAsset,
+        icon?: FormattedSelectedPaymentMethodIcon,
         isDefault?: boolean,
         methodID?: string | number,
     ) => {
@@ -538,10 +537,14 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                 {isPopoverBottomMount && (
                                     <MenuItem
                                         title={paymentMethod.formattedSelectedPaymentMethod.title}
-                                        icon={paymentMethod.formattedSelectedPaymentMethod.icon}
+                                        icon={paymentMethod.formattedSelectedPaymentMethod.icon?.icon}
+                                        iconHeight={paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize}
+                                        iconWidth={paymentMethod.formattedSelectedPaymentMethod.icon?.iconWidth ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize}
+                                        iconStyles={paymentMethod.formattedSelectedPaymentMethod.icon?.iconStyles}
                                         description={paymentMethod.formattedSelectedPaymentMethod.description}
                                         wrapperStyle={[styles.mb4, styles.ph5, styles.pv0]}
                                         interactive={false}
+                                        displayInDefaultIconColor
                                     />
                                 )}
                                 {shouldShowMakeDefaultButton && (
