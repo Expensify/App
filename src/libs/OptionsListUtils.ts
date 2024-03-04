@@ -593,6 +593,8 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = lastReportAction?.message?.[0].text ?? '';
     } else if (ReportActionUtils.isCreatedTaskReportAction(lastReportAction)) {
         lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
+    } else if (ReportActionUtils.isApprovedOrSubmittedReportAction(lastReportAction)) {
+        lastMessageTextFromReport = ReportActionUtils.getReportActionMessageText(lastReportAction);
     }
 
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
