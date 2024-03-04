@@ -41,7 +41,7 @@ const messageCopy = {
         '\n' +
         '1. Click the green *+* > *Request money*.\n' +
         '2. Add an expense or scan a receipt.\n' +
-        '3. Enter your reimburser\'s email or phone number.\n' +
+        "3. Enter your reimburser's email or phone number.\n" +
         '\n' +
         "And we'll take it from there to get you paid back. Give it a shot and let me know how it goes!",
     [CONST.INTRO_CHOICES.MANAGE_TEAM]: '',
