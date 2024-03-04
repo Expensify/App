@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
+import * as Policy from '@userActions/Policy';
 import type SCREENS from '@src/SCREENS';
 import AdminPolicyAccessOrNotFoundWrapper from './AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from './PaidPolicyAccessOrNotFoundWrapper';
@@ -31,24 +32,32 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 icon: Illustrations.Car,
                 title: translate('workspace.moreFeatures.distanceRates.title'),
                 subtitle: translate('workspace.moreFeatures.distanceRates.subtitle'),
-                onToggle: (isEnabled: boolean) => {
-                    console.log('isEnabled', isEnabled);
-                },
                 isActive: policy?.areDistanceRatesEnabled ?? false,
-                pendingAction: undefined,
+                pendingAction: policy?.pendingFields?.areDistanceRatesEnabled && policy.pendingAction,
+                onToggle: (isEnabled: boolean) => {
+                    Policy.enablePolicyDistanceRates(policy?.id ?? '', isEnabled);
+                },
             },
             {
                 icon: Illustrations.Workflows,
                 title: translate('workspace.moreFeatures.workflows.title'),
                 subtitle: translate('workspace.moreFeatures.workflows.subtitle'),
-                onToggle: (isEnabled: boolean) => {
-                    console.log('isEnabled', isEnabled);
-                },
                 isActive: policy?.areWorkflowsEnabled ?? false,
-                pendingAction: undefined,
+                pendingAction: policy?.pendingFields?.areWorkflowsEnabled && policy.pendingAction,
+                onToggle: (isEnabled: boolean) => {
+                    Policy.enablePolicyWorkflows(policy?.id ?? '', isEnabled);
+                },
             },
         ],
-        [policy?.areDistanceRatesEnabled, policy?.areWorkflowsEnabled, translate],
+        [
+            policy?.areDistanceRatesEnabled,
+            policy?.areWorkflowsEnabled,
+            policy?.id,
+            policy?.pendingAction,
+            policy?.pendingFields?.areDistanceRatesEnabled,
+            policy?.pendingFields?.areWorkflowsEnabled,
+            translate,
+        ],
     );
 
     const organizeItems: ToggleSettingOptionRowProps[] = useMemo(
@@ -57,44 +66,56 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 icon: Illustrations.FolderOpen,
                 title: translate('workspace.moreFeatures.categories.title'),
                 subtitle: translate('workspace.moreFeatures.categories.subtitle'),
-                onToggle: (isEnabled: boolean) => {
-                    console.log('isEnabled', isEnabled);
-                },
                 isActive: policy?.areCategoriesEnabled ?? false,
-                pendingAction: undefined,
+                pendingAction: policy?.pendingFields?.areCategoriesEnabled && policy.pendingAction,
+                onToggle: (isEnabled: boolean) => {
+                    Policy.enablePolicyCategories(policy?.id ?? '', isEnabled);
+                },
             },
             {
                 icon: Illustrations.Tag,
                 title: translate('workspace.moreFeatures.tags.title'),
                 subtitle: translate('workspace.moreFeatures.tags.subtitle'),
-                onToggle: (isEnabled: boolean) => {
-                    console.log('isEnabled', isEnabled);
-                },
                 isActive: policy?.areTagsEnabled ?? false,
-                pendingAction: undefined,
+                pendingAction: policy?.pendingFields?.areTagsEnabled && policy.pendingAction,
+                onToggle: (isEnabled: boolean) => {
+                    Policy.enablePolicyTags(policy?.id ?? '', isEnabled);
+                },
             },
             {
                 icon: Illustrations.Coins,
                 title: translate('workspace.moreFeatures.taxes.title'),
                 subtitle: translate('workspace.moreFeatures.taxes.subtitle'),
-                onToggle: (isEnabled: boolean) => {
-                    console.log('isEnabled', isEnabled);
-                },
                 isActive: policy?.tax?.trackingEnabled ?? false,
-                pendingAction: undefined,
+                pendingAction: policy?.pendingFields?.isTaxTrackingEnabled && policy.pendingAction,
+                onToggle: (isEnabled: boolean) => {
+                    Policy.enablePolicyTaxes(policy?.id ?? '', isEnabled);
+                },
             },
             {
                 icon: Illustrations.Pencil,
                 title: translate('workspace.moreFeatures.reportFields.title'),
                 subtitle: translate('workspace.moreFeatures.reportFields.subtitle'),
-                onToggle: (isEnabled: boolean) => {
-                    console.log('isEnabled', isEnabled);
-                },
                 isActive: policy?.areReportFieldsEnabled ?? false,
-                pendingAction: undefined,
+                pendingAction: policy?.pendingFields?.areReportFieldsEnabled && policy.pendingAction,
+                onToggle: (isEnabled: boolean) => {
+                    Policy.enablePolicyReportFields(policy?.id ?? '', isEnabled);
+                },
             },
         ],
-        [policy?.areCategoriesEnabled, policy?.areReportFieldsEnabled, policy?.areTagsEnabled, policy?.tax?.trackingEnabled, translate],
+        [
+            policy?.areCategoriesEnabled,
+            policy?.areReportFieldsEnabled,
+            policy?.areTagsEnabled,
+            policy?.id,
+            policy?.pendingAction,
+            policy?.pendingFields?.areCategoriesEnabled,
+            policy?.pendingFields?.areReportFieldsEnabled,
+            policy?.pendingFields?.areTagsEnabled,
+            policy?.pendingFields?.isTaxTrackingEnabled,
+            policy?.tax?.trackingEnabled,
+            translate,
+        ],
     );
 
     const integrateItems: ToggleSettingOptionRowProps[] = useMemo(
@@ -103,14 +124,14 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 icon: Illustrations.Accounting,
                 title: translate('workspace.moreFeatures.connections.title'),
                 subtitle: translate('workspace.moreFeatures.connections.subtitle'),
-                onToggle: (isEnabled: boolean) => {
-                    console.log('isEnabled', isEnabled);
-                },
                 isActive: policy?.areConnectionsEnabled ?? false,
-                pendingAction: undefined,
+                pendingAction: policy?.pendingFields?.areConnectionsEnabled && policy.pendingAction,
+                onToggle: (isEnabled: boolean) => {
+                    Policy.enablePolicyConnections(policy?.id ?? '', isEnabled);
+                },
             },
         ],
-        [policy?.areConnectionsEnabled, translate],
+        [policy?.areConnectionsEnabled, policy?.id, policy?.pendingAction, policy?.pendingFields?.areConnectionsEnabled, translate],
     );
 
     const sections = useMemo(
@@ -143,9 +164,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 icon={item.icon}
                 title={item.title}
                 subtitle={item.subtitle}
-                onToggle={item.onToggle}
                 isActive={item.isActive}
                 pendingAction={item.pendingAction}
+                onToggle={item.onToggle}
             />
         </View>
     );

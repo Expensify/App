@@ -15,6 +15,13 @@ import type {
     DeleteMembersFromWorkspaceParams,
     DeleteWorkspaceAvatarParams,
     DeleteWorkspaceParams,
+    EnablePolicyCategoriesParams,
+    EnablePolicyConnectionsParams,
+    EnablePolicyDistanceRatesParams,
+    EnablePolicyReportFieldsParams,
+    EnablePolicyTagsParams,
+    EnablePolicyTaxesParams,
+    EnablePolicyWorkflowsParams,
     OpenDraftWorkspaceRequestParams,
     OpenWorkspaceInvitePageParams,
     OpenWorkspaceMembersPageParams,
@@ -2487,6 +2494,353 @@ function clearCategoryErrors(policyID: string, categoryName: string) {
     });
 }
 
+function enablePolicyCategories(policyID: string, isEnabled: boolean) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                areCategoriesEnabled: isEnabled,
+                pendingFields: {
+                    areCategoriesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    areCategoriesEnabled: null,
+                },
+                pendingAction: null,
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                areCategoriesEnabled: !isEnabled,
+                pendingFields: {
+                    areCategoriesEnabled: null,
+                },
+                pendingAction: null,
+            },
+        },
+    ];
+
+    const parameters: EnablePolicyCategoriesParams = {policyID, isEnabled};
+
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
+function enablePolicyConnections(policyID: string, isEnabled: boolean) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                areConnectionsEnabled: isEnabled,
+                pendingFields: {
+                    areConnectionsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    areConnectionsEnabled: null,
+                },
+                pendingAction: null,
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                areConnectionsEnabled: !isEnabled,
+                pendingFields: {
+                    areConnectionsEnabled: null,
+                },
+                pendingAction: null,
+            },
+        },
+    ];
+
+    const parameters: EnablePolicyConnectionsParams = {policyID, isEnabled};
+
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
+function enablePolicyDistanceRates(policyID: string, isEnabled: boolean) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                areDistanceRatesEnabled: isEnabled,
+                pendingFields: {
+                    areDistanceRatesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    areDistanceRatesEnabled: null,
+                },
+                pendingAction: null,
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                areDistanceRatesEnabled: !isEnabled,
+                pendingFields: {
+                    areDistanceRatesEnabled: null,
+                },
+                pendingAction: null,
+            },
+        },
+    ];
+
+    const parameters: EnablePolicyDistanceRatesParams = {policyID, isEnabled};
+
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
+function enablePolicyReportFields(policyID: string, isEnabled: boolean) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                areReportFieldsEnabled: isEnabled,
+                pendingFields: {
+                    areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    areReportFieldsEnabled: null,
+                },
+                pendingAction: null,
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                areReportFieldsEnabled: !isEnabled,
+                pendingFields: {
+                    areReportFieldsEnabled: null,
+                },
+                pendingAction: null,
+            },
+        },
+    ];
+
+    const parameters: EnablePolicyReportFieldsParams = {policyID, isEnabled};
+
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
+function enablePolicyTags(policyID: string, isEnabled: boolean) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                areTagsEnabled: isEnabled,
+                pendingFields: {
+                    areTagsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    areTagsEnabled: null,
+                },
+                pendingAction: null,
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                areTagsEnabled: !isEnabled,
+                pendingFields: {
+                    areTagsEnabled: null,
+                },
+                pendingAction: null,
+            },
+        },
+    ];
+
+    const parameters: EnablePolicyTagsParams = {policyID, isEnabled};
+
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
+function enablePolicyTaxes(policyID: string, isEnabled: boolean) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                tax: {
+                    trackingEnabled: isEnabled,
+                },
+                pendingFields: {
+                    isTaxTrackingEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    isTaxTrackingEnabled: null,
+                },
+                pendingAction: null,
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                tax: {
+                    trackingEnabled: !isEnabled,
+                },
+                pendingFields: {
+                    isTaxTrackingEnabled: null,
+                },
+                pendingAction: null,
+            },
+        },
+    ];
+
+    const parameters: EnablePolicyTaxesParams = {policyID, isEnabled};
+
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_TAXES, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
+function enablePolicyWorkflows(policyID: string, isEnabled: boolean) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                areWorkflowsEnabled: isEnabled,
+                pendingFields: {
+                    areWorkflowsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    areWorkflowsEnabled: null,
+                },
+                pendingAction: null,
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                areWorkflowsEnabled: !isEnabled,
+                pendingFields: {
+                    areWorkflowsEnabled: null,
+                },
+                pendingAction: null,
+            },
+        },
+    ];
+
+    const parameters: EnablePolicyWorkflowsParams = {policyID, isEnabled};
+
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
 export {
     removeMembers,
     updateWorkspaceMembersRole,
@@ -2536,4 +2890,11 @@ export {
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,
     clearCategoryErrors,
+    enablePolicyCategories,
+    enablePolicyConnections,
+    enablePolicyDistanceRates,
+    enablePolicyReportFields,
+    enablePolicyTags,
+    enablePolicyTaxes,
+    enablePolicyWorkflows,
 };
