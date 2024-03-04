@@ -74,8 +74,6 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
         fetchData();
     }, [isOffline, fetchData, reimbursementAccount]);
 
-    const activeRoute = Navigation.getActiveRoute();
-
     const items: ToggleSettingOptionRowProps[] = useMemo(() => {
         const {accountNumber, state, bankName} = reimbursementAccount?.achData ?? {};
         const hasVBA = state === BankAccount.STATE.OPEN;
@@ -186,7 +184,6 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
         onPressAutoReportingFrequency,
         preferredLocale,
         canUseDelayedSubmission,
-        activeRoute,
         reimbursementAccount?.achData,
         displayNameForAuthorizedPayer,
     ]);
