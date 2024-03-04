@@ -61,10 +61,10 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
                         >
                             <View style={[styles.mt2, styles.mh5]}>
                                 <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                    <Text>{translate('workspace.categories.enableCategory')}</Text>
+                                    <Text>{translate('workspace.common.enabled')}</Text>
                                     <Switch
                                         isOn={policyCategory.enabled}
-                                        accessibilityLabel={translate('workspace.categories.enableCategory')}
+                                        accessibilityLabel={translate('workspace.common.enabled')}
                                         onToggle={updateWorkspaceRequiresCategory}
                                     />
                                 </View>
@@ -72,7 +72,7 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
                         </OfflineWithFeedback>
                         <MenuItemWithTopDescription
                             title={policyCategory.name}
-                            description={translate(`workspace.categories.categoryName`)}
+                            description={translate('common.name')}
                         />
                     </View>
                 </ScreenWrapper>
