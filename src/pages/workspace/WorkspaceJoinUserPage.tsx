@@ -32,7 +32,11 @@ function WorkspaceJoinUserPage({route, policies}: WorkspaceJoinUserPageProps) {
     const executedRef = useRef(false);
 
     useEffect(() => {
-        if (!policy || !policies || executedRef?.current) {
+        if (executedRef.current) {
+            Navigation.goBack(ROUTES.ALL_SETTINGS);
+            return;
+        }
+        if (!policy || !policies) {
             return;
         }
         const isPolicyMember = PolicyUtils.isPolicyMember(policyID, policies as Record<string, Policy>);
