@@ -14,7 +14,7 @@ import type {PolicyTag, PolicyTagList, PolicyTags, RecentlyUsedTags} from '@src/
 
 type SelectedTagOption = {
     name: string;
-    enabled?: boolean;
+    enabled: boolean;
     accountID: number | null;
 };
 

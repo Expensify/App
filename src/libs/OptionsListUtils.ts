@@ -20,6 +20,7 @@ import type {
     PolicyCategories,
     PolicyTag,
     PolicyTagList,
+    PolicyTags,
     Report,
     ReportAction,
     ReportActions,
@@ -125,7 +126,7 @@ type GetOptionsConfig = {
     categories?: PolicyCategories;
     recentlyUsedCategories?: string[];
     includeTags?: boolean;
-    tags?: PolicyTagList | Array<SelectedTagOption | PolicyTag>;
+    tags?: PolicyTags | Array<SelectedTagOption | PolicyTag>;
     recentlyUsedTags?: string[];
     canInviteUser?: boolean;
     includeSelectedOptions?: boolean;
@@ -1814,7 +1815,7 @@ function getFilteredOptions(
     categories: PolicyCategories = {},
     recentlyUsedCategories: string[] = [],
     includeTags = false,
-    tags: PolicyTagList | Array<PolicyTag | SelectedTagOption> = {},
+    tags: PolicyTags | Array<PolicyTag | SelectedTagOption> = {},
     recentlyUsedTags: string[] = [],
     canInviteUser = true,
     includeSelectedOptions = false,
