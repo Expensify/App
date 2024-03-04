@@ -42,9 +42,15 @@ type AttachmentCarouselPagerProps = {
      * @param showArrows If set, it will show/hide the arrows. If not set, it will toggle the arrows.
      */
     onRequestToggleArrows: (showArrows?: boolean) => void;
+
+    /** A callback that is called when swipe-down-to-close gesture happens */
+    onClose: () => void;
 };
 
-function AttachmentCarouselPager({items, activeSource, initialPage, onPageSelected, onRequestToggleArrows}: AttachmentCarouselPagerProps, ref: ForwardedRef<AttachmentCarouselPagerHandle>) {
+function AttachmentCarouselPager(
+    {items, activeSource, initialPage, onPageSelected, onRequestToggleArrows, onClose}: AttachmentCarouselPagerProps,
+    ref: ForwardedRef<AttachmentCarouselPagerHandle>,
+) {
     const styles = useThemeStyles();
     const pagerRef = useRef<PagerView>(null);
 
@@ -114,9 +120,10 @@ function AttachmentCarouselPager({items, activeSource, initialPage, onPageSelect
             isScrollEnabled,
             pagerRef,
             onTap: handleTap,
+            onSwipeDown: onClose,
             onScaleChanged: handleScaleChange,
         }),
-        [pagerItems, activePageIndex, isPagerScrolling, isScrollEnabled, handleTap, handleScaleChange],
+        [pagerItems, activePageIndex, isPagerScrolling, isScrollEnabled, handleTap, onClose, handleScaleChange],
     );
 
     const animatedProps = useAnimatedProps(() => ({

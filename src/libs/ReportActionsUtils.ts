@@ -703,8 +703,8 @@ function getAllReportActions(reportID: string): ReportActions {
 function isReportActionAttachment(reportAction: OnyxEntry<ReportAction>): boolean {
     const message = reportAction?.message?.[0];
 
-    if (reportAction && 'isAttachment' in reportAction) {
-        return reportAction.isAttachment ?? false;
+    if (reportAction && ('isAttachment' in reportAction || 'attachmentInfo' in reportAction)) {
+        return reportAction?.isAttachment ?? !!reportAction?.attachmentInfo ?? false;
     }
 
     if (message) {
@@ -884,6 +884,17 @@ function isCurrentActionUnread(report: Report | EmptyObject, reportAction: Repor
     return isReportActionUnread(reportAction, lastReadTime) && (!prevReportAction || !isReportActionUnread(prevReportAction, lastReadTime));
 }
 
+function isApprovedOrSubmittedReportAction(action: OnyxEntry<ReportAction> | EmptyObject) {
+    return [CONST.REPORT.ACTIONS.TYPE.APPROVED, CONST.REPORT.ACTIONS.TYPE.SUBMITTED].some((type) => type === action?.actionName);
+}
+
+/**
+ * Gets the text version of the message in a report action
+ */
+function getReportActionMessageText(reportAction: OnyxEntry<ReportAction> | EmptyObject): string {
+    return reportAction?.message?.reduce((acc, curr) => `${acc}${curr.text}`, '') ?? '';
+}
+
 export {
     extractLinksFromMessageHtml,
     getAllReportActions,
@@ -898,6 +909,8 @@ export {
     getNumberOfMoneyRequests,
     getParentReportAction,
     getReportAction,
+    getReportActionMessageText,
+    isApprovedOrSubmittedReportAction,
     getReportPreviewAction,
     getSortedReportActions,
     getSortedReportActionsForDisplay,

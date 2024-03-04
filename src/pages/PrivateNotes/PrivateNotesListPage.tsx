@@ -88,7 +88,12 @@ function PrivateNotesListPage({report, personalDetailsList, session}: PrivateNot
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
             <Text style={[styles.mb5, styles.ph5]}>{translate('privateNotes.personalNoteMessage')}</Text>
-            <ScrollView contentContainerStyle={styles.flexGrow1}>{privateNotes.map((item) => getMenuItem(item))}</ScrollView>
+            <ScrollView
+                contentContainerStyle={styles.flexGrow1}
+                bounces={false}
+            >
+                {privateNotes.map((item) => getMenuItem(item))}
+            </ScrollView>
         </ScreenWrapper>
     );
 }

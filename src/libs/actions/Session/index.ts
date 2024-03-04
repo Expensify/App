@@ -107,7 +107,7 @@ function signOut() {
  * Checks if the account is an anonymous account.
  */
 function isAnonymousUser(): boolean {
-    return sessionAuthTokenType === 'anonymousAccount';
+    return sessionAuthTokenType === CONST.AUTH_TOKEN_TYPE.ANONYMOUS;
 }
 
 function signOutAndRedirectToSignIn(shouldReplaceCurrentScreen?: boolean) {
@@ -856,7 +856,7 @@ function handleExitToNavigation(exitTo: Routes | HybridAppRoute) {
         waitForUserSignIn().then(() => {
             Navigation.waitForProtectedRoutes().then(() => {
                 const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
-                Navigation.navigate(url, CONST.NAVIGATION.TYPE.FORCED_UP);
+                Navigation.navigate(url);
             });
         });
     });
