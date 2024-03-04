@@ -4,15 +4,15 @@ import {Linking} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import Navigation from '@libs/Navigation/Navigation';
 import * as SessionUtils from '@libs/SessionUtils';
 import type {AuthScreensParamList} from '@navigation/types';
 import * as SessionActions from '@userActions/Session';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Session} from '@src/types/onyx';
-import CONST from '@src/CONST';
-import Navigation from '@libs/Navigation/Navigation';
-import ROUTES from '@src/ROUTES';
 
 type LogOutPreviousUserPageOnyxProps = {
     /** The data about the current session which will be set once the user is authenticated and we return to this component as an AuthScreen */

@@ -1,10 +1,9 @@
 import Onyx from 'react-native-onyx';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {ValueOf} from 'type-fest';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Credentials from '@src/types/onyx/Credentials';
-import CONST from '@src/CONST';
-
 
 let credentials: Credentials | null = null;
 let authToken: string | null = null;

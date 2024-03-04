@@ -48,8 +48,8 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type Credentials from '@src/types/onyx/Credentials';
 import type {AutoAuthState} from '@src/types/onyx/Session';
-import clearCache from './clearCache';
 import Session from '@src/types/onyx/Session';
+import clearCache from './clearCache';
 
 let session: Session = {};
 let authPromiseResolver: ((value: boolean) => void) | null = null;
@@ -215,16 +215,16 @@ function signOutAndRedirectToSignIn(shouldReplaceCurrentScreen?: boolean, stashS
         // Otherwise, if this is a supportal access and we have a stashed session, then we need to restore
         // the stashed session instead instead of completely logging out
         const shouldRestoreStashedSession = isSupportal && hasStashedSession();
-        
+
         // The function redirectToSignIn will clear the whole storage, so let's keep a copy of the current
-        // credentials and session, as well as the stashed version of it, so we can set them as the current 
+        // credentials and session, as well as the stashed version of it, so we can set them as the current
         // if needed below values after clearing the storage
         const credentialsCopy = credentials;
         const sessionCopy = session;
         const stashedCredentialsCopy = stashedCredentials;
         const stashedSessionCopy = stashedSession;
         let redirectPromise = redirectToSignIn();
-        if(shouldStashSession) {
+        if (shouldStashSession) {
             redirectPromise.then(() => {
                 Onyx.multiSet({
                     [ONYXKEYS.STASHED_CREDENTIALS]: credentialsCopy,
@@ -232,7 +232,7 @@ function signOutAndRedirectToSignIn(shouldReplaceCurrentScreen?: boolean, stashS
                 });
             });
         }
-        if(shouldRestoreStashedSession) {
+        if (shouldRestoreStashedSession) {
             debugger;
             redirectPromise.then(() => {
                 Onyx.multiSet({
