@@ -150,9 +150,7 @@ type GetOptions = {
 
 type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean};
 
-type ReportTypesOptionData = {
-    [key: string]: ReportUtils.OptionData[];
-};
+type ReportTypesOptionData = Record<string, ReportUtils.OptionData[]>;
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -2028,15 +2026,13 @@ function filterOptions(options: GetOptions, searchValue: string): ReportUtils.Op
         },
     );
 
-    const createFilter = (items: ReportUtils.OptionData[], keys: string[], term: string) => {
-        return filterArrayByMatch(items, term, {
+    const createFilter = (items: ReportUtils.OptionData[], keys: string[], term: string) =>
+        filterArrayByMatch(items, term, {
             keys,
             threshold: rankings.MATCHES,
             sort: sortType.NONE,
             strict: true,
         });
-    };
-
     const matchResults = searchTerms.reduceRight((items, term) => {
         const personalDetails = createFilter(
             items.personalDetails,

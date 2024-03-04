@@ -54,6 +54,12 @@ function SearchPage({betas, reports, isSearchingForReports}) {
     const {isOffline} = useNetwork();
     const themeStyles = useThemeStyles();
     const personalDetails = usePersonalDetails();
+    const [options, setOptions] = useState({
+        recentReports: [],
+        personalDetails: [],
+        betas: [],
+    });
+    const [filteredOptions, setFilteredOptions] = useState([]);
 
     const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
@@ -68,6 +74,28 @@ function SearchPage({betas, reports, isSearchingForReports}) {
         Report.searchInServer(debouncedSearchValue.trim());
     }, [debouncedSearchValue]);
 
+    useEffect(() => {
+        if (!isScreenTransitionEnd) {
+            return;
+        }
+
+        const searchOptions = OptionsListUtils.getSearchOptions(reports, personalDetails, '', betas);
+        setOptions(searchOptions);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isScreenTransitionEnd]);
+
+    useEffect(() => {
+        if (debouncedSearchValue.trim() === '') {
+            setFilteredOptions({});
+
+            return;
+        }
+
+        const filteredResults = OptionsListUtils.filterOptions(options, debouncedSearchValue);
+        setFilteredOptions(filteredResults);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [debouncedSearchValue]);
+
     const {
         recentReports,
         personalDetails: localPersonalDetails,
@@ -76,16 +104,27 @@ function SearchPage({betas, reports, isSearchingForReports}) {
     } = useMemo(() => {
         if (!isScreenTransitionEnd) {
             return {
-                recentReports: {},
-                personalDetails: {},
+                recentReports: [],
+                personalDetails: [],
                 userToInvite: {},
                 headerMessage: '',
             };
         }
-        const options = OptionsListUtils.getSearchOptions(reports, personalDetails, debouncedSearchValue.trim(), betas);
-        const header = OptionsListUtils.getHeaderMessage(options.recentReports.length + options.personalDetails.length !== 0, Boolean(options.userToInvite), debouncedSearchValue);
-        return {...options, headerMessage: header};
-    }, [debouncedSearchValue, reports, personalDetails, betas, isScreenTransitionEnd]);
+
+        let listOptions = options;
+        let header = OptionsListUtils.getHeaderMessage(listOptions.recentReports.length + listOptions.personalDetails.length !== 0, Boolean(listOptions.userToInvite), debouncedSearchValue);
+
+        if (searchValue !== '' && filteredOptions.length > 0) {
+            listOptions = {
+                recentReports: filteredOptions,
+                personalDetails: [],
+                userToInvite: {},
+            };
+            header = '';
+        }
+
+        return {...listOptions, headerMessage: header};
+    }, [debouncedSearchValue, filteredOptions, isScreenTransitionEnd, options, searchValue]);
 
     const sections = useMemo(() => {
         const newSections = [];
