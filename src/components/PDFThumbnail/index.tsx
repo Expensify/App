@@ -1,6 +1,6 @@
-// @ts-expect-error - We use the same method as PDFView to import the worker
+// @ts-expect-error - This line imports a module from 'pdfjs-dist' package which lacks TypeScript typings.
 import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker';
-import React, {useEffect, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {Document, pdfjs, Thumbnail} from 'react-pdf';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -8,15 +8,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import type PDFThumbnailProps from './types';
 
+if (!pdfjs.GlobalWorkerOptions.workerSrc) {
+    pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
+}
+
 function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword = () => {}}: PDFThumbnailProps) {
     const styles = useThemeStyles();
-
-    useEffect(() => {
-        const workerURL = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
-        if (pdfjs.GlobalWorkerOptions.workerSrc !== workerURL) {
-            pdfjs.GlobalWorkerOptions.workerSrc = workerURL;
-        }
-    }, []);
 
     const thumbnail = useMemo(
         () => (

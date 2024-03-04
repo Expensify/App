@@ -87,7 +87,7 @@ function ReportActionItemImage({
                 />
             </View>
         );
-    } else if (thumbnail && !isLocalFile && !Str.isPDF(attachmentModalSource as string)) {
+    } else if (thumbnail && !isLocalFile) {
         receiptImageComponent = (
             <ThumbnailImage
                 previewSourceURL={thumbnailSource}
@@ -98,10 +98,10 @@ function ReportActionItemImage({
                 shouldDynamicallyResize={false}
             />
         );
-    } else if (isLocalFile && filename && Str.isPDF(filename) && typeof imageSource === 'string') {
+    } else if (isLocalFile && filename && Str.isPDF(filename) && typeof attachmentModalSource === 'string') {
         receiptImageComponent = (
             <PDFThumbnail
-                previewSourceURL={imageSource}
+                previewSourceURL={attachmentModalSource}
                 style={[styles.w100, styles.h100]}
             />
         );
