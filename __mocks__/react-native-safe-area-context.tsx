@@ -43,7 +43,7 @@ function withSafeAreaInsets(WrappedComponent: React.ComponentType<WithSafeAreaIn
     return WithSafeAreaInsetsWithRef;
 }
 
-const SafeAreaView: typeof View = View;
+const SafeAreaView = View;
 const SafeAreaProvider = (props: SafeAreaProviderProps) => props.children;
 const SafeAreaConsumer = (props: SafeAreaConsumerProps) => props.children?.(insets);
 const SafeAreaInsetsContext: SafeAreaInsetsContextValue = {
