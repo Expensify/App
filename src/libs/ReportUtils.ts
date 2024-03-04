@@ -1521,9 +1521,6 @@ function getIcons(
     if (isExpenseRequest(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
         const workspaceIcon = getWorkspaceIcon(report, policy);
-        if (isClosedExpenseReportWithNoExpenses(report)) {
-            return [workspaceIcon];
-        }
         const memberIcon = {
             source: UserUtils.getAvatar(personalDetails?.[parentReportAction.actorAccountID ?? -1]?.avatar ?? '', parentReportAction.actorAccountID ?? -1),
             id: parentReportAction.actorAccountID,
@@ -1587,9 +1584,6 @@ function getIcons(
     }
     if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
         const workspaceIcon = getWorkspaceIcon(report, policy);
-        if (isClosedExpenseReportWithNoExpenses(report)) {
-            return [workspaceIcon];
-        }
         const memberIcon = {
             source: UserUtils.getAvatar(personalDetails?.[report?.ownerAccountID ?? -1]?.avatar ?? '', report?.ownerAccountID ?? -1),
             id: report?.ownerAccountID,
@@ -1607,9 +1601,6 @@ function getIcons(
             name: personalDetails?.[report?.managerID ?? -1]?.displayName ?? '',
             fallbackIcon: personalDetails?.[report?.managerID ?? -1]?.fallbackIcon,
         };
-        if (isClosedExpenseReportWithNoExpenses(report)) {
-            return [managerIcon];
-        }
         const ownerIcon = {
             id: report?.ownerAccountID,
             source: UserUtils.getAvatar(personalDetails?.[report?.ownerAccountID ?? -1]?.avatar ?? '', report?.ownerAccountID ?? -1),
