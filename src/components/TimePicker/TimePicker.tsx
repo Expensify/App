@@ -447,14 +447,14 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
                             lastPressedKey.current = e.nativeEvent.key;
                         }}
                         onChangeAmount={handleHourChange}
-                        ref={(tempRef) => {
+                        ref={(textInputRef) => {
                             if (typeof ref === 'function') {
-                                ref({hourRef: tempRef as TextInput | null, minuteRef: minuteInputRef.current});
+                                ref({hourRef: textInputRef as TextInput | null, minuteRef: minuteInputRef.current});
                             } else if (ref && 'current' in ref) {
                                 // eslint-disable-next-line no-param-reassign
-                                ref.current = {hourRef: tempRef as TextInput | null, minuteRef: minuteInputRef.current};
+                                ref.current = {hourRef: textInputRef as TextInput | null, minuteRef: minuteInputRef.current};
                             }
-                            hourInputRef.current = tempRef as TextInput | null;
+                            hourInputRef.current = textInputRef as TextInput | null;
                         }}
                         onSelectionChange={(e) => {
                             setSelectionHour(e.nativeEvent.selection);
@@ -472,15 +472,15 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
                             handleFocusOnBackspace(e);
                         }}
                         onChangeAmount={handleMinutesChange}
-                        ref={(tempRef) => {
+                        ref={(textInputRef) => {
                             if (typeof ref === 'function') {
-                                ref({hourRef: hourInputRef.current, minuteRef: tempRef as TextInput | null});
+                                ref({hourRef: hourInputRef.current, minuteRef: textInputRef as TextInput | null});
                             } else if (ref && 'current' in ref) {
                                 // eslint-disable-next-line no-param-reassign
-                                ref.current = {hourRef: hourInputRef.current, minuteRef: tempRef as TextInput | null};
+                                ref.current = {hourRef: hourInputRef.current, minuteRef: textInputRef as TextInput | null};
                             }
-                            minuteInputRef.current = tempRef as TextInput | null;
-                            inputCallbackRef(tempRef as TextInput | null);
+                            minuteInputRef.current = textInputRef as TextInput | null;
+                            inputCallbackRef(textInputRef as TextInput | null);
                         }}
                         onSelectionChange={(e) => {
                             setSelectionMinute(e.nativeEvent.selection);
