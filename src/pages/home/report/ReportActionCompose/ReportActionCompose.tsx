@@ -1,7 +1,7 @@
 import {PortalHost} from '@gorhom/portal';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {SyntheticEvent} from 'react';
-import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
+import type {LayoutChangeEvent, MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -320,7 +320,7 @@ function ReportActionCompose({
     }, [isComposerFullSize, reportID]);
 
     const measurePopover = useCallback(
-        ({nativeEvent}) => {
+        ({nativeEvent}: LayoutChangeEvent) => {
             actionSheetAwareScrollViewContext.transitionActionSheetState({
                 type: ActionSheetAwareScrollView.Actions.MEASURE_POPOVER,
                 payload: {
@@ -372,7 +372,7 @@ function ReportActionCompose({
     }, [isSendDisabled, resetFullComposerSize, submitForm, animatedRef, isReportReadyForDisplay]);
 
     const measureComposer = useCallback(
-        (e) => {
+        (e: LayoutChangeEvent) => {
             actionSheetAwareScrollViewContext.transitionActionSheetState({
                 type: ActionSheetAwareScrollView.Actions.MEASURE_COMPOSER,
                 payload: {

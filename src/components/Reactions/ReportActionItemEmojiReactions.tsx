@@ -17,6 +17,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import AddReactionBubble from './AddReactionBubble';
 import EmojiReactionBubble from './EmojiReactionBubble';
 import ReactionTooltipContent from './ReactionTooltipContent';
+import type {OpenPickerCallback} from './QuickEmojiReactions/types';
 
 type ReportActionItemEmojiReactionsProps = WithCurrentUserPersonalDetailsProps & {
     /** All the emoji reactions for the report action. */
@@ -42,7 +43,7 @@ type ReportActionItemEmojiReactionsProps = WithCurrentUserPersonalDetailsProps &
      * This is optional, because we don't need it everywhere.
      * For example in the ReportActionContextMenu we don't need it.
      */
-    onPressOpenPicker: PropTypes.func;
+    onPressOpenPicker: (openPicker: OpenPickerCallback) => void;
 
     /** We disable reacting with emojis on report actions that have errors */
     shouldBlockReactions?: boolean;

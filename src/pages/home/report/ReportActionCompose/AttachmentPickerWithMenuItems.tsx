@@ -1,5 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useMemo} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -163,7 +164,7 @@ function AttachmentPickerWithMenuItems({
     }, [report, reportID, translate]);
 
     const measurePopover = useCallback(
-        ({nativeEvent}) => {
+        ({nativeEvent}: LayoutChangeEvent) => {
             actionSheetAwareScrollViewContext.transitionActionSheetState({
                 type: ActionSheetAwareScrollView.Actions.MEASURE_POPOVER,
                 payload: {

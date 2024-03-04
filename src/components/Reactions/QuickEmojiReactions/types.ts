@@ -7,7 +7,7 @@ import type {Locale, ReportAction, ReportActionReactions} from '@src/types/onyx'
 
 type PickerRefElement = RefObject<TextInput | View>;
 
-type OpenPickerCallback = (element?: PickerRefElement, anchorOrigin?: AnchorOrigin) => void;
+type OpenPickerCallback = (element?: PickerRefElement, anchorOrigin?: AnchorOrigin, callback?: () => void) => void;
 
 type CloseContextMenuCallback = () => void;
 
