@@ -78,6 +78,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
         const {accountNumber, state, bankName} = reimbursementAccount?.achData ?? {};
         const hasVBA = state === BankAccount.STATE.OPEN;
         const bankDisplayName = bankName ? `${bankName} ${accountNumber ? `${accountNumber.slice(-5)}` : ''}` : '';
+        const isFailedToAddAuthorizedPayer = !!policy?.errorFields?.reimburserEmail;
         return [
             ...(canUseDelayedSubmission
                 ? [
@@ -164,6 +165,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
                                     shouldShowRightIcon
                                     wrapperStyle={containerStyle}
                                     hoverAndPressStyle={[styles.mr0, styles.br2]}
+                                    brickRoadIndicator={isFailedToAddAuthorizedPayer ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 />
                             </OfflineWithFeedback>
                         )}

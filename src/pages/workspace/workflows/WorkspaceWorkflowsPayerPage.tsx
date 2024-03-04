@@ -1,7 +1,5 @@
-// import { View } from 'react-native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo, useState} from 'react';
-// import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {SectionListData} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
