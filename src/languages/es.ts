@@ -1741,6 +1741,16 @@ export default {
     session: {
         offlineMessageRetry: 'Parece que estás desconectado. Por favor, comprueba tu conexión e inténtalo de nuevo.',
     },
+    travel: {
+        header: 'Mis viajes',
+        title: 'Reserva o gestiona tus viajes',
+        subtitle: 'Utiliza Expensify Travel para obtener las mejores ofertas de viaje y gestionar todos tus gastos de negocio en un solo lugar.',
+        bookOrManage: 'Reservar o gestionar',
+        features: {
+            saveMoney: 'Ahorra dinero en tus reservas',
+            alerts: 'Recibe alertas en tiempo real si cambian tus planes de viaje',
+        },
+    },
     workspace: {
         common: {
             card: 'Tarjetas',
