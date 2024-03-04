@@ -58,6 +58,7 @@ import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import {isEmailPublicDomain} from './LoginUtils';
+import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import linkingConfig from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
 import * as NumberUtils from './NumberUtils';
@@ -2552,6 +2553,9 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         }
         if (isAdminRoom(report) || isUserCreatedPolicyRoom(report)) {
             return getAdminRoomInvitedParticipants(parentReportAction, parentReportActionMessage);
+        }
+        if (ReportActionsUtils.isModifiedExpenseAction(parentReportAction)) {
+            return ModifiedExpenseMessage.getForReportAction(report?.reportID, parentReportAction);
         }
         return parentReportActionMessage;
     }
