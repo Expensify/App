@@ -41,7 +41,7 @@ function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails
     if (displayName) {
         return displayName;
     }
-    return defaultValue || (shouldFallbackToHidden ? CommonTranslationUtils.hiddenText() : '');
+    return defaultValue || (shouldFallbackToHidden ? Localize.translateLocal('common.hidden') : '');
 }
 
 /**

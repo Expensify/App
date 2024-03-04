@@ -580,13 +580,13 @@ function getPolicyType(report: OnyxEntry<Report>, policies: OnyxCollection<Polic
  * Get the policy name from a given report
  */
 function getPolicyName(report: OnyxEntry<Report> | undefined | EmptyObject, returnEmptyIfNotFound = false, policy: OnyxEntry<Policy> | undefined = undefined): string {
-    const noPolicyFound = returnEmptyIfNotFound ? '' : CommonTranslationUtils.unavailableWorkspaceText();
+    const noPolicyFound = returnEmptyIfNotFound ? '' : Localize.translateLocal('workspace.common.unavailable');
     if (isEmptyObject(report)) {
         return noPolicyFound;
     }
 
     if ((!allPolicies || Object.keys(allPolicies).length === 0) && !report?.policyName) {
-        return CommonTranslationUtils.unavailableWorkspaceText();
+        return Localize.translateLocal('workspace.common.unavailable');
     }
     const finalPolicy = policy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
 
@@ -1647,7 +1647,7 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
     const longName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, formattedLogin, shouldFallbackToHidden);
 
     // If the user's personal details (first name) should be hidden, make sure we return "hidden" instead of the short name
-    if (shouldFallbackToHidden && longName === CommonTranslationUtils.hiddenText()) {
+    if (shouldFallbackToHidden && longName === Localize.translateLocal('common.hidden')) {
         return longName;
     }
 
@@ -2508,13 +2508,13 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         }
 
         if (parentReportAction?.message?.[0]?.isDeletedParentAction) {
-            return CommonTranslationUtils.deletedMessageText();
+            return Localize.translateLocal('parentReportAction.deletedMessage');
         }
 
         const isAttachment = ReportActionsUtils.isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : null);
         const parentReportActionMessage = (parentReportAction?.message?.[0]?.text ?? '').replace(/(\r\n|\n|\r)/gm, ' ');
         if (isAttachment && parentReportActionMessage) {
-            return `[${CommonTranslationUtils.attachmentText()}]`;
+            return `[${Localize.translateLocal('common.attachment')}]`;
         }
         if (
             parentReportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE ||
@@ -2530,7 +2530,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
     }
 
     if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
-        return CommonTranslationUtils.deletedTaskText();
+        return Localize.translateLocal('parentReportAction.deletedTask');
     }
 
     if (isChatRoom(report) || isTaskReport(report)) {
@@ -2546,7 +2546,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
     }
 
     if (isArchivedRoom(report)) {
-        formattedName += ` (${CommonTranslationUtils.archivedText()})`;
+        formattedName += ` (${Localize.translateLocal('common.archived')})`;
     }
 
     if (formattedName) {
