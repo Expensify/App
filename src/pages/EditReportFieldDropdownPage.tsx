@@ -62,13 +62,23 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, 
             ];
         }
 
-        const restOfOptions = fieldOptions.filter((option) => !recentlyUsedOptions.includes(option));
-        setHeaderMessage(!restOfOptions.length && !recentlyUsedOptions.length ? translate('common.noResultsFound') : '');
+        const selectedValue = fieldValue;
+
+        setHeaderMessage(!fieldOptions.length && !recentlyUsedOptions.length ? translate('common.noResultsFound') : '');
         return [
+            {
+                shouldShow: false,
+                data: [{
+                    text: selectedValue,
+                    keyForList: selectedValue,
+                    searchText: selectedValue,
+                    tooltipText: selectedValue,
+                }],
+            },
             {
                 title: translate('common.recents'),
                 shouldShow: recentlyUsedOptions.length > 0,
-                data: recentlyUsedOptions.map((option) => ({
+                data: recentlyUsedOptions.filter((option) => option !== selectedValue).map((option) => ({
                     text: option,
                     keyForList: option,
                     searchText: option,
@@ -77,8 +87,8 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, 
             },
             {
                 title: translate('common.all'),
-                shouldShow: restOfOptions.length > 0,
-                data: restOfOptions.map((option) => ({
+                shouldShow: fieldOptions.length > 0,
+                data: fieldOptions.filter((option) => option !== selectedValue).map((option) => ({
                     text: option,
                     keyForList: option,
                     searchText: option,
