@@ -1,5 +1,5 @@
-import {app, BrowserWindow, clipboard, dialog, ipcMain, Menu, MenuItem, shell} from 'electron';
-import type {BrowserView, MenuItemConstructorOptions, WebContents, WebviewTag} from 'electron';
+import {app, BrowserWindow, clipboard, dialog, ipcMain, Menu, shell} from 'electron';
+import type {BrowserView, MenuItem, MenuItemConstructorOptions, WebContents, WebviewTag} from 'electron';
 import contextMenu from 'electron-context-menu';
 import log from 'electron-log';
 import type {ElectronLog} from 'electron-log';
@@ -62,22 +62,21 @@ function createContextMenu(preferredLocale: Locale = LOCALES.DEFAULT): () => voi
             paste: Localize.translate(preferredLocale, 'desktopApplicationMenu.paste'),
             copy: Localize.translate(preferredLocale, 'desktopApplicationMenu.copy'),
         },
-        append: (defaultActions, parameters, browserWindow) =>
-            [
-                new MenuItem({
-                    // Only enable the menu item for Editable context which supports paste
-                    visible: parameters.isEditable && parameters.editFlags.canPaste,
-                    role: 'pasteAndMatchStyle',
-                    accelerator: DESKTOP_SHORTCUT_ACCELERATOR.PASTE_AND_MATCH_STYLE,
-                    label: Localize.translate(preferredLocale, 'desktopApplicationMenu.pasteAndMatchStyle'),
-                }),
-                new MenuItem({
-                    label: Localize.translate(preferredLocale, 'desktopApplicationMenu.pasteAsPlainText'),
-                    visible: parameters.isEditable && parameters.editFlags.canPaste && clipboard.readText().length > 0,
-                    accelerator: DESKTOP_SHORTCUT_ACCELERATOR.PASTE_AS_PLAIN_TEXT,
-                    click: () => pasteAsPlainText(browserWindow),
-                }),
-            ] as unknown as MenuItemConstructorOptions[],
+        append: (defaultActions, parameters, browserWindow) => [
+            {
+                // Only enable the menu item for Editable context which supports paste
+                visible: parameters.isEditable && parameters.editFlags.canPaste,
+                role: 'pasteAndMatchStyle',
+                accelerator: DESKTOP_SHORTCUT_ACCELERATOR.PASTE_AND_MATCH_STYLE,
+                label: Localize.translate(preferredLocale, 'desktopApplicationMenu.pasteAndMatchStyle'),
+            },
+            {
+                label: Localize.translate(preferredLocale, 'desktopApplicationMenu.pasteAsPlainText'),
+                visible: parameters.isEditable && parameters.editFlags.canPaste && clipboard.readText().length > 0,
+                accelerator: DESKTOP_SHORTCUT_ACCELERATOR.PASTE_AS_PLAIN_TEXT,
+                click: () => pasteAsPlainText(browserWindow),
+            },
+        ],
     });
 }
 
@@ -306,10 +305,6 @@ const mainWindow = (): Promise<void> => {
                 if (!__DEV__) {
                     // Modify the origin and referer for requests sent to our API
                     webRequest.onBeforeSendHeaders(validDestinationFilters, (details, callback) => {
-                        // @ts-expect-error need to confirm if it's used
-                        details.requestHeaders.origin = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
-                        // @ts-expect-error need to confirm if it's used
-                        details.requestHeaders.referer = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
                         callback({requestHeaders: details.requestHeaders});
                     });
                 }
@@ -418,16 +413,13 @@ const mainWindow = (): Promise<void> => {
                         submenu: [
                             {
                                 id: 'back',
-                                // @ts-expect-error role doesn't exist but removing cause problems
-                                role: 'back',
                                 accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Shift+[',
                                 click: () => {
                                     browserWindow.webContents.goBack();
                                 },
                             },
                             {
-                                // @ts-expect-error role doesn't exist but removing cause problems
-                                role: 'back',
+                                label: 'backWithKeyShortcut',
                                 visible: false,
                                 accelerator: process.platform === 'darwin' ? 'Cmd+Left' : 'Shift+Left',
                                 click: () => {
@@ -436,16 +428,13 @@ const mainWindow = (): Promise<void> => {
                             },
                             {
                                 id: 'forward',
-                                // @ts-expect-error role doesn't exist but removing cause problems
-                                role: 'forward',
                                 accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
                                 click: () => {
                                     browserWindow.webContents.goForward();
                                 },
                             },
                             {
-                                // @ts-expect-error role doesn't exist but removing cause problems
-                                role: 'forward',
+                                label: 'forwardWithKeyShortcut',
                                 visible: false,
                                 accelerator: process.platform === 'darwin' ? 'Cmd+Right' : 'Shift+Right',
                                 click: () => {

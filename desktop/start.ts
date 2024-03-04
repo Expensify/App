@@ -42,8 +42,6 @@ portfinder
             },
         ];
 
-        // concurrently lib problem
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return concurrently(processes, {
             inputStream: process.stdin,
             prefix: 'name',
@@ -53,6 +51,6 @@ portfinder
         }).then(
             () => process.exit(0),
             () => process.exit(1),
-        );
+        ) as never;
     })
     .catch(() => process.exit(1));
