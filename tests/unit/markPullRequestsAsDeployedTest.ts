@@ -1,9 +1,20 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+
 /**
  * @jest-environment node
  */
-import _ from 'underscore';
 import GithubUtils from '../../.github/libs/GithubUtils';
 import GitUtils from '../../.github/libs/GitUtils';
+
+type ObjectMethodData<T> = {
+    data: T;
+};
+
+type PullRequest = {
+    issue_number: number;
+    title: string;
+    merged_by: {login: string};
+};
 
 let run;
 
@@ -12,8 +23,10 @@ const mockGetPullRequest = jest.fn();
 const mockCreateComment = jest.fn();
 const mockListTags = jest.fn();
 const mockGetCommit = jest.fn();
-let workflowRunURL;
-const PRList = {
+
+let workflowRunURL: string | null;
+
+const PRList: Record<number, PullRequest> = {
     1: {
         issue_number: 1,
         title: 'Test PR 1',
@@ -35,15 +48,10 @@ const defaultTags = [
     {name: '42.42.42-41', commit: {sha: 'efgh'}},
 ];
 
-/**
- * @param {String} key
- * @returns {Boolean|String}
- * @throws {Error}
- */
-function mockGetInputDefaultImplementation(key) {
+function mockGetInputDefaultImplementation(key: string): boolean | string {
     switch (key) {
         case 'PR_LIST':
-            return JSON.stringify(_.keys(PRList));
+            return JSON.stringify(Object.keys(PRList));
         case 'IS_PRODUCTION_DEPLOY':
             return false;
         case 'DEPLOY_VERSION':
@@ -58,11 +66,7 @@ function mockGetInputDefaultImplementation(key) {
     }
 }
 
-/**
- * @param {String} sha
- * @returns {Promise<{data: {message: String}}>}
- */
-async function mockGetCommitDefaultImplementation({commit_sha}) {
+function mockGetCommitDefaultImplementation({commit_sha}: {commit_sha: string}): {data: {message: string}} {
     if (commit_sha === 'abcd') {
         return {data: {message: 'Test commit 1'}};
     }
@@ -80,6 +84,7 @@ beforeAll(() => {
     const moctokit = {
         rest: {
             issues: {
+                // eslint-disable-next-line @typescript-eslint/require-await
                 listForRepo: jest.fn().mockImplementation(async () => ({
                     data: [
                         {
@@ -87,6 +92,7 @@ beforeAll(() => {
                         },
                     ],
                 })),
+                // eslint-disable-next-line @typescript-eslint/require-await
                 listEvents: jest.fn().mockImplementation(async () => ({
                     data: [{event: 'closed', actor: {login: 'thor'}}],
                 })),
@@ -102,18 +108,20 @@ beforeAll(() => {
                 getCommit: mockGetCommit,
             },
         },
-        paginate: jest.fn().mockImplementation((objectMethod) => objectMethod().then(({data}) => data)),
+        paginate: jest.fn().mockImplementation(<T>(objectMethod: () => Promise<ObjectMethodData<T>>) => objectMethod().then(({data}) => data)),
     };
+
+    // @ts-expect-error TODO: Remove this once GithubUtils (https://github.com/Expensify/App/issues/25382) is migrated to TypeScript.
     GithubUtils.internalOctokit = moctokit;
 
     // Mock GitUtils
     GitUtils.getPullRequestsMergedBetween = jest.fn();
 
     jest.mock('../../.github/libs/ActionUtils', () => ({
-        getJSONInput: jest.fn().mockImplementation((name, defaultValue) => {
+        getJSONInput: jest.fn().mockImplementation((name: string, defaultValue: string) => {
             try {
-                const input = mockGetInput(name);
-                return JSON.parse(input);
+                const input: string = mockGetInput(name);
+                return JSON.parse(input) as unknown;
             } catch (err) {
                 return defaultValue;
             }
@@ -123,12 +131,12 @@ beforeAll(() => {
     // Set GH runner environment variables
     process.env.GITHUB_SERVER_URL = 'https://github.com';
     process.env.GITHUB_REPOSITORY = 'Expensify/App';
-    process.env.GITHUB_RUN_ID = 1234;
+    process.env.GITHUB_RUN_ID = '1234';
     workflowRunURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
 });
 
 beforeEach(() => {
-    mockGetPullRequest.mockImplementation(async ({pull_number}) => (pull_number in PRList ? {data: PRList[pull_number]} : {}));
+    mockGetPullRequest.mockImplementation(({pull_number}: {pull_number: number}) => (pull_number in PRList ? {data: PRList[pull_number]} : {}));
     mockListTags.mockResolvedValue({
         data: defaultTags,
     });
@@ -150,8 +158,8 @@ describe('markPullRequestsAsDeployed', () => {
         // Note: we import this in here so that it executes after all the mocks are set up
         run = require('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
         await run();
-        expect(mockCreateComment).toHaveBeenCalledTimes(_.keys(PRList).length);
-        for (let i = 0; i < _.keys(PRList).length; i++) {
+        expect(mockCreateComment).toHaveBeenCalledTimes(Object.keys(PRList).length);
+        for (let i = 0; i < Object.keys(PRList).length; i++) {
             const PR = PRList[i + 1];
             expect(mockCreateComment).toHaveBeenNthCalledWith(i + 1, {
                 body: `🚀 [Deployed](${workflowRunURL}) to staging by https://github.com/${PR.merged_by.login} in version: ${version} 🚀
@@ -181,8 +189,8 @@ platform | result
         run = require('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
 
         await run();
-        expect(mockCreateComment).toHaveBeenCalledTimes(_.keys(PRList).length);
-        for (let i = 0; i < _.keys(PRList).length; i++) {
+        expect(mockCreateComment).toHaveBeenCalledTimes(Object.keys(PRList).length);
+        for (let i = 0; i < Object.keys(PRList).length; i++) {
             expect(mockCreateComment).toHaveBeenNthCalledWith(i + 1, {
                 body: `🚀 [Deployed](${workflowRunURL}) to production by https://github.com/thor in version: ${version} 🚀
 
@@ -209,7 +217,7 @@ platform | result
             }
             return mockGetInputDefaultImplementation(key);
         });
-        mockGetPullRequest.mockImplementation(async ({pull_number}) => {
+        mockGetPullRequest.mockImplementation(({pull_number}) => {
             if (pull_number === 3) {
                 return {
                     data: {
@@ -226,7 +234,7 @@ platform | result
         mockListTags.mockResolvedValue({
             data: [{name: '42.42.42-43', commit: {sha: 'xyz'}}, ...defaultTags],
         });
-        mockGetCommit.mockImplementation(async ({commit_sha}) => {
+        mockGetCommit.mockImplementation(({commit_sha}) => {
             if (commit_sha === 'xyz') {
                 return {data: {message: 'Test PR 3 (cherry picked from commit dagdag)', committer: {name: 'freyja'}}};
             }
@@ -271,8 +279,8 @@ platform | result
         // Note: we import this in here so that it executes after all the mocks are set up
         run = require('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
         await run();
-        expect(mockCreateComment).toHaveBeenCalledTimes(_.keys(PRList).length);
-        for (let i = 0; i < _.keys(PRList).length; i++) {
+        expect(mockCreateComment).toHaveBeenCalledTimes(Object.keys(PRList).length);
+        for (let i = 0; i < Object.keys(PRList).length; i++) {
             const PR = PRList[i + 1];
             expect(mockCreateComment).toHaveBeenNthCalledWith(i + 1, {
                 body: `🚀 [Deployed](${workflowRunURL}) to staging by https://github.com/${PR.merged_by.login} in version: ${version} 🚀

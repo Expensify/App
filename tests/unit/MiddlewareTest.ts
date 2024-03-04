@@ -1,10 +1,11 @@
 import Onyx from 'react-native-onyx';
-import HttpUtils from '../../src/libs/HttpUtils';
-import * as MainQueue from '../../src/libs/Network/MainQueue';
-import * as NetworkStore from '../../src/libs/Network/NetworkStore';
-import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
-import * as Request from '../../src/libs/Request';
-import ONYXKEYS from '../../src/ONYXKEYS';
+import HttpUtils from '@src/libs/HttpUtils';
+import handleUnusedOptimisticID from '@src/libs/Middleware/HandleUnusedOptimisticID';
+import * as MainQueue from '@src/libs/Network/MainQueue';
+import * as NetworkStore from '@src/libs/Network/NetworkStore';
+import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
+import * as Request from '@src/libs/Request';
+import ONYXKEYS from '@src/ONYXKEYS';
 import * as TestHelper from '../utils/TestHelper';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
@@ -13,7 +14,7 @@ Onyx.init({
 });
 
 beforeAll(() => {
-    global.fetch = TestHelper.getGlobalFetchMock();
+    global.fetch = TestHelper.getGlobalFetchMock() as typeof fetch;
 });
 
 beforeEach(async () => {
@@ -29,8 +30,6 @@ beforeEach(async () => {
 describe('Middleware', () => {
     describe('HandleUnusedOptimisticID', () => {
         test('Normal request', async () => {
-            const actual = jest.requireActual('../../src/libs/Middleware/HandleUnusedOptimisticID');
-            const handleUnusedOptimisticID = jest.spyOn(actual, 'default');
             Request.use(handleUnusedOptimisticID);
             const requests = [
                 {
@@ -50,14 +49,12 @@ describe('Middleware', () => {
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api?command=AddComment', expect.anything());
-            TestHelper.assertFormDataMatchesObject(global.fetch.mock.calls[1][1].body, {reportID: '1234', reportActionID: '5678', reportComment: 'foo'});
+            TestHelper.assertFormDataMatchesObject((global.fetch as jest.Mock).mock.calls[1][1].body, {reportID: '1234', reportActionID: '5678', reportComment: 'foo'});
             expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api?command=OpenReport', expect.anything());
-            TestHelper.assertFormDataMatchesObject(global.fetch.mock.calls[0][1].body, {reportID: '1234'});
+            TestHelper.assertFormDataMatchesObject((global.fetch as jest.Mock).mock.calls[0][1].body, {reportID: '1234'});
         });
 
         test('Request with preexistingReportID', async () => {
-            const actual = jest.requireActual('../../src/libs/Middleware/HandleUnusedOptimisticID');
-            const handleUnusedOptimisticID = jest.spyOn(actual, 'default');
             Request.use(handleUnusedOptimisticID);
             const requests = [
                 {
@@ -73,8 +70,10 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            global.fetch.mockImplementationOnce(async () => ({
+            // eslint-disable-next-line @typescript-eslint/require-await
+            (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
                 ok: true,
+                // eslint-disable-next-line @typescript-eslint/require-await
                 json: async () => ({
                     jsonCode: 200,
                     onyxData: [
@@ -94,9 +93,9 @@ describe('Middleware', () => {
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api?command=AddComment', expect.anything());
-            TestHelper.assertFormDataMatchesObject(global.fetch.mock.calls[1][1].body, {reportID: '5555', reportActionID: '5678', reportComment: 'foo'});
+            TestHelper.assertFormDataMatchesObject((global.fetch as jest.Mock).mock.calls[1][1].body, {reportID: '5555', reportActionID: '5678', reportComment: 'foo'});
             expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api?command=OpenReport', expect.anything());
-            TestHelper.assertFormDataMatchesObject(global.fetch.mock.calls[0][1].body, {reportID: '1234'});
+            TestHelper.assertFormDataMatchesObject((global.fetch as jest.Mock).mock.calls[0][1].body, {reportID: '1234'});
         });
     });
 });

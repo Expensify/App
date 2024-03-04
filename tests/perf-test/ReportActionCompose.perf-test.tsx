@@ -1,25 +1,34 @@
 import {fireEvent, screen} from '@testing-library/react-native';
+import type {ComponentType} from 'react';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import type Animated from 'react-native-reanimated';
 import {measurePerformance} from 'reassure';
-import ComposeProviders from '../../src/components/ComposeProviders';
-import {LocaleContextProvider} from '../../src/components/LocaleContextProvider';
-import OnyxProvider from '../../src/components/OnyxProvider';
-import {KeyboardStateProvider} from '../../src/components/withKeyboardState';
-import {WindowDimensionsProvider} from '../../src/components/withWindowDimensions';
-import * as Localize from '../../src/libs/Localize';
-import ONYXKEYS from '../../src/ONYXKEYS';
-import ReportActionCompose from '../../src/pages/home/report/ReportActionCompose/ReportActionCompose';
+import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
+import type {EmojiPickerRef} from '@libs/actions/EmojiPickerAction';
+import type Navigation from '@libs/Navigation/Navigation';
+import ComposeProviders from '@src/components/ComposeProviders';
+import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
+import OnyxProvider from '@src/components/OnyxProvider';
+import {KeyboardStateProvider} from '@src/components/withKeyboardState';
+import {WindowDimensionsProvider} from '@src/components/withWindowDimensions';
+import * as Localize from '@src/libs/Localize';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ReportActionCompose from '@src/pages/home/report/ReportActionCompose/ReportActionCompose';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // mock PortalStateContext
 jest.mock('@gorhom/portal');
 
-jest.mock('react-native-reanimated', () => ({
-    ...jest.requireActual('react-native-reanimated/mock'),
-    useAnimatedRef: jest.fn,
-}));
+jest.mock(
+    'react-native-reanimated',
+    () =>
+        ({
+            ...jest.requireActual('react-native-reanimated/mock'),
+            useAnimatedRef: jest.fn(),
+        } as typeof Animated),
+);
 
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual('@react-navigation/native');
@@ -32,11 +41,11 @@ jest.mock('@react-navigation/native', () => {
         useIsFocused: () => ({
             navigate: jest.fn(),
         }),
-    };
+    } as typeof Navigation;
 });
 
-jest.mock('../../src/libs/actions/EmojiPickerAction', () => {
-    const actualEmojiPickerAction = jest.requireActual('../../src/libs/actions/EmojiPickerAction');
+jest.mock('@src/libs/actions/EmojiPickerAction', () => {
+    const actualEmojiPickerAction = jest.requireActual('@src/libs/actions/EmojiPickerAction');
     return {
         ...actualEmojiPickerAction,
         emojiPickerRef: {
@@ -47,11 +56,11 @@ jest.mock('../../src/libs/actions/EmojiPickerAction', () => {
         showEmojiPicker: jest.fn(),
         hideEmojiPicker: jest.fn(),
         isActive: () => true,
-    };
+    } as EmojiPickerRef;
 });
 
-jest.mock('../../src/components/withNavigationFocus', () => (Component) => {
-    function WithNavigationFocus(props) {
+jest.mock('@src/components/withNavigationFocus', () => (Component: ComponentType<WithNavigationFocusProps>) => {
+    function WithNavigationFocus(props: WithNavigationFocusProps) {
         return (
             <Component
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -70,7 +79,6 @@ beforeAll(() =>
     Onyx.init({
         keys: ONYXKEYS,
         safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-        registerStorageEventListener: () => {},
     }),
 );
 
@@ -87,6 +95,8 @@ function ReportActionComposeWrapper() {
                 reportID="1"
                 disabled={false}
                 report={LHNTestUtils.getFakeReport()}
+                isComposerFullSize
+                listHeight={200}
             />
         </ComposeProviders>
     );

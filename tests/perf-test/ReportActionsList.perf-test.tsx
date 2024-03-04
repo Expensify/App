@@ -1,16 +1,19 @@
 import {fireEvent, screen} from '@testing-library/react-native';
+import type {ComponentType} from 'react';
 import Onyx from 'react-native-onyx';
 import {measurePerformance} from 'reassure';
-import ComposeProviders from '../../src/components/ComposeProviders';
-import {LocaleContextProvider} from '../../src/components/LocaleContextProvider';
-import OnyxProvider from '../../src/components/OnyxProvider';
-import {WindowDimensionsProvider} from '../../src/components/withWindowDimensions';
-import * as Localize from '../../src/libs/Localize';
-import ONYXKEYS from '../../src/ONYXKEYS';
-import ReportActionsList from '../../src/pages/home/report/ReportActionsList';
-import {ReportAttachmentsProvider} from '../../src/pages/home/report/ReportAttachmentsContext';
-import {ActionListContext, ReactionListContext} from '../../src/pages/home/ReportScreenContext';
-import variables from '../../src/styles/variables';
+import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
+import type Navigation from '@libs/Navigation/Navigation';
+import ComposeProviders from '@src/components/ComposeProviders';
+import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
+import OnyxProvider from '@src/components/OnyxProvider';
+import {WindowDimensionsProvider} from '@src/components/withWindowDimensions';
+import * as Localize from '@src/libs/Localize';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ReportActionsList from '@src/pages/home/report/ReportActionsList';
+import {ReportAttachmentsProvider} from '@src/pages/home/report/ReportAttachmentsContext';
+import {ActionListContext, ReactionListContext} from '@src/pages/home/ReportScreenContext';
+import variables from '@src/styles/variables';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import PusherHelper from '../utils/PusherHelper';
 import * as ReportTestUtils from '../utils/ReportTestUtils';
@@ -19,8 +22,8 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 const mockedNavigate = jest.fn();
 
-jest.mock('../../src/components/withNavigationFocus', () => (Component) => {
-    function WithNavigationFocus(props) {
+jest.mock('@src/components/withNavigationFocus', () => (Component: ComponentType<WithNavigationFocusProps>) => {
+    function WithNavigationFocus(props: WithNavigationFocusProps) {
         return (
             <Component
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -40,16 +43,15 @@ jest.mock('@react-navigation/native', () => {
     return {
         ...actualNav,
         useRoute: () => mockedNavigate,
-    };
+    } as typeof Navigation;
 });
 
-jest.mock('../../src/components/ConfirmedRoute.tsx');
+jest.mock('@src/components/ConfirmedRoute.tsx');
 
 beforeAll(() =>
     Onyx.init({
         keys: ONYXKEYS,
         safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-        registerStorageEventListener: () => {},
     }),
 );
 
@@ -60,7 +62,7 @@ afterAll(() => {
 const mockOnLayout = jest.fn();
 const mockOnScroll = jest.fn();
 const mockLoadChats = jest.fn();
-const mockRef = {current: null};
+const mockRef = {current: null, flatListRef: null, scrollPosition: null, setScrollPosition: () => {}};
 
 // Initialize the network key for OfflineWithFeedback
 beforeEach(() => {
