@@ -104,8 +104,7 @@ function IOURequestStepConfirmation({
             return 'Track Expense';
         }
         return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
-    }
-        , [iouType, transaction, translate]);
+    }, [iouType, transaction, translate]);
     const participants = useMemo(
         () =>
             _.map(transaction.participants, (participant) => {
