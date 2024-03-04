@@ -1,77 +1,26 @@
-import type {RefObject} from 'react';
 import React, {useEffect, useRef, useState} from 'react';
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
+import Button from '@components/Button';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PopoverMenu from '@components/PopoverMenu';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import type {AnchorPosition} from '@styles/index';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import type IconAsset from '@src/types/utils/IconAsset';
-import Button from './Button';
-import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
-import PopoverMenu from './PopoverMenu';
+import type {AnchorPosition} from '@src/styles';
+import type {ButtonWithDropdownMenuProps} from './types';
 
-type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE>;
-
-type DropdownOption = {
-    value: PaymentType;
-    text: string;
-    icon: IconAsset;
-    iconWidth?: number;
-    iconHeight?: number;
-    iconDescription?: string;
-};
-
-type ButtonWithDropdownMenuProps = {
-    /** Text to display for the menu header */
-    menuHeaderText?: string;
-
-    /** Callback to execute when the main button is pressed */
-    onPress: (event: GestureResponderEvent | KeyboardEvent | undefined, value: PaymentType) => void;
-
-    /** Callback to execute when a dropdown option is selected */
-    onOptionSelected?: (option: DropdownOption) => void;
-
-    /** Call the onPress function on main button when Enter key is pressed */
-    pressOnEnter?: boolean;
-
-    /** Whether we should show a loading state for the main button */
-    isLoading?: boolean;
-
-    /** The size of button size */
-    buttonSize: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
-
-    /** Should the confirmation button be disabled? */
-    isDisabled?: boolean;
-
-    /** Additional styles to add to the component */
-    style?: StyleProp<ViewStyle>;
-
-    /** Menu options to display */
-    /** e.g. [{text: 'Pay with Expensify', icon: Wallet}] */
-    options: DropdownOption[];
-
-    /** The anchor alignment of the popover menu */
-    anchorAlignment?: AnchorAlignment;
-
-    /* ref for the button */
-    buttonRef: RefObject<View>;
-
-    /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
-    enterKeyEventListenerPriority?: number;
-};
-
-function ButtonWithDropdownMenu({
+function ButtonWithDropdownMenu<IValueType>({
+    success = false,
     isLoading = false,
     isDisabled = false,
     pressOnEnter = false,
+    shouldAlwaysShowDropdownMenu = false,
     menuHeaderText = '',
+    customText,
     style,
     buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
     anchorAlignment = {
@@ -83,7 +32,7 @@ function ButtonWithDropdownMenu({
     options,
     onOptionSelected,
     enterKeyEventListenerPriority = 0,
-}: ButtonWithDropdownMenuProps) {
+}: ButtonWithDropdownMenuProps<IValueType>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -118,27 +67,27 @@ function ButtonWithDropdownMenu({
 
     return (
         <View>
-            {options.length > 1 ? (
+            {shouldAlwaysShowDropdownMenu || options.length > 1 ? (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, style]}>
                     <Button
-                        success
+                        success={success}
                         pressOnEnter={pressOnEnter}
                         ref={buttonRef}
                         onPress={(event) => onPress(event, selectedItem.value)}
-                        text={selectedItem.text}
+                        text={customText ?? selectedItem.text}
                         isDisabled={isDisabled}
                         isLoading={isLoading}
                         shouldRemoveRightBorderRadius
                         style={[styles.flex1, styles.pr0]}
                         large={isButtonSizeLarge}
                         medium={!isButtonSizeLarge}
-                        innerStyles={[innerStyleDropButton]}
+                        innerStyles={[innerStyleDropButton, customText !== undefined && styles.cursorDefault, customText !== undefined && styles.pointerEventsNone]}
                         enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     />
 
                     <Button
                         ref={caretButton}
-                        success
+                        success={success}
                         isDisabled={isDisabled}
                         style={[styles.pl0]}
                         onPress={() => setIsMenuVisible(!isMenuVisible)}
@@ -149,11 +98,13 @@ function ButtonWithDropdownMenu({
                         enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     >
                         <View style={[styles.dropDownButtonCartIconView, innerStyleDropButton]}>
-                            <View style={[styles.buttonDivider]} />
+                            <View style={[success ? styles.buttonSuccessDivider : styles.buttonDivider]} />
                             <View style={[styles.dropDownButtonArrowContain]}>
                                 <Icon
                                     src={Expensicons.DownArrow}
-                                    fill={theme.textLight}
+                                    fill={success ? theme.buttonSuccessText : theme.icon}
+                                    width={variables.iconSizeSmall}
+                                    height={variables.iconSizeSmall}
                                 />
                             </View>
                         </View>
@@ -161,7 +112,7 @@ function ButtonWithDropdownMenu({
                 </View>
             ) : (
                 <Button
-                    success
+                    success={success}
                     ref={buttonRef}
                     pressOnEnter={pressOnEnter}
                     isDisabled={isDisabled}
@@ -175,7 +126,7 @@ function ButtonWithDropdownMenu({
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                 />
             )}
-            {options.length > 1 && popoverAnchorPosition && (
+            {(shouldAlwaysShowDropdownMenu || options.length > 1) && popoverAnchorPosition && (
                 <PopoverMenu
                     isVisible={isMenuVisible}
                     onClose={() => setIsMenuVisible(false)}
@@ -187,10 +138,12 @@ function ButtonWithDropdownMenu({
                     headerText={menuHeaderText}
                     menuItems={options.map((item, index) => ({
                         ...item,
-                        onSelected: () => {
-                            onOptionSelected?.(item);
-                            setSelectedItemIndex(index);
-                        },
+                        onSelected:
+                            item.onSelected ??
+                            (() => {
+                                onOptionSelected?.(item);
+                                setSelectedItemIndex(index);
+                            }),
                     }))}
                 />
             )}
@@ -200,4 +153,4 @@ function ButtonWithDropdownMenu({
 
 ButtonWithDropdownMenu.displayName = 'ButtonWithDropdownMenu';
 
-export default React.memo(ButtonWithDropdownMenu);
+export default ButtonWithDropdownMenu;
