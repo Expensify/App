@@ -358,6 +358,6 @@ function filterArrayByMatch<T = string>(items: readonly T[], searchValue: string
 }
 
 export default filterArrayByMatch;
-export {rankings};
+export {rankings, sortType};
 
 export type {Options, KeyAttributesOptions, KeyOption, RankingInfo, ValueGetterKey};

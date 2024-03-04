@@ -36,6 +36,7 @@ import times from '@src/utils/times';
 import Timing from './actions/Timing';
 import * as CollectionUtils from './CollectionUtils';
 import * as ErrorUtils from './ErrorUtils';
+import filterArrayByMatch, {rankings, sortType} from './filterArrayByMatch';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
@@ -148,6 +149,10 @@ type GetOptions = {
 };
 
 type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean};
+
+type ReportTypesOptionData = {
+    [key: string]: ReportUtils.OptionData[];
+};
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -1306,6 +1311,29 @@ function isReportSelected(reportOption: ReportUtils.OptionData, selectedOptions:
     return selectedOptions.some((option) => (option.accountID && option.accountID === reportOption.accountID) || (option.reportID && option.reportID === reportOption.reportID));
 }
 
+function orderOptions(options: ReportUtils.OptionData[], searchValue: string | undefined) {
+    return lodashOrderBy(
+        options,
+        [
+            (option) => {
+                if (!!option.isChatRoom || option.isArchivedRoom) {
+                    return 3;
+                }
+                if (!option.login) {
+                    return 2;
+                }
+                if (option.login.toLowerCase() !== searchValue?.toLowerCase()) {
+                    return 1;
+                }
+
+                // When option.login is an exact match with the search value, returning 0 puts it at the top of the option list
+                return 0;
+            },
+        ],
+        ['asc'],
+    );
+}
+
 /**
  * Build the options
  */
@@ -1656,26 +1684,7 @@ function getOptions(
         // When sortByReportTypeInSearch is true, recentReports will be returned with all the reports including personalDetailsOptions in the correct Order.
         recentReportOptions.push(...personalDetailsOptions);
         personalDetailsOptions = [];
-        recentReportOptions = lodashOrderBy(
-            recentReportOptions,
-            [
-                (option) => {
-                    if (!!option.isChatRoom || option.isArchivedRoom) {
-                        return 3;
-                    }
-                    if (!option.login) {
-                        return 2;
-                    }
-                    if (option.login.toLowerCase() !== searchValue?.toLowerCase()) {
-                        return 1;
-                    }
-
-                    // When option.login is an exact match with the search value, returning 0 puts it at the top of the option list
-                    return 0;
-                },
-            ],
-            ['asc'],
-        );
+        recentReportOptions = orderOptions(recentReportOptions, searchValue);
     }
 
     return {
@@ -1997,6 +2006,64 @@ function formatSectionsFromSearchTerm(
     };
 }
 
+function filterOptions(options: GetOptions, searchValue: string): ReportUtils.OptionData[] {
+    const searchTerms = searchValue.split(' ');
+    const reportsByType = options.recentReports.reduce<ReportTypesOptionData>(
+        (acc, option) => {
+            if (option.isChatRoom) {
+                acc.chatRooms.push(option);
+            } else if (option.isPolicyExpenseChat) {
+                acc.policyExpenseChats.push(option);
+            } else {
+                acc.reports.push(option);
+            }
+
+            return acc;
+        },
+        {
+            chatRooms: [],
+            policyExpenseChats: [],
+            reports: [],
+            personalDetails: options.personalDetails,
+        },
+    );
+
+    const createFilter = (items: ReportUtils.OptionData[], keys: string[], term: string) => {
+        return filterArrayByMatch(items, term, {
+            keys,
+            threshold: rankings.MATCHES,
+            sort: sortType.NONE,
+            strict: true,
+        });
+    };
+
+    const matchResults = searchTerms.reduceRight((items, term) => {
+        const personalDetails = createFilter(
+            items.personalDetails,
+            ['text', 'login', 'participantsList[0].displayName', 'participantsList[0].firstName', 'participantsList[0].lastName'],
+            term,
+        );
+        const chatRooms = createFilter(items.chatRooms, ['text', 'alternateText'], term);
+        const policyExpenseChats = createFilter(items.policyExpenseChats, ['text'], term);
+        const reports = createFilter(
+            items.reports,
+            ['text', 'participantsList.*.login', 'participantsList.*.displayName', 'participantsList.*.firstName', 'participantsList.*.lastName'],
+            term,
+        );
+
+        return {
+            personalDetails,
+            chatRooms,
+            policyExpenseChats,
+            reports,
+        };
+    }, reportsByType);
+
+    const filteredOptions = Object.values(matchResults).flat();
+
+    return orderOptions(filteredOptions, searchValue);
+}
+
 export {
     getAvatarsForAccountIDs,
     isCurrentUser,
@@ -2027,6 +2094,7 @@ export {
     formatSectionsFromSearchTerm,
     transformedTaxRates,
     getShareLogOptions,
+    filterOptions,
 };
 
 export type {MemberForList, CategorySection, GetOptions};
