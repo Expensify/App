@@ -124,6 +124,7 @@ function MultiGestureCanvas({
             pinchTranslateX.value = withSpring(0, SPRING_CONFIG);
             pinchTranslateY.value = withSpring(0, SPRING_CONFIG);
             zoomScale.value = withSpring(1, SPRING_CONFIG, callback);
+            pinchScale.value = 1;
 
             return;
         }
@@ -135,6 +136,7 @@ function MultiGestureCanvas({
         pinchTranslateX.value = 0;
         pinchTranslateY.value = 0;
         zoomScale.value = 1;
+        pinchScale.value = 1;
 
         if (callback === undefined) {
             return;
