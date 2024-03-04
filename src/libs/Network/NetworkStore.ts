@@ -101,10 +101,6 @@ function isSupportRequest(command: string): boolean {
     return [WRITE_COMMANDS.OPEN_APP, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT].some((cmd) => cmd === command);
 }
 
-function isSupportAuthToken(): boolean {
-    return authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
-}
-
 function setAuthToken(newAuthToken: string | null) {
     authToken = newAuthToken;
 }
@@ -137,6 +133,5 @@ export {
     setIsAuthenticating,
     getCredentials,
     checkRequiredData,
-    isSupportAuthToken,
     isSupportRequest,
 };
