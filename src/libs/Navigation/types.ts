@@ -12,6 +12,7 @@ import type {
 } from '@react-navigation/native';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -90,6 +91,9 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.CATEGORIES]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.TAGS]: {
+        policyID: string;
+    };
 };
 
 type WorkspaceSwitcherNavigatorParamList = {
@@ -107,7 +111,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.LEGAL_NAME]: undefined;
     [SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH]: undefined;
     [SCREENS.SETTINGS.PROFILE.ADDRESS]: {
-        country?: string;
+        country?: Country | '';
     };
     [SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY]: {
         backTo?: Routes;

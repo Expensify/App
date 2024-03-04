@@ -1754,6 +1754,7 @@ export default {
             settings: 'Configuración',
             reimburse: 'Reembolsos',
             categories: 'Categorías',
+            tags: 'Etiquetas',
             bills: 'Pagar facturas',
             invoices: 'Enviar facturas',
             travel: 'Viajes',
@@ -1792,6 +1793,15 @@ export default {
                 subtitle: 'Añade una categoría para organizar tu gasto.',
             },
             genericFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
+        },
+        tags: {
+            requiresTag: 'Los miembros deben etiquetar todos los gastos',
+            enableTag: 'Habilitar etiqueta',
+            subtitle: 'Las etiquetas añaden formas más detalladas de clasificar los costos.',
+            emptyTags: {
+                title: 'No has creado ninguna etiqueta',
+                subtitle: 'Añade una etiqueta para realizar el seguimiento de proyectos, ubicaciones, departamentos y otros.',
+            },
         },
         emptyWorkspace: {
             title: 'Crea un espacio de trabajo',

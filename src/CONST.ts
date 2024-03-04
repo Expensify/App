@@ -1388,9 +1388,9 @@ const CONST = {
         OWNER_EMAIL_FAKE: '_FAKE_',
         OWNER_ACCOUNT_ID_FAKE: 0,
         REIMBURSEMENT_CHOICES: {
-            REIMBURSEMENT_YES: 'reimburseYes',
-            REIMBURSEMENT_NO: 'reimburseNo',
-            REIMBURSEMENT_MANUAL: 'reimburseManual',
+            REIMBURSEMENT_YES: 'reimburseYes', // Direct
+            REIMBURSEMENT_NO: 'reimburseNo', // None
+            REIMBURSEMENT_MANUAL: 'reimburseManual', // Indirect
         },
         ID_FAKE: '_FAKE_',
         EMPTY: 'EMPTY',
