@@ -464,7 +464,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
             shouldShowOfflineIndicatorInWideScreen
         >
             <FullPageNotFoundView
-                shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
+                shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || PolicyUtils.isPendingDeletePolicy(policy)}
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
                 onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
                 onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
