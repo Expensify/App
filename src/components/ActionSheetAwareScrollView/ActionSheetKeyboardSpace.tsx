@@ -131,7 +131,7 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
         // sometimes we need to know the last keyboard height
         const lastKeyboardHeight = keyboard.heightWhenOpened.value - safeArea.bottom;
 
-        const {popoverHeight, fy, height, composerHeight} = current.payload ?? {};
+        const {popoverHeight = 0, fy, height, composerHeight = 0} = current.payload ?? {};
 
         const invertedKeyboardHeight = keyboard.state.value === KeyboardState.CLOSED ? lastKeyboardHeight : 0;
 
@@ -145,7 +145,7 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
         const previousPayload = previous.payload ?? {};
 
         // it will be NaN when we don't have proper payload
-        let previousElementOffset;
+        let previousElementOffset = 0;
 
         if (previousPayload.fy !== undefined && previousPayload.height !== undefined && previousPayload.popoverHeight !== undefined) {
             previousElementOffset = previousPayload.fy + safeArea.top + previousPayload.height - (windowHeight - previousPayload.popoverHeight);
@@ -174,7 +174,7 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
             case States.EMOJI_PICKER_POPOVER_OPEN:
             case States.POPOVER_OPEN: {
                 if (popoverHeight) {
-                    if (previousElementOffset !== undefined || elementOffset > previousElementOffset) {
+                    if (previousElementOffset !== 0 || elementOffset > previousElementOffset) {
                         return withSpring(elementOffset < 0 ? 0 : elementOffset, config);
                     }
 
@@ -193,11 +193,10 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
                 }
 
                 const nextOffset = invertedKeyboardHeight + elementOffset;
-
-                if (previous.payload.popoverHeight !== popoverHeight) {
+                if (previous?.payload?.popoverHeight !== popoverHeight) {
                     const previousOffset = invertedKeyboardHeight + previousElementOffset;
 
-                    if (Number.isNaN(previousOffset) || nextOffset > previousOffset) {
+                    if (previousElementOffset === 0 || nextOffset > previousOffset) {
                         return withSpring(nextOffset, config);
                     }
 
