@@ -7,6 +7,9 @@ type Address = {
     state: string;
     zip: string;
     country: Country | '';
+    zipPostCode?: string;
+    addressLine1?: string;
+    addressLine2?: string;
 };
 
 type PrivatePersonalDetails = {
@@ -23,3 +26,5 @@ type PrivatePersonalDetails = {
 };
 
 export default PrivatePersonalDetails;
+
+export type {Address};
