@@ -107,13 +107,6 @@ function setSupportAuthToken(supportAuthToken: string, email: string, accountID:
     Onyx.set(ONYXKEYS.LAST_VISITED_PATH, '');
 }
 
-function clearSupportAuthToken() {
-    Onyx.set(ONYXKEYS.SESSION, null).then(() => {
-        Log.info('[Supportal] Authtoken removed');
-    });
-    Onyx.set(ONYXKEYS.LAST_VISITED_PATH, null);
-}
-
 function getShortLivedLoginParams() {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -223,7 +216,7 @@ function signOutAndRedirectToSignIn(shouldReplaceCurrentScreen?: boolean, stashS
         const sessionCopy = session;
         const stashedCredentialsCopy = stashedCredentials;
         const stashedSessionCopy = stashedSession;
-        let redirectPromise = redirectToSignIn();
+        const redirectPromise = redirectToSignIn();
         if (shouldStashSession) {
             redirectPromise.then(() => {
                 Onyx.multiSet({
@@ -233,7 +226,6 @@ function signOutAndRedirectToSignIn(shouldReplaceCurrentScreen?: boolean, stashS
             });
         }
         if (shouldRestoreStashedSession) {
-            debugger;
             redirectPromise.then(() => {
                 Onyx.multiSet({
                     [ONYXKEYS.CREDENTIALS]: stashedCredentialsCopy,
