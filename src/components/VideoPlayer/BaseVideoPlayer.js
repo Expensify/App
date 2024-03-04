@@ -225,7 +225,7 @@ function BaseVideoPlayer({
                                             resizeMode={resizeMode}
                                             isLooping={isLooping}
                                             onReadyForDisplay={(e) => {
-                                                if (isCurrentlyURLSet) {
+                                                if (isCurrentlyURLSet && !isUploading) {
                                                     playVideo();
                                                 }
                                                 onVideoLoaded(e);
