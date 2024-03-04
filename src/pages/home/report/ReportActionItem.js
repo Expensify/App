@@ -764,11 +764,6 @@ function ReportActionItem(props) {
         return null;
     }
 
-    // if action is actionable join by invited link and resolved by user, then we don't want to render anything
-    if (ReportActionsUtils.isActionableJoinRequest(props.action) && lodashGet(props.action, 'originalMessage.choice', '')) {
-        return null;
-    }
-
     // We currently send whispers to all report participants and hide them in the UI for users that shouldn't see them.
     // This is a temporary solution needed for comment-linking.
     // The long term solution will leverage end-to-end encryption and only targeted users will be able to decrypt.

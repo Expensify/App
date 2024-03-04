@@ -2561,7 +2561,7 @@ function acceptJoinRequest(reportId: string, accountID: string, adminsRoomMessag
     ];
 
     const parameters = {
-        requests: [{policyID: {accountID, adminsRoomMessageReportActionID}}],
+        requests: JSON.stringify({[reportId]: {requests: [{accountID, adminsRoomMessageReportActionID}]}}),
     };
 
     API.write(WRITE_COMMANDS.ACCEPT_JOIN_REQUEST, parameters, {optimisticData, failureData});
@@ -2597,7 +2597,7 @@ function declineJoinRequest(reportId: string, accountID: string, adminsRoomMessa
     ];
 
     const parameters = {
-        requests: [{policyID: {accountID, adminsRoomMessageReportActionID}}],
+        requests: JSON.stringify({[reportId]: {requests: [{accountID, adminsRoomMessageReportActionID}]}}),
     };
 
     API.write(WRITE_COMMANDS.DECLINE_JOIN_REQUEST, parameters, {optimisticData, failureData});

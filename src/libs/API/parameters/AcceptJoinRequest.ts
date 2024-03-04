@@ -1,10 +1,5 @@
 type AcceptJoinRequestParams = {
-    requests: Array<{
-        policyID: {
-            accountID: string;
-            adminsRoomMessageReportActionID: string;
-        };
-    }>;
+    requests: string;
 };
 
 export default AcceptJoinRequestParams;

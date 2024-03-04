@@ -1,10 +1,5 @@
 type DeclineJoinRequestParams = {
-    requests: Array<{
-        policyID: {
-            accountID: string;
-            adminsRoomMessageReportActionID: string;
-        };
-    }>;
+    requests: string;
 };
 
 export default DeclineJoinRequestParams;
