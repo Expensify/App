@@ -1,6 +1,6 @@
 type SetNameValuePairParams = {
     name: string;
-    value: boolean | object;
+    value: boolean;
 };
 
 export default SetNameValuePairParams;

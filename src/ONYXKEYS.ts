@@ -126,9 +126,6 @@ const ONYXKEYS = {
     /** This NVP contains the choice that the user made on the engagement modal */
     NVP_INTRO_SELECTED: 'introSelected',
 
-    /** This NVP contains the tryNewDot NVP which will determine with experience the user is using during HybridApp */
-    NVP_TRY_NEW_DOT: 'tryNewDot',
-
     /** Does this user have push notifications enabled for this device? */
     PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
 
@@ -523,7 +520,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoint[];
     [ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL]: boolean;
     [ONYXKEYS.NVP_INTRO_SELECTED]: OnyxTypes.IntroSelected;
-    [ONYXKEYS.NVP_TRY_NEW_DOT]: object;
     [ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED]: boolean;
     [ONYXKEYS.PLAID_DATA]: OnyxTypes.PlaidData;
     [ONYXKEYS.IS_PLAID_DISABLED]: boolean;

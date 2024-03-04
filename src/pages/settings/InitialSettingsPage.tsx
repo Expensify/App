@@ -45,7 +45,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import * as User from '@userActions/User';
 
 type InitialSettingsPageOnyxProps = {
     /** The user's session */
