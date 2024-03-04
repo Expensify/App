@@ -114,6 +114,7 @@ type GetOptionsConfig = {
     includeMultipleParticipantReports?: boolean;
     includePersonalDetails?: boolean;
     includeRecentReports?: boolean;
+    includeSelfDM?: boolean;
     sortByReportTypeInSearch?: boolean;
     searchInputValue?: string;
     showChatPreviewLine?: boolean;
@@ -480,7 +481,7 @@ function getSearchText(
 /**
  * Get an object of error messages keyed by microtime by combining all error objects related to the report.
  */
-function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxCommon.Errors {
+function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>, transactions: OnyxCollection<Transaction> = allTransactions): OnyxCommon.Errors {
     const reportErrors = report?.errors ?? {};
     const reportErrorFields = report?.errorFields ?? {};
     const reportActionErrors: OnyxCommon.ErrorFields = Object.values(reportActions ?? {}).reduce(
@@ -492,7 +493,7 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
 
     if (parentReportAction?.actorAccountID === currentUserAccountID && ReportActionUtils.isTransactionThread(parentReportAction)) {
         const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage?.IOUTransactionID : null;
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (TransactionUtils.hasMissingSmartscanFields(transaction ?? null) && !ReportUtils.isSettled(transaction?.reportID)) {
             reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage');
         }
@@ -675,6 +676,8 @@ function createOption(
         result.tooltipText = ReportUtils.getReportParticipantsTitle(report.visibleChatMemberAccountIDs ?? []);
         result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
         result.policyID = report.policyID;
+        result.isSelfDM = ReportUtils.isSelfDM(report);
+
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
         subtitle = ReportUtils.getChatRoomSubtitle(report);
 
@@ -1368,6 +1371,7 @@ function getOptions(
         transactionViolations = {},
         includeTaxRates,
         taxRates,
+        includeSelfDM = false,
     }: GetOptionsConfig,
 ): GetOptions {
     if (includeCategories) {
@@ -1444,8 +1448,8 @@ function getOptions(
             policies,
             doesReportHaveViolations,
             isInGSDMode: false,
-
             excludeEmptyChats: false,
+            includeSelfDM,
         });
     });
 
@@ -1472,7 +1476,9 @@ function getOptions(
         const isTaskReport = ReportUtils.isTaskReport(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-        const accountIDs = report.visibleChatMemberAccountIDs ?? [];
+        const isSelfDM = ReportUtils.isSelfDM(report);
+        // Currently, currentUser is not included in visibleChatMemberAccountIDs, so for selfDM we need to add the currentUser as participants.
+        const accountIDs = isSelfDM ? [currentUserAccountID ?? 0] : report.visibleChatMemberAccountIDs ?? [];
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
             return;
@@ -1480,6 +1486,10 @@ function getOptions(
 
         // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to workspace chats only.
         if (!includeP2P && !isPolicyExpenseChat) {
+            return;
+        }
+
+        if (isSelfDM && !includeSelfDM) {
             return;
         }
 
@@ -1733,6 +1743,7 @@ function getSearchOptions(reports: Record<string, Report>, personalDetails: Onyx
         includeThreads: true,
         includeMoneyRequests: true,
         includeTasks: true,
+        includeSelfDM: true,
     });
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markEnd(CONST.TIMING.LOAD_SEARCH_OPTIONS);
@@ -1808,6 +1819,7 @@ function getFilteredOptions(
     includeSelectedOptions = false,
     includeTaxRates = false,
     taxRates: TaxRatesWithDefault = {} as TaxRatesWithDefault,
+    includeSelfDM = false,
 ) {
     return getOptions(reports, personalDetails, {
         betas,
@@ -1829,6 +1841,7 @@ function getFilteredOptions(
         includeSelectedOptions,
         includeTaxRates,
         taxRates,
+        includeSelfDM,
     });
 }
 
@@ -1862,6 +1875,7 @@ function getShareDestinationOptions(
         excludeLogins,
         includeOwnedWorkspaceChats,
         excludeUnknownUsers,
+        includeSelfDM: true,
     });
 }
 

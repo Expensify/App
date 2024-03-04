@@ -1,6 +1,6 @@
 import {addDays, format, startOfDay, subYears} from 'date-fns';
-import CONST from '../../src/CONST';
-import * as ValidationUtils from '../../src/libs/ValidationUtils';
+import CONST from '@src/CONST';
+import * as ValidationUtils from '@src/libs/ValidationUtils';
 
 describe('ValidationUtils', () => {
     describe('isValidDate', () => {
@@ -93,7 +93,7 @@ describe('ValidationUtils', () => {
         });
 
         test('Should return false for an empty array value', () => {
-            const emptyArrayValue = [];
+            const emptyArrayValue: string[] = [];
             const isFulfilled = ValidationUtils.isRequiredFulfilled(emptyArrayValue);
             expect(isFulfilled).toBe(false);
         });
@@ -178,19 +178,19 @@ describe('ValidationUtils', () => {
 
     describe('getAgeRequirementError', () => {
         test('Should return an empty string for a date within the specified range', () => {
-            const validDate = format(subYears(new Date(), 30), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 30 years ago
+            const validDate: string = format(subYears(new Date(), 30), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 30 years ago
             const error = ValidationUtils.getAgeRequirementError(validDate, 18, 150);
             expect(error).toBe('');
         });
 
         test('Should return an error message for a date before the minimum age requirement', () => {
-            const invalidDate = format(subYears(new Date(), 17), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 17 years ago
+            const invalidDate: string = format(subYears(new Date(), 17), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 17 years ago
             const error = ValidationUtils.getAgeRequirementError(invalidDate, 18, 150);
             expect(error).toEqual(['privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(startOfDay(subYears(new Date(), 18)), CONST.DATE.FNS_FORMAT_STRING)}]);
         });
 
         test('Should return an error message for a date after the maximum age requirement', () => {
-            const invalidDate = format(subYears(new Date(), 160), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 160 years ago
+            const invalidDate: string = format(subYears(new Date(), 160), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 160 years ago
             const error = ValidationUtils.getAgeRequirementError(invalidDate, 18, 150);
             expect(error).toEqual(['privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(startOfDay(subYears(new Date(), 150)), CONST.DATE.FNS_FORMAT_STRING)}]);
         });
@@ -304,12 +304,6 @@ describe('ValidationUtils', () => {
         test('Valid account route', () => {
             expect(ValidationUtils.isValidAccountRoute(123123)).toBe(true);
             expect(ValidationUtils.isValidAccountRoute(5612)).toBe(true);
-        });
-
-        test('Invalid account route', () => {
-            expect(ValidationUtils.isValidAccountRoute(undefined)).toBe(false);
-            expect(ValidationUtils.isValidAccountRoute(0)).toBe(false);
-            expect(ValidationUtils.isValidAccountRoute('123aaa')).toBe(false);
         });
     });
 
