@@ -73,10 +73,13 @@ function HeaderView({report, personalDetails, parentReport, policy, session, rep
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const participants = report.participantAccountIDs ?? [];
-    const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails);
+    const isSelfDM = ReportUtils.isSelfDM(props.report);
+    // Currently, currentUser is not included in participantAccountIDs, so for selfDM, we need to add the currentUser as participants.
+    const participants = isSelfDM ? [props.session.accountID] : lodashGet(props.report, 'participantAccountIDs', []);
+    const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant);
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant, undefined, isSelfDM);
+
     const isChatThread = ReportUtils.isChatThread(report);
     const isChatRoom = ReportUtils.isChatRoom(report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
@@ -139,7 +142,7 @@ function HeaderView({report, personalDetails, parentReport, policy, session, rep
         Report.updateNotificationPreference(reportID, report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false, report.parentReportID, report.parentReportActionID),
     );
 
-    const canJoinOrLeave = isChatThread || isUserCreatedPolicyRoom || canLeaveRoom;
+    const canJoinOrLeave = isChatThread || !isSelfDM || isUserCreatedPolicyRoom || canLeaveRoom;
     const canJoin = canJoinOrLeave && !isWhisperAction && report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const canLeave = canJoinOrLeave && ((isChatThread && !!report.notificationPreference?.length) || isUserCreatedPolicyRoom || canLeaveRoom);
     if (canJoin) {
@@ -167,7 +170,7 @@ function HeaderView({report, personalDetails, parentReport, policy, session, rep
     );
 
     const renderAdditionalText = () => {
-        if (shouldShowSubtitle() || isPersonalExpenseChat || !policyName || !isEmptyObject(parentNavigationSubtitleData)) {
+        if (shouldShowSubtitle() || isPersonalExpenseChat || !policyName || !isEmptyObject(parentNavigationSubtitleData) || isSelfDM) {
             return null;
         }
         return (

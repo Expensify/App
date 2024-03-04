@@ -14,7 +14,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
-import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,6 +25,12 @@ import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 type ReportFooterOnyxProps = {
     /** Whether to show the compose input */
     shouldShowComposeInput: OnyxEntry<boolean>;
+
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+                                 /** Currently logged in user auth token type */
+                                 authTokenType: PropTypes.string,
+                             }),
 };
 
 type ReportFooterProps = ReportFooterOnyxProps & {
@@ -54,6 +59,7 @@ type ReportFooterProps = ReportFooterOnyxProps & {
 function ReportFooter({
     lastReportAction,
     pendingAction,
+    session,
     report = {reportID: '0'},
     shouldShowComposeInput = false,
     isEmptyChat = true,
@@ -66,7 +72,7 @@ function ReportFooter({
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isArchivedRoom = ReportUtils.isArchivedRoom(report);
-    const isAnonymousUser = Session.isAnonymousUser();
+    const isAnonymousUser = session.authTokenType === CONST.AUTH_TOKEN_TYPE.ANONYMOUS;
 
     const isSmallSizeLayout = windowWidth - (isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
     const hideComposer = !ReportUtils.canUserPerformWriteAction(report);
@@ -157,6 +163,9 @@ export default withOnyx<ReportFooterProps, ReportFooterOnyxProps>({
         key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
         initialValue: false,
     },
+    session: {
+            key: ONYXKEYS.SESSION,
+    },
 })(
     memo(
         ReportFooter,
@@ -168,6 +177,7 @@ export default withOnyx<ReportFooterProps, ReportFooterOnyxProps>({
             prevProps.isEmptyChat === nextProps.isEmptyChat &&
             prevProps.lastReportAction === nextProps.lastReportAction &&
             prevProps.shouldShowComposeInput === nextProps.shouldShowComposeInput &&
-            prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay,
+            prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
+            lodashIsEqual(prevProps.session, nextProps.session),
     ),
 );
