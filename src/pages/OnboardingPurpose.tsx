@@ -83,6 +83,7 @@ function OnboardingPurpose() {
                     key: translationKey,
                     title: translate(translationKey),
                     icon: menuIcons[choice],
+                    displayInDefaultIconColor: true,
                     iconWidth: variables.purposeMenuIconSize,
                     iconHeight: variables.purposeMenuIconSize,
                     iconStyles: [styles.mh3],
