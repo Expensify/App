@@ -82,9 +82,9 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying
                     />
                     {shouldShowTime && (
                         <View style={[styles.videoPlayerControlsRow]}>
-                            <Text style={[styles.videoPlayerText]}>{convertMillisecondsToTime(position)}</Text>
-                            <Text style={[styles.videoPlayerText, styles.mh1]}>/</Text>
-                            <Text style={[styles.videoPlayerText]}>{durationFormatted}</Text>
+                            <Text style={[styles.videoPlayerText, styles.videoPlayerTimeComponentWidth]}>{convertMillisecondsToTime(position)}</Text>
+                            <Text style={[styles.videoPlayerText]}>/</Text>
+                            <Text style={[styles.videoPlayerText, styles.videoPlayerTimeComponentWidth]}>{durationFormatted}</Text>
                         </View>
                     )}
                 </View>
