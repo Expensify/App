@@ -5,23 +5,25 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as UserUtils from '@libs/UserUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
-import Button from "@components/Button";
-import useLocalize from "@hooks/useLocalize";
-import * as Expensicons from "@components/Icon/Expensicons";
 
 type WorkspacePolicyOnyxProps = {
     /** Personal details of all users */
@@ -34,6 +36,8 @@ function WorkspaceMemberDetailsPage({personalDetails, route}: WorkspaceMemberDet
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    const [removeMemberConfirmModalVisible, setRemoveMemberConfirmModalVisible] = React.useState(false);
+
     const accountID = Number(route?.params?.accountID) ?? 0;
     const backTo = route?.params?.backTo;
 
@@ -43,8 +47,14 @@ function WorkspaceMemberDetailsPage({personalDetails, route}: WorkspaceMemberDet
     const displayName = details.displayName ?? '';
 
     const askForConfirmationToRemove = () => {
-        // TODO: Implement this
-    }
+        setRemoveMemberConfirmModalVisible(true);
+    };
+
+    const removeUser = () => {
+        Policy.removeMembers([accountID], route.params.policyID);
+        setRemoveMemberConfirmModalVisible(false);
+        Navigation.goBack(backTo);
+    };
 
     return (
         <ScreenWrapper testID={WorkspaceMemberDetailsPage.displayName}>
@@ -78,6 +88,16 @@ function WorkspaceMemberDetailsPage({personalDetails, route}: WorkspaceMemberDet
                             medium
                             icon={Expensicons.RemoveMembers}
                             iconStyles={{transform: [{scale: 0.8}]}}
+                        />
+                        <ConfirmModal
+                            danger
+                            title={translate('workspace.people.removeMemberTitle')}
+                            isVisible={removeMemberConfirmModalVisible}
+                            onConfirm={removeUser}
+                            onCancel={() => setRemoveMemberConfirmModalVisible(false)}
+                            prompt={translate('workspace.people.removeMemberPrompt', {memberName: displayName})}
+                            confirmText={translate('common.remove')}
+                            cancelText={translate('common.cancel')}
                         />
                     </View>
                 </View>

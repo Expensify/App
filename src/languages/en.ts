@@ -1806,6 +1806,8 @@ export default {
             removeMembersPrompt: 'Are you sure you want to remove these members?',
             removeMembersTitle: 'Remove members',
             removeMemberButtonTitle: 'Remove from workspace',
+            removeMemberPrompt: ({memberName}) => `Are you sure you want to remove ${memberName}`,
+            removeMemberTitle: 'Remove member',
             makeMember: 'Make member',
             makeAdmin: 'Make admin',
             selectAll: 'Select all',

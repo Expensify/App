@@ -1830,6 +1830,8 @@ export default {
             removeMembersPrompt: '¿Estás seguro de que deseas eliminar a estos miembros?',
             removeMembersTitle: 'Eliminar miembros',
             removeMemberButtonTitle: 'Quitar del espacio de trabajo',
+            removeMemberPrompt: ({memberName}) => `¿Estás seguro de que deseas eliminar a ${memberName}`,
+            removeMemberTitle: 'Eliminar miembro',
             makeMember: 'Hacer miembro',
             makeAdmin: 'Hacer administrador',
             selectAll: 'Seleccionar todo',
