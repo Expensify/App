@@ -155,9 +155,11 @@ function MoneyRequestPreviewContent({
             const violations = TransactionUtils.getTransactionViolations(transaction.transactionID, transactionViolations);
             if (violations?.[0]) {
                 const violationMessage = ViolationsUtils.getViolationTranslation(violations[0], translate);
-                const isTooLong = violations.filter((v) => v.type === 'violation').length > 1 || violationMessage.length > 15;
+                const violationsCount = violations.filter((v) => v.type === 'violation').length;
+                const isTooLong = violationsCount > 1 || violationMessage.length > 15;
+                const hasViolationAndFieldErrors = violationsCount === 1 && hasFieldErrors;
 
-                return `${message} • ${isTooLong ? translate('violations.reviewRequired') : violationMessage}`;
+                return `${message} • ${isTooLong || hasViolationAndFieldErrors ? translate('violations.reviewRequired') : violationMessage}`;
             }
 
             const isMerchantMissing = TransactionUtils.isMerchantMissing(transaction);
