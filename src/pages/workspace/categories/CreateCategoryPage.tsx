@@ -1,5 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
+import {Keyboard} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Navigation from '@libs/Navigation/Navigation';
@@ -18,6 +19,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import INPUT_IDS from '@src/types/form/WorkspaceCategoryCreateForm';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import * as Policy from '@userActions/Policy';
 
 type CreateCategoryPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_CREATE>;
 
@@ -40,6 +42,12 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
         return errors;
     }, []);
 
+    const createCategory = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE>) => {
+        Policy.createPolicyCategory(route.params.policyID, values.categoryName.trim());
+        Keyboard.dismiss();
+        Navigation.goBack();
+    }
+
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
@@ -54,7 +62,7 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
                     />
                     <FormProvider
                         formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE}
-                        onSubmit={() => {}}
+                        onSubmit={createCategory}
                         submitButtonText={translate('common.save')}
                         validate={validate}
                         style={[styles.mh5, styles.flex1]}
