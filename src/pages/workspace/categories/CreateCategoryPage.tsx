@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useCallback} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Navigation from '@libs/Navigation/Navigation';
@@ -16,6 +16,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import INPUT_IDS from '@src/types/form/WorkspaceCategoryCreateForm';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
 
 type CreateCategoryPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_CREATE>;
 
@@ -25,14 +27,14 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
 
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE> = {};
-        const name = values.name.trim();
+        const categoryName = values.categoryName.trim();
 
-        if (!ValidationUtils.isRequiredFulfilled(name)) {
-            errors.name = 'workspace.editor.nameIsRequiredError';
-        } else if ([...name].length > CONST.TITLE_CHARACTER_LIMIT) {
+        if (!ValidationUtils.isRequiredFulfilled(categoryName)) {
+            errors.categoryName = 'workspace.categories.categoryRequired';
+        } else if ([...categoryName].length > CONST.TITLE_CHARACTER_LIMIT) {
             // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
             // code units.
-            ErrorUtils.addErrorMessage(errors, 'name', ['common.error.characterLimitExceedCounter', {length: [...name].length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
+            ErrorUtils.addErrorMessage(errors, 'categoryName', ['common.error.characterLimitExceedCounter', {length: [...categoryName].length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
         }
 
         return errors;
