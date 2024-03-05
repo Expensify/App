@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import type {CentralPaneNavigatorParamList} from '@navigation/types';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
@@ -29,7 +29,7 @@ type WorkspaceCreateCategoryPageOnyxProps = {
     policyCategories: OnyxEntry<PolicyCategories>;
 };
 
-type CreateCategoryPageProps = WorkspaceCreateCategoryPageOnyxProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_CREATE>;
+type CreateCategoryPageProps = WorkspaceCreateCategoryPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_CREATE>;
 
 function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) {
     const styles = useThemeStyles();
