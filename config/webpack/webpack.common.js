@@ -103,15 +103,15 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 {from: 'assets/css', to: 'css'},
                 {from: 'assets/fonts/web', to: 'fonts'},
                 {from: 'assets/sounds', to: 'sounds'},
-                {from: 'node_modules/react-fast-pdf/node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
-                {from: 'node_modules/react-fast-pdf/node_modules/react-pdf/dist/esm/Page/TextLayer.css', to: 'css/TextLayer.css'},
+                {from: 'node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
+                {from: 'node_modules/react-pdf/dist/esm/Page/TextLayer.css', to: 'css/TextLayer.css'},
                 {from: 'assets/images/shadow.png', to: 'images/shadow.png'},
                 {from: '.well-known/apple-app-site-association', to: '.well-known/apple-app-site-association', toType: 'file'},
                 {from: '.well-known/assetlinks.json', to: '.well-known/assetlinks.json'},
 
                 // These files are copied over as per instructions here
                 // https://github.com/wojtekmaj/react-pdf#copying-cmaps
-                {from: 'node_modules/react-fast-pdf/node_modules/pdfjs-dist/cmaps/', to: 'cmaps/'},
+                {from: 'node_modules/pdfjs-dist/cmaps/', to: 'cmaps/'},
             ],
         }),
         new EnvironmentPlugin({JEST_WORKER_ID: null}),
