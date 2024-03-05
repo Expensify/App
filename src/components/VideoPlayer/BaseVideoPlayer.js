@@ -157,13 +157,16 @@ function BaseVideoPlayer({
         shouldUseSharedVideoElementRef.current = shouldUseSharedVideoElement;
     }, [shouldUseSharedVideoElement]);
 
-    useEffect(() => () => {
-        if (shouldUseSharedVideoElementRef.current) {
-            return;
-        }
-        // If it's not a shared video player, clear the video player ref.
-        currentVideoPlayerRef.current = null;
-    }, [currentVideoPlayerRef]);
+    useEffect(
+        () => () => {
+            if (shouldUseSharedVideoElementRef.current) {
+                return;
+            }
+            // If it's not a shared video player, clear the video player ref.
+            currentVideoPlayerRef.current = null;
+        },
+        [currentVideoPlayerRef],
+    );
 
     // update shared video elements
     useEffect(() => {
