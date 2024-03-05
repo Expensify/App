@@ -277,6 +277,7 @@ describe('Unread Indicators', () => {
     afterEach(() => {
         jest.clearAllMocks();
         Onyx.clear();
+        PusherHelper.teardown();
     });
 
     it('Display bold in the LHN for unread chat and new line indicator above the chat message when we navigate to it', () =>
