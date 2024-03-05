@@ -37,9 +37,9 @@ The desktop app is organized in three pieces:
    - This is the webpack-bundled version of our react-native-web app (except using `index.desktop.js` files instead of `index.website.js`, where applicable)
    - This is _very_ similar to our web app, and code in this process should assume it will be run in the context of a browser (no access to `require`, Electron, or Node.js APis)
 3. The context bridge
-   - Implemented in https://github.com/Expensify/App/blob/main/desktop/contextBridge.js
+   - Implemented in https://github.com/Expensify/App/blob/main/desktop/contextBridge.ts
    - The context bridge enables communication between the main and renderer processes. For example, if the renderer process needs to make use of a Node.js or Electron API it must:
-     1. Define an event in https://github.com/Expensify/App/blob/main/desktop/ELECTRON_EVENTS.js
+     1. Define an event in https://github.com/Expensify/App/blob/main/desktop/ELECTRON_EVENTS.ts
      2. Add that event to the whitelist defined in the context bridge
      3. Set up a handler for the event in the main process that can respond to the renderer process back through the bridge, if necessary.
 
