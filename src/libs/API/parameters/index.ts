@@ -149,3 +149,4 @@ export type {default as SetWorkspaceRequiresCategoryParams} from './SetWorkspace
 export type {default as SetWorkspaceAutoReportingParams} from './SetWorkspaceAutoReportingParams';
 export type {default as SetWorkspaceApprovalModeParams} from './SetWorkspaceApprovalModeParams';
 export type {default as SwitchToOldDotParams} from './SwitchToOldDotParams';
+export type {default as OpenPolicyDistanceRatesPageParams} from './OpenPolicyDistanceRatesPageParams';

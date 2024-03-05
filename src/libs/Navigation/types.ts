@@ -81,6 +81,9 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.CATEGORIES]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.DISTANCE_RATES]: {
+        policyID: string;
+    };
 };
 
 type WorkspaceSwitcherNavigatorParamList = {

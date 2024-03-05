@@ -16,6 +16,7 @@ import type {
     DeleteWorkspaceAvatarParams,
     DeleteWorkspaceParams,
     OpenDraftWorkspaceRequestParams,
+    OpenPolicyDistanceRatesPageParams,
     OpenWorkspaceInvitePageParams,
     OpenWorkspaceMembersPageParams,
     OpenWorkspaceParams,
@@ -2248,6 +2249,16 @@ const setWorkspaceRequiresCategory = (policyID: string, requiresCategory: boolea
     API.write('SetWorkspaceRequiresCategory', parameters, onyxData);
 };
 
+function openPolicyDistanceRatesPage(policyID: string) {
+    if (!policyID) {
+        return;
+    }
+
+    const params: OpenPolicyDistanceRatesPageParams = {policyID};
+
+    API.read(READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE, params);
+}
+
 export {
     removeMembers,
     addMembersToWorkspace,
@@ -2292,4 +2303,5 @@ export {
     setWorkspaceApprovalMode,
     updateWorkspaceDescription,
     setWorkspaceRequiresCategory,
+    openPolicyDistanceRatesPage,
 };

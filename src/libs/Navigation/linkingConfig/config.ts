@@ -67,6 +67,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.WORKSPACE.CATEGORIES]: {
                     path: ROUTES.WORKSPACE_CATEGORIES.route,
                 },
+                [SCREENS.WORKSPACE.DISTANCE_RATES]: {
+                    path: ROUTES.WORKSPACE_DISTANCE_RATES.route,
+                },
             },
         },
         [SCREENS.NOT_FOUND]: '*',

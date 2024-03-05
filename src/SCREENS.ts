@@ -220,6 +220,7 @@ const SCREENS = {
         SHARE: 'Workspace_Profile_Share',
         NAME: 'Workspace_Profile_Name',
         CATEGORIES_SETTINGS: 'Categories_Settings',
+        DISTANCE_RATES: 'Distance_Rates',
     },
 
     EDIT_REQUEST: {

@@ -1733,6 +1733,7 @@ export default {
             workspaceType: 'Workspace type',
             workspaceAvatar: 'Workspace avatar',
             mustBeOnlineToViewMembers: 'You must be online in order to view members of this workspace.',
+            distanceRates: 'Distance rates',
         },
         type: {
             free: 'Free',
@@ -1865,6 +1866,24 @@ export default {
             inviteNoMembersError: 'Please select at least one member to invite',
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
+        },
+        distanceRates: {
+            distance: 'Distance',
+            centrallyManage: 'Centrally manage rates, choose to track in miles or kilometers, and set a default category.',
+            rate: 'Rate',
+            addRate: 'Add rate',
+            deleteRate: 'Delete rate',
+            deleteRates: 'Delete rates',
+            enableRate: 'Enable rate',
+            disableRates: 'Disable rates',
+            deleteDistanceRate: 'Delete distance rate',
+            areYouSureDelete: 'Are you sure you want to delete this rate?',
+            status: 'Status',
+            enabled: 'Enabled',
+            errors: {
+                toggleRateGenericFailureMessage: 'An error occurred while toggling the distance rate, please try again.',
+                deleteRateGenericFailureMessage: 'An error occurred while deleting the distance rate, please try again.',
+            },
         },
         editor: {
             descriptionInputLabel: 'Description',
