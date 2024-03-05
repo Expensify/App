@@ -1,5 +1,5 @@
-import getReportIDfromUrl from './getReportIDfromUrl';
+import getReportIDFromUrl from './getReportIDFromUrl';
 
 export default function processReportIDDeeplink(url: string): string {
-    return getReportIDfromUrl(url);
+    return getReportIDFromUrl(url);
 }
