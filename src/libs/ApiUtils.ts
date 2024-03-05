@@ -52,7 +52,7 @@ function getApiRoot(request?: Request): string {
  * @param - the name of the API command
  */
 function getCommandURL(request: Request): string {
-    return `${getApiRoot(request)}api?command=${request.command}`;
+    return `${getApiRoot(request)}api/${request.command}?`;
 }
 
 /**
