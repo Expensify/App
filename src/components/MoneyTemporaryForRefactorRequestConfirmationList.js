@@ -764,7 +764,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             isSupplementary: !isCategoryRequired,
         },
         ..._.map(policyTagLists, ({name, required}, index) => {
-            const isTagRequired = !isUndefined(required) && required;
+            const isTagRequired = isUndefined(required) ? false : canUseViolations && required;
             return {
                 item: (
                     <MenuItemWithTopDescription
