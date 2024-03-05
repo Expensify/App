@@ -1768,6 +1768,7 @@ export default {
                 subtitle: 'Add a category to organize your spend.',
             },
             genericFailureMessage: 'An error occurred while updating the category, please try again.',
+            addCategory: "Add category",
         },
         tags: {
             requiresTag: 'Members must tag all spend',

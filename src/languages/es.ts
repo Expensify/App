@@ -1792,6 +1792,7 @@ export default {
                 subtitle: 'Añade una categoría para organizar tu gasto.',
             },
             genericFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
+            addCategory: 'Añadir categoría',
         },
         tags: {
             requiresTag: 'Los miembros deben etiquetar todos los gastos',

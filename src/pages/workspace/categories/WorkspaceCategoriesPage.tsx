@@ -97,6 +97,10 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
         Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, category.text));
     };
 
+    const navigateToCreateCategoryPage = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_CREATE_CATEGORY.getRoute(route.params.policyID))
+    }
+
     const settingsButton = (
         <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
             <Button
@@ -123,7 +127,19 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                         title={translate('workspace.common.categories')}
                         shouldShowBackButton={isSmallScreenWidth}
                     >
-                        {!isSmallScreenWidth && settingsButton}
+                        {!isSmallScreenWidth && (
+                            <>
+                                <Button
+                                    medium
+                                    success
+                                    onPress={navigateToCategoriesSettings}
+                                    icon={Expensicons.Plus}
+                                    text={translate('workspace.categories.addCategory')}
+                                    style={[styles.pr2, isSmallScreenWidth && styles.w50]}
+                                />
+                                {settingsButton}
+                            </>
+                        )}
                     </HeaderWithBackButton>
                     {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{settingsButton}</View>}
                     <View style={[styles.ph5, styles.pb5]}>
