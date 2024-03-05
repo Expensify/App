@@ -140,7 +140,7 @@ function ReportActionsView(props) {
     }, [props.network, isReportFullyVisible]);
 
     useEffect(() => {
-        const wasLoginChangedDetected = prevAuthTokenType === 'anonymousAccount' && !props.session.authTokenType;
+        const wasLoginChangedDetected = prevAuthTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS && !props.session.authTokenType;
         if (wasLoginChangedDetected && didUserLogInDuringSession() && isUserCreatedPolicyRoom(props.report)) {
             if (isReportFullyVisible) {
                 openReportIfNecessary();
@@ -280,6 +280,10 @@ ReportActionsView.displayName = 'ReportActionsView';
 
 function arePropsEqual(oldProps, newProps) {
     if (!_.isEqual(oldProps.reportActions, newProps.reportActions)) {
+        return false;
+    }
+
+    if (!_.isEqual(oldProps.parentReportAction, newProps.parentReportAction)) {
         return false;
     }
 

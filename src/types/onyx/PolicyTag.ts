@@ -23,6 +23,9 @@ type PolicyTagList<T extends string = string> = Record<
 
         /** Nested tags */
         tags: PolicyTags;
+
+        /** Index by which the tag appears in the hierarchy of tags */
+        orderWeight: number;
     }
 >;
 

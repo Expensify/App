@@ -20,6 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Modal, Policy, Report} from '@src/types/onyx';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 type SidebarLinksOnyxProps = {
     activePolicy: OnyxEntry<Policy>;
@@ -47,9 +48,12 @@ type SidebarLinksProps = SidebarLinksOnyxProps & {
     /** ID of currently active workspace */
     // eslint-disable-next-line react/no-unused-prop-types -- its used in withOnyx
     activeWorkspaceID: string | undefined;
+
+    /** Report IDs with errors mapping to their corresponding error objects */
+    reportIDsWithErrors: Record<string, OnyxCommon.Errors>;
 };
 
-function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport, activePolicy}: SidebarLinksProps) {
+function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport, activePolicy, reportIDsWithErrors}: SidebarLinksProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const modal = useRef<Modal>({});
@@ -157,6 +161,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                     shouldDisableFocusOptions={isSmallScreenWidth}
                     optionMode={viewMode}
                     onFirstItemRendered={App.setSidebarLoaded}
+                    reportIDsWithErrors={reportIDsWithErrors}
                 />
                 {isLoading && optionListItems?.length === 0 && (
                     <View style={[StyleSheet.absoluteFillObject, styles.appBG]}>
