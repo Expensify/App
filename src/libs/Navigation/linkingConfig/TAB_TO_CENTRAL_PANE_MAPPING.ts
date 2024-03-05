@@ -14,6 +14,7 @@ const TAB_TO_CENTRAL_PANE_MAPPING: Record<BottomTabName, CentralPaneName[]> = {
         SCREENS.WORKSPACE.TRAVEL,
         SCREENS.WORKSPACE.MEMBERS,
         SCREENS.WORKSPACE.CATEGORIES,
+        SCREENS.WORKSPACE.TAGS,
     ],
 };
 
