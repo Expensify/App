@@ -60,7 +60,7 @@ export default function () {
 
                 Log.info(`[Migrate Onyx] Re-keying reportActionsDrafts by reportActionID for ${Object.keys(newReportActionsDrafts).length} actions drafts`);
                 // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                return Onyx.multiSet(newReportActionsDrafts).then(resolve);
+                return Onyx.multiSet(newReportActionsDrafts).then(() => resolve());
             },
         });
     });

@@ -11,10 +11,12 @@ import waitForBatchedUpdates from './waitForBatchedUpdates';
  */
 function wrapOnyxWithWaitForBatchedUpdates(onyxInstance: typeof Onyx) {
     const multiSetImpl = onyxInstance.multiSet;
+    // @ts-expect-error TODO: fix this
     // eslint-disable-next-line no-param-reassign
     onyxInstance.multiSet = (...args) => multiSetImpl(...args).then((result) => waitForBatchedUpdates().then(() => result));
     const mergeImpl = onyxInstance.merge;
-    // eslint-disable-next-line no-param-reassign
+    // @ts-expect-error TODO: fix this
+    // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-unsafe-return
     onyxInstance.merge = (...args) => mergeImpl(...args).then((result) => waitForBatchedUpdates().then(() => result));
 }
 
