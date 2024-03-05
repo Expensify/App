@@ -10,8 +10,8 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 import withNavigationFocus from '@components/withNavigationFocus';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
-import {useOrderedReportListItems} from '@hooks/useOrderedReportListItems';
 import usePrevious from '@hooks/usePrevious';
+import {useReportIDs} from '@hooks/useReportIDs';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
@@ -57,7 +57,7 @@ function SidebarLinksData({isFocused, currentReportID, insets, isLoadingApp, onL
 
     const orderedReportIDsRef = useRef(null);
     const isLoading = isLoadingApp;
-    const {orderedReportIDs, reportIDsWithErrors} = useOrderedReportListItems();
+    const {orderedReportIDs, reportIDsWithErrors} = useReportIDs();
 
     const optionListItems = useMemo(() => {
         if (deepEqual(orderedReportIDsRef.current, orderedReportIDs)) {

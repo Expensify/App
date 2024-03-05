@@ -1,7 +1,7 @@
+import _ from 'lodash';
 import React, {createContext, useCallback, useContext, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import _ from 'underscore';
 import {getCurrentUserAccountID} from '@libs/actions/Report';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
@@ -9,6 +9,7 @@ import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Policy, PolicyMembers, PriorityMode, Report, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import useActiveWorkspace from './useActiveWorkspace';
 import useCurrentReportID from './useCurrentReportID';
 import usePermissions from './usePermissions';
@@ -24,14 +25,22 @@ type OnyxProps = {
     allTransactions: OnyxCollection<Transaction>;
 };
 
-type WithOrderedReportListItemsContextProviderProps = OnyxProps & {
+type WithReportIDsContextProviderProps = OnyxProps & {
     children: React.ReactNode;
     currentReportIDForTests?: string;
 };
 
-const OrderedReportListItemsContext = createContext({});
+type ReportIDsContextValue = {
+    orderedReportIDs: string[];
+    reportIDsWithErrors: Record<string, OnyxCommon.Errors>;
+};
 
-function WithOrderedReportListItemsContextProvider({
+const ReportIDsContext = createContext<ReportIDsContextValue>({
+    orderedReportIDs: [],
+    reportIDsWithErrors: {},
+});
+
+function WithReportIDsContextProvider({
     children,
     chatReports,
     betas,
@@ -51,7 +60,7 @@ function WithOrderedReportListItemsContextProvider({
      * only in testing environment.
      */
     currentReportIDForTests,
-}: WithOrderedReportListItemsContextProviderProps) {
+}: WithReportIDsContextProviderProps) {
     const currentReportIDValue = useCurrentReportID();
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportID;
     const {activeWorkspaceID} = useActiveWorkspace();
@@ -59,22 +68,25 @@ function WithOrderedReportListItemsContextProvider({
 
     const policyMemberAccountIDs = useMemo(() => getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, getCurrentUserAccountID()), [activeWorkspaceID, policyMembers]);
 
-    const chatReportsKeys = useMemo(() => _.keys(chatReports), [chatReports]);
-    const reportIDsWithErrors = useMemo(() => {
-        return _.reduce(
-            chatReportsKeys,
-            (errorsMap, reportKey) => {
-                const report = chatReports && chatReports[reportKey];
-                const allReportsActions = allReportActions && allReportActions[reportKey.replace(ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.COLLECTION.REPORT_ACTIONS)];
-                const errors = OptionsListUtils.getAllReportErrors(report, allReportsActions, allTransactions) || {};
-                if (_.size(errors) === 0) {
-                    return errorsMap;
-                }
-                return {...errorsMap, [reportKey.replace(ONYXKEYS.COLLECTION.REPORT, '')]: errors};
-            },
-            {},
-        );
-    }, [chatReportsKeys, allReportActions, allTransactions, chatReports]);
+    const chatReportsKeys = useMemo(() => Object.keys(chatReports ?? {}), [chatReports]);
+    // eslint-disable-next-line you-dont-need-lodash-underscore/reduce
+    const reportIDsWithErrors = useMemo(
+        () =>
+            _.reduce(
+                chatReportsKeys,
+                (errorsMap, reportKey) => {
+                    const report = chatReports?.[reportKey] ?? null;
+                    const allReportsActions = allReportActions?.[reportKey.replace(ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.COLLECTION.REPORT_ACTIONS)] ?? null;
+                    const errors = OptionsListUtils.getAllReportErrors(report, allReportsActions, allTransactions) || {};
+                    if (Object.values(errors).length === 0) {
+                        return errorsMap;
+                    }
+                    return {...errorsMap, [reportKey.replace(ONYXKEYS.COLLECTION.REPORT, '')]: errors};
+                },
+                {},
+            ),
+        [chatReportsKeys, allReportActions, allTransactions, chatReports],
+    );
 
     const getOrderedReportIDs = useCallback(
         (currentReportID?: string) =>
@@ -116,10 +128,10 @@ function WithOrderedReportListItemsContextProvider({
         [orderedReportIDsWithCurrentReport, reportIDsWithErrors],
     );
 
-    return <OrderedReportListItemsContext.Provider value={contextValue}>{children}</OrderedReportListItemsContext.Provider>;
+    return <ReportIDsContext.Provider value={contextValue}>{children}</ReportIDsContext.Provider>;
 }
 
-const OrderedReportListItemsContextProvider = withOnyx<WithOrderedReportListItemsContextProviderProps, OnyxProps>({
+const ReportIDsContextProvider = withOnyx<WithReportIDsContextProviderProps, OnyxProps>({
     chatReports: {
         key: ONYXKEYS.COLLECTION.REPORT,
         initialValue: {},
@@ -151,10 +163,10 @@ const OrderedReportListItemsContextProvider = withOnyx<WithOrderedReportListItem
         key: ONYXKEYS.COLLECTION.TRANSACTION,
         initialValue: {},
     },
-})(WithOrderedReportListItemsContextProvider);
+})(WithReportIDsContextProvider);
 
-function useOrderedReportListItems() {
-    return useContext(OrderedReportListItemsContext);
+function useReportIDs() {
+    return useContext(ReportIDsContext);
 }
 
-export {OrderedReportListItemsContextProvider, OrderedReportListItemsContext, useOrderedReportListItems};
+export {ReportIDsContextProvider, ReportIDsContext, useReportIDs};

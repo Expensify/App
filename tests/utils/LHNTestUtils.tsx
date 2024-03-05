@@ -10,7 +10,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxProvider from '@components/OnyxProvider';
 import {CurrentReportIDContextProvider} from '@components/withCurrentReportID';
 import {EnvironmentProvider} from '@components/withEnvironment';
-import {OrderedReportListItemsContextProvider} from '@hooks/useOrderedReportListItems';
+import {ReportIDsContextProvider} from '@hooks/useReportIDs';
 import DateUtils from '@libs/DateUtils';
 import ReportActionItemSingle from '@pages/home/report/ReportActionItemSingle';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
@@ -291,7 +291,7 @@ function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
              * So this is a work around to have currentReportID available
              * only in testing environment.
              *  */}
-            <OrderedReportListItemsContextProvider currentReportIDForTests={currentReportID}>
+            <ReportIDsContextProvider currentReportIDForTests={currentReportID}>
                 <SidebarLinksData
                     // @ts-expect-error TODO: Remove this once SidebarLinksData (https://github.com/Expensify/App/issues/25220) is migrated to TypeScript.
                     onLinkClick={() => {}}
@@ -304,7 +304,7 @@ function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
                     isSmallScreenWidth={false}
                     currentReportID={currentReportID}
                 />
-            </OrderedReportListItemsContextProvider>
+            </ReportIDsContextProvider>
         </ComposeProviders>
     );
 }
