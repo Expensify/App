@@ -17,14 +17,14 @@ const story: ComponentMeta<typeof Picker> = {
     component: Picker,
 };
 
-function Template(props: TemplateProps) {
+function Template(args: TemplateProps) {
     const [value, setValue] = useState('');
     return (
         <Picker
             value={value}
             onInputChange={(e) => setValue(e)}
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+            {...args}
         />
     );
 }
