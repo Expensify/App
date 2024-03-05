@@ -25,6 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import * as PolicyUtils from '@libs/PolicyUtils';
 
 type PolicyForList = {
     value: string;
@@ -35,13 +36,16 @@ type PolicyForList = {
 };
 
 type WorkspaceCategoriesOnyxProps = {
+    /** The policy the user is accessing. */
+    policy: OnyxEntry<OnyxTypes.Policy>;
+
     /** Collection of categories attached to a policy */
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 };
 
 type WorkspaceCategoriesPageProps = WorkspaceCategoriesOnyxProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
 
-function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesPageProps) {
+function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCategoriesPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -103,15 +107,16 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
 
     const headerButtons = (
         <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
-            {/* TODO: only show if not connected to accounting system */}
-            <Button
-                medium
-                success
-                onPress={navigateToCreateCategoryPage}
-                icon={Expensicons.Plus}
-                text={translate('workspace.categories.addCategory')}
-                style={[styles.pr2, isSmallScreenWidth && styles.w50]}
-            />
+            {!PolicyUtils.hasAccountingConnections(policy) && (
+                <Button
+                    medium
+                    success
+                    onPress={navigateToCreateCategoryPage}
+                    icon={Expensicons.Plus}
+                    text={translate('workspace.categories.addCategory')}
+                    style={[styles.pr2, isSmallScreenWidth && styles.w50]}
+                />
+            )}
             <Button
                 medium
                 onPress={navigateToCategoriesSettings}
@@ -170,6 +175,9 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
 WorkspaceCategoriesPage.displayName = 'WorkspaceCategoriesPage';
 
 export default withOnyx<WorkspaceCategoriesPageProps, WorkspaceCategoriesOnyxProps>({
+    policy: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
+    },
     policyCategories: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params.policyID}`,
     },

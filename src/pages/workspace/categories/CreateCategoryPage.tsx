@@ -53,7 +53,7 @@ function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) 
         }
 
         return errors;
-    }, []);
+    }, [policyCategories]);
 
     const createCategory = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE_FORM>) => {
         Policy.createPolicyCategory(route.params.policyID, values.categoryName.trim());
