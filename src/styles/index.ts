@@ -1481,13 +1481,13 @@ const styles = (theme: ThemeColors) =>
 
         breadcrumb: {
             color: theme.textSupporting,
-            fontSize: variables.fontSizeh1,
+            fontSize: variables.breadcrumbsFontSize,
             ...headlineFont,
         },
 
         breadcrumbStrong: {
             color: theme.text,
-            fontSize: variables.fontSizeXLarge,
+            fontSize: variables.breadcrumbsFontSize,
         },
 
         breadcrumbSeparator: {

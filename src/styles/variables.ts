@@ -47,6 +47,7 @@ export default {
     avatarSizeSmallSubscript: 12,
     defaultAvatarPreviewSize: 360,
     fabBottom: 25,
+    breadcrumbsFontSize: getValueUsingPixelRatio(19, 32),
     fontSizeOnlyEmojis: 30,
     fontSizeOnlyEmojisHeight: 35,
     fontSizeSmall: getValueUsingPixelRatio(11, 17),
