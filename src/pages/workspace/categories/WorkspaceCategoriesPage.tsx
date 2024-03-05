@@ -52,24 +52,30 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
 
     const categoryList = useMemo(
         () =>
-            Object.values(policyCategories ?? {}).map<PolicyOption>((value) => ({
-                text: value.name,
-                keyForList: value.name,
-                isSelected: !!selectedCategories[value.name],
-                errors: value.errors ?? undefined,
-                rightElement: (
-                    <View style={styles.flexRow}>
-                        <Text style={[styles.disabledText, styles.alignSelfCenter]}>{value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}</Text>
-                        <View style={[styles.p1, styles.pl2]}>
-                            <Icon
-                                src={Expensicons.ArrowRight}
-                                fill={theme.icon}
-                            />
+            Object.values(policyCategories ?? {}).map<PolicyOption>((value) => {
+                const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                return {
+                    text: value.name,
+                    keyForList: value.name,
+                    isSelected: !!selectedCategories[value.name],
+                    isDisabled,
+                    errors: value.errors ?? undefined,
+                    rightElement: (
+                        <View style={[styles.flexRow, isDisabled && styles.buttonOpacityDisabled]}>
+                            <Text style={[styles.disabledText, styles.alignSelfCenter]}>
+                                {value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}
+                            </Text>
+                            <View style={[styles.p1, styles.pl2]}>
+                                <Icon
+                                    src={Expensicons.ArrowRight}
+                                    fill={theme.icon}
+                                />
+                            </View>
                         </View>
-                    </View>
-                ),
-            })),
-        [policyCategories, selectedCategories, styles.alignSelfCenter, styles.disabledText, styles.flexRow, styles.p1, styles.pl2, theme.icon, translate],
+                    ),
+                };
+            }),
+        [policyCategories, selectedCategories, styles.alignSelfCenter, styles.buttonOpacityDisabled, styles.disabledText, styles.flexRow, styles.p1, styles.pl2, theme.icon, translate],
     );
 
     const toggleCategory = (category: PolicyOption) => {
