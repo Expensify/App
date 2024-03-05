@@ -54,7 +54,7 @@ type IndexableByString = Record<string, unknown>;
  * @param sort sort type
  * @returns the sorted list of items
  */
-function sortRankedItems<T>(rankedItems: RankedItem<T>[], sort: Sort): T[] {
+function sortRankedItems<T>(rankedItems: Array<RankedItem<T>>, sort: Sort): T[] {
     if (sort === sortType.DESC) {
         return rankedItems.sort((a, b) => b.rank - a.rank).map((item) => item.item);
     }
@@ -68,9 +68,8 @@ function sortRankedItems<T>(rankedItems: RankedItem<T>[], sort: Sort): T[] {
 
 /**
  * Generates an acronym for a string.
- *
- * @param {String} string the string for which to produce the acronym
- * @returns {String} the acronym
+ * @param string the string for which to produce the acronym
+ * @returns the acronym
  */
 function getAcronym(string: string): string {
     let acronym = '';
@@ -91,27 +90,21 @@ function getAcronym(string: string): string {
  */
 function getNestedValues<T>(path: string, item: T): string[] {
     const keys = path.split('.');
+    let values: Array<T | IndexableByString | string> = [item];
 
-    type ValueA = Array<T | IndexableByString | string>;
-    let values: ValueA = [item];
+    for (const nestedKey of keys) {
+        let nestedValues: Array<T | IndexableByString | string> = [];
 
-    for (let i = 0; i < keys.length; i++) {
-        const nestedKey = keys[i];
-        let nestedValues: ValueA = [];
-
-        for (let j = 0; j < values.length; j++) {
-            const nestedItem = values[j];
-
-            if (nestedItem == null) continue;
-
-            if (Object.hasOwnProperty.call(nestedItem, nestedKey)) {
-                const nestedValue = (nestedItem as IndexableByString)[nestedKey];
-                if (nestedValue != null) {
-                    nestedValues.push(nestedValue as IndexableByString | string);
+        for (const nestedItem of values) {
+            if (nestedItem != null) {
+                if (Object.hasOwnProperty.call(nestedItem, nestedKey)) {
+                    const nestedValue = (nestedItem as IndexableByString)[nestedKey];
+                    if (nestedValue != null) {
+                        nestedValues.push(nestedValue as IndexableByString | string);
+                    }
+                } else if (nestedKey === '*') {
+                    nestedValues = nestedValues.concat(nestedItem);
                 }
-            } else if (nestedKey === '*') {
-                // ensure that values is an array
-                nestedValues = nestedValues.concat(nestedItem);
             }
         }
 
@@ -119,7 +112,6 @@ function getNestedValues<T>(path: string, item: T): string[] {
     }
 
     if (Array.isArray(values[0])) {
-        // keep allowing the implicit wildcard for an array of strings at the end of the path
         const result: string[] = [];
         return result.concat(...(values as string[]));
     }
@@ -129,24 +121,25 @@ function getNestedValues<T>(path: string, item: T): string[] {
 
 /**
  * Gets value for key in item at arbitrarily nested keypath
- * @param {Object} item - the item
- * @param {Object|Function} key - the potentially nested keypath or property callback
- * @return {Array} - an array containing the value(s) at the nested keypath
+ * @param item - the item
+ * @param key - the potentially nested keypath or property callback
+ * @returns an array containing the value(s) at the nested keypath
  */
 function getItemValues<T>(item: T, key: KeyOption<T>): string[] {
-    if (typeof key === 'object') {
-        key = key.key as string;
+    let keyCopy = key;
+    if (typeof keyCopy === 'object') {
+        keyCopy = keyCopy.key as string;
     }
+    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
     let value: string | string[] | null | unknown;
-    if (typeof key === 'function') {
-        value = key(item);
+    if (typeof keyCopy === 'function') {
+        value = keyCopy(item);
     } else if (item == null) {
         value = null;
-    } else if (Object.hasOwnProperty.call(item, key)) {
-        value = (item as IndexableByString)[key];
-    } else if (key.includes('.')) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-        return getNestedValues<T>(key, item);
+    } else if (Object.hasOwnProperty.call(item, keyCopy)) {
+        value = (item as IndexableByString)[keyCopy];
+    } else if (keyCopy.includes('.')) {
+        return getNestedValues<T>(keyCopy, item);
     } else {
         value = null;
     }
@@ -156,7 +149,7 @@ function getItemValues<T>(item: T, key: KeyOption<T>): string[] {
         return [];
     }
     if (Array.isArray(value)) {
-        return value;
+        return value as string[];
     }
     return [String(value)];
 }
@@ -169,11 +162,10 @@ function getItemValues<T>(item: T, key: KeyOption<T>): string[] {
  */
 function getAllValuesToRank<T>(item: T, keys: ReadonlyArray<KeyOption<T>>) {
     const allValues: string[] = [];
-    for (let j = 0; j < keys.length; j++) {
-        const key = keys[j];
+    for (const key of keys) {
         const itemValues = getItemValues(item, key);
-        for (let i = 0; i < itemValues.length; i++) {
-            allValues.push(itemValues[i]);
+        for (const value of itemValues) {
+            allValues.push(value);
         }
     }
     return allValues;
@@ -182,9 +174,9 @@ function getAllValuesToRank<T>(item: T, keys: ReadonlyArray<KeyOption<T>>) {
 /**
  * Returns a score based on how spread apart the characters from the stringToRank are within the testString.
  * A number close to rankings.MATCHES represents a loose match. A number close to rankings.MATCHES + 1 represents a tighter match.
- * @param {String} testString - the string to test against
- * @param {String} stringToRank - the string to rank
- * @returns {Number} the number between rankings.MATCHES and
+ * @param testString - the string to test against
+ * @param stringToRank - the string to rank
+ * @returns the number between rankings.MATCHES and
  */
 function getClosenessRanking(testString: string, stringToRank: string): Ranking {
     let matchingInOrderCharCount = 0;
@@ -230,9 +222,9 @@ function getClosenessRanking(testString: string, stringToRank: string): Ranking 
 
 /**
  * Gives a rankings score based on how well the two strings match.
- * @param {String} testString - the string to test against
- * @param {String} stringToRank - the string to rank
- * @returns {Number} the ranking for how well stringToRank matches testString
+ * @param testString - the string to test against
+ * @param stringToRank - the string to rank
+ * @returns the ranking for how well stringToRank matches testString
  */
 function getMatchRanking(testString: string, stringToRank: string): Ranking {
     // too long
@@ -267,10 +259,8 @@ function getMatchRanking(testString: string, stringToRank: string): Ranking {
     // contains
     if (lowercaseTestString.includes(lowercaseStringToRank)) {
         return rankings.CONTAINS;
-    } else if (lowercaseStringToRank.length === 1) {
-        // If the only character in the given stringToRank
-        //   isn't even contained in the testString, then
-        //   it's definitely not a match.
+    }
+    if (lowercaseStringToRank.length === 1) {
         return rankings.NO_MATCH;
     }
 
@@ -279,18 +269,17 @@ function getMatchRanking(testString: string, stringToRank: string): Ranking {
         return rankings.ACRONYM;
     }
 
-    // will return a number between rankings.MATCHES and
-    // rankings.MATCHES + 1 depending  on how close of a match it is.
+    // will return a number between rankings.MATCHES and rankings.MATCHES + 1 depending  on how close of a match it is.
     return getClosenessRanking(lowercaseTestString, lowercaseStringToRank);
 }
 
 /**
  * Gets the highest ranking for value for the given item based on its values for the given keys
- * @param {*} item - the item to rank
- * @param {Array} keys - the keys to get values from the item for the ranking
- * @param {String} value - the value to rank against
- * @param {Object} options - options to control the ranking
- * @return {{rank: Number, keyIndex: Number, keyThreshold: Number}} - the highest ranking
+ * @param item - the item to rank
+ * @param keys - the keys to get values from the item for the ranking
+ * @param value - the value to rank against
+ * @param options - options to control the ranking
+ * @returns the highest ranking
  */
 function getHighestRanking<T>(item: T, keys: ReadonlyArray<KeyOption<T>> | undefined, value: string, options: Options<T>): RankingInfo {
     if (!keys) {
@@ -306,17 +295,18 @@ function getHighestRanking<T>(item: T, keys: ReadonlyArray<KeyOption<T>> | undef
     }
     const valuesToRank = getAllValuesToRank(item, keys);
     return valuesToRank.reduce(
-        ({rank, rankedValue, keyIndex, keyThreshold}, itemValue, i) => {
-            let newRank = getMatchRanking(itemValue, value);
-            let newRankedValue = rankedValue;
+        (acc, itemValue, index) => {
+            const ranking = acc;
+            const newRank = getMatchRanking(itemValue, value);
+            let newRankedValue = ranking.rankedValue;
 
-            if (newRank > rank) {
-                rank = newRank;
-                keyIndex = i;
-                keyThreshold = options.threshold; // TODO check if it's correct
+            if (newRank > ranking.rank) {
+                ranking.rank = newRank;
+                ranking.keyIndex = index;
+                ranking.keyThreshold = options.threshold; // TODO check if it's correct
                 newRankedValue = itemValue;
             }
-            return {rankedValue: newRankedValue, rank, keyIndex, keyThreshold};
+            return {rankedValue: newRankedValue, rank: ranking.rank, keyIndex: ranking.keyIndex, keyThreshold: ranking.keyThreshold};
         },
         {
             rankedValue: item as unknown as string,
@@ -329,12 +319,14 @@ function getHighestRanking<T>(item: T, keys: ReadonlyArray<KeyOption<T>> | undef
 
 /**
  * Takes an array of items and a value and returns a new array with the items that match the given value
- * @param {Array} items - the items to filter
- * @param {String} searchValue - the value to use for ranking
- * @param {Object} options - options to configure
- * @return {Array} - the new sorted array
+ * @param items - the items to filter
+ * @param searchValue - the value to use for ranking
+ * @param options - options to configure
+ * @returns the new sorted array
  */
 function filterArrayByMatch<T = string>(items: readonly T[], searchValue: string, options: Options<T> = {}): T[] {
+    const {keys, threshold = rankings.MATCHES, sort = sortType.DESC, strict = false} = options;
+
     function reduceItemsToRanked(matches: Array<RankedItem<T>>, item: T, index: number): Array<RankedItem<T>> {
         const rankingInfo = getHighestRanking(item, keys, searchValue, options);
         const {rank, keyThreshold = threshold} = rankingInfo;
@@ -345,12 +337,10 @@ function filterArrayByMatch<T = string>(items: readonly T[], searchValue: string
         return matches;
     }
 
-    const {keys, threshold = rankings.MATCHES, sort = sortType.DESC, strict = false} = options;
     const matchedItems = items.reduce(reduceItemsToRanked, []);
-
     let itemsToSort = matchedItems;
 
-    if (options.strict) {
+    if (strict) {
         itemsToSort = matchedItems.filter((item) => item.rank >= threshold + 1);
     }
 
