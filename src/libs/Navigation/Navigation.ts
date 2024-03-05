@@ -245,7 +245,7 @@ function closeFullScreen() {
 /**
  * Update route params for the specified route.
  */
-function setParams(params: Record<string, unknown>, routeKey: string) {
+function setParams(params: Record<string, unknown>, routeKey = '') {
     navigationRef.current?.dispatch({
         ...CommonActions.setParams(params),
         source: routeKey,

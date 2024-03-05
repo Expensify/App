@@ -12,6 +12,7 @@ import type {
 } from '@react-navigation/native';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -90,6 +91,9 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.CATEGORIES]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.TAGS]: {
+        policyID: string;
+    };
 };
 
 type WorkspaceSwitcherNavigatorParamList = {
@@ -107,7 +111,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.LEGAL_NAME]: undefined;
     [SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH]: undefined;
     [SCREENS.SETTINGS.PROFILE.ADDRESS]: {
-        country?: string;
+        country?: Country | '';
     };
     [SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY]: {
         backTo?: Routes;
@@ -515,14 +519,17 @@ type BottomTabNavigatorParamList = {
     [SCREENS.WORKSPACE.INITIAL]: undefined;
 };
 
-type PublicScreensParamList = {
+type SharedScreensParamList = {
     [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]: NavigatorScreenParams<BottomTabNavigatorParamList>;
     [SCREENS.TRANSITION_BETWEEN_APPS]: {
         email?: string;
+        accountID?: number;
         error?: string;
         shortLivedAuthToken?: string;
         shortLivedToken?: string;
+        authTokenType?: ValueOf<typeof CONST.AUTH_TOKEN_TYPES>;
         exitTo?: Routes | HybridAppRoute;
+        shouldForceLogin: string;
         domain?: Routes;
     };
     [SCREENS.VALIDATE_LOGIN]: {
@@ -530,6 +537,9 @@ type PublicScreensParamList = {
         validateCode: string;
         exitTo?: Routes | HybridAppRoute;
     };
+};
+
+type PublicScreensParamList = SharedScreensParamList & {
     [SCREENS.UNLINK_LOGIN]: {
         accountID?: string;
         validateCode?: string;
@@ -539,19 +549,8 @@ type PublicScreensParamList = {
     [SCREENS.SAML_SIGN_IN]: undefined;
 };
 
-type AuthScreensParamList = {
-    [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]: NavigatorScreenParams<BottomTabNavigatorParamList>;
+type AuthScreensParamList = SharedScreensParamList & {
     [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]: NavigatorScreenParams<CentralPaneNavigatorParamList>;
-    [SCREENS.VALIDATE_LOGIN]: {
-        accountID: string;
-        validateCode: string;
-    };
-    [SCREENS.TRANSITION_BETWEEN_APPS]: {
-        shouldForceLogin: string;
-        email: string;
-        shortLivedAuthToken: string;
-        exitTo: string;
-    };
     [SCREENS.CONCIERGE]: undefined;
     [SCREENS.REPORT_ATTACHMENTS]: {
         reportID: string;
