@@ -202,7 +202,8 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
         accountID: string;
-    },
+        backTo: Routes;
+    };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };

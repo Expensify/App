@@ -254,9 +254,12 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     );
 
     /** Opens the member details page */
-    const openMemberDetails = useCallback((item: MemberOption) => {
-        Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID));
-    }, [route.params.policyID]);
+    const openMemberDetails = useCallback(
+        (item: MemberOption) => {
+            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID, route.path));
+        },
+        [route.params.policyID],
+    );
 
     /**
      * Dismisses the errors on one item
