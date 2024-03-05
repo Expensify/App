@@ -70,11 +70,11 @@ function filterDisplayName(displayName: string): string {
  */
 function getOrderedReportIDs(
     currentReportId: string | null,
-    allReports: OnyxCollection<Report>,
-    betas: OnyxEntry<Beta[]>,
-    policies: OnyxCollection<Policy>,
-    priorityMode: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>,
-    allReportActions: OnyxCollection<ReportAction[]>,
+    allReports: Record<string, Report>,
+    betas: Beta[],
+    policies: Record<string, Policy>,
+    priorityMode: ValueOf<typeof CONST.PRIORITY_MODE>,
+    allReportActions: OnyxCollection<ReportActions>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentPolicyID = '',
     policyMemberAccountIDs: number[] = [],
@@ -83,17 +83,17 @@ function getOrderedReportIDs(
 ): string[] {
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInGSDMode;
-    const allReportsDictValues = Object.values(allReports ?? {});
+    const allReportsDictValues = Object.values(allReports);
 
     const reportIDsWithViolations = new Set<string>();
 
     // Filter out all the reports that shouldn't be displayed
     let reportsToDisplay = allReportsDictValues.filter((report) => {
         const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`;
-        const parentReportAction = allReportActions?.[parentReportActionsKey]?.[report?.parentReportActionID ?? ''];
+        const parentReportAction = allReportActions?.[parentReportActionsKey]?.[report.parentReportActionID ?? ''];
         const doesReportHaveViolations = canUseViolations && !!parentReportAction && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
         if (doesReportHaveViolations) {
-            reportIDsWithViolations.add(report?.reportID ?? '');
+            reportIDsWithViolations.add(report.reportID);
         }
         return ReportUtils.shouldReportBeInOptionList({
             report,
@@ -124,14 +124,14 @@ function getOrderedReportIDs(
     // 4. Archived reports
     //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
-    const pinnedAndBrickRoadReports: Array<OnyxEntry<Report>> = [];
+    const pinnedAndBrickRoadReports: Report[] = [];
     const draftReports: Report[] = [];
-    const nonArchivedReports: Array<OnyxEntry<Report>> = [];
+    const nonArchivedReports: Report[] = [];
     const archivedReports: Report[] = [];
 
     if (currentPolicyID || policyMemberAccountIDs.length > 0) {
         reportsToDisplay = reportsToDisplay.filter(
-            (report) => report?.reportID === currentReportId || ReportUtils.doesReportBelongToWorkspace(report, policyMemberAccountIDs, currentPolicyID),
+            (report) => report.reportID === currentReportId || ReportUtils.doesReportBelongToWorkspace(report, policyMemberAccountIDs, currentPolicyID),
         );
     }
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
@@ -140,20 +140,17 @@ function getOrderedReportIDs(
         // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
         // the reportDisplayName property to the report object directly.
         // eslint-disable-next-line no-param-reassign
-        if (report) {
-            // eslint-disable-next-line no-param-reassign
-            report.displayName = filterDisplayName(ReportUtils.getReportName(report));
-        }
+        report.displayName = filterDisplayName(ReportUtils.getReportName(report));
 
-        const hasRBR = (!!report && report.reportID in reportIDsWithErrors) || reportIDsWithViolations.has(report?.reportID ?? '');
+        const hasRBR = report.reportID in reportIDsWithErrors || reportIDsWithViolations.has(report.reportID);
 
-        const isPinned = report?.isPinned ?? false;
-        const reportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+        const isPinned = report.isPinned ?? false;
+        const reportAction = ReportActionsUtils.getReportAction(report.parentReportID ?? '', report.parentReportActionID ?? '');
         if (isPinned || hasRBR || ReportUtils.requiresAttentionFromCurrentUser(report, reportAction)) {
             pinnedAndBrickRoadReports.push(report);
-        } else if (report?.hasDraft) {
+        } else if (report.hasDraft) {
             draftReports.push(report);
-        } else if (report && ReportUtils.isArchivedRoom(report)) {
+        } else if (ReportUtils.isArchivedRoom(report)) {
             archivedReports.push(report);
         } else {
             nonArchivedReports.push(report);
@@ -179,7 +176,7 @@ function getOrderedReportIDs(
 
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
-    const LHNReports = [...pinnedAndBrickRoadReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID ?? '');
+    const LHNReports = [...pinnedAndBrickRoadReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report.reportID);
     return LHNReports;
 }
 
