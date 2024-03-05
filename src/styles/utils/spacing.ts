@@ -183,10 +183,6 @@ export default {
         marginLeft: 44,
     },
 
-    ml13: {
-        marginLeft: 52,
-    },
-
     ml18: {
         marginLeft: 72,
     },
