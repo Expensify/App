@@ -67,11 +67,10 @@ function WithReportIDsContextProvider({
     const {canUseViolations} = usePermissions();
 
     const policyMemberAccountIDs = useMemo(() => getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, getCurrentUserAccountID()), [activeWorkspaceID, policyMembers]);
-
     const chatReportsKeys = useMemo(() => Object.keys(chatReports ?? {}), [chatReports]);
-    // eslint-disable-next-line you-dont-need-lodash-underscore/reduce
     const reportIDsWithErrors = useMemo(
         () =>
+            // eslint-disable-next-line you-dont-need-lodash-underscore/reduce
             _.reduce(
                 chatReportsKeys,
                 (errorsMap, reportKey) => {
