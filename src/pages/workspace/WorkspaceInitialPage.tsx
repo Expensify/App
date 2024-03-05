@@ -169,6 +169,12 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.CATEGORIES,
         },
+        {
+            translationKey: 'workspace.common.tags',
+            icon: Expensicons.Tag,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.TAGS,
+        },
     ];
 
     const menuItems: WorkspaceMenuItem[] = [
