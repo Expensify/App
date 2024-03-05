@@ -21,8 +21,8 @@ const migrations = {
 // This migration changes the keys of all the NVP related keys so that they are standardized
 export default function () {
     return new Promise<void>((resolve) => {
-        // It's 1 more because activePolicyID is not in the migrations object above as it is nested inside an object
-        const resolveWhenDone = after(Object.entries(migrations).length + 1, () => resolve());
+        // We add the number of manual connections we add below
+        const resolveWhenDone = after(Object.entries(migrations).length + 2, () => resolve());
 
         for (const [oldKey, newKey] of Object.entries(migrations)) {
             const connectionID = Onyx.connect({
@@ -41,10 +41,10 @@ export default function () {
                 },
             });
         }
-        const connectionID = Onyx.connect({
+        const connectionIDAccount = Onyx.connect({
             key: ONYXKEYS.ACCOUNT,
             callback: (value) => {
-                Onyx.disconnect(connectionID);
+                Onyx.disconnect(connectionIDAccount);
                 // @ts-expect-error we are removing this property, so it is not in the type anymore
                 if (value?.activePolicyID) {
                     // @ts-expect-error we are removing this property, so it is not in the type anymore
@@ -57,6 +57,27 @@ export default function () {
                         [ONYXKEYS.ACCOUNT]: newValue,
                     });
                 }
+                resolveWhenDone();
+            },
+        });
+        const connectionIDRecentlyUsedTags = Onyx.connect({
+            // @ts-expect-error The key was renamed, so it does not exist in the type definition
+            key: 'policyRecentlyUsedTags_',
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                Onyx.disconnect(connectionIDRecentlyUsedTags);
+                if (!value) {
+                    resolveWhenDone();
+                    return;
+                }
+                const newValue = {};
+                for (const key of Object.keys(value)) {
+                    // @ts-expect-error We have no fixed types here
+                    newValue[`nvp_${key}`] = value[key];
+                    // @ts-expect-error We have no fixed types here
+                    newValue[key] = null;
+                }
+                Onyx.multiSet(newValue);
                 resolveWhenDone();
             },
         });
