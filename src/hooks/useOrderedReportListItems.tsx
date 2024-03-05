@@ -1,14 +1,17 @@
 import React, {createContext, useCallback, useContext, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import _ from 'underscore';
 import {getCurrentUserAccountID} from '@libs/actions/Report';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Policy, PolicyMembers, PriorityMode, Report, ReportActions, TransactionViolation} from '@src/types/onyx';
+import type {Beta, Policy, PolicyMembers, PriorityMode, Report, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
 import useActiveWorkspace from './useActiveWorkspace';
 import useCurrentReportID from './useCurrentReportID';
+import usePermissions from './usePermissions';
 
 type OnyxProps = {
     chatReports: OnyxCollection<Report>;
@@ -18,6 +21,7 @@ type OnyxProps = {
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     policyMembers: OnyxCollection<PolicyMembers>;
     priorityMode: OnyxEntry<PriorityMode>;
+    allTransactions: OnyxCollection<Transaction>;
 };
 
 type WithOrderedReportListItemsContextProviderProps = OnyxProps & {
@@ -36,6 +40,7 @@ function WithOrderedReportListItemsContextProvider({
     transactionViolations,
     policyMembers,
     priorityMode,
+    allTransactions,
     /**
      * Only required to make unit tests work, since we
      * explicitly pass the currentReportID in LHNTestUtils
@@ -50,8 +55,26 @@ function WithOrderedReportListItemsContextProvider({
     const currentReportIDValue = useCurrentReportID();
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportID;
     const {activeWorkspaceID} = useActiveWorkspace();
+    const {canUseViolations} = usePermissions();
 
     const policyMemberAccountIDs = useMemo(() => getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, getCurrentUserAccountID()), [activeWorkspaceID, policyMembers]);
+
+    const chatReportsKeys = useMemo(() => _.keys(chatReports), [chatReports]);
+    const reportIDsWithErrors = useMemo(() => {
+        return _.reduce(
+            chatReportsKeys,
+            (errorsMap, reportKey) => {
+                const report = chatReports && chatReports[reportKey];
+                const allReportsActions = allReportActions && allReportActions[reportKey.replace(ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.COLLECTION.REPORT_ACTIONS)];
+                const errors = OptionsListUtils.getAllReportErrors(report, allReportsActions, allTransactions) || {};
+                if (_.size(errors) === 0) {
+                    return errorsMap;
+                }
+                return {...errorsMap, [reportKey.replace(ONYXKEYS.COLLECTION.REPORT, '')]: errors};
+            },
+            {},
+        );
+    }, [chatReportsKeys, allReportActions, allTransactions, chatReports]);
 
     const getOrderedReportIDs = useCallback(
         (currentReportID?: string) =>
@@ -65,8 +88,10 @@ function WithOrderedReportListItemsContextProvider({
                 transactionViolations,
                 activeWorkspaceID,
                 policyMemberAccountIDs,
+                reportIDsWithErrors,
+                canUseViolations,
             ),
-        [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs],
+        [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, reportIDsWithErrors, canUseViolations],
     );
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);
@@ -83,7 +108,15 @@ function WithOrderedReportListItemsContextProvider({
         return orderedReportIDs;
     }, [getOrderedReportIDs, derivedCurrentReportID, orderedReportIDs]);
 
-    return <OrderedReportListItemsContext.Provider value={orderedReportIDsWithCurrentReport}>{children}</OrderedReportListItemsContext.Provider>;
+    const contextValue = useMemo(
+        () => ({
+            orderedReportIDs: orderedReportIDsWithCurrentReport,
+            reportIDsWithErrors,
+        }),
+        [orderedReportIDsWithCurrentReport, reportIDsWithErrors],
+    );
+
+    return <OrderedReportListItemsContext.Provider value={contextValue}>{children}</OrderedReportListItemsContext.Provider>;
 }
 
 const OrderedReportListItemsContextProvider = withOnyx<WithOrderedReportListItemsContextProviderProps, OnyxProps>({
@@ -112,6 +145,10 @@ const OrderedReportListItemsContextProvider = withOnyx<WithOrderedReportListItem
     },
     transactionViolations: {
         key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+        initialValue: {},
+    },
+    allTransactions: {
+        key: ONYXKEYS.COLLECTION.TRANSACTION,
         initialValue: {},
     },
 })(WithOrderedReportListItemsContextProvider);
