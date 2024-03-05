@@ -101,7 +101,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                 >
                     <View>
                         <Icon
-                            src={Expensicons.Luggage}
+                            src={Expensicons.Suitcase}
                             fill={currentTabName === SCREENS.TRAVEL.HOME ? theme.iconMenu : theme.icon}
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}

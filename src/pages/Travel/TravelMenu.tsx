@@ -32,7 +32,7 @@ function TravelMenu({route}: TravelMenuProps) {
         const baseMenuItems = [
             {
                 translationKey: 'travel.myTrips',
-                icon: Expensicons.Luggage,
+                icon: Expensicons.Suitcase,
                 action: () => {
                     waitForNavigate(() => {
                         Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS);
