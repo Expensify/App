@@ -1,17 +1,15 @@
 import type {ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type RadioListItem from './RadioListItem';
+import type TableListItem from './TableListItem';
+import type UserListItem from './UserListItem';
 
 type CommonListItemProps<TItem> = {
     /** Whether this item is focused (for arrow key controls) */
     isFocused?: boolean;
-
-    /** Style to be applied to Text */
-    textStyles?: StyleProp<TextStyle>;
-
-    /** Style to be applied on the alternate text */
-    alternateTextStyles?: StyleProp<TextStyle>;
 
     /** Whether this item is disabled */
     isDisabled?: boolean;
@@ -25,11 +23,26 @@ type CommonListItemProps<TItem> = {
     /** Callback to fire when the item is pressed */
     onSelectRow: (item: TItem) => void;
 
+    /** Callback to fire when a checkbox is pressed */
+    onCheckboxPress?: (item: TItem) => void;
+
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
 
     /** Component to display on the right side */
     rightHandSideComponent?: ((item: TItem) => ReactElement<TItem>) | ReactElement | null;
+
+    /** Styles for the pressable component */
+    pressableStyle?: StyleProp<ViewStyle>;
+
+    /** Styles for the wrapper view */
+    wrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Styles for the checkbox wrapper view if select multiple option is on */
+    selectMultipleStyle?: StyleProp<ViewStyle>;
+
+    /** Whether to wrap long text up to 2 lines */
+    isMultilineSupported?: boolean;
 };
 
 type ListItem = {
@@ -37,7 +50,7 @@ type ListItem = {
     text: string;
 
     /** Alternate text to display */
-    alternateText?: string;
+    alternateText?: string | null;
 
     /** Key used internally by React */
     keyForList: string;
@@ -48,11 +61,14 @@ type ListItem = {
     /** Whether this option is disabled for selection */
     isDisabled?: boolean;
 
+    /** List title is bold by default. Use this props to customize it */
+    isBold?: boolean;
+
     /** User accountID */
     accountID?: number | null;
 
     /** User login */
-    login?: string;
+    login?: string | null;
 
     /** Element to show on the right side of the item */
     rightElement?: ReactNode;
@@ -75,7 +91,10 @@ type ListItem = {
     index?: number;
 
     /** Whether this option should show subscript */
-    shouldShowSubscript?: boolean;
+    shouldShowSubscript?: boolean | null;
+
+    /** Whether to wrap long text up to 2 lines */
+    isMultilineSupported?: boolean;
 };
 
 type ListItemProps = CommonListItemProps<ListItem> & {
@@ -87,13 +106,38 @@ type ListItemProps = CommonListItemProps<ListItem> & {
 
     /** Is item hovered */
     isHovered?: boolean;
+
+    /** Whether the default focus should be prevented on row selection */
+    shouldPreventDefaultFocusOnSelectRow?: boolean;
+
+    /** Key used internally by React */
+    keyForList?: string;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;
     shouldPreventDefaultFocusOnSelectRow?: boolean;
     keyForList?: string;
+    errors?: Errors | ReceiptErrors | null;
+    pendingAction?: PendingAction | null;
+    FooterComponent?: ReactElement;
+    children?: ReactElement<ListItemProps> | ((hovered: boolean) => ReactElement<ListItemProps>);
 };
+
+type UserListItemProps = ListItemProps & {
+    /** Errors that this user may contain */
+    errors?: Errors | ReceiptErrors | null;
+
+    /** The type of action that's pending  */
+    pendingAction?: PendingAction | null;
+
+    /** The React element that will be shown as a footer */
+    FooterComponent?: ReactElement;
+};
+
+type RadioListItemProps = ListItemProps;
+
+type TableListItemProps = ListItemProps;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
@@ -116,17 +160,23 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
     sections: Array<SectionListData<TItem, Section<TItem>>>;
 
+    /** Default renderer for every item in the list */
+    ListItem: typeof RadioListItem | typeof UserListItem | typeof TableListItem;
+
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;
 
     /** Callback to fire when a row is pressed */
     onSelectRow: (item: TItem) => void;
 
+    /** Optional callback function triggered upon pressing a checkbox. If undefined and the list displays checkboxes, checkbox interactions are managed by onSelectRow, allowing for pressing anywhere on the list. */
+    onCheckboxPress?: (item: TItem) => void;
+
     /** Callback to fire when "Select All" checkbox is pressed. Only use along with `canSelectMultiple` */
     onSelectAll?: () => void;
 
     /** Callback to fire when an error is dismissed */
-    onDismissError?: () => void;
+    onDismissError?: (item: TItem) => void;
 
     /** Label for the text input */
     textInputLabel?: string;
@@ -210,13 +260,22 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     shouldDelayFocus?: boolean;
 
     /** Component to display on the right side of each child */
-    rightHandSideComponent?: ((item: TItem) => ReactElement<TItem>) | ReactElement | null;
+    rightHandSideComponent?: ((item: ListItem) => ReactElement<ListItem>) | ReactElement | null;
 
     /** Whether to show the loading indicator for new options */
     isLoadingNewOptions?: boolean;
 
     /** Fired when the list is displayed with the items */
     onLayout?: (event: LayoutChangeEvent) => void;
+
+    /** Custom header to show right above list */
+    customListHeader?: ReactNode;
+
+    /** Styles for the list header wrapper */
+    listHeaderWrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Whether to wrap long text up to 2 lines */
+    isRowMultilineSupported?: boolean;
 };
 
 type ItemLayout = {
@@ -241,6 +300,9 @@ export type {
     CommonListItemProps,
     Section,
     BaseListItemProps,
+    UserListItemProps,
+    RadioListItemProps,
+    TableListItemProps,
     ListItem,
     ListItemProps,
     FlattenedSectionsReturn,

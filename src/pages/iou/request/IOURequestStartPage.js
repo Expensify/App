@@ -1,3 +1,4 @@
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -70,6 +71,7 @@ function IOURequestStartPage({
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const navigation = useNavigation();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.requestMoney'),
@@ -80,33 +82,27 @@ function IOURequestStartPage({
     const previousIOURequestType = usePrevious(transactionRequestType.current);
     const isFromGlobalCreate = _.isEmpty(report.reportID);
 
-    // Clear out the temporary money request when this component is unmounted
-    useEffect(
-        () => () => {
-            IOU.clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-        },
-        [reportID],
+    useFocusEffect(
+        useCallback(() => {
+            const handler = (event) => {
+                if (event.code !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
+                    return;
+                }
+                event.preventDefault();
+                event.stopPropagation();
+            };
+            KeyDownPressListener.addKeyDownPressListener(handler);
+
+            return () => KeyDownPressListener.removeKeyDownPressListener(handler);
+        }, []),
     );
-
-    useEffect(() => {
-        const handler = (event) => {
-            if (event.code !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
-                return;
-            }
-            event.preventDefault();
-            event.stopPropagation();
-        };
-        KeyDownPressListener.addKeyDownPressListener(handler);
-
-        return () => KeyDownPressListener.removeKeyDownPressListener(handler);
-    }, []);
 
     // Clear out the temporary money request if the reportID in the URL has changed from the transaction's reportID
     useEffect(() => {
         if (transaction.reportID === reportID) {
             return;
         }
-        IOU.startMoneyRequest_temporaryForRefactor(reportID, isFromGlobalCreate, transactionRequestType.current);
+        IOU.initMoneyRequest(reportID, isFromGlobalCreate, transactionRequestType.current);
     }, [transaction, reportID, iouType, isFromGlobalCreate]);
 
     const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
@@ -125,10 +121,13 @@ function IOURequestStartPage({
             if (newIouType === previousIOURequestType) {
                 return;
             }
-            IOU.startMoneyRequest_temporaryForRefactor(reportID, isFromGlobalCreate, newIouType);
+            if (iouType === CONST.IOU.TYPE.SPLIT && transaction.isFromGlobalCreate) {
+                IOU.updateMoneyRequestTypeParams(navigation.getState().routes, CONST.IOU.TYPE.REQUEST, newIouType);
+            }
+            IOU.initMoneyRequest(reportID, isFromGlobalCreate, newIouType);
             transactionRequestType.current = newIouType;
         },
-        [previousIOURequestType, reportID, isFromGlobalCreate],
+        [previousIOURequestType, reportID, isFromGlobalCreate, iouType, navigation, transaction.isFromGlobalCreate],
     );
 
     if (!transaction.transactionID) {
@@ -160,13 +159,7 @@ function IOURequestStartPage({
                                 id={CONST.TAB.IOU_REQUEST_TYPE}
                                 selectedTab={selectedTab || CONST.IOU.REQUEST_TYPE.SCAN}
                                 onTabSelected={resetIOUTypeIfChanged}
-                                tabBar={({state, navigation, position}) => (
-                                    <TabSelector
-                                        state={state}
-                                        navigation={navigation}
-                                        position={position}
-                                    />
-                                )}
+                                tabBar={TabSelector}
                             >
                                 <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => <IOURequestStepAmount route={route} />}</TopTab.Screen>
                                 <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>{() => <IOURequestStepScan route={route} />}</TopTab.Screen>
