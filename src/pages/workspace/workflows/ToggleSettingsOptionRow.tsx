@@ -1,16 +1,16 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import type {SvgProps} from 'react-native-svg';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type ToggleSettingOptionRowProps = {
     /** Icon to be shown for the option */
-    icon: React.FC<SvgProps>;
+    icon: IconAsset;
     /** Title of the option */
     title: string;
     /** Subtitle of the option */
