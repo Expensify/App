@@ -398,6 +398,7 @@ type OptionData = {
     descriptiveText?: string;
     notificationPreference?: NotificationPreference | null;
     isDisabled?: boolean | null;
+    isShownGreenDot?: boolean | null;
     name?: string | null;
     isSelfDM?: boolean | null;
 } & Report;
@@ -1080,6 +1081,16 @@ function findLastAccessedReport(
  */
 function isArchivedRoom(report: OnyxEntry<Report> | EmptyObject): boolean {
     return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED;
+}
+
+/**
+ * Whether the provided report is an archived room
+ */
+function isJoinRequestInAdminRoom(report: OnyxEntry<Report>): boolean {
+    if (!report) {
+        return false;
+    }
+    return ReportActionsUtils.isActionableJoinRequestPending(report.reportID);
 }
 
 /**
@@ -1885,6 +1896,10 @@ function isUnreadWithMention(reportOrOption: OnyxEntry<Report> | OptionData): bo
 function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | OptionData, parentReportAction: EmptyObject | OnyxEntry<ReportAction> = {}) {
     if (!optionOrReport) {
         return false;
+    }
+
+    if (isJoinRequestInAdminRoom(optionOrReport)) {
+        return true;
     }
 
     if (isArchivedRoom(optionOrReport) || isArchivedRoom(getReport(optionOrReport.parentReportID))) {
@@ -5292,6 +5307,7 @@ export {
     canEditRoomVisibility,
     canEditPolicyDescription,
     getPolicyDescriptionText,
+    isJoinRequestInAdminRoom,
 };
 
 export type {

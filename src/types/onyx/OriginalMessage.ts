@@ -328,6 +328,7 @@ export type {
     OriginalMessageCreated,
     OriginalMessageRenamed,
     OriginalMessageAddComment,
+    OriginalMessageJoinPolicyChangeLog,
     OriginalMessageActionableMentionWhisper,
     OriginalMessageChronosOOOList,
     OriginalMessageSource,

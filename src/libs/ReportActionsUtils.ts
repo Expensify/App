@@ -6,7 +6,15 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ActionName, ChangeLog, IOUMessage, OriginalMessageActionableMentionWhisper, OriginalMessageIOU, OriginalMessageReimbursementDequeued} from '@src/types/onyx/OriginalMessage';
+import type {
+    ActionName,
+    ChangeLog,
+    IOUMessage,
+    OriginalMessageActionableMentionWhisper,
+    OriginalMessageIOU,
+    OriginalMessageJoinPolicyChangeLog,
+    OriginalMessageReimbursementDequeued,
+} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -892,6 +900,18 @@ function isActionableJoinRequest(reportAction: OnyxEntry<ReportAction>): boolean
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLEJOINREQUEST;
 }
 
+/**
+ * Checks if a given report any of the actions correspond to join user to the workspace and request is not resolved yer.
+ * @param reportId
+ */
+function isActionableJoinRequestPending(reportId: string): boolean {
+    const sortedReportActions = getSortedReportActions(Object.values(getAllReportActions(reportId)));
+    const findPendingRequest = sortedReportActions.find(
+        (reportActionItem) => isActionableJoinRequest(reportActionItem) && (reportActionItem as OriginalMessageJoinPolicyChangeLog)?.originalMessage?.choice === '',
+    );
+    return !!findPendingRequest;
+}
+
 function isApprovedOrSubmittedReportAction(action: OnyxEntry<ReportAction> | EmptyObject) {
     return [CONST.REPORT.ACTIONS.TYPE.APPROVED, CONST.REPORT.ACTIONS.TYPE.SUBMITTED].some((type) => type === action?.actionName);
 }
@@ -958,6 +978,7 @@ export {
     getActionableMentionWhisperMessage,
     isCurrentActionUnread,
     isActionableJoinRequest,
+    isActionableJoinRequestPending,
 };
 
 export type {LastVisibleMessage};

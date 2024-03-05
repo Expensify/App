@@ -235,6 +235,7 @@ function getOptionData({
         isWaitingOnBankAccount: false,
         isAllowedToComment: true,
         isDeletedParentAction: false,
+        isShownGreenDot: false,
     };
 
     let participantAccountIDs = report.participantAccountIDs ?? [];
@@ -385,6 +386,12 @@ function getOptionData({
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result as Report);
+
+    if (ReportActionsUtils.isActionableJoinRequestPending(report.reportID)) {
+        result.isPinned = true;
+        result.isUnread = true;
+        result.isShownGreenDot = true;
+    }
 
     if (!hasMultipleParticipants) {
         result.accountID = personalDetail?.accountID;
