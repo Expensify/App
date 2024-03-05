@@ -258,7 +258,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
         (item: MemberOption) => {
             Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID, route.path));
         },
-        [route.params.policyID],
+        [route.params.policyID, route.path],
     );
 
     /**

@@ -1,27 +1,26 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import { withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import Avatar from '@components/Avatar';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useThemeStyles from '@hooks/useThemeStyles';
+import * as UserUtils from '@libs/UserUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
-import {View} from "react-native";
-import useThemeStyles from "@hooks/useThemeStyles";
-import ROUTES from "@src/ROUTES";
-import CONST from "@src/CONST";
-import OfflineWithFeedback from "@components/OfflineWithFeedback";
-import lodashGet from "lodash/get";
-import Avatar from "@components/Avatar";
-import * as UserUtils from "@libs/UserUtils";
-import PressableWithoutFocus from "@components/Pressable/PressableWithoutFocus";
 
 type WorkspacePolicyOnyxProps = {
     /** Personal details of all users */
@@ -30,13 +29,13 @@ type WorkspacePolicyOnyxProps = {
 
 type WorkspaceMemberDetailsPageProps = WithPolicyAndFullscreenLoadingProps & WorkspacePolicyOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS>;
 
-function WorkspaceMemberDetailsPage({policyMembers, personalDetails, route}: WorkspaceMemberDetailsPageProps) {
+function WorkspaceMemberDetailsPage({personalDetails, route}: WorkspaceMemberDetailsPageProps) {
     const styles = useThemeStyles();
 
     const accountID = Number(route?.params?.accountID) ?? 0;
     const backTo = route?.params?.backTo;
 
-    const details = personalDetails?.[accountID] ?? {} as PersonalDetails;
+    const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
     const avatar = details.avatar ?? UserUtils.getDefaultAvatar();
     const fallbackIcon = details.fallbackIcon ?? '';
 
@@ -58,7 +57,7 @@ function WorkspaceMemberDetailsPage({policyMembers, personalDetails, route}: Wor
                             accessibilityLabel="Edit Avatar"
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                         >
-                            <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
+                            <OfflineWithFeedback pendingAction={details.pendingFields?.avatar}>
                                 <Avatar
                                     containerStyles={[styles.avatarXLarge, styles.mb3]}
                                     imageStyles={[styles.avatarXLarge]}
