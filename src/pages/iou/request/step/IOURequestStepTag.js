@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import categoryPropTypes from '@components/categoryPropTypes';
 import TagPicker from '@components/TagPicker';
@@ -13,6 +13,8 @@ import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import {policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
@@ -71,6 +73,8 @@ function IOURequestStepTag({
     const tag = TransactionUtils.getTag(transaction, tagIndex);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
+    const shouldShowNotFoundPage = !ReportUtils.isGroupPolicy(report) || (!transactionTag && !OptionsListUtils.hasEnabledTags(policyTagLists));
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -102,6 +106,7 @@ function IOURequestStepTag({
             headerTitle={policyTagListName}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
             testID={IOURequestStepTag.displayName}
         >
             {({insets}) => (
