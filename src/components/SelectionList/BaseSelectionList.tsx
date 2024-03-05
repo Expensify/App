@@ -447,9 +447,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                         )}
                                     </View>
                                 )}
-                                {!headerMessage && !canSelectMultiple && Boolean(customListHeader) && (
-                                    <View style={[styles.peopleRow, styles.userSelectNone, styles.ph4, styles.pb3, listHeaderWrapperStyle]}>{customListHeader}</View>
-                                )}
+                                {!headerMessage && !canSelectMultiple && customListHeader}
                                 <SectionList
                                     ref={listRef}
                                     sections={sections}

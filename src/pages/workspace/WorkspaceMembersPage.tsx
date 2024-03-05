@@ -377,16 +377,28 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
         </>
     );
 
-    const getCustomListHeader = () => (
-        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
-            <View>
-                <Text style={[styles.searchInputStyle, isPolicyAdmin ? styles.ml3 : styles.ml0]}>{translate('common.member')}</Text>
+    const getCustomListHeader = () => {
+        const header = (
+            <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
+                <View>
+                    <Text style={[styles.searchInputStyle, isPolicyAdmin ? styles.ml3 : styles.ml0]}>{translate('common.member')}</Text>
+                </View>
+                <View style={[StyleUtils.getMinimumWidth(60)]}>
+                    <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('common.role')}</Text>
+                </View>
             </View>
-            <View style={[StyleUtils.getMinimumWidth(60)]}>
-                <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('common.role')}</Text>
+        );
+
+        if (isPolicyAdmin) {
+            return header;
+        }
+
+        return (
+            <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pv3, styles.pb5]}>
+                {header}
             </View>
-        </View>
-    );
+        );
+    };
 
     const changeUserRole = (role: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER) => {
         if (!isEmptyObject(errors)) {
