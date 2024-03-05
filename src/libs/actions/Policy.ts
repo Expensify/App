@@ -41,6 +41,7 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
@@ -49,6 +50,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {
     InvitedEmailsToAccountIDs,
     PersonalDetailsList,
@@ -2541,6 +2543,10 @@ function enablePolicyCategories(policyID: string, isEnabled: boolean) {
         successData,
         failureData,
     });
+
+    if (isEnabled) {
+        Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+    }
 }
 
 function enablePolicyConnections(policyID: string, isEnabled: boolean) {
@@ -2590,6 +2596,11 @@ function enablePolicyConnections(policyID: string, isEnabled: boolean) {
         successData,
         failureData,
     });
+
+    // TODO: Integrate navigation to a screen, once it appears
+    // if (isEnabled) {
+    //     Navigation.navigate(ROUTES.WORKSPACE_.getRoute(policyID));
+    // }
 }
 
 function enablePolicyDistanceRates(policyID: string, isEnabled: boolean) {
@@ -2639,6 +2650,11 @@ function enablePolicyDistanceRates(policyID: string, isEnabled: boolean) {
         successData,
         failureData,
     });
+
+    // TODO: Integrate navigation to a screen, once it appears
+    // if (isEnabled) {
+    //     Navigation.navigate(ROUTES.WORKSPACE_.getRoute(policyID));
+    // }
 }
 
 function enablePolicyReportFields(policyID: string, isEnabled: boolean) {
@@ -2688,6 +2704,11 @@ function enablePolicyReportFields(policyID: string, isEnabled: boolean) {
         successData,
         failureData,
     });
+
+    // TODO: Integrate navigation to a screen, once it appears
+    // if (isEnabled) {
+    //     Navigation.navigate(ROUTES.WORKSPACE_.getRoute(policyID));
+    // }
 }
 
 function enablePolicyTags(policyID: string, isEnabled: boolean) {
@@ -2737,6 +2758,10 @@ function enablePolicyTags(policyID: string, isEnabled: boolean) {
         successData,
         failureData,
     });
+
+    if (isEnabled) {
+        Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
+    }
 }
 
 function enablePolicyTaxes(policyID: string, isEnabled: boolean) {
@@ -2790,6 +2815,11 @@ function enablePolicyTaxes(policyID: string, isEnabled: boolean) {
         successData,
         failureData,
     });
+
+    // TODO: Integrate navigation to a screen, once it appears
+    // if (isEnabled) {
+    //     Navigation.navigate(ROUTES.WORKSPACE_.getRoute(policyID));
+    // }
 }
 
 function enablePolicyWorkflows(policyID: string, isEnabled: boolean) {
@@ -2839,6 +2869,10 @@ function enablePolicyWorkflows(policyID: string, isEnabled: boolean) {
         successData,
         failureData,
     });
+
+    if (isEnabled) {
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID));
+    }
 }
 
 export {
