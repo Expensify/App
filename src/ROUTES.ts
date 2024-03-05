@@ -546,7 +546,7 @@ const ROUTES = {
         route: 'workspace/:policyID/categories/settings',
         getRoute: (policyID: string) => `workspace/${policyID}/categories/settings` as const,
     },
-    WORKSPACE_CREATE_CATEGORY: {
+    WORKSPACE_CATEGORY_CREATE: {
         route: 'workspace/:policyID/categories/new',
         getRoute: (policyID: string) => `workspace/${policyID}/categories/new` as const,
     },

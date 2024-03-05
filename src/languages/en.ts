@@ -1771,7 +1771,7 @@ export default {
             },
             genericFailureMessage: 'An error occurred while updating the category, please try again.',
             addCategory: 'Add category',
-            categoryRequired: 'Category name is required.',
+            categoryRequiredError: 'Category name is required.',
         },
         tags: {
             requiresTag: 'Members must tag all spend',

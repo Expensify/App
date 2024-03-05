@@ -32,7 +32,7 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
         const categoryName = values.categoryName.trim();
 
         if (!ValidationUtils.isRequiredFulfilled(categoryName)) {
-            errors.categoryName = 'workspace.categories.categoryRequired';
+            errors.categoryName = 'workspace.categories.categoryRequiredError';
         } else if ([...categoryName].length > CONST.TITLE_CHARACTER_LIMIT) {
             // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
             // code units.

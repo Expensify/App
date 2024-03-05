@@ -1795,7 +1795,7 @@ export default {
             },
             genericFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
             addCategory: 'Añadir categoría',
-            categoryRequired: 'Category name is required.',
+            categoryRequiredError: 'Lo nombre de la categoría es obligatorio.',
         },
         tags: {
             requiresTag: 'Los miembros deben etiquetar todos los gastos',
