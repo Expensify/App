@@ -496,7 +496,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         let updatedTagsString = TransactionUtils.getTag(transaction);
         policyTagLists.forEach((tagList, index) => {
             const enabledTags = _.filter(tagList.tags, (tag) => tag.enabled);
-            if (isUndefined(tagList.required) || enabledTags.length !== 1 || !tagList.required || TransactionUtils.getTag(transaction, index)) {
+            const isTagListRequired = isUndefined(tagList.required) ? false : tagList.required && canUseViolations;
+            if (!isTagListRequired || enabledTags.length !== 1 || TransactionUtils.getTag(transaction, index)) {
                 return;
             }
             updatedTagsString = IOUUtils.insertTagIntoTransactionTagsString(updatedTagsString, enabledTags[0] ? enabledTags[0].name : '', index);
@@ -504,7 +505,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         if (updatedTagsString !== TransactionUtils.getTag(transaction) && updatedTagsString) {
             IOU.setMoneyRequestTag(transaction.transactionID, updatedTagsString);
         }
-    }, [policyTagLists, transaction, policyTags, isTagRequired]);
+    }, [policyTagLists, transaction, policyTags, isTagRequired, canUseViolations]);
 
     /**
      * @param {Object} option
