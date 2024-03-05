@@ -161,7 +161,7 @@ function isNewMessagesBadgeVisible(): boolean {
     return Math.round(badge?.props.style.transform[0].translateY) === -40;
 }
 
-function navigateToSidebar(): Promise<unknown> {
+function navigateToSidebar(): Promise<void> {
     const hintText = Localize.translateLocal('accessibilityHints.navigateToChatsList');
     const reportHeaderBackButton = screen.queryByAccessibilityHint(hintText);
     if (reportHeaderBackButton) {
@@ -197,7 +197,7 @@ let reportAction9CreatedDate: string;
 /**
  * Sets up a test with a logged in user that has one unread chat from another user. Returns the <App/> test instance.
  */
-function signInAndGetAppWithUnreadChat(): Promise<unknown> {
+function signInAndGetAppWithUnreadChat(): Promise<void> {
     // Render the App and sign in as a test user.
     render(<App />);
     return waitForBatchedUpdatesWithAct()
