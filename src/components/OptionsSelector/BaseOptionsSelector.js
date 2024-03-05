@@ -125,8 +125,11 @@ class BaseOptionsSelector extends Component {
             // Unregister the shortcut before registering a new one to avoid lingering shortcut listener
             this.unSubscribeFromKeyboardShortcut();
             if (this.props.isFocused) {
+                this.subscribeActiveElement();
                 this.subscribeToEnterShortcut();
                 this.subscribeToCtrlEnterShortcut();
+            } else {
+                this.unSubscribeActiveElement();
             }
         }
 
