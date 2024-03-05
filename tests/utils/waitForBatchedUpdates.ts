@@ -10,10 +10,8 @@ import getIsUsingFakeTimers from './getIsUsingFakeTimers';
  *  than to do
  *  ❌  Onyx.merge(...)
  *      waitForBatchedUpdates().then(...)
- *
- * @returns {Promise}
  */
-export default () =>
+const waitForBatchedUpdates = (): Promise<void> =>
     new Promise((outerResolve) => {
         // We first need to exhaust the microtask queue, before we schedule the next task in the macrotask queue (setTimeout).
         // This is because we need to wait for all async onyx operations to finish, as they might schedule other macrotasks,
@@ -38,3 +36,5 @@ export default () =>
             setTimeout(outerResolve, 0);
         });
     });
+
+export default waitForBatchedUpdates;

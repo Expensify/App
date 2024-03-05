@@ -60,6 +60,7 @@ function BaseVideoPlayer({
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = _.some(CONST.ATTACHMENT_LOCAL_URL_PREFIX, (prefix) => url.startsWith(prefix));
+    const shouldUseSharedVideoElementRef = useRef(shouldUseSharedVideoElement);
 
     const togglePlayCurrentVideo = useCallback(() => {
         videoResumeTryNumber.current = 0;
@@ -144,6 +145,29 @@ function BaseVideoPlayer({
         });
     }, [currentVideoPlayerRef, handleFullscreenUpdate, handlePlaybackStatusUpdate]);
 
+    useEffect(() => {
+        if (!isUploading) {
+            return;
+        }
+        // If we are uploading a new video, we want to immediately set the video player ref.
+        currentVideoPlayerRef.current = videoPlayerRef.current;
+    }, [url, currentVideoPlayerRef, isUploading]);
+
+    useEffect(() => {
+        shouldUseSharedVideoElementRef.current = shouldUseSharedVideoElement;
+    }, [shouldUseSharedVideoElement]);
+
+    useEffect(
+        () => () => {
+            if (shouldUseSharedVideoElementRef.current) {
+                return;
+            }
+            // If it's not a shared video player, clear the video player ref.
+            currentVideoPlayerRef.current = null;
+        },
+        [currentVideoPlayerRef],
+    );
+
     // update shared video elements
     useEffect(() => {
         if (shouldUseSharedVideoElement || url !== currentlyPlayingURL) {
@@ -174,7 +198,12 @@ function BaseVideoPlayer({
 
     return (
         <>
-            <View style={style}>
+            {/* We need to wrap the video component in a component that will catch unhandled pointer events. Otherwise, these
+            events will bubble up the tree, and it will cause unexpected press behavior. */}
+            <PressableWithoutFeedback
+                accessibilityRole="button"
+                style={[styles.cursorDefault, style]}
+            >
                 <Hoverable>
                     {(isHovered) => (
                         <View style={[styles.w100, styles.h100]}>
@@ -246,7 +275,7 @@ function BaseVideoPlayer({
                         </View>
                     )}
                 </Hoverable>
-            </View>
+            </PressableWithoutFeedback>
             <VideoPopoverMenu
                 isPopoverVisible={isPopoverVisible}
                 hidePopover={hidePopoverMenu}

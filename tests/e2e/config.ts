@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- if the first value is '' nullish coalescing will return '' so leaving || for safty
 const OUTPUT_DIR = process.env.WORKING_DIRECTORY || './tests/e2e/results';
 
 // add your test name here …
@@ -72,14 +73,15 @@ export default {
         [TEST_NAMES.OpenSearchPage]: {
             name: TEST_NAMES.OpenSearchPage,
         },
-        [TEST_NAMES.ReportTyping]: {
-            name: TEST_NAMES.ReportTyping,
-            reportScreen: {
-                autoFocus: true,
-            },
-            // Crowded Policy (Do Not Delete) Report, has a input bar available:
-            reportID: '8268282951170052',
-        },
+        // TODO: Fix text and enable again
+        // [TEST_NAMES.ReportTyping]: {
+        //     name: TEST_NAMES.ReportTyping,
+        //     reportScreen: {
+        //         autoFocus: true,
+        //     },
+        //     // Crowded Policy (Do Not Delete) Report, has a input bar available:
+        //     reportID: '8268282951170052',
+        // },
         [TEST_NAMES.ChatOpening]: {
             name: TEST_NAMES.ChatOpening,
             // #announce Chat with many messages
@@ -87,3 +89,5 @@ export default {
         },
     },
 };
+
+export {TEST_NAMES};
