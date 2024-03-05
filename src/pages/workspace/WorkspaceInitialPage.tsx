@@ -170,6 +170,12 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             routeName: SCREENS.WORKSPACE.CATEGORIES,
         },
         {
+            translationKey: 'workspace.common.tags',
+            icon: Expensicons.Tag,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.TAGS,
+        },
+        {
             translationKey: 'workspace.common.moreFeatures',
             icon: Expensicons.Gear,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)))),

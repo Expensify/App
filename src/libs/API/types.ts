@@ -350,6 +350,7 @@ const READ_COMMANDS = {
     OPEN_ENABLE_PAYMENTS_PAGE: 'OpenEnablePaymentsPage',
     BEGIN_SIGNIN: 'BeginSignIn',
     SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN: 'SignInWithShortLivedAuthToken',
+    SIGN_IN_WITH_SUPPORT_AUTH_TOKEN: 'SignInWithSupportAuthToken',
     OPEN_WORKSPACE_REIMBURSE_VIEW: 'OpenWorkspaceReimburseView',
     OPEN_WORKSPACE: 'OpenWorkspace',
     OPEN_WORKSPACE_MEMBERS_PAGE: 'OpenWorkspaceMembersPage',
@@ -383,6 +384,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_ENABLE_PAYMENTS_PAGE]: EmptyObject;
     [READ_COMMANDS.BEGIN_SIGNIN]: Parameters.BeginSignInParams;
     [READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN]: Parameters.SignInWithShortLivedAuthTokenParams;
+    [READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN]: Parameters.SignInWithSupportAuthTokenParams;
     [READ_COMMANDS.OPEN_WORKSPACE_REIMBURSE_VIEW]: Parameters.OpenWorkspaceReimburseViewParams;
     [READ_COMMANDS.OPEN_WORKSPACE]: Parameters.OpenWorkspaceParams;
     [READ_COMMANDS.OPEN_WORKSPACE_MEMBERS_PAGE]: Parameters.OpenWorkspaceMembersPageParams;

@@ -51,6 +51,7 @@ export type {default as SendPerformanceTimingParams} from './SendPerformanceTimi
 export type {default as SetContactMethodAsDefaultParams} from './SetContactMethodAsDefaultParams';
 export type {default as SignInUserWithLinkParams} from './SignInUserWithLinkParams';
 export type {default as SignInWithShortLivedAuthTokenParams} from './SignInWithShortLivedAuthTokenParams';
+export type {default as SignInWithSupportAuthTokenParams} from './SignInWithSupportAuthTokenParams';
 export type {default as UnlinkLoginParams} from './UnlinkLoginParams';
 export type {default as UpdateAutomaticTimezoneParams} from './UpdateAutomaticTimezoneParams';
 export type {default as UpdateChatPriorityModeParams} from './UpdateChatPriorityModeParams';

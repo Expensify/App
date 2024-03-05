@@ -70,6 +70,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.WORKSPACE.MORE_FEATURES]: {
                     path: ROUTES.WORKSPACE_MORE_FEATURES.route,
                 },
+                [SCREENS.WORKSPACE.TAGS]: {
+                    path: ROUTES.WORKSPACE_TAGS.route,
+                },
             },
         },
         [SCREENS.NOT_FOUND]: '*',
