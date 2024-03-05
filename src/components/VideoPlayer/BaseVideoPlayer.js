@@ -145,6 +145,9 @@ function BaseVideoPlayer({
     }, [currentVideoPlayerRef, handleFullscreenUpdate, handlePlaybackStatusUpdate]);
 
     useEffect(() => {
+        if (!videoPlayerRef.current) {
+            return;
+        }
         currentVideoPlayerRef.current = videoPlayerRef.current;
     }, [url, currentVideoPlayerRef]);
 
@@ -175,7 +178,6 @@ function BaseVideoPlayer({
             originalParent.appendChild(sharedElement);
         };
     }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
-
     return (
         <>
             {/* We need to wrap the video component in a component that will catch unhandled pointer events. Otherwise, these
