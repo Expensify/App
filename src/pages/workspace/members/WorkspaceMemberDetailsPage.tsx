@@ -1,13 +1,51 @@
-import React from "react";
-import {View} from "react-native";
-import Text from "@components/Text";
+import type {StackScreenProps} from '@react-navigation/stack';
+import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+import { withOnyx} from 'react-native-onyx';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@navigation/Navigation';
+import type {SettingsNavigatorParamList} from '@navigation/types';
+import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
+import type {PersonalDetailsList} from '@src/types/onyx';
 
-function WorkspaceMemberDetailsPage() {
+type WorkspacePolicyOnyxProps = {
+    /** Personal details of all users */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+};
+
+type WorkspaceMemberDetailsPageProps = WithPolicyAndFullscreenLoadingProps & WorkspacePolicyOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS>;
+
+function WorkspaceMemberDetailsPage({policyMembers, personalDetails, route}: WorkspaceMemberDetailsPageProps) {
+    const {translate} = useLocalize();
+
+    const navigateBackTo = route?.params?.backTo;
+
     return (
-        <View>
+        <ScreenWrapper testID={WorkspaceMemberDetailsPage.displayName}>
+            <FullPageNotFoundView>
+                <HeaderWithBackButton
+                    title={translate('common.profile')}
+                    onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
+                />
+            </FullPageNotFoundView>
             <Text>Workspace Member Details</Text>
-        </View>
+        </ScreenWrapper>
     );
 }
 
-export default WorkspaceMemberDetailsPage;
+WorkspaceMemberDetailsPage.displayName = 'WorkspaceMemberDetailsPage';
+
+export default withPolicyAndFullscreenLoading(
+    withOnyx<WorkspaceMemberDetailsPageProps, WorkspacePolicyOnyxProps>({
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+    })(WorkspaceMemberDetailsPage),
+);
