@@ -4,10 +4,10 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
-import {usePersonalDetails} from '@components/OnyxProvider';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
@@ -64,7 +64,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
     const {isSmallScreenWidth} = useWindowDimensions();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
 
-    const personalData = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const personalData = useCurrentUserPersonalDetails() || CONST.EMPTY_OBJECT;
 
     const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
@@ -179,10 +179,8 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
             return;
         }
         const selectedAccountIDs = selectedOptions.map((option) => option.accountID) as number[];
-        const user = OptionsListUtils.getMemberInviteOptions(personalData);
-        const currentUserOption = user.currentUserOption;
-        if (currentUserOption) {
-            const accountIDs = [...selectedAccountIDs, currentUserOption.accountID] as number[];
+        if (personalData) {
+            const accountIDs = [...selectedAccountIDs, personalData.accountID] as number[];
             Report.setGroupDraft(accountIDs);
             Navigation.navigate(ROUTES.NEW_CHAT_CONFIRM);
         }

@@ -70,7 +70,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
-import type {PersonalDetails, PersonalDetailsList, PolicyReportField, RecentlyUsedReportFields, ReportActionReactions, ReportMetadata, ReportUserIsTyping} from '@src/types/onyx';
+import type {
+    NewGroupChat,
+    PersonalDetails,
+    PersonalDetailsList,
+    PolicyReportField,
+    RecentlyUsedReportFields,
+    ReportActionReactions,
+    ReportMetadata,
+    ReportUserIsTyping,
+} from '@src/types/onyx';
 import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import type {NotificationPreference, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
@@ -92,6 +101,7 @@ type ActionSubscriber = {
 
 let conciergeChatReportID: string | undefined;
 let currentUserAccountID = -1;
+let currentUserEmail: string | undefined;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -100,7 +110,7 @@ Onyx.connect({
             conciergeChatReportID = undefined;
             return;
         }
-
+        currentUserEmail = value.email;
         currentUserAccountID = value.accountID;
     },
 });
@@ -216,6 +226,12 @@ let allRecentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields> = {};
 Onyx.connect({
     key: ONYXKEYS.RECENTLY_USED_REPORT_FIELDS,
     callback: (val) => (allRecentlyUsedReportFields = val),
+});
+
+let newGroupDraft: OnyxEntry<NewGroupChat>;
+Onyx.connect({
+    key: ONYXKEYS.NEW_GROUP,
+    callback: (val) => (newGroupDraft = val),
 });
 
 function startNewChat() {
@@ -626,6 +642,13 @@ function openReport(
         idempotencyKey: `${SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT}_${reportID}`,
     };
 
+    if (newReportObject.chatType === CONST.REPORT.CHAT_TYPE.GROUP_CHAT) {
+        parameters.chatType = CONST.REPORT.CHAT_TYPE.GROUP_CHAT;
+        parameters.groupChatAdminLogins = currentUserEmail;
+        parameters.optimisticAccountIDList = participantAccountIDList ? participantAccountIDList.join(',') : '';
+        parameters.reportName = newReportObject.reportName ?? '';
+    }
+
     if (isFromDeepLink) {
         parameters.shouldRetry = false;
     }
@@ -758,14 +781,18 @@ function openReport(
  * @param userLogins list of user logins to start a chat report with.
  * @param shouldDismissModal a flag to determine if we should dismiss modal before navigate to report or navigate to report directly.
  */
-function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true, memberRoles?: string[], reportName?: string) {
+function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true, reportName?: string) {
     let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
 
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
     const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
 
     if (!chat) {
-        newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
+        if (newGroupDraft) {
+            newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs, reportName, CONST.REPORT.CHAT_TYPE.GROUP_CHAT);
+        } else {
+            newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
+        }
     }
     const report = chat ?? newChat;
 
@@ -2927,8 +2954,8 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
     API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER, parameters, {optimisticData, failureData});
 }
 
-function setGroupDraft(invitedUsersIDs: number[], groupChatAdminLogins: string[] = [], reportName: string = '') {
-    Onyx.set(ONYXKEYS.NEW_GROUP, {selectedOptions: invitedUsersIDs, groupChatAdminLogins, reportName});
+function setGroupDraft(invitedUsersIDs: number[], reportName: string = '') {
+    Onyx.set(ONYXKEYS.NEW_GROUP, {selectedOptions: invitedUsersIDs, reportName});
 }
 
 function clearGroupChat() {

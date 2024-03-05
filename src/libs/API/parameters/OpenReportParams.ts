@@ -7,6 +7,10 @@ type OpenReportParams = {
     createdReportActionID?: string;
     clientLastReadTime?: string;
     idempotencyKey?: string;
+    groupChatAdminLogins?: string;
+    reportName?: string;
+    chatType?: string;
+    optimisticAccountIDList?: string;
 };
 
 export default OpenReportParams;

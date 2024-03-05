@@ -1,6 +1,5 @@
 type NewGroupChat = {
     selectedOptions: number[];
-    groupChatAdminLogins: string[];
     reportName: string;
 };
 

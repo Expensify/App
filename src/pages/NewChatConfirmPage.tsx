@@ -7,8 +7,10 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as GroupChatUtils from '@libs/GroupChatUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -30,36 +32,33 @@ type NewChatConfirmPageOnyxProps = {
 type NewChatConfirmPageProps = NewChatConfirmPageOnyxProps;
 
 function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmPageProps) {
-    const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
-    const [options, setOptions] = useState<OptionData[]>([]);
-    const [currentUserOption, setCurrentUserOption] = useState<OptionData>();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const groupName = options.map((invitedUser) => (invitedUser.participantsList ? invitedUser.participantsList[0].firstName : '')).join(', ');
+    const personalData = useCurrentUserPersonalDetails() || CONST.EMPTY_OBJECT;
 
-    useEffect(() => {
+    const selectedOptions = useMemo(() => {
         const invitedUsersPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(newGroupDraft?.selectedOptions, allPersonalDetails);
         const members = OptionsListUtils.getMemberInviteOptions(invitedUsersPersonalDetails);
         const currentUserOptionData = members.currentUserOption;
         const options = [...members.personalDetails, currentUserOptionData] as OptionData[];
-
-        setCurrentUserOption(currentUserOptionData!);
-        setOptions(options);
-        setSelectedOptions(options);
+        return options;
     }, [newGroupDraft]);
+
+    const groupName = GroupChatUtils.getGroupChatConfirmName(selectedOptions);
 
     const sections = useMemo(() => {
         const sectionsList = [];
-        if (options) {
+        if (selectedOptions) {
             sectionsList.push({
                 title: translate('common.members'),
-                data: options,
+                data: selectedOptions,
                 shouldShow: true,
                 indexOffset: 0,
             });
         }
         return sectionsList;
-    }, [options, translate, selectedOptions]);
+    }, [translate, selectedOptions]);
+
     /**
      * Removes a selected option from list if already selected.
      */
@@ -69,27 +68,25 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
         }
         const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);
 
-        let newSelectedOptions;
-
-        if (isOptionInList && currentUserOption && option.accountID === currentUserOption.accountID) {
+        if (isOptionInList && personalData && option.accountID === personalData.accountID) {
             return;
         }
 
         if (isOptionInList) {
-            newSelectedOptions = selectedOptions.filter((selectedOption) => selectedOption.login !== option.login);
-            setSelectedOptions(newSelectedOptions);
+            const newSelectedAccountIDs = selectedOptions.filter((selectedOption) => selectedOption.login !== option.login).map((option) => option.accountID) as number[];
+            Report.setGroupDraft(newSelectedAccountIDs);
         }
     };
 
     const createGroup = () => {
-        const logins = selectedOptions.map((option) => option.login).filter((login): login is string => typeof login === 'string');
+        const optionsWithoutCreator = selectedOptions.filter((selectedOption: OptionData) => selectedOption.accountID !== personalData.accountID);
+        const logins = optionsWithoutCreator.map((option: OptionData) => option.login) as string[];
         if (logins.length < 1) {
             return;
         }
         const accountIDs = selectedOptions.map((selectedOption: OptionData) => selectedOption.accountID) as number[];
-        const creatorLogin = [currentUserOption?.login] as string[];
-        Report.setGroupDraft(accountIDs, creatorLogin, groupName);
-        // Report.navigateToAndOpenReport(logins, true, [], '');
+        Report.setGroupDraft(accountIDs, groupName);
+        Report.navigateToAndOpenReport(logins, true, '');
     };
 
     const navigateBack = () => {
