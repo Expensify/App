@@ -2487,6 +2487,45 @@ function clearCategoryErrors(policyID: string, categoryName: string) {
     });
 }
 
+function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: string[]) {
+    const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    ...Object.keys(policyCategories).reduce<PolicyCategories>((acc, key) => {
+                        if (categoryNamesToDelete.includes(key)) {
+                            return acc;
+                        }
+
+                        acc[key] = policyCategories[key];
+                        return acc;
+                    }),
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    ...policyCategories,
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        categories: categoryNamesToDelete,
+    };
+
+    API.write('DeleteWorkspaceCategories', parameters, onyxData);
+}
+
 export {
     removeMembers,
     updateWorkspaceMembersRole,
@@ -2536,4 +2575,5 @@ export {
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,
     clearCategoryErrors,
+    deleteWorkspaceCategories,
 };
