@@ -26,9 +26,13 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportAction';
 import SidebarLinks from './SidebarLinks';
 
-type ChatReportSelector = ReturnType<typeof chatReportSelector> & {isUnreadWithMention: boolean};
-type PolicySelector = ReturnType<typeof policySelector>;
-type ReportActionsSelector = ReturnType<typeof reportActionsSelector>;
+type ChatReportSelector = OnyxTypes.Report & {isUnreadWithMention: boolean};
+type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatar'>;
+type TransactionSelector = Pick<
+    OnyxTypes.Transaction,
+    'reportID' | 'iouRequestType' | 'comment' | 'receipt' | 'merchant' | 'modifiedMerchant' | 'created' | 'modifiedCreated' | 'amount' | 'modifiedAmount'
+>;
+type ReportActionsSelector = Array<Pick<OnyxTypes.ReportAction, 'reportActionID' | 'actionName' | 'errors' | 'message' | 'originalMessage'>>;
 
 type SidebarLinksDataOnyxProps = {
     /** List of reports */
@@ -44,7 +48,7 @@ type SidebarLinksDataOnyxProps = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
 
     /** All transactions f */
-    allTransactions: OnyxEntry<OnyxTypes.Transaction>;
+    allTransactions: OnyxCollection<TransactionSelector>;
 
     /** All report actions for all reports */
     allReportActions: OnyxEntry<ReportActionsSelector>;
@@ -82,6 +86,7 @@ function SidebarLinksData({
     transactionViolations,
     currentReportID,
 }: SidebarLinksDataProps) {
+    console.log(allReportActions);
     const {accountID} = useCurrentUserPersonalDetails();
     const network = useNetwork();
     const isFocused = useIsFocused();
@@ -101,7 +106,7 @@ function SidebarLinksData({
         return reportKeys.reduce((errorsMap, reportKey) => {
             const report = chatReports?.[reportKey] ?? null;
             const allReportsActions = allReportActions?.[reportKey.replace(ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.COLLECTION.REPORT_ACTIONS)];
-            const errors = OptionsListUtils.getAllReportErrors(report, allReportsActions, allTransactions) || {};
+            const errors = OptionsListUtils.getAllReportErrors(report, allReportsActions, allTransactions as OnyxCollection<OnyxTypes.Transaction>) || {};
             if (Object.keys(errors).length === 0) {
                 return errorsMap;
             }
@@ -118,7 +123,7 @@ function SidebarLinksData({
             betas,
             policies as OnyxEntry<Record<string, OnyxTypes.Policy>>,
             priorityMode,
-            allReportActions,
+            allReportActions as OnyxCollection<OnyxTypes.ReportAction[]>,
             transactionViolations,
             activeWorkspaceID,
             policyMemberAccountIDs,
@@ -166,7 +171,7 @@ function SidebarLinksData({
                 betas,
                 policies as OnyxEntry<Record<string, OnyxTypes.Policy>>,
                 priorityMode,
-                allReportActions,
+                allReportActions as OnyxCollection<OnyxTypes.ReportAction[]>,
                 transactionViolations,
                 activeWorkspaceID,
                 policyMemberAccountIDs,
@@ -222,15 +227,14 @@ SidebarLinksData.displayName = 'SidebarLinksData';
  * This function (and the few below it), narrow down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
  * and makes the entire component more performant because it's not re-rendering when a bunch of properties change which aren't ever used in the UI.
  */
-const chatReportSelector = (report: OnyxEntry<OnyxTypes.Report>) =>
-    report && {
+const chatReportSelector = (report: OnyxEntry<OnyxTypes.Report>): ChatReportSelector =>
+    (report && {
         reportID: report.reportID,
         participantAccountIDs: report.participantAccountIDs,
         hasDraft: report.hasDraft,
         isPinned: report.isPinned,
         isHidden: report.isHidden,
         notificationPreference: report.notificationPreference,
-        errors: report.errors,
         errorFields: {
             addWorkspaceRoom: report.errorFields?.addWorkspaceRoom,
         },
@@ -252,9 +256,6 @@ const chatReportSelector = (report: OnyxEntry<OnyxTypes.Report>) =>
         reportName: report.reportName,
         policyName: report.policyName,
         oldPolicyName: report.oldPolicyName,
-        isPolicyExpenseChat: report.isPolicyExpenseChat,
-        isOwnPolicyExpenseChat: report.isOwnPolicyExpenseChat,
-        isCancelledIOU: report.isCancelledIOU,
         // Other less obvious properites considered for sorting:
         ownerAccountID: report.ownerAccountID,
         currency: report.currency,
@@ -264,7 +265,7 @@ const chatReportSelector = (report: OnyxEntry<OnyxTypes.Report>) =>
         parentReportID: report.parentReportID,
         isDeletedParentAction: report.isDeletedParentAction,
         isUnreadWithMention: ReportUtils.isUnreadWithMention(report),
-    };
+    }) as ChatReportSelector;
 
 const reportActionsSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>) =>
     reportActions &&
@@ -285,15 +286,15 @@ const reportActionsSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>
         };
     });
 
-const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>) =>
-    policy && {
+const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
+    (policy && {
         type: policy.type,
         name: policy.name,
         avatar: policy.avatar,
-    };
+    }) as PolicySelector;
 
-const transactionSelector = (transaction) =>
-    transaction && {
+const transactionSelector = (transaction: OnyxEntry<OnyxTypes.Transaction>): TransactionSelector =>
+    (transaction && {
         reportID: transaction.reportID,
         iouRequestType: transaction.iouRequestType,
         comment: transaction.comment,
@@ -304,14 +305,13 @@ const transactionSelector = (transaction) =>
         modifiedAmount: transaction.modifiedAmount,
         created: transaction.created,
         modifiedCreated: transaction.modifiedCreated,
-    };
+    }) as TransactionSelector;
 
 export default withCurrentReportID(
     withOnyx<SidebarLinksDataProps, SidebarLinksDataOnyxProps>({
         chatReports: {
             key: ONYXKEYS.COLLECTION.REPORT,
-            // This assertion is needed because the selector in withOnyx expects that the return type will be the same as type in ONYXKEYS but for collection keys the selector is executed for each collection item. This is a bug in withOnyx typings that we don't have a solution yet, when useOnyx hook is introduced it will be fixed.
-            selector: chatReportSelector as unknown as (report: OnyxEntry<OnyxTypes.Report>) => OnyxCollection<ChatReportSelector>,
+            selector: chatReportSelector,
             initialValue: {},
         },
         isLoadingApp: {
@@ -337,8 +337,7 @@ export default withCurrentReportID(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-            // This assertion is needed because the selector in withOnyx expects that the return type will be the same as type in ONYXKEYS but for collection keys the selector is executed for each collection item. This is a bug in withOnyx typings that we don't have a solution yet, when useOnyx hook is introduced it will be fixed.
-            selector: policySelector as unknown as (policy: OnyxEntry<OnyxTypes.Policy>) => OnyxCollection<PolicySelector>,
+            selector: policySelector,
             initialValue: {},
         },
         policyMembers: {
