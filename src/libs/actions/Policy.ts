@@ -2431,7 +2431,7 @@ function createPolicyCategory(policyID: string, categoryName: string) {
                         enabled: true,
                         errors: null,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    }
+                    },
                 },
             },
         ],
@@ -2443,7 +2443,7 @@ function createPolicyCategory(policyID: string, categoryName: string) {
                     [categoryName]: {
                         errors: null,
                         pendingAction: null,
-                    }
+                    },
                 },
             },
         ],
@@ -2454,7 +2454,8 @@ function createPolicyCategory(policyID: string, categoryName: string) {
                 value: {
                     [categoryName]: {
                         errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.genericFailureMessage'),
-                    }
+                        pendingAction: null,
+                    },
                 },
             },
         ],

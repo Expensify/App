@@ -1,25 +1,25 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {Keyboard} from 'react-native';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import TextInput from '@components/TextInput';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
-import type SCREENS from '@src/SCREENS';
-import useThemeStyles from '@hooks/useThemeStyles';
-import useLocalize from '@hooks/useLocalize';
-import FormProvider from '@components/Form/FormProvider';
-import InputWrapper from '@components/Form/InputWrapper';
-import TextInput from '@components/TextInput';
+import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceCategoryCreateForm';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as Policy from '@userActions/Policy';
 
 type CreateCategoryPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_CREATE>;
 
@@ -46,7 +46,7 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
         Policy.createPolicyCategory(route.params.policyID, values.categoryName.trim());
         Keyboard.dismiss();
         Navigation.goBack();
-    }
+    };
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>

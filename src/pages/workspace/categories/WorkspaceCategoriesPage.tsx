@@ -98,8 +98,8 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
     };
 
     const navigateToCreateCategoryPage = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_CREATE.getRoute(route.params.policyID))
-    }
+        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_CREATE.getRoute(route.params.policyID));
+    };
 
     const headerButtons = (
         <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
