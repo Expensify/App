@@ -6,7 +6,6 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -23,16 +22,23 @@ type WorkspacePolicyOnyxProps = {
 type WorkspaceMemberDetailsPageProps = WithPolicyAndFullscreenLoadingProps & WorkspacePolicyOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS>;
 
 function WorkspaceMemberDetailsPage({policyMembers, personalDetails, route}: WorkspaceMemberDetailsPageProps) {
-    const {translate} = useLocalize();
+    const accountID = route?.params?.accountID;
+    const backTo = route?.params?.backTo;
 
-    const navigateBackTo = route?.params?.backTo;
+    const getHeaderButtonTitle = () => {
+        if (personalDetails && personalDetails[accountID]) {
+            return personalDetails?.[accountID]?.displayName ?? '';
+        }
+
+        return '';
+    }
 
     return (
         <ScreenWrapper testID={WorkspaceMemberDetailsPage.displayName}>
             <FullPageNotFoundView>
                 <HeaderWithBackButton
-                    title={translate('common.profile')}
-                    onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
+                    title={getHeaderButtonTitle()}
+                    onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
             </FullPageNotFoundView>
             <Text>Workspace Member Details</Text>
