@@ -51,7 +51,7 @@ type SidebarLinksDataOnyxProps = {
     allTransactions: OnyxCollection<TransactionSelector>;
 
     /** All report actions for all reports */
-    allReportActions: OnyxEntry<ReportActionsSelector>;
+    allReportActions: OnyxCollection<ReportActionsSelector>;
 
     /** The policies which the user has access to */
     policies: OnyxCollection<PolicySelector>;
@@ -86,7 +86,6 @@ function SidebarLinksData({
     transactionViolations,
     currentReportID,
 }: SidebarLinksDataProps) {
-    console.log(allReportActions);
     const {accountID} = useCurrentUserPersonalDetails();
     const network = useNetwork();
     const isFocused = useIsFocused();
@@ -105,8 +104,8 @@ function SidebarLinksData({
         const reportKeys = Object.keys(chatReports ?? {});
         return reportKeys.reduce((errorsMap, reportKey) => {
             const report = chatReports?.[reportKey] ?? null;
-            const allReportsActions = allReportActions?.[reportKey.replace(ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.COLLECTION.REPORT_ACTIONS)];
-            const errors = OptionsListUtils.getAllReportErrors(report, allReportsActions, allTransactions as OnyxCollection<OnyxTypes.Transaction>) || {};
+            const allReportsActions = allReportActions?.[reportKey.replace(ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.COLLECTION.REPORT_ACTIONS) ?? ''];
+            const errors = OptionsListUtils.getAllReportErrors(report, allReportsActions as OnyxTypes.ReportAction[], allTransactions as OnyxCollection<OnyxTypes.Transaction>) || {};
             if (Object.keys(errors).length === 0) {
                 return errorsMap;
             }
@@ -119,11 +118,11 @@ function SidebarLinksData({
     const optionListItems: string[] = useMemo(() => {
         const reportIDs = SidebarUtils.getOrderedReportIDs(
             null,
-            chatReports as OnyxEntry<Record<string, OnyxTypes.Report>>,
+            chatReports,
             betas,
-            policies as OnyxEntry<Record<string, OnyxTypes.Policy>>,
+            policies as OnyxCollection<OnyxTypes.Policy>,
             priorityMode,
-            allReportActions as OnyxCollection<OnyxTypes.ReportAction[]>,
+            allReportActions as OnyxCollection<OnyxTypes.ReportActions>,
             transactionViolations,
             activeWorkspaceID,
             policyMemberAccountIDs,
@@ -167,11 +166,11 @@ function SidebarLinksData({
         if (currentReportID && !optionListItems?.includes(currentReportID)) {
             return SidebarUtils.getOrderedReportIDs(
                 currentReportID,
-                chatReports as OnyxEntry<Record<string, OnyxTypes.Report>>,
+                chatReports as OnyxCollection<OnyxTypes.Report>,
                 betas,
-                policies as OnyxEntry<Record<string, OnyxTypes.Policy>>,
+                policies as OnyxCollection<OnyxTypes.Policy>,
                 priorityMode,
-                allReportActions as OnyxCollection<OnyxTypes.ReportAction[]>,
+                allReportActions as OnyxCollection<OnyxTypes.ReportActions>,
                 transactionViolations,
                 activeWorkspaceID,
                 policyMemberAccountIDs,
@@ -268,23 +267,23 @@ const chatReportSelector = (report: OnyxEntry<OnyxTypes.Report>): ChatReportSele
     }) as ChatReportSelector;
 
 const reportActionsSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>) =>
-    reportActions &&
-    Object.values(reportActions).map((reportAction) => {
-        const {reportActionID, actionName, errors, originalMessage} = reportAction;
-        const decision = reportAction.message?.[0].moderationDecision?.decision;
+    (reportActions &&
+        Object.values(reportActions).map((reportAction) => {
+            const {reportActionID, actionName, errors, originalMessage} = reportAction;
+            const decision = reportAction.message?.[0].moderationDecision?.decision;
 
-        return {
-            reportActionID,
-            actionName,
-            errors,
-            message: [
-                {
-                    moderationDecision: {decision},
-                } as Message,
-            ],
-            originalMessage,
-        };
-    });
+            return {
+                reportActionID,
+                actionName,
+                errors,
+                message: [
+                    {
+                        moderationDecision: {decision},
+                    } as Message,
+                ],
+                originalMessage,
+            };
+        })) as ReportActionsSelector;
 
 const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
     (policy && {
