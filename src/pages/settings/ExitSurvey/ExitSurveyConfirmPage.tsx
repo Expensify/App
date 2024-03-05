@@ -84,7 +84,13 @@ function ExitSurveyConfirmPage({exitReason, isLoading, route, navigation}: ExitS
                     text={translate('exitSurvey.goToExpensifyClassic')}
                     onPress={() => {
                         ExitSurvey.switchToOldDot();
-                        NativeModules.HybridAppModule ? NativeModules.HybridAppModule.closeReactNativeApp() : Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+
+                        if (NativeModules.HybridAppModule) {
+                            NativeModules.HybridAppModule.closeReactNativeApp();
+                            return;
+                        }
+
+                        Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                     }}
                     isLoading={isLoading ?? false}
                     isDisabled={isOffline}
