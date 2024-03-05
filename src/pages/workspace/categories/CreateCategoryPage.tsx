@@ -27,13 +27,15 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE>) => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE> = {};
+    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE_FORM> = {};
         const categoryName = values.categoryName.trim();
 
         if (!ValidationUtils.isRequiredFulfilled(categoryName)) {
             errors.categoryName = 'workspace.categories.categoryRequiredError';
-        } else if ([...categoryName].length > CONST.TITLE_CHARACTER_LIMIT) {
+        } else if (categoryName === CONST.INVALID_CATEGORY_NAME) {
+            errors.categoryName = 'workspace.categories.invalidCategoryName';
+        } else if ([...categoryName].length > CONST.CATEGORY_NAME_LIMIT) {
             // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
             // code units.
             ErrorUtils.addErrorMessage(errors, 'categoryName', ['common.error.characterLimitExceedCounter', {length: [...categoryName].length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
@@ -42,7 +44,7 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
         return errors;
     }, []);
 
-    const createCategory = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE>) => {
+    const createCategory = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE_FORM>) => {
         Policy.createPolicyCategory(route.params.policyID, values.categoryName.trim());
         Keyboard.dismiss();
         Navigation.goBack();
@@ -61,7 +63,7 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
                         onBackButtonPress={Navigation.goBack}
                     />
                     <FormProvider
-                        formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE}
+                        formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE_FORM}
                         onSubmit={createCategory}
                         submitButtonText={translate('common.save')}
                         validate={validate}
