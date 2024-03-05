@@ -169,7 +169,7 @@ function HeaderView(props) {
         ),
     );
 
-    const canJoinOrLeave = (isChatThread || isUserCreatedPolicyRoom || canLeaveRoom) && !isSelfDM;
+    const canJoinOrLeave = !isSelfDM && (isChatThread || isUserCreatedPolicyRoom || canLeaveRoom);
     const canJoin = canJoinOrLeave && !isWhisperAction && props.report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const canLeave = canJoinOrLeave && ((isChatThread && props.report.notificationPreference.length) || isUserCreatedPolicyRoom || canLeaveRoom);
     if (canJoin) {
