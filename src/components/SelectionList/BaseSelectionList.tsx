@@ -22,7 +22,7 @@ import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, Section, SectionListDataType} from './types';
+import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset} from './types';
 
 function BaseSelectionList<TItem extends ListItem>(
     {
@@ -70,7 +70,7 @@ function BaseSelectionList<TItem extends ListItem>(
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const listRef = useRef<RNSectionList<TItem, Section<TItem>>>(null);
+    const listRef = useRef<RNSectionList<TItem, SectionWithIndexOffset<TItem>>>(null);
     const textInputRef = useRef<RNTextInput | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const shouldShowTextInput = !!textInputLabel;
@@ -276,9 +276,8 @@ function BaseSelectionList<TItem extends ListItem>(
         );
     };
 
-    const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, Section<TItem>>) => {
-        const indexOffset = section.indexOffset ? section.indexOffset : 0;
-        const normalizedIndex = index + indexOffset;
+    const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, SectionWithIndexOffset<TItem>>) => {
+        const normalizedIndex = index + section.indexOffset;
         const isDisabled = !!section.isDisabled || item.isDisabled;
         const isItemFocused = !isDisabled && focusedIndex === normalizedIndex;
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
