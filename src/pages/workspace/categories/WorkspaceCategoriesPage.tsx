@@ -59,6 +59,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                 text: value.name,
                 keyForList: value.name,
                 isSelected: !!selectedCategories[value.name],
+                pendingAction: value.pendingAction,
                 rightElement: (
                     <View style={styles.flexRow}>
                         <Text style={[styles.disabledText, styles.alignSelfCenter]}>{value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}</Text>

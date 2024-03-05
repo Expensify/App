@@ -49,7 +49,7 @@ function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) 
             } else if ([...categoryName].length > CONST.CATEGORY_NAME_LIMIT) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
                 // code units.
-                ErrorUtils.addErrorMessage(errors, 'categoryName', ['common.error.characterLimitExceedCounter', {length: [...categoryName].length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
+                ErrorUtils.addErrorMessage(errors, 'categoryName', ['common.error.characterLimitExceedCounter', {length: [...categoryName].length, limit: CONST.CATEGORY_NAME_LIMIT}]);
             }
 
             return errors;
@@ -81,10 +81,11 @@ function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) 
                         submitButtonText={translate('common.save')}
                         validate={validate}
                         style={[styles.mh5, styles.flex1]}
+                        enabledWhenOffline
                     >
                         <InputWrapper
                             InputComponent={TextInput}
-                            maxLength={100}
+                            maxLength={CONST.CATEGORY_NAME_LIMIT}
                             label={translate('common.name')}
                             accessibilityLabel={translate('common.name')}
                             inputID={INPUT_IDS.CATEGORY_NAME}
