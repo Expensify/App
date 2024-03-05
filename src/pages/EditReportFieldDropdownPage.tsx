@@ -62,15 +62,11 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, 
             ];
         }
 
-        const selectedValue = fieldValue;
-
         setHeaderMessage(!fieldOptions.length && !recentlyUsedOptions.length ? translate('common.noResultsFound') : '');
 
         const newSections = [];
 
-        const filteredRecentlyUsedOptions = recentlyUsedOptions.filter((option) => option !== selectedValue);
-        const filteredFieldOptions = fieldOptions.filter((option) => option !== selectedValue);
-
+        const selectedValue = fieldValue;
         if (selectedValue) {
             newSections.push({
                 shouldShow: false,
@@ -85,6 +81,7 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, 
             });
         }
 
+        const filteredRecentlyUsedOptions = recentlyUsedOptions.filter((option) => option !== selectedValue);
         if (filteredRecentlyUsedOptions.length > 0) {
             newSections.push({
                 title: translate('common.recents'),
@@ -98,6 +95,7 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, 
             });
         }
 
+        const filteredFieldOptions = fieldOptions.filter((option) => option !== selectedValue);
         if (filteredFieldOptions.length > 0) {
             newSections.push({
                 title: translate('common.all'),
