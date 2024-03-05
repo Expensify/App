@@ -1,7 +1,8 @@
+import type {ThemeVars} from '@storybook/theming';
 import {create} from '@storybook/theming';
 import colors from '../src/styles/theme/colors';
 
-export default create({
+const theme: ThemeVars = create({
     brandTitle: 'New Expensify UI Docs',
     brandImage: 'logomark.svg',
     fontBase: 'ExpensifyNeue-Regular',
@@ -21,3 +22,5 @@ export default create({
     appBorderRadius: 8,
     inputBorderRadius: 8,
 });
+
+export default theme;

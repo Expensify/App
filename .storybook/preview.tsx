@@ -2,15 +2,23 @@ import {PortalProvider} from '@gorhom/portal';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
-import ComposeProviders from '../src/components/ComposeProviders';
-import HTMLEngineProvider from '../src/components/HTMLEngineProvider';
-import {LocaleContextProvider} from '../src/components/LocaleContextProvider';
-import OnyxProvider from '../src/components/OnyxProvider';
-import {EnvironmentProvider} from '../src/components/withEnvironment';
-import {KeyboardStateProvider} from '../src/components/withKeyboardState';
-import {WindowDimensionsProvider} from '../src/components/withWindowDimensions';
-import ONYXKEYS from '../src/ONYXKEYS';
+import ComposeProviders from '@src/components/ComposeProviders';
+import HTMLEngineProvider from '@src/components/HTMLEngineProvider';
+import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
+import OnyxProvider from '@src/components/OnyxProvider';
+import {EnvironmentProvider} from '@src/components/withEnvironment';
+import {KeyboardStateProvider} from '@src/components/withKeyboardState';
+import {WindowDimensionsProvider} from '@src/components/withWindowDimensions';
+import ONYXKEYS from '@src/ONYXKEYS';
 import './fonts.css';
+
+type Parameter = {
+    controls: {
+        matchers: {
+            color: RegExp;
+        };
+    };
+};
 
 Onyx.init({
     keys: ONYXKEYS,
@@ -20,7 +28,7 @@ Onyx.init({
 });
 
 const decorators = [
-    (Story) => (
+    (Story: React.ElementType) => (
         <ComposeProviders
             components={[OnyxProvider, LocaleContextProvider, HTMLEngineProvider, SafeAreaProvider, PortalProvider, EnvironmentProvider, KeyboardStateProvider, WindowDimensionsProvider]}
         >
@@ -29,7 +37,7 @@ const decorators = [
     ),
 ];
 
-const parameters = {
+const parameters: Parameter = {
     controls: {
         matchers: {
             color: /(background|color)$/i,
