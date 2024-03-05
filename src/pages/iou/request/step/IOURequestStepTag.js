@@ -74,6 +74,7 @@ function IOURequestStepTag({
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
+    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = !ReportUtils.isGroupPolicy(report) || (!transactionTag && !OptionsListUtils.hasEnabledTags(policyTagLists));
 
     const navigateBack = () => {
