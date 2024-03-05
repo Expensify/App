@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- if the first value is '' nullish coalescing will return '' so leaving || for safty
 const OUTPUT_DIR = process.env.WORKING_DIRECTORY || './tests/e2e/results';
 
 // add your test name here …
@@ -88,3 +89,5 @@ export default {
         },
     },
 };
+
+export {TEST_NAMES};
