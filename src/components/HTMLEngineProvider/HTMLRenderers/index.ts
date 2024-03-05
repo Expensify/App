@@ -2,6 +2,7 @@ import type {CustomTagRendererRecord} from 'react-native-render-html';
 import AnchorRenderer from './AnchorRenderer';
 import CodeRenderer from './CodeRenderer';
 import EditedRenderer from './EditedRenderer';
+import EmojiRenderer from './EmojiRenderer';
 import ImageRenderer from './ImageRenderer';
 import MentionHereRenderer from './MentionHereRenderer';
 import MentionUserRenderer from './MentionUserRenderer';
@@ -25,6 +26,7 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     /* eslint-disable @typescript-eslint/naming-convention */
     'mention-user': MentionUserRenderer,
     'mention-here': MentionHereRenderer,
+    emoji: EmojiRenderer,
     'next-step-email': NextStepEmailRenderer,
     /* eslint-enable @typescript-eslint/naming-convention */
 };
