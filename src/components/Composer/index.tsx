@@ -327,18 +327,6 @@ function Composer(
         [numberOfLines, scrollStyleMemo, styles.rtlTextRenderForSafari, style, StyleUtils, isComposerFullSize],
     );
 
-    useEffect(() => {
-        if (!showSoftInputOnFocus) {
-            return;
-        }
-        textInput.current?.blur();
-        // On Safari when changing inputMode from none to text, the keyboard will cover the view
-        // We need the logic to re-focus to trigger the keyboard to open below the view
-        setTimeout(() => {
-            textInput.current?.focus();
-        }, 2000);
-    }, [showSoftInputOnFocus]);
-
     return (
         <>
             <RNTextInput

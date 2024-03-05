@@ -258,6 +258,7 @@ function ComposerWithSuggestions(
     const textInputRef = useRef<TextInput | null>(null);
     const insertedEmojisRef = useRef<Emoji[]>([]);
     const shouldInitFocus = useRef<boolean>(true);
+    const isFocusedWhileChangingInputMode = useRef<boolean>(false);
 
     const syncSelectionWithOnChangeTextRef = useRef<SyncSelection | null>(null);
 
@@ -711,6 +712,16 @@ function ComposerWithSuggestions(
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    useEffect(() => {
+        if (!showSoftInputOnFocus || !isFocusedWhileChangingInputMode.current) {
+            return;
+        }
+        // On Safari when changing inputMode from none to text, the keyboard will cover the view
+        // We need to re-focus to trigger the keyboard to open below the view
+        isFocusedWhileChangingInputMode.current = false;
+        textInputRef.current?.focus();
+    }, [showSoftInputOnFocus]);
+
     return (
         <>
             <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
@@ -727,7 +738,12 @@ function ComposerWithSuggestions(
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
                     maxLines={maxComposerLines}
                     onFocus={onFocus}
-                    onBlur={onBlur}
+                    onBlur={(e) => {
+                        if (isFocusedWhileChangingInputMode.current) {
+                            return;
+                        }
+                        onBlur(e);
+                    }}
                     onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={displayFileInModal}
                     shouldClear={textInputShouldClear}
@@ -750,6 +766,10 @@ function ComposerWithSuggestions(
                     onTouchStart={() => {
                         if (showSoftInputOnFocus) {
                             return;
+                        }
+                        if (Browser.isMobileSafari()) {
+                            isFocusedWhileChangingInputMode.current = true;
+                            textInputRef.current?.blur();
                         }
 
                         setShowSoftInputOnFocus(true);
