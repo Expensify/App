@@ -10,7 +10,7 @@ import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import createCollection, {createNestedCollection} from '../utils/collections/createCollection';
+import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
@@ -28,12 +28,6 @@ const reportActions = createCollection<ReportAction>(
     (item) => `${item.reportActionID}`,
     (index) => createRandomReportAction(index),
 );
-
-// const allReportActions = createNestedCollection<ReportAction>(
-//     (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
-//     (item) => `${item.reportActionID}`,
-//     (index) => createRandomReportAction(index),
-// );
 
 const personalDetails = createCollection<PersonalDetails>(
     (item) => item.accountID,
