@@ -13,6 +13,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import TableListItem from '@components/SelectionList/TableListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
@@ -31,13 +32,7 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-type PolicyForList = {
-    value: string;
-    text: string;
-    keyForList: string;
-    isSelected: boolean;
-    rightElement: React.ReactNode;
-};
+type PolicyOption = ListItem;
 
 type WorkspaceCategoriesOnyxProps = {
     /** Collection of categories attached to a policy */
@@ -54,15 +49,15 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
     const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
     const dropdownButtonRef = useRef(null);
 
-    const categoryList = useMemo<PolicyForList[]>(
+    const categoryList = useMemo(
         () =>
-            Object.values(policyCategories ?? {}).map((value) => ({
-                value: value.name,
+            Object.values(policyCategories ?? {}).map<PolicyOption>((value) => ({
                 text: value.name,
                 keyForList: value.name,
                 isSelected: !!selectedCategories[value.name],
                 isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                errors: value.errors,
+                pendingAction: value.pendingAction,
+                errors: value.errors ?? undefined,
                 rightElement: (
                     <View style={styles.flexRow}>
                         <Text style={[styles.disabledText, styles.alignSelfCenter]}>{value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}</Text>
@@ -78,16 +73,16 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
         [policyCategories, selectedCategories, styles.alignSelfCenter, styles.disabledText, styles.flexRow, styles.p1, styles.pl2, theme.icon, translate],
     );
 
-    const toggleCategory = (category: PolicyForList) => {
+    const toggleCategory = (category: PolicyOption) => {
         setSelectedCategories((prev) => ({
             ...prev,
-            [category.value]: !prev[category.value],
+            [category.keyForList]: !prev[category.keyForList],
         }));
     };
 
     const toggleAllCategories = () => {
-        const isAllSelected = categoryList.every((category) => !!selectedCategories[category.value]);
-        setSelectedCategories(isAllSelected ? {} : Object.fromEntries(categoryList.map((item) => [item.value, true])));
+        const isAllSelected = categoryList.every((category) => !!selectedCategories[category.keyForList]);
+        setSelectedCategories(isAllSelected ? {} : Object.fromEntries(categoryList.map((item) => [item.keyForList, true])));
     };
 
     const getCustomListHeader = () => (
@@ -97,7 +92,7 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
         </View>
     );
 
-    const navigateToCategorySettings = (category: PolicyForList) => {
+    const navigateToCategorySettings = (category: PolicyOption) => {
         Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, category.text));
     };
 
