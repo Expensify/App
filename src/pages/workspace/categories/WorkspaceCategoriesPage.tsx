@@ -101,8 +101,16 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
         Navigation.navigate(ROUTES.WORKSPACE_CREATE_CATEGORY.getRoute(route.params.policyID))
     }
 
-    const settingsButton = (
+    const headerButtons = (
         <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
+            <Button
+                medium
+                success
+                onPress={navigateToCategoriesSettings}
+                icon={Expensicons.Plus}
+                text={translate('workspace.categories.addCategory')}
+                style={[styles.pr2, isSmallScreenWidth && styles.w50]}
+            />
             <Button
                 medium
                 onPress={navigateToCategoriesSettings}
@@ -127,21 +135,9 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                         title={translate('workspace.common.categories')}
                         shouldShowBackButton={isSmallScreenWidth}
                     >
-                        {!isSmallScreenWidth && (
-                            <>
-                                <Button
-                                    medium
-                                    success
-                                    onPress={navigateToCategoriesSettings}
-                                    icon={Expensicons.Plus}
-                                    text={translate('workspace.categories.addCategory')}
-                                    style={[styles.pr2, isSmallScreenWidth && styles.w50]}
-                                />
-                                {settingsButton}
-                            </>
-                        )}
+                        {!isSmallScreenWidth && headerButtons}
                     </HeaderWithBackButton>
-                    {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{settingsButton}</View>}
+                    {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
                     </View>
