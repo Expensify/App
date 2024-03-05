@@ -26,7 +26,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
-import compose from '@libs/compose';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import getDraftComment from '@libs/ComposerUtils/getDraftComment';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
@@ -35,7 +34,6 @@ import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getPlatform from '@libs/getPlatform';
 import * as KeyDownListener from '@libs/KeyboardShortcut/KeyDownPressListener';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SuggestionUtils from '@libs/SuggestionUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
@@ -64,9 +62,6 @@ type NewlyAddedChars = {startIndex: number; endIndex: number; diff: string};
 type ComposerWithSuggestionsOnyxProps = {
     /** The number of lines the comment should take up */
     numberOfLines: OnyxEntry<number>;
-
-    /** The parent report actions for the report */
-    parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
 
     /** The modal state */
     modal: OnyxEntry<OnyxTypes.Modal>;
@@ -155,21 +150,11 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         /** Whether the edit is focused */
         editFocused: boolean;
 
-        /** Wheater chat is empty */
-        isEmptyChat?: boolean;
-
         /** The last report action */
         lastReportAction?: OnyxTypes.ReportAction;
 
         /** Whether to include chronos */
         includeChronos?: boolean;
-
-        /** The parent report action ID */
-        parentReportActionID?: string;
-
-        /** The parent report ID */
-        // eslint-disable-next-line react/no-unused-prop-types -- its used in the withOnyx HOC
-        parentReportID: string | undefined;
     };
 
 const {RNTextInputReset} = NativeModules;
@@ -196,15 +181,12 @@ function ComposerWithSuggestions(
         // Onyx
         modal,
         preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
-        parentReportActions,
         numberOfLines,
 
         // Props: Report
         reportID,
         includeChronos,
-        isEmptyChat,
         lastReportAction,
-        parentReportActionID,
 
         // Focus
         onFocus,
@@ -262,7 +244,6 @@ function ComposerWithSuggestions(
     const {isSmallScreenWidth} = useWindowDimensions();
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
-    const parentReportAction = parentReportActions?.[parentReportActionID ?? ''] ?? null;
     const shouldAutoFocus = !modal?.isVisible && shouldShowComposeInput;
 
     const valueRef = useRef(value);
@@ -276,6 +257,7 @@ function ComposerWithSuggestions(
 
     const textInputRef = useRef<TextInput | null>(null);
     const insertedEmojisRef = useRef<Emoji[]>([]);
+    const shouldInitFocus = useRef<boolean>(true);
 
     const syncSelectionWithOnChangeTextRef = useRef<SyncSelection | null>(null);
 
@@ -659,7 +641,15 @@ function ComposerWithSuggestions(
         // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (!((willBlurTextInputOnTapOutside || shouldAutoFocus) && !isNextModalWillOpenRef.current && !modal?.isVisible && isFocused && (!!prevIsModalVisible || !prevIsFocused))) {
+        if (
+            !(
+                (willBlurTextInputOnTapOutside || shouldAutoFocus) &&
+                !isNextModalWillOpenRef.current &&
+                !modal?.isVisible &&
+                isFocused &&
+                (!!prevIsModalVisible || !prevIsFocused || shouldInitFocus.current)
+            )
+        ) {
             return;
         }
 
@@ -668,6 +658,9 @@ function ComposerWithSuggestions(
             return;
         }
         focus(true);
+        if (shouldInitFocus.current) {
+            shouldInitFocus.current = false;
+        }
     }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus]);
 
     useEffect(() => {
@@ -816,11 +809,6 @@ export default withOnyx<ComposerWithSuggestionsProps & RefAttributes<ComposerRef
     },
     editFocused: {
         key: ONYXKEYS.INPUT_FOCUSED,
-    },
-    parentReportActions: {
-        key: ({parentReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-        canEvict: false,
-        initWithStoredValues: false,
     },
 })(memo(ComposerWithSuggestionsWithRef));
 

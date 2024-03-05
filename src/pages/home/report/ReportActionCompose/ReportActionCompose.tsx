@@ -23,7 +23,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import compose from '@libs/compose';
 import getDraftComment from '@libs/ComposerUtils/getDraftComment';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getModalState from '@libs/getModalState';
@@ -73,7 +72,7 @@ type ReportActionComposeOnyxProps = {
 
 type ReportActionComposeProps = ReportActionComposeOnyxProps &
     WithCurrentUserPersonalDetailsProps &
-    Pick<ComposerWithSuggestionsProps, 'reportID' | 'isEmptyChat' | 'isComposerFullSize' | 'disabled' | 'listHeight' | 'lastReportAction'> & {
+    Pick<ComposerWithSuggestionsProps, 'reportID' | 'isComposerFullSize' | 'disabled' | 'listHeight' | 'lastReportAction'> & {
         /** A method to call when the form is submitted */
         onSubmit: (newComment: string | undefined) => void;
 
@@ -101,7 +100,6 @@ function ReportActionCompose({
     listHeight = 0,
     shouldShowComposeInput = true,
     isReportReadyForDisplay = true,
-    isEmptyChat,
     lastReportAction,
 }: ReportActionComposeProps) {
     const styles = useThemeStyles();
@@ -414,10 +412,7 @@ function ReportActionCompose({
                                         isScrollLikelyLayoutTriggered={isScrollLikelyLayoutTriggered}
                                         raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
                                         reportID={reportID}
-                                        parentReportID={report?.parentReportID}
-                                        parentReportActionID={report?.parentReportActionID}
                                         includeChronos={ReportUtils.chatIncludesChronos(report)}
-                                        isEmptyChat={isEmptyChat}
                                         lastReportAction={lastReportAction}
                                         isMenuVisible={isMenuVisible}
                                         inputPlaceholder={inputPlaceholder}
