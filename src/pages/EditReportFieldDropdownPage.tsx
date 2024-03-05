@@ -90,7 +90,7 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, 
                 })),
             },
         ];
-    }, [fieldOptions, recentlyUsedOptions, searchValue, translate]);
+    }, [fieldOptions, fieldValue, recentlyUsedOptions, searchValue, translate]);
 
     return (
         <ScreenWrapper
