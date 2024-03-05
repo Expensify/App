@@ -28,7 +28,7 @@ function TravelMenu() {
     const menuItems = useMemo(() => {
         const baseMenuItems = [
             {
-                translationKey: 'travel.myTrips',
+                translationKey: 'travel.header',
                 icon: Expensicons.Suitcase,
                 action: () => {
                     waitForNavigate(() => {

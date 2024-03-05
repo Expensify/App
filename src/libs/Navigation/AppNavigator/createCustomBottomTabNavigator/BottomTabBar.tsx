@@ -93,7 +93,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
             </Tooltip>
             <Tooltip text={translate('workspace.common.travel')}>
                 <PressableWithFeedback
-                    onPress={() => Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS)}
+                    onPress={() => Navigation.navigate(ROUTES.TRAVEL_HOME)}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('workspace.common.travel')}
                     wrapperStyle={styles.flexGrow1}
