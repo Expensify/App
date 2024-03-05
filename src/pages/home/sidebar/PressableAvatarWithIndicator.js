@@ -63,7 +63,7 @@ function PressableAvatarWithIndicator({isCreateMenuOpen, currentUserPersonalDeta
             onPress={showSettingsPage}
         >
             <OfflineWithFeedback pendingAction={lodashGet(currentUserPersonalDetails, 'pendingFields.avatar', null)}>
-                <View style={[styles.p1, isSelected && styles.selectedAvatarBorder]}>
+                <View style={[isSelected && styles.selectedAvatarBorder]}>
                     <AvatarWithIndicator
                         source={UserUtils.getAvatar(currentUserPersonalDetails.avatar, currentUserPersonalDetails.accountID)}
                         tooltipText={translate('profilePage.profile')}

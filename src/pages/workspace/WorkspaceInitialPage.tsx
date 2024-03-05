@@ -223,7 +223,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
                     policyAvatar={policyAvatar}
                 />
 
-                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween]}>
+                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, styles.mt2]}>
                     <OfflineWithFeedback
                         pendingAction={policy?.pendingAction}
                         onClose={() => dismissError(policyID)}

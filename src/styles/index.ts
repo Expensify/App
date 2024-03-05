@@ -1448,6 +1448,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         selectedAvatarBorder: {
+            padding: 2,
             borderWidth: 2,
             borderRadius: 20,
             borderColor: theme.success,
