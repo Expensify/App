@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect} from 'react';
-import {View} from 'react-native';
+import {NativeModules, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components//Icon';
@@ -84,7 +84,7 @@ function ExitSurveyConfirmPage({exitReason, isLoading, route, navigation}: ExitS
                     text={translate('exitSurvey.goToExpensifyClassic')}
                     onPress={() => {
                         ExitSurvey.switchToOldDot();
-                        Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                        NativeModules.HybridAppModule ? NativeModules.HybridAppModule.closeReactNativeApp() : Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                     }}
                     isLoading={isLoading ?? false}
                     isDisabled={isOffline}

@@ -174,23 +174,6 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
             ],
         };
 
-        if (NativeModules.HybridAppModule) {
-            const hybridAppMenuItems: MenuData[] = [
-                {
-                    translationKey: 'initialSettingsPage.returnToClassic' as const,
-                    icon: Expensicons.RotateLeft,
-                    shouldShowRightIcon: true,
-                    iconRight: Expensicons.NewWindow,
-                    action: () => {
-                        NativeModules.HybridAppModule.closeReactNativeApp();
-                    },
-                },
-                ...defaultMenu.items,
-            ].filter((item) => item.translationKey !== 'initialSettingsPage.signOut' && item.translationKey !== 'exitSurvey.goToExpensifyClassic');
-
-            return {sectionStyle: styles.accountSettingsSectionContainer, sectionTranslationKey: 'initialSettingsPage.account', items: hybridAppMenuItems};
-        }
-
         return defaultMenu;
     }, [loginList, fundList, styles.accountSettingsSectionContainer, bankAccountList, userWallet?.errors, walletTerms?.errors, signOut]);
 
