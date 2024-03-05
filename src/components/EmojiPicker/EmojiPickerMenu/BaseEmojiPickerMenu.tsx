@@ -35,7 +35,6 @@ type BaseEmojiPickerMenuProps = {
     renderItem: ({item, target}: RenderItemProps) => void;
 
     /** Extra data to be passed to the list for re-rendering */
-    // eslint-disable-next-line react/forbid-prop-types
     extraData?: Array<PickerEmojis | OnyxValue<'preferredEmojiSkinTone'> | ((skinTone: number) => void)>;
 
     /** Array of indices for the sticky headers */
@@ -50,7 +49,6 @@ type GetItemTypeProps = Partial<HeaderEmoji> & Partial<Emoji>;
 /**
  * Improves FlashList's recycling when there are different types of items
  * @param item
- * @returns
  */
 const getItemType = (item: GetItemTypeProps): string | undefined => {
     // item is undefined only when list is empty
@@ -124,6 +122,14 @@ function BaseEmojiPickerMenu(
                     contentContainerStyle={styles.ph4}
                     extraData={extraData}
                     getItemType={getItemType}
+                    overrideProps={{
+                        // scrollPaddingTop set to consider sticky header while scrolling, https://github.com/Expensify/App/issues/36883
+                        style: {
+                            minHeight: 1,
+                            minWidth: 1,
+                            scrollPaddingTop: isFiltered ? 0 : CONST.EMOJI_PICKER_ITEM_HEIGHT,
+                        },
+                    }}
                 />
             </View>
             <EmojiSkinToneList />
