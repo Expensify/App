@@ -32,6 +32,7 @@ function LHNOptionsList({
     draftComments = {},
     transactionViolations = {},
     onFirstItemRendered = () => {},
+    reportIDsWithErrors = {},
 }: LHNOptionsListProps) {
     const styles = useThemeStyles();
     const {canUseViolations} = usePermissions();
@@ -63,6 +64,7 @@ function LHNOptionsList({
             const itemComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] ?? '';
             const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(itemReportActions);
             const lastReportAction = sortedReportActions[0];
+            const reportErrors = reportIDsWithErrors[reportID] ?? {};
 
             // Get the transaction for the last report action
             let lastReportActionTransactionID = '';
@@ -91,6 +93,7 @@ function LHNOptionsList({
                     transactionViolations={transactionViolations}
                     canUseViolations={canUseViolations}
                     onLayout={onLayoutItem}
+                    reportErrors={reportErrors}
                 />
             );
         },
@@ -109,6 +112,7 @@ function LHNOptionsList({
             transactionViolations,
             canUseViolations,
             onLayoutItem,
+            reportIDsWithErrors,
         ],
     );
 
