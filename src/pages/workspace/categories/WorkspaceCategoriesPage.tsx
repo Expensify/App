@@ -106,7 +106,7 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
             <Button
                 medium
                 success
-                onPress={navigateToCategoriesSettings}
+                onPress={navigateToCreateCategoryPage}
                 icon={Expensicons.Plus}
                 text={translate('workspace.categories.addCategory')}
                 style={[styles.pr2, isSmallScreenWidth && styles.w50]}
