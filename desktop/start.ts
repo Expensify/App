@@ -1,10 +1,9 @@
 #!/usr/bin/env node
-import {config} from 'dotenv';
+import concurrently from 'concurrently';
+import {config as configDotenv} from 'dotenv';
 import portfinder from 'portfinder';
 
-const concurrently = require('concurrently');
-
-config();
+configDotenv();
 
 const basePort = 8082;
 
@@ -12,7 +11,7 @@ portfinder
     .getPortPromise({
         port: basePort,
     })
-    .then((port) => {
+    .then((port): Promise<never> => {
         const devServer = `webpack-dev-server --config config/webpack/webpack.dev.js --port ${port} --env platform=desktop`;
         const buildMain = 'webpack watch --config config/webpack/webpack.desktop.js --config-name desktop-main --mode=development';
 
@@ -42,15 +41,17 @@ portfinder
             },
         ];
 
-        return concurrently(processes, {
+        const {result} = concurrently(processes, {
             inputStream: process.stdin,
             prefix: 'name',
 
             // Like Harry Potter and he-who-must-not-be-named, "neither can live while the other survives"
             killOthers: ['success', 'failure'],
-        }).then(
+        });
+
+        return result.then(
             () => process.exit(0),
             () => process.exit(1),
-        ) as never;
+        );
     })
     .catch(() => process.exit(1));
