@@ -4,6 +4,7 @@ import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {createContext, forwardRef, useCallback, useMemo, useState} from 'react';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import Navigation from '@libs/Navigation/Navigation';
+import SCREENS from '@src/SCREENS';
 
 type CurrentReportIDContextValue = {
     updateCurrentReportID: (state: NavigationState) => void;
@@ -40,14 +41,17 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
     const updateCurrentReportID = useCallback(
         (state: NavigationState) => {
             const reportID = Navigation.getTopmostReportId(state) ?? '';
+
             /**
              * This is to make sure we don't set the undefined as reportID when
              * switching between chat list and settings->workspaces tab.
-             * and doing so avoid unnecessary re-render of `useOrderedReportListItems`.
+             * and doing so avoid unnecessary re-render of `useReportIDs`.
              */
-            if (reportID !== undefined) {
-                setCurrentReportID(reportID);
+            const params = state.routes[state.index].params;
+            if (params && 'screen' in params && params.screen === SCREENS.SETTINGS.WORKSPACES) {
+                return;
             }
+            setCurrentReportID(reportID);
         },
         [setCurrentReportID],
     );
