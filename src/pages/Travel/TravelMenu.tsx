@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import {ScrollView} from 'react-native';
 import Breadcrumbs from '@components/Breadcrumbs';
@@ -10,15 +9,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
-import type {BottomTabNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 
-type TravelMenuProps = StackScreenProps<BottomTabNavigatorParamList, typeof SCREENS.TRAVEL.HOME>;
+// type TravelMenuProps = StackScreenProps<BottomTabNavigatorParamList, typeof SCREENS.TRAVEL.HOME>;
 
-function TravelMenu({route}: TravelMenuProps) {
+function TravelMenu() {
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
     const {translate} = useLocalize();
