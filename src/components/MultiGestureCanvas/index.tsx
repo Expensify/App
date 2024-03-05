@@ -116,27 +116,25 @@ function MultiGestureCanvas({
     const reset = useWorkletCallback((animated: boolean, callback?: () => void) => {
         stopAnimation();
 
+        offsetX.value = 0;
+        offsetY.value = 0;
+        pinchScale.value = 1;
+
         if (animated) {
-            offsetX.value = 0;
-            offsetY.value = 0;
             panTranslateX.value = withSpring(0, SPRING_CONFIG);
             panTranslateY.value = withSpring(0, SPRING_CONFIG);
             pinchTranslateX.value = withSpring(0, SPRING_CONFIG);
             pinchTranslateY.value = withSpring(0, SPRING_CONFIG);
             zoomScale.value = withSpring(1, SPRING_CONFIG, callback);
-            pinchScale.value = 1;
 
             return;
         }
 
-        offsetX.value = 0;
-        offsetY.value = 0;
         panTranslateX.value = 0;
         panTranslateY.value = 0;
         pinchTranslateX.value = 0;
         pinchTranslateY.value = 0;
         zoomScale.value = 1;
-        pinchScale.value = 1;
 
         if (callback === undefined) {
             return;
