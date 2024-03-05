@@ -57,6 +57,7 @@ const STEP_FIELDS = [
     INPUT_IDS.LEGAL_LAST_NAME,
     INPUT_IDS.ADDRESS_STREET,
     INPUT_IDS.ADDRESS_CITY,
+    INPUT_IDS.ADDRESS_ZIP_CODE,
     INPUT_IDS.PHONE_NUMBER,
     INPUT_IDS.DOB,
     INPUT_IDS.ADDRESS_STATE,
@@ -132,7 +133,7 @@ function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIO
             >
                 <HeaderWithBackButton
                     title={translate('additionalDetailsStep.headerTitle')}
-                    onBackButtonPress={() => Wallet.setAdditionalDetailsQuestions([], walletAdditionalDetails?.idNumber ?? '')}
+                    onBackButtonPress={() => Wallet.setAdditionalDetailsQuestions(null)}
                 />
                 <IdologyQuestions
                     questions={walletAdditionalDetails.questions}

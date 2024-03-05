@@ -52,7 +52,7 @@ function openOnfidoFlow() {
     API.read(READ_COMMANDS.OPEN_ONFIDO_FLOW, {}, {optimisticData, finallyData});
 }
 
-function setAdditionalDetailsQuestions(questions: WalletAdditionalQuestionDetails[], idNumber: string) {
+function setAdditionalDetailsQuestions(questions: WalletAdditionalQuestionDetails[] | null, idNumber?: string) {
     Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {questions, idNumber});
 }
 
@@ -75,7 +75,6 @@ function setKYCWallSource(source?: ValueOf<typeof CONST.KYC_WALL_SOURCE>, chatRe
 /**
  * Validates a user's provided details against a series of checks
  */
-
 function updatePersonalDetails(personalDetails: UpdatePersonalDetailsForWalletParams) {
     const optimisticData: OnyxUpdate[] = [
         {
