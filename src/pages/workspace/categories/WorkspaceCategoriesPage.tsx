@@ -56,7 +56,6 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                 text: value.name,
                 keyForList: value.name,
                 isSelected: !!selectedCategories[value.name],
-                pendingAction: value.pendingAction,
                 errors: value.errors ?? undefined,
                 rightElement: (
                     <View style={styles.flexRow}>
