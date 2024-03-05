@@ -60,6 +60,7 @@ function BaseVideoPlayer({
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = _.some(CONST.ATTACHMENT_LOCAL_URL_PREFIX, (prefix) => url.startsWith(prefix));
+    const shouldUseSharedVideoElementRef = useRef(shouldUseSharedVideoElement);
 
     const togglePlayCurrentVideo = useCallback(() => {
         videoResumeTryNumber.current = 0;
@@ -149,7 +150,22 @@ function BaseVideoPlayer({
             return;
         }
         currentVideoPlayerRef.current = videoPlayerRef.current;
-    }, [url, currentVideoPlayerRef]);
+    }, [url, currentVideoPlayerRef, isUploading]);
+
+    useEffect(() => {
+        shouldUseSharedVideoElementRef.current = shouldUseSharedVideoElement;
+    }, [shouldUseSharedVideoElement]);
+
+    useEffect(
+        () => () => {
+            if (shouldUseSharedVideoElementRef.current) {
+                return;
+            }
+            // If it's not a shared video player, clear the video player ref.
+            currentVideoPlayerRef.current = null;
+        },
+        [currentVideoPlayerRef],
+    );
 
     // update shared video elements
     useEffect(() => {
