@@ -109,7 +109,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
     const [isVisible, setIsVisible] = useState(false);
 
     const completeAttachmentSelection = useRef<(data: FileResult) => void>(() => {});
-    const onModalHide = useRef<() => void>(() => {});
+    const onModalHide = useRef<() => void>();
     const onCanceled = useRef<() => void>(() => {});
     const popoverRef = useRef(null);
 
@@ -266,15 +266,14 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
         (item: Item) => {
             /* setTimeout delays execution to the frame after the modal closes
              * without this on iOS closing the modal closes the gallery/camera as well */
-            onModalHide.current = () => {
+             onModalHide.current = () => {
                 setTimeout(() => {
                     item.pickAttachment()
-                        .then(pickAttachment)
+                        .then((result) => pickAttachment(result as Array<Asset & DocumentPickerResponse>))
                         .catch(console.error)
-                        .finally(() => delete onModalHide.current !== undefined);
+                        .finally(() => delete onModalHide.current);
                 }, 200);
             };
-
             close();
         },
         [pickAttachment],
