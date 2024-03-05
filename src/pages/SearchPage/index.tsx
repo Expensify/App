@@ -1,4 +1,4 @@
-import {StackScreenProps} from '@react-navigation/stack';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -14,7 +14,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {MaybePhraseKey} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
-import {SearchNavigatorParamList} from '@libs/Navigation/types';
+import type {RootStackParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -37,7 +37,7 @@ type SearchPageOnyxProps = {
     isSearchingForReports: OnyxEntry<boolean>;
 };
 
-type SearchPageProps = SearchPageOnyxProps & StackScreenProps<SearchNavigatorParamList, typeof SCREENS.SEARCH_ROOT>;
+type SearchPageProps = SearchPageOnyxProps & StackScreenProps<RootStackParamList, typeof SCREENS.SEARCH_ROOT>;
 
 type SearchPageSectionItem = {
     data: ReportUtils.OptionData[];

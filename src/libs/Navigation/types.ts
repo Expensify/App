@@ -572,7 +572,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
 };
 
-type RootStackParamList = PublicScreensParamList & AuthScreensParamList;
+type RootStackParamList = PublicScreensParamList & AuthScreensParamList & SearchNavigatorParamList;
 
 type BottomTabName = keyof BottomTabNavigatorParamList;
 
