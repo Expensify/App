@@ -307,7 +307,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
             const isSelected = selectedEmployees.includes(accountID);
 
             const isOwner = policy?.owner === details.login;
-            const isAdmin = session?.email === details.login || policyMember.role === CONST.POLICY.ROLE.ADMIN;
+            const isAdmin = policyMember.role === CONST.POLICY.ROLE.ADMIN;
 
             let roleBadge = null;
             if (isOwner || isAdmin) {
