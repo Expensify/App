@@ -143,7 +143,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                             </View>
                         )}
                     </View>
-                    {report?.visibility !== undefined &&
+                    {!!report?.visibility &&
                         (shouldAllowChangeVisibility ? (
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
