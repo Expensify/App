@@ -42,7 +42,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps) {
     /**
      * Filter the entire list of emojis to only emojis that have the search term in their keywords
      *
-     * @param {String} searchTerm
+     * @param searchTerm
      */
     const filterEmojis = lodashDebounce((searchTerm: string) => {
         const [normalizedSearchTerm, newFilteredEmojiList] = suggestEmojis(searchTerm);
