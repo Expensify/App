@@ -69,7 +69,7 @@ function ReportFooter({
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isArchivedRoom = ReportUtils.isArchivedRoom(report);
-    const isAnonymousUser = session?.authTokenType === CONST.AUTH_TOKEN_TYPE.ANONYMOUS;
+    const isAnonymousUser = session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
 
     const isSmallSizeLayout = windowWidth - (isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
     const hideComposer = !ReportUtils.canUserPerformWriteAction(report);

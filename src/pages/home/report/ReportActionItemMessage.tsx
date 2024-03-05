@@ -62,7 +62,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
         }
     }
 
-    const isApprovedOrSubmittedReportAction = [CONST.REPORT.ACTIONS.TYPE.APPROVED, CONST.REPORT.ACTIONS.TYPE.SUBMITTED].some((type) => type === action.actionName);
+    const isApprovedOrSubmittedReportAction = ReportActionsUtils.isApprovedOrSubmittedReportAction(action);
 
     const isHoldReportAction = [CONST.REPORT.ACTIONS.TYPE.HOLD, CONST.REPORT.ACTIONS.TYPE.UNHOLD].some((type) => type === action.actionName);
 

@@ -101,7 +101,7 @@ function AttachmentView({
     isHovered,
     optionalVideoDuration,
 }) {
-    const {updateCurrentlyPlayingURL} = usePlaybackContext();
+    const {updateCurrentlyPlayingURL, currentVideoPlayerRef} = usePlaybackContext();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -114,6 +114,17 @@ function AttachmentView({
         }
         updateCurrentlyPlayingURL(isVideo ? source : null);
     }, [isFocused, isVideo, source, updateCurrentlyPlayingURL, file, isUsedInAttachmentModal]);
+
+    // This should ensure we clean up any video references when closing the attachment modal as these only existed here in memory during attachment preview.
+    useEffect(
+        () => () => {
+            if (!isVideo) {
+                return;
+            }
+            currentVideoPlayerRef.current = null;
+        },
+        [isVideo, currentVideoPlayerRef],
+    );
 
     const [imageError, setImageError] = useState(false);
 

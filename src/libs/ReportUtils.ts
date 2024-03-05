@@ -439,7 +439,7 @@ Onyx.connect({
 
         currentUserEmail = value.email;
         currentUserAccountID = value.accountID;
-        isAnonymousUser = value.authTokenType === CONST.AUTH_TOKEN_TYPE.ANONYMOUS;
+        isAnonymousUser = value.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
         currentUserPrivateDomain = isEmailPublicDomain(currentUserEmail ?? '') ? '' : Str.extractEmailDomain(currentUserEmail ?? '');
     },
 });
@@ -1230,6 +1230,29 @@ function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
 }
 
 /**
+ * Checks if the current user is a payer of the request
+ */
+
+function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>) {
+    const isApproved = isReportApproved(iouReport);
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`] ?? null;
+    const policyType = policy?.type;
+    const isAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isManager = iouReport?.managerID === session?.accountID;
+    if (isPaidGroupPolicy(iouReport)) {
+        if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+            const isReimburser = session?.email === policy?.reimburserEmail;
+            return isReimburser && (isApproved || isManager);
+        }
+        if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
+            return isAdmin && (isApproved || isManager);
+        }
+        return false;
+    }
+    return isAdmin || (isMoneyRequestReport(iouReport) && isManager);
+}
+
+/**
  * Get the notification preference given a report
  */
 function getReportNotificationPreference(report: OnyxEntry<Report>): string | number {
@@ -1611,9 +1634,9 @@ function getIcons(
             name: personalDetails?.[report?.ownerAccountID ?? -1]?.displayName ?? '',
             fallbackIcon: personalDetails?.[report?.ownerAccountID ?? -1]?.fallbackIcon,
         };
-        const isPayer = currentUserAccountID === report?.managerID;
+        const isManager = currentUserAccountID === report?.managerID;
 
-        return isPayer ? [managerIcon, ownerIcon] : [ownerIcon, managerIcon];
+        return isManager ? [managerIcon, ownerIcon] : [ownerIcon, managerIcon];
     }
 
     if (isSelfDM(report)) {
@@ -2539,7 +2562,11 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         }
 
         const isAttachment = ReportActionsUtils.isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : null);
-        const parentReportActionMessage = (parentReportAction?.message?.[0]?.text ?? '').replace(/(\r\n|\n|\r)/gm, ' ');
+        const parentReportActionMessage = (
+            ReportActionsUtils.isApprovedOrSubmittedReportAction(parentReportAction)
+                ? ReportActionsUtils.getReportActionMessageText(parentReportAction)
+                : parentReportAction?.message?.[0]?.text ?? ''
+        ).replace(/(\r\n|\n|\r)/gm, ' ');
         if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
         }
@@ -4523,19 +4550,6 @@ function getReportOfflinePendingActionAndErrors(report: OnyxEntry<Report>): Repo
     return {reportPendingAction, reportErrors};
 }
 
-function getPolicyExpenseChatReportIDByOwner(policyOwner: string): string | null {
-    const policyWithOwner = Object.values(allPolicies ?? {}).find((policy) => policy?.owner === policyOwner);
-    if (!policyWithOwner) {
-        return null;
-    }
-
-    const expenseChat = Object.values(allReports ?? {}).find((report) => isPolicyExpenseChat(report) && report?.policyID === policyWithOwner.id);
-    if (!expenseChat) {
-        return null;
-    }
-    return expenseChat.reportID;
-}
-
 /**
  * Check if the report can create the request with type is iouType
  */
@@ -4820,7 +4834,7 @@ function isGroupChat(report: OnyxEntry<Report>): boolean {
             !isMoneyRequestReport(report) &&
             !isArchivedRoom(report) &&
             !Object.values(CONST.REPORT.CHAT_TYPE).some((chatType) => chatType === getChatType(report)) &&
-            (report.participantAccountIDs?.length ?? 0) > 2,
+            (report.participantAccountIDs?.length ?? 0) > 1,
     );
 }
 
@@ -5219,12 +5233,12 @@ export {
     isDM,
     isSelfDM,
     getPolicy,
-    getPolicyExpenseChatReportIDByOwner,
     getWorkspaceChats,
     shouldDisableRename,
     hasSingleParticipant,
     getReportRecipientAccountIDs,
     isOneOnOneChat,
+    isPayer,
     goBackToDetailsPage,
     getTransactionReportName,
     getTransactionDetails,
