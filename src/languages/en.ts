@@ -1765,6 +1765,7 @@ export default {
             deleteCategories: 'Delete categories',
             disableCategories: 'Disable categories',
             enableCategories: 'Enable categories',
+            deleteFailureMessage: 'An error occurred while deleting the category, please try again.',
             categoryName: 'Category name',
             requiresCategory: 'Members must categorize all spend',
             enableCategory: 'Enable category',

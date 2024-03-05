@@ -4,7 +4,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy, PolicyMembers, PolicyTagList, PolicyTags} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, PolicyCategories, PolicyMembers, PolicyTagList, PolicyTags} from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Navigation from './Navigation/Navigation';
@@ -28,6 +28,13 @@ function getActivePolicies(policies: OnyxCollection<Policy>): Policy[] | undefin
  */
 function hasPolicyMemberError(policyMembers: OnyxEntry<PolicyMembers>): boolean {
     return Object.values(policyMembers ?? {}).some((member) => Object.keys(member?.errors ?? {}).length > 0);
+}
+
+/**
+ * Check if the policy has any errors within the categories.
+ */
+function hasPolicyCategoriesError(policyCategories: OnyxEntry<PolicyCategories>): boolean {
+    return Object.keys(policyCategories ?? {}).some((categoryName) => Object.keys(policyCategories?.[categoryName]?.errors ?? {}).length > 0);
 }
 
 /**
@@ -291,6 +298,7 @@ export {
     getPathWithoutPolicyID,
     getPolicyMembersByIdWithoutCurrentUser,
     goBackFromInvalidPolicy,
+    hasPolicyCategoriesError,
 };
 
 export type {MemberEmailsToAccountIDs};

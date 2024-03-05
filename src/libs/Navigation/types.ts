@@ -516,7 +516,9 @@ type FullScreenNavigatorParamList = {
 type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: undefined;
     [SCREENS.ALL_SETTINGS]: undefined;
-    [SCREENS.WORKSPACE.INITIAL]: undefined;
+    [SCREENS.WORKSPACE.INITIAL]: {
+        policyID: string;
+    };
 };
 
 type SharedScreensParamList = {

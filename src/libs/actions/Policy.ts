@@ -2535,7 +2535,7 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
                             acc[key] = {
                                 ...policyCategories[key],
                                 pendingAction: null,
-                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.genericFailureMessage'),
+                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.deleteFailureMessage'),
                             };
                         }
 

@@ -1789,6 +1789,7 @@ export default {
             deleteCategories: 'Eliminar categorías',
             disableCategories: 'Desactivar categorías',
             enableCategories: 'Activar categorías',
+            deleteFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
             categoryName: 'Nombre de la categoría',
             requiresCategory: 'Los miembros deben categorizar todos los gastos',
             enableCategory: 'Activar categoría',

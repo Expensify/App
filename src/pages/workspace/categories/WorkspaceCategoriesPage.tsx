@@ -61,6 +61,8 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                 text: value.name,
                 keyForList: value.name,
                 isSelected: !!selectedCategories[value.name],
+                isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                errors: value.errors,
                 rightElement: (
                     <View style={styles.flexRow}>
                         <Text style={[styles.disabledText, styles.alignSelfCenter]}>{value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}</Text>
