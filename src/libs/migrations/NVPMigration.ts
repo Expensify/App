@@ -61,8 +61,7 @@ export default function () {
             },
         });
         const connectionIDRecentlyUsedTags = Onyx.connect({
-            // @ts-expect-error The key was renamed, so it does not exist in the type definition
-            key: 'policyRecentlyUsedTags_',
+            key: ONYXKEYS.COLLECTION.OLD_POLICY_RECENTLY_USED_TAGS,
             waitForCollectionCallback: true,
             callback: (value) => {
                 Onyx.disconnect(connectionIDRecentlyUsedTags);
