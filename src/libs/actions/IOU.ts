@@ -2982,7 +2982,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
 
     if (updatedReportPreviewAction?.message?.[0]) {
         updatedReportPreviewAction.message[0].text = messageText;
-        updatedReportPreviewAction.message[0].html = shouldDeleteIOUReport ? '' : messageText;
+        updatedReportPreviewAction.message[0].deleted = shouldDeleteIOUReport ? DateUtils.getDBTime() : '';
     }
 
     if (updatedReportPreviewAction && reportPreviewAction?.childMoneyRequestCount && reportPreviewAction?.childMoneyRequestCount > 0) {
