@@ -125,7 +125,6 @@ const usePanGesture = ({
     const panGesture = Gesture.Pan()
         .manualActivation(true)
         .averageTouches(true)
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         .onTouchesMove((_evt, state) => {
             // We only allow panning when the content is zoomed in
             if (zoomScale.value <= 1 || shouldDisableTransformationGestures.value) {
