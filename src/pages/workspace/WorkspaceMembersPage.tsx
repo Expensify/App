@@ -393,11 +393,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
             return header;
         }
 
-        return (
-            <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pv3, styles.pb5]}>
-                {header}
-            </View>
-        );
+        return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
     };
 
     const changeUserRole = (role: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER) => {
