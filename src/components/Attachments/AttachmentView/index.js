@@ -101,7 +101,7 @@ function AttachmentView({
     isHovered,
     optionalVideoDuration,
 }) {
-    const {updateCurrentlyPlayingURL, currentVideoPlayerRef} = usePlaybackContext();
+    const {updateCurrentlyPlayingURL} = usePlaybackContext();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
