@@ -12,7 +12,16 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import {View} from "react-native";
+import useThemeStyles from "@hooks/useThemeStyles";
+import ROUTES from "@src/ROUTES";
+import CONST from "@src/CONST";
+import OfflineWithFeedback from "@components/OfflineWithFeedback";
+import lodashGet from "lodash/get";
+import Avatar from "@components/Avatar";
+import * as UserUtils from "@libs/UserUtils";
+import PressableWithoutFocus from "@components/Pressable/PressableWithoutFocus";
 
 type WorkspacePolicyOnyxProps = {
     /** Personal details of all users */
@@ -22,16 +31,17 @@ type WorkspacePolicyOnyxProps = {
 type WorkspaceMemberDetailsPageProps = WithPolicyAndFullscreenLoadingProps & WorkspacePolicyOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS>;
 
 function WorkspaceMemberDetailsPage({policyMembers, personalDetails, route}: WorkspaceMemberDetailsPageProps) {
-    const accountID = route?.params?.accountID;
+    const styles = useThemeStyles();
+
+    const accountID = Number(route?.params?.accountID) ?? 0;
     const backTo = route?.params?.backTo;
 
-    const getHeaderButtonTitle = () => {
-        if (personalDetails && personalDetails[accountID]) {
-            return personalDetails?.[accountID]?.displayName ?? '';
-        }
+    const details = personalDetails?.[accountID] ?? {} as PersonalDetails;
+    const avatar = details.avatar ?? UserUtils.getDefaultAvatar();
+    const fallbackIcon = details.fallbackIcon ?? '';
 
-        return '';
-    }
+    // TODO: may be extended to return sutitle or other details
+    const getHeaderButtonTitle = () => details.displayName ?? '';
 
     return (
         <ScreenWrapper testID={WorkspaceMemberDetailsPage.displayName}>
@@ -40,8 +50,28 @@ function WorkspaceMemberDetailsPage({policyMembers, personalDetails, route}: Wor
                     title={getHeaderButtonTitle()}
                     onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
+                <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
+                    <View style={styles.avatarSectionWrapper}>
+                        <PressableWithoutFocus
+                            style={[styles.noOutline]}
+                            onPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
+                            accessibilityLabel="Edit Avatar"
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                        >
+                            <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
+                                <Avatar
+                                    containerStyles={[styles.avatarXLarge, styles.mb3]}
+                                    imageStyles={[styles.avatarXLarge]}
+                                    source={UserUtils.getAvatar(avatar, accountID)}
+                                    size={CONST.AVATAR_SIZE.XLARGE}
+                                    fallbackIcon={fallbackIcon}
+                                />
+                            </OfflineWithFeedback>
+                        </PressableWithoutFocus>
+                    </View>
+                    <Text>Workspace Member Details</Text>
+                </View>
             </FullPageNotFoundView>
-            <Text>Workspace Member Details</Text>
         </ScreenWrapper>
     );
 }
