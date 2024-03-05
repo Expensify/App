@@ -25,6 +25,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -55,7 +56,6 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                 text: value.name,
                 keyForList: value.name,
                 isSelected: !!selectedCategories[value.name],
-                isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 pendingAction: value.pendingAction,
                 errors: value.errors ?? undefined,
                 rightElement: (
@@ -94,6 +94,10 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
 
     const navigateToCategorySettings = (category: PolicyOption) => {
         Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, category.text));
+    };
+
+    const dismissError = (item: PolicyOption) => {
+        Policy.clearCategoryErrors(route.params.policyID, item.keyForList);
     };
 
     const selectedCategoriesArray = Object.keys(selectedCategories).filter((key) => selectedCategories[key]);
@@ -213,6 +217,7 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                             onSelectAll={toggleAllCategories}
                             showScrollIndicator
                             ListItem={TableListItem}
+                            onDismissError={dismissError}
                             customListHeader={getCustomListHeader()}
                             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         />
