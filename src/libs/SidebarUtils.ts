@@ -230,10 +230,10 @@ function getOptionData({
     const participantPersonalDetailList = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails)) as PersonalDetails[];
     const personalDetail = participantPersonalDetailList[0] ?? {};
     const hasErrors = Object.keys(result.allReportErrors ?? {}).length !== 0;
-    let shouldHideViolation = false;
+    let shouldShowViolations = false;
     if (hasViolations && parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
         const {IOUReportID} = parentReportAction?.originalMessage ?? {};
-        shouldHideViolation = ReportUtils.isSettled(IOUReportID);
+        shouldShowViolations = !ReportUtils.isSettled(IOUReportID);
     }
 
     result.isThread = ReportUtils.isChatThread(report);
@@ -246,7 +246,7 @@ function getOptionData({
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
-    result.brickRoadIndicator = hasErrors || (hasViolations && !shouldHideViolation) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+    result.brickRoadIndicator = hasErrors || shouldShowViolations ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
     result.reportID = report.reportID;
