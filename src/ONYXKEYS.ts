@@ -199,7 +199,7 @@ const ONYXKEYS = {
     PREFERRED_EMOJI_SKIN_TONE: 'nvp_expensify_preferredEmojiSkinTone',
 
     /** Store frequently used emojis for this user */
-    FREQUENTLY_USED_EMOJIS: 'expensify_frequentlyUsedEmojis',
+    FREQUENTLY_USED_EMOJIS: 'nvp_expensify_frequentlyUsedEmojis',
 
     /** Stores Workspace ID that will be tied to reimbursement account during setup */
     REIMBURSEMENT_ACCOUNT_WORKSPACE_ID: 'reimbursementAccountWorkspaceID',
