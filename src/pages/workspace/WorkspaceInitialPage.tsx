@@ -170,6 +170,12 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             routeName: SCREENS.WORKSPACE.CATEGORIES,
         },
         {
+            translationKey: 'workspace.common.tags',
+            icon: Expensicons.Tag,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.TAGS,
+        },
+        {
             translationKey: 'workspace.common.distanceRates',
             icon: Expensicons.Car,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID)))),
