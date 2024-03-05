@@ -69,7 +69,7 @@ function useOptions({reports}: UseOptions) {
         );
 
         const headerMessage = OptionsListUtils.getHeaderMessage(
-            (recentReports?.length || 0 + personalDetails?.length || 0) !== 0 || Boolean(currentUserOption),
+            (recentReports?.length || 0) + (personalDetails?.length || 0) !== 0 || Boolean(currentUserOption),
             Boolean(userToInvite),
             debouncedSearchValue,
         );
@@ -146,6 +146,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
 
         if (userToInvite) {
             sectionsList.push({
+                title: '',
                 data: [userToInvite],
                 shouldShow: true,
                 indexOffset,
@@ -179,7 +180,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
                         option?.login ?? '',
                         option?.accountID ?? -1,
                         report.reportID,
-                        OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1}),
+                        OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? ''}),
                     );
 
                     // Pass through the selected assignee
@@ -192,7 +193,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
                     option?.login ?? '',
                     option.accountID,
                     task?.shareDestination ?? '',
-                    OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1}),
+                    OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? undefined}),
                 );
                 Navigation.goBack(ROUTES.NEW_TASK);
             }

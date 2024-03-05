@@ -5,6 +5,9 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/UserListItem';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,9 +15,6 @@ import * as ReportActions from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/UserListItem';
-import useDebouncedState from '@hooks/useDebouncedState';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,7 +32,6 @@ type TaskShareDestinationSelectorModalProps = TaskShareDestinationSelectorModalO
 const selectReportHandler = (option: unknown) => {
     const optionItem = option as ReportUtils.OptionData;
 
-
     if (!optionItem || !optionItem?.reportID) {
         return;
     }
@@ -42,18 +41,15 @@ const selectReportHandler = (option: unknown) => {
 };
 
 const reportFilter = (reports: OnyxCollection<Report>) =>
-        Object.keys(reports ?? {}).reduce(
-        (filtered, reportKey) => {
-            const report: OnyxEntry<Report> = reports?.[reportKey] ?? null;
-            if (ReportUtils.canUserPerformWriteAction(report) && ReportUtils.canCreateTaskInReport(report) && !ReportUtils.isCanceledTaskReport(report)) {
-                return {...filtered, [reportKey]: report};
-            }
-            return filtered;
-        },
-        {},
-    );
+    Object.keys(reports ?? {}).reduce((filtered, reportKey) => {
+        const report: OnyxEntry<Report> = reports?.[reportKey] ?? null;
+        if (ReportUtils.canUserPerformWriteAction(report) && ReportUtils.canCreateTaskInReport(report) && !ReportUtils.isCanceledTaskReport(report)) {
+            return {...filtered, [reportKey]: report};
+        }
+        return filtered;
+    }, {});
 
-function TaskShareDestinationSelectorModal({reports, isSearchingForReports} : TaskShareDestinationSelectorModalProps) {
+function TaskShareDestinationSelectorModal({reports, isSearchingForReports}: TaskShareDestinationSelectorModalProps) {
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {translate} = useLocalize();
@@ -69,7 +65,23 @@ function TaskShareDestinationSelectorModal({reports, isSearchingForReports} : Ta
 
         const headerMessage = OptionsListUtils.getHeaderMessage(recentReports && recentReports.length !== 0, false, debouncedSearchValue);
 
-        const sections = recentReports && recentReports.length > 0 ? [{data: recentReports, shouldShow: true}] : [];
+        const sections =
+            recentReports && recentReports.length > 0
+                ? [
+                      {
+                          data: recentReports.map((option) => ({
+                              ...option,
+                              text: option.text ?? '',
+                              alternateText: option.alternateText ?? undefined,
+                              keyForList: option.keyForList ?? '',
+                              isDisabled: option.isDisabled ?? undefined,
+                              login: option.login ?? undefined,
+                              shouldShowSubscript: option.shouldShowSubscript ?? undefined,
+                          })),
+                          shouldShow: true,
+                      },
+                  ]
+                : [];
 
         return {sections, headerMessage};
     }, [personalDetails, reports, debouncedSearchValue]);
@@ -83,7 +95,7 @@ function TaskShareDestinationSelectorModal({reports, isSearchingForReports} : Ta
             includeSafeAreaPaddingBottom={false}
             testID="TaskShareDestinationSelectorModal"
         >
-            {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
+            {({didScreenTransitionEnd}) => (
                 <>
                     <HeaderWithBackButton
                         title={translate('newTaskPage.shareSomewhere')}
@@ -98,9 +110,8 @@ function TaskShareDestinationSelectorModal({reports, isSearchingForReports} : Ta
                             textInputValue={searchValue}
                             headerMessage={options.headerMessage}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             showLoadingPlaceholder={!didScreenTransitionEnd}
-                            isLoadingNewOptions={isSearchingForReports}
+                            isLoadingNewOptions={isSearchingForReports ?? undefined}
                             textInputHint={textInputHint}
                         />
                     </View>

@@ -156,7 +156,6 @@ type SectionForSearchTerm = {
     section: CategorySection;
     newIndexOffset: number;
 };
-
 type GetOptions = {
     recentReports: ReportUtils.OptionData[];
     personalDetails: ReportUtils.OptionData[];
