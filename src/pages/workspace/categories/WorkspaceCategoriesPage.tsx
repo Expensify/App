@@ -103,6 +103,7 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
 
     const headerButtons = (
         <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
+            {/* TODO: only show if not connected to accounting system */}
             <Button
                 medium
                 success
