@@ -330,7 +330,7 @@ export default {
         wrongFileType: 'Tipo de archivo inválido',
         notAllowedExtension: 'Este tipo de archivo no es compatible',
         folderNotAllowedMessage: 'Subir una carpeta no está permitido. Prueba con otro archivo.',
-        protectedPDFNotSupported: 'Los PDFs con password no son compatibles',
+        protectedPDFNotSupported: 'Los PDFs con contraseña no son compatibles',
     },
     avatarCropModal: {
         title: 'Editar foto',
