@@ -1,5 +1,4 @@
 import lodashDebounce from 'lodash/debounce';
-import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
@@ -146,12 +145,12 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, f
                     indexToSelect = 0;
                 }
 
-                const item = filteredEmojis[indexToSelect];
+                const item = filteredEmojis[indexToSelect] as Emoji;
                 if (!item) {
                     return;
                 }
-                const emoji = lodashGet(item, ['types', preferredSkinTone], item.code);
-                onEmojiSelected(emoji, item as Emoji);
+                const emoji = item?.types?.[preferredSkinTone as number] ?? item.code;
+                onEmojiSelected(emoji, item);
                 // On web, avoid this Enter default input action; otherwise, it will add a new line in the subsequently focused composer.
                 keyBoardEvent.preventDefault();
                 // On mWeb, avoid propagating this Enter keystroke to Pressable child component; otherwise, it will trigger the onEmojiSelected callback again.

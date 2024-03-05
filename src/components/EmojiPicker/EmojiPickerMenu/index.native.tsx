@@ -76,8 +76,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps) {
      * Items with the code "SPACER" return nothing and are used to fill rows up to 8
      * so that the sticky headers function properly.
      *
-     * @param {Object} item
-     * @returns {*}
+     * @param item
      */
     const renderItem = useCallback(
         ({item, target}: RenderItemProps) => {
