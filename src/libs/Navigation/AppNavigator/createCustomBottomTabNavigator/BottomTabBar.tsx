@@ -48,8 +48,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
             // When we are redirected to the Settings tab from the OldDot, we don't want to call the Welcome.show() method.
             // To prevent this, the value of the bottomTabRoute?.name is checked here
             bottomTabRoute?.name === SCREENS.WORKSPACE.INITIAL ||
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            (currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && currentRoute.name !== NAVIGATORS.CENTRAL_PANE_NAVIGATOR) ||
+            !!(currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && currentRoute.name !== NAVIGATORS.CENTRAL_PANE_NAVIGATOR) ||
             Session.isAnonymousUser()
         ) {
             return;
