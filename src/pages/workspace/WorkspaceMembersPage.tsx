@@ -113,8 +113,9 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
      */
     const validateSelection = useCallback(() => {
         const newErrors: Errors = {};
+        const ownerAccountID = PersonalDetailsUtils.getAccountIDsByLogins(policy?.owner ? [policy.owner] : [])[0];
         selectedEmployees.forEach((member) => {
-            if (member !== policy?.ownerAccountID && member !== session?.accountID) {
+            if (member !== ownerAccountID && member !== session?.accountID) {
                 return;
             }
             newErrors[member] = translate('workspace.people.error.cannotRemove');
@@ -325,7 +326,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 isSelected,
                 isDisabled:
                     accountID === session?.accountID ||
-                    accountID === policy?.ownerAccountID ||
+                    details.login === policy?.owner ||
                     policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
                     !isEmptyObject(policyMember.errors),
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
