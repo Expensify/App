@@ -14,6 +14,7 @@ import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import {defaultStyles} from '..';
 import type {ThemeStyles} from '..';
+import shouldPreventScrollOnAutoCompleteSuggestion from './autoCompleteSuggestion';
 import getCardStyles from './cardStyles';
 import containerComposeStyles from './containerComposeStyles';
 import FontUtils from './FontUtils';
@@ -790,6 +791,8 @@ function getBaseAutoCompleteSuggestionContainerStyle({left, bottom, width}: GetB
     };
 }
 
+const shouldPreventScroll = shouldPreventScrollOnAutoCompleteSuggestion();
+
 /**
  * Gets the correct position for auto complete suggestion container
  */
@@ -797,13 +800,13 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle
     'worklet';
 
     const borderWidth = 2;
-    const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING;
+    const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + (shouldPreventScroll ? borderWidth : 0);
 
     // The suggester is positioned absolutely within the component that includes the input and RecipientLocalTime view (for non-expanded mode only). To position it correctly,
     // we need to shift it by the suggester's height plus its padding and, if applicable, the height of the RecipientLocalTime view.
     return {
         overflow: 'hidden',
-        top: -(height + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING + borderWidth),
+        top: -(height + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING + (shouldPreventScroll ? 0 : borderWidth)),
         height,
         minHeight: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT,
     };
@@ -1224,7 +1227,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Returns link styles based on whether the link is disabled or not
      */
-    getDisabledLinkStyles: (isDisabled = false): ViewStyle => {
+    getDisabledLinkStyles: (isDisabled = false): TextStyle => {
         const disabledLinkStyles = {
             color: theme.textSupporting,
             ...styles.cursorDisabled,
@@ -1474,6 +1477,20 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     },
 
     getFullscreenCenteredContentStyles: () => [StyleSheet.absoluteFill, styles.justifyContentCenter, styles.alignItemsCenter],
+
+    getMultiselectListStyles: (isSelected: boolean, isDisabled: boolean): ViewStyle => ({
+        ...styles.mr3,
+        ...(isSelected && styles.checkedContainer),
+        ...(isSelected && styles.borderColorFocus),
+        ...(isDisabled && styles.cursorDisabled),
+        ...(isDisabled && styles.buttonOpacityDisabled),
+    }),
+
+    // TODO: remove it when we'll implement the callback to handle this toggle in Expensify/Expensify#368335
+    getWorkspaceWorkflowsOfflineDescriptionStyle: (descriptionTextStyle: TextStyle | TextStyle[]): StyleProp<TextStyle> => ({
+        ...StyleSheet.flatten(descriptionTextStyle),
+        opacity: styles.opacitySemiTransparent.opacity,
+    }),
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;

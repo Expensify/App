@@ -3,9 +3,11 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, PolicyMembers, PolicyTagList, PolicyTags} from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import Navigation from './Navigation/Navigation';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 type UnitRate = {rate: number};
@@ -93,7 +95,7 @@ function shouldShowPolicy(policy: OnyxEntry<Policy>, isOffline: boolean): boolea
     );
 }
 
-function isExpensifyTeam(email: string): boolean {
+function isExpensifyTeam(email: string | undefined): boolean {
     const emailDomain = Str.extractEmailDomain(email ?? '');
     return emailDomain === CONST.EXPENSIFY_PARTNER_NAME || emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
 }
@@ -107,6 +109,11 @@ function isExpensifyGuideTeam(email: string): boolean {
  * Checks if the current user is an admin of the policy.
  */
 const isPolicyAdmin = (policy: OnyxEntry<Policy> | EmptyObject): boolean => policy?.role === CONST.POLICY.ROLE.ADMIN;
+
+/**
+ * Checks if the policy is a free group policy.
+ */
+const isFreeGroupPolicy = (policy: OnyxEntry<Policy> | EmptyObject): boolean => policy?.type === CONST.POLICY.TYPE.FREE;
 
 const isPolicyMember = (policyID: string, policies: OnyxCollection<Policy>): boolean => Object.values(policies ?? {}).some((policy) => policy?.id === policyID);
 
@@ -174,7 +181,9 @@ function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<PolicyTagLi
         return [];
     }
 
-    return Object.values(policyTagList).filter((policyTagListValue) => policyTagListValue !== null);
+    return Object.values(policyTagList)
+        .filter((policyTagListValue) => policyTagListValue !== null)
+        .sort((tagA, tagB) => tagA.orderWeight - tagB.orderWeight);
 }
 
 /**
@@ -245,6 +254,13 @@ function getPolicyMembersByIdWithoutCurrentUser(policyMembers: OnyxCollection<Po
         : [];
 }
 
+function goBackFromInvalidPolicy() {
+    Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
+
+    // Needed when workspace with given policyID does not exist
+    Navigation.navigateWithSwitchPolicyID({route: ROUTES.ALL_SETTINGS});
+}
+
 export {
     getActivePolicies,
     hasPolicyMemberError,
@@ -258,6 +274,7 @@ export {
     isExpensifyTeam,
     isExpensifyGuideTeam,
     isInstantSubmitEnabled,
+    isFreeGroupPolicy,
     isPolicyAdmin,
     isSubmitAndClose,
     getMemberAccountIDsForWorkspace,
@@ -273,6 +290,7 @@ export {
     extractPolicyIDFromPath,
     getPathWithoutPolicyID,
     getPolicyMembersByIdWithoutCurrentUser,
+    goBackFromInvalidPolicy,
 };
 
 export type {MemberEmailsToAccountIDs};

@@ -464,8 +464,10 @@ function ReportActionItem(props) {
             children = <ReportActionItemBasicMessage message={ReportUtils.getReimbursementDeQueuedActionMessage(props.action, props.report)} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
             children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(props.report.reportID, props.action)} />;
-        } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED) {
-            children = <ReportActionItemBasicMessage message={ReportActionsUtils.getMarkedReimbursedMessage(props.action)} />;
+        } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
+            children = <ReportActionItemBasicMessage message={props.translate('iou.heldRequest', {comment: lodashGet(props, 'action.message[1].text', '')})} />;
+        } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
+            children = <ReportActionItemBasicMessage message={props.translate('iou.unheldRequest')} />;
         } else {
             const hasBeenFlagged =
                 !_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision) &&
@@ -664,13 +666,16 @@ function ReportActionItem(props) {
                     <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)]}>
                         <AnimatedEmptyStateBackground />
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
-                            <ReportActionItemSingle
-                                action={parentReportAction}
-                                showHeader={_.isUndefined(props.draftMessage)}
-                                report={props.report}
-                            >
-                                <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
-                            </ReportActionItemSingle>
+                            <OfflineWithFeedback pendingAction={parentReportAction.pendingAction}>
+                                <ReportActionItemSingle
+                                    action={parentReportAction}
+                                    showHeader={_.isUndefined(props.draftMessage)}
+                                    report={props.report}
+                                >
+                                    <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
+                                </ReportActionItemSingle>
+                            </OfflineWithFeedback>
+                            <View style={styles.reportHorizontalRule} />
                         </View>
                     </View>
                 );
