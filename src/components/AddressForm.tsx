@@ -1,107 +1,124 @@
-import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import type {MaybePhraseKey} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/HomeAddressForm';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import AddressSearch from './AddressSearch';
 import CountrySelector from './CountrySelector';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
+import type {FormOnyxValues} from './Form/types';
 import StatePicker from './StatePicker';
 import TextInput from './TextInput';
 
-const propTypes = {
+type CountryZipRegex = {
+    regex?: RegExp;
+    samples?: string;
+};
+
+type AddressFormProps = {
     /** Address city field */
-    city: PropTypes.string,
+    city?: string;
 
     /** Address country field */
-    country: PropTypes.string,
+    country?: Country | '';
 
     /** Address state field */
-    state: PropTypes.string,
+    state?: string;
 
     /** Address street line 1 field */
-    street1: PropTypes.string,
+    street1?: string;
 
     /** Address street line 2 field */
-    street2: PropTypes.string,
+    street2?: string;
 
     /** Address zip code field */
-    zip: PropTypes.string,
+    zip?: string;
 
     /** Callback which is executed when the user changes address, city or state */
-    onAddressChanged: PropTypes.func,
+    onAddressChanged?: (value: unknown, key: unknown) => void;
 
     /** Callback which is executed when the user submits his address changes */
-    onSubmit: PropTypes.func.isRequired,
+    onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM | typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => void;
 
     /** Whether or not should the form data should be saved as draft */
-    shouldSaveDraft: PropTypes.bool,
+    shouldSaveDraft?: boolean;
 
     /** Text displayed on the bottom submit button */
-    submitButtonText: PropTypes.string,
+    submitButtonText?: string;
 
     /** A unique Onyx key identifying the form */
-    formID: PropTypes.string.isRequired,
+    formID: typeof ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM | typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM;
 };
 
-const defaultProps = {
-    city: '',
-    country: '',
-    onAddressChanged: () => {},
-    shouldSaveDraft: false,
-    state: '',
-    street1: '',
-    street2: '',
-    submitButtonText: '',
-    zip: '',
-};
-
-function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldSaveDraft, state, street1, street2, submitButtonText, zip}) {
+function AddressForm({
+    city = '',
+    country = '',
+    formID,
+    onAddressChanged = () => {},
+    onSubmit,
+    shouldSaveDraft = false,
+    state = '',
+    street1 = '',
+    street2 = '',
+    submitButtonText = '',
+    zip = '',
+}: AddressFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [country, 'samples'], '');
-    const zipFormat = ['common.zipCodeExampleFormat', {zipSampleFormat}];
+
+    const zipSampleFormat = (country && (CONST.COUNTRY_ZIP_REGEX_DATA[country] as CountryZipRegex)?.samples) ?? '';
+
+    const zipFormat: MaybePhraseKey = ['common.zipCodeExampleFormat', {zipSampleFormat}];
+
     const isUSAForm = country === CONST.COUNTRY.US;
 
     /**
-     * @param {Function} translate - translate function
-     * @param {Boolean} isUSAForm - selected country ISO code is US
-     * @param {Object} values - form input values
-     * @returns {Object} - An object containing the errors for each inputID
+     * @param translate - translate function
+     * @param isUSAForm - selected country ISO code is US
+     * @param values - form input values
+     * @returns - An object containing the errors for each inputID
      */
-    const validator = useCallback((values) => {
-        const errors = {};
-        const requiredFields = ['addressLine1', 'city', 'country', 'state'];
+
+    const validator = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM | typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>): Errors => {
+        const errors: Errors & {
+            zipPostCode?: string | string[];
+        } = {};
+        const requiredFields = ['addressLine1', 'city', 'country', 'state'] as const;
 
         // Check "State" dropdown is a valid state if selected Country is USA
-        if (values.country === CONST.COUNTRY.US && !COMMON_CONST.STATES[values.state]) {
+        if (values.country === CONST.COUNTRY.US && !values.state) {
             errors.state = 'common.error.fieldRequired';
         }
 
         // Add "Field required" errors if any required field is empty
-        _.each(requiredFields, (fieldKey) => {
-            if (ValidationUtils.isRequiredFulfilled(values[fieldKey])) {
+        requiredFields.forEach((fieldKey) => {
+            const fieldValue = values[fieldKey] ?? '';
+            if (ValidationUtils.isRequiredFulfilled(fieldValue)) {
                 return;
             }
+
             errors[fieldKey] = 'common.error.fieldRequired';
         });
 
         // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
-        const countryRegexDetails = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, values.country, {});
+        const countryRegexDetails = (values.country ? CONST.COUNTRY_ZIP_REGEX_DATA?.[values.country] : {}) as CountryZipRegex;
 
         // The postal code system might not exist for a country, so no regex either for them.
-        const countrySpecificZipRegex = lodashGet(countryRegexDetails, 'regex');
-        const countryZipFormat = lodashGet(countryRegexDetails, 'samples');
+        const countrySpecificZipRegex = countryRegexDetails?.regex;
+        const countryZipFormat = countryRegexDetails?.samples ?? '';
 
-        if (countrySpecificZipRegex) {
+        ErrorUtils.addErrorMessage(errors, 'firstName', 'bankAccount.error.firstName');
+
+        if (countrySpecificZipRegex && values.zipPostCode) {
             if (!countrySpecificZipRegex.test(values.zipPostCode.trim().toUpperCase())) {
                 if (ValidationUtils.isRequiredFulfilled(values.zipPostCode.trim())) {
                     errors.zipPostCode = ['privatePersonalDetails.error.incorrectZipFormat', countryZipFormat];
@@ -109,7 +126,7 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
                     errors.zipPostCode = 'common.error.fieldRequired';
                 }
             }
-        } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values.zipPostCode.trim().toUpperCase())) {
+        } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values?.zipPostCode?.trim()?.toUpperCase() ?? '')) {
             errors.zipPostCode = 'privatePersonalDetails.error.incorrectZipFormat';
         }
 
@@ -130,12 +147,12 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
                     InputComponent={AddressSearch}
                     inputID={INPUT_IDS.ADDRESS_LINE_1}
                     label={translate('common.addressLine', {lineNumber: 1})}
-                    onValueChange={(data, key) => {
+                    onValueChange={(data: unknown, key: unknown) => {
                         onAddressChanged(data, key);
                         // This enforces the country selector to use the country from address instead of the country from URL
                         Navigation.setParams({country: undefined});
                     }}
-                    defaultValue={street1 || ''}
+                    defaultValue={street1}
                     renamedInputKeys={{
                         street: INPUT_IDS.ADDRESS_LINE_1,
                         street2: INPUT_IDS.ADDRESS_LINE_2,
@@ -154,8 +171,8 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
                 inputID={INPUT_IDS.ADDRESS_LINE_2}
                 label={translate('common.addressLine', {lineNumber: 2})}
                 aria-label={translate('common.addressLine', {lineNumber: 2})}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
-                defaultValue={street2 || ''}
+                role={CONST.ROLE.PRESENTATION}
+                defaultValue={street2}
                 maxLength={CONST.FORM_CHARACTER_LIMIT}
                 spellCheck={false}
                 shouldSaveDraft={shouldSaveDraft}
@@ -186,8 +203,8 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
                     inputID={INPUT_IDS.STATE}
                     label={translate('common.stateOrProvince')}
                     aria-label={translate('common.stateOrProvince')}
-                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
-                    value={state || ''}
+                    role={CONST.ROLE.PRESENTATION}
+                    value={state}
                     maxLength={CONST.FORM_CHARACTER_LIMIT}
                     spellCheck={false}
                     onValueChange={onAddressChanged}
@@ -200,8 +217,8 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
                 inputID={INPUT_IDS.CITY}
                 label={translate('common.city')}
                 aria-label={translate('common.city')}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
-                defaultValue={city || ''}
+                role={CONST.ROLE.PRESENTATION}
+                defaultValue={city}
                 maxLength={CONST.FORM_CHARACTER_LIMIT}
                 spellCheck={false}
                 onValueChange={onAddressChanged}
@@ -213,9 +230,9 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
                 inputID={INPUT_IDS.ZIP_POST_CODE}
                 label={translate('common.zipPostCode')}
                 aria-label={translate('common.zipPostCode')}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ROLE.PRESENTATION}
                 autoCapitalize="characters"
-                defaultValue={zip || ''}
+                defaultValue={zip}
                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                 hint={zipFormat}
                 onValueChange={onAddressChanged}
@@ -225,8 +242,6 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
     );
 }
 
-AddressForm.defaultProps = defaultProps;
 AddressForm.displayName = 'AddressForm';
-AddressForm.propTypes = propTypes;
 
 export default AddressForm;

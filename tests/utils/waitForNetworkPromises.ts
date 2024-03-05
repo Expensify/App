@@ -8,7 +8,7 @@ import waitForBatchedUpdates from './waitForBatchedUpdates';
  *  than to do
  *  ❌  Onyx.merge(...)
  *      waitForBatchedUpdates().then(...)
- *
- * @returns {Promise}
  */
-export default () => waitForBatchedUpdates().then(waitForBatchedUpdates);
+const waitForNetworkPromises = (): Promise<void> => waitForBatchedUpdates().then(waitForBatchedUpdates);
+
+export default waitForNetworkPromises;
