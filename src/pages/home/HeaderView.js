@@ -374,7 +374,7 @@ function HeaderView(props) {
                                 isVisible={isDeleteTaskConfirmModalVisible}
                                 onConfirm={() => {
                                     setIsDeleteTaskConfirmModalVisible(false);
-                                    Session.checkIfActionIsAllowed(Task.deleteTask(props.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum));
+                                    Session.checkIfActionIsAllowed(Task.deleteTask(props.report));
                                 }}
                                 onCancel={() => setIsDeleteTaskConfirmModalVisible(false)}
                                 title={translate('task.deleteTask')}
