@@ -91,7 +91,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.taxes.title',
             subtitleTranslationKey: 'workspace.moreFeatures.taxes.subtitle',
             isActive: policy?.tax?.trackingEnabled ?? false,
-            pendingAction: policy?.pendingFields?.isTaxTrackingEnabled && policy.pendingAction,
+            pendingAction: policy?.pendingFields?.tax && policy.pendingAction,
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyTaxes(policy?.id ?? '', isEnabled);
             },

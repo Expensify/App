@@ -2774,7 +2774,7 @@ function enablePolicyTaxes(policyID: string, isEnabled: boolean) {
                     trackingEnabled: isEnabled,
                 },
                 pendingFields: {
-                    isTaxTrackingEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    tax: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
@@ -2786,7 +2786,7 @@ function enablePolicyTaxes(policyID: string, isEnabled: boolean) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    isTaxTrackingEnabled: null,
+                    tax: null,
                 },
                 pendingAction: null,
             },
@@ -2801,7 +2801,7 @@ function enablePolicyTaxes(policyID: string, isEnabled: boolean) {
                     trackingEnabled: !isEnabled,
                 },
                 pendingFields: {
-                    isTaxTrackingEnabled: null,
+                    tax: null,
                 },
                 pendingAction: null,
             },
