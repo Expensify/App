@@ -1743,6 +1743,7 @@ export default {
             testTransactions: 'Test transactions',
             issueAndManageCards: 'Issue and manage cards',
             reconcileCards: 'Reconcile cards',
+            selected: ({selectedNumber}) => `${selectedNumber} selected`,
             settlementFrequency: 'Settlement frequency',
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             unavailable: 'Unavailable workspace',
@@ -1761,6 +1762,9 @@ export default {
             collect: 'Collect',
         },
         categories: {
+            deleteCategories: 'Delete categories',
+            disableCategories: 'Disable categories',
+            enableCategories: 'Enable categories',
             categoryName: 'Category name',
             requiresCategory: 'Members must categorize all spend',
             enableCategory: 'Enable category',
@@ -1808,7 +1812,6 @@ export default {
             makeMember: 'Make member',
             makeAdmin: 'Make admin',
             selectAll: 'Select all',
-            selected: ({selectedNumber}) => `${selectedNumber} selected`,
             error: {
                 genericAdd: 'There was a problem adding this workspace member.',
                 cannotRemove: 'You cannot remove yourself or the workspace owner.',

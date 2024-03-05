@@ -1,9 +1,11 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -21,10 +23,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 type PolicyForList = {
     value: string;
@@ -47,6 +51,7 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
     const theme = useTheme();
     const {translate} = useLocalize();
     const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
+    const dropdownButtonRef = useRef(null);
 
     const categoryList = useMemo<PolicyForList[]>(
         () =>
@@ -89,25 +94,69 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
         </View>
     );
 
-    const navigateToCategoriesSettings = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES_SETTINGS.getRoute(route.params.policyID));
-    };
-
     const navigateToCategorySettings = (category: PolicyForList) => {
         Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, category.text));
     };
 
-    const settingsButton = (
-        <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
-            <Button
-                medium
-                onPress={navigateToCategoriesSettings}
-                icon={Expensicons.Gear}
-                text={translate('common.settings')}
-                style={[isSmallScreenWidth && styles.w50]}
-            />
-        </View>
-    );
+    const selectedCategoriesArray = Object.keys(selectedCategories).filter((key) => selectedCategories[key]);
+
+    const renderButtons = useCallback(() => {
+        if (selectedCategoriesArray.length > 0) {
+            const isAllEnabled = selectedCategoriesArray.every((category) => policyCategories?.[category].enabled);
+
+            const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES>>> = [
+                {
+                    icon: Expensicons.Trashcan,
+                    text: translate('workspace.categories.deleteCategories'),
+                    value: CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES.DELETE,
+                    onSelected: () => null,
+                },
+            ];
+
+            if (isAllEnabled) {
+                options.push({
+                    icon: Expensicons.Trashcan,
+                    text: translate('workspace.categories.disableCategories'),
+                    value: CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES.DISABLE,
+                    onSelected: () => null,
+                });
+            } else {
+                options.push({
+                    icon: Expensicons.Trashcan,
+                    text: translate('workspace.categories.enableCategories'),
+                    value: CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES.ENABLE,
+                    onSelected: () => null,
+                });
+            }
+
+            return (
+                <ButtonWithDropdownMenu<DeepValueOf<typeof CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES>>
+                    buttonRef={dropdownButtonRef}
+                    onPress={() => null}
+                    shouldAlwaysShowDropdownMenu
+                    pressOnEnter
+                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                    customText={translate('workspace.common.selected', {selectedNumber: selectedCategoriesArray.length})}
+                    options={options}
+                />
+            );
+        }
+        const navigateToCategoriesSettings = () => {
+            Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES_SETTINGS.getRoute(route.params.policyID));
+        };
+
+        return (
+            <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
+                <Button
+                    medium
+                    onPress={navigateToCategoriesSettings}
+                    icon={Expensicons.Gear}
+                    text={translate('common.settings')}
+                    style={[isSmallScreenWidth && styles.w50]}
+                />
+            </View>
+        );
+    }, [isSmallScreenWidth, policyCategories, route.params.policyID, selectedCategoriesArray, styles.flexRow, styles.mb3, styles.w100, styles.w50, translate]);
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
@@ -123,9 +172,9 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                         title={translate('workspace.common.categories')}
                         shouldShowBackButton={isSmallScreenWidth}
                     >
-                        {!isSmallScreenWidth && settingsButton}
+                        {!isSmallScreenWidth && renderButtons()}
                     </HeaderWithBackButton>
-                    {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{settingsButton}</View>}
+                    {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{renderButtons()}</View>}
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
                     </View>

@@ -1767,6 +1767,7 @@ export default {
             testTransactions: 'Transacciones de prueba',
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
+            selected: ({selectedNumber}) => `${selectedNumber} seleccionados`,
             settlementFrequency: 'Frecuencia de liquidación',
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
             unavailable: 'Espacio de trabajo no disponible',
@@ -1785,6 +1786,9 @@ export default {
             collect: 'Recolectar',
         },
         categories: {
+            deleteCategories: 'Eliminar categorías',
+            disableCategories: 'Desactivar categorías',
+            enableCategories: 'Activar categorías',
             categoryName: 'Nombre de la categoría',
             requiresCategory: 'Los miembros deben categorizar todos los gastos',
             enableCategory: 'Activar categoría',
@@ -1832,7 +1836,6 @@ export default {
             makeMember: 'Hacer miembro',
             makeAdmin: 'Hacer administrador',
             selectAll: 'Seleccionar todo',
-            selected: ({selectedNumber}) => `${selectedNumber} seleccionados`,
             error: {
                 genericAdd: 'Ha ocurrido un problema al añadir el miembro al espacio de trabajo.',
                 cannotRemove: 'No puedes eliminarte ni a ti mismo ni al dueño del espacio de trabajo.',
