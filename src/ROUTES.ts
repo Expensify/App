@@ -159,6 +159,17 @@ const ROUTES = {
         getRoute: (source: string) => `settings/troubleshoot/console/share-log?source=${encodeURI(source)}` as const,
     },
 
+    SETTINGS_EXIT_SURVEY_REASON: 'settings/exit-survey/reason',
+    SETTINGS_EXIT_SURVEY_RESPONSE: {
+        route: 'settings/exit-survey/response',
+        getRoute: (reason?: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>, backTo?: string) =>
+            getUrlWithBackToParam(`settings/exit-survey/response${reason ? `?reason=${encodeURIComponent(reason)}` : ''}`, backTo),
+    },
+    SETTINGS_EXIT_SURVEY_CONFIRM: {
+        route: 'settings/exit-survey/confirm',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/exit-survey/confirm', backTo),
+    },
+
     KEYBOARD_SHORTCUTS: 'keyboard-shortcuts',
 
     NEW: 'new',
@@ -471,6 +482,22 @@ const ROUTES = {
         route: 'workspace/:policyID/settings/currency',
         getRoute: (policyID: string) => `workspace/${policyID}/settings/currency` as const,
     },
+    WORKSPACE_WORKFLOWS: {
+        route: 'workspace/:policyID/workflows',
+        getRoute: (policyID: string) => `workspace/${policyID}/workflows` as const,
+    },
+    WORKSPACE_WORKFLOWS_APPROVER: {
+        route: 'workspace/:policyID/settings/workflows/approver',
+        getRoute: (policyId: string) => `workspace/${policyId}/settings/workflows/approver` as const,
+    },
+    WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY: {
+        route: 'workspace/:policyID/settings/workflows/auto-reporting-frequency',
+        getRoute: (policyID: string) => `workspace/${policyID}/settings/workflows/auto-reporting-frequency` as const,
+    },
+    WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET: {
+        route: 'workspace/:policyID/settings/workflows/auto-reporting-frequency/monthly-offset',
+        getRoute: (policyID: string) => `workspace/${policyID}/settings/workflows/auto-reporting-frequency/monthly-offset` as const,
+    },
     WORKSPACE_CARD: {
         route: 'workspace/:policyID/card',
         getRoute: (policyID: string) => `workspace/${policyID}/card` as const,
@@ -510,6 +537,18 @@ const ROUTES = {
     WORKSPACE_CATEGORIES: {
         route: 'workspace/:policyID/categories',
         getRoute: (policyID: string) => `workspace/${policyID}/categories` as const,
+    },
+    WORKSPACE_CATEGORY_SETTINGS: {
+        route: 'workspace/:policyID/categories/:categoryName',
+        getRoute: (policyID: string, categoryName: string) => `workspace/${policyID}/categories/${encodeURI(categoryName)}` as const,
+    },
+    WORKSPACE_CATEGORIES_SETTINGS: {
+        route: 'workspace/:policyID/categories/settings',
+        getRoute: (policyID: string) => `workspace/${policyID}/categories/settings` as const,
+    },
+    WORKSPACE_TAGS: {
+        route: 'workspace/:policyID/tags',
+        getRoute: (policyID: string) => `workspace/${policyID}/tags` as const,
     },
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {
