@@ -137,7 +137,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
     const [isFallbackImageLoaded, setFallbackImageLoaded] = useState(false);
     const fallbackSize = useMemo(() => {
         if (!hasSiblingCarouselItems || !contentSize || isCanvasLoading) {
-            return DEFAULT_IMAGE_DIMENSION;
+            return undefined;
         }
 
         const {minScale} = getCanvasFitScale({canvasSize, contentSize});
@@ -217,7 +217,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                             >
                                 <Image
                                     source={{uri}}
-                                    style={contentSize ?? DEFAULT_IMAGE_DIMENSION}
+                                    style={[contentSize ?? DEFAULT_IMAGE_DIMENSION, !contentSize && {opacity: 0}]}
                                     isAuthTokenRequired={isAuthTokenRequired}
                                     onError={onError}
                                     onLoad={updateContentSize}
@@ -235,7 +235,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                             <Image
                                 source={{uri}}
                                 resizeMode="contain"
-                                style={fallbackSize}
+                                style={[fallbackSize ?? DEFAULT_IMAGE_DIMENSION, !contentSize && {opacity: 0}]}
                                 isAuthTokenRequired={isAuthTokenRequired}
                                 onLoad={updateContentSize}
                                 onLoadEnd={() => setFallbackImageLoaded(true)}
