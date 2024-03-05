@@ -446,17 +446,10 @@ function clearAvatarErrors() {
     });
 }
 
-/**
- * Get private personal details value
- */
-function getPrivatePersonalDetails(): OnyxEntry<PrivatePersonalDetails> {
-    return privatePersonalDetails;
-}
 
 export {
     clearAvatarErrors,
     deleteAvatar,
-    getPrivatePersonalDetails,
     openPersonalDetails,
     openPublicProfilePage,
     updateAddress,

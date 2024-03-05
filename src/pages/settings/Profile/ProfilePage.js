@@ -14,7 +14,6 @@ import Section from '@components/Section';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
-import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -104,7 +103,6 @@ function ProfilePage(props) {
     const contactMethodBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(props.loginList);
     const emojiCode = lodashGet(props, 'currentUserPersonalDetails.status.emojiCode', '');
     const {isSmallScreenWidth} = useWindowDimensions();
-    usePrivatePersonalDetails();
     const privateDetails = props.privatePersonalDetails || {};
     const legalName = `${privateDetails.legalFirstName || ''} ${privateDetails.legalLastName || ''}`.trim();
 

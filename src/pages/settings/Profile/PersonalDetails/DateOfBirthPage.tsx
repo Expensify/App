@@ -10,7 +10,6 @@ import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
-import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -31,7 +30,6 @@ type DateOfBirthPageProps = DateOfBirthPageOnyxProps;
 function DateOfBirthPage({privatePersonalDetails, isLoadingApp = true}: DateOfBirthPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    usePrivatePersonalDetails();
 
     /**
      * @returns An object containing the errors for each inputID

@@ -10,7 +10,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
-import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -38,7 +37,6 @@ const updateLegalName = (values: PrivatePersonalDetails) => {
 function LegalNamePage({privatePersonalDetails, isLoadingApp = true}: LegalNamePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    usePrivatePersonalDetails();
     const legalFirstName = privatePersonalDetails?.legalFirstName ?? '';
     const legalLastName = privatePersonalDetails?.legalLastName ?? '';
 
