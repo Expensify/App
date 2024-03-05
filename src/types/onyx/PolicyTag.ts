@@ -8,12 +8,6 @@ type PolicyTag = {
     /** "General Ledger code" that corresponds to this tag in an accounting system. Similar to an ID. */
     // eslint-disable-next-line @typescript-eslint/naming-convention
     'GL Code'?: string;
-
-    /** List of tags */
-    tags: PolicyTags;
-
-    /** Flag that determines if a tag is required */
-    required: boolean;
 };
 
 type PolicyTags = Record<string, PolicyTag>;
