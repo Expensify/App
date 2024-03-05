@@ -190,7 +190,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     textInputPlaceholder?: string;
 
     /** Hint for the text input */
-    textInputHint?: string | MaybePhraseKey;
+    textInputHint?: MaybePhraseKey;
 
     /** Value for the text input */
     textInputValue?: string;
