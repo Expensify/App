@@ -42,8 +42,7 @@ const useEmojiPickerMenu = () => {
 
     /**
      * Suggest emojis based on the search term
-     * @param {String} searchTerm
-     * @returns {[String, Array]}
+     * @param searchTerm
      */
     const suggestEmojis = useCallback(
         (searchTerm: string) => {
