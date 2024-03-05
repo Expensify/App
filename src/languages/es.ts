@@ -1829,6 +1829,7 @@ export default {
             genericFailureMessage: 'Se ha producido un error al intentar eliminar a un usuario del espacio de trabajo. Por favor, inténtalo más tarde.',
             removeMembersPrompt: '¿Estás seguro de que deseas eliminar a estos miembros?',
             removeMembersTitle: 'Eliminar miembros',
+            removeMemberButtonTitle: 'Quitar del espacio de trabajo',
             makeMember: 'Hacer miembro',
             makeAdmin: 'Hacer administrador',
             selectAll: 'Seleccionar todo',

@@ -1805,6 +1805,7 @@ export default {
             genericFailureMessage: 'An error occurred removing a user from the workspace, please try again.',
             removeMembersPrompt: 'Are you sure you want to remove these members?',
             removeMembersTitle: 'Remove members',
+            removeMemberButtonTitle: 'Remove from workspace',
             makeMember: 'Make member',
             makeAdmin: 'Make admin',
             selectAll: 'Select all',
