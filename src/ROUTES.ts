@@ -555,6 +555,8 @@ const ROUTES = {
     PROCESS_MONEY_REQUEST_HOLD: 'hold-request-educational',
 
     TRAVEL_MY_TRIPS: 'travel',
+
+    TRAVEL_HOME: 'travel-home',
 } as const;
 
 /**
