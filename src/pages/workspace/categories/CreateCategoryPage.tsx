@@ -89,6 +89,7 @@ function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) 
                             accessibilityLabel={translate('common.name')}
                             inputID={INPUT_IDS.CATEGORY_NAME}
                             role={CONST.ROLE.PRESENTATION}
+                            autoFocus
                         />
                     </FormProvider>
                 </ScreenWrapper>
