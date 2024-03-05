@@ -1682,6 +1682,12 @@ function getOptions(
         recentReportOptions = [...recentReportOptionsByAction];
     }
 
+    // if (recentReportOptionsByAction.length > 0) {
+    //     console.log("recentReportOptions["+actionTypeForParticipants+"], count["+recentReportOptions.length+"]");
+    // } else {
+    //     console.log("recentReportOptions[DEFAULT], count["+recentReportOptions.length+"]");
+    // }
+
     if (includePersonalDetails) {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         allPersonalDetailsOptions.forEach((personalDetailOption) => {
