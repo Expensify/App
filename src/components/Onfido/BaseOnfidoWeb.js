@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import * as OnfidoSDK from 'onfido-sdk-ui';
+import {Onfido as OnfidoSDK} from 'onfido-sdk-ui';
 import React, {forwardRef, useEffect} from 'react';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
@@ -90,13 +90,6 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             const errorType = lodashGet(error, 'type');
             Log.hmmm('Onfido error', {errorType, errorMessage});
             onError(errorMessage);
-        },
-        onUserExit: (userExitCode) => {
-            Log.hmmm('Onfido user exits the flow', {userExitCode});
-            onUserExit(userExitCode);
-        },
-        onModalRequestClose: () => {
-            Log.hmmm('Onfido user closed the modal');
         },
         language: {
             // We need to use ES_ES as locale key because the key `ES` is not a valid config key for Onfido
