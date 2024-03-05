@@ -139,7 +139,7 @@ type OptionRowLHNProps = {
     style?: StyleProp<TextStyle>;
 
     /** The item that should be rendered */
-    optionItem: OptionData | undefined;
+    optionItem?: OptionData;
 
     onLayout?: (event: LayoutChangeEvent) => void;
 };
