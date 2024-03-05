@@ -23,7 +23,6 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Message} from '@src/types/onyx/ReportAction';
 import SidebarLinks from './SidebarLinks';
 
 type ChatReportSelector = OnyxTypes.Report & {isUnreadWithMention: boolean};
@@ -32,7 +31,7 @@ type TransactionSelector = Pick<
     OnyxTypes.Transaction,
     'reportID' | 'iouRequestType' | 'comment' | 'receipt' | 'merchant' | 'modifiedMerchant' | 'created' | 'modifiedCreated' | 'amount' | 'modifiedAmount'
 >;
-type ReportActionsSelector = Array<Pick<OnyxTypes.ReportAction, 'reportActionID' | 'actionName' | 'errors' | 'message' | 'originalMessage'>>;
+type ReportActionsSelector = Record<string, Pick<OnyxTypes.ReportAction, 'reportActionID' | 'actionName' | 'errors' | 'message' | 'originalMessage'>>;
 
 type SidebarLinksDataOnyxProps = {
     /** List of reports */
@@ -105,7 +104,9 @@ function SidebarLinksData({
         return reportKeys.reduce((errorsMap, reportKey) => {
             const report = chatReports?.[reportKey] ?? null;
             const allReportsActions = allReportActions?.[reportKey.replace(ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.COLLECTION.REPORT_ACTIONS) ?? ''];
-            const errors = OptionsListUtils.getAllReportErrors(report, allReportsActions as OnyxTypes.ReportAction[], allTransactions as OnyxCollection<OnyxTypes.Transaction>) || {};
+
+            const errors =
+                OptionsListUtils.getAllReportErrors(report, allReportsActions as OnyxEntry<OnyxTypes.ReportActions>, allTransactions as OnyxCollection<OnyxTypes.Transaction>) || {};
             if (Object.keys(errors).length === 0) {
                 return errorsMap;
             }
@@ -255,6 +256,9 @@ const chatReportSelector = (report: OnyxEntry<OnyxTypes.Report>): ChatReportSele
         reportName: report.reportName,
         policyName: report.policyName,
         oldPolicyName: report.oldPolicyName,
+        isPolicyExpenseChat: report.isPolicyExpenseChat,
+        isOwnPolicyExpenseChat: report.isOwnPolicyExpenseChat,
+        isCancelledIOU: report.isCancelledIOU,
         // Other less obvious properites considered for sorting:
         ownerAccountID: report.ownerAccountID,
         currency: report.currency,
@@ -266,24 +270,29 @@ const chatReportSelector = (report: OnyxEntry<OnyxTypes.Report>): ChatReportSele
         isUnreadWithMention: ReportUtils.isUnreadWithMention(report),
     }) as ChatReportSelector;
 
-const reportActionsSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>) =>
+const reportActionsSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>): ReportActionsSelector =>
     (reportActions &&
-        Object.values(reportActions).map((reportAction) => {
-            const {reportActionID, actionName, errors, originalMessage} = reportAction;
-            const decision = reportAction.message?.[0].moderationDecision?.decision;
+        Object.fromEntries(
+            Object.entries(reportActions).map(([key, reportAction]) => {
+                const {reportActionID, actionName, errors, originalMessage} = reportAction;
+                const decision = reportAction.message?.[0].moderationDecision?.decision;
 
-            return {
-                reportActionID,
-                actionName,
-                errors,
-                message: [
+                return [
+                    key,
                     {
-                        moderationDecision: {decision},
-                    } as Message,
-                ],
-                originalMessage,
-            };
-        })) as ReportActionsSelector;
+                        reportActionID,
+                        actionName,
+                        errors,
+                        message: [
+                            {
+                                moderationDecision: {decision},
+                            },
+                        ],
+                        originalMessage,
+                    },
+                ];
+            }),
+        )) as ReportActionsSelector;
 
 const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
     (policy && {

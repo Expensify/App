@@ -481,11 +481,7 @@ function getSearchText(
 /**
  * Get an object of error messages keyed by microtime by combining all error objects related to the report.
  */
-function getAllReportErrors(
-    report: OnyxEntry<Report>,
-    reportActions: OnyxEntry<ReportActions> | ReportAction[] | undefined,
-    transactions: OnyxCollection<Transaction> = allTransactions,
-): OnyxCommon.Errors {
+function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions> | undefined, transactions: OnyxCollection<Transaction> = allTransactions): OnyxCommon.Errors {
     const reportErrors = report?.errors ?? {};
     const reportErrorFields = report?.errorFields ?? {};
     const reportActionErrors: OnyxCommon.ErrorFields = Object.values(reportActions ?? {}).reduce(
