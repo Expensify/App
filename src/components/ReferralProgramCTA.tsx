@@ -1,4 +1,5 @@
 import React from 'react';
+import {ViewStyle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -25,15 +26,18 @@ type ReferralProgramCTAProps = ReferralProgramCTAOnyxProps & {
         | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT
         | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY
         | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND;
+    style?: ViewStyle;
+    onDismiss?: () => void;
 };
 
-function ReferralProgramCTA({referralContentType, dismissedReferralBanners}: ReferralProgramCTAProps) {
+function ReferralProgramCTA({referralContentType, dismissedReferralBanners, style, onDismiss}: ReferralProgramCTAProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
 
     const handleDismissCallToAction = () => {
         User.dismissReferralBanner(referralContentType);
+        onDismiss?.();
     };
 
     if (!referralContentType || dismissedReferralBanners[referralContentType]) {
@@ -45,7 +49,7 @@ function ReferralProgramCTA({referralContentType, dismissedReferralBanners}: Ref
             onPress={() => {
                 Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(referralContentType, Navigation.getActiveRouteWithoutParams()));
             }}
-            style={[styles.w100, styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10, padding: 10}, styles.pl5]}
+            style={[styles.w100, styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10, padding: 10}, styles.pl5, style]}
             accessibilityLabel="referral"
             role={CONST.ACCESSIBILITY_ROLE.BUTTON}
         >
