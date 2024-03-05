@@ -7,15 +7,15 @@ import LottieAnimations from '@components/LottieAnimations';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import App from '@src/App';
+import colors from '@styles/theme/colors';
 
 const tripsFeatures: FeatureListItem[] = [
     {
-        icon: Illustrations.MoneyReceipts,
+        icon: Illustrations.PiggyBank,
         translationKey: 'travel.features.saveMoney',
     },
     {
-        icon: Illustrations.CreditCardsNew,
+        icon: Illustrations.Alert,
         translationKey: 'travel.features.alerts',
     },
 ];
@@ -36,6 +36,7 @@ function ManageTrips() {
                     ctaAccessibilityLabel={translate('travel.bookOrManage')}
                     onCtaPress={() => console.log('pressed')}
                     illustration={LottieAnimations.SaveTheWorld}
+                    illustrationBackgroundColor={colors.blue600}
                 />
             </View>
         </ScrollView>

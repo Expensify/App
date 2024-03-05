@@ -29,6 +29,7 @@ import TadaYellow from '@assets/images/product-illustrations/tada--yellow.svg';
 import TeleScope from '@assets/images/product-illustrations/telescope.svg';
 import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_legged_laptop_woman.svg';
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
+import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
 import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
 import BankArrow from '@assets/images/simple-illustrations/simple-illustration__bank-arrow.svg';
 import BigRocket from '@assets/images/simple-illustrations/simple-illustration__bigrocket.svg';
@@ -58,6 +59,7 @@ import MoneyIntoWallet from '@assets/images/simple-illustrations/simple-illustra
 import MoneyWings from '@assets/images/simple-illustrations/simple-illustration__moneywings.svg';
 import OpenSafe from '@assets/images/simple-illustrations/simple-illustration__opensafe.svg';
 import PalmTree from '@assets/images/simple-illustrations/simple-illustration__palmtree.svg';
+import PiggyBank from '@assets/images/simple-illustrations/simple-illustration__piggybank.svg';
 import Profile from '@assets/images/simple-illustrations/simple-illustration__profile.svg';
 import QRCode from '@assets/images/simple-illustrations/simple-illustration__qr-code.svg';
 import ReceiptEnvelope from '@assets/images/simple-illustrations/simple-illustration__receipt-envelope.svg';
@@ -146,4 +148,6 @@ export {
     Workflows,
     ThreeLeggedLaptopWoman,
     House,
+    PiggyBank,
+    Alert,
 };

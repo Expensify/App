@@ -4,6 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import type SCREENS from '@src/SCREENS';
@@ -13,6 +14,8 @@ type MyTripsPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof S
 
 function MyTripsPage({route}: MyTripsPageProps) {
     const {translate} = useLocalize();
+    const {isSmallScreenWidth} = useWindowDimensions();
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -22,9 +25,9 @@ function MyTripsPage({route}: MyTripsPageProps) {
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
-                icon={Illustrations.PalmTree}
+                icon={Illustrations.Luggage}
                 title={translate('travel.header')}
-                shouldShowBackButton={false}
+                shouldShowBackButton={isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <ManageTrips />
