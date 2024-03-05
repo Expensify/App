@@ -1772,6 +1772,7 @@ export default {
             genericFailureMessage: 'An error occurred while updating the category, please try again.',
             addCategory: 'Add category',
             categoryRequiredError: 'Category name is required.',
+            existingCategoryError: 'A category with this name already exists.',
             invalidCategoryName: 'Invalid category name.',
         },
         tags: {

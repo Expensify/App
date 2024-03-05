@@ -1,6 +1,8 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {Keyboard} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -20,10 +22,17 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceCategoryCreateForm';
+import type { PolicyCategories } from '@src/types/onyx';
 
-type CreateCategoryPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_CREATE>;
 
-function CreateCategoryPage({route}: CreateCategoryPageProps) {
+type WorkspaceCreateCategoryPageOnyxProps = {
+    /** All policy categories */
+    policyCategories: OnyxEntry<PolicyCategories>;
+};
+
+type CreateCategoryPageProps = WorkspaceCreateCategoryPageOnyxProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_CREATE>;
+
+function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -33,6 +42,8 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
 
         if (!ValidationUtils.isRequiredFulfilled(categoryName)) {
             errors.categoryName = 'workspace.categories.categoryRequiredError';
+        } else if (policyCategories?.[categoryName]) { 
+            errors.categoryName = 'workspace.categories.existingCategoryError';
         } else if (categoryName === CONST.INVALID_CATEGORY_NAME) {
             errors.categoryName = 'workspace.categories.invalidCategoryName';
         } else if ([...categoryName].length > CONST.CATEGORY_NAME_LIMIT) {
@@ -86,4 +97,8 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
 
 CreateCategoryPage.displayName = 'CreateCategoryPage';
 
-export default CreateCategoryPage;
+export default withOnyx<CreateCategoryPageProps, WorkspaceCreateCategoryPageOnyxProps>({
+    policyCategories: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route?.params?.policyID}`,
+    }
+})(CreateCategoryPage);;
