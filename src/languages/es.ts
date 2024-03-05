@@ -327,9 +327,10 @@ export default {
         sizeExceeded: 'El archivo adjunto supera el límite de 24 MB.',
         attachmentTooSmall: 'Archivo adjunto demasiado pequeño',
         sizeNotMet: 'El archivo adjunto debe ser más grande que 240 bytes.',
-        wrongFileType: 'El tipo de archivo adjunto es incorrecto',
-        notAllowedExtension: 'Este tipo de archivo no está permitido',
+        wrongFileType: 'Tipo de archivo inválido',
+        notAllowedExtension: 'Este tipo de archivo no es compatible',
         folderNotAllowedMessage: 'Subir una carpeta no está permitido. Prueba con otro archivo.',
+        protectedPDFNotSupported: 'Los PDFs con contraseña no son compatibles',
     },
     avatarCropModal: {
         title: 'Editar foto',
