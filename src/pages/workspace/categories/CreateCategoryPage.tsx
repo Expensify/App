@@ -22,8 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceCategoryCreateForm';
-import type { PolicyCategories } from '@src/types/onyx';
-
+import type {PolicyCategories} from '@src/types/onyx';
 
 type WorkspaceCreateCategoryPageOnyxProps = {
     /** All policy categories */
@@ -36,24 +35,27 @@ function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE_FORM>) => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE_FORM> = {};
-        const categoryName = values.categoryName.trim();
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE_FORM> = {};
+            const categoryName = values.categoryName.trim();
 
-        if (!ValidationUtils.isRequiredFulfilled(categoryName)) {
-            errors.categoryName = 'workspace.categories.categoryRequiredError';
-        } else if (policyCategories?.[categoryName]) { 
-            errors.categoryName = 'workspace.categories.existingCategoryError';
-        } else if (categoryName === CONST.INVALID_CATEGORY_NAME) {
-            errors.categoryName = 'workspace.categories.invalidCategoryName';
-        } else if ([...categoryName].length > CONST.CATEGORY_NAME_LIMIT) {
-            // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
-            // code units.
-            ErrorUtils.addErrorMessage(errors, 'categoryName', ['common.error.characterLimitExceedCounter', {length: [...categoryName].length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
-        }
+            if (!ValidationUtils.isRequiredFulfilled(categoryName)) {
+                errors.categoryName = 'workspace.categories.categoryRequiredError';
+            } else if (policyCategories?.[categoryName]) {
+                errors.categoryName = 'workspace.categories.existingCategoryError';
+            } else if (categoryName === CONST.INVALID_CATEGORY_NAME) {
+                errors.categoryName = 'workspace.categories.invalidCategoryName';
+            } else if ([...categoryName].length > CONST.CATEGORY_NAME_LIMIT) {
+                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
+                // code units.
+                ErrorUtils.addErrorMessage(errors, 'categoryName', ['common.error.characterLimitExceedCounter', {length: [...categoryName].length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
+            }
 
-        return errors;
-    }, [policyCategories]);
+            return errors;
+        },
+        [policyCategories],
+    );
 
     const createCategory = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE_FORM>) => {
         Policy.createPolicyCategory(route.params.policyID, values.categoryName.trim());
@@ -100,5 +102,5 @@ CreateCategoryPage.displayName = 'CreateCategoryPage';
 export default withOnyx<CreateCategoryPageProps, WorkspaceCreateCategoryPageOnyxProps>({
     policyCategories: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route?.params?.policyID}`,
-    }
-})(CreateCategoryPage);;
+    },
+})(CreateCategoryPage);
