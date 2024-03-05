@@ -134,7 +134,7 @@ beforeAll(() => {
     });
 });
 
-function scrollUpToRevealNewMessagesBadge(): void {
+function scrollUpToRevealNewMessagesBadge() {
     const hintText = Localize.translateLocal('sidebarScreen.listOfChatMessages');
     fireEvent.scroll(screen.getByLabelText(hintText), {
         nativeEvent: {

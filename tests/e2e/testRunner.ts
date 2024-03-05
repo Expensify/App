@@ -27,6 +27,8 @@ import * as Logger from './utils/logger';
 import sleep from './utils/sleep';
 import withFailTimeout from './utils/withFailTimeout';
 
+type Result = Record<string, number[]>;
+
 // VARIABLE CONFIGURATION
 const args = process.argv.slice(2);
 const getArg = (argName: string): string | undefined => {
@@ -38,7 +40,7 @@ const getArg = (argName: string): string | undefined => {
 };
 
 let config = defaultConfig;
-const setConfigPath = (configPathParam: string | undefined): void => {
+const setConfigPath = (configPathParam: string | undefined) => {
     let configPath = configPathParam;
     if (!configPath?.startsWith('.')) {
         configPath = `./${configPath}`;
@@ -85,7 +87,6 @@ const runTests = async (): Promise<void> => {
     const server = createServerInstance();
     await server.start();
 
-    type Result = Record<string, number[]>;
     // Create a dict in which we will store the run durations for all tests
     const results: Record<string, Result> = {};
 
@@ -182,7 +183,7 @@ const runTests = async (): Promise<void> => {
 
         // We run each test multiple time to average out the results
         for (let testIteration = 0; testIteration < config.RUNS; testIteration++) {
-            const onError = (e: Error): void => {
+            const onError = (e: Error) => {
                 errorCountRef.errorCount += 1;
                 if (testIteration === 0 || errorCountRef.errorCount === errorCountRef.allowedExceptions) {
                     Logger.error("There was an error running the test and we've reached the maximum number of allowed exceptions. Stopping the test run.");
