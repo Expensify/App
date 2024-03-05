@@ -132,7 +132,7 @@ const ONYXKEYS = {
     NVP_ACTIVE_POLICY_ID: 'nvp_expensify_activePolicyID',
 
     /** This NVP contains the referral banners the user dismissed */
-    NVP_DISMISSED_REFERRAL_BANNERS: 'dismissedReferralBanners',
+    NVP_DISMISSED_REFERRAL_BANNERS: 'nvp_dismissedReferralBanners',
 
     /** Does this user have push notifications enabled for this device? */
     PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
