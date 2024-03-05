@@ -18,7 +18,6 @@ type OnWillShowPicker = (callback?: CloseContextMenuCallback) => void;
 
 type OnModalHideValue = () => void;
 
-// TODO: Move this type to src/components/EmojiPicker/EmojiPicker.js once it is converted to TS
 type EmojiPickerRef = {
     showEmojiPicker: (
         onModalHideValue: OnModalHideValue,

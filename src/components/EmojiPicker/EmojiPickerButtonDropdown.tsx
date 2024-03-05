@@ -1,9 +1,11 @@
 import React, {useEffect, useRef} from 'react';
+import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
@@ -28,7 +30,8 @@ type EmojiPickerButtonDropdownProps = {
     style: StyleProp<ViewStyle>;
 };
 
-function EmojiPickerButtonDropdown({isDisabled, onModalHide, onInputChange, value, disabled, style}: EmojiPickerButtonDropdownProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function EmojiPickerButtonDropdown({isDisabled, onModalHide, onInputChange, value, disabled, style}: EmojiPickerButtonDropdownProps, forwardedRef: ForwardedRef<AnimatedTextInputRef>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
