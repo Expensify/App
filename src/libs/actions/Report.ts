@@ -48,7 +48,6 @@ import DateUtils from '@libs/DateUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import LocalNotification from '@libs/Notification/LocalNotification';
@@ -56,6 +55,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import getPolicyMemberAccountIDs from '@libs/PolicyMembersUtils';
 import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
+import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -178,27 +178,7 @@ const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 
 let reportIDDeeplinkedFromOldDot: string | undefined;
 Linking.getInitialURL().then((url) => {
-    const isWeb = ([CONST.PLATFORM.WEB] as unknown as string).includes(getPlatform());
-    const currentParams = new URLSearchParams(url ?? '');
-    const currentExitToRoute = currentParams.get('exitTo') ?? '';
-    const {reportID: currentReportID} = ReportUtils.parseReportRouteParams(currentExitToRoute);
-
-    if (!isWeb) {
-        reportIDDeeplinkedFromOldDot = currentReportID;
-
-        return;
-    }
-
-    const prevUrl = sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.INITIAL_URL);
-    const prevParams = new URLSearchParams(prevUrl ?? '');
-    const prevExitToRoute = prevParams.get('exitTo') ?? '';
-    const {reportID: prevReportID} = ReportUtils.parseReportRouteParams(prevExitToRoute);
-
-    reportIDDeeplinkedFromOldDot = currentReportID || prevReportID;
-
-    if (currentReportID && url) {
-        sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.INITIAL_URL, url);
-    }
+    reportIDDeeplinkedFromOldDot = processReportIDDeeplink(url ?? '');
 });
 
 let lastVisitedPath: string | undefined;
