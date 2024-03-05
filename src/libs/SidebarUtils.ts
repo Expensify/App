@@ -173,7 +173,7 @@ function sortArchivedReports(reports: Report[], isInDefaultMode: boolean) {
 /**
  * @returns An array of reportIDs sorted in the proper order
  */
-function getOrderedReportIDs(
+function getGroupedReports(
     currentReportId: string | null,
     allReports: Record<string, Report>,
     betas: Beta[],
@@ -183,7 +183,7 @@ function getOrderedReportIDs(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentPolicyID = '',
     policyMemberAccountIDs: number[] = [],
-): string[] {
+): Report[][] {
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInGSDMode;
     const allReportsDictValues = Object.values(allReports);
@@ -213,8 +213,7 @@ function getOrderedReportIDs(
 
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
-    const LHNReports = [...pinnedAndGBRReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report.reportID);
-    return LHNReports;
+    return [pinnedAndGBRReports, draftReports, nonArchivedReports, archivedReports];
 }
 
 /**
@@ -440,6 +439,6 @@ function getOptionData({
 
 export default {
     getOptionData,
-    getOrderedReportIDs,
+    getGroupedReports,
     sortDraftReports,
 };
