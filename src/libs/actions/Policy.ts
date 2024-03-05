@@ -2498,12 +2498,30 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
                 value: {
                     ...Object.keys(policyCategories).reduce<PolicyCategories>((acc, key) => {
                         if (categoryNamesToDelete.includes(key)) {
-                            return acc;
+                            acc[key] = {
+                                ...policyCategories[key],
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                                errors: null,
+                            };
                         }
 
-                        acc[key] = policyCategories[key];
                         return acc;
-                    }),
+                    }, {}),
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    ...Object.keys(policyCategories).reduce<PolicyCategories>((acc, key) => {
+                        if (!categoryNamesToDelete.includes(key)) {
+                            acc[key] = policyCategories[key];
+                        }
+
+                        return acc;
+                    }, {}),
                 },
             },
         ],
@@ -2512,7 +2530,17 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
-                    ...policyCategories,
+                    ...Object.keys(policyCategories).reduce<PolicyCategories>((acc, key) => {
+                        if (categoryNamesToDelete.includes(key)) {
+                            acc[key] = {
+                                ...policyCategories[key],
+                                pendingAction: null,
+                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.genericFailureMessage'),
+                            };
+                        }
+
+                        return acc;
+                    }, {}),
                 },
             },
         ],

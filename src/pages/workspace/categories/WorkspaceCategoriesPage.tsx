@@ -19,6 +19,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {deleteWorkspaceCategories, setWorkspaceCategoryEnabled} from '@libs/actions/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
@@ -102,30 +103,58 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
 
     const renderButtons = useCallback(() => {
         if (selectedCategoriesArray.length > 0) {
-            const isAllEnabled = selectedCategoriesArray.every((category) => policyCategories?.[category].enabled);
+            const isAllEnabled = selectedCategoriesArray.every((categoryName) => policyCategories?.[categoryName].enabled);
 
             const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES>>> = [
                 {
                     icon: Expensicons.Trashcan,
                     text: translate('workspace.categories.deleteCategories'),
                     value: CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES.DELETE,
-                    onSelected: () => null,
+                    onSelected: () => {
+                        setSelectedCategories({});
+                        deleteWorkspaceCategories(route.params.policyID, selectedCategoriesArray);
+                    },
                 },
             ];
 
             if (isAllEnabled) {
+                const categoriesToDisable = selectedCategoriesArray
+                    .filter((categoryName) => policyCategories?.[categoryName].enabled)
+                    .reduce<Record<string, {name: string; enabled: boolean}>>((acc, categoryName) => {
+                        acc[categoryName] = {
+                            name: categoryName,
+                            enabled: false,
+                        };
+                        return acc;
+                    }, {});
+
                 options.push({
                     icon: Expensicons.Trashcan,
                     text: translate('workspace.categories.disableCategories'),
                     value: CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES.DISABLE,
-                    onSelected: () => null,
+                    onSelected: () => {
+                        setSelectedCategories({});
+                        setWorkspaceCategoryEnabled(route.params.policyID, categoriesToDisable);
+                    },
                 });
             } else {
+                const categoriesToEnable = selectedCategoriesArray
+                    .filter((categoryName) => !policyCategories?.[categoryName].enabled)
+                    .reduce<Record<string, {name: string; enabled: boolean}>>((acc, categoryName) => {
+                        acc[categoryName] = {
+                            name: categoryName,
+                            enabled: true,
+                        };
+                        return acc;
+                    }, {});
                 options.push({
                     icon: Expensicons.Trashcan,
                     text: translate('workspace.categories.enableCategories'),
                     value: CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES.ENABLE,
-                    onSelected: () => null,
+                    onSelected: () => {
+                        setSelectedCategories({});
+                        setWorkspaceCategoryEnabled(route.params.policyID, categoriesToEnable);
+                    },
                 });
             }
 
