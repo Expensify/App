@@ -135,11 +135,15 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
     const accountMenuItemsData: Menu = useMemo(() => {
         const profileBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(loginList);
         const paymentCardList = fundList;
-
-        return {
+        const defaultMenu: Menu = {
             sectionStyle: styles.accountSettingsSectionContainer,
             sectionTranslationKey: 'initialSettingsPage.account',
             items: [
+                {
+                    translationKey: 'exitSurvey.goToExpensifyClassic',
+                    icon: Expensicons.ExpensifyLogoNew,
+                    routeName: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
+                },
                 {
                     translationKey: 'common.profile',
                     icon: Expensicons.Profile,
@@ -167,6 +171,25 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                 },
             ],
         };
+
+        if (NativeModules.HybridAppModule) {
+            const hybridAppMenuItems: MenuData[] = [
+                {
+                    translationKey: 'initialSettingsPage.returnToClassic' as const,
+                    icon: Expensicons.RotateLeft,
+                    shouldShowRightIcon: true,
+                    iconRight: Expensicons.NewWindow,
+                    action: () => {
+                        NativeModules.HybridAppModule.closeReactNativeApp();
+                    },
+                },
+                ...defaultMenu.items,
+            ].filter((item) => item.translationKey !== 'initialSettingsPage.signOut' && item.translationKey !== 'exitSurvey.goToExpensifyClassic');
+
+            return {sectionStyle: styles.accountSettingsSectionContainer, sectionTranslationKey: 'initialSettingsPage.general', items: hybridAppMenuItems};
+        }
+
+        return defaultMenu;
     }, [loginList, fundList, styles.accountSettingsSectionContainer, bankAccountList, userWallet?.errors, walletTerms?.errors]);
 
     /**
@@ -218,17 +241,13 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
      * @returns object with translationKey, style and items for the general section
      */
     const generalMenuItemsData: Menu = useMemo(() => {
+        const signOutTranslationKey = Session.isSupportAuthToken() && Session.hasStashedSession() ? 'initialSettingsPage.restoreStashed' : 'initialSettingsPage.signOut';
         const defaultMenu: Menu = {
             sectionStyle: {
                 ...styles.pt4,
             },
             sectionTranslationKey: 'initialSettingsPage.general',
             items: [
-                {
-                    translationKey: 'exitSurvey.goToExpensifyClassic',
-                    icon: Expensicons.ExpensifyLogoNew,
-                    routeName: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
-                },
                 {
                     translationKey: 'initialSettingsPage.help',
                     icon: Expensicons.QuestionMark,
@@ -245,7 +264,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                     routeName: ROUTES.SETTINGS_ABOUT,
                 },
                 {
-                    translationKey: 'initialSettingsPage.signOut',
+                    translationKey: signOutTranslationKey,
                     icon: Expensicons.Exit,
                     action: () => {
                         signOut(false);
@@ -254,25 +273,8 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
             ],
         };
 
-        if (NativeModules.HybridAppModule) {
-            const hybridAppMenuItems: MenuData[] = [
-                {
-                    translationKey: 'initialSettingsPage.returnToClassic' as const,
-                    icon: Expensicons.RotateLeft,
-                    shouldShowRightIcon: true,
-                    iconRight: Expensicons.NewWindow,
-                    action: () => {
-                        NativeModules.HybridAppModule.closeReactNativeApp();
-                    },
-                },
-                ...defaultMenu.items,
-            ].filter((item) => item.translationKey !== 'initialSettingsPage.signOut' && item.translationKey !== 'exitSurvey.goToExpensifyClassic');
-
-            return {sectionStyle: styles.accountSettingsSectionContainer, sectionTranslationKey: 'initialSettingsPage.general', items: hybridAppMenuItems};
-        }
-
         return defaultMenu;
-    }, [styles.pt4, styles.accountSettingsSectionContainer, signOut]);
+    }, [styles.pt4, signOut]);
 
     /**
      * Retuns JSX.Element with menu items
