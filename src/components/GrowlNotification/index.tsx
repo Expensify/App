@@ -19,7 +19,6 @@ const INACTIVE_POSITION_Y = -255;
 
 const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 function GrowlNotification(_: unknown, ref: ForwardedRef<GrowlRef>) {
     const translateY = useRef(new Animated.Value(INACTIVE_POSITION_Y)).current;
     const [bodyText, setBodyText] = useState('');
