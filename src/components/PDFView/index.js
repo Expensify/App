@@ -25,7 +25,6 @@ class PDFView extends Component {
             isKeyboardOpen: false,
         };
         this.toggleKeyboardOnSmallScreens = this.toggleKeyboardOnSmallScreens.bind(this);
-        this.getDevicePixelRatio = _.memoize(this.getDevicePixelRatio.bind(this));
         this.retrieveCanvasLimits();
     }
 
