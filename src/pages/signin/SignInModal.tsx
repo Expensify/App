@@ -23,7 +23,7 @@ function SignInModal({session}: SignInModalProps) {
     const StyleUtils = useStyleUtils();
 
     useEffect(() => {
-        const isAnonymousUser = session?.authTokenType === CONST.AUTH_TOKEN_TYPE.ANONYMOUS;
+        const isAnonymousUser = session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
         if (!isAnonymousUser) {
             // Signing in RHP is only for anonymous users
             Navigation.isNavigationReady().then(() => Navigation.dismissModal());

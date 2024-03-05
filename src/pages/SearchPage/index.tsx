@@ -1,3 +1,4 @@
+import {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -13,6 +14,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {MaybePhraseKey} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
+import {SearchNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -20,6 +22,7 @@ import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import SearchPageFooter from './SearchPageFooter';
 
@@ -34,7 +37,7 @@ type SearchPageOnyxProps = {
     isSearchingForReports: OnyxEntry<boolean>;
 };
 
-type SearchPageProps = SearchPageOnyxProps;
+type SearchPageProps = SearchPageOnyxProps & StackScreenProps<SearchNavigatorParamList, typeof SCREENS.SEARCH_ROOT>;
 
 type SearchPageSectionItem = {
     data: ReportUtils.OptionData[];
@@ -51,7 +54,7 @@ const setPerformanceTimersEnd = () => {
 
 const SearchPageFooterInstance = <SearchPageFooter />;
 
-function SearchPage({betas, reports, isSearchingForReports}: SearchPageProps) {
+function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchPageProps) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -148,6 +151,7 @@ function SearchPage({betas, reports, isSearchingForReports}: SearchPageProps) {
             testID={SearchPage.displayName}
             onEntryTransitionEnd={handleScreenTransitionEnd}
             shouldEnableMaxHeight
+            navigation={navigation}
         >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>

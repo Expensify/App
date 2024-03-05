@@ -82,7 +82,7 @@ function BaseListItem<TItem extends ListItem>({
                             role={CONST.ROLE.BUTTON}
                             disabled={isDisabled}
                             onPress={handleCheckboxPress}
-                            style={StyleUtils.getCheckboxPressableStyle()}
+                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle()]}
                         >
                             <View style={selectMultipleStyle}>
                                 {item.isSelected && (
