@@ -271,9 +271,10 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         () => (
             <View>
                 {!dismissedReferralBanners[referralContentType] && (
-                    <View style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.pb5]}>
-                        <ReferralProgramCTA referralContentType={referralContentType} />
-                    </View>
+                    <ReferralProgramCTA
+                        referralContentType={referralContentType}
+                        style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.mb5]}
+                    />
                 )}
 
                 {shouldShowSplitBillErrorMessage && (
