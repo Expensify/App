@@ -69,7 +69,7 @@ function useOptions({reports}: UseOptions) {
         );
 
         const headerMessage = OptionsListUtils.getHeaderMessage(
-            recentReports?.length + personalDetails?.length !== 0 || Boolean(currentUserOption),
+            (recentReports?.length || 0 + personalDetails?.length || 0) !== 0 || Boolean(currentUserOption),
             Boolean(userToInvite),
             debouncedSearchValue,
         );
@@ -134,7 +134,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
             shouldShow: recentReports?.length > 0,
             indexOffset,
         });
-        indexOffset += recentReports?.length;
+        indexOffset += recentReports?.length || 0;
 
         sectionsList.push({
             title: translate('common.contacts'),
@@ -142,7 +142,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
             shouldShow: personalDetails?.length > 0,
             indexOffset,
         });
-        indexOffset += personalDetails?.length;
+        indexOffset += personalDetails?.length || 0;
 
         if (userToInvite) {
             sectionsList.push({
