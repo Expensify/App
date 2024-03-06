@@ -1798,44 +1798,44 @@ export default {
         },
         moreFeatures: {
             spendSection: {
-                title: 'Gastar',
-                subtitle: 'Habilitar una funcionalidad opcional que lo ayude a escalar su equipo.',
+                title: 'Gasto',
+                subtitle: 'Habilita otras funcionalidades que ayudan a aumentar tu equipo.',
             },
             organizeSection: {
                 title: 'Organizar',
-                subtitle: 'Agrupar y analizar el gasto, registrar cada impuesto pagado.',
+                subtitle: 'Agrupa y analiza el gasto, registra cada impuesto pagado.',
             },
             integrateSection: {
                 title: 'Integrar',
-                subtitle: 'Conectar gastos de expensización a productos financieros populares.',
+                subtitle: 'Conecta Expensify a otros productos financieros populares.',
             },
             distanceRates: {
                 title: 'Tasas de distancia',
-                subtitle: 'Agregar, actualizar y hacer cumplir las tarifas.',
+                subtitle: 'Añade, actualiza y haz cumplir las tasas.',
             },
             workflows: {
                 title: 'Flujos de trabajo',
-                subtitle: 'Configure cómo se aprueba y paga el gasto.',
+                subtitle: 'Configura cómo se aprueba y paga los gastos.',
             },
             categories: {
                 title: 'Categorías',
-                subtitle: 'Rastrear y organizar el gasto.',
+                subtitle: 'Monitoriza y organiza los gastos.',
             },
             tags: {
                 title: 'Etiquetas',
-                subtitle: 'Agregue formas adicionales de clasificar el gasto.',
+                subtitle: 'Añade formas adicionales de clasificar los gastos.',
             },
             taxes: {
                 title: 'Impuestos',
-                subtitle: 'Documentar y reclamar impuestos elegibles.',
+                subtitle: 'Documenta y reclama los impuestos aplicables.',
             },
             reportFields: {
                 title: 'Campos de informes',
-                subtitle: 'Configurar campos personalizados para gastar.',
+                subtitle: 'Configura campos personalizados para los gastos.',
             },
             connections: {
                 title: 'Conexión',
-                subtitle: 'Sincronice su gráfico de cuentas y más.',
+                subtitle: 'Sincroniza tu plan de cuentas y otras opciones.',
             },
         },
         tags: {
