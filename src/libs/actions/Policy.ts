@@ -47,6 +47,7 @@ import type {
     PersonalDetailsList,
     Policy,
     PolicyCategories,
+    PolicyCategory,
     PolicyMember,
     PolicyTagList,
     RecentlyUsedCategories,
@@ -2495,19 +2496,10 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: {
-                    ...Object.keys(policyCategories).reduce<PolicyCategories>((acc, key) => {
-                        if (categoryNamesToDelete.includes(key)) {
-                            acc[key] = {
-                                ...policyCategories[key],
-                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                                errors: null,
-                            };
-                        }
-
-                        return acc;
-                    }, {}),
-                },
+                value: categoryNamesToDelete.reduce<Record<string, Partial<PolicyCategory>>>((acc, categoryName) => {
+                    acc[categoryName] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+                    return acc;
+                }, {}),
             },
         ],
         successData: [
@@ -2548,7 +2540,7 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
 
     const parameters = {
         policyID,
-        categories: categoryNamesToDelete,
+        categories: JSON.stringify(categoryNamesToDelete),
     };
 
     API.write('DeleteWorkspaceCategories', parameters, onyxData);
