@@ -487,7 +487,7 @@ const isChannelMuted = (reportId: string) =>
     });
 
 function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
-    const reportActionsOnly = pushJSON.filter((update) => update.key.includes('reportActions_'));
+    const reportActionsOnly = pushJSON.filter((update) => update.key?.includes('reportActions_'));
     // "reportActions_5134363522480668" -> "5134363522480668"
     const reportIDs = reportActionsOnly.map((value) => value.key.split('_')[1]);
 
