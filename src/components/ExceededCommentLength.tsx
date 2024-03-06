@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {memo} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -20,4 +20,4 @@ function ExceededCommentLength() {
 
 ExceededCommentLength.displayName = 'ExceededCommentLength';
 
-export default ExceededCommentLength;
+export default memo(ExceededCommentLength);

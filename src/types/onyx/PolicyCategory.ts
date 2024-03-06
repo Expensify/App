@@ -1,4 +1,6 @@
-type PolicyCategory = {
+import type * as OnyxCommon from './OnyxCommon';
+
+type PolicyCategory = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Name of a category */
     name: string;
 
@@ -17,7 +19,10 @@ type PolicyCategory = {
 
     /** The external accounting service that this category comes from */
     origin: string;
-};
+
+    /** A list of errors keyed by microtime */
+    errors?: OnyxCommon.Errors | null;
+}>;
 
 type PolicyCategories = Record<string, PolicyCategory>;
 

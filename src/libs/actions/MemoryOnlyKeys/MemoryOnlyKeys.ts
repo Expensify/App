@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxKey} from 'react-native-onyx/lib/types';
+import type {OnyxKey} from 'react-native-onyx';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
 

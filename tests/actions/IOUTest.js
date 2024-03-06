@@ -23,6 +23,7 @@ import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 jest.mock('../../src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     dismissModal: jest.fn(),
+    dismissModalWithReport: jest.fn(),
     goBack: jest.fn(),
 }));
 
@@ -57,6 +58,8 @@ describe('actions/IOU', () => {
             let createdAction;
             let iouAction;
             let transactionID;
+            let transactionThread;
+            let transactionThreadCreatedAction;
             fetch.pause();
             IOU.requestMoney({}, amount, CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
             return waitForBatchedUpdates()
@@ -69,14 +72,16 @@ describe('actions/IOU', () => {
                                 callback: (allReports) => {
                                     Onyx.disconnect(connectionID);
 
-                                    // A chat report and an iou report should be created
+                                    // A chat report, a transaction thread, and an iou report should be created
                                     const chatReports = _.filter(allReports, (report) => report.type === CONST.REPORT.TYPE.CHAT);
                                     const iouReports = _.filter(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
-                                    expect(_.size(chatReports)).toBe(1);
+                                    expect(_.size(chatReports)).toBe(2);
                                     expect(_.size(iouReports)).toBe(1);
                                     const chatReport = chatReports[0];
+                                    const transactionThreadReport = chatReports[1];
                                     const iouReport = iouReports[0];
                                     iouReportID = iouReport.reportID;
+                                    transactionThread = transactionThreadReport;
 
                                     expect(iouReport.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
@@ -126,6 +131,27 @@ describe('actions/IOU', () => {
                                     expect(createdAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                     expect(iouAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
+                                waitForCollectionCallback: true,
+                                callback: (reportActionsForTransactionThread) => {
+                                    Onyx.disconnect(connectionID);
+
+                                    // The transaction thread should have a CREATED action
+                                    expect(_.size(reportActionsForTransactionThread)).toBe(1);
+                                    const createdActions = _.filter(reportActionsForTransactionThread, (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+                                    expect(_.size(createdActions)).toBe(1);
+                                    transactionThreadCreatedAction = createdActions[0];
+
+                                    expect(transactionThreadCreatedAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                     resolve();
                                 },
                             });
@@ -236,8 +262,8 @@ describe('actions/IOU', () => {
                                 callback: (allReports) => {
                                     Onyx.disconnect(connectionID);
 
-                                    // The same chat report should be reused, and an IOU report should be created
-                                    expect(_.size(allReports)).toBe(2);
+                                    // The same chat report should be reused, a transaction thread and an IOU report should be created
+                                    expect(_.size(allReports)).toBe(3);
                                     expect(_.find(allReports, (report) => report.type === CONST.REPORT.TYPE.CHAT).reportID).toBe(chatReport.reportID);
                                     chatReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.CHAT);
                                     const iouReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
@@ -430,7 +456,7 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connectionID);
 
                                     // No new reports should be created
-                                    expect(_.size(allReports)).toBe(2);
+                                    expect(_.size(allReports)).toBe(3);
                                     expect(_.find(allReports, (report) => report.reportID === chatReportID)).toBeTruthy();
                                     expect(_.find(allReports, (report) => report.reportID === iouReportID)).toBeTruthy();
 
@@ -549,6 +575,8 @@ describe('actions/IOU', () => {
             let createdAction;
             let iouAction;
             let transactionID;
+            let transactionThreadReport;
+            let transactionThreadAction;
             fetch.pause();
             IOU.requestMoney({}, amount, CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
             return (
@@ -562,13 +590,15 @@ describe('actions/IOU', () => {
                                     callback: (allReports) => {
                                         Onyx.disconnect(connectionID);
 
-                                        // A chat report and an iou report should be created
+                                        // A chat report, transaction thread and an iou report should be created
                                         const chatReports = _.filter(allReports, (report) => report.type === CONST.REPORT.TYPE.CHAT);
                                         const iouReports = _.filter(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
-                                        expect(_.size(chatReports)).toBe(1);
+                                        expect(_.size(chatReports)).toBe(2);
                                         expect(_.size(iouReports)).toBe(1);
                                         const chatReport = chatReports[0];
                                         chatReportID = chatReport.reportID;
+                                        transactionThreadReport = chatReports[1];
+
                                         const iouReport = iouReports[0];
                                         iouReportID = iouReport.reportID;
 
@@ -677,13 +707,32 @@ describe('actions/IOU', () => {
                         () =>
                             new Promise((resolve) => {
                                 const connectionID = Onyx.connect({
+                                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}`,
+                                    waitForCollectionCallback: true,
+                                    callback: (reportActionsForTransactionThread) => {
+                                        Onyx.disconnect(connectionID);
+                                        expect(_.size(reportActionsForTransactionThread)).toBe(3);
+                                        transactionThreadAction = _.find(
+                                            reportActionsForTransactionThread[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.reportID}`],
+                                            (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED,
+                                        );
+                                        expect(transactionThreadAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                                        resolve();
+                                    },
+                                });
+                            }),
+                    )
+                    .then(
+                        () =>
+                            new Promise((resolve) => {
+                                const connectionID = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                                     waitForCollectionCallback: true,
                                     callback: (transaction) => {
                                         Onyx.disconnect(connectionID);
                                         expect(transaction.pendingAction).toBeFalsy();
                                         expect(transaction.errors).toBeTruthy();
-                                        expect(_.values(transaction.errors)[0]).toBe('iou.error.genericCreateFailureMessage');
+                                        expect(_.values(transaction.errors)[0]).toEqual(expect.arrayContaining(['iou.error.genericCreateFailureMessage', {isTranslated: false}]));
                                         resolve();
                                     },
                                 });
@@ -695,6 +744,7 @@ describe('actions/IOU', () => {
                         () =>
                             new Promise((resolve) => {
                                 ReportActions.clearReportActionErrors(iouReportID, iouAction);
+                                ReportActions.clearReportActionErrors(transactionThreadReport.reportID, transactionThreadAction);
                                 resolve();
                             }),
                     )
@@ -737,6 +787,7 @@ describe('actions/IOU', () => {
                         () =>
                             new Promise((resolve) => {
                                 Report.deleteReport(chatReportID);
+                                Report.deleteReport(transactionThreadReport.reportID);
                                 resolve();
                             }),
                     )
@@ -937,8 +988,8 @@ describe('actions/IOU', () => {
                                 callback: (allReports) => {
                                     Onyx.disconnect(connectionID);
 
-                                    // There should now be 7 reports
-                                    expect(_.size(allReports)).toBe(7);
+                                    // There should now be 10 reports
+                                    expect(_.size(allReports)).toBe(10);
 
                                     // 1. The chat report with Rory + Carlos
                                     carlosChatReport = _.find(allReports, (report) => report.reportID === carlosChatReport.reportID);
@@ -1005,8 +1056,8 @@ describe('actions/IOU', () => {
                                 callback: (allReportActions) => {
                                     Onyx.disconnect(connectionID);
 
-                                    // There should be reportActions on all 4 chat reports + 3 IOU reports in each 1:1 chat
-                                    expect(_.size(allReportActions)).toBe(7);
+                                    // There should be reportActions on all 7 chat reports + 3 IOU reports in each 1:1 chat
+                                    expect(_.size(allReportActions)).toBe(10);
 
                                     const carlosReportActions = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${carlosChatReport.iouReportID}`];
                                     const julesReportActions = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${julesChatReport.iouReportID}`];
@@ -1219,9 +1270,10 @@ describe('actions/IOU', () => {
                                 callback: (allReports) => {
                                     Onyx.disconnect(connectionID);
 
-                                    expect(_.size(allReports)).toBe(2);
+                                    expect(_.size(allReports)).toBe(3);
 
-                                    chatReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.CHAT);
+                                    const chatReports = _.filter(allReports, (report) => report.type === CONST.REPORT.TYPE.CHAT);
+                                    chatReport = chatReports[0];
                                     expect(chatReport).toBeTruthy();
                                     expect(chatReport).toHaveProperty('reportID');
                                     expect(chatReport).toHaveProperty('iouReportID');
@@ -1237,9 +1289,8 @@ describe('actions/IOU', () => {
                                     expect(chatReport.pendingFields).toBeFalsy();
                                     expect(iouReport.pendingFields).toBeFalsy();
 
-                                    // expect(iouReport.status).toBe(CONST.REPORT.STATUS.SUBMITTED);
-                                    // expect(iouReport.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
-                                    // expect(iouReport.state).toBe(CONST.REPORT.STATE.SUBMITTED);
+                                    // expect(iouReport.status).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+                                    // expect(iouReport.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
 
                                     resolve();
                                 },
@@ -1299,16 +1350,15 @@ describe('actions/IOU', () => {
                                 callback: (allReports) => {
                                     Onyx.disconnect(connectionID);
 
-                                    expect(_.size(allReports)).toBe(2);
+                                    expect(_.size(allReports)).toBe(3);
 
                                     chatReport = _.find(allReports, (r) => r.type === CONST.REPORT.TYPE.CHAT);
                                     iouReport = _.find(allReports, (r) => r.type === CONST.REPORT.TYPE.IOU);
 
                                     expect(chatReport.iouReportID).toBeFalsy();
 
-                                    // expect(iouReport.status).toBe(CONST.REPORT.STATUS.REIMBURSED);
-                                    // expect(iouReport.state).toBe(CONST.REPORT.STATE.MANUALREIMBURSED);
-                                    // expect(iouReport.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+                                    // expect(iouReport.status).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+                                    // expect(iouReport.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
 
                                     resolve();
                                 },
@@ -1349,16 +1399,15 @@ describe('actions/IOU', () => {
                                 callback: (allReports) => {
                                     Onyx.disconnect(connectionID);
 
-                                    expect(_.size(allReports)).toBe(2);
+                                    expect(_.size(allReports)).toBe(3);
 
                                     chatReport = _.find(allReports, (r) => r.type === CONST.REPORT.TYPE.CHAT);
                                     iouReport = _.find(allReports, (r) => r.type === CONST.REPORT.TYPE.IOU);
 
                                     expect(chatReport.iouReportID).toBeFalsy();
 
-                                    // expect(iouReport.status).toBe(CONST.REPORT.STATUS.REIMBURSED);
-                                    // expect(iouReport.state).toBe(CONST.REPORT.STATE.MANUALREIMBURSED);
-                                    // expect(iouReport.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+                                    // expect(iouReport.status).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+                                    // expect(iouReport.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
 
                                     resolve();
                                 },
@@ -1631,7 +1680,7 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connectionID);
                                     const updatedAction = _.find(allActions, (reportAction) => !_.isEmpty(reportAction));
                                     expect(updatedAction.actionName).toEqual('MODIFIEDEXPENSE');
-                                    expect(_.values(updatedAction.errors)).toEqual(expect.arrayContaining(['iou.error.genericEditFailureMessage']));
+                                    expect(_.values(updatedAction.errors)).toEqual(expect.arrayContaining([['iou.error.genericEditFailureMessage', {isTranslated: false}]]));
                                     resolve();
                                 },
                             });
@@ -1744,7 +1793,7 @@ describe('actions/IOU', () => {
                                                     }),
                                                 ]),
                                                 originalMessage: expect.objectContaining({
-                                                    amount: -amount,
+                                                    amount,
                                                     paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
                                                     type: 'pay',
                                                 }),
@@ -1770,9 +1819,8 @@ describe('actions/IOU', () => {
                                         expect.objectContaining({
                                             lastMessageHtml: `paid $${amount / 100}.00 with Expensify`,
                                             lastMessageText: `paid $${amount / 100}.00 with Expensify`,
-                                            state: CONST.REPORT.STATE.SUBMITTED,
-                                            statusNum: CONST.REPORT.STATUS.REIMBURSED,
-                                            stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
+                                            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                                            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                                         }),
                                     );
                                     expect(updatedChatReport).toEqual(
@@ -1846,7 +1894,7 @@ describe('actions/IOU', () => {
                                 callback: (allActions) => {
                                     Onyx.disconnect(connectionID);
                                     const erroredAction = _.find(_.values(allActions), (action) => !_.isEmpty(action.errors));
-                                    expect(_.values(erroredAction.errors)).toEqual(expect.arrayContaining(['iou.error.other']));
+                                    expect(_.values(erroredAction.errors)).toEqual(expect.arrayContaining([['iou.error.other', {isTranslated: false}]]));
                                     resolve();
                                 },
                             });
@@ -1906,8 +1954,8 @@ describe('actions/IOU', () => {
                 });
             });
 
-            // Then we should have exactly 2 reports
-            expect(_.size(allReports)).toBe(2);
+            // Then we should have exactly 3 reports
+            expect(_.size(allReports)).toBe(3);
 
             // Then one of them should be a chat report with relevant properties
             chatReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.CHAT);

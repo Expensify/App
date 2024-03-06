@@ -28,20 +28,18 @@ function BaseSidebarScreen(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}]}
+            style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}, styles.pb0]}
             testID={BaseSidebarScreen.displayName}
+            includePaddingTop={false}
         >
             {({insets}) => (
-                <>
-                    <View style={[styles.flex1]}>
-                        <SidebarLinksData
-                            onLinkClick={startTimer}
-                            insets={insets}
-                            onLayout={props.onLayout}
-                        />
-                    </View>
-                    {props.children}
-                </>
+                <View style={[styles.flex1]}>
+                    <SidebarLinksData
+                        onLinkClick={startTimer}
+                        insets={insets}
+                        onLayout={props.onLayout}
+                    />
+                </View>
             )}
         </ScreenWrapper>
     );

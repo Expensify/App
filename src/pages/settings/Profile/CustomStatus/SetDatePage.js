@@ -15,6 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/SettingsStatusClearDateForm';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -61,7 +62,7 @@ function SetDatePage({translate, customStatus}) {
             >
                 <InputWrapper
                     InputComponent={DatePicker}
-                    inputID="dateTime"
+                    inputID={INPUT_IDS.DATE_TIME}
                     label={translate('statusPage.date')}
                     defaultValue={DateUtils.extractDate(customClearAfter)}
                     minDate={new Date()}

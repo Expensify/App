@@ -10,6 +10,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useInitialDimensions from '@hooks/useInitialWindowDimensions';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
+import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
@@ -24,7 +25,7 @@ import SafeAreaConsumer from './SafeAreaConsumer';
 import TestToolsModal from './TestToolsModal';
 
 type ChildrenProps = {
-    insets?: EdgeInsets;
+    insets: EdgeInsets;
     safeAreaPaddingBottomStyle?: {
         paddingBottom?: DimensionValue;
     };
@@ -79,6 +80,12 @@ type ScreenWrapperProps = {
     /** Whether to show offline indicator */
     shouldShowOfflineIndicator?: boolean;
 
+    /** Whether to avoid scroll on virtual viewport */
+    shouldAvoidScrollOnVirtualViewport?: boolean;
+
+    /** Whether to use cached virtual viewport height  */
+    shouldUseCachedViewportHeight?: boolean;
+
     /**
      * The navigation prop is passed by the navigator. It is used to trigger the onEntryTransitionEnd callback
      * when the screen transition ends.
@@ -86,6 +93,9 @@ type ScreenWrapperProps = {
      * This is required because transitionEnd event doesn't trigger in the testing environment.
      */
     navigation?: StackNavigationProp<RootStackParamList>;
+
+    /** Whether to show offline indicator on wide screens */
+    shouldShowOfflineIndicatorInWideScreen?: boolean;
 };
 
 function ScreenWrapper(
@@ -106,6 +116,9 @@ function ScreenWrapper(
         onEntryTransitionEnd,
         testID,
         navigation: navigationProp,
+        shouldAvoidScrollOnVirtualViewport = true,
+        shouldShowOfflineIndicatorInWideScreen = false,
+        shouldUseCachedViewportHeight = false,
     }: ScreenWrapperProps,
     ref: ForwardedRef<View>,
 ) {
@@ -118,7 +131,7 @@ function ScreenWrapper(
      */
     const navigationFallback = useNavigation<StackNavigationProp<RootStackParamList>>();
     const navigation = navigationProp ?? navigationFallback;
-    const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
+    const {windowHeight, isSmallScreenWidth} = useWindowDimensions(shouldUseCachedViewportHeight);
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
     const keyboardState = useKeyboardState();
@@ -188,9 +201,21 @@ function ScreenWrapper(
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const isAvoidingViewportScroll = useTackInputFocus(shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && Browser.isMobileSafari());
+
     return (
         <SafeAreaConsumer>
-            {({insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle}) => {
+            {({
+                insets = {
+                    top: 0,
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                },
+                paddingTop,
+                paddingBottom,
+                safeAreaPaddingBottomStyle,
+            }) => {
                 const paddingStyle: StyleProp<ViewStyle> = {};
 
                 if (includePaddingTop) {
@@ -216,12 +241,12 @@ function ScreenWrapper(
                             {...keyboardDissmissPanResponder.panHandlers}
                         >
                             <KeyboardAvoidingView
-                                style={[styles.w100, styles.h100, {maxHeight}]}
+                                style={[styles.w100, styles.h100, {maxHeight}, isAvoidingViewportScroll ? [styles.overflowAuto, styles.overscrollBehaviorContain] : {}]}
                                 behavior={keyboardAvoidingViewBehavior}
                                 enabled={shouldEnableKeyboardAvoidingView}
                             >
                                 <PickerAvoidingView
-                                    style={styles.flex1}
+                                    style={isAvoidingViewportScroll ? [styles.h100, {marginTop: 1}] : styles.flex1}
                                     enabled={shouldEnablePickerAvoiding}
                                 >
                                     <HeaderGap styles={headerGapStyles} />
@@ -238,6 +263,12 @@ function ScreenWrapper(
                                             : children
                                     }
                                     {isSmallScreenWidth && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
+                                    {!isSmallScreenWidth && shouldShowOfflineIndicatorInWideScreen && (
+                                        <OfflineIndicator
+                                            containerStyles={[]}
+                                            style={[styles.pl5, styles.offlineIndicatorRow, offlineIndicatorStyle]}
+                                        />
+                                    )}
                                 </PickerAvoidingView>
                             </KeyboardAvoidingView>
                         </View>

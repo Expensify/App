@@ -1,7 +1,7 @@
 home:
   href: home
   title: Welcome to ExpensifyHelp!
-  description: Find answers by using the search bar in the left-hand menu or by clicking the version of Expensify you're using to access the relevant resources.
+  description: Find answers using the search bar or click on the version of Expensify you're using to access the relevant resources.
 
 platforms:
   - href: expensify-classic
@@ -19,8 +19,8 @@ platforms:
         icon: /assets/images/accounting.svg
         description: From setting up your account to ensuring you get the most out of Expensify’s suite of features, click here to get started on streamlining your expense management journey.
 
-      - href: account-settings
-        title: Account Settings
+      - href: settings
+        title: Settings
         icon: /assets/images/gears.svg
         description: Discover how to personalize your profile, add secondary logins, and grant delegated access to employees with our comprehensive guide on Account Settings.
 
@@ -118,7 +118,3 @@ platforms:
         icon: /assets/images/money-into-wallet.svg
         description: Whether you submit an expense report or an invoice, find out here how to ensure a smooth and timely payback process every time.
 
-      - href: workspace-and-domain-settings
-        title: Workspace & Domain Settings
-        icon: /assets/images/shield.svg
-        description: Discover how to set up and manage your workspace, define user permissions, and implement domain-level rules.

@@ -1,77 +1,108 @@
-import type {NavigationState, PartialState, RouterConfigOptions, StackNavigationState} from '@react-navigation/native';
-import {StackRouter} from '@react-navigation/native';
+import type {RouterConfigOptions, StackNavigationState} from '@react-navigation/native';
+import {getPathFromState, StackRouter} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
+import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
+import linkingConfig from '@libs/Navigation/linkingConfig';
+import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
+import type {NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type {ResponsiveStackNavigatorRouterOptions} from './types';
 
-type State = NavigationState | PartialState<NavigationState>;
+function insertRootRoute(state: State<RootStackParamList>, routeToInsert: NavigationPartialRoute) {
+    const nonModalRoutes = state.routes.filter((route) => route.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR && route.name !== NAVIGATORS.LEFT_MODAL_NAVIGATOR);
+    const modalRoutes = state.routes.filter((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || route.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR);
 
-const isAtLeastOneCentralPaneNavigatorInState = (state: State): boolean => !!state.routes.find((route) => route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR);
+    // It's safe to modify this state before returning in getRehydratedState.
 
-const getTopMostReportIDFromRHP = (state: State): string => {
-    if (!state) {
-        return '';
+    // @ts-expect-error Updating read only property
+    // noinspection JSConstantReassignment
+    state.routes = [...nonModalRoutes, routeToInsert, ...modalRoutes]; // eslint-disable-line
+
+    // @ts-expect-error Updating read only property
+    // noinspection JSConstantReassignment
+    state.index = state.routes.length - 1; // eslint-disable-line
+
+    // @ts-expect-error Updating read only property
+    // noinspection JSConstantReassignment
+    state.stale = true; // eslint-disable-line
+}
+
+function compareAndAdaptState(state: StackNavigationState<RootStackParamList>) {
+    // If the state of the last path is not defined the getPathFromState won't work correctly.
+    if (!state?.routes.at(-1)?.state) {
+        return;
     }
 
-    const topmostRightPane = state.routes.filter((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR).at(-1);
+    // We need to be sure that the bottom tab state is defined.
+    const topmostBottomTabRoute = getTopmostBottomTabRoute(state);
+    const isNarrowLayout = getIsNarrowLayout();
 
-    if (topmostRightPane?.state) {
-        return getTopMostReportIDFromRHP(topmostRightPane.state);
+    // This solutions is heuristics and will work for our cases. We may need to improve it in the future if we will have more cases to handle.
+    if (topmostBottomTabRoute && !isNarrowLayout) {
+        const fullScreenRoute = state.routes.find((route) => route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR);
+
+        // If there is fullScreenRoute we don't need to add anything.
+        if (fullScreenRoute) {
+            return;
+        }
+
+        // We will generate a template state and compare the current state with it.
+        // If there is a difference in the screens that should be visible under the overlay, we will add the screen from templateState to the current state.
+        const pathFromCurrentState = getPathFromState(state, linkingConfig.config);
+        const {adaptedState: templateState} = getAdaptedStateFromPath(pathFromCurrentState, linkingConfig.config);
+
+        if (!templateState) {
+            return;
+        }
+
+        const templateFullScreenRoute = templateState.routes.find((route) => route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR);
+
+        // If templateFullScreenRoute is defined, and full screen route is not in the state, we need to add it.
+        if (templateFullScreenRoute) {
+            insertRootRoute(state, templateFullScreenRoute);
+            return;
+        }
+
+        const topmostCentralPaneRoute = state.routes.filter((route) => route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR).at(-1);
+        const templateCentralPaneRoute = templateState.routes.find((route) => route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR);
+
+        const topmostCentralPaneRouteExtracted = getTopmostCentralPaneRoute(state);
+        const templateCentralPaneRouteExtracted = getTopmostCentralPaneRoute(templateState as State<RootStackParamList>);
+
+        // If there is no templateCentralPaneRoute, we don't have anything to add.
+        if (!templateCentralPaneRoute) {
+            return;
+        }
+
+        // If there is no topmostCentralPaneRoute in the state and template state has one, we need to add it.
+        if (!topmostCentralPaneRoute) {
+            insertRootRoute(state, templateCentralPaneRoute);
+            return;
+        }
+
+        // If there is central pane route in state and template state has one, we need to check if they are the same.
+        if (topmostCentralPaneRouteExtracted && templateCentralPaneRouteExtracted && topmostCentralPaneRouteExtracted.name !== templateCentralPaneRouteExtracted.name) {
+            // Not every RHP screen has matching central pane defined. In that case we use the REPORT screen as default for initial screen.
+            // But we don't want to override the central pane for those screens as they may be opened with different central panes under the overlay.
+            // e.g. i-know-a-teacher may be opened with different central panes under the overlay
+            if (templateCentralPaneRouteExtracted.name === SCREENS.REPORT) {
+                return;
+            }
+            insertRootRoute(state, templateCentralPaneRoute);
+        }
     }
-
-    const topmostRoute = state.routes.at(-1);
-
-    if (topmostRoute?.state) {
-        return getTopMostReportIDFromRHP(topmostRoute.state);
-    }
-
-    if (topmostRoute?.params && 'reportID' in topmostRoute.params && typeof topmostRoute.params.reportID === 'string' && topmostRoute.params.reportID) {
-        return topmostRoute.params.reportID;
-    }
-
-    return '';
-};
-/**
- * Adds report route without any specific reportID to the state.
- * The report screen will self set proper reportID param based on the helper function findLastAccessedReport (look at ReportScreenWrapper for more info)
- *
- * @param state - react-navigation state
- */
-const addCentralPaneNavigatorRoute = (state: State) => {
-    const reportID = getTopMostReportIDFromRHP(state);
-    const centralPaneNavigatorRoute = {
-        name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
-        state: {
-            routes: [
-                {
-                    name: SCREENS.REPORT,
-                    params: {
-                        reportID,
-                    },
-                },
-            ],
-        },
-    };
-    state.routes.splice(1, 0, centralPaneNavigatorRoute);
-    // eslint-disable-next-line no-param-reassign, @typescript-eslint/non-nullable-type-assertion-style
-    (state.index as number) = state.routes.length - 1;
-};
+}
 
 function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
 
     return {
         ...stackRouter,
-        getRehydratedState(partialState: StackNavigationState<ParamListBase>, {routeNames, routeParamList, routeGetIdList}: RouterConfigOptions): StackNavigationState<ParamListBase> {
-            // Make sure that there is at least one CentralPaneNavigator (ReportScreen by default) in the state if this is a wide layout
-            if (!isAtLeastOneCentralPaneNavigatorInState(partialState) && !options.getIsSmallScreenWidth()) {
-                // If we added a route we need to make sure that the state.stale is true to generate new key for this route
-
-                // eslint-disable-next-line no-param-reassign
-                (partialState.stale as boolean) = true;
-                addCentralPaneNavigatorRoute(partialState);
-            }
+        getRehydratedState(partialState: StackNavigationState<RootStackParamList>, {routeNames, routeParamList, routeGetIdList}: RouterConfigOptions): StackNavigationState<ParamListBase> {
+            compareAndAdaptState(partialState);
             const state = stackRouter.getRehydratedState(partialState, {routeNames, routeParamList, routeGetIdList});
             return state;
         },

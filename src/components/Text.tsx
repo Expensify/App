@@ -1,5 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {Text as RNText, StyleSheet} from 'react-native';
 import type {TextProps as RNTextProps, TextStyle} from 'react-native';
 import useTheme from '@hooks/useTheme';

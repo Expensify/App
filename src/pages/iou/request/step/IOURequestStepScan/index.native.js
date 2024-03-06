@@ -1,7 +1,9 @@
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {ActivityIndicator, Alert, AppState, Text, View} from 'react-native';
+import {ActivityIndicator, Alert, AppState, View} from 'react-native';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
+import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import {useCameraDevices} from 'react-native-vision-camera';
 import Hand from '@assets/images/hand.svg';
 import Shutter from '@assets/images/shutter.svg';
@@ -11,6 +13,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -62,18 +65,78 @@ function IOURequestStepScan({
     const camera = useRef(null);
     const [flash, setFlash] = useState(false);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState(undefined);
+    const askedForPermission = useRef(false);
 
     const {translate} = useLocalize();
 
+    const askForPermissions = (showPermissionsAlert = true) => {
+        // There's no way we can check for the BLOCKED status without requesting the permission first
+        // https://github.com/zoontek/react-native-permissions/blob/a836e114ce3a180b2b23916292c79841a267d828/README.md?plain=1#L670
+        CameraPermission.requestCameraPermission()
+            .then((status) => {
+                setCameraPermissionStatus(status);
+
+                if (status === RESULTS.BLOCKED && showPermissionsAlert) {
+                    FileUtils.showCameraPermissionsAlert();
+                }
+            })
+            .catch(() => {
+                setCameraPermissionStatus(RESULTS.UNAVAILABLE);
+            });
+    };
+
+    const focusIndicatorOpacity = useSharedValue(0);
+    const focusIndicatorScale = useSharedValue(2);
+    const focusIndicatorPosition = useSharedValue({x: 0, y: 0});
+
+    const cameraFocusIndicatorAnimatedStyle = useAnimatedStyle(() => ({
+        opacity: focusIndicatorOpacity.value,
+        transform: [{translateX: focusIndicatorPosition.value.x}, {translateY: focusIndicatorPosition.value.y}, {scale: focusIndicatorScale.value}],
+    }));
+
+    const focusCamera = (point) => {
+        if (!camera.current) {
+            return;
+        }
+
+        camera.current.focus(point).catch((ex) => {
+            if (ex.message === '[unknown/unknown] Cancelled by another startFocusAndMetering()') {
+                return;
+            }
+            Log.warn('Error focusing camera', ex);
+        });
+    };
+
+    const tapGesture = Gesture.Tap()
+        .enabled(device && device.supportsFocus)
+        .onStart((ev) => {
+            const point = {x: ev.x, y: ev.y};
+
+            focusIndicatorOpacity.value = withSequence(withTiming(0.8, {duration: 250}), withDelay(1000, withTiming(0, {duration: 250})));
+            focusIndicatorScale.value = 2;
+            focusIndicatorScale.value = withSpring(1, {damping: 10, stiffness: 200});
+            focusIndicatorPosition.value = point;
+
+            runOnJS(focusCamera)(point);
+        });
+
     useEffect(() => {
-        const refreshCameraPermissionStatus = () => {
+        const refreshCameraPermissionStatus = (shouldAskForPermission = false) => {
             CameraPermission.getCameraPermissionStatus()
-                .then(setCameraPermissionStatus)
+                .then((res) => {
+                    // In android device app data, the status is not set to blocked until denied twice,
+                    // due to that the app will ask for permission twice whenever users opens uses the scan tab
+                    setCameraPermissionStatus(res);
+                    if (shouldAskForPermission && !askedForPermission.current) {
+                        askedForPermission.current = true;
+                        askForPermissions(false);
+                    }
+                })
                 .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
         };
 
         // Check initial camera permission status
-        refreshCameraPermissionStatus();
+        refreshCameraPermissionStatus(true);
 
         // Refresh permission status when app gain focus
         const subscription = AppState.addEventListener('change', (appState) => {
@@ -106,22 +169,6 @@ function IOURequestStepScan({
             return false;
         }
         return true;
-    };
-
-    const askForPermissions = () => {
-        // There's no way we can check for the BLOCKED status without requesting the permission first
-        // https://github.com/zoontek/react-native-permissions/blob/a836e114ce3a180b2b23916292c79841a267d828/README.md?plain=1#L670
-        CameraPermission.requestCameraPermission()
-            .then((status) => {
-                setCameraPermissionStatus(status);
-
-                if (status === RESULTS.BLOCKED) {
-                    FileUtils.showCameraPermissionsAlert();
-                }
-            })
-            .catch(() => {
-                setCameraPermissionStatus(RESULTS.UNAVAILABLE);
-            });
     };
 
     const navigateBack = () => {
@@ -164,7 +211,9 @@ function IOURequestStepScan({
         }
 
         // Store the receipt on the transaction object in Onyx
-        IOU.setMoneyRequestReceipt(transactionID, file.uri, file.name, action !== CONST.IOU.ACTION.EDIT);
+        // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
+        // So, let us also save the file type in receipt for later use during blob fetch
+        IOU.setMoneyRequestReceipt(transactionID, file.uri, file.name, action !== CONST.IOU.ACTION.EDIT, file.type);
 
         if (action === CONST.IOU.ACTION.EDIT) {
             updateScanAndNavigate(file, file.uri);
@@ -175,6 +224,11 @@ function IOURequestStepScan({
     };
 
     const capturePhoto = useCallback(() => {
+        if (!camera.current && (cameraPermissionStatus === RESULTS.DENIED || cameraPermissionStatus === RESULTS.BLOCKED)) {
+            askForPermissions(cameraPermissionStatus !== RESULTS.DENIED);
+            return;
+        }
+
         const showCameraAlert = () => {
             Alert.alert(translate('receipt.cameraErrorTitle'), translate('receipt.cameraErrorMessage'));
         };
@@ -184,7 +238,7 @@ function IOURequestStepScan({
             return;
         }
 
-        camera.current
+        return camera.current
             .takePhoto({
                 qualityPrioritization: 'speed',
                 flash: flash ? 'on' : 'off',
@@ -207,7 +261,7 @@ function IOURequestStepScan({
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep]);
+    }, [flash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep, cameraPermissionStatus]);
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
@@ -216,6 +270,7 @@ function IOURequestStepScan({
 
     return (
         <StepScreenWrapper
+            includeSafeAreaPaddingBottom
             headerTitle={translate('common.receipt')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper={Boolean(backTo)}
@@ -239,7 +294,7 @@ function IOURequestStepScan({
                         text={translate('common.continue')}
                         accessibilityLabel={translate('common.continue')}
                         style={[styles.p9, styles.pt5]}
-                        onPress={askForPermissions}
+                        onPress={capturePhoto}
                     />
                 </View>
             )}
@@ -254,16 +309,20 @@ function IOURequestStepScan({
             )}
             {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
                 <View style={[styles.cameraView]}>
-                    <View style={styles.flex1}>
-                        <NavigationAwareCamera
-                            ref={camera}
-                            device={device}
-                            style={[styles.flex1]}
-                            zoom={device.neutralZoom}
-                            photo
-                            cameraTabIndex={1}
-                        />
-                    </View>
+                    <GestureDetector gesture={tapGesture}>
+                        <View style={styles.flex1}>
+                            <NavigationAwareCamera
+                                ref={camera}
+                                device={device}
+                                style={[styles.flex1]}
+                                zoom={device.neutralZoom}
+                                photo
+                                cameraTabIndex={1}
+                                orientation="portrait"
+                            />
+                            <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
+                        </View>
+                    </GestureDetector>
                 </View>
             )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>

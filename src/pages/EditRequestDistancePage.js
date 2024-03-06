@@ -79,7 +79,7 @@ function EditRequestDistancePage({report, route, transaction, transactionBackup}
             return;
         }
 
-        IOU.editMoneyRequest(transaction, report.reportID, {waypoints});
+        IOU.updateMoneyRequestDistance(transaction.transactionID, report.reportID, waypoints);
 
         // If the client is offline, then the modal can be closed as well (because there are no errors or other feedback to show them
         // until they come online again and sync with the server).

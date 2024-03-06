@@ -20,7 +20,7 @@ import validateSubmitShortcut from './validateSubmitShortcut';
 
 type ButtonWithText = {
     /** The text for the button label */
-    text: string;
+    text?: string;
 
     /** Boolean whether to display the right icon */
     shouldShowRightIcon?: boolean;
@@ -265,14 +265,16 @@ function Button(
 
     return (
         <>
-            <KeyboardShortcutComponent
-                isDisabled={isDisabled}
-                isLoading={isLoading}
-                allowBubble={allowBubble}
-                onPress={onPress}
-                pressOnEnter={pressOnEnter}
-                enterKeyEventListenerPriority={enterKeyEventListenerPriority}
-            />
+            {pressOnEnter && (
+                <KeyboardShortcutComponent
+                    isDisabled={isDisabled}
+                    isLoading={isLoading}
+                    allowBubble={allowBubble}
+                    onPress={onPress}
+                    pressOnEnter={pressOnEnter}
+                    enterKeyEventListenerPriority={enterKeyEventListenerPriority}
+                />
+            )}
             <PressableWithFeedback
                 ref={ref}
                 onPress={(event) => {
@@ -313,12 +315,12 @@ function Button(
                     large ? styles.buttonLarge : undefined,
                     success ? styles.buttonSuccess : undefined,
                     danger ? styles.buttonDanger : undefined,
-                    isDisabled && (success || danger) ? styles.buttonOpacityDisabled : undefined,
+                    isDisabled ? styles.buttonOpacityDisabled : undefined,
                     isDisabled && !danger && !success ? styles.buttonDisabled : undefined,
                     shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
                     shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    'text' in rest && (rest?.icon || rest?.shouldShowRightIcon) ? styles.alignItemsStretch : undefined,
+                    'text' in rest && rest?.shouldShowRightIcon ? styles.alignItemsStretch : undefined,
                     innerStyles,
                 ]}
                 hoverStyle={[

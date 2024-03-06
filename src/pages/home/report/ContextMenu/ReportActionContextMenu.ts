@@ -1,10 +1,12 @@
 import React from 'react';
 import type {RefObject} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
+import type {ContextMenuAction} from './ContextMenuActions';
 
 type OnHideCallback = () => void;
 
@@ -14,11 +16,13 @@ type OnCancel = () => void;
 
 type ContextMenuType = ValueOf<typeof CONST.CONTEXT_MENU_TYPES>;
 
+type ContextMenuAnchor = View | RNText | null | undefined;
+
 type ShowContextMenu = (
     type: ContextMenuType,
     event: GestureResponderEvent | MouseEvent,
     selection: string,
-    contextMenuAnchor: View | RNText | null,
+    contextMenuAnchor: ContextMenuAnchor,
     reportID?: string,
     reportActionID?: string,
     originalReportID?: string,
@@ -29,11 +33,14 @@ type ShowContextMenu = (
     isChronosReport?: boolean,
     isPinnedChat?: boolean,
     isUnreadChat?: boolean,
+    disabledOptions?: ContextMenuAction[],
+    shouldCloseOnTarget?: boolean,
+    setIsEmojiPickerActive?: (state: boolean) => void,
 ) => void;
 
 type ReportActionContextMenu = {
     showContextMenu: ShowContextMenu;
-    hideContextMenu: (callback: OnHideCallback) => void;
+    hideContextMenu: (callback?: OnHideCallback) => void;
     showDeleteModal: (reportID: string, reportAction: OnyxEntry<ReportAction>, shouldSetModalVisibility?: boolean, onConfirm?: OnConfirm, onCancel?: OnCancel) => void;
     hideDeleteModal: () => void;
     isActiveReportAction: (accountID: string | number) => boolean;
@@ -96,17 +103,20 @@ function showContextMenu(
     type: ContextMenuType,
     event: GestureResponderEvent | MouseEvent,
     selection: string,
-    contextMenuAnchor: View | RNText | null,
+    contextMenuAnchor: ContextMenuAnchor,
     reportID = '0',
     reportActionID = '0',
     originalReportID = '0',
-    draftMessage = undefined,
+    draftMessage: string | undefined = undefined,
     onShow = () => {},
     onHide = () => {},
     isArchivedRoom = false,
     isChronosReport = false,
     isPinnedChat = false,
     isUnreadChat = false,
+    disabledActions: ContextMenuAction[] = [],
+    shouldCloseOnTarget = false,
+    setIsEmojiPickerActive = () => {},
 ) {
     if (!contextMenuRef.current) {
         return;
@@ -133,6 +143,9 @@ function showContextMenu(
         isChronosReport,
         isPinnedChat,
         isUnreadChat,
+        disabledActions,
+        shouldCloseOnTarget,
+        setIsEmojiPickerActive,
     );
 }
 
@@ -175,3 +188,4 @@ function clearActiveReportAction() {
 }
 
 export {contextMenuRef, showContextMenu, hideContextMenu, isActiveReportAction, clearActiveReportAction, showDeleteModal, hideDeleteModal};
+export type {ContextMenuType, ShowContextMenu, ReportActionContextMenu, ContextMenuAnchor};

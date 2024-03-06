@@ -63,3 +63,5 @@ export default function withPolicyAndFullscreenLoading<TProps extends WithPolicy
         withPolicy,
     )(forwardRef(WithPolicyAndFullscreenLoading));
 }
+
+export type {WithPolicyAndFullscreenLoadingProps};

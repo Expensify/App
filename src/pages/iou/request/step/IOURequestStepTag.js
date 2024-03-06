@@ -1,6 +1,7 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import categoryPropTypes from '@components/categoryPropTypes';
 import TagPicker from '@components/TagPicker';
 import tagPropTypes from '@components/tagPropTypes';
 import Text from '@components/Text';
@@ -8,12 +9,17 @@ import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {canEditMoneyRequest} from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
+import {policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -30,33 +36,55 @@ const propTypes = {
     /** The report currently being used */
     report: reportPropTypes,
 
+    /** The policy of the report */
+    policy: policyPropTypes.policy,
+
+    /** The category configuration of the report's policy */
+    policyCategories: PropTypes.objectOf(categoryPropTypes),
+
     /** Collection of tags attached to a policy */
     policyTags: tagPropTypes,
+
+    /** The actions from the parent report */
+    parentReportActions: PropTypes.shape(reportActionPropTypes),
 };
 
 const defaultProps = {
     report: {},
-    policyTags: {},
+    policy: null,
+    policyTags: null,
+    policyCategories: null,
     transaction: {},
+    parentReportActions: {},
 };
 
 function IOURequestStepTag({
+    policy,
+    policyCategories,
     policyTags,
     report,
     route: {
-        params: {transactionID, backTo},
+        params: {action, tagIndex: rawTagIndex, transactionID, backTo, iouType},
     },
-    transaction: {tag},
+    transaction,
+    parentReportActions,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    // Fetches the first tag list of the policy
-    const tagListKey = _.first(_.keys(policyTags));
-    const policyTagListName = PolicyUtils.getTagListName(policyTags) || translate('common.tag');
+    const tagIndex = Number(rawTagIndex);
+    const policyTagListName = PolicyUtils.getTagListName(policyTags, tagIndex);
+    const transactionTag = TransactionUtils.getTag(transaction);
+    const tag = TransactionUtils.getTag(transaction, tagIndex);
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
+    const parentReportAction = parentReportActions[report.parentReportActionID];
+
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = isEditing && !canEditMoneyRequest(parentReportAction);
 
     const navigateBack = () => {
-        Navigation.goBack(backTo || ROUTES.HOME);
+        Navigation.goBack(backTo);
     };
 
     /**
@@ -64,11 +92,19 @@ function IOURequestStepTag({
      * @param {String} selectedTag.searchText
      */
     const updateTag = (selectedTag) => {
-        if (selectedTag.searchText === tag) {
-            IOU.resetMoneyRequestTag_temporaryForRefactor(transactionID);
-        } else {
-            IOU.setMoneyRequestTag_temporaryForRefactor(transactionID, selectedTag.searchText);
+        const isSelectedTag = selectedTag.searchText === tag;
+        const updatedTag = IOUUtils.insertTagIntoTransactionTagsString(transactionTag, isSelectedTag ? '' : selectedTag.searchText, tagIndex);
+        if (isSplitBill && isEditing) {
+            IOU.setDraftSplitTransaction(transactionID, {tag: updatedTag});
+            navigateBack();
+            return;
         }
+        if (isEditing) {
+            IOU.updateMoneyRequestTag(transactionID, report.reportID, updatedTag, policy, policyTags, policyCategories);
+            Navigation.dismissModal();
+            return;
+        }
+        IOU.setMoneyRequestTag(transactionID, updatedTag);
         navigateBack();
     };
 
@@ -78,14 +114,21 @@ function IOURequestStepTag({
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID={IOURequestStepTag.displayName}
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
-            <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: policyTagListName})}</Text>
-            <TagPicker
-                policyID={report.policyID}
-                tag={tagListKey}
-                selectedTag={tag || ''}
-                onSubmit={updateTag}
-            />
+            {({insets}) => (
+                <>
+                    <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: policyTagListName})}</Text>
+                    <TagPicker
+                        policyID={report.policyID}
+                        tag={policyTagListName}
+                        tagIndex={tagIndex}
+                        selectedTag={tag}
+                        insets={insets}
+                        onSubmit={updateTag}
+                    />
+                </>
+            )}
         </StepScreenWrapper>
     );
 }
@@ -98,8 +141,18 @@ export default compose(
     withWritableReportOrNotFound,
     withFullTransactionOrNotFound,
     withOnyx({
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        },
+        policyCategories: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
+        },
         policyTags: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+        },
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
+            canEvict: false,
         },
     }),
 )(IOURequestStepTag);

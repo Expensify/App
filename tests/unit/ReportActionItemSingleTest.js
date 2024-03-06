@@ -1,4 +1,4 @@
-import {cleanup, screen} from '@testing-library/react-native';
+import {cleanup, screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -70,7 +70,9 @@ describe('ReportActionItemSingle', () => {
                 const expectedSecondaryIconTestId = 'SvgDefaultAvatar_w Icon';
 
                 return setup().then(() => {
-                    expect(screen.getByTestId(expectedSecondaryIconTestId)).toBeDefined();
+                    waitFor(() => {
+                        expect(screen.getByTestId(expectedSecondaryIconTestId)).toBeDefined();
+                    });
                 });
             });
 

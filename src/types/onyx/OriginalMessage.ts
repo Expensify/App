@@ -2,6 +2,8 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
+type PaymentMethodType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE | typeof CONST.WALLET.TRANSFER_METHOD_TYPE>;
+
 type ActionName = DeepValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
 type OriginalMessageActionName =
     | 'ADDCOMMENT'
@@ -9,6 +11,8 @@ type OriginalMessageActionName =
     | 'CHRONOSOOOLIST'
     | 'CLOSED'
     | 'CREATED'
+    | 'HOLD'
+    | 'UNHOLD'
     | 'IOU'
     | 'MODIFIEDEXPENSE'
     | 'REIMBURSEMENTQUEUED'
@@ -19,12 +23,23 @@ type OriginalMessageActionName =
     | 'TASKCOMPLETED'
     | 'TASKEDITED'
     | 'TASKREOPENED'
+    | 'ACTIONABLEMENTIONWHISPER'
     | ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
 type OriginalMessageApproved = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.APPROVED;
     originalMessage: unknown;
 };
 type OriginalMessageSource = 'Chronos' | 'email' | 'ios' | 'android' | 'web' | '';
+
+type OriginalMessageHold = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.HOLD;
+    originalMessage: unknown;
+};
+
+type OriginalMessageUnHold = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.UNHOLD;
+    originalMessage: unknown;
+};
 
 type IOUDetails = {
     amount: number;
@@ -36,15 +51,24 @@ type IOUMessage = {
     /** The ID of the iou transaction */
     IOUTransactionID?: string;
     IOUReportID?: string;
+    expenseReportID?: string;
     amount: number;
     comment?: string;
     currency: string;
     lastModified?: string;
     participantAccountIDs?: number[];
     type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
-    paymentType?: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+    cancellationReason?: string;
+    paymentType?: PaymentMethodType;
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
+};
+
+type ReimbursementDeQueuedMessage = {
+    cancellationReason: string;
+    expenseReportID?: string;
+    amount: number;
+    currency: string;
 };
 
 type OriginalMessageIOU = {
@@ -109,6 +133,18 @@ type OriginalMessageAddComment = {
     };
 };
 
+type OriginalMessageActionableMentionWhisper = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLEMENTIONWHISPER;
+    originalMessage: {
+        inviteeAccountIDs: number[];
+        inviteeEmails: string;
+        lastModified: string;
+        reportID: number;
+        resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | null;
+        whisperedTo?: number[];
+    };
+};
+
 type OriginalMessageSubmitted = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED;
     originalMessage: unknown;
@@ -121,6 +157,11 @@ type OriginalMessageClosed = {
 
 type OriginalMessageCreated = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.CREATED;
+    originalMessage?: unknown;
+};
+
+type OriginalMessageMarkedReimbursed = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED;
     originalMessage?: unknown;
 };
 
@@ -222,7 +263,9 @@ type OriginalMessageReimbursementQueued = {
 
 type OriginalMessageReimbursementDequeued = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED;
-    originalMessage: unknown;
+    originalMessage: {
+        expenseReportID: string;
+    };
 };
 
 type OriginalMessageMoved = {
@@ -239,9 +282,12 @@ type OriginalMessage =
     | OriginalMessageApproved
     | OriginalMessageIOU
     | OriginalMessageAddComment
+    | OriginalMessageActionableMentionWhisper
     | OriginalMessageSubmitted
     | OriginalMessageClosed
     | OriginalMessageCreated
+    | OriginalMessageHold
+    | OriginalMessageUnHold
     | OriginalMessageRenamed
     | OriginalMessageChronosOOOList
     | OriginalMessageReportPreview
@@ -251,7 +297,8 @@ type OriginalMessage =
     | OriginalMessageModifiedExpense
     | OriginalMessageReimbursementQueued
     | OriginalMessageReimbursementDequeued
-    | OriginalMessageMoved;
+    | OriginalMessageMoved
+    | OriginalMessageMarkedReimbursed;
 
 export default OriginalMessage;
 export type {
@@ -260,10 +307,18 @@ export type {
     Reaction,
     ActionName,
     IOUMessage,
+    ReimbursementDeQueuedMessage,
     Closed,
     OriginalMessageActionName,
     ChangeLog,
     OriginalMessageIOU,
     OriginalMessageCreated,
+    OriginalMessageRenamed,
     OriginalMessageAddComment,
+    OriginalMessageActionableMentionWhisper,
+    OriginalMessageChronosOOOList,
+    OriginalMessageSource,
+    OriginalMessageReimbursementDequeued,
+    DecisionName,
+    PaymentMethodType,
 };

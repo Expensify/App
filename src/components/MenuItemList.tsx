@@ -10,7 +10,7 @@ type MenuItemLink = string | (() => Promise<string>);
 
 type MenuItemWithLink = MenuItemProps & {
     /** The link to open when the menu item is clicked */
-    link: MenuItemLink;
+    link?: MenuItemLink;
 };
 
 type MenuItemListProps = {
@@ -31,7 +31,7 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false}: MenuIt
      * @param link the menu item link or function to get the link
      * @param event the interaction event
      */
-    const secondaryInteraction = (link: MenuItemLink, event: GestureResponderEvent | MouseEvent) => {
+    const secondaryInteraction = (link: MenuItemLink | undefined, event: GestureResponderEvent | MouseEvent) => {
         if (typeof link === 'function') {
             link().then((url) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, url, popoverAnchor.current));
         } else if (link) {

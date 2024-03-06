@@ -1,6 +1,5 @@
-import type {Component, ForwardedRef} from 'react';
 import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
-import type {AnimatedProps} from 'react-native-reanimated';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {MaybePhraseKey} from '@libs/Localize';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -26,6 +25,9 @@ type CustomBaseTextInputProps = {
     /** Icon to display in right side of text input */
     icon?: IconAsset | null;
 
+    /** Icon to display in left side of text input */
+    iconLeft?: IconAsset | null;
+
     /** Customize the TextInput container */
     textInputContainerStyles?: StyleProp<ViewStyle>;
 
@@ -49,15 +51,11 @@ type CustomBaseTextInputProps = {
 
     /**
      * Autogrow input container length based on the entered text.
-     * Note: If you use this prop, the text input has to be controlled
-     * by a value prop.
      */
     autoGrow?: boolean;
 
     /**
      * Autogrow input container height based on the entered text
-     * Note: If you use this prop, the text input has to be controlled
-     * by a value prop.
      */
     autoGrowHeight?: boolean;
 
@@ -65,7 +63,7 @@ type CustomBaseTextInputProps = {
     hideFocusedState?: boolean;
 
     /** Hint text to display below the TextInput */
-    hint?: string;
+    hint?: MaybePhraseKey;
 
     /** Prefix character */
     prefixCharacter?: string;
@@ -85,9 +83,6 @@ type CustomBaseTextInputProps = {
 
     /** Whether we should wait before focusing the TextInput, useful when using transitions  */
     shouldDelayFocus?: boolean;
-
-    /** Indicate whether pressing Enter on multiline input is allowed to submit the form. */
-    submitOnEnter?: boolean;
 
     /** Indicate whether input is multiline */
     multiline?: boolean;
@@ -111,8 +106,8 @@ type CustomBaseTextInputProps = {
     autoCompleteType?: string;
 };
 
-type BaseTextInputRef = ForwardedRef<HTMLFormElement | Component<AnimatedProps<TextInputProps>>>;
+type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;
 
 type BaseTextInputProps = CustomBaseTextInputProps & TextInputProps;
 
-export type {CustomBaseTextInputProps, BaseTextInputRef, BaseTextInputProps};
+export type {BaseTextInputProps, BaseTextInputRef, CustomBaseTextInputProps};

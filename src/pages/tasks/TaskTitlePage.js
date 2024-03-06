@@ -1,5 +1,3 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -14,6 +12,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
@@ -21,16 +20,11 @@ import reportPropTypes from '@pages/reportPropTypes';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/EditTaskForm';
 
 const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes,
-
-    /** The policy of parent report */
-    rootParentReportPolicy: PropTypes.shape({
-        /** The role of current user */
-        role: PropTypes.string,
-    }),
 
     /* Onyx Props */
     ...withLocalizePropTypes,
@@ -38,7 +32,6 @@ const propTypes = {
 
 const defaultProps = {
     report: {},
-    rootParentReportPolicy: {},
 };
 
 function TaskTitlePage(props) {
@@ -53,6 +46,8 @@ function TaskTitlePage(props) {
 
         if (_.isEmpty(values.title)) {
             errors.title = 'newTaskPage.pleaseEnterTaskName';
+        } else if (values.title.length > CONST.TITLE_CHARACTER_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'title', ['common.error.characterLimitExceedCounter', {length: values.title.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
         }
 
         return errors;
@@ -79,7 +74,7 @@ function TaskTitlePage(props) {
 
     const inputRef = useRef(null);
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
-    const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID, lodashGet(props.rootParentReportPolicy, 'role', ''));
+    const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID);
     const isTaskNonEditable = ReportUtils.isTaskReport(props.report) && (!canModifyTask || !isOpen);
 
     return (
@@ -104,8 +99,8 @@ function TaskTitlePage(props) {
                             <InputWrapper
                                 InputComponent={TextInput}
                                 role={CONST.ROLE.PRESENTATION}
-                                inputID="title"
-                                name="title"
+                                inputID={INPUT_IDS.TITLE}
+                                name={INPUT_IDS.TITLE}
                                 label={props.translate('task.title')}
                                 accessibilityLabel={props.translate('task.title')}
                                 defaultValue={(props.report && props.report.reportName) || ''}
@@ -138,13 +133,6 @@ export default compose(
     withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
-        },
-        rootParentReportPolicy: {
-            key: ({report}) => {
-                const rootParentReport = ReportUtils.getRootParentReport(report);
-                return `${ONYXKEYS.COLLECTION.POLICY}${rootParentReport ? rootParentReport.policyID : '0'}`;
-            },
-            selector: (policy) => _.pick(policy, ['role']),
         },
     }),
 )(TaskTitlePage);

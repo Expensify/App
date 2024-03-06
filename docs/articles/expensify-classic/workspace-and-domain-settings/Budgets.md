@@ -44,7 +44,7 @@ Expensify’s Budgets feature allows you to:
 
 {% include faq-begin.md %}
 ## Can I import budgets as a CSV? 
-At this time, you cannot import budgets via CSV since we don’t import categories or tags from direct accounting integrations.
+At this time, you cannot import budgets via CSV.
 
 ## When will I be notified as a budget is hit?
 Notifications are sent twice: 

@@ -49,10 +49,6 @@ function BasePicker<TPickerValue>(
     // reference to @react-native-picker/picker
     const picker = useRef<RNPickerSelect>(null);
 
-    // Windows will reuse the text color of the select for each one of the options
-    // so we might need to color accordingly so it doesn't blend with the background.
-    const pickerPlaceholder = Object.keys(placeholder).length > 0 ? {...placeholder, color: theme.text} : {};
-
     useEffect(() => {
         if (!!value || !items || items.length !== 1 || !onInputChange) {
             return;
@@ -151,6 +147,10 @@ function BasePicker<TPickerValue>(
 
         return theme.text;
     }, [theme]);
+
+    // Windows will reuse the text color of the select for each one of the options
+    // so we might need to color accordingly so it doesn't blend with the background.
+    const pickerPlaceholder = Object.keys(placeholder).length > 0 ? {...placeholder, color: itemColor} : {};
 
     const hasError = !!errorText;
 

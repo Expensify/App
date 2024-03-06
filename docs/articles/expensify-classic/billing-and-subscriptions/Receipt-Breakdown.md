@@ -16,8 +16,8 @@ Your receipt is broken up into multiple sections that include:
 The top section will show the total amount you paid as the billing owner of Expensify workspaces and give you a breakdown of price per member. Every member of your workspace(s) gets to store data, review data, and access free features like Expensify Chat. Thus, we show the total price and then use all of the members across all of the workspaces you own to calculate the price per member. Further down in the receipt, and in this article, we break down the members who generated billable activity.
 
 ## How-to reduce your bill and get paid to use Expensify
-Chances are you can actually get paid to use Expensify with the Expensify Card. In this section of the receipt, we outline how much money you're leaving on the table by not using the Expensify Card. You can click `Get started` to connect with your account manager (if you have one) or Concierge, both of whom can help get you started with the card. 
-                                                                                                                                                                                                                                                                         
+Chances are you can actually get paid to use Expensify with the Expensify Card. In this section of the receipt, we outline how much money you're leaving on the table by not using the Expensify Card. You can click `Get started` to connect with your account manager (if you have one) or Concierge, both of whom can help get you started with the card.  
+
 _Note: Currently, we offer Expensify Cards to companies with USD bank accounts._ 
 
 ## How-to understand your billing breakdown 
@@ -25,7 +25,7 @@ Your receipt will have a detailed breakdown of activity and discounts across all
 - [Number of] Inactive workspace members @ $0.00
   - All inactive members from any of your workspaces.
 - [Number of] Chat-only members @ $0.00 
-  - Any workspace members who chatted but didn't generate any other billable activity. Learn more about [chatting for free.](https://help.expensify.com/articles/new-expensify/getting-started/chat/Everything-About-Chat) 
+  - Any workspace members who chatted but didn't generate any other billable activity. Learn more about [chatting for free.](https://help.expensify.com/articles/new-expensify/chat/Introducing-Expensify-Chat) 
 - [Number of] Annual Control members @ $18.00
   - Any members included in your annual subscription on the Control plan. 
 - [Number of] Pay-per-use Control members @ $36.00
@@ -37,9 +37,9 @@ Your receipt will have a detailed breakdown of activity and discounts across all
 - [Number of] Free members @ $0.00
   - All members across any of your Free workspaces.
 - X% Expensify Card discount with $Y spend
-  - This shows the % discount you're getting based on total spend across your Expensify Cards. This is only available in the US.
+  - This shows the % discount you're getting based on total approved spend across your Expensify Cards. This is only available in the US.
 - X% Expensify Card cash back credit for $Y spend
-  - The amount of cash back you've earned based on total spend across your Expensify Cards. This is only available in the US.
+  - The amount of cash back you've earned based on total approved spend across your Expensify Cards. This is only available in the US.
 - 50% ExpensifyApproved! partner discount
   - If you're part of an accounting firm, you get an additional discount for being our partner. [Learn more about our ExpensifyApproved! accountants program.](https://use.expensify.com/accountants-program) 
 - Total 

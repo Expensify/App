@@ -5,10 +5,12 @@ import {
     eachDayOfInterval,
     eachMonthOfInterval,
     endOfDay,
+    endOfMonth,
     endOfWeek,
     format,
     formatDistanceToNow,
-    getDayOfYear,
+    getDate,
+    getDay,
     isAfter,
     isBefore,
     isSameDay,
@@ -18,6 +20,7 @@ import {
     parse,
     set,
     setDefaultOptions,
+    startOfDay,
     startOfWeek,
     subDays,
     subMilliseconds,
@@ -253,7 +256,7 @@ function getZoneAbbreviation(datetime: string | Date, selectedTimezone: Selected
  *
  * @returns Sunday, July 9, 2023
  */
-function formatToLongDateWithWeekday(datetime: string): string {
+function formatToLongDateWithWeekday(datetime: string | Date): string {
     return format(new Date(datetime), CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY);
 }
 
@@ -262,7 +265,7 @@ function formatToLongDateWithWeekday(datetime: string): string {
  *
  * @returns Sunday
  */
-function formatToDayOfWeek(datetime: string): string {
+function formatToDayOfWeek(datetime: Date): string {
     return format(new Date(datetime), CONST.DATE.WEEKDAY_TIME_FORMAT);
 }
 
@@ -357,12 +360,18 @@ function getMicroseconds(): number {
     return Date.now() * CONST.MICROSECONDS_PER_MS;
 }
 
+function getDBTimeFromDate(date: Date): string {
+    return date.toISOString().replace('T', ' ').replace('Z', '');
+}
+
 /**
- * Returns the current time in milliseconds in the format expected by the database
+ * Convert the given timestamp to the "yyyy-MM-dd HH:mm:ss" format, as expected by the database
+ *
+ * @param [timestamp] the given timestamp (if omitted, defaults to the current time)
  */
 function getDBTime(timestamp: string | number = ''): string {
     const datetime = timestamp ? new Date(timestamp) : new Date();
-    return datetime.toISOString().replace('T', ' ').replace('Z', '');
+    return getDBTimeFromDate(datetime);
 }
 
 /**
@@ -675,9 +684,8 @@ const getDayValidationErrorKey = (inputDate: Date): string => {
     if (!inputDate) {
         return '';
     }
-    const currentYear = getDayOfYear(new Date());
-    const inputYear = getDayOfYear(inputDate);
-    if (inputYear < currentYear) {
+
+    if (isAfter(startOfDay(new Date()), startOfDay(inputDate))) {
         return 'common.error.invalidDateShouldBeFuture';
     }
     return '';
@@ -730,6 +738,34 @@ function formatToSupportedTimezone(timezoneInput: Timezone): Timezone {
     };
 }
 
+/**
+ * Return the date with full format if the created date is the current date.
+ * Otherwise return the created date.
+ */
+function enrichMoneyRequestTimestamp(created: string): string {
+    const now = new Date();
+    const createdDate = parse(created, CONST.DATE.FNS_FORMAT_STRING, now);
+    return isSameDay(createdDate, now) ? getDBTimeFromDate(now) : created;
+}
+/**
+ * Returns the last business day of given date month
+ *
+ * param {Date} inputDate
+ * returns {number}
+ */
+function getLastBusinessDayOfMonth(inputDate: Date): number {
+    let currentDate = endOfMonth(inputDate);
+    const dayOfWeek = getDay(currentDate);
+
+    if (dayOfWeek === 0) {
+        currentDate = subDays(currentDate, 2);
+    } else if (dayOfWeek === 6) {
+        currentDate = subDays(currentDate, 1);
+    }
+
+    return getDate(currentDate);
+}
+
 const DateUtils = {
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
@@ -774,6 +810,8 @@ const DateUtils = {
     getWeekEndsOn,
     isTimeAtLeastOneMinuteInFuture,
     formatToSupportedTimezone,
+    enrichMoneyRequestTimestamp,
+    getLastBusinessDayOfMonth,
 };
 
 export default DateUtils;

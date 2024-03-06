@@ -3,7 +3,7 @@ title: Expensify Card - Transaction Disputes & Fraud
 description: Learn how to dispute an Expensify Card transaction. 
 ---
 # Overview
-When using your Expensify Card, you may come across transaction errors, which can include things like:
+When using your Expensify Visa® Commercial Card, you may come across transaction errors, which can include things like:
 - Unrecognized, unauthorized, or fraudulent charges.
 - Transactions of an incorrect amount.
 - Duplicate charges for a single transaction.
@@ -44,7 +44,7 @@ You don't need to categorize your dispute; we'll handle that. However, this may 
 To ensure the dispute process goes smoothly, please:
 - Provide detailed information about the disputed charge, including why you're disputing it, what occurred, and any steps you've taken to address the issue.
 - If you recognize the merchant but not the charge, and you've transacted with them before, contact the merchant directly, as it may be a non-fraudulent error.
-- Include supporting documentation like receipts or cancellation confirmations when submitting your dispute to enhance the likelihood of a favorable resolution.
+- Include supporting documentation like receipts or cancellation confirmations when submitting your dispute to enhance the likelihood of a favorable resolution (not required but highly recommended).
 
 {% include faq-begin.md %}
 
@@ -54,7 +54,7 @@ Real-time push notifications alert you of every card charge upfront, helping ide
 Expensify cardholders can dispute suspicious transactions directly via Concierge, either within the Expensify app or by emailing [concierge@expensify.com](mailto:concierge@expensify.com). Cardholders can also cancel their Expensify Card anytime within our platform.
 
 ## **How long does the dispute process take?**
-The dispute process can take a few days to a few months. It depends on the type of dispute.
+The dispute process generally takes up to 90 days. It depends on the type of dispute. 
 
 ## **Can I cancel a dispute?**
 Contact Concierge if you've filed a dispute and want to cancel it. You might do this if you recognize a previously reported unauthorized charge or if the merchant has already resolved the issue.

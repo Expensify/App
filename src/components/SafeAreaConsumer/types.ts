@@ -1,7 +1,7 @@
 import type {DimensionValue} from 'react-native';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 
-type ChildrenProps = {
+type SafeAreaChildrenProps = {
     paddingTop?: DimensionValue;
     paddingBottom?: DimensionValue;
     insets?: EdgeInsets;
@@ -11,7 +11,9 @@ type ChildrenProps = {
 };
 
 type SafeAreaConsumerProps = {
-    children: React.FC<ChildrenProps>;
+    children: React.FC<SafeAreaChildrenProps>;
 };
 
 export default SafeAreaConsumerProps;
+
+export type {SafeAreaChildrenProps};

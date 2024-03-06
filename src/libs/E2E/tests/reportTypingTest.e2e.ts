@@ -1,7 +1,10 @@
+import type {NativeConfig} from 'react-native-config';
 import Config from 'react-native-config';
 import E2ELogin from '@libs/E2E/actions/e2eLogin';
+import waitForAppLoaded from '@libs/E2E/actions/waitForAppLoaded';
 import waitForKeyboard from '@libs/E2E/actions/waitForKeyboard';
 import E2EClient from '@libs/E2E/client';
+import getConfigValueOrThrow from '@libs/E2E/utils/getConfigValueOrThrow';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {getRerenderCount, resetRerenderCount} from '@pages/home/report/ReportActionCompose/ComposerWithSuggestions/index.e2e';
@@ -9,14 +12,18 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import * as NativeCommands from '../../../../tests/e2e/nativeCommands/NativeCommandsAction';
 
-const test = () => {
+const test = (config: NativeConfig) => {
     // check for login (if already logged in the action will simply resolve)
     console.debug('[E2E] Logging in for typing');
 
+    const reportID = getConfigValueOrThrow('reportID', config);
+
     E2ELogin().then((neededLogin) => {
         if (neededLogin) {
-            // we don't want to submit the first login to the results
-            return E2EClient.submitTestDone();
+            return waitForAppLoaded().then(() =>
+                // we don't want to submit the first login to the results
+                E2EClient.submitTestDone(),
+            );
         }
 
         console.debug('[E2E] Logged in, getting typing metrics and submitting them…');
@@ -27,7 +34,8 @@ const test = () => {
             }
 
             console.debug(`[E2E] Sidebar loaded, navigating to a report…`);
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute('98345625'));
+            // Crowded Policy (Do Not Delete) Report, has a input bar available:
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
 
             // Wait until keyboard is visible (so we are focused on the input):
             waitForKeyboard().then(() => {

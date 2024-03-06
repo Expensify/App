@@ -13,7 +13,6 @@ import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './attachmentCarouselPropTypes';
 import CarouselButtons from './CarouselButtons';
-import CarouselItem from './CarouselItem';
 import extractAttachmentsFromReport from './extractAttachmentsFromReport';
 import AttachmentCarouselPager from './Pager';
 import useCarouselArrows from './useCarouselArrows';
@@ -23,7 +22,6 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     const pagerRef = useRef(null);
     const [page, setPage] = useState();
     const [attachments, setAttachments] = useState([]);
-    const [isPinchGestureRunning, setIsPinchGestureRunning] = useState(true);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
     const [activeSource, setActiveSource] = useState(source);
 
@@ -89,74 +87,67 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     );
 
     /**
-     * Defines how a single attachment should be rendered
-     * @param {{ reportActionID: String, isAuthTokenRequired: Boolean, source: String, file: { name: String }, hasBeenFlagged: Boolean }} item
-     * @returns {JSX.Element}
+     * Toggles the arrows visibility
+     * @param {Boolean} showArrows if showArrows is passed, it will set the visibility to the passed value
      */
-    const renderItem = useCallback(
-        ({item, index, isActive}) => (
-            <CarouselItem
-                item={item}
-                isSingleItem={attachments.length === 1}
-                index={index}
-                activeIndex={page}
-                isFocused={isActive && activeSource === item.source}
-                onPress={() => setShouldShowArrows(!shouldShowArrows)}
-            />
-        ),
-        [activeSource, attachments.length, page, setShouldShowArrows, shouldShowArrows],
+    const toggleArrows = useCallback(
+        (showArrows) => {
+            if (showArrows === undefined) {
+                setShouldShowArrows((prevShouldShowArrows) => !prevShouldShowArrows);
+                return;
+            }
+
+            setShouldShowArrows(showArrows);
+        },
+        [setShouldShowArrows],
     );
 
-    return (
-        <View
-            style={[styles.flex1, styles.attachmentCarouselContainer]}
-            onMouseEnter={() => setShouldShowArrows(true)}
-            onMouseLeave={() => setShouldShowArrows(false)}
-        >
-            {page == null ? (
+    const containerStyles = [styles.flex1, styles.attachmentCarouselContainer];
+
+    if (page == null) {
+        return (
+            <View style={containerStyles}>
                 <FullScreenLoadingIndicator />
+            </View>
+        );
+    }
+
+    return (
+        <View style={containerStyles}>
+            {page === -1 ? (
+                <BlockingView
+                    icon={Illustrations.ToddBehindCloud}
+                    iconWidth={variables.modalTopIconWidth}
+                    iconHeight={variables.modalTopIconHeight}
+                    title={translate('notFound.notHere')}
+                />
             ) : (
                 <>
-                    {page === -1 ? (
-                        <BlockingView
-                            icon={Illustrations.ToddBehindCloud}
-                            iconWidth={variables.modalTopIconWidth}
-                            iconHeight={variables.modalTopIconHeight}
-                            title={translate('notFound.notHere')}
-                        />
-                    ) : (
-                        <>
-                            <CarouselButtons
-                                shouldShowArrows={shouldShowArrows && !isPinchGestureRunning}
-                                page={page}
-                                attachments={attachments}
-                                onBack={() => cycleThroughAttachments(-1)}
-                                onForward={() => cycleThroughAttachments(1)}
-                                autoHideArrow={autoHideArrows}
-                                cancelAutoHideArrow={cancelAutoHideArrows}
-                            />
+                    <CarouselButtons
+                        shouldShowArrows={shouldShowArrows}
+                        page={page}
+                        attachments={attachments}
+                        onBack={() => cycleThroughAttachments(-1)}
+                        onForward={() => cycleThroughAttachments(1)}
+                        autoHideArrow={autoHideArrows}
+                        cancelAutoHideArrow={cancelAutoHideArrows}
+                    />
 
-                            <AttachmentCarouselPager
-                                items={attachments}
-                                renderItem={renderItem}
-                                initialIndex={page}
-                                onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
-                                onPinchGestureChange={(newIsPinchGestureRunning) => {
-                                    setIsPinchGestureRunning(newIsPinchGestureRunning);
-                                    if (!newIsPinchGestureRunning && !shouldShowArrows) {
-                                        setShouldShowArrows(true);
-                                    }
-                                }}
-                                onSwipeDown={onClose}
-                                ref={pagerRef}
-                            />
-                        </>
-                    )}
+                    <AttachmentCarouselPager
+                        items={attachments}
+                        initialPage={page}
+                        activeSource={activeSource}
+                        onRequestToggleArrows={toggleArrows}
+                        onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
+                        onClose={onClose}
+                        ref={pagerRef}
+                    />
                 </>
             )}
         </View>
     );
 }
+
 AttachmentCarousel.propTypes = propTypes;
 AttachmentCarousel.defaultProps = defaultProps;
 AttachmentCarousel.displayName = 'AttachmentCarousel';

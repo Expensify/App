@@ -1,5 +1,4 @@
 import React, {useState} from 'react';
-import withWindowDimensions from '@components/withWindowDimensions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import StatusBar from '@libs/StatusBar';
@@ -55,4 +54,4 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
 }
 
 Modal.displayName = 'Modal';
-export default withWindowDimensions(Modal);
+export default Modal;

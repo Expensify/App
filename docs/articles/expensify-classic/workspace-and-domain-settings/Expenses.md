@@ -87,7 +87,7 @@ Concierge Receipt Audit is a real-time audit and compliance of receipts submitte
 
 - To make sure you don't miss any risky expenses that need human oversight.
 - To avoid needing to manually review all your company receipts.
-- It's included for free with the [Control Plan](https://www.expensify.com/pricing).
+- It's included at no extra cost with the [Control Plan](https://www.expensify.com/pricing).
 - Instead of paying someone to audit your company expenses or being concerned that your expenses might be audited by a government agency.
 - It's easy to use! Concierge will alert you to the risky expense and present it to you in an easy-to-follow review tutorial.
 - In addition to the risky expense alerts, Expensify will include a Note with audit details on every report.  

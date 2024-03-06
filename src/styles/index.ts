@@ -179,10 +179,9 @@ const webViewStyles = (theme: ThemeColors) =>
 
             pre: {
                 ...baseCodeTagStyles(theme),
-                paddingTop: 12,
-                paddingBottom: 12,
-                paddingRight: 8,
-                paddingLeft: 8,
+                paddingVertical: 8,
+                paddingHorizontal: 12,
+                fontSize: 13,
                 fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
                 marginTop: 0,
                 marginBottom: 0,
@@ -201,6 +200,15 @@ const webViewStyles = (theme: ThemeColors) =>
                 borderColor: theme.border,
                 borderRadius: variables.componentBorderRadiusNormal,
                 borderWidth: 1,
+                ...touchCalloutNone,
+            },
+
+            video: {
+                minWidth: CONST.VIDEO_PLAYER.MIN_WIDTH,
+                minHeight: CONST.VIDEO_PLAYER.MIN_HEIGHT,
+                borderRadius: variables.componentBorderRadiusNormal,
+                overflow: 'hidden',
+                backgroundColor: theme.highlightBG,
                 ...touchCalloutNone,
             },
 
@@ -340,10 +348,6 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'left',
         },
 
-        verticalAlignMiddle: {
-            verticalAlign: 'middle',
-        },
-
         verticalAlignTop: {
             verticalAlign: 'top',
         },
@@ -396,6 +400,11 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
         },
 
+        textNormalThemeText: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
+        },
+
         textLarge: {
             fontSize: variables.fontSizeLarge,
         },
@@ -419,6 +428,10 @@ const styles = (theme: ThemeColors) =>
             fontWeight: FontUtils.fontWeight.bold,
         },
 
+        fontWeightNormal: {
+            fontWeight: FontUtils.fontWeight.normal,
+        },
+
         textHeadline: {
             ...headlineFont,
             ...whiteSpace.preWrap,
@@ -427,11 +440,19 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightXXXLarge,
         },
 
+        textHeadlineH2: {
+            ...headlineFont,
+            ...whiteSpace.preWrap,
+            color: theme.heading,
+            fontSize: variables.fontSizeh2,
+            lineHeight: variables.lineHeightSizeh2,
+        },
+
         textHeadlineH1: {
             ...headlineFont,
             ...whiteSpace.preWrap,
             color: theme.heading,
-            fontSize: variables.fontSizeh1,
+            fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightSizeh1,
         },
 
@@ -441,6 +462,14 @@ const styles = (theme: ThemeColors) =>
 
         textBlue: {
             color: theme.link,
+        },
+
+        textVersion: {
+            color: theme.iconColorfulBackground,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightNormal,
+            fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
+            textAlign: 'center',
         },
 
         textNoWrap: {
@@ -471,6 +500,10 @@ const styles = (theme: ThemeColors) =>
             opacity: 0,
         },
 
+        opacitySemiTransparent: {
+            opacity: 0.5,
+        },
+
         opacity1: {
             opacity: 1,
         },
@@ -481,6 +514,21 @@ const styles = (theme: ThemeColors) =>
 
         borderRadiusNormal: {
             borderRadius: variables.buttonBorderRadius,
+        },
+
+        bottomTabBarContainer: {
+            flexDirection: 'row',
+            height: variables.bottomTabHeight,
+            borderTopWidth: 1,
+            borderTopColor: theme.border,
+            backgroundColor: theme.appBG,
+        },
+
+        bottomTabBarItem: {
+            height: '100%',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
         },
 
         button: {
@@ -512,6 +560,14 @@ const styles = (theme: ThemeColors) =>
 
             // Add 1px to the Button text to give optical vertical alignment.
             paddingBottom: 1,
+        },
+
+        testRowContainer: {
+            ...flex.flexRow,
+            ...flex.justifyContentBetween,
+            ...flex.alignItemsCenter,
+            ...sizing.mnw120,
+            height: 64,
         },
 
         buttonSmall: {
@@ -593,9 +649,21 @@ const styles = (theme: ThemeColors) =>
         },
 
         buttonDivider: {
-            height: variables.dropDownButtonDividerHeight,
-            borderWidth: 0.7,
-            borderColor: theme.textLight,
+            borderRightWidth: 1,
+            borderRightColor: theme.buttonHoveredBG,
+            ...sizing.h100,
+        },
+
+        buttonSuccessDivider: {
+            borderRightWidth: 1,
+            borderRightColor: theme.successHover,
+            ...sizing.h100,
+        },
+
+        buttonDangerDivider: {
+            borderRightWidth: 1,
+            borderRightColor: theme.dangerHover,
+            ...sizing.h100,
         },
 
         noBorderRadius: {
@@ -673,6 +741,11 @@ const styles = (theme: ThemeColors) =>
         },
 
         loadingVBAAnimation: {
+            width: 140,
+            height: 140,
+        },
+
+        loadingVBAAnimationWeb: {
             width: 140,
             height: 140,
         },
@@ -777,11 +850,24 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.dangerPressed,
         },
 
+        badgeBordered: {
+            backgroundColor: theme.transparent,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusSmall,
+            borderColor: theme.border,
+            paddingHorizontal: 12,
+            minHeight: 28,
+        },
+
         badgeText: {
             color: theme.text,
             fontSize: variables.fontSizeSmall,
             ...lineHeightBadge,
             ...whiteSpace.noWrap,
+        },
+
+        activeItemBadge: {
+            borderColor: theme.buttonHoveredBG,
         },
 
         border: {
@@ -846,6 +932,18 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             justifyContent: 'center',
             justifyItems: 'center',
+        },
+
+        cameraFocusIndicator: {
+            position: 'absolute',
+            left: -32,
+            top: -32,
+            width: 64,
+            height: 64,
+            borderRadius: 32,
+            borderWidth: 2,
+            borderColor: theme.white,
+            pointerEvents: 'none',
         },
 
         permissionView: {
@@ -1037,6 +1135,11 @@ const styles = (theme: ThemeColors) =>
             margin: 1,
         },
 
+        textInputLeftIconContainer: {
+            justifyContent: 'center',
+            paddingRight: 8,
+        },
+
         secureInput: {
             borderTopRightRadius: 0,
             borderBottomRightRadius: 0,
@@ -1159,6 +1262,13 @@ const styles = (theme: ThemeColors) =>
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeLabel,
             color: theme.textSupporting,
+        },
+
+        textLabelSupportingNormal: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeLabel,
+            color: theme.textSupporting,
+            fontWeight: FontUtils.fontWeight.normal,
         },
 
         textLabelError: {
@@ -1325,11 +1435,10 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarFooter: {
-            alignItems: 'center',
             display: 'flex',
             justifyContent: 'center',
-            paddingVertical: variables.lineHeightXLarge,
             width: '100%',
+            paddingLeft: 20,
         },
 
         sidebarAvatar: {
@@ -1353,14 +1462,18 @@ const styles = (theme: ThemeColors) =>
                 zIndex: 10,
             } satisfies ViewStyle),
 
-        floatingActionButtonContainer: {
+        bottomTabStatusIndicator: (backgroundColor = theme.danger) => ({
+            borderColor: theme.sidebar,
+            backgroundColor,
+            borderRadius: 8,
+            borderWidth: 2,
             position: 'absolute',
-            right: 20,
-
-            // The bottom of the floating action button should align with the bottom of the compose box.
-            // The value should be equal to the height + marginBottom + marginTop of chatItemComposeSecondaryRow
-            bottom: variables.fabBottom,
-        },
+            right: -3,
+            top: -4,
+            height: 12,
+            width: 12,
+            zIndex: 10,
+        }),
 
         floatingActionButton: {
             backgroundColor: theme.success,
@@ -1396,6 +1509,10 @@ const styles = (theme: ThemeColors) =>
         sidebarListItem: {
             justifyContent: 'center',
             textDecorationLine: 'none',
+        },
+
+        breadcrumsContainer: {
+            height: 24,
         },
 
         breadcrumb: {
@@ -1451,16 +1568,16 @@ const styles = (theme: ThemeColors) =>
                 vertical: windowHeight - (variables.fabBottom + variables.componentSizeLarge + 12),
             } satisfies AnchorPosition),
 
-        createMenuPositionProfile: (windowWidth: number) =>
+        createAccountMenuPositionProfile: () =>
             ({
-                horizontal: windowWidth - 355,
-                ...getPopOverVerticalOffset(162),
+                horizontal: 18,
+                ...getPopOverVerticalOffset(202 + 40),
             } satisfies AnchorPosition),
 
         createMenuPositionReportActionCompose: (windowHeight: number) =>
             ({
                 horizontal: 18 + variables.sideBarWidth,
-                vertical: windowHeight - 83,
+                vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
             } satisfies AnchorPosition),
 
         createMenuPositionRightSidepane: {
@@ -1647,6 +1764,11 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 4,
         },
 
+        emptyWorkspaceIllustrationStyle: {
+            marginTop: 12,
+            marginBottom: -20,
+        },
+
         overlayStyles: (current: OverlayStylesParams, isModalOnTheLeft: boolean) =>
             ({
                 ...positioning.pFixed,
@@ -1766,6 +1888,12 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             lineHeight: variables.lineHeightXLarge,
+            maxWidth: '100%',
+            ...whiteSpace.preWrap,
+            ...wordBreak.breakWord,
+        },
+
+        renderHTML: {
             maxWidth: '100%',
             ...whiteSpace.preWrap,
             ...wordBreak.breakWord,
@@ -2147,6 +2275,15 @@ const styles = (theme: ThemeColors) =>
             marginRight: variables.avatarChatSpacing - 4,
         },
 
+        subscriptIcon: {
+            position: 'absolute',
+            bottom: -4,
+            right: -4,
+            width: 20,
+            height: 20,
+            backgroundColor: theme.buttonDefaultBG,
+        },
+
         borderTop: {
             borderTopWidth: variables.borderTopWidth,
             borderColor: theme.border,
@@ -2199,6 +2336,10 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 20,
             height: variables.contentHeaderHeight,
             width: '100%',
+        },
+
+        headerBarDesktopHeight: {
+            height: variables.contentHeaderDesktopHeight,
         },
 
         imageViewContainer: {
@@ -2273,6 +2414,17 @@ const styles = (theme: ThemeColors) =>
 
         blockingViewContainer: {
             paddingBottom: variables.contentHeaderHeight,
+            maxWidth: 400,
+            alignSelf: 'center',
+        },
+
+        forcedBlockingViewContainer: {
+            ...positioning.pFixed,
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: theme.appBG,
         },
 
         defaultModalContainer: {
@@ -2281,9 +2433,10 @@ const styles = (theme: ThemeColors) =>
         },
 
         reportActionContextMenuMiniButton: {
-            ...spacing.p1,
-            ...spacing.mv1,
-            ...spacing.mh1,
+            height: 28,
+            width: 28,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
             ...{borderRadius: variables.buttonBorderRadius},
         },
 
@@ -2484,6 +2637,57 @@ const styles = (theme: ThemeColors) =>
             paddingBottom: 20,
         },
 
+        avatarSectionWrapperSettings: {
+            width: '100%',
+            alignItems: 'center',
+        },
+
+        accountSettingsSectionContainer: {
+            borderBottomWidth: 1,
+            borderBottomColor: theme.border,
+            ...spacing.mt0,
+            ...spacing.mb0,
+            ...spacing.pt0,
+        },
+
+        centralPaneAnimation: {
+            height: CONST.CENTRAL_PANE_ANIMATION_HEIGHT,
+        },
+
+        sectionTitle: {
+            ...spacing.pt2,
+            ...spacing.pr3,
+            ...spacing.pb4,
+            paddingLeft: 13,
+            fontSize: 13,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            fontWeight: '400',
+            lineHeight: 16,
+            color: theme.textSupporting,
+        },
+
+        accountSettingsSectionTitle: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontWeight: FontUtils.fontWeight.bold,
+        },
+
+        sectionMenuItem: {
+            borderRadius: 8,
+            paddingHorizontal: 8,
+            height: 56,
+            alignItems: 'center',
+        },
+
+        qrShareSection: {
+            width: 264,
+        },
+
+        sectionMenuItemTopDescription: {
+            ...spacing.ph8,
+            ...spacing.mhn8,
+            width: 'auto',
+        },
+
         selectCircle: {
             width: variables.componentSizeSmall,
             height: variables.componentSizeSmall,
@@ -2494,6 +2698,11 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             backgroundColor: theme.componentBG,
             marginLeft: 8,
+        },
+
+        optionSelectCircle: {
+            borderRadius: variables.componentSizeSmall / 2 + 1,
+            padding: 1,
         },
 
         unreadIndicatorContainer: {
@@ -2867,6 +3076,10 @@ const styles = (theme: ThemeColors) =>
             outlineStyle: 'none',
         },
 
+        boxShadowNone: {
+            boxShadow: 'none',
+        },
+
         cardStyleNavigator: {
             overflow: 'hidden',
             height: '100%',
@@ -2875,27 +3088,49 @@ const styles = (theme: ThemeColors) =>
         smallEditIcon: {
             alignItems: 'center',
             backgroundColor: theme.buttonDefaultBG,
-            borderColor: theme.appBG,
-            borderRadius: 14,
+            borderColor: theme.cardBG,
+            borderRadius: 20,
             borderWidth: 3,
             color: theme.textReversed,
-            height: 28,
-            width: 28,
+            height: 40,
+            width: 40,
             justifyContent: 'center',
         },
 
         smallAvatarEditIcon: {
             position: 'absolute',
-            right: -4,
-            bottom: -4,
+            right: -8,
+            bottom: -8,
+        },
+
+        primaryMediumIcon: {
+            alignItems: 'center',
+            backgroundColor: theme.buttonDefaultBG,
+            borderRadius: 20,
+            color: theme.textReversed,
+            height: 40,
+            width: 40,
+            justifyContent: 'center',
+        },
+
+        primaryMediumText: {
+            fontSize: variables.iconSizeNormal,
         },
 
         workspaceOwnerAvatarWrapper: {
             margin: 6,
         },
 
+        workspaceOwnerSectionTitle: {
+            marginLeft: 6,
+        },
+
         workspaceTypeWrapper: {
             margin: 3,
+        },
+
+        workspaceTypeSectionTitle: {
+            marginLeft: 3,
         },
 
         autoGrowHeightMultilineInput: {
@@ -2914,19 +3149,6 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.border,
             borderBottomWidth: 1,
             ...spacing.pb2,
-        },
-
-        peopleBadge: {
-            backgroundColor: theme.icon,
-            ...spacing.ph3,
-            ...spacing.ml3,
-        },
-
-        peopleBadgeText: {
-            color: theme.textReversed,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightNormal,
-            ...whiteSpace.noWrap,
         },
 
         offlineFeedback: {
@@ -3085,7 +3307,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         searchPressable: {
-            height: 40,
+            height: variables.componentSizeNormal,
         },
 
         searchContainer: {
@@ -3094,8 +3316,9 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             gap: 8,
             paddingHorizontal: 24,
-            backgroundColor: theme.highlightBG,
+            backgroundColor: theme.hoverComponentBG,
             borderRadius: variables.componentBorderRadiusRounded,
+            justifyContent: 'center',
         },
 
         searchContainerHovered: {
@@ -3103,10 +3326,9 @@ const styles = (theme: ThemeColors) =>
         },
 
         searchInputStyle: {
-            color: colors.productDark800,
+            color: theme.textSupporting,
             fontSize: 13,
             lineHeight: 16,
-            width: '100%',
         },
 
         threeDotsPopoverOffset: (windowWidth: number) =>
@@ -3225,18 +3447,24 @@ const styles = (theme: ThemeColors) =>
                 top: receiptImageTopPosition,
             } satisfies ViewStyle),
 
-        cardSection: {
+        cardSectionContainer: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusCard,
-            marginBottom: 20,
-            marginHorizontal: 16,
-            padding: 20,
             width: 'auto',
             textAlign: 'left',
+            overflow: 'hidden',
+            marginBottom: 20,
+            marginHorizontal: variables.sectionMargin,
+        },
+
+        cardSectionIllustration: {
+            width: 'auto',
+            height: variables.sectionIllustrationHeight,
         },
 
         cardSectionTitle: {
-            lineHeight: variables.lineHeightXXLarge,
+            fontSize: variables.fontSizeLarge,
+            lineHeight: variables.lineHeightXLarge,
         },
 
         cardMenuItem: {
@@ -3247,9 +3475,21 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        emptyCardSectionTitle: {
+            fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightXXLarge,
+            textAlign: 'center',
+        },
+
+        emptyCardSectionSubtitle: {
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightXLarge,
+            color: theme.textSupporting,
+            textAlign: 'center',
+        },
+
         transferBalance: {
-            paddingLeft: 20,
-            paddingRight: 20,
+            width: 'auto',
             borderRadius: 0,
             height: 64,
             alignItems: 'center',
@@ -3318,8 +3558,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         miniQuickEmojiReactionText: {
-            fontSize: 15,
-            lineHeight: 20,
+            fontSize: 18,
+            lineHeight: 22,
             verticalAlign: 'middle',
         },
 
@@ -3598,10 +3838,6 @@ const styles = (theme: ThemeColors) =>
             ...flex.alignItemsCenter,
         },
 
-        shareCodePage: {
-            paddingHorizontal: 38.5,
-        },
-
         shareCodeContainer: {
             width: '100%',
             alignItems: 'center',
@@ -3812,14 +4048,26 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
         },
 
-        reportPreviewBoxBody: {
+        expenseAndReportPreviewBoxBody: {
             padding: 16,
+        },
+
+        expenseAndReportPreviewTextContainer: {
+            gap: 8,
+        },
+
+        reportPreviewAmountSubtitleContainer: {
+            gap: 4,
+        },
+
+        expenseAndReportPreviewTextButtonContainer: {
+            gap: 16,
         },
 
         reportActionItemImages: {
             flexDirection: 'row',
             margin: 4,
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: 12,
             overflow: 'hidden',
             height: variables.reportActionImagesSingleImageHeight,
         },
@@ -3908,26 +4156,30 @@ const styles = (theme: ThemeColors) =>
         },
 
         emojiStatusLHN: {
-            fontSize: 22,
-        },
-        sidebarStatusAvatarContainer: {
-            height: 44,
-            width: 84,
-            backgroundColor: theme.componentBG,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            borderRadius: 42,
-            paddingHorizontal: 2,
-            marginVertical: -2,
-            marginRight: -2,
-        },
-        sidebarStatusAvatar: {
-            flex: 1,
-            alignItems: 'center',
-            justifyContent: 'center',
+            fontSize: 9,
         },
 
+        sidebarStatusAvatarContainer: {
+            height: 40,
+            width: 40,
+            backgroundColor: theme.componentBG,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 20,
+        },
+        sidebarStatusAvatar: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: theme.border,
+            height: 20,
+            width: 20,
+            borderRadius: 10,
+            position: 'absolute',
+            right: -4,
+            bottom: -4,
+            borderColor: theme.highlightBG,
+            borderWidth: 2,
+        },
         moneyRequestViewImage: {
             ...spacing.mh5,
             ...spacing.mv3,
@@ -3940,8 +4192,9 @@ const styles = (theme: ThemeColors) =>
         },
 
         moneyRequestAttachReceipt: {
-            backgroundColor: theme.appBG,
-            borderColor: theme.textSupporting,
+            backgroundColor: theme.highlightBG,
+            borderColor: theme.border,
+            borderWidth: 1,
         },
 
         mapViewContainer: {
@@ -4026,6 +4279,17 @@ const styles = (theme: ThemeColors) =>
             marginHorizontal: 20,
         },
 
+        selectionListPressableItemWrapper: {
+            alignItems: 'center',
+            flexDirection: 'row',
+            paddingHorizontal: 16,
+            paddingVertical: 16,
+            marginHorizontal: 20,
+            marginBottom: 12,
+            backgroundColor: theme.highlightBG,
+            borderRadius: 8,
+        },
+
         draggableTopBar: {
             height: 30,
             width: '100%',
@@ -4098,6 +4362,11 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        walletCardNumber: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
+        },
+
         walletCardMenuItem: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontWeight: FontUtils.fontWeight.bold,
@@ -4142,7 +4411,16 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightXLarge,
         },
 
-        aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h, width: '100%'}),
+        workspaceSection: {
+            maxWidth: variables.workspaceSectionMaxWidth + variables.sectionMargin * 2,
+        },
+
+        workspaceSectionMobile: {
+            width: '100%',
+            alignSelf: 'center',
+        },
+
+        aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
 
         receiptDropHeaderGap: {
             backgroundColor: theme.receiptDropUIBG,
@@ -4156,7 +4434,237 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.icon,
         },
 
+        interactiveStepHeaderContainer: {
+            flex: 1,
+            alignSelf: 'center',
+            flexDirection: 'row',
+        },
+
+        interactiveStepHeaderStepContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+
+        interactiveStepHeaderStepButton: {
+            width: 40,
+            height: 40,
+            borderWidth: 2,
+            borderRadius: 20,
+            borderColor: theme.borderFocus,
+            justifyContent: 'center',
+            alignItems: 'center',
+            color: theme.white,
+        },
+
+        interactiveStepHeaderLockedStepButton: {
+            borderColor: theme.borderLighter,
+        },
+
+        interactiveStepHeaderStepText: {
+            fontSize: variables.fontSizeLabel,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            fontWeight: FontUtils.fontWeight.bold,
+        },
+
+        interactiveStepHeaderCompletedStepButton: {
+            backgroundColor: theme.iconSuccessFill,
+        },
+
+        interactiveStepHeaderStepLine: {
+            height: 1,
+            flexGrow: 1,
+            backgroundColor: theme.iconSuccessFill,
+        },
+
+        interactiveStepHeaderLockedStepLine: {
+            backgroundColor: theme.activeComponentBG,
+        },
+        confirmBankInfoCard: {
+            backgroundColor: colors.green800,
+            borderRadius: variables.componentBorderRadiusCard,
+            marginBottom: 20,
+            marginHorizontal: 16,
+            padding: 20,
+            width: 'auto',
+            textAlign: 'left',
+        },
+        confirmBankInfoText: {
+            fontSize: variables.fontSizeNormal,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            color: theme.text,
+        },
+        confirmBankInfoCompanyIcon: {
+            height: 40,
+            width: 40,
+            backgroundColor: colors.darkIcons,
+            borderRadius: 50,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        confirmBankInfoBankIcon: {
+            height: 40,
+            width: 40,
+            borderRadius: 50,
+        },
+        confirmBankInfoNumber: {
+            fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightXLarge,
+            color: theme.text,
+            textAlignVertical: 'center',
+        },
+
+        textHeadlineLineHeightXXL: {
+            ...headlineFont,
+            ...whiteSpace.preWrap,
+            color: theme.heading,
+            fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightXXLarge,
+        },
+
+        videoPlayerControlsContainer: {
+            position: 'absolute',
+            bottom: CONST.VIDEO_PLAYER.CONTROLS_POSITION.NORMAL,
+            left: CONST.VIDEO_PLAYER.CONTROLS_POSITION.NORMAL,
+            right: CONST.VIDEO_PLAYER.CONTROLS_POSITION.NORMAL,
+            backgroundColor: theme.videoPlayerBG,
+            borderRadius: 8,
+            flexDirection: 'column',
+            overflow: 'visible',
+            zIndex: 9000,
+        },
+
+        videoPlayerControlsButtonContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+        },
+
+        progressBarOutline: {
+            width: '100%',
+            height: 4,
+            borderRadius: 8,
+            backgroundColor: theme.transparentWhite,
+        },
+
+        progressBarFill: {
+            height: '100%',
+            backgroundColor: colors.white,
+            borderRadius: 8,
+        },
+
+        videoPlayerControlsRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+
+        videoPlayerText: {
+            textAlign: 'center',
+            fontSize: variables.fontSizeLabel,
+            fontWeight: '700',
+            lineHeight: 16,
+            color: theme.white,
+        },
+
+        volumeSliderContainer: {
+            position: 'absolute',
+            left: 0,
+            bottom: 0,
+            width: '100%',
+            height: 100,
+            alignItems: 'center',
+            borderRadius: 4,
+            backgroundColor: colors.green700,
+        },
+
+        volumeSliderOverlay: {
+            width: 4,
+            height: 60,
+            backgroundColor: theme.transparentWhite,
+            borderRadius: 8,
+            marginTop: 8,
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+        },
+
+        volumeSliderThumb: {
+            width: 8,
+            height: 8,
+            borderRadius: 8,
+            backgroundColor: colors.white,
+            marginBottom: -2,
+        },
+
+        volumeSliderFill: {
+            width: 4,
+            height: 20,
+            backgroundColor: colors.white,
+            borderRadius: 8,
+        },
+
+        videoIconButton: {
+            padding: 4,
+            borderRadius: 4,
+        },
+
+        videoIconButtonHovered: {
+            backgroundColor: colors.green700,
+        },
+
+        videoThumbnailContainer: {
+            width: '100%',
+            height: '100%',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+        },
+
+        videoThumbnailPlayButton: {
+            backgroundColor: theme.videoPlayerBG,
+            borderRadius: 100,
+            width: 72,
+            height: 72,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        videoExpandButton: {
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            backgroundColor: theme.videoPlayerBG,
+            borderRadius: 8,
+            padding: 8,
+        },
+
+        videoPlayerTimeComponentWidth: {
+            width: 40,
+        },
         colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),
+
+        updateAnimation: {
+            width: variables.updateAnimationW,
+            height: variables.updateAnimationH,
+        },
+
+        updateRequiredViewHeader: {
+            height: variables.updateViewHeaderHeight,
+        },
+
+        updateRequiredViewTextContainer: {
+            width: variables.updateTextViewContainerWidth,
+        },
+
+        widthAuto: {
+            width: 'auto',
+        },
+
+        workspaceTitleStyle: {
+            ...headlineFont,
+            fontSize: variables.fontSizeXLarge,
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;

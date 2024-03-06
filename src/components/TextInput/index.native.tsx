@@ -1,10 +1,11 @@
+import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect} from 'react';
 import {AppState, Keyboard} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BaseTextInput from './BaseTextInput';
 import type {BaseTextInputProps, BaseTextInputRef} from './BaseTextInput/types';
 
-function TextInput(props: BaseTextInputProps, ref: BaseTextInputRef) {
+function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef>) {
     const styles = useThemeStyles();
 
     useEffect(() => {

@@ -10,6 +10,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as EmojiUtils from '@libs/EmojiUtils';
 import CONST from '@src/CONST';
 import BaseEmojiPickerMenu from './BaseEmojiPickerMenu';
 import emojiPickerMenuPropTypes from './emojiPickerMenuPropTypes';
@@ -17,10 +18,11 @@ import useEmojiPickerMenu from './useEmojiPickerMenu';
 
 const propTypes = emojiPickerMenuPropTypes;
 
-function EmojiPickerMenu({onEmojiSelected}) {
+function EmojiPickerMenu({onEmojiSelected, activeEmoji}) {
     const styles = useThemeStyles();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
+    const {singleExecution} = useSingleExecution();
     const {
         allEmojis,
         headerEmojis,
@@ -35,7 +37,6 @@ function EmojiPickerMenu({onEmojiSelected}) {
         listStyle,
         emojiListRef,
     } = useEmojiPickerMenu();
-    const {singleExecution} = useSingleExecution();
     const StyleUtils = useStyleUtils();
 
     /**
@@ -73,7 +74,7 @@ function EmojiPickerMenu({onEmojiSelected}) {
     /**
      * Given an emoji item object, render a component based on its type.
      * Items with the code "SPACER" return nothing and are used to fill rows up to 8
-     * so that the sticky headers function properly
+     * so that the sticky headers function properly.
      *
      * @param {Object} item
      * @returns {*}
@@ -94,15 +95,17 @@ function EmojiPickerMenu({onEmojiSelected}) {
             }
 
             const emojiCode = types && types[preferredSkinTone] ? types[preferredSkinTone] : code;
+            const shouldEmojiBeHighlighted = Boolean(activeEmoji) && EmojiUtils.getRemovedSkinToneEmoji(emojiCode) === EmojiUtils.getRemovedSkinToneEmoji(activeEmoji);
 
             return (
                 <EmojiPickerMenuItem
                     onPress={singleExecution((emoji) => onEmojiSelected(emoji, item))}
                     emoji={emojiCode}
+                    isHighlighted={shouldEmojiBeHighlighted}
                 />
             );
         },
-        [styles, windowWidth, preferredSkinTone, singleExecution, onEmojiSelected, translate],
+        [styles, windowWidth, preferredSkinTone, singleExecution, onEmojiSelected, translate, activeEmoji],
     );
 
     return (
@@ -123,7 +126,7 @@ function EmojiPickerMenu({onEmojiSelected}) {
                 listWrapperStyle={[
                     listStyle,
                     {
-                        width: windowWidth,
+                        width: Math.floor(windowWidth),
                     },
                 ]}
                 ref={emojiListRef}

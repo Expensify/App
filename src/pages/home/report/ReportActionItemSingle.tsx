@@ -27,7 +27,7 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import ReportActionItemDate from './ReportActionItemDate';
 import ReportActionItemFragment from './ReportActionItemFragment';
 
-type ReportActionItemSingleProps = ChildrenProps & {
+type ReportActionItemSingleProps = Partial<ChildrenProps> & {
     /** All the data of the action */
     action: ReportAction;
 
@@ -155,13 +155,13 @@ function ReportActionItemSingle({
                 Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(iouReportID));
                 return;
             }
-            showUserDetails(action.delegateAccountID ? action.delegateAccountID : String(actorAccountID));
+            showUserDetails(action.delegateAccountID ? String(action.delegateAccountID) : String(actorAccountID));
         }
     }, [isWorkspaceActor, reportID, actorAccountID, action.delegateAccountID, iouReportID, displayAllActors]);
 
     const shouldDisableDetailPage = useMemo(
         () =>
-            actorAccountID === CONST.ACCOUNT_ID.NOTIFICATIONS ||
+            CONST.RESTRICTED_ACCOUNT_IDS.includes(actorAccountID ?? 0) ||
             (!isWorkspaceActor && ReportUtils.isOptimisticPersonalDetail(action.delegateAccountID ? Number(action.delegateAccountID) : actorAccountID ?? -1)),
         [action, isWorkspaceActor, actorAccountID],
     );
@@ -238,11 +238,12 @@ function ReportActionItemSingle({
                                 <ReportActionItemFragment
                                     // eslint-disable-next-line react/no-array-index-key
                                     key={`person-${action.reportActionID}-${index}`}
-                                    accountID={actorAccountID}
-                                    fragment={fragment}
+                                    accountID={actorAccountID ?? 0}
+                                    fragment={{...fragment, type: fragment.type ?? '', text: fragment.text ?? ''}}
                                     delegateAccountID={action.delegateAccountID}
                                     isSingleLine
                                     actorIcon={icon}
+                                    moderationDecision={action.message?.[0].moderationDecision?.decision}
                                 />
                             ))}
                         </PressableWithoutFeedback>

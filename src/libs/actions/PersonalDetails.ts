@@ -1,24 +1,31 @@
-import Str from 'expensify-common/lib/str';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
+import type {
+    OpenPublicProfilePageParams,
+    UpdateAutomaticTimezoneParams,
+    UpdateDateOfBirthParams,
+    UpdateDisplayNameParams,
+    UpdateHomeAddressParams,
+    UpdateLegalNameParams,
+    UpdatePronounsParams,
+    UpdateSelectedTimezoneParams,
+    UpdateUserAvatarParams,
+} from '@libs/API/parameters';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
-import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
+import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {DateOfBirthForm, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
+import type {DateOfBirthForm} from '@src/types/form';
+import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import * as Session from './Session';
-
-type FirstAndLastName = {
-    firstName: string;
-    lastName: string;
-};
 
 let currentUserEmail = '';
 let currentUserAccountID = -1;
@@ -42,78 +49,11 @@ Onyx.connect({
     callback: (val) => (privatePersonalDetails = val),
 });
 
-/**
- * Creates a new displayName for a user based on passed personal details or login.
- */
-function createDisplayName(login: string, personalDetails: Pick<PersonalDetails, 'firstName' | 'lastName'> | OnyxEntry<PersonalDetails>): string {
-    // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
-    // so that the option looks cleaner in our UI.
-    const userLogin = LocalePhoneNumber.formatPhoneNumber(login);
-
-    if (!personalDetails) {
-        return userLogin;
-    }
-
-    const firstName = personalDetails.firstName ?? '';
-    const lastName = personalDetails.lastName ?? '';
-    const fullName = `${firstName} ${lastName}`.trim();
-
-    // It's possible for fullName to be empty string, so we must use "||" to fallback to userLogin.
-    return fullName || userLogin;
-}
-
-/**
- * Gets the first and last name from the user's personal details.
- * If the login is the same as the displayName, then they don't exist,
- * so we return empty strings instead.
- */
-function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstName, lastName}: PersonalDetails): FirstAndLastName {
-    // It's possible for firstName to be empty string, so we must use "||" to consider lastName instead.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (firstName || lastName) {
-        return {firstName: firstName ?? '', lastName: lastName ?? ''};
-    }
-    if (login && Str.removeSMSDomain(login) === displayName) {
-        return {firstName: '', lastName: ''};
-    }
-
-    if (displayName) {
-        const firstSpaceIndex = displayName.indexOf(' ');
-        const lastSpaceIndex = displayName.lastIndexOf(' ');
-        if (firstSpaceIndex === -1) {
-            return {firstName: displayName, lastName: ''};
-        }
-
-        return {
-            firstName: displayName.substring(0, firstSpaceIndex).trim(),
-            lastName: displayName.substring(lastSpaceIndex).trim(),
-        };
-    }
-
-    return {firstName: '', lastName: ''};
-}
-
-/**
- * Convert country names obtained from the backend to their respective ISO codes
- * This is for backward compatibility of stored data before E/App#15507
- */
-function getCountryISO(countryName: string): string {
-    if (!countryName || countryName.length === 2) {
-        return countryName;
-    }
-
-    return Object.entries(CONST.ALL_COUNTRIES).find(([, value]) => value === countryName)?.[0] ?? '';
-}
-
 function updatePronouns(pronouns: string) {
     if (currentUserAccountID) {
-        type UpdatePronounsParams = {
-            pronouns: string;
-        };
-
         const parameters: UpdatePronounsParams = {pronouns};
 
-        API.write('UpdatePronouns', parameters, {
+        API.write(WRITE_COMMANDS.UPDATE_PRONOUNS, parameters, {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -128,19 +68,14 @@ function updatePronouns(pronouns: string) {
         });
     }
 
-    Navigation.goBack(ROUTES.SETTINGS_PROFILE);
+    Navigation.goBack();
 }
 
 function updateDisplayName(firstName: string, lastName: string) {
     if (currentUserAccountID) {
-        type UpdateDisplayNameParams = {
-            firstName: string;
-            lastName: string;
-        };
-
         const parameters: UpdateDisplayNameParams = {firstName, lastName};
 
-        API.write('UpdateDisplayName', parameters, {
+        API.write(WRITE_COMMANDS.UPDATE_DISPLAY_NAME, parameters, {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -149,7 +84,7 @@ function updateDisplayName(firstName: string, lastName: string) {
                         [currentUserAccountID]: {
                             firstName,
                             lastName,
-                            displayName: createDisplayName(currentUserEmail ?? '', {
+                            displayName: PersonalDetailsUtils.createDisplayName(currentUserEmail ?? '', {
                                 firstName,
                                 lastName,
                             }),
@@ -160,18 +95,13 @@ function updateDisplayName(firstName: string, lastName: string) {
         });
     }
 
-    Navigation.goBack(ROUTES.SETTINGS_PROFILE);
+    Navigation.goBack();
 }
 
 function updateLegalName(legalFirstName: string, legalLastName: string) {
-    type UpdateLegalNameParams = {
-        legalFirstName: string;
-        legalLastName: string;
-    };
-
     const parameters: UpdateLegalNameParams = {legalFirstName, legalLastName};
 
-    API.write('UpdateLegalName', parameters, {
+    API.write(WRITE_COMMANDS.UPDATE_LEGAL_NAME, parameters, {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -184,20 +114,16 @@ function updateLegalName(legalFirstName: string, legalLastName: string) {
         ],
     });
 
-    Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.goBack();
 }
 
 /**
  * @param dob - date of birth
  */
 function updateDateOfBirth({dob}: DateOfBirthForm) {
-    type UpdateDateOfBirthParams = {
-        dob?: string;
-    };
-
     const parameters: UpdateDateOfBirthParams = {dob};
 
-    API.write('UpdateDateOfBirth', parameters, {
+    API.write(WRITE_COMMANDS.UPDATE_DATE_OF_BIRTH, parameters, {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -209,20 +135,10 @@ function updateDateOfBirth({dob}: DateOfBirthForm) {
         ],
     });
 
-    Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.goBack();
 }
 
-function updateAddress(street: string, street2: string, city: string, state: string, zip: string, country: string) {
-    type UpdateHomeAddressParams = {
-        homeAddressStreet: string;
-        addressStreet2: string;
-        homeAddressCity: string;
-        addressState: string;
-        addressZipCode: string;
-        addressCountry: string;
-        addressStateLong?: string;
-    };
-
+function updateAddress(street: string, street2: string, city: string, state: string, zip: string, country: Country | '') {
     const parameters: UpdateHomeAddressParams = {
         homeAddressStreet: street,
         addressStreet2: street2,
@@ -238,7 +154,7 @@ function updateAddress(street: string, street2: string, city: string, state: str
         parameters.addressStateLong = state;
     }
 
-    API.write('UpdateHomeAddress', parameters, {
+    API.write(WRITE_COMMANDS.UPDATE_HOME_ADDRESS, parameters, {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -256,7 +172,7 @@ function updateAddress(street: string, street2: string, city: string, state: str
         ],
     });
 
-    Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.goBack();
 }
 
 /**
@@ -272,15 +188,12 @@ function updateAutomaticTimezone(timezone: Timezone) {
         return;
     }
 
-    type UpdateAutomaticTimezoneParams = {
-        timezone: string;
-    };
     const formatedTimezone = DateUtils.formatToSupportedTimezone(timezone);
     const parameters: UpdateAutomaticTimezoneParams = {
         timezone: JSON.stringify(formatedTimezone),
     };
 
-    API.write('UpdateAutomaticTimezone', parameters, {
+    API.write(WRITE_COMMANDS.UPDATE_AUTOMATIC_TIMEZONE, parameters, {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -304,16 +217,12 @@ function updateSelectedTimezone(selectedTimezone: SelectedTimezone) {
         selected: selectedTimezone,
     };
 
-    type UpdateSelectedTimezoneParams = {
-        timezone: string;
-    };
-
     const parameters: UpdateSelectedTimezoneParams = {
         timezone: JSON.stringify(timezone),
     };
 
     if (currentUserAccountID) {
-        API.write('UpdateSelectedTimezone', parameters, {
+        API.write(WRITE_COMMANDS.UPDATE_SELECTED_TIMEZONE, parameters, {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -334,7 +243,7 @@ function updateSelectedTimezone(selectedTimezone: SelectedTimezone) {
 /**
  * Fetches additional personal data like legal name, date of birth, address
  */
-function openPersonalDetailsPage() {
+function openPersonalDetails() {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -365,11 +274,7 @@ function openPersonalDetailsPage() {
         },
     ];
 
-    type OpenPersonalDetailsPageParams = Record<string, never>;
-
-    const parameters: OpenPersonalDetailsPageParams = {};
-
-    API.read('OpenPersonalDetailsPage', parameters, {optimisticData, successData, failureData});
+    API.read(READ_COMMANDS.OPEN_PERSONAL_DETAILS, {}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -414,13 +319,9 @@ function openPublicProfilePage(accountID: number) {
         },
     ];
 
-    type OpenPublicProfilePageParams = {
-        accountID: number;
-    };
-
     const parameters: OpenPublicProfilePageParams = {accountID};
 
-    API.read('OpenPublicProfilePage', parameters, {optimisticData, successData, failureData});
+    API.read(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -481,13 +382,9 @@ function updateAvatar(file: File | CustomRNImageManipulatorResult) {
         },
     ];
 
-    type UpdateUserAvatarParams = {
-        file: File | CustomRNImageManipulatorResult;
-    };
-
     const parameters: UpdateUserAvatarParams = {file};
 
-    API.write('UpdateUserAvatar', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_USER_AVATAR, parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -526,11 +423,7 @@ function deleteAvatar() {
         },
     ];
 
-    type DeleteUserAvatarParams = Record<string, never>;
-
-    const parameters: DeleteUserAvatarParams = {};
-
-    API.write('DeleteUserAvatar', parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_USER_AVATAR, {}, {optimisticData, failureData});
 }
 
 /**
@@ -563,11 +456,8 @@ function getPrivatePersonalDetails(): OnyxEntry<PrivatePersonalDetails> {
 export {
     clearAvatarErrors,
     deleteAvatar,
-    extractFirstAndLastNameFromAvailableDetails,
-    getCountryISO,
-    createDisplayName,
     getPrivatePersonalDetails,
-    openPersonalDetailsPage,
+    openPersonalDetails,
     openPublicProfilePage,
     updateAddress,
     updateAutomaticTimezone,

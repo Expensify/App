@@ -1,10 +1,11 @@
 import {FlashList} from '@shopify/flash-list';
 import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import CategoryShortcutBar from '@components/EmojiPicker/CategoryShortcutBar';
 import EmojiSkinToneList from '@components/EmojiPicker/EmojiSkinToneList';
 import refPropTypes from '@components/refPropTypes';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -111,6 +112,10 @@ function BaseEmojiPickerMenu({headerEmojis, scrollToHeader, isFiltered, listWrap
     const styles = useThemeStyles();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
 
+    // Estimated list size should be a whole integer to avoid floating point precision errors
+    // More info: https://github.com/Expensify/App/issues/34522
+    const listWidth = isSmallScreenWidth ? Math.floor(windowWidth) : CONST.EMOJI_PICKER_SIZE.WIDTH;
+
     const flattenListWrapperStyle = useMemo(() => StyleSheet.flatten(listWrapperStyle), [listWrapperStyle]);
 
     return (
@@ -126,6 +131,7 @@ function BaseEmojiPickerMenu({headerEmojis, scrollToHeader, isFiltered, listWrap
                     ref={forwardedRef}
                     keyboardShouldPersistTaps="handled"
                     data={data}
+                    drawDistance={CONST.EMOJI_DRAW_AMOUNT}
                     renderItem={renderItem}
                     keyExtractor={keyExtractor}
                     numColumns={CONST.EMOJI_NUM_PER_ROW}
@@ -133,10 +139,18 @@ function BaseEmojiPickerMenu({headerEmojis, scrollToHeader, isFiltered, listWrap
                     ListEmptyComponent={ListEmptyComponent}
                     alwaysBounceVertical={alwaysBounceVertical}
                     estimatedItemSize={CONST.EMOJI_PICKER_ITEM_HEIGHT}
-                    estimatedListSize={{height: flattenListWrapperStyle.height, width: isSmallScreenWidth ? windowWidth : CONST.EMOJI_PICKER_SIZE.WIDTH}}
+                    estimatedListSize={{height: flattenListWrapperStyle.height, width: listWidth}}
                     contentContainerStyle={styles.ph4}
                     extraData={extraData}
                     getItemType={getItemType}
+                    overrideProps={{
+                        // scrollPaddingTop set to consider sticky header while scrolling, https://github.com/Expensify/App/issues/36883
+                        style: {
+                            minHeight: 1,
+                            minWidth: 1,
+                            scrollPaddingTop: isFiltered ? 0 : CONST.EMOJI_PICKER_ITEM_HEIGHT,
+                        },
+                    }}
                 />
             </View>
             <EmojiSkinToneList />
