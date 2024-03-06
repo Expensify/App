@@ -141,11 +141,11 @@ const usePanGesture = ({
             if (finalTranslateY > SNAP_POINT && zoomScale.value <= 1) {
                 offsetY.value = withSpring(SNAP_POINT_HIDDEN, SPRING_CONFIG, () => {
                     isSwipingDownToClose.value = false;
-                });
 
-                if (onSwipeDown) {
-                    runOnJS(onSwipeDown)();
-                }
+                    if (onSwipeDown) {
+                        runOnJS(onSwipeDown)();
+                    }
+                });
             } else {
                 // Animated back to the boundary
                 offsetY.value = withSpring(clampedOffset.y, SPRING_CONFIG, () => {
