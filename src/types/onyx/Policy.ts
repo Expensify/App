@@ -165,6 +165,8 @@ type Connection = {
     config: ConnectionConfig;
 };
 
+type AccountingSoftware = 'quickbooksOnline' | 'xero';
+
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
 type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
@@ -310,7 +312,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         chatReportIDAnnounce?: number;
 
         /** All the integration connections attached to the policy */
-        connections?: Record<string, Connection>;
+        connections?: Record<AccountingSoftware, Connection>;
 
         /** Whether the Categories feature is enabled */
         areCategoriesEnabled?: boolean;
