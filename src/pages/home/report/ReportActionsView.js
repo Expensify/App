@@ -68,6 +68,9 @@ const propTypes = {
         authToken: PropTypes.string,
     }),
 
+    /** ID of the oldest reportAction, including reportActions which are not displayed. */
+    oldestReportAction: PropTypes.shape(reportActionPropTypes).isRequired,
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
@@ -177,8 +180,6 @@ function ReportActionsView(props) {
         }
     }, [props.report.pendingFields, didSubscribeToReportTypingEvents, reportID]);
 
-    const oldestReportAction = useMemo(() => _.last(props.reportActions), [props.reportActions]);
-
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
@@ -190,12 +191,12 @@ function ReportActionsView(props) {
         }
 
         // Don't load more chats if we're already at the beginning of the chat history
-        if (!oldestReportAction || oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        if (!props.oldestReportAction || props.oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return;
         }
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
-        Report.getOlderActions(reportID, oldestReportAction.reportActionID);
-    }, [props.isLoadingOlderReportActions, props.network.isOffline, oldestReportAction, reportID]);
+        Report.getOlderActions(reportID, props.oldestReportAction.reportActionID);
+    }, [props.isLoadingOlderReportActions, props.network.isOffline, props.oldestReportAction, reportID]);
 
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
