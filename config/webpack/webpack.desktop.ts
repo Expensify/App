@@ -1,27 +1,30 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+import getCommonConfig from './webpack.common';
+import type {EnvFile} from './webpack.dev';
+
 const path = require('path');
-const _ = require('underscore');
 const webpack = require('webpack');
 
 const desktopDependencies = require('../../desktop/package.json').dependencies;
-const getCommonConfig = require('./webpack.common');
 
 /**
  * Desktop creates 2 configurations in parallel
  * 1. electron-main - the core that serves the app content
  * 2. web - the app content that would be rendered in electron
  * Everything is placed in desktop/dist and ready for packaging
- * @param env
- * @returns
  */
-module.exports = (env) => {
+const getConfig = (env: EnvFile = {}) => {
     const rendererConfig = getCommonConfig({...env, platform: 'desktop'});
     const outputPath = path.resolve(__dirname, '../../desktop/dist');
 
     rendererConfig.name = 'renderer';
-    rendererConfig.output.path = path.join(outputPath, 'www');
+    if (rendererConfig.output) {
+        rendererConfig.output.path = path.join(outputPath, 'www');
+    }
 
     // Expose react-native-config to desktop-main
-    const definePlugin = _.find(rendererConfig.plugins, (plugin) => plugin.constructor === webpack.DefinePlugin);
+    // const definePlugin = _.find(rendererConfig.plugins, (plugin) => plugin.constructor === webpack.DefinePlugin);
+    const definePlugin = rendererConfig.plugins?.find((plugin) => plugin?.constructor === webpack.DefinePlugin);
 
     const mainProcessConfig = {
         mode: 'production',
@@ -38,7 +41,7 @@ module.exports = (env) => {
         },
         resolve: rendererConfig.resolve,
         plugins: [definePlugin],
-        externals: [..._.keys(desktopDependencies), 'fsevents'],
+        externals: [...Object.keys(desktopDependencies), 'fsevents'],
         node: {
             /**
              * Disables webpack processing of __dirname and __filename, so it works like in node
@@ -60,3 +63,5 @@ module.exports = (env) => {
 
     return [mainProcessConfig, rendererConfig];
 };
+
+export default getConfig;
