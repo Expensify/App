@@ -1795,6 +1795,10 @@ export default {
                 subtitle: 'Añade una categoría para organizar tu gasto.',
             },
             genericFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
+            addCategory: 'Añadir categoría',
+            categoryRequiredError: 'Lo nombre de la categoría es obligatorio.',
+            existingCategoryError: 'Ya existe una categoría con este nombre.',
+            invalidCategoryName: 'Lo nombre de la categoría es invalido.',
         },
         moreFeatures: {
             spendSection: {
