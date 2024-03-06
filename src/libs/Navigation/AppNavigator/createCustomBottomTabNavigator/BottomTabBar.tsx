@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import type {RootStackParamList} from '@libs/Navigation/types';
+import type {RootStackParamList, State} from '@libs/Navigation/types';
 import {checkIfWorkspaceSettingsTabHasRBR, getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
 import variables from '@styles/variables';
@@ -39,9 +39,9 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
     const navigation = useNavigation();
 
     useEffect(() => {
-        const navigationState = navigation.getState();
-        const routes = navigationState.routes;
-        const currentRoute = routes[navigationState.index];
+        const navigationState = navigation.getState() as State<RootStackParamList> | undefined;
+        const routes = navigationState?.routes;
+        const currentRoute = routes?.[navigationState?.index ?? 0];
         const bottomTabRoute = getTopmostBottomTabRoute(navigationState);
         if (
             // When we are redirected to the Settings tab from the OldDot, we don't want to call the Welcome.show() method.
