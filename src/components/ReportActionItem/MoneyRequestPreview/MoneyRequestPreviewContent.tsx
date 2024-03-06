@@ -258,7 +258,7 @@ function MoneyRequestPreviewContent({
                                                 >
                                                     {displayAmount}
                                                 </Text>
-                                                {ReportUtils.isSettled(iouReport?.reportID) && !isBillSplit && (
+                                                {ReportUtils.isSettled(iouReport?.reportID) && !isPartialHold && !isBillSplit && (
                                                     <View style={styles.defaultCheckmarkWrapper}>
                                                         <Icon
                                                             src={Expensicons.Checkmark}

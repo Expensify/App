@@ -233,6 +233,7 @@ function ReportScreen({
             reportProp.reportFields,
             reportProp.ownerAccountID,
             reportProp.currency,
+            reportProp.unheldTotal,
             reportProp.participantAccountIDs,
             reportProp.isWaitingOnBankAccount,
             reportProp.iouReportID,
