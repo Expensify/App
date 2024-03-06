@@ -57,7 +57,6 @@ function IOURequestStepDistance({
     const {translate} = useLocalize();
 
     const [optimisticWaypoints, setOptimisticWaypoints] = useState(null);
-    const [hasError, setHasError] = useState(false);
     const waypoints = useMemo(() => optimisticWaypoints || lodashGet(transaction, 'comment.waypoints', {waypoint0: {}, waypoint1: {}}), [optimisticWaypoints, transaction]);
     const waypointsList = _.keys(waypoints);
     const previousWaypoints = usePrevious(waypoints);
@@ -73,6 +72,10 @@ function IOURequestStepDistance({
     const haveValidatedWaypointsChanged = !_.isEqual(previousValidatedWaypoints, validatedWaypoints);
     const isRouteAbsentWithoutErrors = !hasRoute && !hasRouteError;
     const shouldFetchRoute = (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) && !isLoadingRoute && _.size(validatedWaypoints) > 1;
+    const [shouldShowAtLeastTwoDifferentWaypointsError, setShouldShowAtLeastTwoDifferentWaypointsError] = useState(false);
+    const nonEmptyWaypointsCount = useMemo(() => _.filter(_.keys(waypoints), (key) => !_.isEmpty(waypoints[key])).length, [waypoints]);
+    const duplicateWaypointsError = useMemo(() => nonEmptyWaypointsCount >= 2 && _.size(validatedWaypoints) !== nonEmptyWaypointsCount, [nonEmptyWaypointsCount, validatedWaypoints]);
+    const atLeastTwoDifferentWaypointsError = useMemo(() => _.size(validatedWaypoints) < 2, [validatedWaypoints]);
 
     useEffect(() => {
         MapboxToken.init();
@@ -83,7 +86,6 @@ function IOURequestStepDistance({
         if (isOffline || !shouldFetchRoute) {
             return;
         }
-
         Transaction.getRouteForDraft(transactionID, validatedWaypoints);
     }, [shouldFetchRoute, transactionID, validatedWaypoints, isOffline]);
 
@@ -93,6 +95,13 @@ function IOURequestStepDistance({
         }
         scrollViewRef.current.scrollToEnd({animated: true});
     }, [numberOfPreviousWaypoints, numberOfWaypoints]);
+
+    useEffect(() => {
+        if (nonEmptyWaypointsCount >= 2 && (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || isLoading)) {
+            return;
+        }
+        setShouldShowAtLeastTwoDifferentWaypointsError(false);
+    }, [atLeastTwoDifferentWaypointsError, duplicateWaypointsError, hasRouteError, isLoading, isLoadingRoute, nonEmptyWaypointsCount, transaction]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -133,12 +142,10 @@ function IOURequestStepDistance({
         if (hasRouteError) {
             return ErrorUtils.getLatestErrorField(transaction, 'route');
         }
-
-        if (_.keys(waypoints).length > 2 && _.size(validatedWaypoints) !== _.keys(waypoints).length) {
+        if (duplicateWaypointsError) {
             return {0: translate('iou.error.duplicateWaypointsErrorMessage')};
         }
-
-        if (_.size(validatedWaypoints) < 2) {
+        if (atLeastTwoDifferentWaypointsError) {
             return {0: 'iou.error.atLeastTwoDifferentWaypoints'};
         }
     };
@@ -150,27 +157,32 @@ function IOURequestStepDistance({
             }
 
             const newWaypoints = {};
+            let emptyWaypointIndex = -1;
             _.each(data, (waypoint, index) => {
                 newWaypoints[`waypoint${index}`] = lodashGet(waypoints, waypoint, {});
+                // Find waypoint that BECOMES empty after dragging
+                if (_.isEmpty(newWaypoints[`waypoint${index}`]) && !_.isEmpty(lodashGet(waypoints, `waypoint${index}`, {}))) {
+                    emptyWaypointIndex = index;
+                }
             });
 
             setOptimisticWaypoints(newWaypoints);
             // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
-            Transaction.updateWaypoints(transactionID, newWaypoints, true).then(() => {
+            Promise.all([Transaction.removeWaypoint(transaction, emptyWaypointIndex.toString(), true), Transaction.updateWaypoints(transactionID, newWaypoints, true)]).then(() => {
                 setOptimisticWaypoints(null);
             });
         },
-        [transactionID, waypoints, waypointsList],
+        [transactionID, transaction, waypoints, waypointsList],
     );
 
     const submitWaypoints = useCallback(() => {
         // If there is any error or loading state, don't let user go to next page.
-        if (_.size(validatedWaypoints) < 2 || (_.keys(waypoints).length > 2 && _.size(validatedWaypoints) !== _.keys(waypoints).length) || hasRouteError || isLoadingRoute || isLoading) {
-            setHasError(true);
+        if (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || isLoading) {
+            setShouldShowAtLeastTwoDifferentWaypointsError(true);
             return;
         }
         navigateToNextStep();
-    }, [setHasError, waypoints, hasRouteError, isLoadingRoute, isLoading, validatedWaypoints, navigateToNextStep]);
+    }, [atLeastTwoDifferentWaypointsError, duplicateWaypointsError, hasRouteError, isLoadingRoute, isLoading, navigateToNextStep]);
 
     return (
         <StepScreenWrapper
@@ -211,7 +223,7 @@ function IOURequestStepDistance({
                 </View>
                 <View style={[styles.w100, styles.pt2]}>
                     {/* Show error message if there is route error or there are less than 2 routes and user has tried submitting, */}
-                    {((hasError && _.size(validatedWaypoints) < 2) || (_.keys(waypoints).length > 2 && _.size(validatedWaypoints) !== _.keys(waypoints).length) || hasRouteError) && (
+                    {((shouldShowAtLeastTwoDifferentWaypointsError && atLeastTwoDifferentWaypointsError) || duplicateWaypointsError || hasRouteError) && (
                         <DotIndicatorMessage
                             style={[styles.mh4, styles.mv3]}
                             messages={getError()}

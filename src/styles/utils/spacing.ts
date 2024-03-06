@@ -179,6 +179,10 @@ export default {
         marginLeft: 40,
     },
 
+    ml11: {
+        marginLeft: 44,
+    },
+
     ml18: {
         marginLeft: 72,
     },
@@ -237,6 +241,10 @@ export default {
 
     mtAuto: {
         marginTop: 'auto',
+    },
+
+    mtn1: {
+        marginTop: -4,
     },
 
     mtn2: {
@@ -309,6 +317,14 @@ export default {
 
     mbn1: {
         marginBottom: -4,
+    },
+
+    mbn3: {
+        marginBottom: -12,
+    },
+
+    mbn5: {
+        marginBottom: -20,
     },
 
     p0: {
@@ -479,6 +495,10 @@ export default {
 
     pl3: {
         paddingLeft: 12,
+    },
+
+    pl4: {
+        paddingLeft: 16,
     },
 
     pl5: {

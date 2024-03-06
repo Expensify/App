@@ -3,9 +3,11 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, PolicyMembers, PolicyTagList, PolicyTags} from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import Navigation from './Navigation/Navigation';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 type UnitRate = {rate: number};
@@ -179,7 +181,9 @@ function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<PolicyTagLi
         return [];
     }
 
-    return Object.values(policyTagList).filter((policyTagListValue) => policyTagListValue !== null);
+    return Object.values(policyTagList)
+        .filter((policyTagListValue) => policyTagListValue !== null)
+        .sort((tagA, tagB) => tagA.orderWeight - tagB.orderWeight);
 }
 
 /**
@@ -250,6 +254,13 @@ function getPolicyMembersByIdWithoutCurrentUser(policyMembers: OnyxCollection<Po
         : [];
 }
 
+function goBackFromInvalidPolicy() {
+    Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
+
+    // Needed when workspace with given policyID does not exist
+    Navigation.navigateWithSwitchPolicyID({route: ROUTES.ALL_SETTINGS});
+}
+
 export {
     getActivePolicies,
     hasPolicyMemberError,
@@ -279,6 +290,7 @@ export {
     extractPolicyIDFromPath,
     getPathWithoutPolicyID,
     getPolicyMembersByIdWithoutCurrentUser,
+    goBackFromInvalidPolicy,
 };
 
 export type {MemberEmailsToAccountIDs};

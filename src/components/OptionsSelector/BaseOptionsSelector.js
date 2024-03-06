@@ -125,8 +125,11 @@ class BaseOptionsSelector extends Component {
             // Unregister the shortcut before registering a new one to avoid lingering shortcut listener
             this.unSubscribeFromKeyboardShortcut();
             if (this.props.isFocused) {
+                this.subscribeActiveElement();
                 this.subscribeToEnterShortcut();
                 this.subscribeToCtrlEnterShortcut();
+            } else {
+                this.unSubscribeActiveElement();
             }
         }
 
@@ -200,6 +203,19 @@ class BaseOptionsSelector extends Component {
         this.unSubscribeFromKeyboardShortcut();
     }
 
+    handleFocusIn() {
+        const activeElement = document.activeElement;
+        this.setState({
+            disableEnterShortCut: activeElement && this.accessibilityRoles.includes(activeElement.role) && activeElement.role !== CONST.ROLE.PRESENTATION,
+        });
+    }
+
+    handleFocusOut() {
+        this.setState({
+            disableEnterShortCut: false,
+        });
+    }
+
     /**
      * @param {Array<Object>} allOptions
      * @returns {Number}
@@ -266,19 +282,6 @@ class BaseOptionsSelector extends Component {
         this.props.onChangeText(value);
     }
 
-    handleFocusIn() {
-        const activeElement = document.activeElement;
-        this.setState({
-            disableEnterShortCut: activeElement && this.accessibilityRoles.includes(activeElement.role) && activeElement.role !== CONST.ROLE.PRESENTATION,
-        });
-    }
-
-    handleFocusOut() {
-        this.setState({
-            disableEnterShortCut: false,
-        });
-    }
-
     subscribeActiveElement() {
         if (!this.isWebOrDesktop) {
             return;
@@ -287,6 +290,7 @@ class BaseOptionsSelector extends Component {
         document.addEventListener('focusout', this.handleFocusOut);
     }
 
+    // eslint-disable-next-line react/no-unused-class-component-methods
     unSubscribeActiveElement() {
         if (!this.isWebOrDesktop) {
             return;
@@ -366,6 +370,7 @@ class BaseOptionsSelector extends Component {
         }
     }
 
+    // eslint-disable-next-line react/no-unused-class-component-methods
     focus() {
         if (!this.textInput) {
             return;
