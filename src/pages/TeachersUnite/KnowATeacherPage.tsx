@@ -87,7 +87,7 @@ function KnowATeacherPage(props: KnowATeacherPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('teachersUnitePage.iKnowATeacher')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_SAVE_THE_WORLD)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <FormProvider
                 enabledWhenOffline
