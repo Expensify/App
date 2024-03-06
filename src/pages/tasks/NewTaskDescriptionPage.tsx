@@ -26,7 +26,7 @@ import INPUT_IDS from '@src/types/form/NewTaskForm';
 import type {Task} from '@src/types/onyx';
 
 type NewTaskDescriptionPageOnyxProps = {
-    /** Grab the Share title of the Task */
+    /** Task Creation Data */
     task: OnyxEntry<Task>;
 };
 

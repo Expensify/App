@@ -24,7 +24,7 @@ import INPUT_IDS from '@src/types/form/NewTaskForm';
 import type {Task} from '@src/types/onyx';
 
 type NewTaskTitlePageOnyxProps = {
-    /** Grab the Share title of the Task */
+    /** Task Creation Data */
     task: OnyxEntry<Task>;
 };
 type NewTaskTitlePageProps = NewTaskTitlePageOnyxProps & StackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.TITLE>;
