@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -24,6 +24,7 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
@@ -53,11 +54,17 @@ function WorkspaceMemberDetailsPage({personalDetails, route}: WorkspaceMemberDet
         setRemoveMemberConfirmModalVisible(true);
     };
 
-    const removeUser = () => {
+    const removeUser = useCallback(() => {
         Policy.removeMembers([accountID], route.params.policyID);
         setRemoveMemberConfirmModalVisible(false);
         Navigation.goBack(backTo);
-    };
+    }, [accountID, backTo, route.params.policyID]);
+
+    const redirectToProfile = useCallback(() => {
+        Navigation.navigate(ROUTES.PROFILE.getRoute(accountID));
+    }, [accountID]);
+
+    const openRoleSelectionModal = () => {};
 
     return (
         <ScreenWrapper testID={WorkspaceMemberDetailsPage.displayName}>
@@ -109,14 +116,14 @@ function WorkspaceMemberDetailsPage({personalDetails, route}: WorkspaceMemberDet
                             title={translate('common.member')}
                             description={translate('common.role')}
                             shouldShowRightIcon
-                            onPress={() => {}}
+                            onPress={openRoleSelectionModal}
                         />
                         <MenuItemWithTopDescription
                             title={translate('common.profile')}
                             shouldShowRightIcon
                             icon={Expensicons.Info}
                             iconFill={theme.icon}
-                            onPress={() => {}}
+                            onPress={redirectToProfile}
                         />
                     </View>
                 </View>
