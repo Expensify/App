@@ -35,7 +35,7 @@ type WorkspacePolicyOnyxProps = {
 
 type WorkspaceMemberDetailsPageProps = WithPolicyAndFullscreenLoadingProps & WorkspacePolicyOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS>;
 
-function WorkspaceMemberDetailsPage({personalDetails, policyMembers, route}: WorkspaceMemberDetailsPageProps) {
+function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, route}: WorkspaceMemberDetailsPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -74,6 +74,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, route}: Wor
             <FullPageNotFoundView>
                 <HeaderWithBackButton
                     title={displayName}
+                    subtitle={policy?.name}
                     onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
