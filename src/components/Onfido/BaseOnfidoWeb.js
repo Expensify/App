@@ -15,7 +15,6 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
     OnfidoSDK.init({
         token: sdkToken,
         containerId: CONST.ONFIDO.CONTAINER_ID,
-        useMemoryHistory: true,
         customUI: {
             fontFamilyTitle: `${FontUtils.fontFamily.platform.EXP_NEUE}, -apple-system, serif`,
             fontFamilySubtitle: `${FontUtils.fontFamily.platform.EXP_NEUE}, -apple-system, serif`,
@@ -88,6 +87,10 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
         onError: (error) => {
             const errorMessage = lodashGet(error, 'message', CONST.ERROR.UNKNOWN_ERROR);
             const errorType = lodashGet(error, 'type');
+            if (errorType === CONST.WALLET.ERROR.ONFIDO_USER_CONSENT_DENIED) {
+                onUserExit();
+                return;
+            }
             Log.hmmm('Onfido error', {errorType, errorMessage});
             onError(errorMessage);
         },

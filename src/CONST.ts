@@ -1157,6 +1157,7 @@ const CONST = {
             MISSING_FIELD: 'Missing required additional details fields',
             WRONG_ANSWERS: 'Wrong answers',
             ONFIDO_FIXABLE_ERROR: 'Onfido returned a fixable error',
+            ONFIDO_USER_CONSENT_DENIED: 'user_consent_denied',
 
             // KBA stands for Knowledge Based Answers (requiring us to show Idology questions)
             KBA_NEEDED: 'KBA needed',
