@@ -47,8 +47,7 @@ function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) 
             } else if (categoryName === CONST.INVALID_CATEGORY_NAME) {
                 errors.categoryName = 'workspace.categories.invalidCategoryName';
             } else if ([...categoryName].length > CONST.CATEGORY_NAME_LIMIT) {
-                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
-                // code units.
+                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
                 ErrorUtils.addErrorMessage(errors, 'categoryName', ['common.error.characterLimitExceedCounter', {length: [...categoryName].length, limit: CONST.CATEGORY_NAME_LIMIT}]);
             }
 
