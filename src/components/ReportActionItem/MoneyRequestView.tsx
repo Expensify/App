@@ -6,6 +6,7 @@ import ConfirmedRoute from '@components/ConfirmedRoute';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ReceiptAudit from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import SpacerView from '@components/SpacerView';
 import Switch from '@components/Switch';
@@ -285,6 +286,9 @@ function MoneyRequestView({
                         }
                     />
                 )}
+
+                <ReceiptAudit notes={['Amount greater than scanner total', 'Date differs from scanned date']} />
+
                 {canUseViolations && <ViolationMessages violations={getViolationsForField('receipt')} />}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
                     <MenuItemWithTopDescription

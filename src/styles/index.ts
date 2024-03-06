@@ -4197,6 +4197,19 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 1,
         },
 
+        receiptAuditTitleContainer: {
+            flexDirection: 'row',
+            gap: 4,
+            padding: 4,
+            paddingHorizontal: 8,
+            height: variables.inputHeightSmall,
+            borderRadius: variables.componentBorderRadiusSmall,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: theme.border,
+        },
+
         mapViewContainer: {
             ...flex.flex1,
             minHeight: 300,
