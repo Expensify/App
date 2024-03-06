@@ -18,6 +18,7 @@ import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
@@ -68,24 +69,28 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
 
     const categoryList = useMemo<PolicyForList[]>(
         () =>
-            Object.values(policyCategories ?? {}).map((value) => ({
-                value: value.name,
-                text: value.name,
-                keyForList: value.name,
-                isSelected: !!selectedCategories[value.name],
-                pendingAction: value.pendingAction,
-                rightElement: (
-                    <View style={styles.flexRow}>
-                        <Text style={[styles.disabledText, styles.alignSelfCenter]}>{value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}</Text>
-                        <View style={[styles.p1, styles.pl2]}>
-                            <Icon
-                                src={Expensicons.ArrowRight}
-                                fill={theme.icon}
-                            />
+            Object.values(policyCategories ?? {})
+                .sort((a, b) => localeCompare(a.name, b.name))
+                .map((value) => ({
+                    value: value.name,
+                    text: value.name,
+                    keyForList: value.name,
+                    isSelected: !!selectedCategories[value.name],
+                    pendingAction: value.pendingAction,
+                    rightElement: (
+                        <View style={styles.flexRow}>
+                            <Text style={[styles.disabledText, styles.alignSelfCenter]}>
+                                {value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}
+                            </Text>
+                            <View style={[styles.p1, styles.pl2]}>
+                                <Icon
+                                    src={Expensicons.ArrowRight}
+                                    fill={theme.icon}
+                                />
+                            </View>
                         </View>
-                    </View>
-                ),
-            })),
+                    ),
+                })),
         [policyCategories, selectedCategories, styles.alignSelfCenter, styles.disabledText, styles.flexRow, styles.p1, styles.pl2, theme.icon, translate],
     );
 
