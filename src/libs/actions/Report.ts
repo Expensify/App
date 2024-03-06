@@ -133,7 +133,7 @@ Onyx.connect({
         const sortedActions = ReportActionsUtils.getSortedReportActions(Object.values(actions));
 
         oldestReportActions[reportID] = sortedActions[0].reportActionID;
-        newestReportActions[reportID] = sortedActions.at(-1).reportActionID;
+        newestReportActions[reportID] = sortedActions[sortedActions.length - 1].reportActionID;
     },
 });
 
