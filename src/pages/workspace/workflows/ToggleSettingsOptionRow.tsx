@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -27,20 +27,11 @@ type ToggleSettingOptionRowProps = {
 const ICON_SIZE = 48;
 
 function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, isActive, pendingAction}: ToggleSettingOptionRowProps) {
-    const [isEnabled, setIsEnabled] = useState(isActive);
     const styles = useThemeStyles();
 
     const toggleSwitch = () => {
-        setIsEnabled((prev) => {
-            onToggle(!prev);
-
-            return !prev;
-        });
+        onToggle(!isActive);
     };
-
-    useEffect(() => {
-        setIsEnabled(isActive);
-    }, [isActive]);
 
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
@@ -80,10 +71,10 @@ function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, 
                     <Switch
                         accessibilityLabel={subtitle}
                         onToggle={toggleSwitch}
-                        isOn={isEnabled}
+                        isOn={isActive}
                     />
                 </View>
-                {isEnabled && subMenuItems}
+                {isActive && subMenuItems}
             </View>
         </OfflineWithFeedback>
     );
