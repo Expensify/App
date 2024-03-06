@@ -33,9 +33,12 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
     const {translate} = useLocalize();
     const policyTagName = useMemo(() => PolicyUtils.getTagLists(policyTags)[0]?.name ?? '', [policyTags]);
 
-    const updateWorkspaceRequiresTag = useCallback((value: boolean) => {
-        Policy.setPolicyRequiresTag(route.params.policyID, value);
-    }, []);
+    const updateWorkspaceRequiresTag = useCallback(
+        (value: boolean) => {
+            Policy.setPolicyRequiresTag(route.params.policyID, value);
+        },
+        [route.params.policyID],
+    );
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>

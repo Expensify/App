@@ -43,10 +43,13 @@ function WorkspaceEditTagsPage({route, policyTags}: WorkspaceEditTagsPageProps) 
     const taglistName = useMemo(() => PolicyUtils.getTagLists(policyTags)[0].name, [policyTags]);
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const updateTaglistName = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
-        Policy.renamePolicyTaglist(route.params.policyID, {oldName: taglistName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]}, policyTags);
-        Navigation.goBack();
-    }, []);
+    const updateTaglistName = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
+            Policy.renamePolicyTaglist(route.params.policyID, {oldName: taglistName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]}, policyTags);
+            Navigation.goBack();
+        },
+        [policyTags, route.params.policyID, taglistName],
+    );
 
     return (
         <ScreenWrapper
