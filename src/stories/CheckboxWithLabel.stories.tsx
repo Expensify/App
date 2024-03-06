@@ -18,9 +18,9 @@ const story: ComponentMeta<typeof CheckboxWithLabel> = {
     component: CheckboxWithLabel,
 };
 
-function Template(args: CheckboxWithLabelProps) {
+function Template(props: CheckboxWithLabelProps) {
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <CheckboxWithLabel {...args} />;
+    return <CheckboxWithLabel {...props} />;
 }
 
 // Arguments can be passed to the component by binding

@@ -43,10 +43,10 @@ export default {
     },
 };
 
-function Template(args: OptionRowProps) {
+function Template(props: OptionRowProps) {
     return (
         <OnyxProvider>
-            <OptionRow {...args} />
+            <OptionRow {...props} />
         </OnyxProvider>
     );
 }

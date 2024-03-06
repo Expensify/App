@@ -17,9 +17,9 @@ const story: ComponentMeta<typeof MenuItem> = {
     component: MenuItem,
 };
 
-function Template(args: MenuItemProps) {
+function Template(props: MenuItemProps) {
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <MenuItem {...args} />;
+    return <MenuItem {...props} />;
 }
 
 // Arguments can be passed to the component by binding

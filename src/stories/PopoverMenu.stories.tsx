@@ -20,7 +20,7 @@ const story: ComponentMeta<typeof PopoverMenu> = {
     component: PopoverMenu,
 };
 
-function Template(args: PopoverMenuProps) {
+function Template(props: PopoverMenuProps) {
     const [isVisible, setIsVisible] = React.useState(false);
     const toggleVisibility = () => setIsVisible(!isVisible);
     return (
@@ -34,7 +34,7 @@ function Template(args: PopoverMenuProps) {
             <SafeAreaProvider>
                 <PopoverMenu
                     // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...args}
+                    {...props}
                     isVisible={isVisible}
                     onClose={toggleVisibility}
                     onItemSelected={toggleVisibility}
