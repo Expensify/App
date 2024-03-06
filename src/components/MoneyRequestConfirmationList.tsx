@@ -375,7 +375,7 @@ function MoneyRequestConfirmationList({
         setDidConfirm(false);
     }
 
-    const splitOrRequestOptions: Array<Partial<DropdownOption<string>>> = useMemo(() => {
+    const splitOrRequestOptions: Array<DropdownOption<string>> = useMemo(() => {
         let text;
         if (isSplitBill && iouAmount === 0) {
             text = translate('iou.split');
@@ -594,7 +594,8 @@ function MoneyRequestConfirmationList({
             <ButtonWithDropdownMenu
                 pressOnEnter
                 isDisabled={shouldDisableButton}
-                onPress={(_event, value) => confirm(value)}
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                onPress={(_event, value) => confirm(value as PaymentMethodType)}
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                 enterKeyEventListenerPriority={1}
@@ -631,6 +632,7 @@ function MoneyRequestConfirmationList({
     const {image: receiptImage, thumbnail: receiptThumbnail} =
         receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction ?? null, receiptPath, receiptFilename) : ({} as ReceiptUtils.ThumbnailAndImageURI);
     return (
+        // @ts-expect-error This component is deprecated and will not be migrated to TypeScript (context: https://expensify.slack.com/archives/C01GTK53T8Q/p1709232289899589?thread_ts=1709156803.359359&cid=C01GTK53T8Q)
         <OptionsSelector
             sections={optionSelectorSections}
             onSelectRow={canModifyParticipants ? selectParticipant : navigateToReportOrUserDetail}
@@ -713,6 +715,7 @@ function MoneyRequestConfirmationList({
                 title={iouComment}
                 description={translate('common.description')}
                 onPress={() => {
+                    console.log(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams());
                     Navigation.navigate(
                         ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
                     );
@@ -895,27 +898,26 @@ function MoneyRequestConfirmationList({
 MoneyRequestConfirmationList.displayName = 'MoneyRequestConfirmationList';
 
 export default withOnyx<MoneyRequestConfirmationListProps, MoneyRequestConfirmationListOnyxProps>({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-        policyCategories: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-        },
-        policyTags: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-        },
-        mileageRate: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            selector: DistanceRequestUtils.getDefaultMileageRate,
-        },
-        splitTransactionDraft: {
-            key: ({transactionID}) => `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`,
-        },
-        policy: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-        },
-        iou: {
-            key: ONYXKEYS.IOU,
-        },
-    }),
-)(MoneyRequestConfirmationList);
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+    policyCategories: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+    },
+    policyTags: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+    },
+    mileageRate: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        selector: DistanceRequestUtils.getDefaultMileageRate,
+    },
+    splitTransactionDraft: {
+        key: ({transactionID}) => `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`,
+    },
+    policy: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+    },
+    iou: {
+        key: ONYXKEYS.IOU,
+    },
+})(MoneyRequestConfirmationList);
