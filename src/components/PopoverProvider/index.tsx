@@ -11,7 +11,7 @@ const PopoverContext = createContext<PopoverContextValue>({
 });
 
 function elementContains(ref: RefObject<View | HTMLElement> | undefined, target: EventTarget | null) {
-    if (ref?.current && 'contains' in ref?.current && ref?.current?.contains(target as Node)) {
+    if (ref?.current && 'contains' in ref.current && ref?.current?.contains(target as Node)) {
         return true;
     }
     return false;

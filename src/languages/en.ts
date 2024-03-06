@@ -337,9 +337,10 @@ export default {
         sizeExceeded: 'Attachment size is larger than 24 MB limit.',
         attachmentTooSmall: 'Attachment too small',
         sizeNotMet: 'Attachment size must be greater than 240 bytes.',
-        wrongFileType: 'Attachment is the wrong type',
+        wrongFileType: 'Invalid file type',
         notAllowedExtension: 'This file type is not allowed',
         folderNotAllowedMessage: 'Uploading a folder is not allowed. Try a different file.',
+        protectedPDFNotSupported: 'Password-protected PDF is not supported',
     },
     avatarCropModal: {
         title: 'Edit photo',
@@ -492,8 +493,10 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartOne: 'Collaboration between ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
+        beginningOfChatHistorySelfDM: 'This is your personal space. Use it for notes, tasks, drafts, and reminders.',
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
+        yourSpace: 'Your space',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nYou can also use the + button to ${additionalText}, or assign a task!`,
         iouTypes: {
@@ -604,8 +607,10 @@ export default {
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
         receiptScanningFailed: 'Receipt scanning failed. Enter the details manually.',
         transactionPendingText: 'It takes a few days from the date the card was used for the transaction to post.',
-        requestCount: ({count, scanningReceipts = 0}: RequestCountParams) =>
-            `${count} ${Str.pluralize('request', 'requests', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}`,
+        requestCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) =>
+            `${count} ${Str.pluralize('request', 'requests', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${
+                pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''
+            }`,
         deleteRequest: 'Delete request',
         deleteConfirmation: 'Are you sure that you want to delete this request?',
         settledExpensify: 'Paid',
@@ -632,7 +637,7 @@ export default {
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
         adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager} cancelled the ${amount} payment.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
-            `Canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
+            `canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
         paidElsewhereWithAmount: ({payer, amount}: PaidElsewhereWithAmountParams) => `${payer ? `${payer} ` : ''}paid ${amount} elsewhere`,
@@ -862,6 +867,7 @@ export default {
         },
         security: 'Security',
         signOut: 'Sign out',
+        restoreStashed: 'Restore stashed login',
         signOutConfirmationText: "You'll lose any offline changes if you sign-out.",
         versionLetter: 'v',
         readTheTermsAndPrivacy: {
@@ -1035,18 +1041,32 @@ export default {
         delaySubmissionTitle: 'Delay submissions',
         delaySubmissionDescription: 'Expenses are shared right away for better spend visibility. Set a slower cadence if needed.',
         submissionFrequency: 'Submission frequency',
-        weeklyFrequency: 'Weekly',
-        monthlyFrequency: 'Monthly',
-        twiceAMonthFrequency: 'Twice a month',
-        byTripFrequency: 'By trip',
-        manuallyFrequency: 'Manually',
-        dailyFrequency: 'Daily',
+        submissionFrequencyDateOfMonth: 'Date of month',
         addApprovalsTitle: 'Add approvals',
         approver: 'Approver',
         connectBankAccount: 'Connect bank account',
         addApprovalsDescription: 'Require additional approval before authorizing a payment.',
         makeOrTrackPaymentsTitle: 'Make or track payments',
         makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify, or simply track payments made elsewhere.',
+        editor: {
+            submissionFrequency: 'Choose how long Expensify should wait before sharing error-free spend.',
+        },
+        frequencies: {
+            weekly: 'Weekly',
+            monthly: 'Monthly',
+            twiceAMonth: 'Twice a month',
+            byTrip: 'By trip',
+            manually: 'Manually',
+            daily: 'Daily',
+            lastDayOfMonth: 'Last day of the month',
+            lastBusinessDayOfMonth: 'Last business day of the month',
+            ordinals: {
+                one: 'st',
+                two: 'nd',
+                few: 'rd',
+                other: 'th',
+            },
+        },
     },
     reportFraudPage: {
         title: 'Report virtual card fraud',
@@ -1290,7 +1310,8 @@ export default {
     },
     focusModeUpdateModal: {
         title: 'Welcome to #focus mode!',
-        prompt: "Read chats will be hidden, unless they have a green dot, which means there's an action you need to take on them. You can change this in your account settings ",
+        prompt: "Stay on top of things by only seeing unread chats or chats that need your attention. Don't worry, you can change this at any point in ",
+        settings: 'settings',
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'The chat you are looking for cannot be found.',
@@ -1710,6 +1731,7 @@ export default {
             settings: 'Settings',
             reimburse: 'Reimbursements',
             categories: 'Categories',
+            tags: 'Tags',
             bills: 'Bills',
             invoices: 'Invoices',
             travel: 'Travel',
@@ -1739,10 +1761,23 @@ export default {
             collect: 'Collect',
         },
         categories: {
+            categoryName: 'Category name',
+            requiresCategory: 'Members must categorize all spend',
+            enableCategory: 'Enable category',
             subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
             emptyCategories: {
                 title: "You haven't created any categories",
                 subtitle: 'Add a category to organize your spend.',
+            },
+            genericFailureMessage: 'An error occurred while updating the category, please try again.',
+        },
+        tags: {
+            requiresTag: 'Members must tag all spend',
+            enableTag: 'Enable tag',
+            subtitle: 'Tags add more detailed ways to classify costs.',
+            emptyTags: {
+                title: "You haven't created any tags",
+                subtitle: 'Add a tag to track projects, locations, departments, and more.',
             },
         },
         emptyWorkspace: {
@@ -1768,9 +1803,12 @@ export default {
         },
         people: {
             genericFailureMessage: 'An error occurred removing a user from the workspace, please try again.',
-            removeMembersPrompt: 'Are you sure you want to remove the selected members from your workspace?',
+            removeMembersPrompt: 'Are you sure you want to remove these members?',
             removeMembersTitle: 'Remove members',
+            makeMember: 'Make member',
+            makeAdmin: 'Make admin',
             selectAll: 'Select all',
+            selected: ({selectedNumber}) => `${selectedNumber} selected`,
             error: {
                 genericAdd: 'There was a problem adding this workspace member.',
                 cannotRemove: 'You cannot remove yourself or the workspace owner.',
@@ -2169,7 +2207,7 @@ export default {
         reply: 'Reply',
         from: 'From',
         in: 'in',
-        parentNavigationSummary: ({rootReportName, workspaceName}: ParentNavigationSummaryParams) => `From ${rootReportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
+        parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `From ${reportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
     },
     qrCodes: {
         copy: 'Copy URL',
@@ -2236,7 +2274,6 @@ export default {
         address: 'Address',
         waypointDescription: {
             start: 'Start',
-            finish: 'Finish',
             stop: 'Stop',
         },
         mapPending: {

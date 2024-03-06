@@ -12,6 +12,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
+import {getCleanedTagName} from './PolicyUtils';
 import type {OptimisticIOUReportAction} from './ReportUtils';
 
 let allTransactions: OnyxCollection<Transaction> = {};
@@ -166,7 +167,9 @@ function isCreatedMissing(transaction: Transaction) {
 function areRequiredFieldsEmpty(transaction: Transaction): boolean {
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
     const isFromExpenseReport = parentReport?.type === CONST.REPORT.TYPE.EXPENSE;
-    return (isFromExpenseReport && isMerchantMissing(transaction)) || isAmountMissing(transaction) || isCreatedMissing(transaction);
+    const isSplitPolicyExpenseChat = !!transaction.comment?.splits?.some((participant) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`]?.isOwnPolicyExpenseChat);
+    const isMerchantRequired = isFromExpenseReport || isSplitPolicyExpenseChat;
+    return (isMerchantRequired && isMerchantMissing(transaction)) || isAmountMissing(transaction) || isCreatedMissing(transaction);
 }
 
 /**
@@ -409,7 +412,7 @@ function getTag(transaction: OnyxEntry<Transaction>, tagIndex?: number): string 
 }
 
 function getTagForDisplay(transaction: OnyxEntry<Transaction>, tagIndex?: number): string {
-    return getTag(transaction, tagIndex).replace(/[\\\\]:/g, ':');
+    return getCleanedTagName(getTag(transaction, tagIndex));
 }
 
 /**

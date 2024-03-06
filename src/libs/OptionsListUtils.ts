@@ -61,6 +61,18 @@ type Tag = {
 
 type Option = Partial<ReportUtils.OptionData>;
 
+/**
+ * A narrowed version of `Option` is used when we have a guarantee that given values exist.
+ */
+type OptionTree = {
+    text: string;
+    keyForList: string;
+    searchText: string;
+    tooltipText: string;
+    isDisabled: boolean;
+    isSelected: boolean;
+} & Option;
+
 type PayeePersonalDetails = {
     text: string;
     alternateText: string;
@@ -71,11 +83,18 @@ type PayeePersonalDetails = {
     keyForList: string;
 };
 
-type CategorySection = {
+type CategorySectionBase = {
     title: string | undefined;
     shouldShow: boolean;
     indexOffset: number;
+};
+
+type CategorySection = CategorySectionBase & {
     data: Option[];
+};
+
+type CategoryTreeSection = CategorySectionBase & {
+    data: OptionTree[];
 };
 
 type Category = {
@@ -95,6 +114,7 @@ type GetOptionsConfig = {
     includeMultipleParticipantReports?: boolean;
     includePersonalDetails?: boolean;
     includeRecentReports?: boolean;
+    includeSelfDM?: boolean;
     sortByReportTypeInSearch?: boolean;
     searchInputValue?: string;
     showChatPreviewLine?: boolean;
@@ -142,7 +162,7 @@ type GetOptions = {
     personalDetails: ReportUtils.OptionData[];
     userToInvite: ReportUtils.OptionData | null;
     currentUserOption: ReportUtils.OptionData | null | undefined;
-    categoryOptions: CategorySection[];
+    categoryOptions: CategoryTreeSection[];
     tagOptions: CategorySection[];
     taxRatesOptions: CategorySection[];
 };
@@ -259,17 +279,6 @@ Onyx.connect({
             }, {});
     },
 });
-
-/**
- * Adds expensify SMS domain (@expensify.sms) if login is a phone number and if it's not included yet
- */
-function addSMSDomainIfPhoneNumber(login: string): string {
-    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(login);
-    if (parsedPhoneNumber.possible && !Str.isValidEmail(login)) {
-        return parsedPhoneNumber.number?.e164 + CONST.SMS.DOMAIN;
-    }
-    return login;
-}
 
 /**
  * @param defaultValues {login: accountID} In workspace invite page, when new user is added we pass available data to opt in
@@ -472,7 +481,7 @@ function getSearchText(
 /**
  * Get an object of error messages keyed by microtime by combining all error objects related to the report.
  */
-function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxCommon.Errors {
+function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>, transactions: OnyxCollection<Transaction> = allTransactions): OnyxCommon.Errors {
     const reportErrors = report?.errors ?? {};
     const reportErrorFields = report?.errorFields ?? {};
     const reportActionErrors: OnyxCommon.ErrorFields = Object.values(reportActions ?? {}).reduce(
@@ -484,7 +493,7 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
 
     if (parentReportAction?.actorAccountID === currentUserAccountID && ReportActionUtils.isTransactionThread(parentReportAction)) {
         const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage?.IOUTransactionID : null;
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (TransactionUtils.hasMissingSmartscanFields(transaction ?? null) && !ReportUtils.isSettled(transaction?.reportID)) {
             reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage');
         }
@@ -584,6 +593,8 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = lastReportAction?.message?.[0].text ?? '';
     } else if (ReportActionUtils.isCreatedTaskReportAction(lastReportAction)) {
         lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
+    } else if (ReportActionUtils.isApprovedOrSubmittedReportAction(lastReportAction)) {
+        lastMessageTextFromReport = ReportActionUtils.getReportActionMessageText(lastReportAction);
     }
 
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
@@ -667,6 +678,8 @@ function createOption(
         result.tooltipText = ReportUtils.getReportParticipantsTitle(report.visibleChatMemberAccountIDs ?? []);
         result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
         result.policyID = report.policyID;
+        result.isSelfDM = ReportUtils.isSelfDM(report);
+
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
         subtitle = ReportUtils.getChatRoomSubtitle(report);
 
@@ -779,7 +792,7 @@ function isCurrentUser(userDetails: PersonalDetails): boolean {
     }
 
     // If user login is a mobile number, append sms domain if not appended already.
-    const userDetailsLogin = addSMSDomainIfPhoneNumber(userDetails.login ?? '');
+    const userDetailsLogin = PhoneNumber.addSMSDomainIfPhoneNumber(userDetails.login ?? '');
 
     if (currentUserLogin?.toLowerCase() === userDetailsLogin.toLowerCase()) {
         return true;
@@ -794,6 +807,11 @@ function isCurrentUser(userDetails: PersonalDetails): boolean {
  */
 function getEnabledCategoriesCount(options: PolicyCategories): number {
     return Object.values(options).filter((option) => option.enabled).length;
+}
+
+function getSearchValueForPhoneOrEmail(searchTerm: string) {
+    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchTerm)));
+    return parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchTerm.toLowerCase();
 }
 
 /**
@@ -890,8 +908,8 @@ function sortTags(tags: Record<string, Tag> | Tag[]) {
  * @param options[].name - a name of an option
  * @param [isOneLine] - a flag to determine if text should be one line
  */
-function getCategoryOptionTree(options: Record<string, Category> | Category[], isOneLine = false): Option[] {
-    const optionCollection = new Map<string, Option>();
+function getCategoryOptionTree(options: Record<string, Category> | Category[], isOneLine = false): OptionTree[] {
+    const optionCollection = new Map<string, OptionTree>();
     Object.values(options).forEach((option) => {
         if (isOneLine) {
             if (optionCollection.has(option.name)) {
@@ -942,11 +960,11 @@ function getCategoryListSections(
     selectedOptions: Category[],
     searchInputValue: string,
     maxRecentReportsToShow: number,
-): CategorySection[] {
+): CategoryTreeSection[] {
     const sortedCategories = sortCategories(categories);
     const enabledCategories = Object.values(sortedCategories).filter((category) => category.enabled);
 
-    const categorySections: CategorySection[] = [];
+    const categorySections: CategoryTreeSection[] = [];
     const numberOfCategories = enabledCategories.length;
 
     let indexOffset = 0;
@@ -1355,6 +1373,7 @@ function getOptions(
         transactionViolations = {},
         includeTaxRates,
         taxRates,
+        includeSelfDM = false,
     }: GetOptionsConfig,
 ): GetOptions {
     if (includeCategories) {
@@ -1431,8 +1450,8 @@ function getOptions(
             policies,
             doesReportHaveViolations,
             isInGSDMode: false,
-
             excludeEmptyChats: false,
+            includeSelfDM,
         });
     });
 
@@ -1459,7 +1478,9 @@ function getOptions(
         const isTaskReport = ReportUtils.isTaskReport(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-        const accountIDs = report.visibleChatMemberAccountIDs ?? [];
+        const isSelfDM = ReportUtils.isSelfDM(report);
+        // Currently, currentUser is not included in visibleChatMemberAccountIDs, so for selfDM we need to add the currentUser as participants.
+        const accountIDs = isSelfDM ? [currentUserAccountID ?? 0] : report.visibleChatMemberAccountIDs ?? [];
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
             return;
@@ -1467,6 +1488,10 @@ function getOptions(
 
         // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to workspace chats only.
         if (!includeP2P && !isPolicyExpenseChat) {
+            return;
+        }
+
+        if (isSelfDM && !includeSelfDM) {
             return;
         }
 
@@ -1619,7 +1644,7 @@ function getOptions(
     const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
     const noOptionsMatchExactly = !personalDetailsOptions
         .concat(recentReportOptions)
-        .find((option) => option.login === addSMSDomainIfPhoneNumber(searchValue ?? '').toLowerCase() || option.login === searchValue?.toLowerCase());
+        .find((option) => option.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue ?? '').toLowerCase() || option.login === searchValue?.toLowerCase());
 
     if (
         searchValue &&
@@ -1628,7 +1653,7 @@ function getOptions(
         selectedOptions.every((option) => 'login' in option && option.login !== searchValue) &&
         ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN)) ||
             (parsedPhoneNumber.possible && Str.isValidPhone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? '')))) &&
-        !optionsToExclude.find((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
+        !optionsToExclude.find((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
         (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas)) &&
         !excludeUnknownUsers
     ) {
@@ -1720,6 +1745,7 @@ function getSearchOptions(reports: Record<string, Report>, personalDetails: Onyx
         includeThreads: true,
         includeMoneyRequests: true,
         includeTasks: true,
+        includeSelfDM: true,
     });
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markEnd(CONST.TIMING.LOAD_SEARCH_OPTIONS);
@@ -1795,6 +1821,7 @@ function getFilteredOptions(
     includeSelectedOptions = false,
     includeTaxRates = false,
     taxRates: TaxRatesWithDefault = {} as TaxRatesWithDefault,
+    includeSelfDM = false,
 ) {
     return getOptions(reports, personalDetails, {
         betas,
@@ -1816,6 +1843,7 @@ function getFilteredOptions(
         includeSelectedOptions,
         includeTaxRates,
         taxRates,
+        includeSelfDM,
     });
 }
 
@@ -1849,6 +1877,7 @@ function getShareDestinationOptions(
         excludeLogins,
         includeOwnedWorkspaceChats,
         excludeUnknownUsers,
+        includeSelfDM: true,
     });
 }
 
@@ -1874,7 +1903,7 @@ function formatMemberForList(member: ReportUtils.OptionData): MemberForList {
         login: member.login ?? '',
         icons: member.icons,
         pendingAction: member.pendingAction,
-        reportID: member.reportID,
+        reportID: member.reportID ?? '',
     };
 }
 
@@ -2009,7 +2038,6 @@ function formatSectionsFromSearchTerm(
 }
 
 export {
-    addSMSDomainIfPhoneNumber,
     getAvatarsForAccountIDs,
     isCurrentUser,
     isPersonalDetailsReady,
@@ -2019,6 +2047,7 @@ export {
     getMemberInviteOptions,
     getHeaderMessage,
     getHeaderMessageForNonUserList,
+    getSearchValueForPhoneOrEmail,
     getPersonalDetailsForAccountIDs,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
     getIOUConfirmationOptionsFromParticipants,

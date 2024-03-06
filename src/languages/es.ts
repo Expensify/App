@@ -327,9 +327,10 @@ export default {
         sizeExceeded: 'El archivo adjunto supera el límite de 24 MB.',
         attachmentTooSmall: 'Archivo adjunto demasiado pequeño',
         sizeNotMet: 'El archivo adjunto debe ser más grande que 240 bytes.',
-        wrongFileType: 'El tipo de archivo adjunto es incorrecto',
-        notAllowedExtension: 'Este tipo de archivo no está permitido',
+        wrongFileType: 'Tipo de archivo inválido',
+        notAllowedExtension: 'Este tipo de archivo no es compatible',
         folderNotAllowedMessage: 'Subir una carpeta no está permitido. Prueba con otro archivo.',
+        protectedPDFNotSupported: 'Los PDFs con contraseña no son compatibles',
     },
     avatarCropModal: {
         title: 'Editar foto',
@@ -485,8 +486,10 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartOne: '¡La colaboración entre ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' y ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! 🎉 Este es el lugar donde chatear, pedir dinero y pagar.',
+        beginningOfChatHistorySelfDM: 'Este es tu espacio personal. Úsalo para notas, tareas, borradores y recordatorios.',
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
         sayHello: '¡Saluda!',
+        yourSpace: 'Tu espacio',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `¡Bienvenido a ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `\n¡También puedes usar el botón + de abajo para ${additionalText}, o asignar una tarea!`,
         iouTypes: {
@@ -597,8 +600,10 @@ export default {
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
         receiptScanningFailed: 'El escaneo de recibo ha fallado. Introduce los detalles manualmente.',
         transactionPendingText: 'La transacción tarda unos días en contabilizarse desde la fecha en que se utilizó la tarjeta.',
-        requestCount: ({count, scanningReceipts = 0}: RequestCountParams) =>
-            `${count} ${Str.pluralize('solicitude', 'solicitudes', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}`,
+        requestCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) =>
+            `${count} ${Str.pluralize('solicitude', 'solicitudes', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${
+                pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''
+            }`,
         deleteRequest: 'Eliminar solicitud',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar esta solicitud?',
         settledExpensify: 'Pagado',
@@ -625,7 +630,7 @@ export default {
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
         adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager} canceló el pago de ${amount}.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
-            `Canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó su billetera Expensify en un plazo de 30 días.`,
+            `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó su billetera Expensify en un plazo de 30 días.`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
         paidElsewhereWithAmount: ({payer, amount}: PaidElsewhereWithAmountParams) => `${payer ? `${payer} ` : ''}pagó ${amount} de otra forma`,
@@ -856,6 +861,7 @@ export default {
             logSizeTooLarge: ({size}: LogSizeParams) => `El tamaño del registro excede el límite de ${size} MB. Utilice "Guardar registro" para descargar el archivo de registro.`,
         },
         security: 'Seguridad',
+        restoreStashed: 'Restablecer login guardado',
         signOut: 'Desconectar',
         signOutConfirmationText: 'Si cierras sesión perderás los cambios hechos mientras estabas desconectado',
         versionLetter: 'v',
@@ -1031,18 +1037,32 @@ export default {
         delaySubmissionTitle: 'Retrasar envíos',
         delaySubmissionDescription: 'Los gastos se comparten de inmediato para una mejor visibilidad del gasto. Establece una cadencia más lenta si es necesario.',
         submissionFrequency: 'Frecuencia de envíos',
-        weeklyFrequency: 'Semanal',
-        monthlyFrequency: 'Mensual',
-        twiceAMonthFrequency: 'Dos veces al mes',
-        byTripFrequency: 'Por viaje',
-        manuallyFrequency: 'Manual',
-        dailyFrequency: 'Diaria',
+        submissionFrequencyDateOfMonth: 'Fecha del mes',
         addApprovalsTitle: 'Requerir aprobaciones',
         approver: 'Aprobador',
         connectBankAccount: 'Conectar cuenta bancaria',
         addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
         makeOrTrackPaymentsTitle: 'Realizar o seguir pagos',
         makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify, o simplemente realiza un seguimiento de los pagos realizados en otro lugar.',
+        editor: {
+            submissionFrequency: 'Elige cuánto tiempo Expensify debe esperar antes de compartir los gastos sin errores.',
+        },
+        frequencies: {
+            weekly: 'Semanal',
+            monthly: 'Mensual',
+            twiceAMonth: 'Dos veces al mes',
+            byTrip: 'Por viaje',
+            manually: 'Manualmente',
+            daily: 'Diaria',
+            lastDayOfMonth: 'Último día del mes',
+            lastBusinessDayOfMonth: 'Último día hábil del mes',
+            ordinals: {
+                one: '.º',
+                two: '.º',
+                few: '.º',
+                other: '.º',
+            },
+        },
     },
     reportFraudPage: {
         title: 'Reportar fraude con la tarjeta virtual',
@@ -1291,7 +1311,8 @@ export default {
     },
     focusModeUpdateModal: {
         title: '¡Bienvenido al modo #concentración!',
-        prompt: 'Los mensajes leídos se ocultarán, a menos que tengan un punto verde, lo que significa que tienes que tomar una acción en ellos. Puedes cambiar esto en la configuración de tu cuenta ',
+        prompt: 'Mantente al tanto de todo viendo sólo los chats no leídos o los que necesitan tu atención. No te preocupes, puedes cambiar el ajuste en cualquier momento desde la ',
+        settings: 'configuración',
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'El chat que estás buscando no se pudo encontrar.',
@@ -1734,6 +1755,7 @@ export default {
             settings: 'Configuración',
             reimburse: 'Reembolsos',
             categories: 'Categorías',
+            tags: 'Etiquetas',
             bills: 'Pagar facturas',
             invoices: 'Enviar facturas',
             travel: 'Viajes',
@@ -1763,10 +1785,23 @@ export default {
             collect: 'Recolectar',
         },
         categories: {
+            categoryName: 'Nombre de la categoría',
+            requiresCategory: 'Los miembros deben categorizar todos los gastos',
+            enableCategory: 'Activar categoría',
             subtitle: 'Obtén una visión general de dónde te gastas el dinero. Utiliza las categorías predeterminadas o añade las tuyas propias.',
             emptyCategories: {
                 title: 'No has creado ninguna categoría',
                 subtitle: 'Añade una categoría para organizar tu gasto.',
+            },
+            genericFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
+        },
+        tags: {
+            requiresTag: 'Los miembros deben etiquetar todos los gastos',
+            enableTag: 'Habilitar etiqueta',
+            subtitle: 'Las etiquetas añaden formas más detalladas de clasificar los costos.',
+            emptyTags: {
+                title: 'No has creado ninguna etiqueta',
+                subtitle: 'Añade una etiqueta para realizar el seguimiento de proyectos, ubicaciones, departamentos y otros.',
             },
         },
         emptyWorkspace: {
@@ -1792,9 +1827,12 @@ export default {
         },
         people: {
             genericFailureMessage: 'Se ha producido un error al intentar eliminar a un usuario del espacio de trabajo. Por favor, inténtalo más tarde.',
-            removeMembersPrompt: '¿Estás seguro que quieres eliminar a los miembros seleccionados de tu espacio de trabajo?',
+            removeMembersPrompt: '¿Estás seguro de que deseas eliminar a estos miembros?',
             removeMembersTitle: 'Eliminar miembros',
+            makeMember: 'Hacer miembro',
+            makeAdmin: 'Hacer administrador',
             selectAll: 'Seleccionar todo',
+            selected: ({selectedNumber}) => `${selectedNumber} seleccionados`,
             error: {
                 genericAdd: 'Ha ocurrido un problema al añadir el miembro al espacio de trabajo.',
                 cannotRemove: 'No puedes eliminarte ni a ti mismo ni al dueño del espacio de trabajo.',
@@ -2657,7 +2695,7 @@ export default {
         reply: 'Respuesta',
         from: 'De',
         in: 'en',
-        parentNavigationSummary: ({rootReportName, workspaceName}: ParentNavigationSummaryParams) => `De ${rootReportName}${workspaceName ? ` en ${workspaceName}` : ''}`,
+        parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `De ${reportName}${workspaceName ? ` en ${workspaceName}` : ''}`,
     },
     qrCodes: {
         copy: 'Copiar URL',
@@ -2725,7 +2763,6 @@ export default {
         address: 'Dirección',
         waypointDescription: {
             start: 'Comienzo',
-            finish: 'Final',
             stop: 'Parada',
         },
         mapPending: {

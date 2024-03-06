@@ -1,8 +1,9 @@
 import {useIsFocused} from '@react-navigation/native';
 import {format} from 'date-fns';
+import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {Fragment, useCallback, useEffect, useMemo, useReducer, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -32,12 +33,14 @@ import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import categoryPropTypes from './categoryPropTypes';
 import ConfirmedRoute from './ConfirmedRoute';
+import ConfirmModal from './ConfirmModal';
 import FormHelpMessage from './FormHelpMessage';
 import * as Expensicons from './Icon/Expensicons';
 import Image from './Image';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import optionPropTypes from './optionPropTypes';
 import OptionsSelector from './OptionsSelector';
+import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import SettlementButton from './SettlementButton';
 import Switch from './Switch';
@@ -297,6 +300,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
 
     const [merchantError, setMerchantError] = useState(false);
+
+    const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
+
+    const navigateBack = () => {
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(iouType, transaction.transactionID, reportID));
+    };
 
     const shouldDisplayFieldError = useMemo(() => {
         if (!isEditingSplitBill) {
@@ -598,6 +607,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             />
         ) : (
             <ButtonWithDropdownMenu
+                success
                 pressOnEnter
                 isDisabled={shouldDisableButton}
                 onPress={(_event, value) => confirm(value)}
@@ -844,7 +854,35 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         (supplementaryField) => supplementaryField.item,
     );
 
-    const {image: receiptImage, thumbnail: receiptThumbnail} = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : {};
+    const {
+        image: receiptImage,
+        thumbnail: receiptThumbnail,
+        isLocalFile,
+    } = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : {};
+
+    const receiptThumbnailContent = useMemo(
+        () =>
+            isLocalFile && Str.isPDF(receiptFilename) ? (
+                <PDFThumbnail
+                    previewSourceURL={receiptImage}
+                    style={styles.moneyRequestImage}
+                    // We don't support scaning password protected PDF receipt
+                    enabled={!isAttachmentInvalid}
+                    onPassword={() => setIsAttachmentInvalid(true)}
+                />
+            ) : (
+                <Image
+                    style={styles.moneyRequestImage}
+                    source={{uri: receiptThumbnail || receiptImage}}
+                    // AuthToken is required when retrieving the image from the server
+                    // but we don't need it to load the blob:// or file:// image when starting a money request / split bill
+                    // So if we have a thumbnail, it means we're retrieving the image from the server
+                    isAuthTokenRequired={!_.isEmpty(receiptThumbnail)}
+                />
+            ),
+        [receiptFilename, receiptImage, styles, receiptThumbnail, isLocalFile, isAttachmentInvalid],
+    );
+
     return (
         <OptionsSelector
             sections={optionSelectorSections}
@@ -869,29 +907,20 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     <ConfirmedRoute transaction={transaction} />
                 </View>
             )}
-            {receiptImage || receiptThumbnail ? (
-                <Image
-                    style={styles.moneyRequestImage}
-                    source={{uri: receiptThumbnail || receiptImage}}
-                    // AuthToken is required when retrieving the image from the server
-                    // but we don't need it to load the blob:// or file:// image when starting a money request / split bill
-                    // So if we have a thumbnail, it means we're retrieving the image from the server
-                    isAuthTokenRequired={!_.isEmpty(receiptThumbnail)}
-                />
-            ) : (
-                // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
-                PolicyUtils.isPaidGroupPolicy(policy) &&
-                !isDistanceRequest &&
-                iouType === CONST.IOU.TYPE.REQUEST && (
-                    <ReceiptEmptyState
-                        onPress={() =>
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
-                            )
-                        }
-                    />
-                )
-            )}
+            {receiptImage || receiptThumbnail
+                ? receiptThumbnailContent
+                : // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
+                  PolicyUtils.isPaidGroupPolicy(policy) &&
+                  !isDistanceRequest &&
+                  iouType === CONST.IOU.TYPE.REQUEST && (
+                      <ReceiptEmptyState
+                          onPress={() =>
+                              Navigation.navigate(
+                                  ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                              )
+                          }
+                      />
+                  )}
             {primaryFields}
             {!shouldShowAllFields && (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2, styles.mt1]}>
@@ -908,7 +937,16 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
                 </View>
             )}
-            {shouldShowAllFields && <>{supplementaryFields}</>}
+            {shouldShowAllFields && supplementaryFields}
+            <ConfirmModal
+                title={translate('attachmentPicker.wrongFileType')}
+                onConfirm={navigateBack}
+                onCancel={navigateBack}
+                isVisible={isAttachmentInvalid}
+                prompt={translate('attachmentPicker.protectedPDFNotSupported')}
+                confirmText={translate('common.close')}
+                shouldShowCancelButton={false}
+            />
         </OptionsSelector>
     );
 }
