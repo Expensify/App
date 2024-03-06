@@ -159,7 +159,7 @@ function MoneyRequestPreviewContent({
                 const isTooLong = violationsCount > 1 || violationMessage.length > 15;
                 const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
 
-                return `${message} • ${isTooLong || hasViolationAndFieldErrors ? translate('violations.reviewRequired') : violationMessage}`;
+                return `${message} • ${isTooLong || hasViolationsAndFieldErrors ? translate('violations.reviewRequired') : violationMessage}`;
             }
 
             const isMerchantMissing = TransactionUtils.isMerchantMissing(transaction);
