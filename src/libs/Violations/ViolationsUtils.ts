@@ -80,12 +80,7 @@ const ViolationsUtils = {
                     newTransactionViolations.push({name: CONST.VIOLATIONS.MISSING_TAG, type: 'violation'});
                 }
             } else {
-                newTransactionViolations = reject(newTransactionViolations, {
-                    name: CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED,
-                });
-                newTransactionViolations = reject(newTransactionViolations, {
-                    name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
-                });
+                newTransactionViolations = newTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED && violation.name !== CONST.VIOLATIONS.TAG_OUT_OF_POLICY);
 
                 // calculate errorIndexes for someTagLevelsRequired
                 // if it's empty, reject it from current violations
