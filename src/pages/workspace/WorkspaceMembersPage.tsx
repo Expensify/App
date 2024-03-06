@@ -86,6 +86,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const dropdownButtonRef = useRef(null);
+    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
 
     /**
      * Get filtered personalDetails list with current policyMembers
@@ -306,7 +307,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
             const isSelected = selectedEmployees.includes(accountID);
 
             const isOwner = policy?.owner === details.login;
-            const isAdmin = session?.email === details.login || policyMember.role === CONST.POLICY.ROLE.ADMIN;
+            const isAdmin = policyMember.role === CONST.POLICY.ROLE.ADMIN;
 
             let roleBadge = null;
             if (isOwner || isAdmin) {
@@ -324,10 +325,11 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 accountID,
                 isSelected,
                 isDisabled:
-                    accountID === session?.accountID ||
-                    accountID === policy?.ownerAccountID ||
-                    policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-                    !isEmptyObject(policyMember.errors),
+                    isPolicyAdmin &&
+                    (accountID === session?.accountID ||
+                        accountID === policy?.ownerAccountID ||
+                        policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+                        !isEmptyObject(policyMember.errors)),
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
@@ -375,16 +377,24 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
         </>
     );
 
-    const getCustomListHeader = () => (
-        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
-            <View>
-                <Text style={[styles.searchInputStyle, styles.ml3]}>{translate('common.member')}</Text>
+    const getCustomListHeader = () => {
+        const header = (
+            <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
+                <View>
+                    <Text style={[styles.searchInputStyle, isPolicyAdmin ? styles.ml3 : styles.ml0]}>{translate('common.member')}</Text>
+                </View>
+                <View style={[StyleUtils.getMinimumWidth(60)]}>
+                    <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('common.role')}</Text>
+                </View>
             </View>
-            <View style={[StyleUtils.getMinimumWidth(60)]}>
-                <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('common.role')}</Text>
-            </View>
-        </View>
-    );
+        );
+
+        if (isPolicyAdmin) {
+            return header;
+        }
+
+        return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
+    };
 
     const changeUserRole = (role: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER) => {
         if (!isEmptyObject(errors)) {
@@ -407,54 +417,62 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
             },
         ];
 
-        if (selectedEmployees.find((employee) => policyMembers?.[employee]?.role === CONST.POLICY.ROLE.ADMIN)) {
-            options.push({
-                text: translate('workspace.people.makeMember'),
-                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
-                icon: Expensicons.User,
-                onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
-            });
-        }
+        if (PolicyUtils.isPaidGroupPolicy(policy)) {
+            if (selectedEmployees.find((employee) => policyMembers?.[employee]?.role === CONST.POLICY.ROLE.ADMIN)) {
+                options.push({
+                    text: translate('workspace.people.makeMember'),
+                    value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
+                    icon: Expensicons.User,
+                    onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
+                });
+            }
 
-        if (selectedEmployees.find((employee) => policyMembers?.[employee]?.role === CONST.POLICY.ROLE.USER)) {
-            options.push({
-                text: translate('workspace.people.makeAdmin'),
-                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
-                icon: Expensicons.MakeAdmin,
-                onSelected: () => changeUserRole(CONST.POLICY.ROLE.ADMIN),
-            });
+            if (selectedEmployees.find((employee) => policyMembers?.[employee]?.role === CONST.POLICY.ROLE.USER)) {
+                options.push({
+                    text: translate('workspace.people.makeAdmin'),
+                    value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
+                    icon: Expensicons.MakeAdmin,
+                    onSelected: () => changeUserRole(CONST.POLICY.ROLE.ADMIN),
+                });
+            }
         }
 
         return options;
     };
 
-    const getHeaderButtons = () => (
-        <View style={styles.w100}>
-            {selectedEmployees.length > 0 ? (
-                <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
-                    shouldAlwaysShowDropdownMenu
-                    pressOnEnter
-                    customText={translate('workspace.people.selected', {selectedNumber: selectedEmployees.length})}
-                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    onPress={() => null}
-                    options={getBulkActionsButtonOptions()}
-                    buttonRef={dropdownButtonRef}
-                    style={[isSmallScreenWidth && styles.flexGrow1]}
-                />
-            ) : (
-                <Button
-                    medium
-                    success
-                    onPress={inviteUser}
-                    text={translate('workspace.invite.member')}
-                    icon={Expensicons.Plus}
-                    iconStyles={{transform: [{scale: 0.6}]}}
-                    innerStyles={[isSmallScreenWidth && styles.alignItemsCenter]}
-                    style={[isSmallScreenWidth && styles.flexGrow1]}
-                />
-            )}
-        </View>
-    );
+    const getHeaderButtons = () => {
+        if (!isPolicyAdmin) {
+            return null;
+        }
+
+        return (
+            <View style={styles.w100}>
+                {selectedEmployees.length > 0 ? (
+                    <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
+                        shouldAlwaysShowDropdownMenu
+                        pressOnEnter
+                        customText={translate('workspace.people.selected', {selectedNumber: selectedEmployees.length})}
+                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                        onPress={() => null}
+                        options={getBulkActionsButtonOptions()}
+                        buttonRef={dropdownButtonRef}
+                        style={[isSmallScreenWidth && styles.flexGrow1]}
+                    />
+                ) : (
+                    <Button
+                        medium
+                        success
+                        onPress={inviteUser}
+                        text={translate('workspace.invite.member')}
+                        icon={Expensicons.Plus}
+                        iconStyles={{transform: [{scale: 0.6}]}}
+                        innerStyles={[isSmallScreenWidth && styles.alignItemsCenter]}
+                        style={[isSmallScreenWidth && styles.flexGrow1]}
+                    />
+                )}
+            </View>
+        );
+    };
 
     return (
         <ScreenWrapper
@@ -464,7 +482,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
             shouldShowOfflineIndicatorInWideScreen
         >
             <FullPageNotFoundView
-                shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
+                shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || PolicyUtils.isPendingDeletePolicy(policy)}
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
                 onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
                 onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
@@ -501,13 +519,19 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 />
                 <View style={[styles.w100, styles.flex1]}>
                     <SelectionList
-                        canSelectMultiple
+                        canSelectMultiple={isPolicyAdmin}
                         sections={[{data, indexOffset: 0, isDisabled: false}]}
                         ListItem={TableListItem}
                         disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                         headerMessage={getHeaderMessage()}
                         headerContent={getHeaderContent()}
-                        onSelectRow={(item) => toggleUser(item.accountID)}
+                        onSelectRow={(item) => {
+                            if (!isPolicyAdmin) {
+                                Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
+                                return;
+                            }
+                            toggleUser(item.accountID);
+                        }}
                         onSelectAll={() => toggleAllUsers(data)}
                         onDismissError={dismissError}
                         showLoadingPlaceholder={!isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) || isEmptyObject(policyMembers))}
