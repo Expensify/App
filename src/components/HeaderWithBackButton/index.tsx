@@ -105,7 +105,25 @@ function HeaderWithBackButton({
                 textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, isCentralPaneSettings && styles.textHeadlineH2]}
             />
         );
-    }, [StyleUtils, policy, progressBarPercentage, report, shouldEnableDetailPageNavigation, shouldShowAvatarWithDisplay, stepCounter, styles, subtitle, title, titleColor, translate]);
+    }, [
+        StyleUtils,
+        isCentralPaneSettings,
+        policy,
+        progressBarPercentage,
+        report,
+        shouldEnableDetailPageNavigation,
+        shouldShowAvatarWithDisplay,
+        stepCounter,
+        styles.flexGrow1,
+        styles.headerProgressBar,
+        styles.headerProgressBarContainer,
+        styles.headerProgressBarFill,
+        styles.textHeadlineH2,
+        subtitle,
+        title,
+        titleColor,
+        translate,
+    ]);
 
     return (
         <View
