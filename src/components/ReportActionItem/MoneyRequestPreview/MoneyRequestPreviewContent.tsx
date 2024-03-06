@@ -157,7 +157,7 @@ function MoneyRequestPreviewContent({
                 const violationMessage = ViolationsUtils.getViolationTranslation(violations[0], translate);
                 const violationsCount = violations.filter((v) => v.type === 'violation').length;
                 const isTooLong = violationsCount > 1 || violationMessage.length > 15;
-                const hasViolationAndFieldErrors = violationsCount === 1 && hasFieldErrors;
+                const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
 
                 return `${message} • ${isTooLong || hasViolationAndFieldErrors ? translate('violations.reviewRequired') : violationMessage}`;
             }
