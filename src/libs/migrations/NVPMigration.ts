@@ -22,7 +22,7 @@ const migrations = {
 // This migration changes the keys of all the NVP related keys so that they are standardized
 export default function () {
     return new Promise<void>((resolve) => {
-        // We add the number of manual connections we add below
+        // Resolve the migration when all the keys have been migrated. The number of keys is the size of the `migrations` object in addition to the ACCOUNT and OLD_POLICY_RECENTLY_USED_TAGS keys (which is why there is a +2).
         const resolveWhenDone = after(Object.entries(migrations).length + 2, () => resolve());
 
         for (const [oldKey, newKey] of Object.entries(migrations)) {
