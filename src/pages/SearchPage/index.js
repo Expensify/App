@@ -113,7 +113,6 @@ function SearchPage({betas, reports, isSearchingForReports}) {
         }
 
         let listOptions = options;
-        let header = OptionsListUtils.getHeaderMessage(listOptions.recentReports.length + listOptions.personalDetails.length !== 0, Boolean(listOptions.userToInvite), debouncedSearchValue);
 
         if (searchValue !== '' && filteredOptions.length > 0) {
             listOptions = {
@@ -122,8 +121,14 @@ function SearchPage({betas, reports, isSearchingForReports}) {
                 userToInvite: {},
             };
             header = '';
+        } else if (searchValue !== '' && filteredOptions.length === 0) {
+            listOptions = {
+                recentReports: [],
+                personalDetails: [],
+                userToInvite: null,
+            };
         }
-
+        let header = OptionsListUtils.getHeaderMessage(listOptions.recentReports.length + listOptions.personalDetails.length !== 0, Boolean(listOptions.userToInvite), debouncedSearchValue);
         return {...listOptions, headerMessage: header};
     }, [debouncedSearchValue, filteredOptions, isScreenTransitionEnd, options, searchValue]);
 

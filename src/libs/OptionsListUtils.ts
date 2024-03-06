@@ -432,7 +432,6 @@ function getSearchText(
             }
         }
     }
-
     if (report) {
         Array.prototype.push.apply(searchTerms, reportName.split(/[,\s]/));
 
@@ -1310,6 +1309,12 @@ function isReportSelected(reportOption: ReportUtils.OptionData, selectedOptions:
     return selectedOptions.some((option) => (option.accountID && option.accountID === reportOption.accountID) || (option.reportID && option.reportID === reportOption.reportID));
 }
 
+/**
+ * Options need to be sorted in the specific order
+ * @param options - list of options to be sorted
+ * @param searchValue - search string
+ * @returns a sorted list of options
+ */
 function orderOptions(options: ReportUtils.OptionData[], searchValue: string | undefined) {
     return lodashOrderBy(
         options,
@@ -2051,7 +2056,6 @@ function filterOptions(options: GetOptions, searchValue: string): ReportUtils.Op
     }, reportsByType);
 
     const filteredOptions = Object.values(matchResults).flat();
-
     return orderOptions(filteredOptions, searchValue);
 }
 
