@@ -36,7 +36,7 @@ import times from '@src/utils/times';
 import Timing from './actions/Timing';
 import * as CollectionUtils from './CollectionUtils';
 import * as ErrorUtils from './ErrorUtils';
-import filterArrayByMatch, {rankings, sortType} from './filterArrayByMatch';
+import filterArrayByMatch from './filterArrayByMatch';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
@@ -432,6 +432,7 @@ function getSearchText(
             }
         }
     }
+
     if (report) {
         Array.prototype.push.apply(searchTerms, reportName.split(/[,\s]/));
 
@@ -2006,12 +2007,11 @@ function formatSectionsFromSearchTerm(
 
 function filterOptions(options: GetOptions, searchValue: string): ReportUtils.OptionData[] {
     const searchTerms = searchValue.split(' ');
+
     const reportsByType = options.recentReports.reduce<ReportTypesOptionData>(
         (acc, option) => {
-            if (option.isChatRoom) {
-                acc.chatRooms.push(option);
-            } else if (option.isPolicyExpenseChat) {
-                acc.policyExpenseChats.push(option);
+            if (option.isChatRoom || option.isPolicyExpenseChat) {
+                acc.chatRoomsAndPolicyExpenseChats.push(option);
             } else {
                 acc.reports.push(option);
             }
@@ -2019,28 +2019,24 @@ function filterOptions(options: GetOptions, searchValue: string): ReportUtils.Op
             return acc;
         },
         {
-            chatRooms: [],
-            policyExpenseChats: [],
+            chatRoomsAndPolicyExpenseChats: [],
             reports: [],
             personalDetails: options.personalDetails,
         },
     );
-
     const createFilter = (items: ReportUtils.OptionData[], keys: string[], term: string) =>
         filterArrayByMatch(items, term, {
             keys,
-            threshold: rankings.MATCHES,
-            sort: sortType.NONE,
             strict: true,
         });
+
     const matchResults = searchTerms.reduceRight((items, term) => {
         const personalDetails = createFilter(
             items.personalDetails,
             ['text', 'login', 'participantsList[0].displayName', 'participantsList[0].firstName', 'participantsList[0].lastName'],
             term,
         );
-        const chatRooms = createFilter(items.chatRooms, ['text', 'alternateText'], term);
-        const policyExpenseChats = createFilter(items.policyExpenseChats, ['text'], term);
+        const chatRoomsAndPolicyExpenseChats = createFilter(items.chatRoomsAndPolicyExpenseChats, ['text', 'alternateText'], term);
         const reports = createFilter(
             items.reports,
             ['text', 'participantsList.*.login', 'participantsList.*.displayName', 'participantsList.*.firstName', 'participantsList.*.lastName'],
@@ -2048,10 +2044,9 @@ function filterOptions(options: GetOptions, searchValue: string): ReportUtils.Op
         );
 
         return {
-            personalDetails,
-            chatRooms,
-            policyExpenseChats,
             reports,
+            personalDetails,
+            chatRoomsAndPolicyExpenseChats,
         };
     }, reportsByType);
 

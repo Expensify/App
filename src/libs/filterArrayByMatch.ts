@@ -54,16 +54,16 @@ type IndexableByString = Record<string, unknown>;
  * @param sort sort type
  * @returns the sorted list of items
  */
-function sortRankedItems<T>(rankedItems: Array<RankedItem<T>>, sort: Sort): T[] {
+function sortRankedItems<T>(rankedItems: Array<RankedItem<T>>, sort?: Sort): Array<RankedItem<T>> {
     if (sort === sortType.DESC) {
-        return rankedItems.sort((a, b) => b.rank - a.rank).map((item) => item.item);
+        return rankedItems.sort((a, b) => b.rank - a.rank);
     }
 
     if (sort === sortType.ASC) {
-        return rankedItems.sort((a, b) => a.rank - b.rank).map((item) => item.item);
+        return rankedItems.sort((a, b) => a.rank - b.rank);
     }
 
-    return rankedItems.map((item) => item.item);
+    return rankedItems;
 }
 
 /**
@@ -344,10 +344,10 @@ function filterArrayByMatch<T = string>(items: readonly T[], searchValue: string
         itemsToSort = matchedItems.filter((item) => item.rank >= threshold + 1);
     }
 
-    return sortRankedItems(itemsToSort, sort);
+    return sortRankedItems(itemsToSort, sort).map((item) => item.item);
 }
 
 export default filterArrayByMatch;
-export {rankings, sortType};
+export {rankings};
 
 export type {Options, KeyAttributesOptions, KeyOption, RankingInfo, ValueGetterKey};
