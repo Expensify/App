@@ -14,7 +14,7 @@ export {setBankAccountFormValidationErrors, setPersonalBankAccountFormValidation
  * - CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL to ask them to enter their accountNumber and routingNumber
  * - CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID to ask them to login to their bank via Plaid
  */
-function setBankAccountSubStep(subStep: BankAccountSubStep | null) {
+function setBankAccountSubStep(subStep: BankAccountSubStep | null): Promise<void> {
     return Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {subStep}});
 }
 

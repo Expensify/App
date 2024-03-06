@@ -15,7 +15,7 @@ function goToWithdrawalAccountSetupStep(stepID: BankAccountStep) {
  * Navigate to the correct bank account route based on the bank account state and type
  *
  * @param policyID - The policy ID associated with the bank account.
- * @param [backTo=''] - An optional return path. If provided, it will be URL-encoded and appended to the resulting URL.
+ * @param [backTo] - An optional return path. If provided, it will be URL-encoded and appended to the resulting URL.
  */
 function navigateToBankAccountRoute(policyID: string, backTo?: string) {
     Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', policyID, backTo));
