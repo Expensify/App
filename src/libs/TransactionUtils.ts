@@ -160,7 +160,7 @@ function isAmountMissing(transaction: OnyxEntry<Transaction>) {
     return transaction?.amount === 0 && (!transaction.modifiedAmount || transaction.modifiedAmount === 0);
 }
 
-function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
+function isCreatedMissing(transaction: OnyxEntry<Transaction> | undefined) {
     return transaction?.created === '' && (!transaction.created || transaction.modifiedCreated === '');
 }
 
