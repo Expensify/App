@@ -407,7 +407,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
             },
         ];
 
-        if(PolicyUtils.isPaidGroupPolicy(policy)) {
+        if (PolicyUtils.isPaidGroupPolicy(policy)) {
             if (selectedEmployees.find((employee) => policyMembers?.[employee]?.role === CONST.POLICY.ROLE.ADMIN)) {
                 options.push({
                     text: translate('workspace.people.makeMember'),
