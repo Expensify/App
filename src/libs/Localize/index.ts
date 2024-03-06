@@ -153,9 +153,8 @@ function translateLocal<TKey extends TranslationPaths>(phrase: TKey, ...variable
 
     // We don't want to store translated values for phrases with variables
     if (isVariablesEmpty) {
-        // We set the translated value in the cache in the next iteration
-        // of the event loop to make this operation asynchronous.
-        setImmediate(() => map.set(key, translatedText));
+        // We set the translated value in the cache
+        map.set(key, translatedText);
     }
     return translatedText;
 }
