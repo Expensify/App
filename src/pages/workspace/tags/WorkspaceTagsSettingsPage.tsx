@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -33,9 +33,9 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
     const {translate} = useLocalize();
     const policyTagName = useMemo(() => PolicyUtils.getTagLists(policyTags)[0]?.name ?? '', [policyTags]);
 
-    const updateWorkspaceRequiresTag = (value: boolean) => {
+    const updateWorkspaceRequiresTag = useCallback((value: boolean) => {
         Policy.setPolicyRequiresTag(route.params.policyID, value);
-    };
+    }, []);
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>

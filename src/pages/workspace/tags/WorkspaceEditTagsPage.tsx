@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo, useRef} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -7,9 +7,9 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Policy from '@libs/actions/Policy';
@@ -29,32 +29,29 @@ type WorkspaceEditTagsPageOnyxProps = {
 
 type WorkspaceEditTagsPageProps = WorkspaceEditTagsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_EDIT>;
 
+const validateTagName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
+    const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM> = {};
+    if (!values[INPUT_IDS.POLICY_TAGS_NAME] && values[INPUT_IDS.POLICY_TAGS_NAME].trim() === '') {
+        errors[INPUT_IDS.POLICY_TAGS_NAME] = 'common.error.fieldRequired';
+    }
+    return errors;
+};
+
 function WorkspaceEditTagsPage({route, policyTags}: WorkspaceEditTagsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const taglistName = useMemo(() => PolicyUtils.getTagLists(policyTags)[0].name, [policyTags]);
-    const inputRef = useRef<AnimatedTextInputRef>(null);
+    const {inputCallbackRef} = useAutoFocusInput();
 
-    const validateTagName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM> = {};
-        if (!values[INPUT_IDS.POLICY_TAGS_NAME] && values[INPUT_IDS.POLICY_TAGS_NAME].trim() === '') {
-            errors[INPUT_IDS.POLICY_TAGS_NAME] = 'common.error.fieldRequired';
-        }
-        return errors;
-    };
-
-    const updateTaglistName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
+    const updateTaglistName = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
         Policy.renamePolicyTaglist(route.params.policyID, {oldName: taglistName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]}, policyTags);
         Navigation.goBack();
-    };
+    }, []);
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            onEntryTransitionEnd={() => {
-                inputRef.current?.focus();
-            }}
             testID={WorkspaceEditTagsPage.displayName}
         >
             <HeaderWithBackButton title={translate(`workspace.tags.customTagName`)} />
@@ -74,7 +71,7 @@ function WorkspaceEditTagsPage({route, policyTags}: WorkspaceEditTagsPageProps) 
                         accessibilityLabel={translate(`workspace.tags.customTagName`)}
                         defaultValue={taglistName}
                         role={CONST.ROLE.PRESENTATION}
-                        ref={inputRef}
+                        ref={inputCallbackRef}
                     />
                 </View>
             </FormProvider>
