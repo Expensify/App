@@ -1,5 +1,6 @@
 import type {ReactNode} from 'react';
 import type {ValueOf} from 'type-fest';
+import type {FileObject} from '@components/AttachmentModal';
 import type CONST from '@src/CONST';
 
 type AttachmentPickerProps = {
@@ -21,8 +22,7 @@ type AttachmentPickerProps = {
      * )}
      * </AttachmentPicker>
      * */
-    children: (openPicker: ({onPicked, onCanceled}: {onPicked: (file: File) => void; onCanceled?: () => void}) => void) => ReactNode;
-
+    children: (props: {openPicker: (options: {onPicked: (file: FileObject) => void; onCanceled?: () => void}) => void}) => ReactNode;
     /** The types of files that can be selected with this picker. */
     type?: ValueOf<typeof CONST.ATTACHMENT_PICKER_TYPE>;
 };

@@ -71,12 +71,12 @@ type Attachment = {
 };
 
 type ImagePickerResponse = {
-    height: number;
+    height?: number;
     name: string;
-    size: number;
+    size?: number | null;
     type: string;
     uri: string;
-    width: number;
+    width?: number;
 };
 
 type FileObject = File | ImagePickerResponse;
@@ -292,14 +292,14 @@ function AttachmentModal({
     }, [transaction, report]);
 
     const isValidFile = useCallback((fileObject: FileObject) => {
-        if (fileObject.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+        if (fileObject.size && fileObject.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
             setIsAttachmentInvalid(true);
             setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooLarge');
             setAttachmentInvalidReason('attachmentPicker.sizeExceeded');
             return false;
         }
 
-        if (fileObject.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+        if (fileObject.size && fileObject.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
             setIsAttachmentInvalid(true);
             setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooSmall');
             setAttachmentInvalidReason('attachmentPicker.sizeNotMet');

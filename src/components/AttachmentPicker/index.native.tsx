@@ -7,6 +7,7 @@ import type {DocumentPickerOptions, DocumentPickerResponse} from 'react-native-d
 import type {SupportedPlatforms} from 'react-native-document-picker/lib/typescript/fileTypes';
 import {launchImageLibrary} from 'react-native-image-picker';
 import type {Asset, Callback, CameraOptions, ImagePickerResponse} from 'react-native-image-picker';
+import type {FileObject} from '@components/AttachmentModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Popover from '@components/Popover';
@@ -31,15 +32,6 @@ type Item = {
     icon: IconAsset;
     textTranslationKey: string;
     pickAttachment: () => Promise<Asset[] | void | DocumentPickerResponse[]>;
-};
-
-type FileResult = {
-    name: string;
-    type: string;
-    width: number | undefined;
-    height: number | undefined;
-    uri: string;
-    size: number | null;
 };
 
 /**
@@ -77,9 +69,9 @@ const documentPickerOptions = {
  * The data returned from `show` is different on web and mobile, so use this function to ensure the data we
  * send to the xhr will be handled properly.
  */
-const getDataForUpload = (fileData: Asset & DocumentPickerResponse): Promise<FileResult> => {
+const getDataForUpload = (fileData: Asset & DocumentPickerResponse): Promise<FileObject> => {
     const fileName = fileData.fileName ?? fileData.name ?? 'chat_attachment';
-    const fileResult: FileResult = {
+    const fileResult: FileObject = {
         name: FileUtils.cleanFileName(fileName),
         type: fileData.type,
         width: fileData.width,
@@ -108,7 +100,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
 
-    const completeAttachmentSelection = useRef<(data: FileResult) => void>(() => {});
+    const completeAttachmentSelection = useRef<(data: FileObject) => void>(() => {});
     const onModalHide = useRef<() => void>();
     const onCanceled = useRef<() => void>(() => {});
     const popoverRef = useRef(null);
@@ -213,7 +205,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
      * @param onPickedHandler A callback that will be called with the selected attachment
      * @param onCanceledHandler A callback that will be called without a selected attachment
      */
-    const open = (onPickedHandler: () => void, onCanceledHandler: () => void = () => {}) => {
+    const open = (onPickedHandler: (file: FileObject) => void, onCanceledHandler: () => void = () => {}) => {
         completeAttachmentSelection.current = onPickedHandler;
         onCanceled.current = onCanceledHandler;
         setIsVisible(true);
@@ -266,7 +258,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
         (item: Item) => {
             /* setTimeout delays execution to the frame after the modal closes
              * without this on iOS closing the modal closes the gallery/camera as well */
-             onModalHide.current = () => {
+            onModalHide.current = () => {
                 setTimeout(() => {
                     item.pickAttachment()
                         .then((result) => pickAttachment(result as Array<Asset & DocumentPickerResponse>))

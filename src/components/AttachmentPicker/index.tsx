@@ -76,13 +76,13 @@ function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE}: 
                 }}
                 accept={getAcceptableFileTypes(type)}
             />
-            {children(
-                ({onPicked: newOnPicked, onCanceled: newOnCanceled = () => {}}) => {
+            {children({
+                openPicker: ({onPicked: newOnPicked, onCanceled: newOnCanceled = () => {}}) => {
                     onPicked.current = newOnPicked;
                     fileInput.current?.click();
                     onCanceled.current = newOnCanceled;
                 },
-            )}
+            })}
         </>
     );
 }
