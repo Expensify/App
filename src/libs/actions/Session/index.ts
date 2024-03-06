@@ -188,7 +188,7 @@ function hasStashedSession(): boolean {
  * Checks if the user is authenticated
  */
 function isAuthenticated(): boolean {
-    return !!sessionAuthToken;
+    return !!session.authToken;
 }
 
 function signOutAndRedirectToSignIn(shouldReplaceCurrentScreen?: boolean, shouldStashSession?: boolean) {
