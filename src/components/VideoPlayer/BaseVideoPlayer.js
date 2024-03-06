@@ -194,6 +194,7 @@ function BaseVideoPlayer({
             originalParent.appendChild(sharedElement);
         };
     }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
+
     return (
         <>
             {/* We need to wrap the video component in a component that will catch unhandled pointer events. Otherwise, these
