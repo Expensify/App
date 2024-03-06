@@ -50,17 +50,10 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const {translate} = useLocalize();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);
-    const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(moneyRequestReport);
     const policyType = policy?.type;
-    const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicy(moneyRequestReport);
-    const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && session?.accountID === moneyRequestReport.managerID;
-    const isPayer = isPaidGroupPolicy
-        ? // In a group policy, the admin approver can pay the report directly by skipping the approval step
-          isPolicyAdmin && (isApproved || isManager)
-        : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
+    const isPayer = ReportUtils.isPayer(session, moneyRequestReport);
     const isDraft = ReportUtils.isDraftExpenseReport(moneyRequestReport);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 

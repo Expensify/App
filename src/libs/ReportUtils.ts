@@ -57,11 +57,13 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
+import {isEmailPublicDomain} from './LoginUtils';
 import linkingConfig from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
 import * as NumberUtils from './NumberUtils';
 import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import * as PhoneNumber from './PhoneNumber';
 import * as PolicyUtils from './PolicyUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
@@ -397,6 +399,7 @@ type OptionData = {
     notificationPreference?: NotificationPreference | null;
     isDisabled?: boolean | null;
     name?: string | null;
+    isSelfDM?: boolean | null;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
@@ -420,6 +423,7 @@ type AncestorIDs = {
 };
 
 let currentUserEmail: string | undefined;
+let currentUserPrivateDomain: string | undefined;
 let currentUserAccountID: number | undefined;
 let isAnonymousUser = false;
 
@@ -435,17 +439,20 @@ Onyx.connect({
 
         currentUserEmail = value.email;
         currentUserAccountID = value.accountID;
-        isAnonymousUser = value.authTokenType === 'anonymousAccount';
+        isAnonymousUser = value.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
+        currentUserPrivateDomain = isEmailPublicDomain(currentUserEmail ?? '') ? '' : Str.extractEmailDomain(currentUserEmail ?? '');
     },
 });
 
 let allPersonalDetails: OnyxCollection<PersonalDetails>;
+let allPersonalDetailLogins: string[];
 let currentUserPersonalDetails: OnyxEntry<PersonalDetails>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
         currentUserPersonalDetails = value?.[currentUserAccountID ?? -1] ?? null;
         allPersonalDetails = value ?? {};
+        allPersonalDetailLogins = Object.values(allPersonalDetails).map((personalDetail) => personalDetail?.login ?? '');
     },
 });
 
@@ -903,6 +910,10 @@ function isDM(report: OnyxEntry<Report>): boolean {
     return isChatReport(report) && !getChatType(report);
 }
 
+function isSelfDM(report: OnyxEntry<Report>): boolean {
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.SELF_DM;
+}
+
 /**
  * Only returns true if this is our main 1:1 DM report with Concierge
  */
@@ -1216,6 +1227,29 @@ function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
         !isIOUReport(report) &&
         participantAccountIDs.length === 1
     );
+}
+
+/**
+ * Checks if the current user is a payer of the request
+ */
+
+function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>) {
+    const isApproved = isReportApproved(iouReport);
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`] ?? null;
+    const policyType = policy?.type;
+    const isAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isManager = iouReport?.managerID === session?.accountID;
+    if (isPaidGroupPolicy(iouReport)) {
+        if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+            const isReimburser = session?.email === policy?.reimburserEmail;
+            return isReimburser && (isApproved || isManager);
+        }
+        if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
+            return isAdmin && (isApproved || isManager);
+        }
+        return false;
+    }
+    return isAdmin || (isMoneyRequestReport(iouReport) && isManager);
 }
 
 /**
@@ -1600,9 +1634,13 @@ function getIcons(
             name: personalDetails?.[report?.ownerAccountID ?? -1]?.displayName ?? '',
             fallbackIcon: personalDetails?.[report?.ownerAccountID ?? -1]?.fallbackIcon,
         };
-        const isPayer = currentUserAccountID === report?.managerID;
+        const isManager = currentUserAccountID === report?.managerID;
 
-        return isPayer ? [managerIcon, ownerIcon] : [ownerIcon, managerIcon];
+        return isManager ? [managerIcon, ownerIcon] : [ownerIcon, managerIcon];
+    }
+
+    if (isSelfDM(report)) {
+        return getIconsForParticipants([currentUserAccountID ?? 0], personalDetails);
     }
 
     return getIconsForParticipants(report?.participantAccountIDs ?? [], personalDetails);
@@ -1627,7 +1665,7 @@ function getPersonalDetailsForAccountID(accountID: number): Partial<PersonalDeta
 /**
  * Get the displayName for a single report participant.
  */
-function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = false, shouldFallbackToHidden = true): string {
+function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = false, shouldFallbackToHidden = true, shouldAddCurrentUserPostfix = false): string {
     if (!accountID) {
         return '';
     }
@@ -1642,7 +1680,10 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
         return formattedLogin;
     }
 
-    const longName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, formattedLogin, shouldFallbackToHidden);
+    // For selfDM, we display the user's displayName followed by '(you)' as a postfix
+    const shouldAddPostfix = shouldAddCurrentUserPostfix && accountID === currentUserAccountID;
+
+    const longName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, formattedLogin, shouldFallbackToHidden, shouldAddPostfix);
 
     // If the user's personal details (first name) should be hidden, make sure we return "hidden" instead of the short name
     if (shouldFallbackToHidden && longName === Localize.translateLocal('common.hidden')) {
@@ -1657,6 +1698,7 @@ function getDisplayNamesWithTooltips(
     personalDetailsList: PersonalDetails[] | PersonalDetailsList | OptionData[],
     isMultipleParticipantReport: boolean,
     shouldFallbackToHidden = true,
+    shouldAddCurrentUserPostfix = false,
 ): DisplayNameWithTooltips {
     const personalDetailsListArray = Array.isArray(personalDetailsList) ? personalDetailsList : Object.values(personalDetailsList);
 
@@ -1664,7 +1706,7 @@ function getDisplayNamesWithTooltips(
         .map((user) => {
             const accountID = Number(user?.accountID);
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport, shouldFallbackToHidden) || user?.login || '';
+            const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport, shouldFallbackToHidden, shouldAddCurrentUserPostfix) || user?.login || '';
             const avatar = UserUtils.getDefaultAvatar(accountID);
 
             let pronouns = user?.pronouns ?? undefined;
@@ -2520,7 +2562,11 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         }
 
         const isAttachment = ReportActionsUtils.isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : null);
-        const parentReportActionMessage = (parentReportAction?.message?.[0]?.text ?? '').replace(/(\r\n|\n|\r)/gm, ' ');
+        const parentReportActionMessage = (
+            ReportActionsUtils.isApprovedOrSubmittedReportAction(parentReportAction)
+                ? ReportActionsUtils.getReportActionMessageText(parentReportAction)
+                : parentReportAction?.message?.[0]?.text ?? ''
+        ).replace(/(\r\n|\n|\r)/gm, ' ');
         if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
         }
@@ -2555,6 +2601,10 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
 
     if (isArchivedRoom(report)) {
         formattedName += ` (${Localize.translateLocal('common.archived')})`;
+    }
+
+    if (isSelfDM(report)) {
+        formattedName = getDisplayNameForParticipant(currentUserAccountID, undefined, undefined, true);
     }
 
     if (formattedName) {
@@ -2613,6 +2663,11 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>): ParentNavigatio
 function navigateToDetailsPage(report: OnyxEntry<Report>) {
     const participantAccountIDs = report?.participantAccountIDs ?? [];
 
+    if (isSelfDM(report)) {
+        Navigation.navigate(ROUTES.PROFILE.getRoute(currentUserAccountID ?? 0));
+        return;
+    }
+
     if (isOneOnOneChat(report)) {
         Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountIDs[0]));
         return;
@@ -2655,7 +2710,26 @@ function hasReportNameError(report: OnyxEntry<Report>): boolean {
  */
 function getParsedComment(text: string): string {
     const parser = new ExpensiMark();
-    return text.length <= CONST.MAX_MARKUP_LENGTH ? parser.replace(text, {shouldEscapeText: !shouldAllowRawHTMLMessages()}) : lodashEscape(text);
+    const textWithMention = text.replace(CONST.REGEX.SHORT_MENTION, (match) => {
+        const mention = match.substring(1);
+
+        if (!Str.isValidEmail(mention) && currentUserPrivateDomain) {
+            const mentionWithEmailDomain = `${mention}@${currentUserPrivateDomain}`;
+            if (allPersonalDetailLogins.includes(mentionWithEmailDomain)) {
+                return `@${mentionWithEmailDomain}`;
+            }
+        }
+        if (Str.isValidPhone(mention)) {
+            const mentionWithSmsDomain = PhoneNumber.addSMSDomainIfPhoneNumber(mention);
+            if (allPersonalDetailLogins.includes(mentionWithSmsDomain)) {
+                return `@${mentionWithSmsDomain}`;
+            }
+        }
+
+        return match;
+    });
+
+    return text.length <= CONST.MAX_MARKUP_LENGTH ? parser.replace(textWithMention, {shouldEscapeText: !shouldAllowRawHTMLMessages()}) : lodashEscape(text);
 }
 
 function getReportDescriptionText(report: Report): string {
@@ -2877,11 +2951,10 @@ function getHumanReadableStatus(statusNum: number): string {
 function populateOptimisticReportFormula(formula: string, report: OptimisticExpenseReport, policy: Policy | EmptyObject): string {
     const createdDate = report.lastVisibleActionCreated ? new Date(report.lastVisibleActionCreated) : undefined;
     const result = formula
-        .replaceAll('{report:id}', report.reportID)
         // We don't translate because the server response is always in English
         .replaceAll('{report:type}', 'Expense Report')
         .replaceAll('{report:startdate}', createdDate ? format(createdDate, CONST.DATE.FNS_FORMAT_STRING) : '')
-        .replaceAll('{report:total}', report.total?.toString() ?? '')
+        .replaceAll('{report:total}', report.total !== undefined ? CurrencyUtils.convertToDisplayString(Math.abs(report.total), report.currency).toString() : '')
         .replaceAll('{report:currency}', report.currency ?? '')
         .replaceAll('{report:policyname}', policy.name ?? '')
         .replaceAll('{report:created}', createdDate ? format(createdDate, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING) : '')
@@ -3901,6 +3974,7 @@ function shouldReportBeInOptionList({
     policies,
     excludeEmptyChats,
     doesReportHaveViolations,
+    includeSelfDM = false,
 }: {
     report: OnyxEntry<Report>;
     currentReportId: string;
@@ -3909,6 +3983,7 @@ function shouldReportBeInOptionList({
     policies: OnyxCollection<Policy>;
     excludeEmptyChats: boolean;
     doesReportHaveViolations: boolean;
+    includeSelfDM?: boolean;
 }) {
     const isInDefaultMode = !isInGSDMode;
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -3930,7 +4005,8 @@ function shouldReportBeInOptionList({
             !isUserCreatedPolicyRoom(report) &&
             !isArchivedRoom(report) &&
             !isMoneyRequestReport(report) &&
-            !isTaskReport(report))
+            !isTaskReport(report) &&
+            !isSelfDM(report))
     ) {
         return false;
     }
@@ -3990,6 +4066,10 @@ function shouldReportBeInOptionList({
     // Hide chats between two users that haven't been commented on from the LNH
     if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isChatRoom(report) && !isPolicyExpenseChat(report) && canHideReport) {
         return false;
+    }
+
+    if (isSelfDM(report)) {
+        return includeSelfDM;
     }
 
     return true;
@@ -4219,7 +4299,7 @@ function hasIOUWaitingOnCurrentUserBankAccount(chatReport: OnyxEntry<Report>): b
  */
 function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, otherParticipants: number[]): boolean {
     // User cannot request money in chat thread or in task report or in chat room
-    if (isChatThread(report) || isTaskReport(report) || isChatRoom(report)) {
+    if (isChatThread(report) || isTaskReport(report) || isChatRoom(report) || isSelfDM(report)) {
         return false;
     }
 
@@ -4279,7 +4359,7 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
  */
 function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[]): Array<ValueOf<typeof CONST.IOU.TYPE>> {
     // In any thread or task report, we do not allow any new money requests yet
-    if (isChatThread(report) || isTaskReport(report)) {
+    if (isChatThread(report) || isTaskReport(report) || isSelfDM(report)) {
         return [];
     }
 
@@ -4334,6 +4414,7 @@ function canLeaveRoom(report: OnyxEntry<Report>, isPolicyMember: boolean): boole
             report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE ||
             report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT ||
             report?.chatType === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL ||
+            report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM ||
             !report?.chatType
         ) {
             // DM chats don't have a chatType
@@ -4466,19 +4547,6 @@ function getReportOfflinePendingActionAndErrors(report: OnyxEntry<Report>): Repo
 
     const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
     return {reportPendingAction, reportErrors};
-}
-
-function getPolicyExpenseChatReportIDByOwner(policyOwner: string): string | null {
-    const policyWithOwner = Object.values(allPolicies ?? {}).find((policy) => policy?.owner === policyOwner);
-    if (!policyWithOwner) {
-        return null;
-    }
-
-    const expenseChat = Object.values(allReports ?? {}).find((report) => isPolicyExpenseChat(report) && report?.policyID === policyWithOwner.id);
-    if (!expenseChat) {
-        return null;
-    }
-    return expenseChat.reportID;
 }
 
 /**
@@ -4765,7 +4833,7 @@ function isGroupChat(report: OnyxEntry<Report>): boolean {
             !isMoneyRequestReport(report) &&
             !isArchivedRoom(report) &&
             !Object.values(CONST.REPORT.CHAT_TYPE).some((chatType) => chatType === getChatType(report)) &&
-            (report.participantAccountIDs?.length ?? 0) > 2,
+            (report.participantAccountIDs?.length ?? 0) > 1,
     );
 }
 
@@ -5162,13 +5230,14 @@ export {
     getAddWorkspaceRoomOrChatReportErrors,
     getReportOfflinePendingActionAndErrors,
     isDM,
+    isSelfDM,
     getPolicy,
-    getPolicyExpenseChatReportIDByOwner,
     getWorkspaceChats,
     shouldDisableRename,
     hasSingleParticipant,
     getReportRecipientAccountIDs,
     isOneOnOneChat,
+    isPayer,
     goBackToDetailsPage,
     getTransactionReportName,
     getTransactionDetails,
