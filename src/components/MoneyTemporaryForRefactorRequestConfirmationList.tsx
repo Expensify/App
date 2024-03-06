@@ -3,17 +3,19 @@ import {format} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import React, {useCallback, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import _ from 'underscore';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import type {StyleProp, ViewStyle} from 'react-native';
-import DistanceRequestUtils, { DefaultMileageRate } from '@libs/DistanceRequestUtils';
+import DistanceRequestUtils, {DefaultMileageRate} from '@libs/DistanceRequestUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
@@ -25,14 +27,17 @@ import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {policyPropTypes} from '@pages/workspace/withPolicy';
-import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import Button from './Button';
 import type {AllRoutes} from '@src/ROUTES';
+import type * as OnyxTypes from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmedRoute from './ConfirmedRoute';
 import ConfirmModal from './ConfirmModal';
 import FormHelpMessage from './FormHelpMessage';
@@ -45,11 +50,6 @@ import ReceiptEmptyState from './ReceiptEmptyState';
 import SettlementButton from './SettlementButton';
 import Switch from './Switch';
 import Text from './Text';
-import type {OnyxEntry} from 'react-native-onyx';
-import type * as OnyxTypes from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/IOU';
-import type {ValueOf} from 'type-fest';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 type MoneyRequestConfirmationListOnyxProps = {
     /** Collection of categories attached to a policy */
@@ -170,7 +170,6 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 
     reportActionID?: string;
 };
-
 
 function MoneyTemporaryForRefactorRequestConfirmationList({
     transaction,
@@ -394,13 +393,13 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
-        const unselectedParticipants = _.filter(pickedParticipants, (participant) => !participant.selected);
+        const unselectedParticipants = pickedParticipants.filter((participant) => !participant.selected);
         if (hasMultipleParticipants) {
             const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants);
-            let formattedParticipantsList = _.union(formattedSelectedParticipants, unselectedParticipants);
+            let formattedParticipantsList = [...new Set([...formattedSelectedParticipants, ...unselectedParticipants])];
 
-            if (!userCanModifyParticipants.current) {
-                formattedParticipantsList = _.map(formattedParticipantsList, (participant) => ({
+            if (!canModifyParticipants) {
+                formattedParticipantsList = formattedParticipantsList.map((participant) => ({
                     ...participant,
                     isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? -1),
                 }));
@@ -457,10 +456,15 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         if (!hasMultipleParticipants) {
             return [];
         }
-        return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
-            personalDetailsOfPayee,
-            iouAmount > 0 ? CurrencyUtils.convertToDisplayString(myIOUAmount, iouCurrencyCode) : '',
-            )];
+
+        const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', true);
+        return [
+            ...selectedParticipants,
+            OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
+                personalDetailsOfPayee,
+                iouAmount > 0 ? CurrencyUtils.convertToDisplayString(myIOUAmount, iouCurrencyCode) : '',
+            ),
+        ];
     }, [selectedParticipants, hasMultipleParticipants, personalDetailsOfPayee]);
 
     useEffect(() => {
@@ -607,13 +611,14 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
         return (
             <>
-                {!_.isEmpty(formError) && (
+                {formError && (
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
                         message={formError}
                     />
                 )}
+
                 {button}
             </>
         );
@@ -660,7 +665,13 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     description={translate('common.description')}
                     onPress={() => {
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                            ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
+                                CONST.IOU.ACTION.CREATE,
+                                iouType,
+                                transaction?.transactionID ?? '',
+                                reportID,
+                                Navigation.getActiveRouteWithoutParams(),
+                            ),
                         );
                     }}
                     style={[styles.moneyRequestMenuItem]}
@@ -682,7 +693,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     description={translate('common.distance')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()))}
+                    onPress={() =>
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()))
+                    }
                     disabled={didConfirm || !isTypeRequest}
                     interactive={!isReadOnly}
                 />
@@ -701,7 +714,13 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     titleStyle={styles.flex1}
                     onPress={() => {
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                            ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(
+                                CONST.IOU.ACTION.CREATE,
+                                iouType,
+                                transaction?.transactionID ?? '',
+                                reportID,
+                                Navigation.getActiveRouteWithoutParams(),
+                            ),
                         );
                     }}
                     disabled={didConfirm}
@@ -747,7 +766,13 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     numberOfLinesTitle={2}
                     onPress={() =>
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
+                                CONST.IOU.ACTION.CREATE,
+                                iouType,
+                                transaction?.transactionID ?? '',
+                                reportID,
+                                Navigation.getActiveRouteWithoutParams(),
+                            ),
                         )
                     }
                     style={[styles.moneyRequestMenuItem]}
@@ -770,7 +795,14 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     numberOfLinesTitle={2}
                     onPress={() =>
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.CREATE, iouType, index, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                            ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
+                                CONST.IOU.ACTION.CREATE,
+                                iouType,
+                                index,
+                                transaction?.transactionID ?? '',
+                                reportID,
+                                Navigation.getActiveRouteWithoutParams(),
+                            ),
                         )
                     }
                     style={[styles.moneyRequestMenuItem]}
@@ -791,7 +823,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     description={taxRates?.name}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()))}
+                    onPress={() =>
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()))
+                    }
                     disabled={didConfirm}
                     interactive={!isReadOnly}
                 />
@@ -808,7 +842,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     description={taxRates?.name}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()))}
+                    onPress={() =>
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()))
+                    }
                     disabled={didConfirm}
                     interactive={!isReadOnly}
                 />
@@ -832,27 +868,23 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         },
     ];
 
-    const primaryFields = classifiedFields
-    .filter(classifiedField => classifiedField.shouldShow && !classifiedField.isSupplementary)
-    .map(primaryField => primaryField.item);
-
+    const primaryFields = classifiedFields.filter((classifiedField) => classifiedField.shouldShow && !classifiedField.isSupplementary).map((primaryField) => primaryField.item);
 
     const supplementaryFields = classifiedFields
-    .filter(classifiedField => classifiedField.shouldShow && classifiedField.isSupplementary)
-    .map(supplementaryField => supplementaryField.item);
-
+        .filter((classifiedField) => classifiedField.shouldShow && classifiedField.isSupplementary)
+        .map((supplementaryField) => supplementaryField.item);
 
     const {
         image: receiptImage,
         thumbnail: receiptThumbnail,
         isLocalFile,
-    } = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction ?? null, receiptPath, receiptFilename) : {};
+    } = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction ?? null, receiptPath, receiptFilename) : ({} as ReceiptUtils.ThumbnailAndImageURI);
 
     const receiptThumbnailContent = useMemo(
         () =>
             isLocalFile && Str.isPDF(receiptFilename) ? (
                 <PDFThumbnail
-                    previewSourceURL={receiptImage}
+                    previewSourceURL={receiptImage as string}
                     style={styles.moneyRequestImage}
                     // We don't support scaning password protected PDF receipt
                     enabled={!isAttachmentInvalid}
@@ -861,17 +893,18 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             ) : (
                 <Image
                     style={styles.moneyRequestImage}
-                    source={{uri: receiptThumbnail || receiptImage}}
+                    source={{uri: (receiptThumbnail || receiptImage) as string}}
                     // AuthToken is required when retrieving the image from the server
                     // but we don't need it to load the blob:// or file:// image when starting a money request / split bill
                     // So if we have a thumbnail, it means we're retrieving the image from the server
-                    isAuthTokenRequired={!_.isEmpty(receiptThumbnail)}
+                    isAuthTokenRequired={!!receiptThumbnail}
                 />
             ),
         [receiptFilename, receiptImage, styles, receiptThumbnail, isLocalFile, isAttachmentInvalid],
     );
 
     return (
+        // @ts-expect-error This component is deprecated and will not be migrated to TypeScript (context: https://expensify.slack.com/archives/C01GTK53T8Q/p1709232289899589?thread_ts=1709156803.359359&cid=C01GTK53T8Q)
         <OptionsSelector
             sections={optionSelectorSections}
             onSelectRow={userCanModifyParticipants.current ? selectParticipant : navigateToReportOrUserDetail}
@@ -904,7 +937,13 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                       <ReceiptEmptyState
                           onPress={() =>
                               Navigation.navigate(
-                                  ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                                  ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                      CONST.IOU.ACTION.CREATE,
+                                      iouType,
+                                      transaction?.transactionID ?? '',
+                                      reportID,
+                                      Navigation.getActiveRouteWithoutParams(),
+                                  ),
                               )
                           }
                       />
@@ -938,7 +977,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         </OptionsSelector>
     );
 }
-
 
 MoneyTemporaryForRefactorRequestConfirmationList.displayName = 'MoneyTemporaryForRefactorRequestConfirmationList';
 
