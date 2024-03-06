@@ -1903,6 +1903,8 @@ export default {
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
         },
         distanceRates: {
+            oopsNotSoFast: 'Oops! Not so fast...',
+            workspaceNeeds: 'A workspace needs at least one enabled distance rate.',
             distance: 'Distance',
             centrallyManage: 'Centrally manage rates, choose to track in miles or kilometers, and set a default category.',
             rate: 'Rate',
@@ -1910,15 +1912,13 @@ export default {
             deleteRate: 'Delete rate',
             deleteRates: 'Delete rates',
             enableRate: 'Enable rate',
+            disableRate: 'Disable rate',
             disableRates: 'Disable rates',
-            deleteDistanceRate: 'Delete distance rate',
-            areYouSureDelete: 'Are you sure you want to delete this rate?',
+            enableRates: 'Enable rates',
+            selected: 'Selected',
             status: 'Status',
             enabled: 'Enabled',
-            errors: {
-                toggleRateGenericFailureMessage: 'An error occurred while toggling the distance rate, please try again.',
-                deleteRateGenericFailureMessage: 'An error occurred while deleting the distance rate, please try again.',
-            },
+            disabled: 'Disabled',
         },
         editor: {
             descriptionInputLabel: 'Description',
