@@ -2,6 +2,7 @@ import React from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OnyxProvider from '@components/OnyxProvider';
 import OptionRow from '@components/OptionRow';
+import type {OptionRowProps} from '@components/OptionRow';
 
 /* eslint-disable react/jsx-props-no-spreading */
 
@@ -42,7 +43,7 @@ export default {
     },
 };
 
-function Template(args) {
+function Template(args: OptionRowProps) {
     return (
         <OnyxProvider>
             <OptionRow {...args} />

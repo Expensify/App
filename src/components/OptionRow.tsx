@@ -340,3 +340,5 @@ export default React.memo(
         prevProps.option.pendingAction === nextProps.option.pendingAction &&
         prevProps.option.customIcon === nextProps.option.customIcon,
 );
+
+export type {OptionRowProps};

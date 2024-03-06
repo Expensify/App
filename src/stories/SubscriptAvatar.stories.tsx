@@ -1,8 +1,12 @@
+import type {ComponentStory} from '@storybook/react';
 import React from 'react';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import * as Expensicons from '@components/Icon/Expensicons';
 import SubscriptAvatar from '@components/SubscriptAvatar';
+import type {SubscriptAvatarProps} from '@components/SubscriptAvatar';
 import CONST from '@src/CONST';
+
+type SubscriptAvatarStory = ComponentStory<typeof SubscriptAvatar>;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -23,27 +27,27 @@ export default {
     },
 };
 
-function Template(args) {
+function Template(args: SubscriptAvatarProps) {
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <SubscriptAvatar {...args} />;
 }
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
-const Default = Template.bind({});
+const Default: SubscriptAvatarStory = Template.bind({});
 
-const AvatarURLStory = Template.bind({});
+const AvatarURLStory: SubscriptAvatarStory = Template.bind({});
 AvatarURLStory.args = {
     mainAvatar: {source: defaultAvatars.Avatar1, name: '', type: CONST.ICON_TYPE_AVATAR},
     secondaryAvatar: {source: defaultAvatars.Avatar3, name: '', type: CONST.ICON_TYPE_AVATAR},
 };
 
-const SubscriptIcon = Template.bind({});
+const SubscriptIcon: SubscriptAvatarStory = Template.bind({});
 SubscriptIcon.args = {
     subscriptIcon: {source: Expensicons.DownArrow, width: 8, height: 8},
 };
 
-const WorkspaceSubscriptIcon = Template.bind({});
+const WorkspaceSubscriptIcon: SubscriptAvatarStory = Template.bind({});
 WorkspaceSubscriptIcon.args = {
     mainAvatar: {source: defaultAvatars.Avatar1, name: '', type: CONST.ICON_TYPE_WORKSPACE},
     subscriptIcon: {source: Expensicons.DownArrow, width: 8, height: 8},
