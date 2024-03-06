@@ -41,6 +41,7 @@ import type {
     OriginalMessageCreated,
     OriginalMessageReimbursementDequeued,
     OriginalMessageRenamed,
+    OriginalMessageTaskEdited,
     PaymentMethodType,
     ReimbursementDeQueuedMessage,
 } from '@src/types/onyx/OriginalMessage';
@@ -209,7 +210,7 @@ type OptimisticCancelPaymentReportAction = Pick<
 
 type OptimisticEditedTaskReportAction = Pick<
     ReportAction,
-    'reportActionID' | 'actionName' | 'pendingAction' | 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'shouldShow' | 'message' | 'person'
+    'reportActionID' | 'actionName' | 'pendingAction' | 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'shouldShow' | 'message' | 'originalMessage' | 'person'
 >;
 
 type OptimisticClosedReportAction = Pick<
@@ -2508,6 +2509,41 @@ function getModifiedExpenseOriginalMessage(oldTransaction: OnyxEntry<Transaction
 }
 
 /**
+ * Returns Task assignee accountID
+ */
+function getTaskAssigneeAccountID(report: OnyxEntry<Report>): number | undefined {
+    if (!report) {
+        return;
+    }
+
+    if (report.managerID) {
+        return report.managerID;
+    }
+
+    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+    return parentReportAction?.childManagerAccountID;
+}
+
+function getTaskEditedOriginalMessage(oldTask: OnyxEntry<Report>, taskChanges: Partial<Task>): OriginalMessageTaskEdited['originalMessage'] {
+    const originalMessage: OriginalMessageTaskEdited['originalMessage'] = {};
+
+    if ('title' in taskChanges) {
+        originalMessage.oldTitle = oldTask?.reportName;
+        originalMessage.title = taskChanges?.title;
+    }
+    if ('description' in taskChanges) {
+        originalMessage.oldDescription = oldTask?.description;
+        originalMessage.description = taskChanges?.description;
+    }
+    if ('assigneeAccountID' in taskChanges) {
+        originalMessage.oldAssigneeAccountID = getTaskAssigneeAccountID(oldTask);
+        originalMessage.assigneeAccountID = taskChanges?.assigneeAccountID;
+    }
+
+    return originalMessage;
+}
+
+/**
  * Check if original message is an object and can be used as a ChangeLog type
  * @param originalMessage
  */
@@ -3651,25 +3687,8 @@ function buildOptimisticUnHoldReportAction(created = DateUtils.getDBTime()): Opt
     };
 }
 
-function buildOptimisticEditedTaskFieldReportAction({title, description}: Task): OptimisticEditedTaskReportAction {
-    // We do not modify title & description in one request, so we need to create a different optimistic action for each field modification
-    let field = '';
-    let value = '';
-    if (title !== undefined) {
-        field = 'task title';
-        value = title;
-    } else if (description !== undefined) {
-        field = 'description';
-        value = description;
-    }
-
-    let changelog = 'edited this task';
-    if (field && value) {
-        changelog = `updated the ${field} to ${value}`;
-    } else if (field) {
-        changelog = `removed the ${field}`;
-    }
-
+function buildOptimisticEditedTaskReportAction(taskReport: Report, changes: Partial<Task>): OptimisticEditedTaskReportAction {
+    const originalMessage = getTaskEditedOriginalMessage(taskReport, changes);
     return {
         reportActionID: NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.TASKEDITED,
@@ -3677,38 +3696,13 @@ function buildOptimisticEditedTaskFieldReportAction({title, description}: Task):
         actorAccountID: currentUserAccountID,
         message: [
             {
-                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                text: changelog,
-                html: changelog,
-            },
-        ],
-        person: [
-            {
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                // Currently, we are composing the message from the originalMessage and the message is not used in the App
+                text: 'You',
                 style: 'strong',
-                text: getCurrentUserDisplayNameOrEmail(),
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
             },
         ],
-        automatic: false,
-        avatar: getCurrentUserAvatarOrDefault(),
-        created: DateUtils.getDBTime(),
-        shouldShow: false,
-    };
-}
-
-function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: number): OptimisticEditedTaskReportAction {
-    return {
-        reportActionID: NumberUtils.rand64(),
-        actionName: CONST.REPORT.ACTIONS.TYPE.TASKEDITED,
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        actorAccountID: currentUserAccountID,
-        message: [
-            {
-                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                text: `assigned to ${getDisplayNameForParticipant(assigneeAccountID)}`,
-                html: `assigned to <mention-user accountID=${assigneeAccountID}></mention-user>`,
-            },
-        ],
+        originalMessage,
         person: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
@@ -5201,8 +5195,7 @@ export {
     buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
     buildOptimisticRenamedRoomReportAction,
-    buildOptimisticEditedTaskFieldReportAction,
-    buildOptimisticChangedTaskAssigneeReportAction,
+    buildOptimisticEditedTaskReportAction,
     buildOptimisticIOUReport,
     buildOptimisticApprovedReportAction,
     buildOptimisticMovedReportAction,
@@ -5279,6 +5272,7 @@ export {
     shouldDisableRename,
     hasSingleParticipant,
     getReportRecipientAccountIDs,
+    getTaskAssigneeAccountID,
     isOneOnOneChat,
     isPayer,
     goBackToDetailsPage,

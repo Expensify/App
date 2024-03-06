@@ -3,10 +3,12 @@ import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+import type {OriginalMessageTaskEdited} from '@src/types/onyx/OriginalMessage';
 import type {Message} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import * as CollectionUtils from './CollectionUtils';
 import * as Localize from './Localize';
+import * as ReportUtils from './ReportUtils';
 
 const allReports: Record<string, Report> = {};
 Onyx.connect({
@@ -20,6 +22,54 @@ Onyx.connect({
     },
 });
 
+function buildMessageFragmentForValue(newValue: string | undefined, valueName: string): string {
+    const fieldName = valueName.toLowerCase();
+
+    if (!newValue) {
+        return Localize.translateLocal('task.messages.removedField', {fieldName});
+    }
+
+    return Localize.translateLocal('task.messages.updatedField', {fieldName, newValueToDisplay: newValue});
+}
+
+function getTaskEditedMessage(reportAction: OnyxEntry<ReportAction>) {
+    if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKEDITED) {
+        return {text: ''};
+    }
+
+    const originalMessage = reportAction?.originalMessage as OriginalMessageTaskEdited['originalMessage'] | undefined;
+    if (!originalMessage) {
+        return {
+            text: reportAction?.message?.[0].text ?? '',
+            html: reportAction?.message?.[0].html,
+        };
+    }
+
+    const hasModifiedTitle = 'title' in originalMessage;
+    if (hasModifiedTitle) {
+        return {
+            text: buildMessageFragmentForValue(originalMessage.title, Localize.translateLocal('task.title')),
+        };
+    }
+
+    const hasModifiedDescription = 'description' in originalMessage;
+    if (hasModifiedDescription) {
+        return {
+            text: buildMessageFragmentForValue(originalMessage.description, Localize.translateLocal('task.description')),
+        };
+    }
+
+    const hasModifiedAssignee = 'assigneeAccountID' in originalMessage;
+    if (hasModifiedAssignee) {
+        return {
+            text: Localize.translateLocal('task.messages.updatedAssignee', {assignee: ReportUtils.getDisplayNameForParticipant(originalMessage.assigneeAccountID)}),
+            html: Localize.translateLocal('task.messages.updatedAssignee', {assignee: `<mention-user accountID=${originalMessage.assigneeAccountID}></mention-user>`}),
+        };
+    }
+
+    return {text: ''};
+}
+
 /**
  * Given the Task reportAction name, return the appropriate message to be displayed and copied to clipboard.
  */
@@ -32,10 +82,7 @@ function getTaskReportActionMessage(action: OnyxEntry<ReportAction>): Pick<Messa
         case CONST.REPORT.ACTIONS.TYPE.TASKREOPENED:
             return {text: Localize.translateLocal('task.messages.reopened')};
         case CONST.REPORT.ACTIONS.TYPE.TASKEDITED:
-            return {
-                text: action?.message?.[0].text ?? '',
-                html: action?.message?.[0].html,
-            };
+            return getTaskEditedMessage(action);
         default:
             return {text: Localize.translateLocal('task.task')};
     }

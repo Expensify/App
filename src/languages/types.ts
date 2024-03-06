@@ -214,6 +214,12 @@ type TagSelectionParams = {tagName: string};
 
 type WalletProgramParams = {walletProgram: string};
 
+type UpdatedTaskFieldParams = {fieldName: string; newValueToDisplay: string};
+
+type RemovedTaskFieldParams = {fieldName: string};
+
+type UpdatedTaskAssigneeParams = {assignee: string};
+
 type ViolationsAutoReportedRejectedExpenseParams = {rejectedBy: string; rejectReason: string};
 
 type ViolationsCashExpenseWithNoReceiptParams = {formattedLimit?: string};
@@ -399,4 +405,7 @@ export type {
     ZipCodeExampleFormatParams,
     LogSizeParams,
     HeldRequestParams,
+    UpdatedTaskFieldParams,
+    RemovedTaskFieldParams,
+    UpdatedTaskAssigneeParams,
 };
