@@ -65,6 +65,7 @@ import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustra
 import SanFrancisco from '@assets/images/simple-illustrations/simple-illustration__sanfrancisco.svg';
 import ShieldYellow from '@assets/images/simple-illustrations/simple-illustration__shield.svg';
 import SmallRocket from '@assets/images/simple-illustrations/simple-illustration__smallrocket.svg';
+import Tag from '@assets/images/simple-illustrations/simple-illustration__tag.svg';
 import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
 import TrackShoe from '@assets/images/simple-illustrations/simple-illustration__track-shoe.svg';
 import TrashCan from '@assets/images/simple-illustrations/simple-illustration__trashcan.svg';
@@ -148,4 +149,5 @@ export {
     ThreeLeggedLaptopWoman,
     House,
     TeachersUnite,
+    Tag,
 };
