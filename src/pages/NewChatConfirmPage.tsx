@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -42,7 +42,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
         const currentUserOptionData = members.currentUserOption;
         const options = [...members.personalDetails, currentUserOptionData] as OptionData[];
         return options;
-    }, [newGroupDraft]);
+    }, [newGroupDraft, allPersonalDetails]);
 
     const groupName = GroupChatUtils.getGroupChatConfirmName(selectedOptions);
 
@@ -73,7 +73,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
         }
 
         if (isOptionInList) {
-            const newSelectedAccountIDs = selectedOptions.filter((selectedOption) => selectedOption.login !== option.login).map((option) => option.accountID) as number[];
+            const newSelectedAccountIDs = selectedOptions.filter((selectedOption) => selectedOption.login !== option.login).map((optionData) => optionData.accountID) as number[];
             Report.setGroupDraft(newSelectedAccountIDs);
         }
     };

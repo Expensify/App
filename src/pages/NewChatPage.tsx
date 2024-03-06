@@ -239,7 +239,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
             const groupSelectedOptions = OptionsListUtils.getMemberInviteOptions(invitedUsersPersonalDetails).personalDetails;
             setSelectedOptions(groupSelectedOptions);
         }
-    }, [didScreenTransitionEnd, updateOptions]);
+    }, [didScreenTransitionEnd, updateOptions, newGroupDraft?.selectedOptions, personalDetails]);
 
     const {inputCallbackRef} = useAutoFocusInput();
 

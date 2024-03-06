@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {OptionData} from '@libs/ReportUtils';
 import type {Report} from '@src/types/onyx';
 import localeCompare from './LocaleCompare';
+import type {OptionData} from './ReportUtils';
 import * as ReportUtils from './ReportUtils';
 
 /**

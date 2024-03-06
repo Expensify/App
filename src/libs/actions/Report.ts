@@ -250,6 +250,10 @@ Onyx.connect({
     callback: (val) => (newGroupDraft = val),
 });
 
+function clearGroupChat() {
+    Onyx.set(ONYXKEYS.NEW_GROUP, null);
+}
+
 function startNewChat() {
     clearGroupChat();
     Navigation.navigate(ROUTES.NEW);
@@ -2972,10 +2976,6 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
 
 function setGroupDraft(invitedUsersIDs: number[], reportName: string = '') {
     Onyx.set(ONYXKEYS.NEW_GROUP, {selectedOptions: invitedUsersIDs, reportName});
-}
-
-function clearGroupChat() {
-    Onyx.set(ONYXKEYS.NEW_GROUP, null);
 }
 
 export {
