@@ -2474,9 +2474,9 @@ function getModifiedExpenseOriginalMessage(oldTransaction: OnyxEntry<Transaction
         originalMessage.tag = transactionChanges?.tag;
     }
 
-    if ('taxAmount' in transactionChanges) {        
+    if ('taxAmount' in transactionChanges) {
         originalMessage.oldTaxAmount = TransactionUtils.getTaxAmount(oldTransaction, isFromExpenseReport);
-        originalMessage.taxAmount = transactionChanges?.taxAmount
+        originalMessage.taxAmount = transactionChanges?.taxAmount;
     }
 
     if ('taxCode' in transactionChanges) {
