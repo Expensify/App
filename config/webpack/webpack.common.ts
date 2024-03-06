@@ -1,14 +1,16 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import PreloadWebpackPlugin from '@vue/preload-webpack-plugin';
-import {CleanWebpackPlugin} from 'clean-webpack-plugin';
-import CopyPlugin from 'copy-webpack-plugin';
-import dotenv from 'dotenv';
-import fs from 'fs';
-import HtmlWebpackPlugin from 'html-webpack-plugin';
-import path from 'path';
-import {DefinePlugin, EnvironmentPlugin, IgnorePlugin, ProvidePlugin} from 'webpack';
-import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
-import CustomVersionFilePlugin from './CustomVersionFilePlugin';
+import type {Configuration} from 'webpack';
+
+const {CleanWebpackPlugin} = require('clean-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
+const dotenv = require('dotenv');
+const fs = require('fs');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const path = require('path');
+const {DefinePlugin, EnvironmentPlugin, IgnorePlugin, ProvidePlugin} = require('webpack');
+const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
+const PreloadWebpackPlugin = require('@vue/preload-webpack-plugin');
+const CustomVersionFilePlugin = require('./CustomVersionFilePlugin');
 
 const includeModules = [
     'react-native-animatable',
@@ -45,7 +47,7 @@ function mapEnvToLogoSuffix(envFile: string): string {
 /**
  * Get a production grade config for web or desktop
  */
-const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
+const getCommonConfig = ({envFile = '.env', platform = 'web'}): Configuration => ({
     mode: 'production',
     devtool: 'source-map',
     entry: {
@@ -273,4 +275,4 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
     },
 });
 
-export default webpackConfig;
+export default getCommonConfig;
