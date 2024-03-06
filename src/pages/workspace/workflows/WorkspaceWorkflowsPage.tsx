@@ -63,7 +63,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                               Policy.setWorkspaceAutoReporting(route.params.policyID, isEnabled);
                               // If the Collect policy has just been created, it will have the frequency set to instant.
                               // When the user toggles the delayed submission for the first time, we should default to weekly instead.
-                              if (policy.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT) {
+                              if (policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT) {
                                     Policy.setWorkspaceAutoReportingFrequency(route.params.policyID, CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY);
                               }
                           },
