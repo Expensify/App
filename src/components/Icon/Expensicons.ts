@@ -135,6 +135,7 @@ import Twitter from '@assets/images/social-twitter.svg';
 import Youtube from '@assets/images/social-youtube.svg';
 import Stopwatch from '@assets/images/stopwatch.svg';
 import Sync from '@assets/images/sync.svg';
+import Tag from '@assets/images/tag.svg';
 import Task from '@assets/images/task.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
@@ -223,6 +224,7 @@ export {
     FlagLevelThree,
     Fullscreen,
     Folder,
+    Tag,
     Gallery,
     Gear,
     Globe,
