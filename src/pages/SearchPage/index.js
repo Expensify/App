@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -147,8 +148,7 @@ function SearchPage({betas, reports, isSearchingForReports}) {
             });
             indexOffset += recentReports.length;
         }
-
-        if (userToInvite) {
+        if (!_.isEmpty(userToInvite)) {
             newSections.push({
                 data: [userToInvite],
                 shouldShow: true,

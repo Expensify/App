@@ -288,7 +288,7 @@ function getHighestRanking<T>(item: T, keys: ReadonlyArray<KeyOption<T>> | undef
         return {
             // ends up being duplicate of 'item' in matches but consistent
             rankedValue: stringItem,
-            rank: rankings.NO_MATCH, // TODO fix it
+            rank: rankings.NO_MATCH,
             keyIndex: -1,
             keyThreshold: options.threshold,
         };
@@ -303,7 +303,7 @@ function getHighestRanking<T>(item: T, keys: ReadonlyArray<KeyOption<T>> | undef
             if (newRank > ranking.rank) {
                 ranking.rank = newRank;
                 ranking.keyIndex = index;
-                ranking.keyThreshold = options.threshold; // TODO check if it's correct
+                ranking.keyThreshold = options.threshold;
                 newRankedValue = itemValue;
             }
             return {rankedValue: newRankedValue, rank: ranking.rank, keyIndex: ranking.keyIndex, keyThreshold: ranking.keyThreshold};
