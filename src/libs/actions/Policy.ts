@@ -2506,34 +2506,30 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
             {
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: {
-                    ...Object.keys(policyCategories).reduce<PolicyCategories>((acc, key) => {
-                        if (!categoryNamesToDelete.includes(key)) {
-                            acc[key] = policyCategories[key];
-                        }
+                value: Object.keys(policyCategories).reduce<PolicyCategories>((acc, key) => {
+                    if (!categoryNamesToDelete.includes(key)) {
+                        acc[key] = policyCategories[key];
+                    }
 
-                        return acc;
-                    }, {}),
-                },
+                    return acc;
+                }, {}),
             },
         ],
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: {
-                    ...Object.keys(policyCategories).reduce<PolicyCategories>((acc, key) => {
-                        if (categoryNamesToDelete.includes(key)) {
-                            acc[key] = {
-                                ...policyCategories[key],
-                                pendingAction: null,
-                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.deleteFailureMessage'),
-                            };
-                        }
+                value: Object.keys(policyCategories).reduce<PolicyCategories>((acc, key) => {
+                    if (categoryNamesToDelete.includes(key)) {
+                        acc[key] = {
+                            ...policyCategories[key],
+                            pendingAction: null,
+                            errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.deleteFailureMessage'),
+                        };
+                    }
 
-                        return acc;
-                    }, {}),
-                },
+                    return acc;
+                }, {}),
             },
         ],
     };
