@@ -43,6 +43,6 @@ export default function useReimbursementAccountStepFormSubmit({
 
             onNext();
         },
-        [isEditing, onNext, formId, fieldIds],
+        [isEditing, onNext, formId, fieldIds, shouldSaveDraft],
     );
 }
