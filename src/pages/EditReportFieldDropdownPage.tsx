@@ -50,14 +50,15 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, 
         const filteredRestOfOptions = fieldOptions.filter(
             (option) => option !== fieldValue && !filteredRecentOptions.includes(option) && option.toLowerCase().includes(searchValue.toLowerCase()),
         );
-        setHeaderMessage(!filteredRecentOptions.length && !filteredRestOfOptions.length ? translate('common.noResultsFound') : '');
+        const shouldIncludeSelectedField = fieldValue && fieldValue.toLowerCase().includes(searchValue.toLowerCase());
+        setHeaderMessage(!shouldIncludeSelectedField && !filteredRecentOptions.length && !filteredRestOfOptions.length ? translate('common.noResultsFound') : '');
 
         return [
-            ...(fieldValue
+            ...(shouldIncludeSelectedField
                 ? [
                       {
                           title: '',
-                          shouldShow: !!false,
+                          shouldShow: true,
                           data: [
                               {
                                   text: fieldValue,
