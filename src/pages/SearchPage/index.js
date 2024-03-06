@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
@@ -21,7 +22,6 @@ import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SearchPageFooter from './SearchPageFooter';
 
 const propTypes = {
     /* Onyx Props */
@@ -46,8 +46,6 @@ const setPerformanceTimersEnd = () => {
     Timing.end(CONST.TIMING.SEARCH_RENDER);
     Performance.markEnd(CONST.TIMING.SEARCH_RENDER);
 };
-
-const SearchPageFooterInstance = <SearchPageFooter />;
 
 function SearchPage({betas, reports, isSearchingForReports}) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
@@ -139,6 +137,18 @@ function SearchPage({betas, reports, isSearchingForReports}) {
     };
 
     const isOptionsDataReady = useMemo(() => ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails), [personalDetails]);
+    const [showFooter, setShowFooter] = useState(true);
+
+    const SearchPageFooter = useMemo(
+        () => (
+            <ReferralProgramCTA
+                referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND}
+                style={themeStyles.flexShrink0}
+                onDismiss={() => setShowFooter(false)}
+            />
+        ),
+        [themeStyles],
+    );
 
     return (
         <ScreenWrapper
@@ -147,13 +157,13 @@ function SearchPage({betas, reports, isSearchingForReports}) {
             onEntryTransitionEnd={handleScreenTransitionEnd}
             shouldEnableMaxHeight
         >
-            {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
+            {({didScreenTransitionEnd}) => (
                 <>
                     <HeaderWithBackButton
                         title={translate('common.search')}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    <View style={[themeStyles.flex1, themeStyles.w100, safeAreaPaddingBottomStyle]}>
+                    <View style={[themeStyles.flex1, themeStyles.w100]}>
                         <SelectionList
                             sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
                             ListItem={UserListItem}
@@ -166,7 +176,7 @@ function SearchPage({betas, reports, isSearchingForReports}) {
                             autoFocus
                             onSelectRow={selectReport}
                             showLoadingPlaceholder={!didScreenTransitionEnd || !isOptionsDataReady}
-                            footerContent={SearchPageFooterInstance}
+                            footerContent={showFooter && SearchPageFooter}
                             isLoadingNewOptions={isSearchingForReports}
                         />
                     </View>

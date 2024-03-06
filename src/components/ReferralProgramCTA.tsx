@@ -1,5 +1,5 @@
-import React from 'react';
-import {ViewStyle} from 'react-native';
+import React, {useEffect} from 'react';
+import type {ViewStyle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -40,7 +40,16 @@ function ReferralProgramCTA({referralContentType, dismissedReferralBanners, styl
         onDismiss?.();
     };
 
-    if (!referralContentType || dismissedReferralBanners[referralContentType]) {
+    const shouldShowBanner = referralContentType && !dismissedReferralBanners[referralContentType];
+
+    useEffect(() => {
+        if (shouldShowBanner) {
+            return;
+        }
+        onDismiss?.();
+    }, [onDismiss, shouldShowBanner]);
+
+    if (!shouldShowBanner) {
         return null;
     }
 

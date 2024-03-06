@@ -14,6 +14,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,7 +22,6 @@ import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, Section, SectionListDataType} from './types';
 
 function BaseSelectionList<TItem extends ListItem>(
     {
@@ -52,7 +52,6 @@ function BaseSelectionList<TItem extends ListItem>(
         showConfirmButton = false,
         shouldPreventDefaultFocusOnSelectRow = false,
         containerStyle,
-        isKeyboardShown = false,
         disableKeyboardShortcuts = false,
         children,
         shouldStopPropagation = false,
@@ -78,6 +77,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const isFocused = useIsFocused();
     const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
     const [isInitialSectionListRender, setIsInitialSectionListRender] = useState(true);
+    const {isKeyboardShown} = useKeyboardState();
 
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
