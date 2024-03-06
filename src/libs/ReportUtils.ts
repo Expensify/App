@@ -2331,18 +2331,21 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
 /**
  * Get money request message for an IOU report
  *
- * @param [reportAction] This can be either a report preview action or the IOU action
+ * @param [iouReportAction] This is always an IOU action. When necessary, report preview actions will be unwrapped and the child iou report action is passed here (the original report preview
+ *     action will be passed as `originalReportAction` in this case).
+ * @param [originalReportAction] This can be either a report preview action or the IOU action. This will be the original report preview action in cases where `iouReportAction` was unwrapped
+ *     from a report preview action. Otherwise, it will be the same as `iouReportAction`.
  */
 function getReportPreviewMessage(
     report: OnyxEntry<Report> | EmptyObject,
-    reportAction: OnyxEntry<ReportAction> | EmptyObject = {},
+    iouReportAction: OnyxEntry<ReportAction> | EmptyObject = {},
     shouldConsiderScanningReceiptOrPendingRoute = false,
     isPreviewMessageForParentChatReport = false,
     policy: OnyxEntry<Policy> = null,
     isForListPreview = false,
-    originalReportAction: OnyxEntry<ReportAction> | EmptyObject = reportAction,
+    originalReportAction: OnyxEntry<ReportAction> | EmptyObject = iouReportAction,
 ): string {
-    const reportActionMessage = reportAction?.message?.[0].html ?? '';
+    const reportActionMessage = iouReportAction?.message?.[0].html ?? '';
 
     if (isEmptyObject(report) || !report?.reportID) {
         // The iouReport is not found locally after SignIn because the OpenApp API won't return iouReports if they're settled
@@ -2350,9 +2353,9 @@ function getReportPreviewMessage(
         return reportActionMessage;
     }
 
-    if (!isEmptyObject(reportAction) && !isIOUReport(report) && reportAction && ReportActionsUtils.isSplitBillAction(reportAction)) {
+    if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && iouReportAction && ReportActionsUtils.isSplitBillAction(iouReportAction)) {
         // This covers group chats where the last action is a split bill action
-        const linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
+        const linkedTransaction = TransactionUtils.getLinkedTransaction(iouReportAction);
         if (isEmptyObject(linkedTransaction)) {
             return reportActionMessage;
         }
@@ -2387,8 +2390,8 @@ function getReportPreviewMessage(
     }
 
     let linkedTransaction;
-    if (!isEmptyObject(reportAction) && shouldConsiderScanningReceiptOrPendingRoute && reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-        linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
+    if (!isEmptyObject(iouReportAction) && shouldConsiderScanningReceiptOrPendingRoute && iouReportAction && ReportActionsUtils.isMoneyRequestAction(iouReportAction)) {
+        linkedTransaction = TransactionUtils.getLinkedTransaction(iouReportAction);
     }
 
     if (!isEmptyObject(linkedTransaction) && TransactionUtils.hasReceipt(linkedTransaction) && TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
@@ -2399,7 +2402,7 @@ function getReportPreviewMessage(
         return Localize.translateLocal('iou.routePending');
     }
 
-    const originalMessage = reportAction?.originalMessage as IOUMessage | undefined;
+    const originalMessage = iouReportAction?.originalMessage as IOUMessage | undefined;
 
     // Show Paid preview message if it's settled or if the amount is paid & stuck at receivers end for only chat reports.
     if (isSettled(report.reportID) || (report.isWaitingOnBankAccount && isPreviewMessageForParentChatReport)) {
@@ -2427,7 +2430,7 @@ function getReportPreviewMessage(
         return Localize.translateLocal('iou.waitingOnBankAccount', {submitterDisplayName});
     }
 
-    const lastActorID = reportAction?.actorAccountID;
+    const lastActorID = iouReportAction?.actorAccountID;
     let amount = originalMessage?.amount;
     let currency = originalMessage?.currency ? originalMessage?.currency : report.currency;
 
@@ -2436,8 +2439,8 @@ function getReportPreviewMessage(
         currency = TransactionUtils.getCurrency(linkedTransaction);
     }
 
-    if (isEmptyObject(linkedTransaction) && !isEmptyObject(reportAction)) {
-        linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
+    if (isEmptyObject(linkedTransaction) && !isEmptyObject(iouReportAction)) {
+        linkedTransaction = TransactionUtils.getLinkedTransaction(iouReportAction);
     }
 
     let comment = !isEmptyObject(linkedTransaction) ? TransactionUtils.getDescription(linkedTransaction) : undefined;
