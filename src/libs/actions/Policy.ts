@@ -2504,7 +2504,7 @@ function clearCategoryErrors(policyID: string, categoryName: string) {
     });
 }
 
-function openPolicyDistanceRatesPage(policyID: string) {
+function openPolicyDistanceRatesPage(policyID?: string) {
     if (!policyID) {
         return;
     }

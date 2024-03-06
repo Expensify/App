@@ -54,7 +54,10 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
     const dropdownButtonRef = useRef(null);
 
-    const customUnit: CustomUnit | undefined = policy?.customUnits !== undefined ? policy?.customUnits[Object.keys(policy?.customUnits)[0]] : undefined;
+    const customUnit: CustomUnit | undefined = useMemo(
+        () => (policy?.customUnits !== undefined ? policy?.customUnits[Object.keys(policy?.customUnits)[0]] : undefined),
+        [policy?.customUnits],
+    );
     const customUnitRates: Record<string, Rate> = useMemo(() => customUnit?.rates ?? {}, [customUnit]);
 
     useEffect(() => {
@@ -63,7 +66,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
 
     const distanceRatesList = useMemo<RateForList[]>(
         () =>
-            Object.values(customUnitRates ?? {}).map((value) => ({
+            Object.values(customUnitRates).map((value) => ({
                 value: value.customUnitRateID ?? '',
                 text: `${CurrencyUtils.convertAmountToDisplayString(value.rate, value.currency ?? CONST.CURRENCY.USD)} / ${translate(
                     `common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`,
@@ -240,7 +243,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                         onSelectAll={toggleAllRates}
                         onCheckboxPress={toggleRate}
                         sections={[{data: distanceRatesList, indexOffset: 0, isDisabled: false}]}
-                        onSelectRow={() => editRate()}
+                        onSelectRow={editRate}
                         showScrollIndicator
                         customListHeader={getCustomListHeader()}
                         containerStyle={styles.p5}
