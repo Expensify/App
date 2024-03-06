@@ -148,7 +148,7 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                     }, {});
 
                 options.push({
-                    icon: Expensicons.Trashcan,
+                    icon: Expensicons.DocumentSlash,
                     text: translate('workspace.categories.disableCategories'),
                     value: CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES.DISABLE,
                     onSelected: () => {
@@ -167,7 +167,7 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                         return acc;
                     }, {});
                 options.push({
-                    icon: Expensicons.Trashcan,
+                    icon: Expensicons.Document,
                     text: translate('workspace.categories.enableCategories'),
                     value: CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
