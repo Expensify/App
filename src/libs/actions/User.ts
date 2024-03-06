@@ -33,7 +33,7 @@ import playSoundExcludingMobile from '@libs/Sound/playSoundExcludingMobile';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {FrequentlyUsedEmoji} from '@src/types/onyx';
+import type {BlockedFromConcierge, FrequentlyUsedEmoji, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
@@ -46,8 +46,6 @@ import * as Link from './Link';
 import * as OnyxUpdates from './OnyxUpdates';
 import * as Report from './Report';
 import * as Session from './Session';
-
-type BlockedFromConciergeNVP = {expiresAt: number};
 
 let currentUserAccountID = -1;
 let currentEmail = '';
@@ -447,7 +445,7 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string) {
  * and if so whether the expiresAt date of a user's ban is before right now
  *
  */
-function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromConciergeNVP>): boolean {
+function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromConcierge>): boolean {
     if (isEmptyObject(blockedFromConciergeNVP)) {
         return false;
     }
@@ -489,7 +487,7 @@ const isChannelMuted = (reportId: string) =>
     });
 
 function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
-    const reportActionsOnly = pushJSON.filter((update) => update.key.includes('reportActions_'));
+    const reportActionsOnly = pushJSON.filter((update) => update.key?.includes('reportActions_'));
     // "reportActions_5134363522480668" -> "5134363522480668"
     const reportIDs = reportActionsOnly.map((value) => value.key.split('_')[1]);
 
@@ -777,7 +775,7 @@ function generateStatementPDF(period: string) {
 /**
  * Sets a contact method / secondary login as the user's "Default" contact method.
  */
-function setContactMethodAsDefault(newDefaultContactMethod: string) {
+function setContactMethodAsDefault(newDefaultContactMethod: string, policies: OnyxCollection<Pick<Policy, 'id' | 'ownerAccountID' | 'owner'>>) {
     const oldDefaultContactMethod = currentEmail;
     const optimisticData: OnyxUpdate[] = [
         {
@@ -870,6 +868,25 @@ function setContactMethodAsDefault(newDefaultContactMethod: string) {
         },
     ];
 
+    Object.values(policies ?? {}).forEach((policy) => {
+        if (policy?.ownerAccountID !== currentUserAccountID) {
+            return;
+        }
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+            value: {
+                owner: newDefaultContactMethod,
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+            value: {
+                owner: policy.owner,
+            },
+        });
+    });
     const parameters: SetContactMethodAsDefaultParams = {
         partnerUserID: newDefaultContactMethod,
     };
