@@ -46,9 +46,9 @@ type ProfilePageOnyxProps = {
     /** The report currently being looked at */
     report: OnyxEntry<Report>;
 
-    /** The list of all reports 
+    /** The list of all reports
      * ONYXKEYS.COLLECTION.REPORT is needed for report key function
-    */
+     */
     // eslint-disable-next-line react/no-unused-prop-types
     reports: OnyxCollection<Report>;
 
