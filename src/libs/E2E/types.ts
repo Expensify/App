@@ -1,3 +1,6 @@
+import type {TEST_NAMES} from 'tests/e2e/config';
+import type {ValueOf} from 'type-fest';
+
 type SigninParams = {
     email?: string;
 };
@@ -19,8 +22,8 @@ type NetworkCacheMap = Record<
 >;
 
 type TestConfig = {
-    name: string;
-    [key: string]: string;
+    name: ValueOf<typeof TEST_NAMES>;
+    [key: string]: string | {autoFocus: boolean};
 };
 
 export type {SigninParams, IsE2ETestSession, NetworkCacheMap, NetworkCacheEntry, TestConfig};

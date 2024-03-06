@@ -573,10 +573,12 @@ function MenuItem(
                                 {badgeText && (
                                     <Badge
                                         text={badgeText}
+                                        textStyles={styles.textStrong}
                                         badgeStyles={[
                                             styles.alignSelfCenter,
+                                            styles.badgeBordered,
                                             brickRoadIndicator ? styles.mr2 : undefined,
-                                            focused || isHovered || pressed ? styles.buttonHoveredBG : {},
+                                            focused || isHovered || pressed ? styles.activeItemBadge : {},
                                             badgeStyle,
                                         ]}
                                     />
@@ -607,7 +609,7 @@ function MenuItem(
                                         />
                                     </View>
                                 )}
-                                {!!rightLabel && (
+                                {!title && !!rightLabel && (
                                     <View style={styles.justifyContentCenter}>
                                         <Text style={styles.rightLabelMenuItem}>{rightLabel}</Text>
                                     </View>

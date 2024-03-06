@@ -26,14 +26,13 @@ const menuIcons = {
 
 // This is not translated because it is a message coming from concierge, which only supports english
 const messageCopy =
-    "Great! To manage your team's expenses, create a workspace to keep everything contained:\n" +
+    "Here's how to manage your team's expenses:\n" +
     '\n' +
-    '1. Press your avatar icon\n' +
-    '2. Choose Workspaces\n' +
-    '3. Choose New Workspace\n' +
-    '4. Name your workspace something meaningful (eg, "Galaxy Food Inc.")\n' +
+    '1. Click the green *+* > *New workspace*.\n' +
+    '2. Your new workspace is now active.\n' +
+    '3. To update your workspace name, click *Profile* > *Name*.\n' +
     '\n' +
-    'Once you have your workspace set up, you can invite your team to it via the Members pane and connect a business bank account to reimburse them!';
+    'Next, click *Members* to invite your team to your workspace, then add your business bank account to reimburse them!';
 
 function ManageTeamsExpensesModal() {
     const styles = useThemeStyles();
