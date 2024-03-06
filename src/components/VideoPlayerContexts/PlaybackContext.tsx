@@ -70,11 +70,11 @@ function PlaybackContextProvider({children}: ChildrenProps) {
 
     const resetVideoPlayerData = useCallback(() => {
         stopVideo();
-        unloadVideo();
         setCurrentlyPlayingURL(null);
         setSharedElement(null);
         setOriginalParent(null);
         currentVideoPlayerRef.current = null;
+        unloadVideo();
     }, [stopVideo, unloadVideo]);
 
     useEffect(() => {
