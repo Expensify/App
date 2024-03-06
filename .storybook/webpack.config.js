@@ -28,7 +28,7 @@ module.exports = ({config}) => {
         '@react-native-community/netinfo': path.resolve(__dirname, '../__mocks__/@react-native-community/netinfo.ts'),
         '@react-navigation/native': path.resolve(__dirname, '../__mocks__/@react-navigation/native'),
 
-        // Module alias support for storybook files, coping from `webpack.common.js`
+        // Module alias support for storybook files, coping from `webpack.common.ts`
         ...custom.resolve.alias,
     };
 
