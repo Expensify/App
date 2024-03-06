@@ -35,6 +35,7 @@ type ShowContextMenu = (
     isUnreadChat?: boolean,
     disabledOptions?: ContextMenuAction[],
     shouldCloseOnTarget?: boolean,
+    setIsEmojiPickerActive?: (state: boolean) => void,
 ) => void;
 
 type ReportActionContextMenu = {
@@ -115,6 +116,7 @@ function showContextMenu(
     isUnreadChat = false,
     disabledActions: ContextMenuAction[] = [],
     shouldCloseOnTarget = false,
+    setIsEmojiPickerActive = () => {},
 ) {
     if (!contextMenuRef.current) {
         return;
@@ -143,6 +145,7 @@ function showContextMenu(
         isUnreadChat,
         disabledActions,
         shouldCloseOnTarget,
+        setIsEmojiPickerActive,
     );
 }
 
