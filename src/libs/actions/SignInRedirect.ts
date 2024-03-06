@@ -13,7 +13,7 @@ Onyx.connect({
     },
 });
 
-function clearStorageAndRedirect(errorMessage?: string) {
+function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
     // Under certain conditions, there are key-values we'd like to keep in storage even when a user is logged out.
     // We pass these into the clear() method in order to avoid having to reset them on a delayed tick and getting
     // flashes of unwanted default state.
@@ -28,7 +28,7 @@ function clearStorageAndRedirect(errorMessage?: string) {
         keysToPreserve.push(ONYXKEYS.NETWORK);
     }
 
-    Onyx.clear(keysToPreserve).then(() => {
+    return Onyx.clear(keysToPreserve).then(() => {
         if (!errorMessage) {
             return;
         }
@@ -46,8 +46,8 @@ function clearStorageAndRedirect(errorMessage?: string) {
  *
  * @param [errorMessage] error message to be displayed on the sign in page
  */
-function redirectToSignIn(errorMessage?: string) {
-    clearStorageAndRedirect(errorMessage);
+function redirectToSignIn(errorMessage?: string): Promise<void> {
+    return clearStorageAndRedirect(errorMessage);
 }
 
 export default redirectToSignIn;

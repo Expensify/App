@@ -23,6 +23,9 @@ type CommonListItemProps<TItem> = {
     /** Callback to fire when the item is pressed */
     onSelectRow: (item: TItem) => void;
 
+    /** Callback to fire when a checkbox is pressed */
+    onCheckboxPress?: (item: TItem) => void;
+
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
 
@@ -37,6 +40,9 @@ type CommonListItemProps<TItem> = {
 
     /** Styles for the checkbox wrapper view if select multiple option is on */
     selectMultipleStyle?: StyleProp<ViewStyle>;
+
+    /** Whether to wrap long text up to 2 lines */
+    isMultilineSupported?: boolean;
 };
 
 type ListItem = {
@@ -44,7 +50,7 @@ type ListItem = {
     text: string;
 
     /** Alternate text to display */
-    alternateText?: string;
+    alternateText?: string | null;
 
     /** Key used internally by React */
     keyForList: string;
@@ -55,11 +61,14 @@ type ListItem = {
     /** Whether this option is disabled for selection */
     isDisabled?: boolean;
 
+    /** List title is bold by default. Use this props to customize it */
+    isBold?: boolean;
+
     /** User accountID */
     accountID?: number | null;
 
     /** User login */
-    login?: string;
+    login?: string | null;
 
     /** Element to show on the right side of the item */
     rightElement?: ReactNode;
@@ -82,7 +91,10 @@ type ListItem = {
     index?: number;
 
     /** Whether this option should show subscript */
-    shouldShowSubscript?: boolean;
+    shouldShowSubscript?: boolean | null;
+
+    /** Whether to wrap long text up to 2 lines */
+    isMultilineSupported?: boolean;
 };
 
 type ListItemProps = CommonListItemProps<ListItem> & {
@@ -156,6 +168,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Callback to fire when a row is pressed */
     onSelectRow: (item: TItem) => void;
+
+    /** Optional callback function triggered upon pressing a checkbox. If undefined and the list displays checkboxes, checkbox interactions are managed by onSelectRow, allowing for pressing anywhere on the list. */
+    onCheckboxPress?: (item: TItem) => void;
 
     /** Callback to fire when "Select All" checkbox is pressed. Only use along with `canSelectMultiple` */
     onSelectAll?: () => void;
@@ -258,6 +273,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Styles for the list header wrapper */
     listHeaderWrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Whether to wrap long text up to 2 lines */
+    isRowMultilineSupported?: boolean;
 };
 
 type ItemLayout = {

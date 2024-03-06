@@ -59,6 +59,7 @@ export default {
     fontSizeHero: 36,
     fontSizeHeroXL: 72,
     fontSizeh1: 19,
+    fontSizeh2: 19,
     fontSizeXLarge: 22,
     fontSizeXXLarge: 28,
     fontSizeXXXLarge: 32,
@@ -107,7 +108,8 @@ export default {
     lineHeightXLarge: getValueUsingPixelRatio(20, 24),
     lineHeightXXLarge: getValueUsingPixelRatio(27, 32),
     lineHeightXXXLarge: getValueUsingPixelRatio(32, 37),
-    lineHeightSizeh1: getValueUsingPixelRatio(23, 28),
+    lineHeightSizeh1: getValueUsingPixelRatio(28, 32),
+    lineHeightSizeh2: getValueUsingPixelRatio(24, 28),
     lineHeightSignInHeroXSmall: getValueUsingPixelRatio(32, 37),
     inputHeight: getValueUsingPixelRatio(52, 72),
     inputHeightSmall: 28,
@@ -217,5 +219,7 @@ export default {
     updateAnimationH: 240,
     updateTextViewContainerWidth: 310,
     updateViewHeaderHeight: 70,
-    workspaceProfileName: 20,
+
+    mushroomTopHatWidth: 138,
+    mushroomTopHatHeight: 128,
 } as const;

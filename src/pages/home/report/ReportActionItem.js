@@ -144,6 +144,8 @@ function ReportActionItem(props) {
     const StyleUtils = useStyleUtils();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
+    const [isEmojiPickerActive, setIsEmojiPickerActive] = useState();
+
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const reactionListRef = useContext(ReactionListContext);
@@ -291,6 +293,11 @@ function ReportActionItem(props) {
                 toggleContextMenuFromActiveReportAction,
                 ReportUtils.isArchivedRoom(originalReport),
                 ReportUtils.chatIncludesChronos(originalReport),
+                false,
+                false,
+                [],
+                false,
+                setIsEmojiPickerActive,
             );
         },
         [props.draftMessage, props.action, props.report.reportID, toggleContextMenuFromActiveReportAction, originalReport, originalReportID],
@@ -464,8 +471,6 @@ function ReportActionItem(props) {
             children = <ReportActionItemBasicMessage message={ReportUtils.getReimbursementDeQueuedActionMessage(props.action, props.report)} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
             children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(props.report.reportID, props.action)} />;
-        } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED) {
-            children = <ReportActionItemBasicMessage message={ReportActionsUtils.getMarkedReimbursedMessage(props.action)} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
             children = <ReportActionItemBasicMessage message={props.translate('iou.heldRequest', {comment: lodashGet(props, 'action.message[1].text', '')})} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
@@ -483,19 +488,6 @@ function ReportActionItem(props) {
                                 action={props.action}
                                 displayAsGroup={props.displayAsGroup}
                                 isHidden={isHidden}
-                                style={[
-                                    _.contains(
-                                        [
-                                            ..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG),
-                                            CONST.REPORT.ACTIONS.TYPE.IOU,
-                                            CONST.REPORT.ACTIONS.TYPE.APPROVED,
-                                            CONST.REPORT.ACTIONS.TYPE.MOVED,
-                                        ],
-                                        props.action.actionName,
-                                    )
-                                        ? styles.colorMuted
-                                        : undefined,
-                                ]}
                             />
                             {hasBeenFlagged && (
                                 <Button
@@ -571,6 +563,7 @@ function ReportActionItem(props) {
                                     toggleReaction(emoji);
                                 }
                             }}
+                            setIsEmojiPickerActive={setIsEmojiPickerActive}
                         />
                     </View>
                 )}
@@ -599,7 +592,7 @@ function ReportActionItem(props) {
      * @returns {Object} report action item
      */
     const renderReportActionItem = (hovered, isWhisper, hasErrors) => {
-        const content = renderItemContent(hovered || isContextMenuActive, isWhisper, hasErrors);
+        const content = renderItemContent(hovered || isContextMenuActive || isEmojiPickerActive, isWhisper, hasErrors);
 
         if (!_.isUndefined(props.draftMessage)) {
             return <ReportActionItemDraft>{content}</ReportActionItemDraft>;
@@ -668,13 +661,16 @@ function ReportActionItem(props) {
                     <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)]}>
                         <AnimatedEmptyStateBackground />
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
-                            <ReportActionItemSingle
-                                action={parentReportAction}
-                                showHeader={_.isUndefined(props.draftMessage)}
-                                report={props.report}
-                            >
-                                <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
-                            </ReportActionItemSingle>
+                            <OfflineWithFeedback pendingAction={parentReportAction.pendingAction}>
+                                <ReportActionItemSingle
+                                    action={parentReportAction}
+                                    showHeader={_.isUndefined(props.draftMessage)}
+                                    report={props.report}
+                                >
+                                    <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
+                                </ReportActionItemSingle>
+                            </OfflineWithFeedback>
+                            <View style={styles.reportHorizontalRule} />
                         </View>
                     </View>
                 );
@@ -784,8 +780,9 @@ function ReportActionItem(props) {
                             draftMessage={props.draftMessage}
                             isChronosReport={ReportUtils.chatIncludesChronos(originalReport)}
                             checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
+                            setIsEmojiPickerActive={setIsEmojiPickerActive}
                         />
-                        <View style={StyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || !_.isUndefined(props.draftMessage))}>
+                        <View style={StyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || isEmojiPickerActive || !_.isUndefined(props.draftMessage))}>
                             <OfflineWithFeedback
                                 onClose={() => ReportActions.clearReportActionErrors(props.report.reportID, props.action)}
                                 pendingAction={
