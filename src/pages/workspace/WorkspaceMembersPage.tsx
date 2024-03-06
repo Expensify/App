@@ -200,7 +200,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
      * Add or remove all users passed from the selectedEmployees list
      */
     const toggleAllUsers = (memberList: MemberOption[]) => {
-        const enabledAccounts = memberList.filter((member) => !member.isDisabled);
+        const enabledAccounts = memberList.filter((member) => !member.isDisabled && member.isSelectable);
         const everyoneSelected = enabledAccounts.every((member) => selectedEmployees.includes(member.accountID));
 
         if (everyoneSelected) {
@@ -337,11 +337,10 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 keyForList: accountIDKey,
                 accountID,
                 isSelected,
+                isSelectable: isPolicyAdmin && accountID !== session?.accountID && accountID !== policy?.ownerAccountID,
                 isDisabled:
                     isPolicyAdmin &&
-                    (accountID === session?.accountID ||
-                        accountID === policy?.ownerAccountID ||
-                        policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+                    (policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
                         !isEmptyObject(policyMember.errors)),
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
