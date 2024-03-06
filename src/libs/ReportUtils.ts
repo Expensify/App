@@ -2097,7 +2097,7 @@ function getTransactionDetails(transaction: OnyxEntry<Transaction>, createdDateF
     return {
         created: TransactionUtils.getCreated(transaction, createdDateFormat),
         amount: TransactionUtils.getAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)),
-        taxAmount: TransactionUtils.getTaxAmount(transaction?.taxAmount ?? 0, !isEmptyObject(report) && isExpenseReport(report)),
+        taxAmount: TransactionUtils.getTaxAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)),
         taxCode: TransactionUtils.getTaxCode(transaction),
         currency: TransactionUtils.getCurrency(transaction),
         comment: TransactionUtils.getDescription(transaction),
@@ -2472,6 +2472,16 @@ function getModifiedExpenseOriginalMessage(oldTransaction: OnyxEntry<Transaction
     if ('tag' in transactionChanges) {
         originalMessage.oldTag = TransactionUtils.getTag(oldTransaction);
         originalMessage.tag = transactionChanges?.tag;
+    }
+
+    if ('taxAmount' in transactionChanges) {        
+        originalMessage.oldTaxAmount = TransactionUtils.getTaxAmount(oldTransaction, isFromExpenseReport);
+        originalMessage.taxAmount = transactionChanges?.taxAmount
+    }
+
+    if ('taxCode' in transactionChanges) {
+        originalMessage.oldTaxRate = TransactionUtils.getTaxCode(oldTransaction);
+        originalMessage.taxRate = transactionChanges?.taxCode;
     }
 
     if ('billable' in transactionChanges) {
