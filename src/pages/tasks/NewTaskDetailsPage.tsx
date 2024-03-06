@@ -99,7 +99,7 @@ function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
                         label={translate('task.title')}
                         accessibilityLabel={translate('task.title')}
                         value={taskTitle}
-                        onValueChange={setTaskDescription}
+                        onValueChange={setTaskTitle}
                         autoCorrect={false}
                     />
                 </View>
