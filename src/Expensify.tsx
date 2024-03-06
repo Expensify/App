@@ -3,6 +3,7 @@ import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
+import {stopProfiling} from 'react-native-release-profiler';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
@@ -167,6 +168,7 @@ function Expensify({
         // This timer is set in the native layer when launching the app and we stop it here so we can measure how long
         // it took for the main app itself to load.
         StartupTimer.stop();
+        stopProfiling(true);
 
         // Run any Onyx schema migrations and then continue loading the main app
         migrateOnyx().then(() => {
