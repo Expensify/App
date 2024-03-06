@@ -30,8 +30,10 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
         leftModalNavigator: {
             ...commonScreenOptions,
             cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
-            presentation: 'transparentModal',
-            gestureDirection: 'horizontal-inverted',
+            // presentation: 'transparentModal',
+            // gestureDirection: 'horizontal-inverted',
+            animation: 'slide_from_left',
+            customAnimationOnGesture: true,
 
             // We want pop in LHP since there are some flows that would work weird otherwise
             animationTypeForReplace: 'pop',

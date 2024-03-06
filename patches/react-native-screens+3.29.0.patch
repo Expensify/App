@@ -1,0 +1,149 @@
+diff --git a/node_modules/react-native-screens/ios/RNSEnums.h b/node_modules/react-native-screens/ios/RNSEnums.h
+index 1895f44..d207517 100644
+--- a/node_modules/react-native-screens/ios/RNSEnums.h
++++ b/node_modules/react-native-screens/ios/RNSEnums.h
+@@ -16,6 +16,7 @@ typedef NS_ENUM(NSInteger, RNSScreenStackAnimation) {
+   RNSScreenStackAnimationFlip,
+   RNSScreenStackAnimationSlideFromBottom,
+   RNSScreenStackAnimationSimplePush,
++  RNSScreenStackAnimationSlideFromLeft
+ };
+ 
+ typedef NS_ENUM(NSInteger, RNSScreenReplaceAnimation) {
+diff --git a/node_modules/react-native-screens/ios/RNSScreen.mm b/node_modules/react-native-screens/ios/RNSScreen.mm
+index 4b24cff..c09cecb 100644
+--- a/node_modules/react-native-screens/ios/RNSScreen.mm
++++ b/node_modules/react-native-screens/ios/RNSScreen.mm
+@@ -194,6 +194,7 @@ - (void)setStackAnimation:(RNSScreenStackAnimation)stackAnimation
+     case RNSScreenStackAnimationSimplePush:
+     case RNSScreenStackAnimationSlideFromBottom:
+     case RNSScreenStackAnimationFadeFromBottom:
++    case RNSScreenStackAnimationSlideFromLeft:
+       // Default
+       break;
+   }
+@@ -1551,7 +1552,7 @@ @implementation RCTConvert (RNSScreen)
+       @"simple_push" : @(RNSScreenStackAnimationSimplePush),
+       @"slide_from_bottom" : @(RNSScreenStackAnimationSlideFromBottom),
+       @"slide_from_right" : @(RNSScreenStackAnimationDefault),
+-      @"slide_from_left" : @(RNSScreenStackAnimationDefault),
++      @"slide_from_left" : @(RNSScreenStackAnimationSlideFromLeft),
+       @"ios" : @(RNSScreenStackAnimationDefault),
+     }),
+     RNSScreenStackAnimationDefault,
+diff --git a/node_modules/react-native-screens/ios/RNSScreenStack.mm b/node_modules/react-native-screens/ios/RNSScreenStack.mm
+index 6c3afe6..13be741 100644
+--- a/node_modules/react-native-screens/ios/RNSScreenStack.mm
++++ b/node_modules/react-native-screens/ios/RNSScreenStack.mm
+@@ -722,6 +722,8 @@ - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
+       // of `UISemanticContentAttributeForceLeftToRight`, so we just check if it is RTL or not
+       BOOL isCorrectEdge = (_controller.view.semanticContentAttribute == UISemanticContentAttributeForceRightToLeft &&
+                             ((RNSScreenEdgeGestureRecognizer *)gestureRecognizer).edges == UIRectEdgeRight) ||
++        (topScreen.stackAnimation == RNSScreenStackAnimationSlideFromLeft &&
++                              ((RNSScreenEdgeGestureRecognizer *)gestureRecognizer).edges == UIRectEdgeRight) ||
+           (_controller.view.semanticContentAttribute != UISemanticContentAttributeForceRightToLeft &&
+            ((RNSScreenEdgeGestureRecognizer *)gestureRecognizer).edges == UIRectEdgeLeft);
+       if (isCorrectEdge) {
+@@ -786,8 +788,10 @@ - (void)handleSwipe:(UIPanGestureRecognizer *)gestureRecognizer
+       velocity = -velocity;
+     }
+   }
++  bool isInverted = topScreen.stackAnimation == RNSScreenStackAnimationSlideFromLeft;
+ 
+-  float transitionProgress = (translation / distance);
++  float transitionProgress = translation / distance;
++  transitionProgress = isInverted ? transitionProgress * -1 : transitionProgress;
+ 
+   switch (gestureRecognizer.state) {
+     case UIGestureRecognizerStateBegan: {
+@@ -809,7 +813,10 @@ - (void)handleSwipe:(UIPanGestureRecognizer *)gestureRecognizer
+     case UIGestureRecognizerStateEnded: {
+       // values taken from
+       // https://github.com/react-navigation/react-navigation/blob/54739828598d7072c1bf7b369659e3682db3edc5/packages/stack/src/views/Stack/Card.tsx#L316
+-      BOOL shouldFinishTransition = (translation + velocity * 0.3) > (distance / 2);
++      float snapPoint = distance / 2;
++      float gestureDistance = translation + velocity * 0.3;
++      gestureDistance = isInverted ? gestureDistance * -1 : gestureDistance;
++      BOOL shouldFinishTransition = gestureDistance > snapPoint;
+       if (shouldFinishTransition) {
+         [_interactionController finishInteractiveTransition];
+       } else {
+diff --git a/node_modules/react-native-screens/ios/RNSScreenStackAnimator.mm b/node_modules/react-native-screens/ios/RNSScreenStackAnimator.mm
+index 6fc0542..e2f5b8f 100644
+--- a/node_modules/react-native-screens/ios/RNSScreenStackAnimator.mm
++++ b/node_modules/react-native-screens/ios/RNSScreenStackAnimator.mm
+@@ -225,6 +225,64 @@ - (void)animateSlideFromBottomWithTransitionContext:(id<UIViewControllerContextT
+   }
+ }
+ 
++- (void)animateSlideFromLeftWithTransitionContext:(id<UIViewControllerContextTransitioning>)transitionContext
++                                               toVC:(UIViewController *)toViewController
++                                             fromVC:(UIViewController *)fromViewController
++{
++    float containerWidth = transitionContext.containerView.bounds.size.width;
++    float belowViewWidth = containerWidth * 0.3;
++
++    CGAffineTransform rightTransform = CGAffineTransformMakeTranslation(-containerWidth, 0);
++    CGAffineTransform leftTransform = CGAffineTransformMakeTranslation(belowViewWidth, 0);
++
++    if (toViewController.navigationController.view.semanticContentAttribute ==
++        UISemanticContentAttributeForceRightToLeft) {
++      rightTransform = CGAffineTransformMakeTranslation(-containerWidth, 0);
++      leftTransform = CGAffineTransformMakeTranslation(belowViewWidth, 0);
++    }
++
++    if (_operation == UINavigationControllerOperationPush) {
++      toViewController.view.transform = rightTransform;
++      [[transitionContext containerView] addSubview:toViewController.view];
++      [UIView animateWithDuration:[self transitionDuration:transitionContext]
++          animations:^{
++            fromViewController.view.transform = leftTransform;
++            toViewController.view.transform = CGAffineTransformIdentity;
++          }
++          completion:^(BOOL finished) {
++            fromViewController.view.transform = CGAffineTransformIdentity;
++            toViewController.view.transform = CGAffineTransformIdentity;
++            [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
++          }];
++    } else if (_operation == UINavigationControllerOperationPop) {
++      toViewController.view.transform = leftTransform;
++      [[transitionContext containerView] insertSubview:toViewController.view belowSubview:fromViewController.view];
++
++      void (^animationBlock)(void) = ^{
++        toViewController.view.transform = CGAffineTransformIdentity;
++        fromViewController.view.transform = rightTransform;
++      };
++      void (^completionBlock)(BOOL) = ^(BOOL finished) {
++        fromViewController.view.transform = CGAffineTransformIdentity;
++        toViewController.view.transform = CGAffineTransformIdentity;
++        [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
++      };
++
++      if (!transitionContext.isInteractive) {
++        [UIView animateWithDuration:[self transitionDuration:transitionContext]
++                         animations:animationBlock
++                         completion:completionBlock];
++      } else {
++        // we don't want the EaseInOut option when swiping to dismiss the view, it is the same in default animation option
++        [UIView animateWithDuration:[self transitionDuration:transitionContext]
++                              delay:0.0
++                            options:UIViewAnimationOptionCurveLinear
++                         animations:animationBlock
++                         completion:completionBlock];
++      }
++    }
++}
++
+ - (void)animateFadeFromBottomWithTransitionContext:(id<UIViewControllerContextTransitioning>)transitionContext
+                                               toVC:(UIViewController *)toViewController
+                                             fromVC:(UIViewController *)fromViewController
+@@ -309,6 +367,9 @@ - (void)animateTransitionWithStackAnimation:(RNSScreenStackAnimation)animation
+   } else if (animation == RNSScreenStackAnimationSlideFromBottom) {
+     [self animateSlideFromBottomWithTransitionContext:transitionContext toVC:toVC fromVC:fromVC];
+     return;
++  } else if (animation == RNSScreenStackAnimationSlideFromLeft) {
++      [self animateSlideFromLeftWithTransitionContext:transitionContext toVC:toVC fromVC:fromVC];
++      return;
+   } else if (animation == RNSScreenStackAnimationFadeFromBottom) {
+     [self animateFadeFromBottomWithTransitionContext:transitionContext toVC:toVC fromVC:fromVC];
+     return;

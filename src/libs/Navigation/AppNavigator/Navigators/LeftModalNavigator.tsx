@@ -10,11 +10,12 @@ import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackN
 import type {AuthScreensParamList, LeftModalNavigatorParamList} from '@libs/Navigation/types';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Overlay from './Overlay';
 
 type LeftModalNavigatorProps = StackScreenProps<AuthScreensParamList, typeof NAVIGATORS.LEFT_MODAL_NAVIGATOR>;
 
-const Stack = createStackNavigator<LeftModalNavigatorParamList>();
+const Stack = createPlatformStackNavigator<LeftModalNavigatorParamList>();
 
 function LeftModalNavigator({navigation}: LeftModalNavigatorProps) {
     const styles = useThemeStyles();

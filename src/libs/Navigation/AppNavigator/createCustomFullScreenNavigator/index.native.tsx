@@ -1,7 +1,7 @@
 import type {ParamListBase, StackActionHelpers, StackNavigationState} from '@react-navigation/native';
 import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/native';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
-import {StackView} from '@react-navigation/stack';
+import { NativeStackView } from '@react-navigation/native-stack';
 import CustomFullScreenRouter from './CustomFullScreenRouter';
 import type {FullScreenNavigatorProps, FullScreenNavigatorRouterOptions} from './types';
 
@@ -20,7 +20,7 @@ function CustomFullScreenNavigator(props: FullScreenNavigatorProps) {
 
     return (
         <NavigationContent>
-            <StackView
+            <NativeStackView
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 state={state}
