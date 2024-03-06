@@ -5,6 +5,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import EReceiptThumbnail from './EReceiptThumbnail';
 import type {IconSize} from './EReceiptThumbnail';
 import Image from './Image';
+import PDFThumbnail from './PDFThumbnail';
 import ThumbnailImage from './ThumbnailImage';
 
 type Style = {height: number; borderRadius: number; margin: number};
@@ -22,18 +23,30 @@ type ReceiptImageProps = (
 
           /** Url of the receipt image */
           source?: string;
+
+          /** Whether it is a pdf thumbnail we are displaying */
+          isPDFThumbnail?: boolean;
       }
     | {
           transactionID: string;
           isEReceipt?: boolean;
           isThumbnail: boolean;
           source?: string;
+          isPDFThumbnail?: boolean;
       }
     | {
           transactionID?: string;
           isEReceipt?: boolean;
           isThumbnail?: boolean;
           source: string;
+          isPDFThumbnail?: boolean;
+      }
+    | {
+          transactionID?: string;
+          isEReceipt?: boolean;
+          isThumbnail?: boolean;
+          source: string;
+          isPDFThumbnail: string;
       }
 ) & {
     /** Whether we should display the receipt with ThumbnailImage component */
@@ -60,6 +73,7 @@ type ReceiptImageProps = (
 
 function ReceiptImage({
     transactionID,
+    isPDFThumbnail = false,
     isThumbnail = false,
     shouldUseThumbnailImage = false,
     isEReceipt = false,
@@ -72,6 +86,15 @@ function ReceiptImage({
     fallbackIconSize,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
+
+    if (isPDFThumbnail) {
+        return (
+            <PDFThumbnail
+                previewSourceURL={source ?? ''}
+                style={[styles.w100, styles.h100]}
+            />
+        );
+    }
 
     if (isEReceipt || isThumbnail) {
         const props = isThumbnail && {borderRadius: style?.borderRadius, fileExtension, isReceiptThumbnail: true};
