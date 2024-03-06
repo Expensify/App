@@ -91,10 +91,17 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.CATEGORIES]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.TAGS]: {
+        policyID: string;
+    };
 };
 
 type WorkspaceSwitcherNavigatorParamList = {
     [SCREENS.WORKSPACE_SWITCHER.ROOT]: undefined;
+};
+
+type BackToParams = {
+    backTo?: Routes;
 };
 
 type SettingsNavigatorParamList = {
@@ -200,7 +207,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
-    [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: undefined;
+    [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: BackToParams;
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: undefined;
     [SCREENS.KEYBOARD_SHORTCUTS]: undefined;
     [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: undefined;
@@ -516,14 +523,17 @@ type BottomTabNavigatorParamList = {
     [SCREENS.WORKSPACE.INITIAL]: undefined;
 };
 
-type PublicScreensParamList = {
+type SharedScreensParamList = {
     [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]: NavigatorScreenParams<BottomTabNavigatorParamList>;
     [SCREENS.TRANSITION_BETWEEN_APPS]: {
         email?: string;
+        accountID?: number;
         error?: string;
         shortLivedAuthToken?: string;
         shortLivedToken?: string;
+        authTokenType?: ValueOf<typeof CONST.AUTH_TOKEN_TYPES>;
         exitTo?: Routes | HybridAppRoute;
+        shouldForceLogin: string;
         domain?: Routes;
     };
     [SCREENS.VALIDATE_LOGIN]: {
@@ -531,6 +541,9 @@ type PublicScreensParamList = {
         validateCode: string;
         exitTo?: Routes | HybridAppRoute;
     };
+};
+
+type PublicScreensParamList = SharedScreensParamList & {
     [SCREENS.UNLINK_LOGIN]: {
         accountID?: string;
         validateCode?: string;
@@ -540,19 +553,8 @@ type PublicScreensParamList = {
     [SCREENS.SAML_SIGN_IN]: undefined;
 };
 
-type AuthScreensParamList = {
-    [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]: NavigatorScreenParams<BottomTabNavigatorParamList>;
+type AuthScreensParamList = SharedScreensParamList & {
     [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]: NavigatorScreenParams<CentralPaneNavigatorParamList>;
-    [SCREENS.VALIDATE_LOGIN]: {
-        accountID: string;
-        validateCode: string;
-    };
-    [SCREENS.TRANSITION_BETWEEN_APPS]: {
-        shouldForceLogin: string;
-        email: string;
-        shortLivedAuthToken: string;
-        exitTo: string;
-    };
     [SCREENS.CONCIERGE]: undefined;
     [SCREENS.REPORT_ATTACHMENTS]: {
         reportID: string;
@@ -634,4 +636,5 @@ export type {
     WorkspaceSwitcherNavigatorParamList,
     OnboardEngagementNavigatorParamList,
     SwitchPolicyIDParams,
+    BackToParams,
 };

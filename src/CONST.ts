@@ -75,6 +75,11 @@ const CONST = {
         FAILED: 'failed',
     },
 
+    AUTH_TOKEN_TYPES: {
+        ANONYMOUS: 'anonymousAccount',
+        SUPPORT: 'support',
+    },
+
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
 
     AVATAR_ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'],
@@ -1018,6 +1023,12 @@ const CONST = {
         VIDEO: 'video',
     },
 
+    IMAGE_FILE_FORMAT: {
+        PNG: 'image/png',
+        WEBP: 'image/webp',
+        JPEG: 'image/jpeg',
+    },
+
     FILE_TYPE_REGEX: {
         // Image MimeTypes allowed by iOS photos app.
         IMAGE: /\.(jpg|jpeg|png|webp|gif|tiff|bmp|heic|heif)$/,
@@ -1383,9 +1394,9 @@ const CONST = {
         OWNER_EMAIL_FAKE: '_FAKE_',
         OWNER_ACCOUNT_ID_FAKE: 0,
         REIMBURSEMENT_CHOICES: {
-            REIMBURSEMENT_YES: 'reimburseYes',
-            REIMBURSEMENT_NO: 'reimburseNo',
-            REIMBURSEMENT_MANUAL: 'reimburseManual',
+            REIMBURSEMENT_YES: 'reimburseYes', // Direct
+            REIMBURSEMENT_NO: 'reimburseNo', // None
+            REIMBURSEMENT_MANUAL: 'reimburseManual', // Indirect
         },
         ID_FAKE: '_FAKE_',
         EMPTY: 'EMPTY',
@@ -3340,10 +3351,6 @@ const CONST = {
 
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
-    },
-
-    AUTH_TOKEN_TYPE: {
-        ANONYMOUS: 'anonymousAccount',
     },
 } as const;
 
