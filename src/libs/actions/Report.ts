@@ -73,7 +73,7 @@ import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {PersonalDetails, PersonalDetailsList, PolicyReportField, RecentlyUsedReportFields, ReportActionReactions, ReportMetadata, ReportUserIsTyping} from '@src/types/onyx';
 import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import type {NotificationPreference, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
-import Report from '@src/types/onyx/Report';
+import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -120,7 +120,7 @@ const allReportActions: OnyxCollection<ReportActions> = {};
 const oldestReportActions: Record<string, string> = {};
 
 // map of report to the ID of the newest action for that report
-const newestReportActions = Report<string, string> = {};
+const newestReportActions = Record<string, string> = {};
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
