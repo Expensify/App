@@ -19,6 +19,13 @@ import type SCREENS from '@src/SCREENS';
 
 type WorkspaceMemberDetailsPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE_SELECTION>;
 
+type ListItemType = {
+    value: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER;
+    text: string;
+    isSelected: boolean;
+    keyForList: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER;
+};
+
 function WorkspaceMemberDetailsRoleSelectionPage({policyMembers, route}: WorkspaceMemberDetailsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -27,7 +34,7 @@ function WorkspaceMemberDetailsRoleSelectionPage({policyMembers, route}: Workspa
     const member = policyMembers?.[accountID];
     const backTo = decodeURIComponent(route?.params?.backTo ?? '') as Route;
 
-    const items = [
+    const items: ListItemType[] = [
         {
             value: CONST.POLICY.ROLE.ADMIN,
             text: translate('common.admin'),
@@ -42,13 +49,12 @@ function WorkspaceMemberDetailsRoleSelectionPage({policyMembers, route}: Workspa
         },
     ];
 
-    const changeRole = () => {
+    const changeRole = ({value}: ListItemType) => {
         if (!member) {
             return;
         }
 
-        const newRole = member.role === CONST.POLICY.ROLE.ADMIN ? CONST.POLICY.ROLE.USER : CONST.POLICY.ROLE.ADMIN;
-        Policy.updateWorkspaceMembersRole(route.params.policyID, [accountID], newRole);
+        Policy.updateWorkspaceMembersRole(route.params.policyID, [accountID], value);
         Navigation.goBack(backTo);
     };
 
