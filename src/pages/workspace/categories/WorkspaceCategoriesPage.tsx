@@ -79,7 +79,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                     pendingAction: value.pendingAction,
                     rightElement: (
                         <View style={styles.flexRow}>
-                            <Text style={[styles.disabledText, styles.alignSelfCenter]}>
+                            <Text style={[styles.disabledText, styles.alignSelfCenter, styles.pl2, styles.label]}>
                                 {value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}
                             </Text>
                             <View style={[styles.p1, styles.pl2]}>
@@ -91,7 +91,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                         </View>
                     ),
                 })),
-        [policyCategories, selectedCategories, styles.alignSelfCenter, styles.disabledText, styles.flexRow, styles.p1, styles.pl2, theme.icon, translate],
+        [policyCategories, selectedCategories, styles.disabledText, styles.alignSelfCenter, styles.flexRow, styles.label, styles.p1, styles.pl2, theme.icon, translate],
     );
 
     const toggleCategory = (category: PolicyForList) => {
