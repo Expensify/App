@@ -418,6 +418,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                     onSubmitEditing={selectFocusedOption}
                                     blurOnSubmit={!!flattenedSections.allOptions.length}
                                     isLoading={isLoadingNewOptions}
+                                    testID="selection-list-text-input"
                                 />
                             </View>
                         )}
