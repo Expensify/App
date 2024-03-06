@@ -10,8 +10,8 @@ portfinder
         port: basePort,
     })
     .then((port) => {
-        const devServer = `webpack-dev-server --config config/webpack/webpack.dev.js --port ${port} --env platform=desktop`;
-        const buildMain = 'webpack watch --config config/webpack/webpack.desktop.js --config-name desktop-main --mode=development';
+        const devServer = `webpack-dev-server --config config/webpack/webpack.dev.ts --port ${port} --env platform=desktop`;
+        const buildMain = 'webpack watch --config config/webpack/webpack.desktop.ts --config-name desktop-main --mode=development';
 
         const env = {
             PORT: port,
