@@ -114,13 +114,17 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
         Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, category.text));
     };
 
+    const navigateToCategoriesSettings = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES_SETTINGS.getRoute(route.params.policyID));
+    };
+
     const dismissError = (item: PolicyOption) => {
         Policy.clearCategoryErrors(route.params.policyID, item.keyForList);
     };
 
     const selectedCategoriesArray = Object.keys(selectedCategories).filter((key) => selectedCategories[key]);
 
-    const renderButtons = useCallback(() => {
+    const getHeaderButtons = () => {
         if (selectedCategoriesArray.length > 0) {
             const isAllEnabled = selectedCategoriesArray.every((categoryName) => policyCategories?.[categoryName].enabled);
 
@@ -190,9 +194,6 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                 />
             );
         }
-        const navigateToCategoriesSettings = () => {
-            Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES_SETTINGS.getRoute(route.params.policyID));
-        };
 
         return (
             <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
@@ -205,7 +206,7 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                 />
             </View>
         );
-    }, [isSmallScreenWidth, policyCategories, route.params.policyID, selectedCategoriesArray, styles.flexRow, styles.mb3, styles.w100, styles.w50, translate]);
+    };
 
     const isLoading = !isOffline && policyCategories === undefined;
 
@@ -223,9 +224,9 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                         title={translate('workspace.common.categories')}
                         shouldShowBackButton={isSmallScreenWidth}
                     >
-                        {!isSmallScreenWidth && renderButtons()}
+                        {!isSmallScreenWidth && getHeaderButtons()}
                     </HeaderWithBackButton>
-                    {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{renderButtons()}</View>}
+                    {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
                     </View>
