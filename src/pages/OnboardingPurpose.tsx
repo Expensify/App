@@ -1,23 +1,23 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import {ScrollView} from 'react-native-gesture-handler';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
+import type {MenuItemProps} from '@components/MenuItem';
+import MenuItemList from '@components/MenuItemList';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
-import * as Report from '@userActions/Report';
-import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
-import Button from '@components/Button';
-import MenuItemList from '@components/MenuItemList';
-import type { MenuItemProps } from '@components/MenuItem';
-import CONST from '@src/CONST';
-import * as Illustrations from '@components/Icon/Illustrations';
-import * as Expensicons from '@components/Icon/Expensicons';
-import variables from '@styles/variables';
-import Icon from '@components/Icon';
-import { ScrollView } from 'react-native-gesture-handler';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
 
 type ValuesType<T> = T[keyof T];
 type SelectedPurposeType = ValuesType<typeof CONST.ONBOARDING_CHOICES> | undefined;
@@ -48,19 +48,23 @@ function OnboardingPurpose() {
         Navigation.goBack();
     }, []);
 
-    const selectedCheckboxIcon = useMemo(() => (
-        <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto]}>
-            <Icon
-                src={Expensicons.Checkmark}
-                fill={theme.success}
-            />
-        </View>), [styles.pointerEventsAuto, styles.popoverMenuIcon, theme.success]);
+    const selectedCheckboxIcon = useMemo(
+        () => (
+            <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto]}>
+                <Icon
+                    src={Expensicons.Checkmark}
+                    fill={theme.success}
+                />
+            </View>
+        ),
+        [styles.pointerEventsAuto, styles.popoverMenuIcon, theme.success],
+    );
 
     const completeEngagement = useCallback(() => {
-        if(selectedPurpose === undefined) {
+        if (selectedPurpose === undefined) {
             return;
         }
-        
+
         /*
         ! This functionality is temporarily removed until we can disable PurposeForUsingExpensifyPage
         ! and refactor the function to support new options for Report.completeEngagementModal();
@@ -69,54 +73,54 @@ function OnboardingPurpose() {
         Report.completeEngagementModal(translate(translationKey), selectedPurpose);
         */
 
-        if(!isSmallScreenWidth) {
+        if (!isSmallScreenWidth) {
             // Only navigate to concierge chat for wide-screen devices
-            Report.navigateToConciergeChat(false, true);
+            Report.navigateToConciergeChat(false);
         }
     }, [isSmallScreenWidth, selectedPurpose]);
 
-    const menuItems: MenuItemProps[] =
-            Object.values(CONST.ONBOARDING_CHOICES).map((choice) => {
-                const translationKey = `onboarding.purpose.${choice}` as const;
-                const isSelected = selectedPurpose === choice;
-                return {
-                    key: translationKey,
-                    title: translate(translationKey),
-                    icon: menuIcons[choice],
-                    displayInDefaultIconColor: true,
-                    iconWidth: variables.purposeMenuIconSize,
-                    iconHeight: variables.purposeMenuIconSize,
-                    iconStyles: [styles.mh3],
-                    wrapperStyle: [styles.purposeMenuItem, isSelected && styles.purposeMenuItemSelected],
-                    hoverAndPressStyle: [styles.purposeMenuItemSelected],
-                    rightComponent: selectedCheckboxIcon,
-                    shouldShowRightComponent: isSelected,
-                    onPress: () => {
-                        setSelectedPurpose(choice);
-                    },
-                };
+    const menuItems: MenuItemProps[] = Object.values(CONST.ONBOARDING_CHOICES).map((choice) => {
+        const translationKey = `onboarding.purpose.${choice}` as const;
+        const isSelected = selectedPurpose === choice;
+        return {
+            key: translationKey,
+            title: translate(translationKey),
+            icon: menuIcons[choice],
+            displayInDefaultIconColor: true,
+            iconWidth: variables.purposeMenuIconSize,
+            iconHeight: variables.purposeMenuIconSize,
+            iconStyles: [styles.mh3],
+            wrapperStyle: [styles.purposeMenuItem, isSelected && styles.purposeMenuItemSelected],
+            hoverAndPressStyle: [styles.purposeMenuItemSelected],
+            rightComponent: selectedCheckboxIcon,
+            shouldShowRightComponent: isSelected,
+            onPress: () => {
+                setSelectedPurpose(choice);
             },
-    );
+        };
+    });
 
     return (
         <View style={[styles.h100, styles.defaultModalContainer, !shouldUseNarrowLayout && styles.pt8]}>
-            <HeaderWithBackButton
-                shouldShowBackButton
-                onBackButtonPress={handleGoBack}
-                onCloseButtonPress={closeModal}
-                iconFill={theme.iconColorfulBackground}
-                progressBarPercentage={66.6}
-            />
+            <View style={styles.mh3}>
+                <HeaderWithBackButton
+                    shouldShowBackButton
+                    onBackButtonPress={handleGoBack}
+                    onCloseButtonPress={closeModal}
+                    iconFill={theme.iconColorfulBackground}
+                    progressBarPercentage={66.6}
+                />
+            </View>
             <View style={[styles.flex1, styles.flexGrow1, styles.mv5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}>
                 <View style={styles.flex1}>
                     <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
                         <Text style={styles.textHeroSmall}>{translate('onboarding.purpose.title')} </Text>
                     </View>
                     <ScrollView>
-                    <MenuItemList
-                        menuItems={menuItems}
-                        shouldUseSingleExecution
-                    />
+                        <MenuItemList
+                            menuItems={menuItems}
+                            shouldUseSingleExecution
+                        />
                     </ScrollView>
                 </View>
                 <Button
