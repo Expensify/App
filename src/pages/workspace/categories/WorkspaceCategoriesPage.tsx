@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -17,6 +17,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -49,6 +50,17 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
     const {translate} = useLocalize();
     const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
     const dropdownButtonRef = useRef(null);
+
+    function fetchCategories() {
+        Policy.openPolicyCategoriesPage(route.params.policyID);
+    }
+
+    const {isOffline} = useNetwork({onReconnect: fetchCategories});
+
+    useEffect(() => {
+        fetchCategories();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const categoryList = useMemo(
         () =>
@@ -194,6 +206,8 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
         );
     }, [isSmallScreenWidth, policyCategories, route.params.policyID, selectedCategoriesArray, styles.flexRow, styles.mb3, styles.w100, styles.w50, translate]);
 
+    const isLoading = !isOffline && policyCategories === undefined;
+
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
@@ -214,7 +228,21 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
                     </View>
-                    {categoryList.length ? (
+                    {isLoading && (
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            style={[styles.flex1]}
+                            color={theme.spinner}
+                        />
+                    )}
+                    {categoryList.length === 0 && !isLoading && (
+                        <WorkspaceEmptyStateSection
+                            title={translate('workspace.categories.emptyCategories.title')}
+                            icon={Illustrations.EmptyStateExpenses}
+                            subtitle={translate('workspace.categories.emptyCategories.subtitle')}
+                        />
+                    )}
+                    {categoryList.length > 0 && (
                         <SelectionList
                             canSelectMultiple
                             sections={[{data: categoryList, indexOffset: 0, isDisabled: false}]}
@@ -226,12 +254,6 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                             onDismissError={dismissError}
                             customListHeader={getCustomListHeader()}
                             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        />
-                    ) : (
-                        <WorkspaceEmptyStateSection
-                            title={translate('workspace.categories.emptyCategories.title')}
-                            icon={Illustrations.EmptyStateExpenses}
-                            subtitle={translate('workspace.categories.emptyCategories.subtitle')}
                         />
                     )}
                 </ScreenWrapper>

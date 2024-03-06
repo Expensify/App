@@ -10,7 +10,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestSkeletonView from '@components/MoneyRequestSkeletonView';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import PressableWithFeedback from '@components/Pressable/PressableWithoutFeedback';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
@@ -316,17 +316,18 @@ function MoneyRequestPreviewContent({
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
 
     return (
-        <PressableWithFeedback
+        <PressableWithoutFeedback
             onPress={shouldDisableOnPress ? undefined : onPreviewPressed}
             onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
             onLongPress={showContextMenu}
+            shouldUseHapticsOnLongPress
             accessibilityLabel={isBillSplit ? translate('iou.split') : translate('iou.cash')}
             accessibilityHint={CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}
             style={[styles.moneyRequestPreviewBox, containerStyles, shouldDisableOnPress && styles.cursorDefault]}
         >
             {childContainer}
-        </PressableWithFeedback>
+        </PressableWithoutFeedback>
     );
 }
 
