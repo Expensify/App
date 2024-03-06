@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import type webpack from 'webpack';
+
 import portfinder = require('portfinder');
 import TimeAnalyticsWebpackPlugin = require('time-analytics-webpack-plugin');
+import getCommonConfig from './webpack.common';
 
 const {TimeAnalyticsPlugin} = TimeAnalyticsWebpackPlugin;
 const path = require('path');
 const {DefinePlugin} = require('webpack');
 const {merge} = require('webpack-merge');
-const getCommonConfig = require('./webpack.common');
 
 const BASE_PORT = 8082;
 
@@ -18,7 +20,7 @@ type EnvFile = Partial<{
 /**
  * Configuration for the local dev server
  */
-const getConfig = (env: EnvFile = {}) =>
+const getConfig = (env: EnvFile = {}): Promise<webpack.Configuration> =>
     portfinder.getPortPromise({port: BASE_PORT}).then((port) => {
         // Check if the USE_WEB_PROXY variable has been provided
         // and rewrite any requests to the local proxy server
@@ -86,3 +88,4 @@ const getConfig = (env: EnvFile = {}) =>
     });
 
 export default getConfig;
+export type {EnvFile};
