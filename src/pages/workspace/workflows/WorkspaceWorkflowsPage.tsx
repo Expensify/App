@@ -61,6 +61,11 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                           subtitle: translate('workflowsPage.delaySubmissionDescription'),
                           onToggle: (isEnabled: boolean) => {
                               Policy.setWorkspaceAutoReporting(route.params.policyID, isEnabled);
+                              // If the Collect policy has just been created, it will have the frequency set to instant.
+                              // When the user toggles the delayed submission for the first time, we should default to weekly instead.
+                              if (policy.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT) {
+                                    Policy.setWorkspaceAutoReportingFrequency(route.params.policyID, CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY);
+                              }
                           },
                           subMenuItems: (
                               <MenuItem
@@ -68,9 +73,11 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                                   titleStyle={styles.textLabelSupportingNormal}
                                   descriptionTextStyle={styles.textNormalThemeText}
                                   onPress={onPressAutoReportingFrequency}
+                                  // We don't want to show `Instantly` as a frequency option in the dropdown list
+                                  // see https://expensify.slack.com/archives/C036QM0SLJK/p1709738406293909?thread_ts=1709738293.910139&cid=C036QM0SLJK
                                   description={
                                       getAutoReportingFrequencyDisplayNames(preferredLocale)[
-                                          (policy?.autoReportingFrequency as AutoReportingFrequencyKey) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY
+                                          (policy?.autoReportingFrequency && policy.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT ? policy.autoReportingFrequency : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY) as AutoReportingFrequencyKey
                                       ]
                                   }
                                   shouldShowRightIcon
@@ -78,9 +85,9 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                                   hoverAndPressStyle={[styles.mr0, styles.br2]}
                               />
                           ),
-                          isActive: policy?.harvesting?.enabled ?? false,
+                          isActive: (policy?.harvesting?.enabled && policy.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT) ?? false,
                           pendingAction: policy?.pendingFields?.isAutoApprovalEnabled,
-                      },
+                      },    
                   ]
                 : []),
             {
