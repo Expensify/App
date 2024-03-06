@@ -59,9 +59,6 @@ type MoneyRequestConfirmationListOnyxProps = {
     /** The policy of the report */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
-    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: OnyxEntry<OnyxTypes.IOU>;
-
     /** The session of the logged in user */
     session: OnyxEntry<OnyxTypes.Session>;
 
@@ -102,9 +99,6 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 
     /** IOU Category */
     iouCategory?: string;
-
-    /** IOU Tag */
-    iouTag?: string;
 
     /** IOU isBillable */
     iouIsBillable?: boolean;
@@ -260,8 +254,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction?.taxAmount, iouCurrencyCode);
 
     const defaultTaxKey = taxRates?.defaultExternalID;
-    const defaultTaxName = (defaultTaxKey && `${taxRates?.taxes[defaultTaxKey].name} (${taxRates?.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
-    const taxRateTitle = transaction?.taxRate?.text || defaultTaxName;
+    const defaultTaxName = (defaultTaxKey && `${taxRates?.taxes[defaultTaxKey].name} (${taxRates?.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) ?? '';
+    const taxRateTitle = transaction?.taxRate?.text ?? defaultTaxName;
 
     const isFocused = useIsFocused();
     const [formError, setFormError] = useState('');
@@ -282,7 +276,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             return false;
         }
 
-        return (hasSmartScanFailed && TransactionUtils.hasMissingSmartscanFields(transaction ?? null)) || (didConfirmSplit && TransactionUtils.areRequiredFieldsEmpty(transaction ?? null));
+        return (hasSmartScanFailed && TransactionUtils.hasMissingSmartscanFields(transaction ?? null)) ?? (didConfirmSplit && TransactionUtils.areRequiredFieldsEmpty(transaction ?? null));
     }, [isEditingSplitBill, hasSmartScanFailed, transaction, didConfirmSplit]);
 
     const isMerchantEmpty = !iouMerchant || iouMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
@@ -367,7 +361,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     }, [isTypeSplit, isTypeRequest, iouType, iouAmount, receiptPath, formattedAmount, isDistanceRequestWithPendingRoute, translate]);
 
     const selectedParticipants = useMemo(() => pickedParticipants.filter((participant) => participant.selected), [pickedParticipants]);
-    const personalDetailsOfPayee = useMemo(() => payeePersonalDetails || currentUserPersonalDetails, [payeePersonalDetails, currentUserPersonalDetails]);
+    const personalDetailsOfPayee = useMemo(() => payeePersonalDetails ?? currentUserPersonalDetails, [payeePersonalDetails, currentUserPersonalDetails]);
     const userCanModifyParticipants = useRef(!isReadOnly && canModifyParticipants && hasMultipleParticipants);
     useEffect(() => {
         userCanModifyParticipants.current = !isReadOnly && canModifyParticipants && hasMultipleParticipants;
@@ -432,7 +426,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         personalDetailsOfPayee,
         translate,
         shouldDisablePaidBySection,
-        userCanModifyParticipants,
         canModifyParticipants,
     ]);
 
@@ -449,7 +442,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 iouAmount > 0 ? CurrencyUtils.convertToDisplayString(myIOUAmount, iouCurrencyCode) : '',
             ),
         ];
-    }, [selectedParticipants, hasMultipleParticipants, personalDetailsOfPayee]);
+    }, [selectedParticipants, hasMultipleParticipants, personalDetailsOfPayee, iouAmount, iouCurrencyCode]);
 
     useEffect(() => {
         if (!isDistanceRequest) {
@@ -465,7 +458,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate ?? 0, currency ?? 'USD', translate, toLocaleDigit);
         IOU.setMoneyRequestMerchant(transaction?.transactionID ?? '', distanceMerchant, true);
-    }, [isDistanceRequestWithPendingRoute, hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transaction, iouAmount, iouCurrencyCode]);
+    }, [isDistanceRequestWithPendingRoute, hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transaction]);
 
     /**
      */
@@ -482,7 +475,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     /**
      * Navigate to report details or profile of selected user
-     * @param {Object} option
      */
     const navigateToReportOrUserDetail = (option: ReportUtils.OptionData) => {
         const activeRoute = Navigation.getActiveRouteWithoutParams();
@@ -586,7 +578,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 success
                 pressOnEnter
                 isDisabled={shouldDisableButton}
-                onPress={(_event, value) => confirm(value as PaymentMethodType)}
+                onPress={(event, value) => confirm(value as PaymentMethodType)}
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                 enterKeyEventListenerPriority={1}
@@ -723,7 +715,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 <MenuItemWithTopDescription
                     key={translate('common.date')}
                     shouldShowRightIcon={!isReadOnly}
-                    title={iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
+                    title={iouCreated ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
                     description={translate('common.date')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
@@ -878,7 +870,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             ) : (
                 <Image
                     style={styles.moneyRequestImage}
-                    source={{uri: (receiptThumbnail || receiptImage) as string}}
+                    source={{uri: (receiptThumbnail ?? receiptImage) as string}}
                     // AuthToken is required when retrieving the image from the server
                     // but we don't need it to load the blob:// or file:// image when starting a money request / split bill
                     // So if we have a thumbnail, it means we're retrieving the image from the server
@@ -981,8 +973,5 @@ export default withOnyx<MoneyRequestConfirmationListProps, MoneyRequestConfirmat
     },
     policy: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-    },
-    iou: {
-        key: ONYXKEYS.IOU,
     },
 })(MoneyTemporaryForRefactorRequestConfirmationList);
