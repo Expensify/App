@@ -17,7 +17,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
     const {translate} = useLocalize();
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState<PlaybackSpeed>(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[2]);
     const {isOffline} = useNetwork();
-    const isLocalFile = currentlyPlayingURL && _.some(CONST.ATTACHMENT_LOCAL_URL_PREFIX, (prefix) => currentlyPlayingURL.startsWith(prefix));
+    const isLocalFile = currentlyPlayingURL && CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => currentlyPlayingURL.startsWith(prefix));
 
     const updatePlaybackSpeed = useCallback(
         (speed: PlaybackSpeed) => {
