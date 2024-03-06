@@ -18,7 +18,7 @@ let mainComposerFocusCallback: FocusCallback | null = null;
  *
  * @param callback callback to register
  */
-function onComposerFocus(callback: FocusCallback, isMainComposer = false) {
+function onComposerFocus(callback: FocusCallback | null, isMainComposer = false) {
     if (isMainComposer) {
         mainComposerFocusCallback = callback;
     } else {

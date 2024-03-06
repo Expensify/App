@@ -1,6 +1,7 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import type {MutableRefObject} from 'react';
 import React from 'react';
+import {InteractionManager} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
@@ -194,7 +195,9 @@ const ContextMenuActions: ContextMenuAction[] = [
         onPress: (closePopover, {reportAction, reportID}) => {
             if (closePopover) {
                 hideContextMenu(false, () => {
-                    ReportActionComposeFocusManager.focus();
+                    InteractionManager.runAfterInteractions(() => {
+                        ReportActionComposeFocusManager.focus();
+                    });
                     Report.navigateToAndOpenChildReport(reportAction?.childReportID ?? '0', reportAction, reportID);
                 });
                 return;

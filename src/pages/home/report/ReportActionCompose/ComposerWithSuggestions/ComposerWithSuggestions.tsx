@@ -581,7 +581,7 @@ function ComposerWithSuggestions(
      * @param [shouldDelay=false] Impose delay before focusing the composer
      */
     const focus = useCallback((shouldDelay = false) => {
-        focusComposerWithDelay()(shouldDelay);
+        focusComposerWithDelay(null)(shouldDelay);
     }, []);
 
     const setUpComposeFocusManager = useCallback(() => {
@@ -725,7 +725,6 @@ function ComposerWithSuggestions(
         <>
             <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
                 <Composer
-                    isMainComposer
                     checkComposerVisibility={checkComposerVisibility}
                     autoFocus={!!shouldAutoFocus}
                     multiline
