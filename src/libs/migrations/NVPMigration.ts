@@ -2,6 +2,7 @@ import after from 'lodash/after';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+// These are the oldKeyName: newKeyName of the NVPs we can migrate without any processing
 const migrations = {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     nvp_lastPaymentMethod: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
@@ -30,14 +31,15 @@ export default function () {
                 key: oldKey,
                 callback: (value) => {
                     Onyx.disconnect(connectionID);
-                    if (value !== null) {
-                        // @ts-expect-error These keys are variables, so we can't check the type
-                        Onyx.multiSet({
-                            [newKey]: value,
-                            [oldKey]: null,
-                        });
+                    if (value === null) {
+                        resolveWhenDone();
+                        return;
                     }
-                    resolveWhenDone();
+                    // @ts-expect-error These keys are variables, so we can't check the type
+                    Onyx.multiSet({
+                        [newKey]: value,
+                        [oldKey]: null,
+                    }).then(resolveWhenDone);
                 },
             });
         }
@@ -46,18 +48,19 @@ export default function () {
             callback: (value) => {
                 Onyx.disconnect(connectionIDAccount);
                 // @ts-expect-error we are removing this property, so it is not in the type anymore
-                if (value?.activePolicyID) {
-                    // @ts-expect-error we are removing this property, so it is not in the type anymore
-                    const activePolicyID = value.activePolicyID;
-                    const newValue = {...value};
-                    // @ts-expect-error we are removing this property, so it is not in the type anymore
-                    delete newValue.activePolicyID;
-                    Onyx.multiSet({
-                        [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: activePolicyID,
-                        [ONYXKEYS.ACCOUNT]: newValue,
-                    });
+                if (!value?.activePolicyID) {
+                    resolveWhenDone();
+                    return;
                 }
-                resolveWhenDone();
+                // @ts-expect-error we are removing this property, so it is not in the type anymore
+                const activePolicyID = value.activePolicyID;
+                const newValue = {...value};
+                // @ts-expect-error we are removing this property, so it is not in the type anymore
+                delete newValue.activePolicyID;
+                Onyx.multiSet({
+                    [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: activePolicyID,
+                    [ONYXKEYS.ACCOUNT]: newValue,
+                }).then(resolveWhenDone);
             },
         });
         const connectionIDRecentlyUsedTags = Onyx.connect({
@@ -76,8 +79,7 @@ export default function () {
                     // @ts-expect-error We have no fixed types here
                     newValue[key] = null;
                 }
-                Onyx.multiSet(newValue);
-                resolveWhenDone();
+                Onyx.multiSet(newValue).then(resolveWhenDone);
             },
         });
     });

@@ -16,9 +16,6 @@ const ONYXKEYS = {
     /** Holds the reportID for the report between the user and their account manager */
     ACCOUNT_MANAGER_REPORT_ID: 'accountManagerReportID',
 
-    /** Boolean flag only true when first set */
-    NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'nvp_isFirstTimeNewExpensifyUser',
-
     /** Holds an array of client IDs which is used for multi-tabs on web in order to know
      * which tab is the leader, and which ones are the followers */
     ACTIVE_CLIENTS: 'activeClients',
@@ -106,7 +103,11 @@ const ONYXKEYS = {
     STASHED_SESSION: 'stashedSession',
     BETAS: 'betas',
 
-    /** NVP keys
+    /** NVP keys */
+
+    /** Boolean flag only true when first set */
+    NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'nvp_isFirstTimeNewExpensifyUser',
+
     /** Contains the user preference for the LHN priority mode */
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
 
@@ -134,6 +135,21 @@ const ONYXKEYS = {
     /** This NVP contains the referral banners the user dismissed */
     NVP_DISMISSED_REFERRAL_BANNERS: 'nvp_dismissedReferralBanners',
 
+    /** Indicates which locale should be used */
+    NVP_PREFERRED_LOCALE: 'nvp_preferredLocale',
+
+    /** Whether the user has tried focus mode yet */
+    NVP_TRY_FOCUS_MODE: 'nvp_tryFocusMode',
+
+    /** Whether the user has been shown the hold educational interstitial yet */
+    NVP_HOLD_USE_EXPLAINED: 'holdUseExplained',
+
+    /** Store preferred skintone for emoji */
+    PREFERRED_EMOJI_SKIN_TONE: 'nvp_expensify_preferredEmojiSkinTone',
+
+    /** Store frequently used emojis for this user */
+    FREQUENTLY_USED_EMOJIS: 'nvp_expensify_frequentlyUsedEmojis',
+
     /** Does this user have push notifications enabled for this device? */
     PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
 
@@ -152,9 +168,6 @@ const ONYXKEYS = {
     /** Token needed to initialize Onfido */
     ONFIDO_TOKEN: 'onfidoToken',
     ONFIDO_APPLICANT_ID: 'onfidoApplicantID',
-
-    /** Indicates which locale should be used */
-    NVP_PREFERRED_LOCALE: 'nvp_preferredLocale',
 
     /** User's Expensify Wallet */
     USER_WALLET: 'userWallet',
@@ -177,12 +190,6 @@ const ONYXKEYS = {
     /** The user's cash card and imported cards (including the Expensify Card) */
     CARD_LIST: 'cardList',
 
-    /** Whether the user has tried focus mode yet */
-    NVP_TRY_FOCUS_MODE: 'nvp_tryFocusMode',
-
-    /** Whether the user has been shown the hold educational interstitial yet */
-    NVP_HOLD_USE_EXPLAINED: 'holdUseExplained',
-
     /** Boolean flag used to display the focus mode notification */
     FOCUS_MODE_NOTIFICATION: 'focusModeNotification',
 
@@ -194,12 +201,6 @@ const ONYXKEYS = {
 
     /** Stores information about the active reimbursement account being set up */
     REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
-
-    /** Store preferred skintone for emoji */
-    PREFERRED_EMOJI_SKIN_TONE: 'nvp_expensify_preferredEmojiSkinTone',
-
-    /** Store frequently used emojis for this user */
-    FREQUENTLY_USED_EMOJIS: 'nvp_expensify_frequentlyUsedEmojis',
 
     /** Stores Workspace ID that will be tied to reimbursement account during setup */
     REIMBURSEMENT_ACCOUNT_WORKSPACE_ID: 'reimbursementAccountWorkspaceID',
