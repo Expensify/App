@@ -215,6 +215,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of tax rates attached to a policy */
         taxRates?: TaxRatesWithDefault;
 
+        /** Email of the reimburser when reimbursement is set direct */
+        reimburserEmail?: string;
+
         /** ReportID of the admins room for this workspace */
         chatReportIDAdmins?: number;
 
@@ -223,6 +226,24 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** All the integration connections attached to the policy */
         connections?: Record<string, Connection>;
+
+        /** Whether the Categories feature is enabled */
+        areCategoriesEnabled?: boolean;
+
+        /** Whether the Tags feature is enabled */
+        areTagsEnabled?: boolean;
+
+        /** Whether the Distance Rates feature is enabled */
+        areDistanceRatesEnabled?: boolean;
+
+        /** Whether the workflows feature is enabled */
+        areWorkflowsEnabled?: boolean;
+
+        /** Whether the Report Fields feature is enabled */
+        areReportFieldsEnabled?: boolean;
+
+        /** Whether the Connections feature is enabled */
+        areConnectionsEnabled?: boolean;
     },
     'generalSettings' | 'addWorkspaceRoom'
 >;

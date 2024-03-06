@@ -7,6 +7,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-nat
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
+import type {FileObject} from '@components/AttachmentModal';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import type {
@@ -47,11 +48,12 @@ import DateUtils from '@libs/DateUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import LocalNotification from '@libs/Notification/LocalNotification';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as PhoneNumber from '@libs/PhoneNumber';
 import getPolicyMemberAccountIDs from '@libs/PolicyMembersUtils';
 import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
 import * as Pusher from '@libs/Pusher/pusher';
@@ -76,6 +78,7 @@ import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/Rep
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Modal from './Modal';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
@@ -175,10 +178,27 @@ const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 
 let reportIDDeeplinkedFromOldDot: string | undefined;
 Linking.getInitialURL().then((url) => {
-    const params = new URLSearchParams(url ?? '');
-    const exitToRoute = params.get('exitTo') ?? '';
-    const {reportID} = ReportUtils.parseReportRouteParams(exitToRoute);
-    reportIDDeeplinkedFromOldDot = reportID;
+    const isWeb = ([CONST.PLATFORM.WEB] as unknown as string).includes(getPlatform());
+    const currentParams = new URLSearchParams(url ?? '');
+    const currentExitToRoute = currentParams.get('exitTo') ?? '';
+    const {reportID: currentReportID} = ReportUtils.parseReportRouteParams(currentExitToRoute);
+
+    if (!isWeb) {
+        reportIDDeeplinkedFromOldDot = currentReportID;
+
+        return;
+    }
+
+    const prevUrl = sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.INITIAL_URL);
+    const prevParams = new URLSearchParams(prevUrl ?? '');
+    const prevExitToRoute = prevParams.get('exitTo') ?? '';
+    const {reportID: prevReportID} = ReportUtils.parseReportRouteParams(prevExitToRoute);
+
+    reportIDDeeplinkedFromOldDot = currentReportID || prevReportID;
+
+    if (currentReportID && url) {
+        sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.INITIAL_URL, url);
+    }
 });
 
 let lastVisitedPath: string | undefined;
@@ -355,7 +375,7 @@ function notifyNewAction(reportID: string, accountID?: number, reportActionID?: 
  * - Adding one attachment
  * - Add both a comment and attachment simultaneously
  */
-function addActions(reportID: string, text = '', file?: File) {
+function addActions(reportID: string, text = '', file?: FileObject) {
     let reportCommentText = '';
     let reportCommentAction: OptimisticAddCommentReportAction | undefined;
     let attachmentAction: OptimisticAddCommentReportAction | undefined;
@@ -514,7 +534,7 @@ function addActions(reportID: string, text = '', file?: File) {
 }
 
 /** Add an attachment and optional comment. */
-function addAttachment(reportID: string, file: File, text = '') {
+function addAttachment(reportID: string, file: FileObject, text = '') {
     addActions(reportID, text, file);
 }
 
@@ -1223,6 +1243,7 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
         reportActionID,
     };
 
+    CachedPDFPaths.clearByKey(reportActionID);
     API.write(WRITE_COMMANDS.DELETE_COMMENT, parameters, {optimisticData, successData, failureData});
 }
 
@@ -1719,7 +1740,7 @@ function updateWriteCapabilityAndNavigate(report: Report, newValue: WriteCapabil
 /**
  * Navigates to the 1:1 report with Concierge
  */
-function navigateToConciergeChat(shouldDismissModal = false, shouldPopCurrentScreen = false, checkIfCurrentPageActive = () => true) {
+function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageActive = () => true) {
     // If conciergeChatReportID contains a concierge report ID, we navigate to the concierge chat using the stored report ID.
     // Otherwise, we would find the concierge chat and navigate to it.
     if (!conciergeChatReportID) {
@@ -1730,17 +1751,11 @@ function navigateToConciergeChat(shouldDismissModal = false, shouldPopCurrentScr
             if (!checkIfCurrentPageActive()) {
                 return;
             }
-            if (shouldPopCurrentScreen && !shouldDismissModal) {
-                Navigation.goBack();
-            }
             navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], shouldDismissModal);
         });
     } else if (shouldDismissModal) {
         Navigation.dismissModal(conciergeChatReportID);
     } else {
-        if (shouldPopCurrentScreen) {
-            Navigation.goBack();
-        }
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeChatReportID));
     }
 }
@@ -2254,6 +2269,7 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
     if (!report) {
         return;
     }
+    const isChatThread = ReportUtils.isChatThread(report);
 
     // Pusher's leavingStatus should be sent earlier.
     // Place the broadcast before calling the LeaveRoom API to prevent a race condition
@@ -2262,20 +2278,22 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
 
     // If a workspace member is leaving a workspace room, they don't actually lose the room from Onyx.
     // Instead, their notification preference just gets set to "hidden".
+    // Same applies for chat threads too
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: isWorkspaceMemberLeavingWorkspaceRoom
-                ? {
-                      notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-                  }
-                : {
-                      reportID: null,
-                      stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                      statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                      notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-                  },
+            value:
+                isWorkspaceMemberLeavingWorkspaceRoom || isChatThread
+                    ? {
+                          notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                      }
+                    : {
+                          reportID: null,
+                          stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                          statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                          notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                      },
         },
     ];
 
@@ -2283,12 +2301,13 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: isWorkspaceMemberLeavingWorkspaceRoom
-                ? {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}
-                : Object.keys(report).reduce<Record<string, null>>((acc, key) => {
-                      acc[key] = null;
-                      return acc;
-                  }, {}),
+            value:
+                isWorkspaceMemberLeavingWorkspaceRoom || isChatThread
+                    ? {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}
+                    : Object.keys(report).reduce<Record<string, null>>((acc, key) => {
+                          acc[key] = null;
+                          return acc;
+                      }, {}),
         },
     ];
 
@@ -2344,15 +2363,19 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
     const lastAccessedReportID = filteredReportsByLastRead.at(-1)?.reportID;
 
     if (lastAccessedReportID) {
-        // We should call Navigation.goBack to pop the current route first before navigating to Concierge.
-        Navigation.goBack();
+        // If it is not a chat thread we should call Navigation.goBack to pop the current route first before navigating to last accessed report.
+        if (!isChatThread) {
+            Navigation.goBack();
+        }
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID));
     } else {
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
         const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
         if (chat?.reportID) {
-            // We should call Navigation.goBack to pop the current route first before navigating to Concierge.
-            Navigation.goBack();
+            // If it is not a chat thread we should call Navigation.goBack to pop the current route first before navigating to Concierge.
+            if (!isChatThread) {
+                Navigation.goBack();
+            }
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chat.reportID));
         }
     }
@@ -2375,7 +2398,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
         (accountID): accountID is number => typeof accountID === 'number',
     );
 
-    const logins = inviteeEmails.map((memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
+    const logins = inviteeEmails.map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, inviteeAccountIDs);
 
     const optimisticData: OnyxUpdate[] = [
