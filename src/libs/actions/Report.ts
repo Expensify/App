@@ -120,7 +120,7 @@ const allReportActions: OnyxCollection<ReportActions> = {};
 const oldestReportActions: Record<string, string> = {};
 
 // map of report to the ID of the newest action for that report
-const newestReportActions = Record<string, string> = {};
+const newestReportActions: Record<string, string> = {};
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
