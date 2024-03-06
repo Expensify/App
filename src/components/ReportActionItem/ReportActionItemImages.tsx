@@ -64,7 +64,7 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
 
     return (
         <View style={[styles.reportActionItemImages, hoverStyle, heightStyle]}>
-            {shownImages.map(({thumbnail, isThumbnail, image, transaction, isLocalFile, fileExtension}, index) => {
+            {shownImages.map(({thumbnail, isThumbnail, image, transaction, isLocalFile, fileExtension, filename}, index) => {
                 const isLastImage = index === numberOfShownImages - 1;
 
                 // Show a border to separate multiple images. Shown to the right for each except the last.
@@ -80,6 +80,7 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
                             fileExtension={fileExtension}
                             image={image}
                             isLocalFile={isLocalFile}
+                            filename={filename}
                             transaction={transaction}
                             isThumbnail={isThumbnail}
                             isSingleImage={numberOfShownImages === 1}

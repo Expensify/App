@@ -73,8 +73,6 @@ function DistanceEReceipt({transaction}: DistanceEReceiptProps) {
                             let descriptionKey: TranslationPaths = 'distance.waypointDescription.stop';
                             if (index === 0) {
                                 descriptionKey = 'distance.waypointDescription.start';
-                            } else if (index === Object.keys(waypoints).length - 1) {
-                                descriptionKey = 'distance.waypointDescription.finish';
                             }
 
                             return (

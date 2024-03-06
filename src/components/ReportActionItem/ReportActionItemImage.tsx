@@ -70,7 +70,7 @@ function ReportActionItemImage({
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const imageSource = tryResolveUrlFromApiRoot(image ?? '');
+    const attachmentModalSource = tryResolveUrlFromApiRoot(image ?? '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
     const isEReceipt = transaction && TransactionUtils.hasEReceipt(transaction);
 
@@ -78,13 +78,15 @@ function ReportActionItemImage({
 
     if (isEReceipt) {
         propsObj = {isEReceipt: true, transactionID: transaction.transactionID, iconSize: isSingleImage ? 'medium' : ('small' as IconSize)};
-    } else if (thumbnail && !isLocalFile && !Str.isPDF(imageSource)) {
+    } else if (thumbnail && !isLocalFile) {
         propsObj = {
             shouldUseThumbnailImage: true,
             source: thumbnailSource,
             fallbackIcon: Expensicons.Receipt,
             fallbackIconSize: isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge,
         };
+    } else if (isLocalFile && filename && Str.isPDF(filename) && typeof attachmentModalSource === 'string') {
+        propsObj = {isPDFThumbnail: true, source: attachmentModalSource};
     } else {
         propsObj = {
             isThumbnail,
@@ -100,7 +102,7 @@ function ReportActionItemImage({
             <ShowContextMenuContext.Consumer>
                 {({report}) => (
                     <AttachmentModal
-                        source={imageSource}
+                        source={attachmentModalSource}
                         isAuthTokenRequired={!isLocalFile}
                         report={report}
                         isReceiptAttachment
