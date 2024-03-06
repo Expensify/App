@@ -133,7 +133,7 @@ function ScreenWrapper(
     const navigationFallback = useNavigation<StackNavigationProp<RootStackParamList>>();
     const navigation = navigationProp ?? navigationFallback;
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
     const keyboardState = useKeyboardState();
@@ -264,8 +264,8 @@ function ScreenWrapper(
                                               })
                                             : children
                                     }
-                                    {shouldUseNarrowLayout && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
-                                    {!shouldUseNarrowLayout && shouldShowOfflineIndicatorInWideScreen && (
+                                    {isSmallScreenWidth && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
+                                    {!isSmallScreenWidth && shouldShowOfflineIndicatorInWideScreen && (
                                         <OfflineIndicator
                                             containerStyles={[]}
                                             style={[styles.pl5, styles.offlineIndicatorRow, offlineIndicatorStyle]}
