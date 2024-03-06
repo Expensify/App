@@ -14,6 +14,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as UserUtils from '@libs/UserUtils';
@@ -39,6 +40,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const StyleUtils = useStyleUtils();
 
     const [removeMemberConfirmModalVisible, setRemoveMemberConfirmModalVisible] = React.useState(false);
 
@@ -101,7 +103,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
                             onPress={askForConfirmationToRemove}
                             medium
                             icon={Expensicons.RemoveMembers}
-                            iconStyles={{transform: [{scale: 0.8}]}}
+                            iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
                             style={styles.mv5}
                         />
                         <ConfirmModal
