@@ -416,7 +416,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                     onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
                 });
             }
-    
+
             if (selectedEmployees.find((employee) => policyMembers?.[employee]?.role === CONST.POLICY.ROLE.USER)) {
                 options.push({
                     text: translate('workspace.people.makeAdmin'),
