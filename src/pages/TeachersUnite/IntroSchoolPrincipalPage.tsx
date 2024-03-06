@@ -81,7 +81,7 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('teachersUnitePage.introSchoolPrincipal')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_SAVE_THE_WORLD)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <FormProvider
                 enabledWhenOffline
