@@ -70,7 +70,6 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 mixedUAStyles: {whiteSpace: 'pre'},
                 contentModel: HTMLContentModel.block,
             }),
-            emoji: HTMLElementModel.fromCustomModel({tagName: 'emoji', contentModel: HTMLContentModel.textual}),
         }),
         [styles.colorMuted, styles.formError, styles.mb0, styles.textLabelSupporting, styles.lh16],
     );

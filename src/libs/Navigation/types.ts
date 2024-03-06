@@ -100,6 +100,10 @@ type WorkspaceSwitcherNavigatorParamList = {
     [SCREENS.WORKSPACE_SWITCHER.ROOT]: undefined;
 };
 
+type BackToParams = {
+    backTo?: Routes;
+};
+
 type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.ROOT]: undefined;
     [SCREENS.SETTINGS.SHARE_CODE]: undefined;
@@ -203,7 +207,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
-    [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: undefined;
+    [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: BackToParams;
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: undefined;
     [SCREENS.KEYBOARD_SHORTCUTS]: undefined;
     [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: undefined;
@@ -636,4 +640,5 @@ export type {
     WorkspaceSwitcherNavigatorParamList,
     OnboardEngagementNavigatorParamList,
     SwitchPolicyIDParams,
+    BackToParams,
 };
