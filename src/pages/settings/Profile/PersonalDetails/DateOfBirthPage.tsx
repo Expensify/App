@@ -1,76 +1,50 @@
+import {subYears} from 'date-fns';
 import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/LegalNameForm';
+import INPUT_IDS from '@src/types/form/DateOfBirthForm';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-type LegalNamePageOnyxProps = {
+type DateOfBirthPageOnyxProps = {
     /** User's private personal details */
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
 };
+type DateOfBirthPageProps = DateOfBirthPageOnyxProps;
 
-type LegalNamePageProps = LegalNamePageOnyxProps;
-
-const updateLegalName = (values: PrivatePersonalDetails) => {
-    PersonalDetails.updateLegalName(values.legalFirstName?.trim() ?? '', values.legalLastName?.trim() ?? '');
-};
-
-function LegalNamePage({privatePersonalDetails}: LegalNamePageProps) {
-    const styles = useThemeStyles();
+function DateOfBirthPage({privatePersonalDetails}: DateOfBirthPageProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     usePrivatePersonalDetails();
-    const legalFirstName = privatePersonalDetails?.legalFirstName ?? '';
-    const legalLastName = privatePersonalDetails?.legalLastName ?? '';
     const isLoadingPersonalDetails = privatePersonalDetails?.isLoading ?? true;
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.LEGAL_NAME_FORM>) => {
-        const errors: Errors = {};
+    /**
+     * @returns An object containing the errors for each inputID
+     */
+    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM>) => {
+        const requiredFields = ['dob' as const];
+        const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
-        if (typeof values.legalFirstName === 'string') {
-            if (!ValidationUtils.isValidLegalName(values.legalFirstName)) {
-                ErrorUtils.addErrorMessage(errors, 'legalFirstName', 'privatePersonalDetails.error.hasInvalidCharacter');
-            } else if (!values.legalFirstName) {
-                errors.legalFirstName = 'common.error.fieldRequired';
-            } else if (values.legalFirstName.length > CONST.TITLE_CHARACTER_LIMIT) {
-                ErrorUtils.addErrorMessage(errors, 'legalFirstName', [
-                    'common.error.characterLimitExceedCounter',
-                    {length: values.legalFirstName.length, limit: CONST.TITLE_CHARACTER_LIMIT},
-                ]);
-            }
-            if (ValidationUtils.doesContainReservedWord(values.legalFirstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
-                ErrorUtils.addErrorMessage(errors, 'legalFirstName', 'personalDetails.error.containsReservedWord');
-            }
-        }
+        const minimumAge = CONST.DATE_BIRTH.MIN_AGE;
+        const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
+        const dateError = ValidationUtils.getAgeRequirementError(values.dob ?? '', minimumAge, maximumAge);
 
-        if (typeof values.legalLastName === 'string') {
-            if (!ValidationUtils.isValidLegalName(values.legalLastName)) {
-                ErrorUtils.addErrorMessage(errors, 'legalLastName', 'privatePersonalDetails.error.hasInvalidCharacter');
-            } else if (!values.legalLastName) {
-                errors.legalLastName = 'common.error.fieldRequired';
-            } else if (values.legalLastName.length > CONST.TITLE_CHARACTER_LIMIT) {
-                ErrorUtils.addErrorMessage(errors, 'legalLastName', ['common.error.characterLimitExceedCounter', {length: values.legalLastName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
-            }
-            if (ValidationUtils.doesContainReservedWord(values.legalLastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
-                ErrorUtils.addErrorMessage(errors, 'legalLastName', 'personalDetails.error.containsReservedWord');
-            }
+        if (values.dob && dateError) {
+            errors.dob = dateError;
         }
 
         return errors;
@@ -79,11 +53,10 @@ function LegalNamePage({privatePersonalDetails}: LegalNamePageProps) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
-            testID={LegalNamePage.displayName}
+            testID={DateOfBirthPage.displayName}
         >
             <HeaderWithBackButton
-                title={translate('privatePersonalDetails.legalName')}
+                title={translate('common.dob')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
             {isLoadingPersonalDetails ? (
@@ -91,46 +64,30 @@ function LegalNamePage({privatePersonalDetails}: LegalNamePageProps) {
             ) : (
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
+                    formID={ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM}
                     validate={validate}
-                    onSubmit={updateLegalName}
+                    onSubmit={PersonalDetails.updateDateOfBirth}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >
-                    <View style={[styles.mb4]}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.LEGAL_FIRST_NAME}
-                            name="lfname"
-                            label={translate('privatePersonalDetails.legalFirstName')}
-                            aria-label={translate('privatePersonalDetails.legalFirstName')}
-                            role={CONST.ROLE.PRESENTATION}
-                            defaultValue={legalFirstName}
-                            spellCheck={false}
-                        />
-                    </View>
-                    <View>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.LEGAL_LAST_NAME}
-                            name="llname"
-                            label={translate('privatePersonalDetails.legalLastName')}
-                            aria-label={translate('privatePersonalDetails.legalLastName')}
-                            role={CONST.ROLE.PRESENTATION}
-                            defaultValue={legalLastName}
-                            spellCheck={false}
-                        />
-                    </View>
+                    <InputWrapper
+                        InputComponent={DatePicker}
+                        inputID={INPUT_IDS.DOB}
+                        label={translate('common.date')}
+                        defaultValue={privatePersonalDetails?.dob ?? ''}
+                        minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}
+                        maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE)}
+                    />
                 </FormProvider>
             )}
         </ScreenWrapper>
     );
 }
 
-LegalNamePage.displayName = 'LegalNamePage';
+DateOfBirthPage.displayName = 'DateOfBirthPage';
 
-export default withOnyx<LegalNamePageProps, LegalNamePageOnyxProps>({
+export default withOnyx<DateOfBirthPageProps, DateOfBirthPageOnyxProps>({
     privatePersonalDetails: {
         key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
     },
-})(LegalNamePage);
+})(DateOfBirthPage);
