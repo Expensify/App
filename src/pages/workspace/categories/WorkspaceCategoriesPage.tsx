@@ -186,6 +186,7 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                     customText={translate('workspace.common.selected', {selectedNumber: selectedCategoriesArray.length})}
                     options={options}
+                    style={[isSmallScreenWidth && styles.w50, isSmallScreenWidth && styles.mb3]}
                 />
             );
         }
