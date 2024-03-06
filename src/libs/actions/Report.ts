@@ -116,7 +116,7 @@ Onyx.connect({
 // map of reportID to all reportActions for that report
 const allReportActions: OnyxCollection<ReportActions> = {};
 
-// map of reportID to the oldest reportAction for that report
+// map of reportID to the ID of the oldest reportAction for that report
 const oldestReportActions: Record<string, string> = {};
 
 // map of report to the ID of the newest action for that report
