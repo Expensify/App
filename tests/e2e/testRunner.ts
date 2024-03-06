@@ -16,6 +16,7 @@
 /* eslint-disable @lwc/lwc/no-async-await,no-restricted-syntax,no-await-in-loop */
 import {execSync} from 'child_process';
 import fs from 'fs';
+import type {TestConfig} from '@libs/E2E/types';
 import compare from './compare/compare';
 import defaultConfig from './config';
 import createServerInstance from './server';
@@ -165,7 +166,7 @@ const runTests = async (): Promise<void> => {
         Logger.info(`Cooling down for ${config.BOOT_COOL_DOWN / 1000}s`);
         await sleep(config.BOOT_COOL_DOWN);
 
-        server.setTestConfig(test);
+        server.setTestConfig(test as TestConfig);
 
         const warmupText = `Warmup for test '${test.name}' [${testIndex + 1}/${tests.length}]`;
 
