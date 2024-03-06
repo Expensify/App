@@ -1,8 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {format} from 'date-fns';
 import Str from 'expensify-common/lib/str';
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -35,28 +33,23 @@ import ROUTES from '@src/ROUTES';
 import Button from './Button';
 import type {AllRoutes} from '@src/ROUTES';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
-import categoryPropTypes from './categoryPropTypes';
 import ConfirmedRoute from './ConfirmedRoute';
 import ConfirmModal from './ConfirmModal';
 import FormHelpMessage from './FormHelpMessage';
 import * as Expensicons from './Icon/Expensicons';
 import Image from './Image';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
-import optionPropTypes from './optionPropTypes';
 import OptionsSelector from './OptionsSelector';
 import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import SettlementButton from './SettlementButton';
 import Switch from './Switch';
-import tagPropTypes from './tagPropTypes';
 import Text from './Text';
-import transactionPropTypes from './transactionPropTypes';
 import type {OnyxEntry} from 'react-native-onyx';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {ValueOf} from 'type-fest';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from './withCurrentUserPersonalDetails';
 
 type MoneyRequestConfirmationListOnyxProps = {
     /** Collection of categories attached to a policy */
@@ -299,7 +292,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
 
     const navigateBack = () => {
-        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(iouType, transactionID ?? '', reportID));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(iouType, transaction?.transactionID ?? '', reportID));
     };
 
     const shouldDisplayFieldError = useMemo(() => {
@@ -307,14 +300,14 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             return false;
         }
 
-        return (hasSmartScanFailed && TransactionUtils.hasMissingSmartscanFields(transaction ?? null)) || (didConfirmSplit && TransactionUtils.areRequiredFieldsEmpty(transaction));
+        return (hasSmartScanFailed && TransactionUtils.hasMissingSmartscanFields(transaction ?? null)) || (didConfirmSplit && TransactionUtils.areRequiredFieldsEmpty(transaction ?? null));
     }, [isEditingSplitBill, hasSmartScanFailed, transaction, didConfirmSplit]);
 
     const isMerchantEmpty = !iouMerchant || iouMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isMerchantRequired = isPolicyExpenseChat && !isScanRequest && shouldShowMerchant;
 
-    const isCategoryRequired = canUseViolations && lodashGet(policy, 'requiresCategory', false);
-    const isTagRequired = canUseViolations && lodashGet(policy, 'requiresTag', false);
+    const isCategoryRequired = canUseViolations && (policy?.requiresCategory ?? false);
+    const isTagRequired = canUseViolations && (policy?.requiresTag ?? false);
 
     useEffect(() => {
         if ((!isMerchantRequired && isMerchantEmpty) || !merchantError) {
@@ -350,8 +343,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             return;
         }
 
-        const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate ?? 0) ;
-        IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID ?? '', amount, currency ?? '');
+        const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate ?? 0);
+        IOU.setMoneyRequestAmount_temporaryForRefactor(transaction?.transactionID ?? '', amount, currency ?? '');
     }, [shouldCalculateDistanceAmount, distance, rate, unit, transaction, currency]);
 
     /**
@@ -381,7 +374,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             }
         } else {
             const translationKey = isTypeSplit ? 'iou.splitAmount' : 'iou.requestAmount';
-            text = translate(translationKey, {amount: Number(formattedAmount)});
+            text = translate(translationKey, {amount: formattedAmount});
         }
         return [
             {
@@ -480,10 +473,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
          When the user completes the initial steps of the IOU flow offline and then goes online on the confirmation page.
          In this scenario, the route will be fetched from the server, and the waypoints will no longer be pending.
         */
-        IOU.setMoneyRequestPendingFields(transactionID, {waypoints: isDistanceRequestWithPendingRoute ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null});
+        IOU.setMoneyRequestPendingFields(transaction?.transactionID ?? '', {waypoints: isDistanceRequestWithPendingRoute ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null});
 
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate ?? 0, currency ?? 'USD', translate, toLocaleDigit);
-        IOU.setMoneyRequestMerchant(transactionID, distanceMerchant, true);
+        IOU.setMoneyRequestMerchant(transaction?.transactionID ?? '', distanceMerchant, true);
     }, [isDistanceRequestWithPendingRoute, hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transaction]);
 
     /**
@@ -521,7 +514,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             if (_.isEmpty(selectedParticipants)) {
                 return;
             }
-            if ((isMerchantRequired && isMerchantEmpty) || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction))) {
+            if ((isMerchantRequired && isMerchantEmpty) || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction ?? null))) {
                 setMerchantError(true);
                 return;
             }
@@ -645,12 +638,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID ?? '', CONST.EDIT_REQUEST_FIELD.AMOUNT));
                             return;
                         }
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()));
                     }}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
                     disabled={didConfirm}
-                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction ?? null) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction ?? null) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     error={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction ?? null) ? translate('common.error.enterAmount') : ''}
                 />
             ),
@@ -667,7 +660,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     description={translate('common.description')}
                     onPress={() => {
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                            ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
                         );
                     }}
                     style={[styles.moneyRequestMenuItem]}
@@ -689,7 +682,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     description={translate('common.distance')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()))}
                     disabled={didConfirm || !isTypeRequest}
                     interactive={!isReadOnly}
                 />
@@ -708,12 +701,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     titleStyle={styles.flex1}
                     onPress={() => {
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                            ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
                         );
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
-                    brickRoadIndicator={merchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                    brickRoadIndicator={merchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     error={merchantError ? translate('common.error.fieldRequired') : ''}
                     rightLabel={isMerchantRequired ? translate('common.required') : ''}
                 />
@@ -732,12 +725,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     titleStyle={styles.flex1}
                     onPress={() => {
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                            ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
                         );
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
-                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     error={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
                 />
             ),
@@ -754,7 +747,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     numberOfLinesTitle={2}
                     onPress={() =>
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction?.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
                         )
                     }
                     style={[styles.moneyRequestMenuItem]}
@@ -772,12 +765,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 <MenuItemWithTopDescription
                     key={name}
                     shouldShowRightIcon={!isReadOnly}
-                    title={TransactionUtils.getTagForDisplay(transaction, index)}
+                    title={TransactionUtils.getTagForDisplay(transaction ?? null, index)}
                     description={name}
                     numberOfLinesTitle={2}
                     onPress={() =>
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.CREATE, iouType, index, transaction?.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                            ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.CREATE, iouType, index, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
                         )
                     }
                     style={[styles.moneyRequestMenuItem]}
@@ -798,7 +791,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     description={taxRates?.name}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()))}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
                 />
@@ -809,13 +802,13 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         {
             item: (
                 <MenuItemWithTopDescription
-                    key={`${taxRates.name}${formattedTaxAmount}`}
+                    key={`${taxRates?.name}${formattedTaxAmount}`}
                     shouldShowRightIcon={!isReadOnly}
                     title={formattedTaxAmount}
-                    description={taxRates.name}
+                    description={taxRates?.name}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()))}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
                 />
@@ -830,7 +823,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     <Switch
                         accessibilityLabel={translate('common.billable')}
                         isOn={iouIsBillable}
-                        onToggle={onToggleBillable}
+                        onToggle={(isOn) => onToggleBillable?.(isOn)}
                     />
                 </View>
             ),
@@ -839,21 +832,21 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         },
     ];
 
-    const primaryFields = _.map(
-        _.filter(classifiedFields, (classifiedField) => classifiedField.shouldShow && !classifiedField.isSupplementary),
-        (primaryField) => primaryField.item,
-    );
+    const primaryFields = classifiedFields
+    .filter(classifiedField => classifiedField.shouldShow && !classifiedField.isSupplementary)
+    .map(primaryField => primaryField.item);
 
-    const supplementaryFields = _.map(
-        _.filter(classifiedFields, (classifiedField) => classifiedField.shouldShow && classifiedField.isSupplementary),
-        (supplementaryField) => supplementaryField.item,
-    );
+
+    const supplementaryFields = classifiedFields
+    .filter(classifiedField => classifiedField.shouldShow && classifiedField.isSupplementary)
+    .map(supplementaryField => supplementaryField.item);
+
 
     const {
         image: receiptImage,
         thumbnail: receiptThumbnail,
         isLocalFile,
-    } = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : {};
+    } = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction ?? null, receiptPath, receiptFilename) : {};
 
     const receiptThumbnailContent = useMemo(
         () =>
@@ -899,7 +892,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         >
             {isDistanceRequest && (
                 <View style={styles.confirmationListMapItem}>
-                    <ConfirmedRoute transaction={transaction} />
+                    <ConfirmedRoute transaction={transaction ?? ({} as OnyxTypes.Transaction)} />
                 </View>
             )}
             {receiptImage || receiptThumbnail
@@ -911,7 +904,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                       <ReceiptEmptyState
                           onPress={() =>
                               Navigation.navigate(
-                                  ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                                  ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
                               )
                           }
                       />
@@ -947,7 +940,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 }
 
 
-MoneyTemporaryForRefactorRequestConfirmationList.displayName = 'MoneyRequestConfirmationList';
+MoneyTemporaryForRefactorRequestConfirmationList.displayName = 'MoneyTemporaryForRefactorRequestConfirmationList';
 
 export default withOnyx<MoneyRequestConfirmationListProps, MoneyRequestConfirmationListOnyxProps>({
     session: {
