@@ -35,7 +35,7 @@ type WorkspacePolicyOnyxProps = {
 
 type WorkspaceMemberDetailsPageProps = WithPolicyAndFullscreenLoadingProps & WorkspacePolicyOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS>;
 
-function WorkspaceMemberDetailsPage({personalDetails, route}: WorkspaceMemberDetailsPageProps) {
+function WorkspaceMemberDetailsPage({personalDetails, policyMembers, route}: WorkspaceMemberDetailsPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -45,6 +45,7 @@ function WorkspaceMemberDetailsPage({personalDetails, route}: WorkspaceMemberDet
     const accountID = Number(route?.params?.accountID) ?? 0;
     const backTo = route?.params?.backTo;
 
+    const member = policyMembers?.[accountID];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
     const avatar = details.avatar ?? UserUtils.getDefaultAvatar();
     const fallbackIcon = details.fallbackIcon ?? '';
@@ -115,7 +116,7 @@ function WorkspaceMemberDetailsPage({personalDetails, route}: WorkspaceMemberDet
                     </View>
                     <View style={styles.w100}>
                         <MenuItemWithTopDescription
-                            title={translate('common.member')}
+                            title={member?.role === CONST.POLICY.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}
                             description={translate('common.role')}
                             shouldShowRightIcon
                             onPress={openRoleSelectionModal}
