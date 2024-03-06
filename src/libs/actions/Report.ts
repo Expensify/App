@@ -2974,7 +2974,7 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
     API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER, parameters, {optimisticData, failureData});
 }
 
-function setGroupDraft(invitedUsersIDs: number[], reportName: string = '') {
+function setGroupDraft(invitedUsersIDs: number[], reportName = '') {
     Onyx.set(ONYXKEYS.NEW_GROUP, {selectedOptions: invitedUsersIDs, reportName});
 }
 

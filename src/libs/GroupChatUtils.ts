@@ -11,7 +11,7 @@ function getGroupChatConfirmName(participants: OptionData[]): string | undefined
     const isMultipleParticipantReport = participants.length > 1;
 
     return participants
-        .map((participant) => ReportUtils.getDisplayNameForParticipant(participant.accountID!, isMultipleParticipantReport))
+        .map((participant) => ReportUtils.getDisplayNameForParticipant(participant.accountID ?? undefined, isMultipleParticipantReport))
         .sort((first, second) => localeCompare(first ?? '', second ?? ''))
         .filter(Boolean)
         .join(', ');
