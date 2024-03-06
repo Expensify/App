@@ -257,6 +257,11 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     /** Opens the member details page */
     const openMemberDetails = useCallback(
         (item: MemberOption) => {
+            if (!isPolicyAdmin) {
+                Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
+                return;
+            }
+
             Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID, route.path));
         },
         [route.params.policyID, route.path],
@@ -532,13 +537,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                         headerMessage={getHeaderMessage()}
                         headerContent={getHeaderContent()}
                         onSelectRow={openMemberDetails}
-                        onCheckboxPress={(item) => {
-                            if (!isPolicyAdmin) {
-                                Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
-                                return;
-                            }
-                            toggleUser(item.accountID);
-                        }}
+                        onCheckboxPress={(item) => toggleUser(item.accountID)}
                         onSelectAll={() => toggleAllUsers(data)}
                         onDismissError={dismissError}
                         showLoadingPlaceholder={!isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) || isEmptyObject(policyMembers))}
