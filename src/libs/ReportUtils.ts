@@ -2611,11 +2611,13 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         return formattedName;
     }
 
-    // Not a room or PolicyExpenseChat, generate title from participants
-    const participantAccountIDs = report?.participantAccountIDs ?? [];
+    // Not a room or PolicyExpenseChat, generate title from first 5 other participants
+    const participantAccountIDs = report?.participantAccountIDs?.slice(0, 6) ?? [];
     const participantsWithoutCurrentUser = participantAccountIDs.filter((accountID) => accountID !== currentUserAccountID);
     const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
-
+    if (participantsWithoutCurrentUser.length > 5) {
+        participantsWithoutCurrentUser.pop();
+    }
     return participantsWithoutCurrentUser.map((accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport)).join(', ');
 }
 
