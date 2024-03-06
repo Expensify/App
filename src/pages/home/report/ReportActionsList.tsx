@@ -131,7 +131,7 @@ function ReportActionsList({
     const route = useRoute<RouteProp<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>>();
     const opacity = useSharedValue(0);
     const userActiveSince = useRef<string | null>(null);
-    const lastMessageTime = useRef(null);
+    const lastMessageTime = useRef<string | null>(null);
 
     const [isVisible, setIsVisible] = useState(false);
     const isFocused = useIsFocused();
@@ -415,22 +415,22 @@ function ReportActionsList({
 
         if (!isVisible || !isFocused) {
             if (!lastMessageTime.current) {
-                lastMessageTime.current = lodashGet(sortedVisibleReportActions, '[0].created', '');
+                lastMessageTime.current = sortedVisibleReportActions[0]?.created ?? '';
             }
             return;
         }
 
         // In case the user read new messages (after being inactive) with other device we should
         // show marker based on report.lastReadTime
-        const newMessageTimeReference = lastMessageTime.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
+        const newMessageTimeReference = lastMessageTime.current && report.lastReadTime && lastMessageTime.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
         lastMessageTime.current = null;
         if (
             scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD ||
             !(
                 sortedVisibleReportActions &&
-                _.some(
-                    sortedVisibleReportActions,
+                sortedVisibleReportActions.some(
                     (reportAction) =>
+                        newMessageTimeReference &&
                         newMessageTimeReference < reportAction.created &&
                         (ReportActionsUtils.isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID(),
                 )
