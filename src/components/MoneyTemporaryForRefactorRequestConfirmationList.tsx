@@ -229,10 +229,11 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const {translate, toLocaleDigit} = useLocalize();
     const {canUseViolations} = usePermissions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-
+    const {canUseP2PDistanceRequests, canUseViolations} = usePermissions();
     const isTypeRequest = iouType === CONST.IOU.TYPE.REQUEST;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
+    const canEditDistance = isTypeRequest || (canUseP2PDistanceRequests && isTypeSplit);
 
     const {unit, rate, currency} = mileageRate ?? {
         unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
@@ -688,7 +689,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.distance')}
-                    shouldShowRightIcon={!isReadOnly && isTypeRequest}
+                    shouldShowRightIcon={!isReadOnly && canEditDistance}
                     title={iouMerchant}
                     description={translate('common.distance')}
                     style={[styles.moneyRequestMenuItem]}
@@ -696,7 +697,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     onPress={() =>
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()))
                     }
-                    disabled={didConfirm || !isTypeRequest}
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    disabled={didConfirm || !canEditDistance}
                     interactive={!isReadOnly}
                 />
             ),
