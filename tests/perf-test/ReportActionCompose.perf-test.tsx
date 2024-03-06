@@ -59,12 +59,12 @@ jest.mock('@src/libs/actions/EmojiPickerAction', () => {
     } as EmojiPickerRef;
 });
 
-jest.mock('@src/components/withNavigationFocus', () => (Component: ComponentType<WithNavigationFocusProps>) => {
-    function WithNavigationFocus(props: WithNavigationFocusProps) {
+jest.mock('@src/components/withNavigationFocus', <TProps extends WithNavigationFocusProps>() => (Component: ComponentType<TProps>) => {
+    function WithNavigationFocus(props: Omit<TProps, keyof WithNavigationFocusProps>) {
         return (
             <Component
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
+                {...(props as TProps)}
                 isFocused={false}
             />
         );

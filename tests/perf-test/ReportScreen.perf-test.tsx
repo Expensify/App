@@ -31,7 +31,7 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-type ReportScreenWrapperArg = {
+type ReportScreenWrapperProps = {
     navigation: StackNavigationProp<RootStackParamList>;
 };
 
@@ -47,12 +47,12 @@ jest.mock('react-native-reanimated', () => {
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
-jest.mock('@src/components/withNavigationFocus', () => (Component: ComponentType<WithNavigationFocusProps>) => {
-    function WithNavigationFocus(props: WithNavigationFocusProps) {
+jest.mock('@src/components/withNavigationFocus', <TProps extends WithNavigationFocusProps>() => (Component: ComponentType<TProps>) => {
+    function WithNavigationFocus(props: Omit<TProps, keyof WithNavigationFocusProps>) {
         return (
             <Component
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
+                {...(props as TProps)}
                 isFocused={false}
             />
         );
@@ -110,7 +110,8 @@ beforeAll(() =>
 
 // Initialize the network key for OfflineWithFeedback
 beforeEach(() => {
-    global.fetch = TestHelper.getGlobalFetchMock() as typeof fetch;
+    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+    global.fetch = TestHelper.getGlobalFetchMock();
     wrapOnyxWithWaitForBatchedUpdates(Onyx);
     Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
 });
@@ -133,7 +134,7 @@ const personalDetails = createCollection(
     20,
 );
 
-function ReportScreenWrapper(args: ReportScreenWrapperArg) {
+function ReportScreenWrapper(props: ReportScreenWrapperProps) {
     return (
         <ComposeProviders
             components={[
@@ -148,8 +149,8 @@ function ReportScreenWrapper(args: ReportScreenWrapperArg) {
         >
             <ReportScreen
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...args}
-                // @ts-expect-error TODO: Remove this once ReportScreen is migrated to TypeScript.
+                {...props}
+                // @ts-expect-error TODO: Remove this once ReportScreen (https://github.com/Expensify/App/issues/25216) is migrated to TypeScript.
                 navigation={args.navigation}
             />
         </ComposeProviders>
@@ -211,7 +212,7 @@ test('[ReportScreen] should render ReportScreen with composer interactions', () 
         .then(() =>
             measurePerformance(
                 <ReportScreenWrapper
-                    // @ts-expect-error TODO: Remove this once ReportScreen is migrated to TypeScript.
+                    // @ts-expect-error TODO: Remove this once ReportScreen (https://github.com/Expensify/App/issues/25216) is migrated to TypeScript.
                     navigation={navigation}
                     route={mockRoute}
                 />,
