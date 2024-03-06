@@ -15,15 +15,15 @@ const story: ComponentMeta<typeof Tooltip> = {
     component: Tooltip,
 };
 
-function Template(args: TooltipExtendedProps) {
+function Template(props: TooltipExtendedProps) {
     return (
         <div style={{width: 100}}>
             <Tooltip
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...args}
+                {...props}
                 // Disable nullish coalescing to handle cases when maxWidth is 0
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                maxWidth={args.maxWidth || undefined}
+                maxWidth={props.maxWidth || undefined}
             >
                 <div
                     style={{

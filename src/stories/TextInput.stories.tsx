@@ -15,9 +15,9 @@ const story: ComponentMeta<typeof TextInput> = {
     component: TextInput,
 };
 
-function Template(args: BaseTextInputProps) {
+function Template(props: BaseTextInputProps) {
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <TextInput {...args} />;
+    return <TextInput {...props} />;
 }
 
 // Arguments can be passed to the component by binding
@@ -80,12 +80,12 @@ MaxLengthInput.args = {
     maxLength: 50,
 };
 
-function HintAndErrorInput(args: BaseTextInputProps) {
+function HintAndErrorInput(props: BaseTextInputProps) {
     const [error, setError] = useState('');
     return (
         <TextInput
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...args}
+            {...props}
             onChangeText={(value) => {
                 if (value && value.toLowerCase() === 'oops!') {
                     setError("Oops! Looks like there's an error");
@@ -105,16 +105,16 @@ HintAndErrorInput.args = {
 };
 
 // To use autoGrow we need to control the TextInput's value
-function AutoGrowSupportInput(args: BaseTextInputProps) {
-    const [value, setValue] = useState(args.value ?? '');
+function AutoGrowSupportInput(props: BaseTextInputProps) {
+    const [value, setValue] = useState(props.value ?? '');
     React.useEffect(() => {
-        setValue(args.value ?? '');
-    }, [args.value]);
+        setValue(props.value ?? '');
+    }, [props.value]);
 
     return (
         <TextInput
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...args}
+            {...props}
             onChangeText={setValue}
             value={value}
         />

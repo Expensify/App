@@ -15,14 +15,14 @@ const story: ComponentMeta<typeof MagicCodeInput> = {
     component: MagicCodeInput,
 };
 
-function Template(args: MagicCodeInputProps) {
+function Template(props: MagicCodeInputProps) {
     const [value, setValue] = useState('');
     return (
         <MagicCodeInput
             value={value}
             onChangeText={setValue}
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...args}
+            {...props}
         />
     );
 }

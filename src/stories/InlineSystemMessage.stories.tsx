@@ -15,9 +15,9 @@ const story: ComponentMeta<typeof InlineSystemMessage> = {
     component: InlineSystemMessage,
 };
 
-function Template(args: InlineSystemMessageProps) {
+function Template(props: InlineSystemMessageProps) {
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <InlineSystemMessage {...args} />;
+    return <InlineSystemMessage {...props} />;
 }
 
 // Arguments can be passed to the component by binding
