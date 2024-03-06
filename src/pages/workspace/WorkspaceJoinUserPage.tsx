@@ -5,6 +5,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
+import navigateAfterJoinRequest from '@libs/navigateAfterJoinRequest';
 // import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -12,7 +13,6 @@ import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
 import * as PolicyAction from '@userActions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 
@@ -29,14 +29,10 @@ function WorkspaceJoinUserPage({route, policies}: WorkspaceJoinUserPageProps) {
     const policyID = route?.params?.policyID;
     const inviterEmail = route?.params?.email;
     const policy = ReportUtils.getPolicy(policyID);
-    const executedRef = useRef(false);
+    const isUnmounted = useRef(false);
 
     useEffect(() => {
-        if (executedRef.current) {
-            Navigation.goBack(ROUTES.ALL_SETTINGS);
-            return;
-        }
-        if (!policy || !policies) {
+        if (!policy || !policies || isUnmounted.current) {
             return;
         }
         const isPolicyMember = PolicyUtils.isPolicyMember(policyID, policies as Record<string, Policy>);
@@ -47,9 +43,20 @@ function WorkspaceJoinUserPage({route, policies}: WorkspaceJoinUserPageProps) {
         // Will be used later when API return reportID to invited member with the same domain
         // const isSamePrivateDomain = policy?.owner ? areEmailsFromSamePrivateDomain(currentUserPersonalDetails.login, policy?.owner) : false;
         PolicyAction.inviteMemberToWorkspace(policyID, inviterEmail);
-        executedRef.current = true;
-        Navigation.navigate(ROUTES.ALL_SETTINGS);
+        Navigation.isNavigationReady().then(() => {
+            if (isUnmounted.current) {
+                return;
+            }
+            navigateAfterJoinRequest();
+        });
     }, [policy, policyID, policies, inviterEmail]);
+
+    useEffect(
+        () => () => {
+            isUnmounted.current = true;
+        },
+        [],
+    );
 
     return (
         <ScreenWrapper testID={WorkspaceJoinUserPage.displayName}>

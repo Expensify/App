@@ -171,7 +171,7 @@ function WorkspacesListRow({
                                 height={variables.iconSizeExtraSmall}
                                 additionalStyles={styles.workspaceTypeWrapper}
                             />
-                            <View style={styles.flex1}>
+                            <View>
                                 <Text
                                     numberOfLines={1}
                                     style={styles.labelStrong}
