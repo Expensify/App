@@ -1566,7 +1566,7 @@ const styles = (theme: ThemeColors) =>
         OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>
             ({
                 width: shouldUseNarrowLayout ? 500 : '100%',
-                height: shouldUseNarrowLayout ? 724 : '100%',
+                height: shouldUseNarrowLayout ? 732 : '100%',
                 maxHeight: '100%',
                 borderRadius: shouldUseNarrowLayout ? 16 : 0,
                 overflow: 'hidden',

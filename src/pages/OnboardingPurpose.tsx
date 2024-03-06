@@ -113,7 +113,7 @@ function OnboardingPurpose() {
                     progressBarPercentage={66.6}
                 />
             </View>
-            <ScrollView style={[styles.flex1, styles.flexGrow1, styles.pt5, paddingHorizontal]}>
+            <ScrollView style={[styles.flex1, styles.flexGrow1, styles.mt5, !shouldUseNarrowLayout && styles.mb5, paddingHorizontal]}>
                 <View style={styles.flex1}>
                     <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
                         <Text style={styles.textHeroSmall}>{translate('onboarding.purpose.title')} </Text>
