@@ -39,6 +39,8 @@ function OnboardingPurpose() {
     const {isSmallScreenWidth} = useWindowDimensions();
     const theme = useTheme();
 
+    const paddingHorizontal = shouldUseNarrowLayout ? styles.ph8 : styles.ph5;
+
     const handleGoBack = useCallback(() => {
         Navigation.goBack();
     }, []);
@@ -102,7 +104,7 @@ function OnboardingPurpose() {
 
     return (
         <View style={[styles.h100, styles.defaultModalContainer, !shouldUseNarrowLayout && styles.pt8]}>
-            <View style={styles.mh3}>
+            <View style={shouldUseNarrowLayout && styles.mh3}>
                 <HeaderWithBackButton
                     shouldShowBackButton
                     onBackButtonPress={handleGoBack}
@@ -111,18 +113,18 @@ function OnboardingPurpose() {
                     progressBarPercentage={66.6}
                 />
             </View>
-            <View style={[styles.flex1, styles.flexGrow1, styles.mv5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}>
+            <ScrollView style={[styles.flex1, styles.flexGrow1, styles.pt5, paddingHorizontal]}>
                 <View style={styles.flex1}>
                     <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
                         <Text style={styles.textHeroSmall}>{translate('onboarding.purpose.title')} </Text>
                     </View>
-                    <ScrollView>
-                        <MenuItemList
-                            menuItems={menuItems}
-                            shouldUseSingleExecution
-                        />
-                    </ScrollView>
+                    <MenuItemList
+                        menuItems={menuItems}
+                        shouldUseSingleExecution
+                    />
                 </View>
+            </ScrollView>
+            <View style={[styles.pb5, paddingHorizontal]}>
                 <Button
                     success
                     onPress={completeEngagement}
