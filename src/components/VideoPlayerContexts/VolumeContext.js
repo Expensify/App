@@ -14,7 +14,7 @@ function VolumeContextProvider({children}) {
             if (!currentVideoPlayerRef.current) {
                 return;
             }
-            currentVideoPlayerRef.current.setStatusAsync({volume: newVolume});
+            currentVideoPlayerRef.current.setStatusAsync({volume: newVolume, isMuted: newVolume === 0});
             volume.value = newVolume;
         },
         [currentVideoPlayerRef, volume],

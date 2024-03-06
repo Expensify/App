@@ -6,6 +6,7 @@ import * as Device from '@userActions/Device';
 import exposeGlobalMemoryOnlyKeysMethods from '@userActions/MemoryOnlyKeys/exposeGlobalMemoryOnlyKeysMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import addUtilsToWindow from './addUtilsToWindow';
 import initializeLastVisitedPath from './initializeLastVisitedPath';
 import platformSetup from './platformSetup';
 
@@ -34,7 +35,7 @@ export default function () {
             // Clear any loading and error messages so they do not appear on app startup
             [ONYXKEYS.SESSION]: {loading: false},
             [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
-            [ONYXKEYS.NETWORK]: {isOffline: false},
+            [ONYXKEYS.NETWORK]: CONST.DEFAULT_NETWORK_DATA,
             [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
             [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
             [ONYXKEYS.MODAL]: {
@@ -59,4 +60,6 @@ export default function () {
 
     // Perform any other platform-specific setup
     platformSetup();
+
+    addUtilsToWindow();
 }

@@ -8,6 +8,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -31,6 +32,7 @@ const UBO_STEP_INDEXES = CONST.REIMBURSEMENT_ACCOUNT_SUBSTEP_INDEX.UBO;
 function ConfirmationUBO({reimbursementAccount, reimbursementAccountDraft, onNext, onMove, beneficialOwnerBeingModifiedID}: ConfirmationUBOProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
 
     const values = getValuesForBeneficialOwner(beneficialOwnerBeingModifiedID, reimbursementAccountDraft);
     const error = reimbursementAccount ? ErrorUtils.getLatestErrorMessage(reimbursementAccount) : '';
@@ -106,6 +108,7 @@ function ConfirmationUBO({reimbursementAccount, reimbursementAccountDraft, onNex
                     />
                 )}
                 <Button
+                    isDisabled={isOffline}
                     success
                     style={[styles.w100, styles.mt2, styles.pb5]}
                     onPress={onNext}

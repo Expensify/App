@@ -1,4 +1,4 @@
-import type {NavigationState, PartialState} from '@react-navigation/native';
+import type {NavigationState, PartialState, Route} from '@react-navigation/native';
 import {getStateFromPath} from '@react-navigation/native';
 import {isAnonymousUser} from '@libs/actions/Session';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -153,6 +153,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
     const lhpNavigator = state.routes.find((route) => route.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR);
     const onboardingModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
     const welcomeVideoModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR);
+    const reportAttachmentsScreen = state.routes.find((route) => route.name === SCREENS.REPORT_ATTACHMENTS);
 
     if (rhpNavigator) {
         // Routes
@@ -266,6 +267,26 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         const matchingBottomTabRoute = getMatchingBottomTabRouteForState(state);
         routes.push(createBottomTabNavigator(matchingBottomTabRoute, policyID));
         routes.push(centralPaneNavigator);
+
+        return {
+            adaptedState: getRoutesWithIndex(routes),
+            metainfo,
+        };
+    }
+    if (reportAttachmentsScreen) {
+        // Routes
+        // - matching bottom tab
+        // - central pane (report screen) of the attachment
+        // - found report attachments
+        const routes = [];
+        const reportAttachments = reportAttachmentsScreen as Route<'ReportAttachments', RootStackParamList['ReportAttachments']>;
+
+        const matchingBottomTabRoute = getMatchingBottomTabRouteForState(state);
+        routes.push(createBottomTabNavigator(matchingBottomTabRoute, policyID));
+        if (!isNarrowLayout) {
+            routes.push(createCentralPaneNavigator({name: SCREENS.REPORT, params: {reportID: reportAttachments.params?.reportID ?? ''}}));
+        }
+        routes.push(reportAttachments);
 
         return {
             adaptedState: getRoutesWithIndex(routes),
