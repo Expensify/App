@@ -9,10 +9,12 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as UserUtils from '@libs/UserUtils';
 import Navigation from '@navigation/Navigation';
@@ -34,6 +36,7 @@ type WorkspaceMemberDetailsPageProps = WithPolicyAndFullscreenLoadingProps & Wor
 
 function WorkspaceMemberDetailsPage({personalDetails, route}: WorkspaceMemberDetailsPageProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
 
     const [removeMemberConfirmModalVisible, setRemoveMemberConfirmModalVisible] = React.useState(false);
@@ -63,11 +66,11 @@ function WorkspaceMemberDetailsPage({personalDetails, route}: WorkspaceMemberDet
                     title={displayName}
                     onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
-                <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
+                <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
                     <View style={styles.avatarSectionWrapper}>
                         <OfflineWithFeedback pendingAction={details.pendingFields?.avatar}>
                             <Avatar
-                                containerStyles={[styles.avatarXLarge, styles.mb3, styles.noOutline]}
+                                containerStyles={[styles.avatarXLarge, styles.mv5, styles.noOutline]}
                                 imageStyles={[styles.avatarXLarge]}
                                 source={UserUtils.getAvatar(avatar, accountID)}
                                 size={CONST.AVATAR_SIZE.XLARGE}
@@ -88,6 +91,7 @@ function WorkspaceMemberDetailsPage({personalDetails, route}: WorkspaceMemberDet
                             medium
                             icon={Expensicons.RemoveMembers}
                             iconStyles={{transform: [{scale: 0.8}]}}
+                            style={styles.mv5}
                         />
                         <ConfirmModal
                             danger
@@ -98,6 +102,21 @@ function WorkspaceMemberDetailsPage({personalDetails, route}: WorkspaceMemberDet
                             prompt={translate('workspace.people.removeMemberPrompt', {memberName: displayName})}
                             confirmText={translate('common.remove')}
                             cancelText={translate('common.cancel')}
+                        />
+                    </View>
+                    <View style={styles.w100}>
+                        <MenuItemWithTopDescription
+                            title={translate('common.member')}
+                            description={translate('common.role')}
+                            shouldShowRightIcon
+                            onPress={() => {}}
+                        />
+                        <MenuItemWithTopDescription
+                            title={translate('common.profile')}
+                            shouldShowRightIcon
+                            icon={Expensicons.Info}
+                            iconFill={theme.icon}
+                            onPress={() => {}}
                         />
                     </View>
                 </View>
