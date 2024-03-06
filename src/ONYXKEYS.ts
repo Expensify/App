@@ -399,6 +399,8 @@ const ONYXKEYS = {
         EXIT_SURVEY_REASON_FORM_DRAFT: 'exitSurveyReasonFormDraft',
         EXIT_SURVEY_RESPONSE_FORM: 'exitSurveyResponseForm',
         EXIT_SURVEY_RESPONSE_FORM_DRAFT: 'exitSurveyResponseFormDraft',
+        TEST_FORM: 'testForm',
+        TEST_FORM_DRAFT: 'testFormDraft',
     },
 } as const;
 
@@ -443,6 +445,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM]: FormTypes.ReimbursementAccountForm;
     [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT]: FormTypes.PersonalBankAccountForm;
     [ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM]: FormTypes.WorkspaceDescriptionForm;
+    [ONYXKEYS.FORMS.TEST_FORM]: FormTypes.TestForm;
 };
 
 type OnyxFormDraftValuesMapping = {

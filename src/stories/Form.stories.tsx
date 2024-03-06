@@ -1,27 +1,33 @@
+import type {ComponentMeta, Story} from '@storybook/react';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
+import type {FormProviderProps} from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Picker from '@components/Picker';
 import StatePicker from '@components/StatePicker';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import NetworkConnection from '@libs/NetworkConnection';
 import * as ValidationUtils from '@libs/ValidationUtils';
-// eslint-disable-next-line no-restricted-imports
-import {defaultStyles} from '@styles/index';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {defaultStyles} from '@src/styles';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
+
+type FormStory = Story<FormProviderProps<typeof ONYXKEYS.FORMS.TEST_FORM>>;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story = {
+const story: ComponentMeta<typeof FormProvider> = {
     title: 'Components/Form',
     component: FormProvider,
     subcomponents: {
@@ -35,11 +41,11 @@ const story = {
     },
 };
 
-function Template(args) {
+function Template(args: FormProviderProps<typeof ONYXKEYS.FORMS.TEST_FORM>) {
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
     NetworkConnection.setOfflineStatus(false);
-    FormActions.setIsLoading(args.formID, args.formState.isLoading);
-    FormActions.setErrors(args.formID, args.formState.error);
+    FormActions.setIsLoading(args.formID, !!args.formState?.isLoading);
+    FormActions.setErrors(args.formID, args.formState?.error as unknown as Errors);
     FormActions.setDraftValues(args.formID, args.draftValues);
 
     return (
@@ -61,27 +67,28 @@ function Template(args) {
                 label="Account number"
                 accessibilityLabel="Account number"
                 inputID="accountNumber"
-                containerStyles={[defaultStyles.mt4]}
+                containerStyles={defaultStyles.mt4}
             />
             <InputWrapper
                 InputComponent={AddressSearch}
                 label="Street"
                 inputID="street"
-                containerStyles={[defaultStyles.mt4]}
+                containerStyles={defaultStyles.mt4}
                 hint="common.noPO"
             />
             <InputWrapper
                 InputComponent={DatePicker}
                 inputID="dob"
                 label="Date of Birth"
-                containerStyles={[defaultStyles.mt4]}
+                containerStyles={defaultStyles.mt4}
             />
             <View>
                 <InputWrapper
                     InputComponent={Picker}
                     label="Fruit"
                     inputID="pickFruit"
-                    containerStyles={[defaultStyles.mt4]}
+                    onInputChange={() => {}}
+                    containerStyles={defaultStyles.mt4}
                     shouldSaveDraft
                     items={[
                         {
@@ -103,7 +110,8 @@ function Template(args) {
                 InputComponent={Picker}
                 label="Another Fruit"
                 inputID="pickAnotherFruit"
-                containerStyles={[defaultStyles.mt4]}
+                onInputChange={() => {}}
+                containerStyles={defaultStyles.mt4}
                 items={[
                     {
                         label: 'Select a Fruit',
@@ -139,16 +147,14 @@ function Template(args) {
 
 /**
  * Story to exhibit the native event handlers for TextInput in the Form Component
- * @param {Object} args
- * @returns {JSX}
  */
-function WithNativeEventHandler(args) {
+function WithNativeEventHandler(args: FormProviderProps<typeof ONYXKEYS.FORMS.TEST_FORM>) {
     const [log, setLog] = useState('');
 
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
     NetworkConnection.setOfflineStatus(false);
-    FormActions.setIsLoading(args.formID, args.formState.isLoading);
-    FormActions.setErrors(args.formID, args.formState.error);
+    FormActions.setIsLoading(args.formID, !!args.formState?.isLoading);
+    FormActions.setErrors(args.formID, args.formState?.error as unknown as Errors);
     FormActions.setDraftValues(args.formID, args.draftValues);
 
     return (
@@ -170,16 +176,16 @@ function WithNativeEventHandler(args) {
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
-const Default = Template.bind({});
-const Loading = Template.bind({});
-const ServerError = Template.bind({});
-const InputError = Template.bind({});
+const Default: FormStory = Template.bind({});
+const Loading: FormStory = Template.bind({});
+const ServerError: FormStory = Template.bind({});
+const InputError: FormStory = Template.bind({});
 
 const defaultArgs = {
-    formID: 'TestForm',
+    formID: ONYXKEYS.FORMS.TEST_FORM,
     submitButtonText: 'Submit',
-    validate: (values) => {
-        const errors = {};
+    validate: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.TEST_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.TEST_FORM> = {};
         if (!ValidationUtils.isRequiredFulfilled(values.routingNumber)) {
             errors.routingNumber = 'Please enter a routing number';
         }
@@ -206,10 +212,10 @@ const defaultArgs = {
         }
         return errors;
     },
-    onSubmit: (values) => {
+    onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.TEST_FORM>) => {
         setTimeout(() => {
             alert(`Form submitted!\n\nInput values: ${JSON.stringify(values, null, 4)}`);
-            FormActions.setIsLoading('TestForm', false);
+            FormActions.setIsLoading(ONYXKEYS.FORMS.TEST_FORM, false);
         }, 1000);
     },
     formState: {
