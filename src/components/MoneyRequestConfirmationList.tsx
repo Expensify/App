@@ -217,7 +217,6 @@ function MoneyRequestConfirmationList({
     hasSmartScanFailed,
     reportActionID,
 }: MoneyRequestConfirmationListProps) {
-    console.log('hello');
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
