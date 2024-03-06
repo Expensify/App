@@ -567,6 +567,7 @@ function ReportScreen({
                                         reportActions={sortedReportActions}
                                         report={report}
                                         parentReportAction={parentReportAction}
+                                        oldestReportAction={oldestReportAction}
                                         isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
                                         isLoadingNewerReportActions={reportMetadata.isLoadingNewerReportActions}
                                         isLoadingOlderReportActions={reportMetadata.isLoadingOlderReportActions}
