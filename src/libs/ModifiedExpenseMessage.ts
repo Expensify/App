@@ -63,6 +63,14 @@ function buildMessageFragmentForValue(
 }
 
 /**
+ * Get the absolute value for a tax amount.
+ */
+function getTaxAmountAbsValue(taxAmount: number): number {
+    // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
+    return Math.abs(taxAmount ?? 0);
+}
+
+/**
  * Get the message line for a modified expense.
  */
 function getMessageLine(prefix: string, messageFragments: string[]): string {
@@ -227,13 +235,11 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
     if (hasModifiedTaxAmount) {
         const transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
         const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
-        const isFromExpenseReport = ReportUtils.isExpenseReport(iouReport);
         const currency = iouReport?.currency ?? '';
 
-        const taxAmount = CurrencyUtils.convertToDisplayString(TransactionUtils.getTaxAmount(reportActionOriginalMessage?.taxAmount ?? 0, isFromExpenseReport), currency);
-        const oldTaxAmountValue = TransactionUtils.getTaxAmount(reportActionOriginalMessage?.oldTaxAmount ?? 0, isFromExpenseReport);
+        const taxAmount = CurrencyUtils.convertToDisplayString(getTaxAmountAbsValue(reportActionOriginalMessage?.taxAmount ?? 0), currency);
+        const oldTaxAmountValue = getTaxAmountAbsValue(reportActionOriginalMessage?.oldTaxAmount ?? 0);
         const oldTaxAmount = oldTaxAmountValue > 0 ? CurrencyUtils.convertToDisplayString(oldTaxAmountValue, currency) : '';
-
         buildMessageFragmentForValue(taxAmount, oldTaxAmount, Localize.translateLocal('iou.taxAmount'), false, setFragments, removalFragments, changeFragments);
     }
 
