@@ -313,6 +313,7 @@ const CONST = {
         BETA_COMMENT_LINKING: 'commentLinking',
         VIOLATIONS: 'violations',
         REPORT_FIELDS: 'reportFields',
+        P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
     },
     BUTTON_STATES: {
@@ -1414,6 +1415,7 @@ const CONST = {
         MILEAGE_IRS_RATE: 0.655,
         DEFAULT_RATE: 'Default Rate',
         RATE_DECIMALS: 3,
+        FAKE_P2P_ID: '_FAKE_P2P_ID_',
     },
 
     TERMS: {
