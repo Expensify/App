@@ -271,6 +271,7 @@ function AddressSearch(
     };
 
     const renderHeaderComponent = () => (
+        // eslint-disable-next-line react/jsx-no-useless-fragment
         <>
             {(predefinedPlaces?.length ?? 0) > 0 && (
                 <>
@@ -349,7 +350,7 @@ function AddressSearch(
                             return (
                                 <View>
                                     {!!title && <Text style={[styles.googleSearchText]}>{title}</Text>}
-                                    <Text style={[styles.textLabelSupporting]}>{subtitle}</Text>
+                                    <Text style={[title ? styles.textLabelSupporting : styles.googleSearchText]}>{subtitle}</Text>
                                 </View>
                             );
                         }}

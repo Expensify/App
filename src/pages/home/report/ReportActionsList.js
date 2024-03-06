@@ -1,4 +1,4 @@
-import {useRoute} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -30,6 +30,9 @@ import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
+
+    /** The report's parentReportAction */
+    parentReportAction: PropTypes.shape(reportActionPropTypes),
 
     /** Sorted actions prepared for display */
     sortedReportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)).isRequired,
@@ -79,6 +82,7 @@ const defaultProps = {
     isLoadingNewerReportActions: false,
     ...withCurrentUserPersonalDetailsDefaultProps,
     policy: {},
+    parentReportAction: {},
 };
 
 const VERTICAL_OFFSET_THRESHOLD = 200;
@@ -123,6 +127,7 @@ function isMessageUnread(message, lastReadTime) {
 
 function ReportActionsList({
     report,
+    parentReportAction,
     isLoadingInitialReportActions,
     isLoadingOlderReportActions,
     isLoadingNewerReportActions,
@@ -144,6 +149,18 @@ function ReportActionsList({
     const route = useRoute();
     const opacity = useSharedValue(0);
     const userActiveSince = useRef(null);
+    const lastMessageTime = useRef(null);
+
+    const [isVisible, setIsVisible] = useState(false);
+    const isFocused = useIsFocused();
+
+    useEffect(() => {
+        const unsubscriber = Visibility.onVisibilityChange(() => {
+            setIsVisible(Visibility.isVisible());
+        });
+
+        return unsubscriber;
+    }, []);
 
     const markerInit = () => {
         if (!cacheUnreadMarkers.has(report.reportID)) {
@@ -388,7 +405,7 @@ function ReportActionsList({
         [currentUnreadMarker, sortedVisibleReportActions, report.reportID, messageManuallyMarkedUnread],
     );
 
-    useEffect(() => {
+    const calculateUnreadMarker = useCallback(() => {
         // Iterate through the report actions and set appropriate unread marker.
         // This is to avoid a warning of:
         // Cannot update a component (ReportActionsList) while rendering a different component (CellRenderer).
@@ -406,12 +423,62 @@ function ReportActionsList({
         if (!markerFound) {
             setCurrentUnreadMarker(null);
         }
-    }, [sortedVisibleReportActions, report.lastReadTime, report.reportID, messageManuallyMarkedUnread, shouldDisplayNewMarker, currentUnreadMarker]);
+    }, [sortedVisibleReportActions, report.reportID, shouldDisplayNewMarker, currentUnreadMarker]);
+
+    useEffect(() => {
+        calculateUnreadMarker();
+    }, [calculateUnreadMarker, report.lastReadTime, messageManuallyMarkedUnread]);
+
+    useEffect(() => {
+        if (!userActiveSince.current || report.reportID !== prevReportID) {
+            return;
+        }
+
+        if (!isVisible || !isFocused) {
+            if (!lastMessageTime.current) {
+                lastMessageTime.current = lodashGet(sortedVisibleReportActions, '[0].created', '');
+            }
+            return;
+        }
+
+        // In case the user read new messages (after being inactive) with other device we should
+        // show marker based on report.lastReadTime
+        const newMessageTimeReference = lastMessageTime.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
+        lastMessageTime.current = null;
+        if (
+            scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD ||
+            !(
+                sortedVisibleReportActions &&
+                _.some(
+                    sortedVisibleReportActions,
+                    (reportAction) =>
+                        newMessageTimeReference < reportAction.created &&
+                        (ReportActionsUtils.isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID(),
+                )
+            )
+        ) {
+            return;
+        }
+
+        Report.readNewestAction(report.reportID);
+        userActiveSince.current = DateUtils.getDBTime();
+        lastReadTimeRef.current = newMessageTimeReference;
+        setCurrentUnreadMarker(null);
+        cacheUnreadMarkers.delete(report.reportID);
+        calculateUnreadMarker();
+
+        // This effect logic to `mark as read` will only run when the report focused has new messages and the App visibility
+        //  is changed to visible(meaning user switched to app/web, while user was previously using different tab or application).
+        // We will mark the report as read in the above case which marks the LHN report item as read while showing the new message
+        // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isFocused, isVisible]);
 
     const renderItem = useCallback(
         ({item: reportAction, index}) => (
             <ReportActionsListItemRenderer
                 reportAction={reportAction}
+                parentReportAction={parentReportAction}
                 index={index}
                 report={report}
                 linkedReportActionID={linkedReportActionID}
@@ -421,7 +488,7 @@ function ReportActionsList({
                 shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
             />
         ),
-        [report, linkedReportActionID, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker],
+        [report, linkedReportActionID, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker, parentReportAction],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
