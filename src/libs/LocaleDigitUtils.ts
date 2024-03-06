@@ -1,6 +1,8 @@
 import _ from 'lodash';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
+import * as Localize from './Localize';
 import * as NumberFormatUtils from './NumberFormatUtils';
 
 type Locale = ValueOf<typeof CONST.LOCALES>;
@@ -66,4 +68,30 @@ function fromLocaleDigit(locale: Locale, localeDigit: string): string {
     return STANDARD_DIGITS[index];
 }
 
-export {toLocaleDigit, fromLocaleDigit};
+/**
+ * Formats a number into its localized ordinal representation i.e 1st, 2nd etc
+ */
+function toLocaleOrdinal(locale: Locale, number: number): string {
+    // Defaults to "other" suffix or "th" in English
+    let suffixKey = 'workflowsPage.frequencies.ordinals.other';
+
+    // Calculate last digit of the number to determine basic ordinality
+    const lastDigit = number % 10;
+
+    // Calculate last two digits to handle exceptions in the 11-13 range
+    const lastTwoDigits = number % 100;
+
+    if (lastDigit === 1 && lastTwoDigits !== 11) {
+        suffixKey = 'workflowsPage.frequencies.ordinals.one';
+    } else if (lastDigit === 2 && lastTwoDigits !== 12) {
+        suffixKey = 'workflowsPage.frequencies.ordinals.two';
+    } else if (lastDigit === 3 && lastTwoDigits !== 13) {
+        suffixKey = 'workflowsPage.frequencies.ordinals.few';
+    }
+
+    const suffix = Localize.translate(locale, suffixKey as TranslationPaths);
+
+    return `${number}${suffix}`;
+}
+
+export {toLocaleDigit, toLocaleOrdinal, fromLocaleDigit};

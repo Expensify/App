@@ -79,8 +79,8 @@ try {
 
 const runTests = async () => {
     Logger.info('Installing apps and reversing port');
-    await installApp('android', config.MAIN_APP_PACKAGE, mainAppPath);
-    await installApp('android', config.DELTA_APP_PACKAGE, deltaAppPath);
+    await installApp(config.MAIN_APP_PACKAGE, mainAppPath);
+    await installApp(config.DELTA_APP_PACKAGE, deltaAppPath);
     await reversePort();
 
     // Start the HTTP server
