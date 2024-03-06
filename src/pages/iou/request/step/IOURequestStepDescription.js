@@ -14,12 +14,14 @@ import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {policyPropTypes} from '@src/pages/workspace/withPolicy';
+import INPUT_IDS from '@src/types/form/MoneyRequestDescriptionForm';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -88,6 +90,24 @@ function IOURequestStepDescription({
         }, []),
     );
 
+    /**
+     * @param {Object} values
+     * @param {String} values.title
+     * @returns {Object} - An object containing the errors for each inputID
+     */
+    const validate = useCallback((values) => {
+        const errors = {};
+
+        if (values.moneyRequestComment.length > CONST.DESCRIPTION_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'moneyRequestComment', [
+                'common.error.characterLimitExceedCounter',
+                {length: values.moneyRequestComment.length, limit: CONST.DESCRIPTION_LIMIT},
+            ]);
+        }
+
+        return errors;
+    }, []);
+
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
@@ -132,14 +152,15 @@ function IOURequestStepDescription({
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
                 onSubmit={updateComment}
+                validate={validate}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
                 <View style={styles.mb4}>
                     <InputWrapperWithRef
                         InputComponent={TextInput}
-                        inputID="moneyRequestComment"
-                        name="moneyRequestComment"
+                        inputID={INPUT_IDS.MONEY_REQUEST_COMMENT}
+                        name={INPUT_IDS.MONEY_REQUEST_COMMENT}
                         defaultValue={currentDescription}
                         label={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}

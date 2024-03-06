@@ -22,7 +22,7 @@ type ActionPayloadParams = {
 type CentralPaneRouteParams = Record<string, string> & {policyID?: string; reportID?: string};
 
 function checkIfActionPayloadNameIsEqual(action: Writable<NavigationAction>, screenName: string) {
-    return action?.payload && 'name' in action?.payload && action?.payload?.name === screenName;
+    return action?.payload && 'name' in action.payload && action?.payload?.name === screenName;
 }
 
 function getActionForBottomTabNavigator(action: StackNavigationAction, state: NavigationState<RootStackParamList>, policyID?: string): Writable<NavigationAction> | undefined {
@@ -122,9 +122,9 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
                 params.policyID = policyID;
             }
 
-            // We need to redirect non admin users to overview screen, when switching workspace.
-            if (!isPolicyAdmin && isWorkspaceScreen && screen !== SCREENS.WORKSPACE.OVERVIEW) {
-                screen = SCREENS.WORKSPACE.OVERVIEW;
+            // We need to redirect non admin users to profile screen, when switching workspace.
+            if (!isPolicyAdmin && isWorkspaceScreen && screen !== SCREENS.WORKSPACE.PROFILE) {
+                screen = SCREENS.WORKSPACE.PROFILE;
             }
 
             // If the user is on the home page and changes the current workspace, then should be displayed a report from the selected workspace.

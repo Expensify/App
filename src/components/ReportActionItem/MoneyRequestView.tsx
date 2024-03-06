@@ -1,7 +1,8 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import ConfirmedRoute from '@components/ConfirmedRoute';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -20,17 +21,19 @@ import type {ViolationField} from '@hooks/useViolations';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+import Navigation from '@navigation/Navigation';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import * as IOU from '@userActions/IOU';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -53,7 +56,7 @@ type MoneyRequestViewOnyxPropsWithoutTransaction = {
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 
     /** Collection of tags attached to a policy */
-    policyTags: OnyxEntry<OnyxTypes.PolicyTags>;
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>;
 
     /** The expense report or iou report (only will have a value if this is a transaction thread) */
     parentReport: OnyxEntry<OnyxTypes.Report>;
@@ -79,7 +82,7 @@ function MoneyRequestView({
     policyCategories,
     shouldShowHorizontalRule,
     transaction,
-    policyTags,
+    policyTagList,
     policy,
     transactionViolations,
 }: MoneyRequestViewProps) {
@@ -107,9 +110,12 @@ function MoneyRequestView({
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : '';
+    const hasPendingWaypoints = transaction?.pendingFields?.waypoints;
+    const showMapAsImage = isDistanceRequest && hasPendingWaypoints;
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && CurrencyUtils.convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const cardProgramName = isCardTransaction && transactionCardID !== undefined ? CardUtils.getCardDescription(transactionCardID) : '';
+    const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
 
     // Flags for allowing or disallowing editing a money request
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
@@ -127,17 +133,15 @@ function MoneyRequestView({
     // if the policy of the report is either Collect or Control, then this report must be tied to workspace chat
     const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
 
-    // Fetches only the first tag, for now
-    const policyTag = PolicyUtils.getTag(policyTags);
-    const policyTagsList = policyTag?.tags ?? {};
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTagList), [policyTagList]);
 
     // Flags for showing categories and tags
     // transactionCategory can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldShowCategory = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(Object.values(policyCategories ?? {})));
+    const shouldShowCategory = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(policyCategories ?? {}));
     // transactionTag can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldShowTag = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledOptions(Object.values(policyTagsList)));
+    const shouldShowTag = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists));
     const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true));
 
     const {getViolationsForField} = useViolations(transactionViolations ?? []);
@@ -152,11 +156,10 @@ function MoneyRequestView({
                 Navigation.dismissModal();
                 return;
             }
-            // @ts-expect-error: the type used across the app for policyTags is not what is returned by Onyx, PolicyTagList represents that, but existing policy tag utils need a refactor to fix this
-            IOU.updateMoneyRequestBillable(transaction?.transactionID ?? '', report?.reportID, newBillable, policy, policyTags, policyCategories);
+            IOU.updateMoneyRequestBillable(transaction?.transactionID ?? '', report?.reportID, newBillable, policy, policyTagList, policyCategories);
             Navigation.dismissModal();
         },
-        [transaction, report, policy, policyTags, policyCategories],
+        [transaction, report, policy, policyTagList, policyCategories],
     );
 
     if (isCardTransaction) {
@@ -173,7 +176,7 @@ function MoneyRequestView({
         if (!isDistanceRequest) {
             amountDescription += ` • ${translate('iou.cash')}`;
         }
-        if (ReportUtils.isReportApproved(report)) {
+        if (isApproved) {
             amountDescription += ` • ${translate('iou.approved')}`;
         } else if (isCancelled) {
             amountDescription += ` • ${translate('iou.canceled')}`;
@@ -186,20 +189,58 @@ function MoneyRequestView({
 
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     let receiptURIs;
-    let hasErrors = false;
+    const hasErrors = canEdit && TransactionUtils.hasMissingSmartscanFields(transaction);
     if (hasReceipt) {
         receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction);
-        hasErrors = canEdit && TransactionUtils.hasMissingSmartscanFields(transaction);
     }
 
     const pendingAction = transaction?.pendingAction;
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => transaction?.pendingFields?.[fieldPath] ?? pendingAction;
 
+    const getErrorForField = useCallback(
+        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], shouldShowViolations = true) => {
+            // Checks applied when creating a new money request
+            // NOTE: receipt field can return multiple violations, so we need to handle it separately
+            const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
+                amount: {
+                    isError: transactionAmount === 0,
+                    translationPath: 'common.error.enterAmount',
+                },
+                merchant: {
+                    isError: !isSettled && !isCancelled && isPolicyExpenseChat && isEmptyMerchant,
+                    translationPath: 'common.error.enterMerchant',
+                },
+                date: {
+                    isError: transactionDate === '',
+                    translationPath: 'common.error.enterDate',
+                },
+            };
+
+            const {isError, translationPath} = fieldChecks[field] ?? {};
+
+            // Return form errors if there are any
+            if (hasErrors && isError && translationPath) {
+                return translate(translationPath);
+            }
+
+            // Return violations if there are any
+            // At the moment, we only return violations for tags for workspaces with single-level tags
+            if (canUseViolations && shouldShowViolations && hasViolations(field)) {
+                const violations = getViolationsForField(field);
+                return ViolationsUtils.getViolationTranslation(violations[0], translate);
+            }
+
+            return '';
+        },
+        [transactionAmount, isSettled, isCancelled, isPolicyExpenseChat, isEmptyMerchant, transactionDate, hasErrors, canUseViolations, hasViolations, translate, getViolationsForField],
+    );
+
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
             <AnimatedEmptyStateBackground />
             <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
-                {hasReceipt && (
+                {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
+                {(showMapAsImage || hasReceipt) && (
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
                         errors={transaction?.errors}
@@ -208,24 +249,27 @@ function MoneyRequestView({
                             if (!transaction?.transactionID) {
                                 return;
                             }
-
                             Transaction.clearError(transaction.transactionID);
                         }}
                     >
                         <View style={styles.moneyRequestViewImage}>
-                            <ReportActionItemImage
-                                thumbnail={receiptURIs?.thumbnail}
-                                image={receiptURIs?.image}
-                                isLocalFile={receiptURIs?.isLocalFile}
-                                filename={receiptURIs?.filename}
-                                transaction={transaction}
-                                enablePreviewModal
-                                canEditReceipt={canEditReceipt}
-                            />
+                            {showMapAsImage ? (
+                                <ConfirmedRoute transaction={transaction} />
+                            ) : (
+                                <ReportActionItemImage
+                                    thumbnail={receiptURIs?.thumbnail}
+                                    image={receiptURIs?.image}
+                                    isLocalFile={receiptURIs?.isLocalFile}
+                                    filename={receiptURIs?.filename}
+                                    transaction={transaction}
+                                    enablePreviewModal
+                                    canEditReceipt={canEditReceipt}
+                                />
+                            )}
                         </View>
                     </OfflineWithFeedback>
                 )}
-                {!hasReceipt && canEditReceipt && canUseViolations && (
+                {!hasReceipt && canEditReceipt && (
                     <ReceiptEmptyState
                         hasError={hasErrors}
                         onPress={() =>
@@ -248,14 +292,13 @@ function MoneyRequestView({
                         shouldShowTitleIcon={isSettled}
                         titleIcon={Expensicons.Checkmark}
                         description={amountDescription}
-                        titleStyle={styles.newKansasLarge}
+                        titleStyle={styles.textHeadlineH2}
                         interactive={canEditAmount}
                         shouldShowRightIcon={canEditAmount}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
-                        brickRoadIndicator={hasViolations('amount') || (hasErrors && transactionAmount === 0) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        error={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}
+                        brickRoadIndicator={getErrorForField('amount') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        error={getErrorForField('amount')}
                     />
-                    {canUseViolations && <ViolationMessages violations={getViolationsForField('amount')} />}
                 </OfflineWithFeedback>
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('comment')}>
                     <MenuItemWithTopDescription
@@ -267,20 +310,14 @@ function MoneyRequestView({
                         titleStyle={styles.flex1}
                         onPress={() =>
                             Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
-                                    CONST.IOU.ACTION.EDIT,
-                                    CONST.IOU.TYPE.REQUEST,
-                                    transaction?.transactionID ?? '',
-                                    report.reportID,
-                                    Navigation.getActiveRouteWithoutParams(),
-                                ),
+                                ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID),
                             )
                         }
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
-                        brickRoadIndicator={hasViolations('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        error={getErrorForField('comment')}
                         numberOfLinesTitle={0}
                     />
-                    {canUseViolations && <ViolationMessages violations={getViolationsForField('comment')} />}
                 </OfflineWithFeedback>
                 {isDistanceRequest ? (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
@@ -301,15 +338,14 @@ function MoneyRequestView({
                             interactive={canEditMerchant}
                             shouldShowRightIcon={canEditMerchant}
                             titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
-                            brickRoadIndicator={
-                                hasViolations('merchant') || (!isSettled && !isCancelled && hasErrors && isEmptyMerchant && isPolicyExpenseChat)
-                                    ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                    : undefined
+                            onPress={() =>
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID),
+                                )
                             }
-                            error={!isSettled && !isCancelled && hasErrors && isPolicyExpenseChat && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
+                            brickRoadIndicator={getErrorForField('merchant') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            error={getErrorForField('merchant')}
                         />
-                        {canUseViolations && <ViolationMessages violations={getViolationsForField('merchant')} />}
                     </OfflineWithFeedback>
                 )}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('created')}>
@@ -319,11 +355,12 @@ function MoneyRequestView({
                         interactive={canEditDate}
                         shouldShowRightIcon={canEditDate}
                         titleStyle={styles.flex1}
-                        onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
-                        brickRoadIndicator={hasViolations('date') || (hasErrors && transactionDate === '') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        error={hasErrors && transactionDate === '' ? translate('common.error.enterDate') : ''}
+                        onPress={() =>
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID))
+                        }
+                        brickRoadIndicator={getErrorForField('date') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        error={getErrorForField('date')}
                     />
-                    {canUseViolations && <ViolationMessages violations={getViolationsForField('date')} />}
                 </OfflineWithFeedback>
                 {shouldShowCategory && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('category')}>
@@ -333,28 +370,38 @@ function MoneyRequestView({
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.CATEGORY))}
-                            brickRoadIndicator={hasViolations('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        />
-                        {canUseViolations && <ViolationMessages violations={getViolationsForField('category')} />}
-                    </OfflineWithFeedback>
-                )}
-                {shouldShowTag && (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('tag')}>
-                        <MenuItemWithTopDescription
-                            description={policyTag?.name ?? translate('common.tag')}
-                            title={PolicyUtils.getCleanedTagName(transactionTag ?? '')}
-                            interactive={canEdit}
-                            shouldShowRightIcon={canEdit}
-                            titleStyle={styles.flex1}
                             onPress={() =>
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID))
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID),
+                                )
                             }
-                            brickRoadIndicator={hasViolations('tag') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            brickRoadIndicator={getErrorForField('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            error={getErrorForField('category')}
                         />
-                        {canUseViolations && <ViolationMessages violations={getViolationsForField('tag')} />}
                     </OfflineWithFeedback>
                 )}
+                {shouldShowTag &&
+                    policyTagLists.map(({name}, index) => (
+                        <OfflineWithFeedback
+                            key={name}
+                            pendingAction={getPendingFieldAction('tag')}
+                        >
+                            <MenuItemWithTopDescription
+                                description={name ?? translate('common.tag')}
+                                title={TransactionUtils.getTagForDisplay(transaction, index)}
+                                interactive={canEdit}
+                                shouldShowRightIcon={canEdit}
+                                titleStyle={styles.flex1}
+                                onPress={() =>
+                                    Navigation.navigate(
+                                        ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, index, transaction?.transactionID ?? '', report.reportID),
+                                    )
+                                }
+                                brickRoadIndicator={getErrorForField('tag', {}, policyTagLists.length === 1) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                error={getErrorForField('tag', {}, policyTagLists.length === 1)}
+                            />
+                        </OfflineWithFeedback>
+                    ))}
                 {isCardTransaction && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('cardID')}>
                         <MenuItemWithTopDescription
@@ -364,24 +411,25 @@ function MoneyRequestView({
                         />
                     </OfflineWithFeedback>
                 )}
-
                 {shouldShowBillable && (
-                    <>
-                        <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
+                    <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
+                        <View>
                             <Text color={!transactionBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
-                            <Switch
-                                accessibilityLabel={translate('common.billable')}
-                                isOn={!!transactionBillable}
-                                onToggle={saveBillable}
-                            />
+                            {!!getErrorForField('billable') && (
+                                <ViolationMessages
+                                    violations={getViolationsForField('billable')}
+                                    containerStyle={[styles.mt1]}
+                                    textStyle={[styles.ph0]}
+                                    isLast
+                                />
+                            )}
                         </View>
-                        {hasViolations('billable') && (
-                            <ViolationMessages
-                                violations={getViolationsForField('billable')}
-                                isLast
-                            />
-                        )}
-                    </>
+                        <Switch
+                            accessibilityLabel={translate('common.billable')}
+                            isOn={!!transactionBillable}
+                            onToggle={saveBillable}
+                        />
+                    </View>
                 )}
             </View>
             <SpacerView
@@ -401,7 +449,7 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
     policyCategories: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report.policyID}`,
     },
-    policyTags: {
+    policyTagList: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report.policyID}`,
     },
     parentReport: {

@@ -9,16 +9,14 @@ type ViolationName = (typeof CONST.VIOLATIONS)[keyof typeof CONST.VIOLATIONS];
 type TransactionViolation = {
     type: string;
     name: ViolationName;
-    userMessage: string;
     data?: {
         rejectedBy?: string;
         rejectReason?: string;
-        amount?: string;
+        formattedLimit?: string;
         surcharge?: number;
         invoiceMarkup?: number;
         maxAge?: number;
         tagName?: string;
-        formattedLimitAmount?: string;
         categoryLimit?: string;
         limit?: string;
         category?: string;

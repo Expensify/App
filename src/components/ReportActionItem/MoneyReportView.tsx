@@ -9,7 +9,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -42,7 +41,6 @@ function MoneyReportView({report, policy, policyReportFields, shouldShowHorizont
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {canUseReportFields} = usePermissions();
     const isSettled = ReportUtils.isSettled(report.reportID);
     const isTotalUpdated = ReportUtils.hasUpdatedTotal(report);
 
@@ -69,7 +67,7 @@ function MoneyReportView({report, policy, policyReportFields, shouldShowHorizont
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>
             <AnimatedEmptyStateBackground />
             <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth, true)]}>
-                {canUseReportFields &&
+                {ReportUtils.reportFieldsEnabled(report) &&
                     sortedPolicyReportFields.map((reportField) => {
                         const isTitleField = ReportUtils.isReportFieldOfTypeTitle(reportField);
                         const fieldValue = isTitleField ? report.reportName : reportField.value ?? reportField.defaultValue;

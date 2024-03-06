@@ -17,24 +17,26 @@ import type {
     PersonalDetailsList,
     Policy,
     PolicyCategories,
-    PolicyCategory,
     PolicyTag,
+    PolicyTagList,
     Report,
     ReportAction,
     ReportActions,
+    TaxRate,
+    TaxRates,
+    TaxRatesWithDefault,
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {PolicyTaxRate, PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
 import Timing from './actions/Timing';
 import * as CollectionUtils from './CollectionUtils';
 import * as ErrorUtils from './ErrorUtils';
+import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as LoginUtils from './LoginUtils';
@@ -59,6 +61,18 @@ type Tag = {
 
 type Option = Partial<ReportUtils.OptionData>;
 
+/**
+ * A narrowed version of `Option` is used when we have a guarantee that given values exist.
+ */
+type OptionTree = {
+    text: string;
+    keyForList: string;
+    searchText: string;
+    tooltipText: string;
+    isDisabled: boolean;
+    isSelected: boolean;
+} & Option;
+
 type PayeePersonalDetails = {
     text: string;
     alternateText: string;
@@ -69,16 +83,24 @@ type PayeePersonalDetails = {
     keyForList: string;
 };
 
-type CategorySection = {
+type CategorySectionBase = {
     title: string | undefined;
     shouldShow: boolean;
     indexOffset: number;
+};
+
+type CategorySection = CategorySectionBase & {
     data: Option[];
+};
+
+type CategoryTreeSection = CategorySectionBase & {
+    data: OptionTree[];
 };
 
 type Category = {
     name: string;
     enabled: boolean;
+    isSelected?: boolean;
 };
 
 type Hierarchy = Record<string, Category & {[key: string]: Hierarchy & Category}>;
@@ -92,6 +114,7 @@ type GetOptionsConfig = {
     includeMultipleParticipantReports?: boolean;
     includePersonalDetails?: boolean;
     includeRecentReports?: boolean;
+    includeSelfDM?: boolean;
     sortByReportTypeInSearch?: boolean;
     searchInputValue?: string;
     showChatPreviewLine?: boolean;
@@ -111,22 +134,22 @@ type GetOptionsConfig = {
     recentlyUsedTags?: string[];
     canInviteUser?: boolean;
     includeSelectedOptions?: boolean;
-    includePolicyTaxRates?: boolean;
-    policyTaxRates?: PolicyTaxRateWithDefault;
+    includeTaxRates?: boolean;
+    taxRates?: TaxRatesWithDefault;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
 };
 
 type MemberForList = {
     text: string;
-    alternateText: string | null;
-    keyForList: string | null;
+    alternateText: string;
+    keyForList: string;
     isSelected: boolean;
-    isDisabled: boolean | null;
+    isDisabled: boolean;
     accountID?: number | null;
-    login: string | null;
-    rightElement: React.ReactNode | null;
+    login: string;
     icons?: OnyxCommon.Icon[];
     pendingAction?: OnyxCommon.PendingAction;
+    reportID: string;
 };
 
 type SectionForSearchTerm = {
@@ -139,9 +162,9 @@ type GetOptions = {
     personalDetails: ReportUtils.OptionData[];
     userToInvite: ReportUtils.OptionData | null;
     currentUserOption: ReportUtils.OptionData | null | undefined;
-    categoryOptions: CategorySection[];
+    categoryOptions: CategoryTreeSection[];
     tagOptions: CategorySection[];
-    policyTaxRatesOptions: CategorySection[];
+    taxRatesOptions: CategorySection[];
 };
 
 type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean};
@@ -256,17 +279,6 @@ Onyx.connect({
             }, {});
     },
 });
-
-/**
- * Adds expensify SMS domain (@expensify.sms) if login is a phone number and if it's not included yet
- */
-function addSMSDomainIfPhoneNumber(login: string): string {
-    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(login);
-    if (parsedPhoneNumber.possible && !Str.isValidEmail(login)) {
-        return parsedPhoneNumber.number?.e164 + CONST.SMS.DOMAIN;
-    }
-    return login;
-}
 
 /**
  * @param defaultValues {login: accountID} In workspace invite page, when new user is added we pass available data to opt in
@@ -469,7 +481,7 @@ function getSearchText(
 /**
  * Get an object of error messages keyed by microtime by combining all error objects related to the report.
  */
-function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxCommon.Errors {
+function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>, transactions: OnyxCollection<Transaction> = allTransactions): OnyxCommon.Errors {
     const reportErrors = report?.errors ?? {};
     const reportErrorFields = report?.errorFields ?? {};
     const reportActionErrors: OnyxCommon.ErrorFields = Object.values(reportActions ?? {}).reduce(
@@ -481,7 +493,7 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
 
     if (parentReportAction?.actorAccountID === currentUserAccountID && ReportActionUtils.isTransactionThread(parentReportAction)) {
         const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage?.IOUTransactionID : null;
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (TransactionUtils.hasMissingSmartscanFields(transaction ?? null) && !ReportUtils.isSettled(transaction?.reportID)) {
             reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage');
         }
@@ -562,7 +574,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
     } else if (ReportActionUtils.isReimbursementDeQueuedAction(lastReportAction)) {
-        lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(report);
+        lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(lastReportAction, report);
     } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
         lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (ReportActionUtils.isPendingRemove(lastReportAction) && ReportActionUtils.isThreadParentMessage(lastReportAction, report?.reportID ?? '')) {
@@ -581,6 +593,8 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = lastReportAction?.message?.[0].text ?? '';
     } else if (ReportActionUtils.isCreatedTaskReportAction(lastReportAction)) {
         lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
+    } else if (ReportActionUtils.isApprovedOrSubmittedReportAction(lastReportAction)) {
+        lastMessageTextFromReport = ReportActionUtils.getReportActionMessageText(lastReportAction);
     }
 
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
@@ -664,6 +678,8 @@ function createOption(
         result.tooltipText = ReportUtils.getReportParticipantsTitle(report.visibleChatMemberAccountIDs ?? []);
         result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
         result.policyID = report.policyID;
+        result.isSelfDM = ReportUtils.isSelfDM(report);
+
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
         subtitle = ReportUtils.getChatRoomSubtitle(report);
 
@@ -776,7 +792,7 @@ function isCurrentUser(userDetails: PersonalDetails): boolean {
     }
 
     // If user login is a mobile number, append sms domain if not appended already.
-    const userDetailsLogin = addSMSDomainIfPhoneNumber(userDetails.login ?? '');
+    const userDetailsLogin = PhoneNumber.addSMSDomainIfPhoneNumber(userDetails.login ?? '');
 
     if (currentUserLogin?.toLowerCase() === userDetailsLogin.toLowerCase()) {
         return true;
@@ -793,11 +809,16 @@ function getEnabledCategoriesCount(options: PolicyCategories): number {
     return Object.values(options).filter((option) => option.enabled).length;
 }
 
+function getSearchValueForPhoneOrEmail(searchTerm: string) {
+    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchTerm)));
+    return parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchTerm.toLowerCase();
+}
+
 /**
  * Verifies that there is at least one enabled option
  */
-function hasEnabledOptions(options: PolicyCategory[] | PolicyTag[]): boolean {
-    return options.some((option) => option.enabled);
+function hasEnabledOptions(options: PolicyCategories | PolicyTag[]): boolean {
+    return Object.values(options).some((option) => option.enabled);
 }
 
 /**
@@ -871,9 +892,9 @@ function sortTags(tags: Record<string, Tag> | Tag[]) {
     let sortedTags;
 
     if (Array.isArray(tags)) {
-        sortedTags = tags.sort((a, b) => a.name.localeCompare(b.name));
+        sortedTags = tags.sort((a, b) => localeCompare(a.name, b.name));
     } else {
-        sortedTags = Object.values(tags).sort((a, b) => a.name.localeCompare(b.name));
+        sortedTags = Object.values(tags).sort((a, b) => localeCompare(a.name, b.name));
     }
 
     return sortedTags;
@@ -887,8 +908,8 @@ function sortTags(tags: Record<string, Tag> | Tag[]) {
  * @param options[].name - a name of an option
  * @param [isOneLine] - a flag to determine if text should be one line
  */
-function getCategoryOptionTree(options: Record<string, Category> | Category[], isOneLine = false): Option[] {
-    const optionCollection = new Map<string, Option>();
+function getCategoryOptionTree(options: Record<string, Category> | Category[], isOneLine = false): OptionTree[] {
+    const optionCollection = new Map<string, OptionTree>();
     Object.values(options).forEach((option) => {
         if (isOneLine) {
             if (optionCollection.has(option.name)) {
@@ -901,6 +922,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 searchText: option.name,
                 tooltipText: option.name,
                 isDisabled: !option.enabled,
+                isSelected: !!option.isSelected,
             });
 
             return;
@@ -921,6 +943,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 searchText,
                 tooltipText: optionName,
                 isDisabled: isChild ? !option.enabled : true,
+                isSelected: !!option.isSelected,
             });
         });
     });
@@ -937,11 +960,11 @@ function getCategoryListSections(
     selectedOptions: Category[],
     searchInputValue: string,
     maxRecentReportsToShow: number,
-): CategorySection[] {
+): CategoryTreeSection[] {
     const sortedCategories = sortCategories(categories);
     const enabledCategories = Object.values(sortedCategories).filter((category) => category.enabled);
 
-    const categorySections: CategorySection[] = [];
+    const categorySections: CategoryTreeSection[] = [];
     const numberOfCategories = enabledCategories.length;
 
     let indexOffset = 0;
@@ -973,7 +996,7 @@ function getCategoryListSections(
     }
 
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
-    const enabledAndSelectedCategories = sortedCategories.filter((category) => category.enabled || selectedOptionNames.includes(category.name));
+    const enabledAndSelectedCategories = [...selectedOptions, ...sortedCategories.filter((category) => category.enabled && !selectedOptionNames.includes(category.name))];
     const numberOfVisibleCategories = enabledAndSelectedCategories.length;
 
     if (numberOfVisibleCategories < CONST.CATEGORY_LIST_THRESHOLD) {
@@ -1059,7 +1082,8 @@ function getTagsOptions(tags: Category[]): Option[] {
 function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOptions: Category[], searchInputValue: string, maxRecentReportsToShow: number) {
     const tagSections = [];
     const sortedTags = sortTags(tags);
-    const enabledTags = sortedTags.filter((tag) => tag.enabled);
+    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
+    const enabledTags = [...selectedOptions, ...sortedTags.filter((tag) => tag.enabled && !selectedOptionNames.includes(tag.name))];
     const numberOfTags = enabledTags.length;
     let indexOffset = 0;
 
@@ -1107,7 +1131,6 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
         return tagSections;
     }
 
-    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
     const filteredRecentlyUsedTags = recentlyUsedTags
         .filter((recentlyUsedTag) => {
             const tagObject = tags.find((tag) => tag.name === recentlyUsedTag);
@@ -1116,14 +1139,12 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
         .map((tag) => ({name: tag, enabled: true}));
     const filteredTags = enabledTags.filter((tag) => !selectedOptionNames.includes(tag.name));
 
-    if (selectedOptions) {
-        const selectedTagOptions = selectedOptions.map((option) => {
-            const tagObject = tags.find((tag) => tag.name === option.name);
-            return {
-                name: option.name,
-                enabled: !!tagObject?.enabled,
-            };
-        });
+    if (selectedOptions.length) {
+        const selectedTagOptions = selectedOptions.map((option) => ({
+            name: option.name,
+            // Should be marked as enabled to be able to unselect even though the selected category is disabled
+            enabled: true,
+        }));
 
         tagSections.push({
             // "Selected" section
@@ -1161,31 +1182,32 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
     return tagSections;
 }
 
-type PolicyTaxRateWithDefault = {
-    name: string;
-    defaultExternalID: string;
-    defaultValue: string;
-    foreignTaxDefault: string;
-    taxes: PolicyTaxRates;
-};
+/**
+ * Verifies that there is at least one enabled tag
+ */
+function hasEnabledTags(policyTagList: Array<PolicyTagList[keyof PolicyTagList]>) {
+    const policyTagValueList = policyTagList.map(({tags}) => Object.values(tags)).flat();
+
+    return hasEnabledOptions(policyTagValueList);
+}
 
 /**
  * Transforms tax rates to a new object format - to add codes and new name with concatenated name and value.
  *
- * @param  policyTaxRates - The original tax rates object.
+ * @param  taxRates - The original tax rates object.
  * @returns The transformed tax rates object.g
  */
-function transformedTaxRates(policyTaxRates: PolicyTaxRateWithDefault | undefined): Record<string, PolicyTaxRate> {
-    const defaultTaxKey = policyTaxRates?.defaultExternalID;
-    const getModifiedName = (data: PolicyTaxRate, code: string) => `${data.name} (${data.value})${defaultTaxKey === code ? ` • ${Localize.translateLocal('common.default')}` : ''}`;
-    const taxes = Object.fromEntries(Object.entries(policyTaxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
+function transformedTaxRates(taxRates: TaxRatesWithDefault | undefined): Record<string, TaxRate> {
+    const defaultTaxKey = taxRates?.defaultExternalID;
+    const getModifiedName = (data: TaxRate, code: string) => `${data.name} (${data.value})${defaultTaxKey === code ? ` • ${Localize.translateLocal('common.default')}` : ''}`;
+    const taxes = Object.fromEntries(Object.entries(taxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
     return taxes;
 }
 
 /**
  * Sorts tax rates alphabetically by name.
  */
-function sortTaxRates(taxRates: PolicyTaxRates): PolicyTaxRate[] {
+function sortTaxRates(taxRates: TaxRates): TaxRate[] {
     const sortedtaxRates = lodashSortBy(taxRates, (taxRate) => taxRate.name);
     return sortedtaxRates;
 }
@@ -1193,7 +1215,7 @@ function sortTaxRates(taxRates: PolicyTaxRates): PolicyTaxRate[] {
 /**
  * Builds the options for taxRates
  */
-function getTaxRatesOptions(taxRates: Array<Partial<PolicyTaxRate>>): Option[] {
+function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): Option[] {
     return taxRates.map((taxRate) => ({
         text: taxRate.modifiedName,
         keyForList: taxRate.code,
@@ -1207,10 +1229,10 @@ function getTaxRatesOptions(taxRates: Array<Partial<PolicyTaxRate>>): Option[] {
 /**
  * Builds the section list for tax rates
  */
-function getTaxRatesSection(policyTaxRates: PolicyTaxRateWithDefault | undefined, selectedOptions: Category[], searchInputValue: string): CategorySection[] {
+function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedOptions: Category[], searchInputValue: string): CategorySection[] {
     const policyRatesSections = [];
 
-    const taxes = transformedTaxRates(policyTaxRates);
+    const taxes = transformedTaxRates(taxRates);
 
     const sortedTaxRates = sortTaxRates(taxes);
     const enabledTaxRates = sortedTaxRates.filter((taxRate) => !taxRate.isDisabled);
@@ -1349,8 +1371,9 @@ function getOptions(
         canInviteUser = true,
         includeSelectedOptions = false,
         transactionViolations = {},
-        includePolicyTaxRates,
-        policyTaxRates,
+        includeTaxRates,
+        taxRates,
+        includeSelfDM = false,
     }: GetOptionsConfig,
 ): GetOptions {
     if (includeCategories) {
@@ -1363,7 +1386,7 @@ function getOptions(
             currentUserOption: null,
             categoryOptions,
             tagOptions: [],
-            policyTaxRatesOptions: [],
+            taxRatesOptions: [],
         };
     }
 
@@ -1377,12 +1400,12 @@ function getOptions(
             currentUserOption: null,
             categoryOptions: [],
             tagOptions,
-            policyTaxRatesOptions: [],
+            taxRatesOptions: [],
         };
     }
 
-    if (includePolicyTaxRates) {
-        const policyTaxRatesOptions = getTaxRatesSection(policyTaxRates, selectedOptions as Category[], searchInputValue);
+    if (includeTaxRates) {
+        const taxRatesOptions = getTaxRatesSection(taxRates, selectedOptions as Category[], searchInputValue);
 
         return {
             recentReports: [],
@@ -1391,7 +1414,7 @@ function getOptions(
             currentUserOption: null,
             categoryOptions: [],
             tagOptions: [],
-            policyTaxRatesOptions,
+            taxRatesOptions,
         };
     }
 
@@ -1403,7 +1426,7 @@ function getOptions(
             currentUserOption: null,
             categoryOptions: [],
             tagOptions: [],
-            policyTaxRatesOptions: [],
+            taxRatesOptions: [],
         };
     }
 
@@ -1427,8 +1450,8 @@ function getOptions(
             policies,
             doesReportHaveViolations,
             isInGSDMode: false,
-
             excludeEmptyChats: false,
+            includeSelfDM,
         });
     });
 
@@ -1455,7 +1478,9 @@ function getOptions(
         const isTaskReport = ReportUtils.isTaskReport(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-        const accountIDs = report.visibleChatMemberAccountIDs ?? [];
+        const isSelfDM = ReportUtils.isSelfDM(report);
+        // Currently, currentUser is not included in visibleChatMemberAccountIDs, so for selfDM we need to add the currentUser as participants.
+        const accountIDs = isSelfDM ? [currentUserAccountID ?? 0] : report.visibleChatMemberAccountIDs ?? [];
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
             return;
@@ -1463,6 +1488,10 @@ function getOptions(
 
         // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to workspace chats only.
         if (!includeP2P && !isPolicyExpenseChat) {
+            return;
+        }
+
+        if (isSelfDM && !includeSelfDM) {
             return;
         }
 
@@ -1480,6 +1509,10 @@ function getOptions(
 
         // In case user needs to add credit bank account, don't allow them to request more money from the workspace.
         if (includeOwnedWorkspaceChats && ReportUtils.hasIOUWaitingOnCurrentUserBankAccount(report)) {
+            return;
+        }
+
+        if (!accountIDs || accountIDs.length === 0) {
             return;
         }
 
@@ -1611,7 +1644,7 @@ function getOptions(
     const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
     const noOptionsMatchExactly = !personalDetailsOptions
         .concat(recentReportOptions)
-        .find((option) => option.login === addSMSDomainIfPhoneNumber(searchValue ?? '').toLowerCase() || option.login === searchValue?.toLowerCase());
+        .find((option) => option.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue ?? '').toLowerCase() || option.login === searchValue?.toLowerCase());
 
     if (
         searchValue &&
@@ -1620,7 +1653,7 @@ function getOptions(
         selectedOptions.every((option) => 'login' in option && option.login !== searchValue) &&
         ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN)) ||
             (parsedPhoneNumber.possible && Str.isValidPhone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? '')))) &&
-        !optionsToExclude.find((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
+        !optionsToExclude.find((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
         (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas)) &&
         !excludeUnknownUsers
     ) {
@@ -1688,7 +1721,7 @@ function getOptions(
         currentUserOption,
         categoryOptions: [],
         tagOptions: [],
-        policyTaxRatesOptions: [],
+        taxRatesOptions: [],
     };
 }
 
@@ -1712,11 +1745,25 @@ function getSearchOptions(reports: Record<string, Report>, personalDetails: Onyx
         includeThreads: true,
         includeMoneyRequests: true,
         includeTasks: true,
+        includeSelfDM: true,
     });
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markEnd(CONST.TIMING.LOAD_SEARCH_OPTIONS);
 
     return options;
+}
+
+function getShareLogOptions(reports: OnyxCollection<Report>, personalDetails: OnyxEntry<PersonalDetailsList>, searchValue = '', betas: Beta[] = []): GetOptions {
+    return getOptions(reports, personalDetails, {
+        betas,
+        searchInputValue: searchValue.trim(),
+        includeRecentReports: true,
+        includeMultipleParticipantReports: true,
+        sortByReportTypeInSearch: true,
+        includePersonalDetails: true,
+        forcePolicyNamePreview: true,
+        includeOwnedWorkspaceChats: true,
+    });
 }
 
 /**
@@ -1756,7 +1803,7 @@ function getIOUConfirmationOptionsFromParticipants(participants: Participant[], 
  * Build the options for the New Group view
  */
 function getFilteredOptions(
-    reports: Record<string, Report>,
+    reports: OnyxCollection<Report>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     betas: Beta[] = [],
     searchValue = '',
@@ -1772,8 +1819,9 @@ function getFilteredOptions(
     recentlyUsedTags: string[] = [],
     canInviteUser = true,
     includeSelectedOptions = false,
-    includePolicyTaxRates = false,
-    policyTaxRates: PolicyTaxRateWithDefault = {} as PolicyTaxRateWithDefault,
+    includeTaxRates = false,
+    taxRates: TaxRatesWithDefault = {} as TaxRatesWithDefault,
+    includeSelfDM = false,
 ) {
     return getOptions(reports, personalDetails, {
         betas,
@@ -1793,8 +1841,9 @@ function getFilteredOptions(
         recentlyUsedTags,
         canInviteUser,
         includeSelectedOptions,
-        includePolicyTaxRates,
-        policyTaxRates,
+        includeTaxRates,
+        taxRates,
+        includeSelfDM,
     });
 }
 
@@ -1828,6 +1877,7 @@ function getShareDestinationOptions(
         excludeLogins,
         includeOwnedWorkspaceChats,
         excludeUnknownUsers,
+        includeSelfDM: true,
     });
 }
 
@@ -1837,11 +1887,7 @@ function getShareDestinationOptions(
  * @param member - personalDetails or userToInvite
  * @param config - keys to overwrite the default values
  */
-function formatMemberForList(member: ReportUtils.OptionData, config: ReportUtils.OptionData | EmptyObject = {}): MemberForList | undefined {
-    if (!member) {
-        return undefined;
-    }
-
+function formatMemberForList(member: ReportUtils.OptionData): MemberForList {
     const accountID = member.accountID;
 
     return {
@@ -1851,14 +1897,13 @@ function formatMemberForList(member: ReportUtils.OptionData, config: ReportUtils
         alternateText: member.alternateText || member.login || '',
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         keyForList: member.keyForList || String(accountID ?? 0) || '',
-        isSelected: false,
-        isDisabled: false,
+        isSelected: member.isSelected ?? false,
+        isDisabled: member.isDisabled ?? false,
         accountID,
         login: member.login ?? '',
-        rightElement: null,
         icons: member.icons,
         pendingAction: member.pendingAction,
-        ...config,
+        reportID: member.reportID ?? '',
     };
 }
 
@@ -1940,7 +1985,7 @@ function formatSectionsFromSearchTerm(
     searchTerm: string,
     selectedOptions: ReportUtils.OptionData[],
     filteredRecentReports: ReportUtils.OptionData[],
-    filteredPersonalDetails: PersonalDetails[],
+    filteredPersonalDetails: ReportUtils.OptionData[],
     maxOptionsSelected: boolean,
     indexOffset = 0,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
@@ -1993,7 +2038,6 @@ function formatSectionsFromSearchTerm(
 }
 
 export {
-    addSMSDomainIfPhoneNumber,
     getAvatarsForAccountIDs,
     isCurrentUser,
     isPersonalDetailsReady,
@@ -2003,6 +2047,7 @@ export {
     getMemberInviteOptions,
     getHeaderMessage,
     getHeaderMessageForNonUserList,
+    getSearchValueForPhoneOrEmail,
     getPersonalDetailsForAccountIDs,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
@@ -2018,7 +2063,11 @@ export {
     hasEnabledOptions,
     sortCategories,
     getCategoryOptionTree,
+    hasEnabledTags,
     formatMemberForList,
     formatSectionsFromSearchTerm,
     transformedTaxRates,
+    getShareLogOptions,
 };
+
+export type {MemberForList, CategorySection, GetOptions};

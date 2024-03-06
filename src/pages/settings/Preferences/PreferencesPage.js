@@ -1,18 +1,17 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
-import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Section from '@components/Section';
 import Switch from '@components/Switch';
-import TestToolMenu from '@components/TestToolMenu';
 import Text from '@components/Text';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
@@ -20,7 +19,6 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 
 const propTypes = {
     /** The chat priority mode */
@@ -43,67 +41,90 @@ const defaultProps = {
 };
 
 function PreferencesPage(props) {
-    const theme = useTheme();
     const styles = useThemeStyles();
-    const {isProduction} = useEnvironment();
     const {translate, preferredLocale} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
 
     return (
-        <IllustratedHeaderPageLayout
-            title={translate('common.preferences')}
-            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.PREFERENCES.ROOT].backgroundColor}
-            illustration={LottieAnimations.PreferencesDJ}
-            shouldShowBackButton={isSmallScreenWidth}
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            icon={Illustrations.Gears}
             testID={PreferencesPage.displayName}
         >
-            <View style={styles.mb6}>
-                <Text
-                    style={[styles.textLabelSupporting, styles.mb2, styles.ml5, styles.mr8]}
-                    numberOfLines={1}
-                >
-                    {translate('common.notifications')}
-                </Text>
-                <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.ml5, styles.mr8]}>
-                    <View style={styles.flex4}>
-                        <Text>{translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}</Text>
-                    </View>
-                    <View style={[styles.flex1, styles.alignItemsEnd]}>
-                        <Switch
-                            accessibilityLabel={translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
-                            isOn={lodashGet(props.user, 'isSubscribedToNewsletter', true)}
-                            onToggle={User.updateNewsletterSubscription}
-                        />
-                    </View>
+            <HeaderWithBackButton
+                title={translate('common.preferences')}
+                icon={Illustrations.Gears}
+                shouldShowBackButton={isSmallScreenWidth}
+                onBackButtonPress={() => Navigation.goBack()}
+            />
+            <ScrollView contentContainerStyle={styles.pt3}>
+                <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <Section
+                        title={translate('preferencesPage.appSection.title')}
+                        subtitle={translate('preferencesPage.appSection.subtitle')}
+                        isCentralPane
+                        subtitleMuted
+                        illustration={LottieAnimations.PreferencesDJ}
+                        titleStyles={styles.accountSettingsSectionTitle}
+                    >
+                        <View style={[styles.flex1, styles.mt5]}>
+                            <Text
+                                style={[styles.textLabelSupporting, styles.mb2]}
+                                numberOfLines={1}
+                            >
+                                {translate('common.notifications')}
+                            </Text>
+                            <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.sectionMenuItemTopDescription]}>
+                                <View style={styles.flex4}>
+                                    <Text>{translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}</Text>
+                                </View>
+                                <View style={[styles.flex1, styles.alignItemsEnd]}>
+                                    <Switch
+                                        accessibilityLabel={translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
+                                        isOn={lodashGet(props.user, 'isSubscribedToNewsletter', true)}
+                                        onToggle={User.updateNewsletterSubscription}
+                                    />
+                                </View>
+                            </View>
+                            <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween]}>
+                                <View style={styles.flex4}>
+                                    <Text>{translate('preferencesPage.muteAllSounds')}</Text>
+                                </View>
+                                <View style={[styles.flex1, styles.alignItemsEnd]}>
+                                    <Switch
+                                        accessibilityLabel={translate('preferencesPage.muteAllSounds')}
+                                        isOn={lodashGet(props.user, 'isMutedAllSounds', false)}
+                                        onToggle={User.setMuteAllSounds}
+                                    />
+                                </View>
+                            </View>
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={translate(`priorityModePage.priorityModes.${props.priorityMode}.label`)}
+                                description={translate('priorityModePage.priorityMode')}
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODE)}
+                                wrapperStyle={styles.sectionMenuItemTopDescription}
+                            />
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={translate(`languagePage.languages.${preferredLocale}.label`)}
+                                description={translate('languagePage.language')}
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
+                                wrapperStyle={styles.sectionMenuItemTopDescription}
+                            />
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={translate(`themePage.themes.${props.preferredTheme || CONST.THEME.DEFAULT}.label`)}
+                                description={translate('themePage.theme')}
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_THEME)}
+                                wrapperStyle={styles.sectionMenuItemTopDescription}
+                            />
+                        </View>
+                    </Section>
                 </View>
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon
-                    title={translate(`priorityModePage.priorityModes.${props.priorityMode}.label`)}
-                    description={translate('priorityModePage.priorityMode')}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODE)}
-                />
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon
-                    title={translate(`languagePage.languages.${preferredLocale}.label`)}
-                    description={translate('languagePage.language')}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
-                />
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon
-                    title={translate(`themePage.themes.${props.preferredTheme || CONST.THEME.DEFAULT}.label`)}
-                    description={translate('themePage.theme')}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_THEME)}
-                />
-                {/* Enable additional test features in non-production environments */}
-                {!isProduction && (
-                    <View style={[styles.ml5, styles.mr8, styles.mt6]}>
-                        <TestToolMenu />
-                    </View>
-                )}
-            </View>
-        </IllustratedHeaderPageLayout>
+            </ScrollView>
+        </ScreenWrapper>
     );
 }
 
