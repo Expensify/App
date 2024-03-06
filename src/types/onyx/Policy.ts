@@ -69,9 +69,6 @@ type TaxRatesWithDefault = {
     taxes: TaxRates;
 };
 
-// These types are for the Integration connections for a policy (eg. Quickbooks, Xero, etc).
-// This data is not yet used in the codebase which is why it is given a very generic type, but the data is being put into Onyx for future use.
-// Once the data is being used, these types should be defined appropriately.
 type ConnectionLastSync = {
     successfulDate?: string;
     errorDate?: string;
