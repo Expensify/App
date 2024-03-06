@@ -9,13 +9,13 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as UserUtils from '@libs/UserUtils';
 import Navigation from '@navigation/Navigation';
@@ -39,7 +39,6 @@ type WorkspaceMemberDetailsPageProps = WithPolicyAndFullscreenLoadingProps & Wor
 
 function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, route}: WorkspaceMemberDetailsPageProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
 
@@ -126,12 +125,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
                             shouldShowRightIcon
                             onPress={openRoleSelectionModal}
                         />
-                        <MenuItemWithTopDescription
+                        <MenuItem
                             title={translate('common.profile')}
-                            shouldShowRightIcon
                             icon={Expensicons.Info}
-                            iconFill={theme.icon}
                             onPress={redirectToProfile}
+                            shouldShowRightIcon
                         />
                     </View>
                 </View>
