@@ -43,8 +43,9 @@ function PhoneNumberBusiness({reimbursementAccount, onNext, isEditing}: PhoneNum
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
-        isEditing: true,
+        isEditing,
         onNext,
+        shouldSaveDraft: true,
     });
 
     return (

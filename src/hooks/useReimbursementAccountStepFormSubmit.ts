@@ -8,6 +8,7 @@ import type {SubStepProps} from './useSubStep/types';
 type UseReimbursementAccountStepFormSubmitParams = Pick<SubStepProps, 'isEditing' | 'onNext'> & {
     formId?: OnyxFormKey;
     fieldIds: Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>>;
+    shouldSaveDraft?: boolean;
 };
 
 /**
@@ -17,16 +18,18 @@ type UseReimbursementAccountStepFormSubmitParams = Pick<SubStepProps, 'isEditing
  * @param isEditing - if form is in editing mode
  * @param onNext - callback
  * @param fieldIds - field IDs for particular step
+ * @param shouldSaveDraft - if we should save draft values
  */
 export default function useReimbursementAccountStepFormSubmit({
     formId = ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM,
     isEditing,
     onNext,
     fieldIds,
+    shouldSaveDraft = false,
 }: UseReimbursementAccountStepFormSubmitParams) {
     return useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>) => {
-            if (isEditing) {
+            if (isEditing || shouldSaveDraft) {
                 const stepValues = fieldIds.reduce(
                     (acc, key) => ({
                         ...acc,
