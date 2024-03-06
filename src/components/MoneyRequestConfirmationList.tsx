@@ -61,9 +61,6 @@ type MoneyRequestConfirmationListOnyxProps = {
     /** The session of the logged in user */
     session: OnyxEntry<OnyxTypes.Session>;
 
-    /** The transaction that represents the money request */
-    splitTransactionDraft: OnyxEntry<OnyxTypes.Transaction>;
-
     /** Unit and rate used for if the money request is a distance request */
     mileageRate: OnyxEntry<DefaultMileageRate>;
 };
@@ -220,6 +217,7 @@ function MoneyRequestConfirmationList({
     hasSmartScanFailed,
     reportActionID,
 }: MoneyRequestConfirmationListProps) {
+    console.log('hello');
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
@@ -874,9 +872,6 @@ export default withOnyx<MoneyRequestConfirmationListProps, MoneyRequestConfirmat
     mileageRate: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
         selector: DistanceRequestUtils.getDefaultMileageRate,
-    },
-    splitTransactionDraft: {
-        key: ({transactionID}) => `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`,
     },
     policy: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,

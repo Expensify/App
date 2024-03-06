@@ -7,6 +7,7 @@ import lodashSet from 'lodash/set';
 import lodashSortBy from 'lodash/sortBy';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {SelectedTagOption} from '@components/TagPicker';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,6 +20,7 @@ import type {
     PolicyCategories,
     PolicyTag,
     PolicyTagList,
+    PolicyTags,
     Report,
     ReportAction,
     ReportActions,
@@ -52,12 +54,6 @@ import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
-
-type Tag = {
-    enabled: boolean;
-    name: string;
-    accountID: number | null;
-};
 
 type Option = Partial<ReportUtils.OptionData>;
 
@@ -130,7 +126,7 @@ type GetOptionsConfig = {
     categories?: PolicyCategories;
     recentlyUsedCategories?: string[];
     includeTags?: boolean;
-    tags?: Record<string, Tag>;
+    tags?: PolicyTags | Array<PolicyTag | SelectedTagOption>;
     recentlyUsedTags?: string[];
     canInviteUser?: boolean;
     includeSelectedOptions?: boolean;
@@ -888,7 +884,7 @@ function sortCategories(categories: Record<string, Category>): Category[] {
 /**
  * Sorts tags alphabetically by name.
  */
-function sortTags(tags: Record<string, Tag> | Tag[]) {
+function sortTags(tags: PolicyTags | Array<PolicyTag | SelectedTagOption>) {
     let sortedTags;
 
     if (Array.isArray(tags)) {
@@ -1079,7 +1075,13 @@ function getTagsOptions(tags: Category[]): Option[] {
 /**
  * Build the section list for tags
  */
-function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOptions: Category[], searchInputValue: string, maxRecentReportsToShow: number) {
+function getTagListSections(
+    tags: PolicyTags | Array<PolicyTag | SelectedTagOption>,
+    recentlyUsedTags: string[],
+    selectedOptions: Category[],
+    searchInputValue: string,
+    maxRecentReportsToShow: number,
+) {
     const tagSections = [];
     const sortedTags = sortTags(tags);
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
@@ -1133,7 +1135,7 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
 
     const filteredRecentlyUsedTags = recentlyUsedTags
         .filter((recentlyUsedTag) => {
-            const tagObject = tags.find((tag) => tag.name === recentlyUsedTag);
+            const tagObject = Object.values(tags).find((tag) => tag.name === recentlyUsedTag);
             return !!tagObject?.enabled && !selectedOptionNames.includes(recentlyUsedTag);
         })
         .map((tag) => ({name: tag, enabled: true}));
@@ -1769,8 +1771,7 @@ function getShareLogOptions(reports: OnyxCollection<Report>, personalDetails: On
 /**
  * Build the IOUConfirmation options for showing the payee personalDetail
  */
-function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: PersonalDetails, amountText?: string): PayeePersonalDetails {
-    console.log(personalDetail);
+function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: PersonalDetails | Record<string, never>, amountText?: string): PayeePersonalDetails {
     const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail.login ?? '');
     return {
         text: PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, formattedLogin),
@@ -1816,7 +1817,7 @@ function getFilteredOptions(
     categories: PolicyCategories = {},
     recentlyUsedCategories: string[] = [],
     includeTags = false,
-    tags: Record<string, Tag> = {},
+    tags: PolicyTags | Array<PolicyTag | SelectedTagOption> = {},
     recentlyUsedTags: string[] = [],
     canInviteUser = true,
     includeSelectedOptions = false,
