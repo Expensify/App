@@ -160,7 +160,7 @@ function ReportActionsList({
     const lastReadTimeRef = useRef(report.lastReadTime);
 
     const sortedVisibleReportActions = useMemo(
-        () => sortedReportActions.filter((reportAction) => !!isOffline || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors),
+        () => sortedReportActions.filter((reportAction) => isOffline || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors),
         [sortedReportActions, isOffline],
     );
     const lastActionIndex = sortedVisibleReportActions[0]?.reportActionID;
