@@ -12,6 +12,7 @@ import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
@@ -39,7 +40,15 @@ function WorkspaceMemberDetailsRoleSelectionPage({policyMembers, route}: Workspa
         },
     ];
 
-    const changeRole = () => {};
+    const changeRole = () => {
+        if (!member) {
+            return;
+        }
+
+        const newRole = member.role === CONST.POLICY.ROLE.ADMIN ? CONST.POLICY.ROLE.USER : CONST.POLICY.ROLE.ADMIN;
+        Policy.updateWorkspaceMembersRole(route.params.policyID, [accountID], newRole);
+        Navigation.goBack();
+    };
 
     return (
         <ScreenWrapper testID={WorkspaceMemberDetailsRoleSelectionPage.displayName}>
