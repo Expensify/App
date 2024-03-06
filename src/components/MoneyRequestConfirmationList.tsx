@@ -6,13 +6,12 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {DefaultMileageRate} from '@libs/DistanceRequestUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -45,7 +44,6 @@ import SettlementButton from './SettlementButton';
 import ShowMoreButton from './ShowMoreButton';
 import Switch from './Switch';
 import Text from './Text';
-import withCurrentUserPersonalDetails from './withCurrentUserPersonalDetails';
 
 type MoneyRequestConfirmationListOnyxProps = {
     /** Collection of categories attached to a policy */
@@ -169,41 +167,6 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     reportActionID?: string;
 };
 
-// const defaultProps = {
-//     onConfirm: () => {},
-//     onSendMoney: () => {},
-//     onSelectParticipant: () => {},
-//     iouType: CONST.IOU.TYPE.REQUEST,
-//     iouCategory: '',
-//     iouTag: '',
-//     iouIsBillable: false,
-//     onToggleBillable: () => {},
-//     payeePersonalDetails: null,
-//     canModifyParticipants: false,
-//     isReadOnly: false,
-//     bankAccountRoute: '',
-//     session: {
-//         email: null,
-//     },
-//     policyID: '',
-//     reportID: '',
-//     ...withCurrentUserPersonalDetailsDefaultProps,
-//     receiptPath: '',
-//     receiptFilename: '',
-//     listStyles: [],
-//     policy: {},
-//     policyCategories: {},
-//     policyTags: {},
-//     transactionID: '',
-//     transaction: {},
-//     mileageRate: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate: 0, currency: 'USD'},
-//     isDistanceRequest: false,
-//     isScanRequest: false,
-//     shouldShowSmartScanFields: true,
-//     isPolicyExpenseChat: false,
-//     iou: iouDefaultProps,
-// };
-
 function MoneyRequestConfirmationList({
     transaction,
     onSendMoney,
@@ -243,14 +206,13 @@ function MoneyRequestConfirmationList({
     session,
     isReadOnly = false,
     bankAccountRoute = '',
-    splitTransactionDraft,
     policyID = '',
     reportID = '',
     receiptPath = '',
     iouComment,
     receiptFilename = '',
     listStyles,
-    iouCreated = false,
+    iouCreated,
     iouIsBillable = false,
     onToggleBillable,
     iouTag = '',
@@ -313,7 +275,7 @@ function MoneyRequestConfirmationList({
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction?.taxAmount, iouCurrencyCode);
 
     const defaultTaxKey = taxRates?.defaultExternalID;
-    const defaultTaxName = (defaultTaxKey && `${taxRates.taxes[defaultTaxKey].name} (${taxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
+    const defaultTaxName = (defaultTaxKey && `${taxRates.taxes[defaultTaxKey].name} (${taxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) ?? '';
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing is not working when a left hand side value is ''
     const taxRateTitle = transaction?.taxRate?.text || defaultTaxName;
 
@@ -656,11 +618,12 @@ function MoneyRequestConfirmationList({
                     <ConfirmedRoute transaction={transaction ?? ({} as OnyxTypes.Transaction)} />
                 </View>
             )}
+
             {receiptImage || receiptThumbnail ? (
                 <Image
                     style={styles.moneyRequestImage}
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    source={{uri: receiptThumbnail || receiptImage}}
+                    source={{uri: String(receiptThumbnail || receiptImage)}}
                     // AuthToken is required when retrieving the image from the server
                     // but we don't need it to load the blob:// or file:// image when starting a money request / split bill
                     // So if we have a thumbnail, it means we're retrieving the image from the server
@@ -715,12 +678,11 @@ function MoneyRequestConfirmationList({
                 title={iouComment}
                 description={translate('common.description')}
                 onPress={() => {
-                    console.log(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams());
                     Navigation.navigate(
                         ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
                     );
                 }}
-                style={[styles.moneyRequestMenuItem]}
+                style={styles.moneyRequestMenuItem}
                 titleStyle={styles.flex1}
                 disabled={didConfirm}
                 interactive={!isReadOnly}
@@ -737,9 +699,10 @@ function MoneyRequestConfirmationList({
                     {shouldShowDate && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!isReadOnly}
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             title={iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
                             description={translate('common.date')}
-                            style={[styles.moneyRequestMenuItem]}
+                            style={styles.moneyRequestMenuItem}
                             titleStyle={styles.flex1}
                             onPress={() => {
                                 Navigation.navigate(
@@ -763,7 +726,7 @@ function MoneyRequestConfirmationList({
                             shouldShowRightIcon={!isReadOnly && isTypeRequest}
                             title={iouMerchant}
                             description={translate('common.distance')}
-                            style={[styles.moneyRequestMenuItem]}
+                            style={styles.moneyRequestMenuItem}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DISTANCE.getRoute(iouType, reportID))}
                             disabled={didConfirm || !isTypeRequest}
@@ -775,7 +738,7 @@ function MoneyRequestConfirmationList({
                             shouldShowRightIcon={!isReadOnly}
                             title={isMerchantEmpty ? '' : iouMerchant}
                             description={translate('common.merchant')}
-                            style={[styles.moneyRequestMenuItem]}
+                            style={styles.moneyRequestMenuItem}
                             titleStyle={styles.flex1}
                             onPress={() => {
                                 Navigation.navigate(
@@ -811,7 +774,7 @@ function MoneyRequestConfirmationList({
                                     ),
                                 );
                             }}
-                            style={[styles.moneyRequestMenuItem]}
+                            style={styles.moneyRequestMenuItem}
                             titleStyle={styles.flex1}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
@@ -838,7 +801,7 @@ function MoneyRequestConfirmationList({
                                         ),
                                     );
                                 }}
-                                style={[styles.moneyRequestMenuItem]}
+                                style={styles.moneyRequestMenuItem}
                                 disabled={didConfirm}
                                 interactive={!isReadOnly}
                                 rightLabel={canUseViolations && !!policy?.requiresTag ? translate('common.required') : ''}
@@ -850,7 +813,7 @@ function MoneyRequestConfirmationList({
                             shouldShowRightIcon={!isReadOnly}
                             title={taxRateTitle}
                             description={taxRates?.name}
-                            style={[styles.moneyRequestMenuItem]}
+                            style={styles.moneyRequestMenuItem}
                             titleStyle={styles.flex1}
                             onPress={() =>
                                 Navigation.navigate(
@@ -867,7 +830,7 @@ function MoneyRequestConfirmationList({
                             shouldShowRightIcon={!isReadOnly}
                             title={formattedTaxAmount}
                             description={taxRates?.name}
-                            style={[styles.moneyRequestMenuItem]}
+                            style={styles.moneyRequestMenuItem}
                             titleStyle={styles.flex1}
                             onPress={() =>
                                 Navigation.navigate(
