@@ -56,11 +56,14 @@ function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) 
         [policyCategories],
     );
 
-    const createCategory = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE_FORM>) => {
-        Policy.createPolicyCategory(route.params.policyID, values.categoryName.trim());
-        Keyboard.dismiss();
-        Navigation.goBack();
-    };
+    const createCategory = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE_FORM>) => {
+            Policy.createPolicyCategory(route.params.policyID, values.categoryName.trim());
+            Keyboard.dismiss();
+            Navigation.goBack();
+        },
+        [route.params.policyID],
+    );
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
