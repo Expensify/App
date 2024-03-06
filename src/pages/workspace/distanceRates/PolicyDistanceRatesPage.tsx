@@ -20,6 +20,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
+import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import {openPolicyDistanceRatesPage} from '@userActions/Policy';
 import ButtonWithDropdownMenu from '@src/components/ButtonWithDropdownMenu';
 import CONST from '@src/CONST';
@@ -215,43 +217,52 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     );
 
     return (
-        <ScreenWrapper testID={PolicyDistanceRatesPage.displayName}>
-            <HeaderWithBackButton
-                icon={Illustrations.CarIce}
-                title={translate('workspace.common.distanceRates')}
-                shouldShowBackButton={false}
-            >
-                {!isSmallScreenWidth && headerButtons}
-            </HeaderWithBackButton>
-            {isSmallScreenWidth && <View style={[styles.ph5]}>{headerButtons}</View>}
-            <Text style={[styles.pl5, styles.pb2, styles.pt4, styles.textSupporting]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
-            <SelectionList
-                canSelectMultiple
-                ListItem={RadioListItem}
-                onSelectAll={toggleAllRates}
-                onCheckboxPress={toggleRate}
-                sections={[{data: distanceRatesList, indexOffset: 0, isDisabled: false}]}
-                onSelectRow={() => editRate()}
-                showScrollIndicator
-                customListHeader={getCustomListHeader()}
-                containerStyle={styles.p5}
-            />
-            <Modal
-                type={CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
-                isVisible={isWarningModalVisible}
-                onClose={() => setIsWarningModalVisible(false)}
-            >
-                <View style={[styles.notSoFastPopoverWrapper]}>
-                    <Text style={[styles.notSoFastPopoverTitle]}>{translate('workspace.distanceRates.oopsNotSoFast')}</Text>
-                    <Text style={[styles.mt3]}>{translate('workspace.distanceRates.workspaceNeeds')}</Text>
-                    <Button
-                        text={translate('common.buttonConfirm')}
-                        onPress={() => setIsWarningModalVisible(false)}
-                        style={[styles.mt5]}
+        <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
+            <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
+                <ScreenWrapper
+                    includeSafeAreaPaddingBottom={false}
+                    style={[styles.defaultModalContainer]}
+                    testID={PolicyDistanceRatesPage.displayName}
+                    shouldShowOfflineIndicatorInWideScreen
+                >
+                    <HeaderWithBackButton
+                        icon={Illustrations.CarIce}
+                        title={translate('workspace.common.distanceRates')}
+                        shouldShowBackButton={false}
+                    >
+                        {!isSmallScreenWidth && headerButtons}
+                    </HeaderWithBackButton>
+                    {isSmallScreenWidth && <View style={[styles.ph5]}>{headerButtons}</View>}
+                    <Text style={[styles.pl5, styles.pb2, styles.pt4, styles.textSupporting]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
+                    <SelectionList
+                        canSelectMultiple
+                        ListItem={RadioListItem}
+                        onSelectAll={toggleAllRates}
+                        onCheckboxPress={toggleRate}
+                        sections={[{data: distanceRatesList, indexOffset: 0, isDisabled: false}]}
+                        onSelectRow={() => editRate()}
+                        showScrollIndicator
+                        customListHeader={getCustomListHeader()}
+                        containerStyle={styles.p5}
                     />
-                </View>
-            </Modal>
-        </ScreenWrapper>
+                    <Modal
+                        type={CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
+                        isVisible={isWarningModalVisible}
+                        onClose={() => setIsWarningModalVisible(false)}
+                    >
+                        <View style={[styles.notSoFastPopoverWrapper]}>
+                            <Text style={[styles.notSoFastPopoverTitle]}>{translate('workspace.distanceRates.oopsNotSoFast')}</Text>
+                            <Text style={[styles.mt3]}>{translate('workspace.distanceRates.workspaceNeeds')}</Text>
+                            <Button
+                                text={translate('common.buttonConfirm')}
+                                onPress={() => setIsWarningModalVisible(false)}
+                                style={[styles.mt5]}
+                            />
+                        </View>
+                    </Modal>
+                </ScreenWrapper>
+            </PaidPolicyAccessOrNotFoundWrapper>
+        </AdminPolicyAccessOrNotFoundWrapper>
     );
 }
 
