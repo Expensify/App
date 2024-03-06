@@ -1,5 +1,5 @@
 import Str from 'expensify-common/lib/str';
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {ReactElement} from 'react';
 import type {ImageSourcePropType, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -8,6 +8,7 @@ import AttachmentModal from '@components/AttachmentModal';
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Image from '@components/Image';
+import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import ThumbnailImage from '@components/ThumbnailImage';
@@ -63,11 +64,19 @@ function ReportActionItemImage({
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const imageSource = tryResolveUrlFromApiRoot(image ?? '');
+    const attachmentModalSource = tryResolveUrlFromApiRoot(image ?? '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
     const isEReceipt = transaction && TransactionUtils.hasEReceipt(transaction);
 
     let receiptImageComponent: ReactElement;
+
+    const imageSource = useMemo(() => {
+        if (thumbnail) {
+            return typeof thumbnail === 'string' ? {uri: thumbnail} : thumbnail;
+        }
+
+        return typeof image === 'string' ? {uri: image} : image;
+    }, [image, thumbnail]);
 
     if (isEReceipt) {
         receiptImageComponent = (
@@ -78,7 +87,7 @@ function ReportActionItemImage({
                 />
             </View>
         );
-    } else if (thumbnail && !isLocalFile && !Str.isPDF(imageSource as string)) {
+    } else if (thumbnail && !isLocalFile) {
         receiptImageComponent = (
             <ThumbnailImage
                 previewSourceURL={thumbnailSource}
@@ -89,10 +98,17 @@ function ReportActionItemImage({
                 shouldDynamicallyResize={false}
             />
         );
+    } else if (isLocalFile && filename && Str.isPDF(filename) && typeof attachmentModalSource === 'string') {
+        receiptImageComponent = (
+            <PDFThumbnail
+                previewSourceURL={attachmentModalSource}
+                style={[styles.w100, styles.h100]}
+            />
+        );
     } else {
         receiptImageComponent = (
             <Image
-                source={{uri: thumbnail ?? image}}
+                source={imageSource}
                 style={[styles.w100, styles.h100]}
             />
         );
@@ -103,7 +119,7 @@ function ReportActionItemImage({
             <ShowContextMenuContext.Consumer>
                 {({report}) => (
                     <AttachmentModal
-                        source={imageSource}
+                        source={attachmentModalSource}
                         isAuthTokenRequired={!isLocalFile}
                         report={report}
                         isReceiptAttachment

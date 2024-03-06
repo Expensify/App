@@ -649,9 +649,21 @@ const styles = (theme: ThemeColors) =>
         },
 
         buttonDivider: {
-            height: variables.dropDownButtonDividerHeight,
-            borderWidth: 0.7,
-            borderColor: theme.textLight,
+            borderRightWidth: 1,
+            borderRightColor: theme.buttonHoveredBG,
+            ...sizing.h100,
+        },
+
+        buttonSuccessDivider: {
+            borderRightWidth: 1,
+            borderRightColor: theme.successHover,
+            ...sizing.h100,
+        },
+
+        buttonDangerDivider: {
+            borderRightWidth: 1,
+            borderRightColor: theme.dangerHover,
+            ...sizing.h100,
         },
 
         noBorderRadius: {
