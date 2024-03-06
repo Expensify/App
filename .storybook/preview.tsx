@@ -1,4 +1,5 @@
 import {PortalProvider} from '@gorhom/portal';
+import type {Parameters} from '@storybook/addons';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
@@ -11,14 +12,6 @@ import {KeyboardStateProvider} from '@src/components/withKeyboardState';
 import {WindowDimensionsProvider} from '@src/components/withWindowDimensions';
 import ONYXKEYS from '@src/ONYXKEYS';
 import './fonts.css';
-
-type Parameter = {
-    controls: {
-        matchers: {
-            color: RegExp;
-        };
-    };
-};
 
 Onyx.init({
     keys: ONYXKEYS,
@@ -37,7 +30,7 @@ const decorators = [
     ),
 ];
 
-const parameters: Parameter = {
+const parameters: Parameters = {
     controls: {
         matchers: {
             color: /(background|color)$/i,

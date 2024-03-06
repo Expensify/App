@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-
 /* eslint-disable no-underscore-dangle */
 
 /* eslint-disable no-param-reassign */
+
+/* eslint-disable @typescript-eslint/naming-convention */
 import dotenv from 'dotenv';
 import path from 'path';
 import {DefinePlugin} from 'webpack';
@@ -35,7 +35,7 @@ const custom: CustomWebpackConfig = require('../config/webpack/webpack.common')(
     envFile,
 });
 
-module.exports = ({config}: {config: Configuration}) => {
+const webpackConfig = ({config}: {config: Configuration}) => {
     if (config.resolve && config.plugins && config.module) {
         config.resolve.alias = {
             'react-native-config': 'react-web-config',
@@ -77,3 +77,5 @@ module.exports = ({config}: {config: Configuration}) => {
 
     return config;
 };
+
+export default webpackConfig;

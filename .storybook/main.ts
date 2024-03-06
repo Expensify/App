@@ -1,17 +1,8 @@
-type Dir = {
-    from: string;
-    to: string;
-};
+import type {StorybookConfig} from '@storybook/core-common';
 
 type Main = {
-    stories: string[];
-    addons: string[];
-    staticDirs: Array<string | Dir>;
-    core: {
-        builder: string;
-    };
     managerHead: (head: string) => string;
-};
+} & StorybookConfig;
 
 const main: Main = {
     stories: ['../src/**/*.stories.mdx', '../src/**/*.stories.@(js|jsx|ts|tsx)'],
