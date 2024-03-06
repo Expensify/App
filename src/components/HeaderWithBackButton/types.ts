@@ -1,4 +1,5 @@
 import type {ReactNode} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {Action} from '@hooks/useSingleExecution';
 import type {StepCounterParams} from '@src/languages/types';
@@ -125,6 +126,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Policy avatar to display in the header */
     policyAvatar?: Icon;
+
+    /** Additional styles to add to the component */
+    style?: StyleProp<ViewStyle>;
 };
 
 export type {ThreeDotsMenuItem};

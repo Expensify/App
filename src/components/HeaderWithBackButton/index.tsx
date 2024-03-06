@@ -60,6 +60,7 @@ function HeaderWithBackButton({
     shouldOverlay = false,
     singleExecution = (func) => func,
     shouldNavigateToTopMostReport = false,
+    style,
 }: HeaderWithBackButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -83,6 +84,7 @@ function HeaderWithBackButton({
                 shouldShowBorderBottom && styles.borderBottom,
                 shouldShowBackButton && styles.pl2,
                 shouldOverlay && StyleSheet.absoluteFillObject,
+                style,
             ]}
         >
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>

@@ -227,16 +227,17 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
                     title={policyName}
                     onBackButtonPress={Navigation.dismissModal}
                     policyAvatar={policyAvatar}
+                    style={styles.headerBarDesktopHeight}
                 />
 
-                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, styles.mt2]}>
+                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween]}>
                     <OfflineWithFeedback
                         pendingAction={policy?.pendingAction}
                         onClose={() => dismissError(policyID)}
                         errors={policy?.errors}
                         errorRowStyles={[styles.ph5, styles.pv2]}
                     >
-                        <View style={[styles.pb4, styles.mh3]}>
+                        <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                             {/*
                                 Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
                                 In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.

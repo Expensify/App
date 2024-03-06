@@ -164,6 +164,7 @@ function WorkspacePageWithSections({
                     shouldShowBackButton={isSmallScreenWidth || shouldShowBackButton}
                     onBackButtonPress={() => Navigation.goBack(backButtonRoute ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}
                     icon={icon ?? undefined}
+                    style={styles.headerBarDesktopHeight}
                 />
                 {(isLoading || firstRender.current) && shouldShowLoading && isFocused ? (
                     <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
