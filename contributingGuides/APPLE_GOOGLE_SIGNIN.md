@@ -167,7 +167,7 @@ After you've set ngrok up to be able to run on your machine (requires configurin
 ngrok http 8082 --host-header="dev.new.expensify.com:8082" --subdomain=mysubdomain
 ```
 
-The `--host-header` flag is there to avoid webpack errors with header validation. In addition, add `allowedHosts: 'all'` to the dev server config in `webpack.dev.js`:
+The `--host-header` flag is there to avoid webpack errors with header validation. In addition, add `allowedHosts: 'all'` to the dev server config in `webpack.dev.ts`:
 
 ```js
 devServer: {
@@ -265,13 +265,13 @@ Google allows the web app to be hosted at localhost, but according to the
 current Google console configuration for the Expensify client ID, it must be
 hosted on port 8082.
 
-Also note that you'll need to update the webpack.dev.js config to change `host` from `dev.new.expensify.com` to `localhost` and server type from `https` to `http`. The reason for this is that Google Sign In allows localhost, but `dev.new.expensify.com` is not a registered Google Sign In domain.
+Also note that you'll need to update the webpack.dev.ts config to change `host` from `dev.new.expensify.com` to `localhost` and server type from `https` to `http`. The reason for this is that Google Sign In allows localhost, but `dev.new.expensify.com` is not a registered Google Sign In domain.
 
 ```diff
-diff --git a/config/webpack/webpack.dev.js b/config/webpack/webpack.dev.js
+diff --git a/config/webpack/webpack.dev.ts b/config/webpack/webpack.dev.ts
 index e28383eff5..b14f6f34aa 100644
---- a/config/webpack/webpack.dev.js
-+++ b/config/webpack/webpack.dev.js
+--- a/config/webpack/webpack.dev.ts
++++ b/config/webpack/webpack.dev.ts
 @@ -44,9 +44,9 @@ module.exports = (env = {}) =>
                  ...proxySettings,
                  historyApiFallback: true,
