@@ -31,6 +31,7 @@ import type {
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {
@@ -2438,7 +2439,12 @@ function getReportPreviewMessage(
  *
  * At the moment, we only allow changing one transaction field at a time.
  */
-function getModifiedExpenseOriginalMessage(oldTransaction: OnyxEntry<Transaction>, transactionChanges: TransactionChanges, isFromExpenseReport: boolean): ExpenseOriginalMessage {
+function getModifiedExpenseOriginalMessage(
+    oldTransaction: OnyxEntry<Transaction>,
+    transactionChanges: TransactionChanges,
+    isFromExpenseReport: boolean,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+): ExpenseOriginalMessage {
     const originalMessage: ExpenseOriginalMessage = {};
     // Remark: Comment field is the only one which has new/old prefixes for the keys (newComment/ oldComment),
     // all others have old/- pattern such as oldCreated/created
@@ -2480,8 +2486,9 @@ function getModifiedExpenseOriginalMessage(oldTransaction: OnyxEntry<Transaction
     }
 
     if ('taxCode' in transactionChanges) {
-        originalMessage.oldTaxRate = TransactionUtils.getTaxCode(oldTransaction);
-        originalMessage.taxRate = transactionChanges?.taxCode;
+        const taxRates = policy?.taxRates?.taxes;
+        originalMessage.oldTaxRate = taxRates && taxRates[TransactionUtils.getTaxCode(oldTransaction)].value;
+        originalMessage.taxRate = taxRates && transactionChanges?.taxCode && taxRates[transactionChanges.taxCode].value;
     }
 
     if ('billable' in transactionChanges) {
@@ -3325,8 +3332,9 @@ function buildOptimisticModifiedExpenseReportAction(
     oldTransaction: OnyxEntry<Transaction>,
     transactionChanges: TransactionChanges,
     isFromExpenseReport: boolean,
+    policy: OnyxEntry<OnyxTypes.Policy>,
 ): OptimisticModifiedExpenseReportAction {
-    const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport);
+    const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy);
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
         actorAccountID: currentUserAccountID,
