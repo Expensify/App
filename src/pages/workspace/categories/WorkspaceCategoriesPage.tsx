@@ -186,7 +186,7 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
             }
 
             return (
-                <ButtonWithDropdownMenu<DeepValueOf<typeof CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES>>
+                <ButtonWithDropdownMenu
                     buttonRef={dropdownButtonRef}
                     onPress={() => null}
                     shouldAlwaysShowDropdownMenu
