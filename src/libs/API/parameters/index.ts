@@ -51,6 +51,7 @@ export type {default as SendPerformanceTimingParams} from './SendPerformanceTimi
 export type {default as SetContactMethodAsDefaultParams} from './SetContactMethodAsDefaultParams';
 export type {default as SignInUserWithLinkParams} from './SignInUserWithLinkParams';
 export type {default as SignInWithShortLivedAuthTokenParams} from './SignInWithShortLivedAuthTokenParams';
+export type {default as SignInWithSupportAuthTokenParams} from './SignInWithSupportAuthTokenParams';
 export type {default as UnlinkLoginParams} from './UnlinkLoginParams';
 export type {default as UpdateAutomaticTimezoneParams} from './UpdateAutomaticTimezoneParams';
 export type {default as UpdateChatPriorityModeParams} from './UpdateChatPriorityModeParams';
@@ -113,6 +114,7 @@ export type {default as OpenWorkspaceViewParams} from './OpenWorkspaceViewParams
 export type {default as OpenWorkspaceReimburseViewParams} from './OpenWorkspaceReimburseViewParams';
 export type {default as OpenWorkspaceInvitePageParams} from './OpenWorkspaceInvitePageParams';
 export type {default as OpenWorkspaceMembersPageParams} from './OpenWorkspaceMembersPageParams';
+export type {default as OpenPolicyCategoriesPageParams} from './OpenPolicyCategoriesPageParams';
 export type {default as OpenDraftWorkspaceRequestParams} from './OpenDraftWorkspaceRequestParams';
 export type {default as UpdateWorkspaceCustomUnitAndRateParams} from './UpdateWorkspaceCustomUnitAndRateParams';
 export type {default as CreateWorkspaceFromIOUPaymentParams} from './CreateWorkspaceFromIOUPaymentParams';
