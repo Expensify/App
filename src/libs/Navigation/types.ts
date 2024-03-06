@@ -91,6 +91,9 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE_SELECTION]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.CATEGORIES]: {
         policyID: string;
     };
@@ -210,6 +213,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
         accountID: string;
         backTo: Routes;
+    };
+    [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE_SELECTION]: {
+        accountID: string;
     };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;

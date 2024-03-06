@@ -64,7 +64,9 @@ function WorkspaceMemberDetailsPage({personalDetails, route}: WorkspaceMemberDet
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID));
     }, [accountID]);
 
-    const openRoleSelectionModal = () => {};
+    const openRoleSelectionModal = useCallback(() => {
+        Navigation.navigate(ROUTES.WORKSPACE_MEMBER_ROLE_SELECTION.getRoute(route.params.policyID, accountID));
+    }, [accountID, route.params.policyID]);
 
     return (
         <ScreenWrapper testID={WorkspaceMemberDetailsPage.displayName}>
