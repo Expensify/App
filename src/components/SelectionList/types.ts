@@ -4,6 +4,7 @@ import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type RadioListItem from './RadioListItem';
+import type TableListItem from './TableListItem';
 import type UserListItem from './UserListItem';
 
 type CommonListItemProps<TItem> = {
@@ -22,17 +23,26 @@ type CommonListItemProps<TItem> = {
     /** Callback to fire when the item is pressed */
     onSelectRow: (item: TItem) => void;
 
+    /** Callback to fire when a checkbox is pressed */
+    onCheckboxPress?: (item: TItem) => void;
+
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
 
     /** Component to display on the right side */
     rightHandSideComponent?: ((item: TItem) => ReactElement<TItem>) | ReactElement | null;
 
+    /** Styles for the pressable component */
+    pressableStyle?: StyleProp<ViewStyle>;
+
     /** Styles for the wrapper view */
     wrapperStyle?: StyleProp<ViewStyle>;
 
     /** Styles for the checkbox wrapper view if select multiple option is on */
     selectMultipleStyle?: StyleProp<ViewStyle>;
+
+    /** Whether to wrap long text up to 2 lines */
+    isMultilineSupported?: boolean;
 };
 
 type ListItem = {
@@ -40,7 +50,7 @@ type ListItem = {
     text: string;
 
     /** Alternate text to display */
-    alternateText?: string;
+    alternateText?: string | null;
 
     /** Key used internally by React */
     keyForList: string;
@@ -51,11 +61,14 @@ type ListItem = {
     /** Whether this option is disabled for selection */
     isDisabled?: boolean;
 
+    /** List title is bold by default. Use this props to customize it */
+    isBold?: boolean;
+
     /** User accountID */
     accountID?: number | null;
 
     /** User login */
-    login?: string;
+    login?: string | null;
 
     /** Element to show on the right side of the item */
     rightElement?: ReactNode;
@@ -78,7 +91,10 @@ type ListItem = {
     index?: number;
 
     /** Whether this option should show subscript */
-    shouldShowSubscript?: boolean;
+    shouldShowSubscript?: boolean | null;
+
+    /** Whether to wrap long text up to 2 lines */
+    isMultilineSupported?: boolean;
 };
 
 type ListItemProps = CommonListItemProps<ListItem> & {
@@ -121,6 +137,8 @@ type UserListItemProps = ListItemProps & {
 
 type RadioListItemProps = ListItemProps;
 
+type TableListItemProps = ListItemProps;
+
 type Section<TItem extends ListItem> = {
     /** Title of the section */
     title?: string;
@@ -143,7 +161,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     sections: Array<SectionListData<TItem, Section<TItem>>>;
 
     /** Default renderer for every item in the list */
-    ListItem: typeof RadioListItem | typeof UserListItem;
+    ListItem: typeof RadioListItem | typeof UserListItem | typeof TableListItem;
 
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;
@@ -151,11 +169,14 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Callback to fire when a row is pressed */
     onSelectRow: (item: TItem) => void;
 
+    /** Optional callback function triggered upon pressing a checkbox. If undefined and the list displays checkboxes, checkbox interactions are managed by onSelectRow, allowing for pressing anywhere on the list. */
+    onCheckboxPress?: (item: TItem) => void;
+
     /** Callback to fire when "Select All" checkbox is pressed. Only use along with `canSelectMultiple` */
     onSelectAll?: () => void;
 
     /** Callback to fire when an error is dismissed */
-    onDismissError?: () => void;
+    onDismissError?: (item: TItem) => void;
 
     /** Label for the text input */
     textInputLabel?: string;
@@ -246,6 +267,15 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Fired when the list is displayed with the items */
     onLayout?: (event: LayoutChangeEvent) => void;
+
+    /** Custom header to show right above list */
+    customListHeader?: ReactNode;
+
+    /** Styles for the list header wrapper */
+    listHeaderWrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Whether to wrap long text up to 2 lines */
+    isRowMultilineSupported?: boolean;
 };
 
 type ItemLayout = {
@@ -272,6 +302,7 @@ export type {
     BaseListItemProps,
     UserListItemProps,
     RadioListItemProps,
+    TableListItemProps,
     ListItem,
     ListItemProps,
     FlattenedSectionsReturn,

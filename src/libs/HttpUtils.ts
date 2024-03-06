@@ -7,7 +7,7 @@ import type {RequestType} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import * as NetworkActions from './actions/Network';
 import * as UpdateRequired from './actions/UpdateRequired';
-import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS} from './API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
 import * as ApiUtils from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
 
@@ -28,10 +28,13 @@ Onyx.connect({
 // We use the AbortController API to terminate pending request in `cancelPendingRequests`
 let cancellationController = new AbortController();
 
+// Some existing old commands (6+ years) exempted from the auth writes count check
+const exemptedCommandsWithAuthWrites: string[] = ['SetWorkspaceAutoReportingFrequency'];
+
 /**
  * The API commands that require the skew calculation
  */
-const addSkewList: string[] = [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, READ_COMMANDS.OPEN_APP];
+const addSkewList: string[] = [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_APP];
 
 /**
  * Regex to get API command from the command
@@ -120,7 +123,8 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
                     title: CONST.ERROR_TITLE.SOCKET,
                 });
             }
-            if (response.jsonCode === CONST.JSON_CODE.MANY_WRITES_ERROR) {
+
+            if (response.jsonCode === CONST.JSON_CODE.MANY_WRITES_ERROR && !exemptedCommandsWithAuthWrites.includes(response.data?.phpCommandName ?? '')) {
                 if (response.data) {
                     const {phpCommandName, authWriteCommands} = response.data;
                     // eslint-disable-next-line max-len

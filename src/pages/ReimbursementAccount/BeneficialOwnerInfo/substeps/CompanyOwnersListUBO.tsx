@@ -8,6 +8,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import BankAccount from '@libs/models/BankAccount';
@@ -68,6 +69,7 @@ function CompanyOwnersListUBO({
 }: CompanyOwnersListUBOProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
 
     const isLoading = reimbursementAccount?.isLoading ?? false;
     const requestorData = getSubstepValues(REQUESTOR_PERSONAL_INFO_KEYS, null, reimbursementAccount);
@@ -136,6 +138,7 @@ function CompanyOwnersListUBO({
             <Button
                 success
                 isLoading={isLoading}
+                isDisabled={isOffline}
                 style={[styles.w100, styles.mt2, styles.pb5, styles.ph5]}
                 onPress={handleUBOsConfirmation}
                 text={translate('common.confirm')}
