@@ -75,7 +75,7 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                     errors: value.errors ?? undefined,
                     rightElement: (
                         <View style={[styles.flexRow, isDisabled && styles.buttonOpacityDisabled]}>
-                            <Text style={[styles.disabledText, styles.alignSelfCenter]}>
+                            <Text style={[styles.textSupporting, styles.alignSelfCenter, styles.pl2, styles.label]}>
                                 {value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}
                             </Text>
                             <View style={[styles.p1, styles.pl2]}>
@@ -88,7 +88,19 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                     ),
                 };
             }),
-        [policyCategories, selectedCategories, styles.alignSelfCenter, styles.buttonOpacityDisabled, styles.disabledText, styles.flexRow, styles.p1, styles.pl2, theme.icon, translate],
+        [
+            policyCategories,
+            selectedCategories,
+            styles.alignSelfCenter,
+            styles.buttonOpacityDisabled,
+            styles.flexRow,
+            styles.label,
+            styles.p1,
+            styles.pl2,
+            styles.textSupporting,
+            theme.icon,
+            translate,
+        ],
     );
 
     const toggleCategory = (category: PolicyOption) => {

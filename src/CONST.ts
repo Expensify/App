@@ -3113,6 +3113,7 @@ const CONST = {
     ONYX_UPDATE_TYPES: {
         HTTPS: 'https',
         PUSHER: 'pusher',
+        AIRSHIP: 'airship',
     },
     EVENTS: {
         SCROLLING: 'scrolling',
