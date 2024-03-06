@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
@@ -71,9 +72,93 @@ type TaxRatesWithDefault = {
 // These types are for the Integration connections for a policy (eg. Quickbooks, Xero, etc).
 // This data is not yet used in the codebase which is why it is given a very generic type, but the data is being put into Onyx for future use.
 // Once the data is being used, these types should be defined appropriately.
-type ConnectionLastSync = Record<string, unknown>;
-type ConnectionData = Record<string, unknown>;
-type ConnectionConfig = Record<string, unknown>;
+type ConnectionLastSync = {
+    successfulDate?: string;
+    errorDate?: string;
+    isSuccessful: boolean;
+    source: 'DIRECT' | 'EXPENSIFYWEB' | 'EXPENSIFYAPI' | 'AUTOSYNC' | 'AUTOAPPROVE';
+};
+
+type Account = {
+    glCode?: string;
+    name: string;
+    currency: string;
+    id: number;
+};
+
+type Employee = {
+    id: number;
+    firstName: string;
+    lastName: string;
+    name: string;
+    email: string;
+};
+
+type Vendor = {
+    id: number;
+    name: string;
+    currency: string;
+    email: string;
+};
+
+type ConnectionData = {
+    country: string;
+    edition: string;
+    homeCurrency: string;
+    isMultiCurrencyEnabled: boolean;
+
+    journalEntryAccounts: Account[];
+    bankAccounts: Account[];
+    creditCards: Account[];
+    accountsReceivable: Account[];
+    accountsPayable: Account[];
+    otherCurrentAssetAccounts: Account[];
+
+    taxCodes: string[];
+    employees: Employee[];
+    vendors: Vendor[];
+};
+
+type IntegrationEntity = 'NONE' | 'DEFAULT' | 'TAG' | 'REPORT_FIELD';
+
+type ConnectionConfig = {
+    realmId: number;
+    credentials: {
+        access_token: string;
+        refresh_token: string;
+        expires: number;
+        companyID: number;
+        readlmId: number;
+        scope: string;
+        companyName: string;
+        token_type: string;
+    };
+    companyName: string;
+    autoSync: {
+        jobID: number;
+        enabled: boolean;
+    };
+    syncPeople: boolean;
+    syncItems: boolean;
+    markChecksToBePrinted: boolean;
+    reimbursableExpensesExportDestination: IntegrationEntity;
+    nonReimbursableExpensesExportDestination: IntegrationEntity;
+
+    reimbursableExpensesAccount?: string;
+    nonReimbursableExpensesAccount?: string;
+    autoCreateVendor: boolean;
+    hasChosenAutoSyncOption: boolean;
+    syncClasses: IntegrationEntity;
+    syncCustomers: IntegrationEntity;
+    syncLocations: IntegrationEntity;
+    exportDate: string;
+    lastConfigurationTime: number;
+    syncTax: boolean;
+    enableNewCategories: boolean;
+    export: {
+        exporter: string;
+    };
+};
 type Connection = {
     lastSync?: ConnectionLastSync;
     data: ConnectionData;
