@@ -91,7 +91,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                         </View>
                     ),
                 })),
-                [policyCategories, selectedCategories, styles.alignSelfCenter, styles.flexRow, styles.label, styles.p1, styles.pl2, styles.textSupporting, theme.icon, translate],
+        [policyCategories, selectedCategories, styles.alignSelfCenter, styles.flexRow, styles.label, styles.p1, styles.pl2, styles.textSupporting, theme.icon, translate],
     );
 
     const toggleCategory = (category: PolicyForList) => {
