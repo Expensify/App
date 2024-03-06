@@ -31,7 +31,6 @@ import type {
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {
@@ -2443,7 +2442,7 @@ function getModifiedExpenseOriginalMessage(
     oldTransaction: OnyxEntry<Transaction>,
     transactionChanges: TransactionChanges,
     isFromExpenseReport: boolean,
-    policy: OnyxEntry<OnyxTypes.Policy>,
+    policy: OnyxEntry<Policy>,
 ): ExpenseOriginalMessage {
     const originalMessage: ExpenseOriginalMessage = {};
     // Remark: Comment field is the only one which has new/old prefixes for the keys (newComment/ oldComment),
@@ -2486,9 +2485,8 @@ function getModifiedExpenseOriginalMessage(
     }
 
     if ('taxCode' in transactionChanges) {
-        const taxRates = policy?.taxRates?.taxes;
-        originalMessage.oldTaxRate = taxRates && taxRates[TransactionUtils.getTaxCode(oldTransaction)].value;
-        originalMessage.taxRate = taxRates && transactionChanges?.taxCode && taxRates[transactionChanges.taxCode].value;
+        originalMessage.oldTaxRate = policy?.taxRates?.taxes[TransactionUtils.getTaxCode(oldTransaction)].value;
+        originalMessage.taxRate = transactionChanges?.taxCode && policy?.taxRates?.taxes[transactionChanges?.taxCode].value;
     }
 
     if ('billable' in transactionChanges) {
@@ -3332,7 +3330,7 @@ function buildOptimisticModifiedExpenseReportAction(
     oldTransaction: OnyxEntry<Transaction>,
     transactionChanges: TransactionChanges,
     isFromExpenseReport: boolean,
-    policy: OnyxEntry<OnyxTypes.Policy>,
+    policy: OnyxEntry<Policy>,
 ): OptimisticModifiedExpenseReportAction {
     const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy);
     return {
