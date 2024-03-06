@@ -80,7 +80,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
                     onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
-                    <View style={styles.avatarSectionWrapper}>
+                    <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                         <OfflineWithFeedback pendingAction={details.pendingFields?.avatar}>
                             <Avatar
                                 containerStyles={[styles.avatarXLarge, styles.mv5, styles.noOutline]}
