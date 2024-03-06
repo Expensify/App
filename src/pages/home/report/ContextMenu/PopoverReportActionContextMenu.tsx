@@ -72,6 +72,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
 
     const onPopoverShow = useRef(() => {});
     const onPopoverHide = useRef(() => {});
+    const onEmojiPickerToggle = useRef<undefined | ((state: boolean) => void)>();
     const onCancelDeleteModal = useRef(() => {});
     const onComfirmDeleteModal = useRef(() => {});
 
@@ -164,6 +165,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         isUnreadChat = false,
         disabledOptions = [],
         shouldCloseOnTarget = false,
+        setIsEmojiPickerActive = () => {},
     ) => {
         const {pageX = 0, pageY = 0} = extractPointerEvent(event);
         contextMenuAnchorRef.current = contextMenuAnchor;
@@ -177,6 +179,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
 
         onPopoverShow.current = onShow;
         onPopoverHide.current = onHide;
+        onEmojiPickerToggle.current = setIsEmojiPickerActive;
 
         new Promise<void>((resolve) => {
             if (!pageX && !pageY && contextMenuAnchorRef.current) {
@@ -329,6 +332,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
                     contentRef={contentRef}
                     originalReportID={originalReportIDRef.current}
                     disabledActions={disabledActions}
+                    setIsEmojiPickerActive={onEmojiPickerToggle.current}
                 />
             </PopoverWithMeasuredContent>
             <ConfirmModal
