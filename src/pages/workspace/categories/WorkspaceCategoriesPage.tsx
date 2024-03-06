@@ -100,7 +100,11 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
 
     const toggleAllCategories = () => {
         const isAllSelected = categoryList.every((category) => !!selectedCategories[category.keyForList]);
-        setSelectedCategories(isAllSelected ? {} : Object.fromEntries(categoryList.map((item) => [item.keyForList, true])));
+        setSelectedCategories(
+            isAllSelected
+                ? {}
+                : Object.fromEntries(categoryList.filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).map((item) => [item.keyForList, true])),
+        );
     };
 
     const getCustomListHeader = () => (
