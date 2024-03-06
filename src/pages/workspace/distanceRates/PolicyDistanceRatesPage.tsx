@@ -75,7 +75,9 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                 isSelected: selectedDistanceRates.find((rate) => rate.customUnitRateID === value.customUnitRateID) !== undefined,
                 rightElement: (
                     <View style={styles.flexRow}>
-                        <Text style={[styles.alignSelfCenter]}>{value.enabled ? translate('workspace.distanceRates.enabled') : translate('workspace.distanceRates.disabled')}</Text>
+                        <Text style={[styles.alignSelfCenter, !value.enabled && styles.disabledText]}>
+                            {value.enabled ? translate('workspace.distanceRates.enabled') : translate('workspace.distanceRates.disabled')}
+                        </Text>
                         <View style={[styles.p1, styles.pl2]}>
                             <Icon
                                 src={Expensicons.ArrowRight}
