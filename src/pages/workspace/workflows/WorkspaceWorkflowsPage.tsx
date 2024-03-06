@@ -77,9 +77,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                                   // see https://expensify.slack.com/archives/C036QM0SLJK/p1709738406293909?thread_ts=1709738293.910139&cid=C036QM0SLJK
                                   description={
                                       getAutoReportingFrequencyDisplayNames(preferredLocale)[
-                                          (policy?.autoReportingFrequency && policy.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT
-                                              ? policy.autoReportingFrequency
-                                              : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY) as AutoReportingFrequencyKey
+                                        (policy?.autoReportingFrequency as AutoReportingFrequencyKey) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY
                                       ]
                                   }
                                   shouldShowRightIcon
