@@ -1528,7 +1528,7 @@ const styles = (theme: ThemeColors) =>
 
         breadcrumbSeparator: {
             color: theme.icon,
-            fontSize: variables.fontSizeXLarge,
+            fontSize: variables.breadcrumbsFontSize,
             ...headlineFont,
         },
 
