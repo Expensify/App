@@ -60,7 +60,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
         const user = personalDetails[htmlAttribAccountID];
         accountID = parseInt(htmlAttribAccountID, 10);
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        displayNameOrLogin = Str.removeSMSDomain(PersonalDetailsUtils.getDisplayNameOrDefault(user, LocalePhoneNumber.formatPhoneNumber(user?.login ?? '')));
+        displayNameOrLogin = PersonalDetailsUtils.getDisplayNameOrDefault(user, LocalePhoneNumber.formatPhoneNumber(user?.login ?? ''));
         navigationRoute = ROUTES.PROFILE.getRoute(htmlAttribAccountID);
     } else if ('data' in tnodeClone && !isEmptyObject(tnodeClone.data)) {
         // We need to remove the LTR unicode and leading @ from data as it is not part of the login

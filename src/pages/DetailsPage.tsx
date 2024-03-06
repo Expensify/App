@@ -128,7 +128,7 @@ function DetailsPage({personalDetails, route, session}: DetailsPageProps) {
                                         style={[styles.textHeadline, styles.mb6, styles.pre]}
                                         numberOfLines={1}
                                     >
-                                        {formatPhoneNumber(displayName)}
+                                        {displayName}
                                     </Text>
                                 )}
                                 {details.login ? (
@@ -161,7 +161,7 @@ function DetailsPage({personalDetails, route, session}: DetailsPageProps) {
                             </View>
                             {!isCurrentUser && (
                                 <MenuItem
-                                    title={`${translate('common.message')}${formatPhoneNumber(displayName)}`}
+                                    title={`${translate('common.message')}${displayName}`}
                                     titleStyle={styles.flex1}
                                     icon={Expensicons.ChatBubble}
                                     onPress={() => Report.navigateToAndOpenReport([login])}

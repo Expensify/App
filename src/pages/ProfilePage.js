@@ -172,7 +172,7 @@ function ProfilePage(props) {
                                         style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
                                         numberOfLines={1}
                                     >
-                                        {props.formatPhoneNumber(displayName)}
+                                        {displayName}
                                     </Text>
                                 )}
                                 {hasStatus && (
@@ -226,7 +226,7 @@ function ProfilePage(props) {
                             )}
                             {!isCurrentUser && !Session.isAnonymousUser() && (
                                 <MenuItem
-                                    title={`${props.translate('common.message')}${props.formatPhoneNumber(displayName)}`}
+                                    title={`${props.translate('common.message')}${displayName}`}
                                     titleStyle={styles.flex1}
                                     icon={Expensicons.ChatBubble}
                                     onPress={() => Report.navigateToAndOpenReportWithAccountIDs([accountID])}
