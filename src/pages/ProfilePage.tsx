@@ -46,7 +46,10 @@ type ProfilePageOnyxProps = {
     /** The report currently being looked at */
     report: OnyxEntry<Report>;
 
-    /** The list of all reports */
+    /** The list of all reports 
+     * ONYXKEYS.COLLECTION.REPORT is needed for report key function
+    */
+    // eslint-disable-next-line react/no-unused-prop-types
     reports: OnyxCollection<Report>;
 
     /** Session info for the currently logged in user. */
@@ -70,7 +73,7 @@ const getPhoneNumber = ({login = '', displayName = ''}: PersonalDetails | EmptyO
     return login ? Str.removeSMSDomain(login) : '';
 };
 
-function ProfilePage({personalDetails, route, session, report, reports}: ProfilePageProps) {
+function ProfilePage({personalDetails, route, session, report}: ProfilePageProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const accountID = Number(route.params?.accountID ?? 0);
@@ -242,8 +245,8 @@ ProfilePage.displayName = 'ProfilePage';
  * This function narrow down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
  * and makes the entire component more performant because it's not re-rendering when a bunch of properties change which aren't ever used in the UI.
  */
-const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
-    report && {
+const chatReportSelector = (report: OnyxEntry<Report>): Report =>
+    (report && {
         reportID: report.reportID,
         participantAccountIDs: report.participantAccountIDs,
         parentReportID: report.parentReportID,
@@ -251,7 +254,7 @@ const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
         type: report.type,
         chatType: report.chatType,
         isPolicyExpenseChat: report.isPolicyExpenseChat,
-    };
+    }) as Report;
 
 export default withOnyx<ProfilePageProps, ProfilePageOnyxProps>({
     reports: {
