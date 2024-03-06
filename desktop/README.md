@@ -129,7 +129,7 @@ Once the command finishes, revert the version update in `package.json`, remove `
 To avoid bundling unnecessary `node_modules` we use a [2 package structure](https://www.electron.build/tutorials/two-package-structure)
 The root [package.json](../package.json) serves for `devDependencies` and shared (renderer) `dependencies`
 The [desktop/package.json](./package.json) serves for desktop (electron-main) specific dependencies
-We use Webpack with a [desktop specific config](../config/webpack/webpack.desktop.js) to bundle our js code
+We use Webpack with a [desktop specific config](../config/webpack/webpack.desktop.ts) to bundle our js code
 Half of the config takes care of packaging root package dependencies - everything related to rendering App in the Electron window. Packaged under `dist/www`
 The other half is about bundling the `main.js` script which initializes Electron and renders `www`
 
