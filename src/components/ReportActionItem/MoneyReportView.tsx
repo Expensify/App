@@ -50,6 +50,7 @@ function MoneyReportView({report, policy, policyReportFields, shouldShowHorizont
     const formattedTotalAmount = CurrencyUtils.convertToDisplayString(totalDisplaySpend, report.currency);
     const formattedOutOfPocketAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, report.currency);
     const formattedCompanySpendAmount = CurrencyUtils.convertToDisplayString(nonReimbursableSpend, report.currency);
+    const isPartiallyPaid = Boolean(report?.pendingFields?.partial);
 
     const subAmountTextStyles: StyleProp<TextStyle> = [
         styles.taskTitleMenuItem,
@@ -108,7 +109,7 @@ function MoneyReportView({report, policy, policyReportFields, shouldShowHorizont
                         </Text>
                     </View>
                     <View style={[styles.flexRow, styles.justifyContentCenter]}>
-                        {isSettled && (
+                        {isSettled && !isPartiallyPaid && (
                             <View style={[styles.defaultCheckmarkWrapper, styles.mh2]}>
                                 <Icon
                                     src={Expensicons.Checkmark}
