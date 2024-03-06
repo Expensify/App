@@ -25,6 +25,7 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
@@ -45,7 +46,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
     const [removeMemberConfirmModalVisible, setRemoveMemberConfirmModalVisible] = React.useState(false);
 
     const accountID = Number(route?.params?.accountID) ?? 0;
-    const backTo = route?.params?.backTo;
+    const backTo = decodeURIComponent(route?.params?.backTo ?? '') as Route;
 
     const member = policyMembers?.[accountID];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
@@ -68,7 +69,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
     }, [accountID]);
 
     const openRoleSelectionModal = useCallback(() => {
-        Navigation.navigate(ROUTES.WORKSPACE_MEMBER_ROLE_SELECTION.getRoute(route.params.policyID, accountID));
+        const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
+        Navigation.navigate(ROUTES.WORKSPACE_MEMBER_ROLE_SELECTION.getRoute(route.params.policyID, accountID, activeRoute));
     }, [accountID, route.params.policyID]);
 
     return (

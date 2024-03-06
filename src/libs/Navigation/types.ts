@@ -216,6 +216,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE_SELECTION]: {
         accountID: string;
+        backTo: Routes;
     };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;

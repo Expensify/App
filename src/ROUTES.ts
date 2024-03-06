@@ -556,7 +556,7 @@ const ROUTES = {
     },
     WORKSPACE_MEMBER_ROLE_SELECTION: {
         route: 'workspace/:policyID/members/:accountID/role-selection',
-        getRoute: (policyID: string, accountID: number) => `workspace/${policyID}/members/${accountID}/role-selection` as const,
+        getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`workspace/${policyID}/members/${accountID}/role-selection`, backTo),
     },
 
     // Referral program promotion
