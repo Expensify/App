@@ -93,7 +93,7 @@ function Section({
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const illustrationContainerStyle: StyleProp<ViewStyle> = StyleUtils.getBackgroundColorStyle(illustrationBackgroundColor ?? illustration?.backgroundColor ?? theme.appBG);
 
@@ -119,7 +119,7 @@ function Section({
                     {overlayContent?.()}
                 </View>
             )}
-            <View style={[styles.w100, isCentralPane && (shouldUseNarrowLayout ? styles.p5 : styles.p8)]}>
+            <View style={[styles.w100, isCentralPane && (isSmallScreenWidth ? styles.p5 : styles.p8)]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP && styles.mh1]}>
                     <View style={[styles.flexShrink1]}>
                         <Text style={[styles.textHeadline, styles.cardSectionTitle, titleStyles]}>{title}</Text>
