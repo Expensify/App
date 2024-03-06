@@ -169,7 +169,7 @@ function HeaderView(props) {
         ),
     );
 
-    const canJoinOrLeave = isChatThread || !isSelfDM || isUserCreatedPolicyRoom || canLeaveRoom;
+    const canJoinOrLeave = !isSelfDM && (isChatThread || isUserCreatedPolicyRoom || canLeaveRoom);
     const canJoin = canJoinOrLeave && !isWhisperAction && props.report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const canLeave = canJoinOrLeave && ((isChatThread && props.report.notificationPreference.length) || isUserCreatedPolicyRoom || canLeaveRoom);
     if (canJoin) {
@@ -374,7 +374,7 @@ function HeaderView(props) {
                                 isVisible={isDeleteTaskConfirmModalVisible}
                                 onConfirm={() => {
                                     setIsDeleteTaskConfirmModalVisible(false);
-                                    Session.checkIfActionIsAllowed(Task.deleteTask(props.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum));
+                                    Session.checkIfActionIsAllowed(Task.deleteTask(props.report));
                                 }}
                                 onCancel={() => setIsDeleteTaskConfirmModalVisible(false)}
                                 title={translate('task.deleteTask')}
