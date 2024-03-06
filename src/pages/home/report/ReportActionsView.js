@@ -225,7 +225,7 @@ function ReportActionsView(props) {
 
                 Report.getNewerActions(reportID);
             }, 500),
-        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, props.reportActions, reportID, hasNewestReportAction],
+        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, reportID, hasNewestReportAction],
     );
 
     /**
