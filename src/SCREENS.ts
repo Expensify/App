@@ -216,6 +216,7 @@ const SCREENS = {
         CATEGORIES: 'Workspace_Categories',
         TAGS: 'Workspace_Tags',
         TAGS_SETTINGS: 'Tags_Settings',
+        TAGS_EDIT: 'Tags_Edit',
         CURRENCY: 'Workspace_Profile_Currency',
         WORKFLOWS: 'Workspace_Workflows',
         WORKFLOWS_APPROVER: 'Workspace_Workflows_Approver',

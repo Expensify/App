@@ -2540,7 +2540,46 @@ function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
         requiresTag,
     };
 
-    API.write('SetPolicyRequiresTag', parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG, parameters, onyxData);
+}
+
+function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagList>) {
+    const newName = policyTagListName.newName;
+    const oldName = policyTagListName.oldName;
+    const oldPolicyTags = policyTags?.[oldName] ?? {};
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [newName]: {...oldPolicyTags, name: newName},
+                    [oldName]: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    errors: {
+                        [oldName]: oldName,
+                        [newName]: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                    },
+                    [newName]: null,
+                    [oldName]: oldPolicyTags,
+                },
+            },
+        ],
+    };
+    const parameters = {
+        policyID: policyID,
+        oldName: oldName,
+        newName: newName,
+    };
+
+    API.write(WRITE_COMMANDS.RENAME_POLICY_TAG_LIST, parameters, onyxData);
 }
 
 function clearCategoryErrors(policyID: string, categoryName: string) {
@@ -2608,4 +2647,5 @@ export {
     setWorkspaceRequiresCategory,
     clearCategoryErrors,
     setPolicyRequiresTag,
+    renamePolicyTaglist,
 };

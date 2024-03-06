@@ -155,4 +155,5 @@ export type {default as SetWorkspaceAutoReportingFrequencyParams} from './SetWor
 export type {default as SetWorkspaceAutoReportingMonthlyOffsetParams} from './SetWorkspaceAutoReportingMonthlyOffsetParams';
 export type {default as SetWorkspaceApprovalModeParams} from './SetWorkspaceApprovalModeParams';
 export type {default as SetPolicyRequiresTag} from './SetPolicyRequiresTag';
+export type {default as RenamePolicyTaglist} from './RenamePolicyTaglist';
 export type {default as SwitchToOldDotParams} from './SwitchToOldDotParams';

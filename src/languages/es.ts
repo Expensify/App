@@ -1797,6 +1797,7 @@ export default {
         },
         tags: {
             requiresTag: 'Los miembros deben etiquetar todos los gastos',
+            customTagName: 'Nombre de etiqueta personalizada',
             enableTag: 'Habilitar etiqueta',
             subtitle: 'Las etiquetas añaden formas más detalladas de clasificar los costos.',
             emptyTags: {

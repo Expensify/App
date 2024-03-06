@@ -252,6 +252,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: () => require('../../../pages/workspace/categories/CategorySettingsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: () => require('../../../pages/workspace/categories/WorkspaceCategoriesSettingsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAGS_SETTINGS]: () => require('../../../pages/workspace/tags/WorkspaceTagsSettingsPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.TAGS_EDIT]: () => require('../../../pages/workspace/tags/WorkspaceEditTagsPage').default as React.ComponentType,
     [SCREENS.REIMBURSEMENT_ACCOUNT]: () => require('../../../pages/ReimbursementAccount/ReimbursementAccountPage').default as React.ComponentType,
     [SCREENS.GET_ASSISTANCE]: () => require('../../../pages/GetAssistancePage').default as React.ComponentType,
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: () => require('../../../pages/settings/Security/TwoFactorAuth/TwoFactorAuthPage').default as React.ComponentType,

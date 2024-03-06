@@ -207,6 +207,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.TAGS_EDIT]: {
+        policyID: string;
+        tagName: string;
+    };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };

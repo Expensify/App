@@ -1773,6 +1773,7 @@ export default {
         },
         tags: {
             requiresTag: 'Members must tag all spend',
+            customTagName: 'Custom tag name',
             enableTag: 'Enable tag',
             subtitle: 'Tags add more detailed ways to classify costs.',
             emptyTags: {

@@ -554,6 +554,11 @@ const ROUTES = {
         route: 'workspace/:policyID/tags/settings',
         getRoute: (policyID: string) => `workspace/${policyID}/tags/settings` as const,
     },
+    WORKSPACE_EDIT_TAGS: {
+        route: 'workspace/:policyID/tags/edit',
+        getRoute: (policyID: string) => `workspace/${policyID}/tags/edit` as const,
+    },
+
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {
         route: 'referral/:contentType',

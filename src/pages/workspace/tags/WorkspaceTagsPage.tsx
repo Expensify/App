@@ -126,9 +126,9 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                         title={translate('workspace.common.tags')}
                         shouldShowBackButton={isSmallScreenWidth}
                     >
-                        {!isSmallScreenWidth && settingsButton}
+                        {!isSmallScreenWidth && policyTags && settingsButton}
                     </HeaderWithBackButton>
-                    {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{settingsButton}</View>}
+                    {isSmallScreenWidth && policyTags && <View style={[styles.pl5, styles.pr5]}>{settingsButton}</View>}
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
                     </View>
