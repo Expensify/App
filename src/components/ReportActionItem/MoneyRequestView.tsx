@@ -287,7 +287,10 @@ function MoneyRequestView({
                     />
                 )}
 
-                <ReceiptAudit notes={['Amount greater than scanner total', 'Date differs from scanned date']} />
+                <ReceiptAudit
+                    notes={['Amount greater than scanner total', 'Date differs from scanned date']}
+                    // notes={[]}
+                />
 
                 {canUseViolations && <ViolationMessages violations={getViolationsForField('receipt')} />}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>

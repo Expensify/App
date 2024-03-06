@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Icon from './Icon';
@@ -9,7 +10,9 @@ import Text from './Text';
 export default function ReceiptAudit({notes}: {notes: string[]}) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {translate} = useLocalize();
 
+    const issuesFoundText = notes.length > 0 ? translate('iou.receiptIssuesFound', notes.length) : translate('iou.receiptNoIssuesFound');
     return (
         <View style={[styles.mt2, styles.mb1, styles.ph5]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
@@ -20,10 +23,9 @@ export default function ReceiptAudit({notes}: {notes: string[]}) {
                         src={notes.length > 0 ? Expensicons.Receipt : Expensicons.Checkmark}
                         fill={theme.white}
                     />
-                    <Text style={[styles.textLabel, styles.textStrong, styles.textWhite]}>
-                        {notes.length > 0 ? `Receipt Audit : ${notes.length} Issue(s) Found` : 'Receipt Verified : No issues Found'}
-                    </Text>
+                    <Text style={[styles.textLabel, styles.textStrong, styles.textWhite]}>{notes.length > 0 ? translate('iou.receiptAudit') : translate('iou.receiptVerified')}</Text>
                 </View>
+                <Text style={[styles.textLabel, styles.textSupporting]}>{issuesFoundText}</Text>
             </View>
 
             {/* // If notes is a array of strings, map through it & show notes. */}
