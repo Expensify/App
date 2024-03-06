@@ -599,14 +599,7 @@ function subscribeToUserEvents() {
             updates: pushJSON.updates ?? [],
             previousUpdateID: Number(pushJSON.previousUpdateID || 0),
         };
-        if (!OnyxUpdates.doesClientNeedToBeUpdated(Number(pushJSON.previousUpdateID || 0))) {
-            OnyxUpdates.apply(updates);
-            return;
-        }
-
-        // If we reached this point, we need to pause the queue while we prepare to fetch older OnyxUpdates.
-        SequentialQueue.pause();
-        OnyxUpdates.saveUpdateInformation(updates);
+        OnyxUpdates.applyOnyxUpdatesReliably(updates);
     });
 
     // Handles Onyx updates coming from Pusher through the mega multipleEvents.
