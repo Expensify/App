@@ -62,9 +62,9 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const categoryList = useMemo(
+    const categoryList = useMemo<PolicyOption[]>(
         () =>
-            Object.values(policyCategories ?? {}).map<PolicyOption>((value) => {
+            Object.values(policyCategories ?? {}).map((value) => {
                 const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                 return {
                     text: value.name,
