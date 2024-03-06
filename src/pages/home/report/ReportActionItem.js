@@ -146,6 +146,8 @@ function ReportActionItem(props) {
     const StyleUtils = useStyleUtils();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
+    const [isEmojiPickerActive, setIsEmojiPickerActive] = useState();
+
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const reactionListRef = useContext(ReactionListContext);
@@ -333,10 +335,15 @@ function ReportActionItem(props) {
                     props.action.reportActionID,
                     originalReportID,
                     props.draftMessage,
-                    () => {},
+                    () => setIsContextMenuActive(true),
                     toggleContextMenuFromActiveReportAction,
                     ReportUtils.isArchivedRoom(originalReport),
                     ReportUtils.chatIncludesChronos(originalReport),
+                    false,
+                    false,
+                    [],
+                    false,
+                    setIsEmojiPickerActive,
                 );
             });
         },
@@ -541,19 +548,6 @@ function ReportActionItem(props) {
                                 action={props.action}
                                 displayAsGroup={props.displayAsGroup}
                                 isHidden={isHidden}
-                                style={[
-                                    _.contains(
-                                        [
-                                            ..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG),
-                                            CONST.REPORT.ACTIONS.TYPE.IOU,
-                                            CONST.REPORT.ACTIONS.TYPE.APPROVED,
-                                            CONST.REPORT.ACTIONS.TYPE.MOVED,
-                                        ],
-                                        props.action.actionName,
-                                    )
-                                        ? styles.colorMuted
-                                        : undefined,
-                                ]}
                             />
                             {hasBeenFlagged && (
                                 <Button
@@ -631,6 +625,7 @@ function ReportActionItem(props) {
                                     toggleReaction(emoji);
                                 }
                             }}
+                            setIsEmojiPickerActive={setIsEmojiPickerActive}
                         />
                     </View>
                 )}
@@ -659,7 +654,7 @@ function ReportActionItem(props) {
      * @returns {Object} report action item
      */
     const renderReportActionItem = (hovered, isWhisper, hasErrors) => {
-        const content = renderItemContent(hovered || isContextMenuActive, isWhisper, hasErrors);
+        const content = renderItemContent(hovered || isContextMenuActive || isEmojiPickerActive, isWhisper, hasErrors);
 
         if (!_.isUndefined(props.draftMessage)) {
             return <ReportActionItemDraft>{content}</ReportActionItemDraft>;
@@ -847,8 +842,9 @@ function ReportActionItem(props) {
                             draftMessage={props.draftMessage}
                             isChronosReport={ReportUtils.chatIncludesChronos(originalReport)}
                             checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
+                            setIsEmojiPickerActive={setIsEmojiPickerActive}
                         />
-                        <View style={StyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || !_.isUndefined(props.draftMessage))}>
+                        <View style={StyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || isEmojiPickerActive || !_.isUndefined(props.draftMessage))}>
                             <OfflineWithFeedback
                                 onClose={() => ReportActions.clearReportActionErrors(props.report.reportID, props.action)}
                                 pendingAction={

@@ -124,7 +124,6 @@ function ReportPreview({
     const managerID = iouReport?.managerID ?? 0;
     const isCurrentUserManager = managerID === session?.accountID;
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
-    const policyType = policy?.type;
     const isAutoReimbursable = ReportUtils.canBeAutoReimbursed(iouReport, policy);
 
     const iouSettled = ReportUtils.isSettled(iouReportID);
@@ -136,7 +135,6 @@ function ReportPreview({
 
     const isApproved = ReportUtils.isReportApproved(iouReport);
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport);
-    const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(iouReport);
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
     const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => TransactionUtils.isPending(transaction) && TransactionUtils.isCardTransaction(transaction)).length;
@@ -215,11 +213,7 @@ function ReportPreview({
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
 
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
-    const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isPayer = isPaidGroupPolicy
-        ? // In a paid group policy, the admin approver can pay the report directly by skipping the approval step
-          isPolicyAdmin && (isApproved || isCurrentUserManager)
-        : isPolicyAdmin || (isMoneyRequestReport && isCurrentUserManager);
+    const isPayer = ReportUtils.isPayer(session, iouReport);
     const isOnInstantSubmitPolicy = PolicyUtils.isInstantSubmitEnabled(policy);
     const isOnSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
     const shouldShowPayButton = useMemo(
@@ -262,6 +256,7 @@ function ReportPreview({
                     onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
                     onLongPress={(event) => onShowContextMenu(() => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive))}
+                    shouldUseHapticsOnLongPress
                     style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
                     role="button"
                     accessibilityLabel={translate('iou.viewDetails')}

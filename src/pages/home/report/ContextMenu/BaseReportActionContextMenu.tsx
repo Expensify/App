@@ -87,6 +87,9 @@ type BaseReportActionContextMenuProps = BaseReportActionContextMenuOnyxProps & {
 
     /** List of disabled actions */
     disabledActions?: ContextMenuAction[];
+
+    /** Function to update emoji picker state */
+    setIsEmojiPickerActive?: (state: boolean) => void;
 };
 
 type MenuItemRefs = Record<string, ContextMenuItemHandle | null>;
@@ -109,6 +112,7 @@ function BaseReportActionContextMenu({
     reportActions,
     checkIfContextMenuActive,
     disabledActions = [],
+    setIsEmojiPickerActive,
 }: BaseReportActionContextMenuProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const StyleUtils = useStyleUtils();
@@ -204,7 +208,10 @@ function BaseReportActionContextMenu({
             originalReportID,
             draftMessage,
             checkIfContextMenuActive,
-            checkIfContextMenuActive,
+            () => {
+                checkIfContextMenuActive?.();
+                setShouldKeepOpen(false);
+            },
             ReportUtils.isArchivedRoom(originalReport),
             ReportUtils.chatIncludesChronos(originalReport),
             undefined,
@@ -232,6 +239,7 @@ function BaseReportActionContextMenu({
                         openContextMenu: () => setShouldKeepOpen(true),
                         interceptAnonymousUser,
                         openOverflowMenu,
+                        setIsEmojiPickerActive,
                     };
 
                     if ('renderContent' in contextAction) {

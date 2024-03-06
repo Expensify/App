@@ -37,11 +37,6 @@ function getActionHtml(reportAction: OnyxEntry<ReportAction>): string {
     return message?.html ?? '';
 }
 
-/** Gets the text version of the message in an action */
-function getActionText(reportAction: OnyxEntry<ReportAction>): string {
-    return reportAction?.message?.reduce((acc, curr) => `${acc}${curr.text}`, '') ?? '';
-}
-
 /** Sets the HTML string to Clipboard */
 function setClipboardMessage(content: string) {
     const parser = new ExpensiMark();
@@ -78,6 +73,7 @@ type ContextMenuActionPayload = {
     interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
     openOverflowMenu: (event: GestureResponderEvent | MouseEvent) => void;
     event?: GestureResponderEvent | MouseEvent | KeyboardEvent;
+    setIsEmojiPickerActive?: (state: boolean) => void;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -110,7 +106,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         shouldShow: (type, reportAction): reportAction is ReportAction =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !!reportAction && 'message' in reportAction && !ReportActionsUtils.isMessageDeleted(reportAction),
-        renderContent: (closePopover, {reportID, reportAction, close: closeManually, openContextMenu}) => {
+        renderContent: (closePopover, {reportID, reportAction, close: closeManually, openContextMenu, setIsEmojiPickerActive}) => {
             const isMini = !closePopover;
 
             const closeContextMenu = (onHideCallback?: () => void) => {
@@ -127,6 +123,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const toggleEmojiAndCloseMenu = (emoji: Emoji, existingReactions: OnyxEntry<ReportActionReactions>) => {
                 Report.toggleEmojiReaction(reportID, reportAction, emoji, existingReactions);
                 closeContextMenu();
+                setIsEmojiPickerActive?.(false);
             };
 
             if (isMini) {
@@ -134,8 +131,14 @@ const ContextMenuActions: ContextMenuAction[] = [
                     <MiniQuickEmojiReactions
                         key="MiniQuickEmojiReactions"
                         onEmojiSelected={toggleEmojiAndCloseMenu}
-                        onPressOpenPicker={openContextMenu}
-                        onEmojiPickerClosed={closeContextMenu}
+                        onPressOpenPicker={() => {
+                            openContextMenu();
+                            setIsEmojiPickerActive?.(true);
+                        }}
+                        onEmojiPickerClosed={() => {
+                            closeContextMenu();
+                            setIsEmojiPickerActive?.(false);
+                        }}
                         reportActionID={reportAction?.reportActionID}
                         reportAction={reportAction}
                     />
@@ -149,6 +152,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     onEmojiSelected={toggleEmojiAndCloseMenu}
                     reportActionID={reportAction?.reportActionID}
                     reportAction={reportAction}
+                    setIsEmojiPickerActive={setIsEmojiPickerActive}
                 />
             );
         },
@@ -347,7 +351,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isTaskAction = ReportActionsUtils.isTaskAction(reportAction);
             const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
             const messageHtml = isTaskAction ? TaskUtils.getTaskReportActionMessage(reportAction?.actionName) : getActionHtml(reportAction);
-            const messageText = getActionText(reportAction);
+            const messageText = ReportActionsUtils.getReportActionMessageText(reportAction);
 
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
             if (!isAttachment) {
@@ -498,8 +502,9 @@ const ContextMenuActions: ContextMenuAction[] = [
         textTranslateKey: 'reportActionContextMenu.menu',
         icon: Expensicons.ThreeDots,
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline, isMini) => isMini,
-        onPress: (closePopover, {openOverflowMenu, event}) => {
+        onPress: (closePopover, {openOverflowMenu, event, openContextMenu}) => {
             openOverflowMenu(event as GestureResponderEvent | MouseEvent);
+            openContextMenu();
         },
         getDescription: () => {},
     },

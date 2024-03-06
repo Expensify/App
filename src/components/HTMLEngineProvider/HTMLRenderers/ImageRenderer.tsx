@@ -84,9 +84,8 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                         const route = ROUTES.REPORT_ATTACHMENTS.getRoute(report?.reportID ?? '', source);
                         Navigation.navigate(route);
                     }}
-                    onLongPress={(event) =>
-                        onShowContextMenu(() => showContextMenuForReport(event, anchor, report?.reportID ?? '', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report)))
-                    }
+                    onLongPress={(event) => onShowContextMenu(() => showContextMenuForReport(event, anchor, report?.reportID ?? '', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report)))}
+                    shouldUseHapticsOnLongPress
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                     accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                 >
