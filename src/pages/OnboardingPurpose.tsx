@@ -75,8 +75,9 @@ function OnboardingPurpose() {
         Report.completeEngagementModal(translate(translationKey), selectedPurpose);
         */
 
+        // Only navigate to concierge chat when central pane is visible
+        // Otherwise stay on the chats screen.
         if (!isSmallScreenWidth) {
-            // Only navigate to concierge chat for wide-screen devices
             Report.navigateToConciergeChat(false);
         }
     }, [isSmallScreenWidth, selectedPurpose]);
