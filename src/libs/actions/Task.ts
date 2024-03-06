@@ -397,15 +397,15 @@ function reopenTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
     API.write(WRITE_COMMANDS.REOPEN_TASK, parameters, {optimisticData, successData, failureData});
 }
 
-function editTask(report: OnyxTypes.Report, changes: Partial<OnyxTypes.Task>) {
+function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task) {
     // Create the EditedReportAction on the task
-    const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(report, changes);
+    const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskFieldReportAction({title, description});
 
     // Sometimes title or description is undefined, so we need to check for that, and we provide it to multiple functions
-    const reportName = (changes.title ?? report?.reportName)?.trim();
+    const reportName = (title ?? report?.reportName)?.trim();
 
     // Description can be unset, so we default to an empty string if so
-    const reportDescription = (changes.description ?? report.description ?? '').trim();
+    const reportDescription = (description ?? report.description ?? '').trim();
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -420,8 +420,8 @@ function editTask(report: OnyxTypes.Report, changes: Partial<OnyxTypes.Task>) {
                 reportName,
                 description: reportDescription,
                 pendingFields: {
-                    ...(changes.title && {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
-                    ...(changes.description && {description: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+                    ...(title && {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+                    ...(description && {description: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                 },
                 errorFields: null,
             },
@@ -439,8 +439,8 @@ function editTask(report: OnyxTypes.Report, changes: Partial<OnyxTypes.Task>) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {
                 pendingFields: {
-                    ...(changes.title && {reportName: null}),
-                    ...(changes.description && {description: null}),
+                    ...(title && {reportName: null}),
+                    ...(description && {description: null}),
                 },
             },
         },
@@ -474,7 +474,7 @@ function editTask(report: OnyxTypes.Report, changes: Partial<OnyxTypes.Task>) {
 
 function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assigneeEmail: string, assigneeAccountID = 0, assigneeChatReport: OnyxEntry<OnyxTypes.Report> = null) {
     // Create the EditedReportAction on the task
-    const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(report, {assigneeAccountID});
+    const editTaskReportAction = ReportUtils.buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID);
     const reportName = report.reportName?.trim();
 
     let assigneeChatReportOnyxData;
@@ -890,6 +890,22 @@ function dismissModalAndClearOutTaskInfo() {
 }
 
 /**
+ * Returns Task assignee accountID
+ */
+function getTaskAssigneeAccountID(taskReport: OnyxEntry<OnyxTypes.Report>): number | undefined {
+    if (!taskReport) {
+        return;
+    }
+
+    if (taskReport.managerID) {
+        return taskReport.managerID;
+    }
+
+    const reportAction = getParentReportAction(taskReport);
+    return reportAction.childManagerAccountID;
+}
+
+/**
  * Returns Task owner accountID
  */
 function getTaskOwnerAccountID(taskReport: OnyxEntry<OnyxTypes.Report>): number | undefined {
@@ -909,7 +925,7 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
         return false;
     }
 
-    if (sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === ReportUtils.getTaskAssigneeAccountID(taskReport)) {
+    if (sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport)) {
         return true;
     }
 
@@ -953,6 +969,7 @@ export {
     getShareDestination,
     deleteTask,
     dismissModalAndClearOutTaskInfo,
+    getTaskAssigneeAccountID,
     clearTaskErrors,
     canModifyTask,
 };

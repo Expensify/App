@@ -278,18 +278,6 @@ type OriginalMessageMoved = {
     };
 };
 
-type OriginalMessageTaskEdited = {
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.TASKEDITED;
-    originalMessage: {
-        oldTitle?: string;
-        title?: string;
-        oldDescription?: string;
-        description?: string;
-        oldAssigneeAccountID?: number;
-        assigneeAccountID?: number;
-    };
-};
-
 type OriginalMessage =
     | OriginalMessageApproved
     | OriginalMessageIOU
@@ -310,8 +298,7 @@ type OriginalMessage =
     | OriginalMessageReimbursementQueued
     | OriginalMessageReimbursementDequeued
     | OriginalMessageMoved
-    | OriginalMessageMarkedReimbursed
-    | OriginalMessageTaskEdited;
+    | OriginalMessageMarkedReimbursed;
 
 export default OriginalMessage;
 export type {
@@ -332,7 +319,6 @@ export type {
     OriginalMessageChronosOOOList,
     OriginalMessageSource,
     OriginalMessageReimbursementDequeued,
-    OriginalMessageTaskEdited,
     DecisionName,
     PaymentMethodType,
 };
