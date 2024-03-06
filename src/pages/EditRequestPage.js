@@ -125,17 +125,23 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
         });
     }, [parentReportAction, fieldToEdit]);
 
-    const updateTaxAmount = (transactionChanges) => {
-        const newTaxAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(transactionChanges.amount));
-        IOU.updateMoneyRequestTaxAmount(transaction.transactionID, report.reportID, newTaxAmount, policy, policyTags, policyCategories);
-        Navigation.dismissModal(report.reportID);
-    };
+    const updateTaxAmount = useCallback(
+        (transactionChanges) => {
+            const newTaxAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(transactionChanges.amount));
+            IOU.updateMoneyRequestTaxAmount(transaction.transactionID, report.reportID, newTaxAmount, policy, policyTags, policyCategories);
+            Navigation.dismissModal(report.reportID);
+        },
+        [transaction, report, policy, policyTags, policyCategories],
+    );
 
-    const updateTaxRate = (transactionChanges) => {
-        const newTaxCode = transactionChanges.data.code;
-        IOU.updateMoneyRequestTaxRate(transaction.transactionID, report.reportID, newTaxCode, policy, policyTags, policyCategories);
-        Navigation.dismissModal(report.reportID);
-    };
+    const updateTaxRate = useCallback(
+        (transactionChanges) => {
+            const newTaxCode = transactionChanges.data.code;
+            IOU.updateMoneyRequestTaxRate(transaction.transactionID, report.reportID, newTaxCode, policy, policyTags, policyCategories);
+            Navigation.dismissModal(report.reportID);
+        },
+        [transaction, report, policy, policyTags, policyCategories],
+    );
 
     const saveAmountAndCurrency = useCallback(
         ({amount, currency: newCurrency}) => {
