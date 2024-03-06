@@ -7,15 +7,14 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import _ from 'underscore';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import DistanceRequestUtils, {DefaultMileageRate} from '@libs/DistanceRequestUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import type {DefaultMileageRate} from '@libs/DistanceRequestUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
@@ -26,7 +25,6 @@ import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import {policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -192,21 +190,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     iouMerchant,
     hasMultipleParticipants,
     selectedParticipants: pickedParticipants,
-    payeePersonalDetails: payeePersonalDetails,
-    iou = {
-        id: '',
-        amount: 0,
-        currency: CONST.CURRENCY.USD,
-        comment: '',
-        merchant: '',
-        category: '',
-        tag: '',
-        billable: false,
-        created: '',
-        participants: [],
-        receiptPath: '',
-    },
-    canModifyParticipants: canModifyParticipants = false,
+    payeePersonalDetails,
+    canModifyParticipants = false,
     session,
     isReadOnly = false,
     bankAccountRoute = '',
@@ -219,15 +204,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     iouCreated,
     iouIsBillable = false,
     onToggleBillable,
-    iouTag = '',
-    transactionID = '',
     hasSmartScanFailed,
     reportActionID,
 }: MoneyRequestConfirmationListProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
-    const {canUseViolations} = usePermissions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {canUseP2PDistanceRequests, canUseViolations} = usePermissions();
     const isTypeRequest = iouType === CONST.IOU.TYPE.REQUEST;
@@ -428,7 +410,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 },
             );
         } else {
-            const formattedSelectedParticipants = _.map(selectedParticipants, (participant) => ({
+            const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
                 isDisabled: !participant.isPolicyExpenseChat && ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? -1),
             }));
@@ -451,6 +433,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         translate,
         shouldDisablePaidBySection,
         userCanModifyParticipants,
+        canModifyParticipants,
     ]);
 
     const selectedOptions = useMemo(() => {
@@ -482,7 +465,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate ?? 0, currency ?? 'USD', translate, toLocaleDigit);
         IOU.setMoneyRequestMerchant(transaction?.transactionID ?? '', distanceMerchant, true);
-    }, [isDistanceRequestWithPendingRoute, hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transaction]);
+    }, [isDistanceRequestWithPendingRoute, hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transaction, iouAmount, iouCurrencyCode]);
 
     /**
      */
@@ -516,7 +499,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
      */
     const confirm = useCallback(
         (paymentMethod: PaymentMethodType | undefined) => {
-            if (_.isEmpty(selectedParticipants)) {
+            if (selectedParticipants.length === 0) {
                 return;
             }
             if ((isMerchantRequired && isMerchantEmpty) || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction ?? null))) {
@@ -787,7 +770,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             shouldShow: shouldShowCategories,
             isSupplementary: !isCategoryRequired,
         },
-        ..._.map(policyTagLists, ({name}, index) => ({
+        ...policyTagLists.map(({name}, index) => ({
             item: (
                 <MenuItemWithTopDescription
                     key={name}
