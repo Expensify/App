@@ -184,8 +184,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             routeName: SCREENS.WORKSPACE.MEMBERS,
         },
-        // TODO revert to isPaidGroupPolicy
-        ...(isFreeGroupPolicy && shouldShowProtectedItems ? protectedCollectPolicyMenuItems : []),
+        ...(isPaidGroupPolicy && shouldShowProtectedItems ? protectedCollectPolicyMenuItems : []),
         ...(isFreeGroupPolicy && shouldShowProtectedItems ? protectedFreePolicyMenuItems : []),
     ];
 

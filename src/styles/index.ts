@@ -4665,7 +4665,6 @@ const styles = (theme: ThemeColors) =>
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
         },
-
         notSoFastPopoverWrapper: {
             maxWidth: variables.popoverWidth,
             padding: 20,
