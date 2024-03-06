@@ -7,7 +7,12 @@ const INPUT_IDS = {
 
 type InputID = ValueOf<typeof INPUT_IDS>;
 
-type PolicyTagNameForm = Form<string, Record<string, string>>;
+type PolicyTagNameForm = Form<
+    InputID,
+    {
+        [INPUT_IDS.POLICY_TAGS_NAME]: string;
+    }
+>;
 
 // eslint-disable-next-line import/prefer-default-export
 export type {PolicyTagNameForm};
