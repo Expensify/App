@@ -1206,7 +1206,7 @@ function isMoneyRequestReport(reportOrID: OnyxEntry<Report> | string): boolean {
  * Checks if a report has only one transaction associated with it
  */
 function isOneTransactionReport(report: OnyxEntry<Report>): boolean {
-    return report?.transactionThreadReportID !== undefined;
+    return ReportActionsUtils.getOneTransactionThreadReportID(report?.reportID ?? '0', null) !== '0'
 }
 
 /**
@@ -1217,7 +1217,7 @@ function isOneTransactionThread(reportID: string, parentReport: OnyxEntry<Report
         return false;
     }
 
-    const transactionThreadReportID = parentReport?.transactionThreadReportID ?? undefined;
+    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(parentReport?.reportID ?? '0', null);
     return reportID === transactionThreadReportID;
 }
 

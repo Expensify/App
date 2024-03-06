@@ -205,6 +205,31 @@ function isTransactionThread(parentReportAction: OnyxEntry<ReportAction>): boole
     );
 }
 
+function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxCollection<ReportActions> | null): string {
+    const moneyRequestReportActions = reportActions && !_.isEmpty(reportActions) ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] : allReportActions?.[reportID];
+    const moneyRequestReportActionsArray = Object.values(moneyRequestReportActions ?? {});
+
+    if (!moneyRequestReportActionsArray.length) {
+        return '0';
+    }
+
+    // Get all IOU report actions for the report.
+    const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.SPLIT];
+    const iouRequestActions = moneyRequestReportActionsArray.filter((action) =>
+        action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
+        && (iouRequestTypes.includes(action.originalMessage.type) ?? [])
+        && action.childReportID
+    );
+
+    // If we don't have any IOU request actions, or we have more than one IOU request actions, this isn't a oneTransaction report and we don't want to return the transactionThreadReportActions
+    if (!iouRequestActions.length || iouRequestActions.length > 1) {
+        return '0';
+    }
+
+    // Ensure we have a childReportID associated with the IOU report action
+    return String(iouRequestActions[0].childReportID);
+}
+
 /**
  * Sort an array of reportActions by their created timestamp first, and reportActionID second
  * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
@@ -712,24 +737,6 @@ function getAllReportActions(reportID: string): ReportActions {
 }
 
 /**
- * Gets an array of IOU report actions
- */
-function getIOUReportActions(reportID: string): ReportAction[] | null {
-    const reportActions = Object.values(getAllReportActions(reportID));
-    if (!reportActions.length) {
-        return null;
-    }
-
-    const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.SPLIT];
-    const iouRequestActions = reportActions?.filter((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && iouRequestTypes.includes(action.originalMessage.type)) ?? [];
-
-    if (!iouRequestActions.length) {
-        return null;
-    }
-    return iouRequestActions;
-}
-
-/**
  * Check whether a report action is an attachment (a file, such as an image or a zip).
  *
  */
@@ -919,8 +926,8 @@ function isCurrentActionUnread(report: Report | EmptyObject, reportAction: Repor
 
 export {
     extractLinksFromMessageHtml,
+    getOneTransactionThreadReportID,
     getAllReportActions,
-    getIOUReportActions,
     getIOUReportIDFromReportActionPreview,
     getLastClosedReportAction,
     getLastVisibleAction,
