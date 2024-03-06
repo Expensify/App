@@ -65,6 +65,9 @@ const propTypes = {
     /** The report metadata loading states */
     reportMetadata: reportMetadataPropTypes,
 
+    /** All the report actions stored in Onyx */
+    allReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
     /** All the report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
@@ -107,6 +110,7 @@ const propTypes = {
 const defaultProps = {
     isSidebarLoaded: false,
     reportActions: [],
+    allReportActions: {},
     transactionThreadReportActions: [],
     parentReportAction: {},
     report: {},
@@ -146,8 +150,8 @@ function ReportScreen({
     route,
     report: reportProp,
     reportMetadata,
+    allReportActions,
     reportActions,
-    transactionThreadReportActions,
     parentReportAction,
     accountManagerReportID,
     markReadyForHydration,
@@ -212,7 +216,6 @@ function ReportScreen({
             policyName: reportProp.policyName,
             isOptimisticReport: reportProp.isOptimisticReport,
             lastMentionedTime: reportProp.lastMentionedTime,
-            transactionThreadReportID: reportProp.transactionThreadReportID,
         }),
         [
             reportProp.lastReadTime,
@@ -250,7 +253,6 @@ function ReportScreen({
             reportProp.policyName,
             reportProp.isOptimisticReport,
             reportProp.lastMentionedTime,
-            reportProp.transactionThreadReportID,
         ],
     );
 
@@ -286,6 +288,13 @@ function ReportScreen({
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] || {};
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
+    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportID, allReportActions);
+    const transactionThreadReportActions = useMemo(() => {
+        if (transactionThreadReportID) {
+            return null;
+        }
+        return ReportActionsUtils.getSortedReportActionsForDisplay(Object.values(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportReportID}`]));
+    }, [allReportActions, transactionThreadReportID]);
 
     useEffect(() => {
         if (!report.reportID || shouldHideReport) {
@@ -617,13 +626,11 @@ export default compose(
             isSidebarLoaded: {
                 key: ONYXKEYS.IS_SIDEBAR_LOADED,
             },
+            allReportActions: {
+                key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+            },
             reportActions: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
-                canEvict: false,
-                selector: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
-            },
-            transactionThreadReportActions: {
-                key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? (report.transactionThreadReportID || '0') : '0'}`,
                 canEvict: false,
                 selector: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
             },
@@ -678,8 +685,8 @@ export default compose(
         ReportScreen,
         (prevProps, nextProps) =>
             prevProps.isSidebarLoaded === nextProps.isSidebarLoaded &&
+            _.isEqual(prevProps.allReportActions, nextProps.allReportActions) &&
             _.isEqual(prevProps.reportActions, nextProps.reportActions) &&
-            _.isEqual(prevProps.transactionThreadReportActions, nextProps.transactionThreadReportActions) &&
             _.isEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
             prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
             _.isEqual(prevProps.betas, nextProps.betas) &&

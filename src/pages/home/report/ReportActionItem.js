@@ -111,11 +111,14 @@ const propTypes = {
 
     emojiReactions: EmojiReactionsPropTypes,
 
+    /** All reportActions shared with the user */
+    reportActions: PropTypes.objectOf(reportActionPropTypes),
+
+    /** All reports shared with the user */
+    reports: PropTypes.objectOf(reportPropTypes),
+
     /** IOU report for this action, if any */
     iouReport: reportPropTypes,
-
-    /** Single transaction thread associated with the report, if any */
-    transactionThreadReport: reportPropTypes,
 
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine: PropTypes.bool,
@@ -135,8 +138,9 @@ const defaultProps = {
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     emojiReactions: {},
     shouldShowSubscriptAvatar: false,
+    reportActions: {},
+    reports: {},
     iouReport: undefined,
-    transactionThreadReport: undefined,
     shouldHideThreadDividerLine: false,
     userWallet: {},
     parentReportActions: {},
@@ -160,6 +164,13 @@ function ReportActionItem(props) {
     const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
     const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
     const isReportActionLinked = props.linkedReportActionID && props.action.reportActionID && props.linkedReportActionID === props.action.reportActionID;
+    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(props.report.reportID, props.allReportActions);
+    const transactionThreadReport = useMemo(() => {
+        if (transactionThreadReportID) {
+            return null;
+        }
+        return props.reports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportReportID}`];
+    }, [props.reports, transactionThreadReportID]);
 
     const reportScrollManager = useReportScrollManager();
 
@@ -701,9 +712,9 @@ function ReportActionItem(props) {
         if (ReportUtils.isExpenseReport(props.report) || ReportUtils.isIOUReport(props.report)) {
             return (
                 <OfflineWithFeedback pendingAction={props.action.pendingAction}>
-                    {props.transactionThreadReport && !isEmptyObject(props.transactionThreadReport) ? (
+                    {transactionThreadReport && !isEmptyObject(transactionThreadReport) ? (
                         <>
-                            {props.transactionThreadReport.currency !== props.report.currency && (
+                            {transactionThreadReport.currency !== props.report.currency && (
                                 <MoneyReportView
                                     report={props.report}
                                     policy={props.policy}
@@ -713,9 +724,9 @@ function ReportActionItem(props) {
                             )}
                             <ShowContextMenuContext.Provider value={contextValue}>
                                 <MoneyRequestView
-                                    report={props.transactionThreadReport}
+                                    report={transactionThreadReport}
                                     shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                                    shouldShowAnimatedBackground={props.transactionThreadReport.currency === props.report.currency}
+                                    shouldShowAnimatedBackground={transactionThreadReport.currency === props.report.currency}
                                 />
                             </ShowContextMenuContext.Provider>
                         </>
@@ -881,15 +892,17 @@ export default compose(
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
             initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE,
         },
+        reportActions: {
+            key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+        },
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
+        },
         iouReport: {
             key: ({action}) => {
                 const iouReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(action);
                 return iouReportID ? `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}` : undefined;
             },
-            initialValue: {},
-        },
-        transactionThreadReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.transactionThreadReportID || 0}`,
             initialValue: {},
         },
         policyReportFields: {
@@ -921,13 +934,14 @@ export default compose(
             prevProps.draftMessage === nextProps.draftMessage &&
             prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction &&
             prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
+            _.isEqual(prevProps.reportActions, nextProps.reportActions) &&
+            _.isEqual(prevProps.reports, nextProps.reports) &&
             _.isEqual(prevProps.emojiReactions, nextProps.emojiReactions) &&
             _.isEqual(prevProps.action, nextProps.action) &&
             _.isEqual(prevProps.iouReport, nextProps.iouReport) &&
             _.isEqual(prevProps.report.pendingFields, nextProps.report.pendingFields) &&
             _.isEqual(prevProps.report.isDeletedParentAction, nextProps.report.isDeletedParentAction) &&
             _.isEqual(prevProps.report.errorFields, nextProps.report.errorFields) &&
-            _.isEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&
             lodashGet(prevProps.report, 'statusNum') === lodashGet(nextProps.report, 'statusNum') &&
             lodashGet(prevProps.report, 'stateNum') === lodashGet(nextProps.report, 'stateNum') &&
             lodashGet(prevProps.report, 'parentReportID') === lodashGet(nextProps.report, 'parentReportID') &&
