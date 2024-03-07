@@ -1276,6 +1276,7 @@ function canAddOrDeleteTransactions(moneyRequest: OnyxEntry<Report>): boolean {
  * policy admin
  */
 function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: string): boolean {
+    console.log('can delete reportAction');
     const report = getReport(reportID);
 
     const isActionOwner = reportAction?.actorAccountID === currentUserAccountID;
@@ -1290,7 +1291,7 @@ function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: 
         }
 
         if (isActionOwner) {
-            if (!isEmptyObject(report) && isMoneyRequest(report)) {
+            if (!isEmptyObject(report) && isMoneyRequestReport(report)) {
                 return canAddOrDeleteTransactions(report);
             }
             return true;
