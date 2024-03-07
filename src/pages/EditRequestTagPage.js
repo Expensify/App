@@ -52,7 +52,7 @@ function EditRequestTagPage({defaultTag, policyID, tagName, tagIndex, onSubmit})
                     <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: tagName || translate('common.tag')})}</Text>
                     <TagPicker
                         selectedTag={defaultTag}
-                        tag={tagName}
+                        tagListName={tagName}
                         tagIndex={tagIndex}
                         policyID={policyID}
                         shouldShowDisabledAndSelectedOption

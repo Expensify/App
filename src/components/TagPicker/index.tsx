@@ -36,7 +36,7 @@ type TagPickerProps = TagPickerOnyxProps & {
     selectedTag: string;
 
     /** The name of tag list we are getting tags for */
-    tag: string;
+    tagListName: string;
 
     /** Callback to submit the selected tag */
     onSubmit: () => void;
@@ -54,13 +54,13 @@ type TagPickerProps = TagPickerOnyxProps & {
     tagIndex: number;
 };
 
-function TagPicker({selectedTag, tag, policyTags, tagIndex, policyRecentlyUsedTags, shouldShowDisabledAndSelectedOption = false, insets, onSubmit}: TagPickerProps) {
+function TagPicker({selectedTag, tagListName, policyTags, tagIndex, policyRecentlyUsedTags, shouldShowDisabledAndSelectedOption = false, insets, onSubmit}: TagPickerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
-    const policyRecentlyUsedTagsList = useMemo(() => policyRecentlyUsedTags?.[tag] ?? [], [policyRecentlyUsedTags, tag]);
+    const policyRecentlyUsedTagsList = useMemo(() => policyRecentlyUsedTags?.[tagListName] ?? [], [policyRecentlyUsedTags, tagListName]);
     const policyTagList = PolicyUtils.getTagList(policyTags, tagIndex);
     const policyTagsCount = PolicyUtils.getCountOfEnabledTagsOfList(policyTagList.tags);
     const isTagsCountBelowThreshold = policyTagsCount < CONST.TAG_LIST_THRESHOLD;
