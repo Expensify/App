@@ -45,7 +45,7 @@ function parseAndLogRoute(state: NavigationState) {
 
     const focusedRoute = findFocusedRoute(state);
 
-    if (focusedRoute?.name !== SCREENS.NOT_FOUND) {
+    if (focusedRoute?.name !== SCREENS.NOT_FOUND && focusedRoute?.name !== SCREENS.SAML_SIGN_IN) {
         updateLastVisitedPath(currentPath);
     }
 
