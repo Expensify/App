@@ -1076,18 +1076,18 @@ function findLastAccessedReport(
 }
 
 /**
- * Whether the provided report is a closed expense report with no expenses
- */
-function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>): boolean {
-    return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && isExpenseReport(report) && !hasTransactions(report.reportID);
-}
-
-/**
  * Whether the provided report has transactions
  */
 function hasTransactions(reportID: string | undefined): boolean {
     const transactions = TransactionUtils.getAllReportTransactions(reportID);
     return transactions && transactions.length > 0;
+}
+
+/**
+ * Whether the provided report is a closed expense report with no expenses
+ */
+function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>): boolean {
+    return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && isExpenseReport(report) && !hasTransactions(report.reportID);
 }
 
 /**
