@@ -3691,9 +3691,13 @@ function sendMoneyWithWallet(report: OnyxTypes.Report, amount: number, currency:
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 
-function shouldShowPayButton(iouReport: OnyxEntry<OnyxTypes.Report>, chatReport: OnyxEntry<OnyxTypes.Report>, policy: OnyxEntry<OnyxTypes.Policy>) {
+function shouldShowPayButton(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
     const iouCanceled = ReportUtils.isArchivedRoom(chatReport);
+
+    if (isEmptyObject(iouReport)) {
+        return false;
+    }
 
     const isPayer = ReportUtils.isPayer(
         {
@@ -3711,7 +3715,14 @@ function shouldShowPayButton(iouReport: OnyxEntry<OnyxTypes.Report>, chatReport:
     return isPayer && !isDraftExpenseReport && !iouSettled && !iouReport?.isWaitingOnBankAccount && reimbursableSpend !== 0 && !iouCanceled && !isAutoReimbursable;
 }
 
-function shouldShowApproveButton(iouReport: OnyxEntry<OnyxTypes.Report>, chatReport: OnyxEntry<OnyxTypes.Report>, policy: OnyxEntry<OnyxTypes.Policy>) {
+function shouldShowApproveButton(
+    iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject,
+    chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObject,
+    policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject,
+) {
+    if (isEmptyObject(chatReport)) {
+        return false;
+    }
     const managerID = iouReport?.managerID ?? 0;
     const isCurrentUserManager = managerID === userAccountID;
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
@@ -3732,12 +3743,12 @@ function shouldShowApproveButton(iouReport: OnyxEntry<OnyxTypes.Report>, chatRep
     return isCurrentUserManager && !isDraftExpenseReport && !isApproved && !iouSettled;
 }
 
-function hasIOUToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, excludedIOUReportID: string): boolean {
+function hasIOUToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, excludedIOUReportID: string): boolean {
     const chatReportActions = ReportActionsUtils.getAllReportActions(chatReport?.reportID ?? '');
 
-    return !!Object.values(chatReportActions).find((action) => {
-        const iouReport = ReportUtils.getReport(action.childReportID ?? '') as OnyxEntry<OnyxTypes.Report>;
-        const policy = ReportUtils.getPolicy(iouReport?.policyID) as OnyxEntry<OnyxTypes.Policy>;
+    return Object.values(chatReportActions).some((action) => {
+        const iouReport = ReportUtils.getReport(action.childReportID ?? '');
+        const policy = ReportUtils.getPolicy(iouReport?.policyID);
 
         const shouldShowSettlementButton = shouldShowPayButton(iouReport, chatReport, policy) || shouldShowApproveButton(iouReport, chatReport, policy);
         return action.childReportID?.toString() !== excludedIOUReportID && action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && shouldShowSettlementButton;
@@ -3748,7 +3759,7 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
     const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(expenseReport.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID);
     const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.APPROVED);
-    const chatReport = ReportUtils.getReport(expenseReport.chatReportID) as OnyxEntry<OnyxTypes.Report>;
+    const chatReport = ReportUtils.getReport(expenseReport.chatReportID);
 
     const optimisticReportActionsData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
@@ -3822,19 +3833,6 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
             value: currentNextStep,
         },
     ];
-
-    if (currentNextStep) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
-            value: null,
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
-            value: currentNextStep,
-        });
-    }
 
     const parameters: ApproveMoneyRequestParams = {
         reportID: expenseReport.reportID,
