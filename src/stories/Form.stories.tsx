@@ -12,13 +12,13 @@ import Picker from '@components/Picker';
 import StatePicker from '@components/StatePicker';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import {MaybePhraseKey} from '@libs/Localize';
 import NetworkConnection from '@libs/NetworkConnection';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultStyles} from '@src/styles';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type FormStory = Story<FormProviderProps<typeof ONYXKEYS.FORMS.TEST_FORM>>;
 
@@ -45,8 +45,13 @@ function Template(args: FormProviderProps<typeof ONYXKEYS.FORMS.TEST_FORM>) {
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
     NetworkConnection.setOfflineStatus(false);
     FormActions.setIsLoading(args.formID, !!args.formState?.isLoading);
-    FormActions.setErrors(args.formID, args.formState?.error as unknown as Errors);
     FormActions.setDraftValues(args.formID, args.draftValues);
+
+    if (args.formState?.error) {
+        FormActions.setErrors(args.formID, {error: args.formState.error as MaybePhraseKey});
+    } else {
+        FormActions.clearErrors(args.formID);
+    }
 
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
@@ -154,8 +159,13 @@ function WithNativeEventHandler(args: FormProviderProps<typeof ONYXKEYS.FORMS.TE
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
     NetworkConnection.setOfflineStatus(false);
     FormActions.setIsLoading(args.formID, !!args.formState?.isLoading);
-    FormActions.setErrors(args.formID, args.formState?.error as unknown as Errors);
     FormActions.setDraftValues(args.formID, args.draftValues);
+
+    if (args.formState?.error) {
+        FormActions.setErrors(args.formID, {error: args.formState.error as MaybePhraseKey});
+    } else {
+        FormActions.clearErrors(args.formID);
+    }
 
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
