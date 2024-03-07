@@ -169,6 +169,8 @@ function ReportActionItem({
     const StyleUtils = useStyleUtils();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => ReportActionContextMenu.isActiveReportAction(action.reportActionID));
+    const [isEmojiPickerActive, setIsEmojiPickerActive] = useState();
+
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState<OnyxTypes.DecisionName>(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const reactionListRef = useContext(ReactionListContext);
@@ -319,6 +321,11 @@ function ReportActionItem({
                 toggleContextMenuFromActiveReportAction,
                 ReportUtils.isArchivedRoom(originalReport),
                 ReportUtils.chatIncludesChronos(originalReport),
+                false,
+                false,
+                [],
+                false,
+                setIsEmojiPickerActive,
             );
         },
         [draftMessage, action, report.reportID, toggleContextMenuFromActiveReportAction, originalReport, originalReportID],
@@ -508,16 +515,6 @@ function ReportActionItem({
                                 action={action}
                                 displayAsGroup={displayAsGroup}
                                 isHidden={isHidden}
-                                style={[
-                                    [
-                                        ...Object.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG),
-                                        CONST.REPORT.ACTIONS.TYPE.IOU,
-                                        CONST.REPORT.ACTIONS.TYPE.APPROVED,
-                                        CONST.REPORT.ACTIONS.TYPE.MOVED,
-                                    ].some((item) => item === action.actionName)
-                                        ? styles.colorMuted
-                                        : undefined,
-                                ]}
                             />
                             {hasBeenFlagged && (
                                 <Button
@@ -590,6 +587,7 @@ function ReportActionItem({
                                     toggleReaction(emoji);
                                 }
                             }}
+                            setIsEmojiPickerActive={setIsEmojiPickerActive}
                         />
                     </View>
                 )}
@@ -618,7 +616,7 @@ function ReportActionItem({
      * @returns report action item
      */
     const renderReportActionItem = (hovered: boolean, isWhisper: boolean, hasErrors: boolean): React.JSX.Element => {
-        const content = renderItemContent(hovered || isContextMenuActive, isWhisper, hasErrors);
+        const content = renderItemContent(hovered || isContextMenuActive || isEmojiPickerActive, isWhisper, hasErrors);
 
         if (draftMessage !== undefined) {
             return <ReportActionItemDraft>{content}</ReportActionItemDraft>;
@@ -803,8 +801,9 @@ function ReportActionItem({
                             draftMessage={draftMessage}
                             isChronosReport={ReportUtils.chatIncludesChronos(originalReport)}
                             checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
+                            setIsEmojiPickerActive={setIsEmojiPickerActive}
                         />
-                        <View style={StyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || draftMessage !== undefined)}>
+                        <View style={StyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || isEmojiPickerActive || draftMessage !== undefined)}>
                             <OfflineWithFeedback
                                 onClose={() => ReportActions.clearReportActionErrors(report.reportID, action)}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

@@ -38,9 +38,6 @@ const findEmojiByName = (name: string): Emoji => Emojis.emojiNameTable[name];
 const findEmojiByCode = (code: string): Emoji => Emojis.emojiCodeTableWithSkinTones[code];
 
 const getEmojiName = (emoji: Emoji, lang: 'en' | 'es' = CONST.LOCALES.DEFAULT): string => {
-    if (!emoji) {
-        return '';
-    }
     if (lang === CONST.LOCALES.DEFAULT) {
         return emoji.name;
     }

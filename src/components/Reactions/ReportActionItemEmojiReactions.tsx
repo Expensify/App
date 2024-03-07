@@ -37,6 +37,9 @@ type ReportActionItemEmojiReactionsProps = WithCurrentUserPersonalDetailsProps &
 
     /** We disable reacting with emojis on report actions that have errors */
     shouldBlockReactions?: boolean;
+
+    /** Function to update emoji picker state */
+    setIsEmojiPickerActive?: (state: boolean) => void;
 };
 
 type PopoverReactionListAnchors = Record<string, ReactionListAnchor>;
@@ -68,6 +71,8 @@ type FormattedReaction = {
 
     /** The type of action that's pending  */
     pendingAction?: PendingAction;
+
+    setIsEmojiPickerActive?: (state: boolean) => void;
 };
 
 function ReportActionItemEmojiReactions({
@@ -77,6 +82,7 @@ function ReportActionItemEmojiReactions({
     emojiReactions = {},
     shouldBlockReactions = false,
     preferredLocale = CONST.LOCALES.DEFAULT,
+    setIsEmojiPickerActive,
 }: ReportActionItemEmojiReactionsProps) {
     const styles = useThemeStyles();
     const reactionListRef = useContext(ReactionListContext);
@@ -166,6 +172,7 @@ function ReportActionItemEmojiReactions({
                     <AddReactionBubble
                         onSelectEmoji={toggleReaction}
                         reportAction={reportAction}
+                        setIsEmojiPickerActive={setIsEmojiPickerActive}
                     />
                 )}
             </View>
