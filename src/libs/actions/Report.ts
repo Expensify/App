@@ -803,7 +803,7 @@ function openReport(
  */
 function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true, reportName?: string) {
     let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
-    let chat: ReportUtils.OptimisticChatReport | EmptyObject = {};
+    let chat: OnyxEntry<Report> | EmptyObject = {};
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
 
     if (!newGroupDraft) {
