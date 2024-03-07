@@ -6,7 +6,6 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
 import navigateAfterJoinRequest from '@libs/navigateAfterJoinRequest';
-// import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
@@ -40,8 +39,6 @@ function WorkspaceJoinUserPage({route, policies}: WorkspaceJoinUserPageProps) {
             Navigation.goBack(undefined, false, true);
             return;
         }
-        // Will be used later when API return reportID to invited member with the same domain
-        // const isSamePrivateDomain = policy?.owner ? areEmailsFromSamePrivateDomain(currentUserPersonalDetails.login, policy?.owner) : false;
         PolicyAction.inviteMemberToWorkspace(policyID, inviterEmail);
         Navigation.isNavigationReady().then(() => {
             if (isUnmounted.current) {

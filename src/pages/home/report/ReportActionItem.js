@@ -348,13 +348,13 @@ function ReportActionItem(props) {
                 {
                     text: 'actionableMentionJoinWorkspaceOptions.accept',
                     key: `${props.action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT}`,
-                    onPress: () => Policy.acceptJoinRequest(props.report.reportID, props.action.actorAccountID, props.action.reportActionID),
+                    onPress: () => Policy.acceptJoinRequest(props.report.reportID, props.action.actorAccountID, props.action.reportActionID, props.action.originalMessage.policyID),
                     isPrimary: true,
                 },
                 {
                     text: 'actionableMentionJoinWorkspaceOptions.decline',
                     key: `${props.action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.DECLINE}`,
-                    onPress: () => Policy.declineJoinRequest(props.report.reportID, props.action.actorAccountID, props.action.reportActionID),
+                    onPress: () => Policy.declineJoinRequest(props.report.reportID, props.action.actorAccountID, props.action.reportActionID, props.action.originalMessage.policyID),
                 },
             ];
         }
