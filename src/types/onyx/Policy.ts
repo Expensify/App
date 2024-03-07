@@ -116,7 +116,7 @@ type ConnectionData = {
     vendors: Vendor[];
 };
 
-type IntegrationEntity = 'NONE' | 'DEFAULT' | 'TAG' | 'REPORT_FIELD';
+type IntegrationEntityMap = 'NONE' | 'DEFAULT' | 'TAG' | 'REPORT_FIELD';
 
 type ConnectionConfig = {
     realmId: number;
@@ -138,16 +138,16 @@ type ConnectionConfig = {
     syncPeople: boolean;
     syncItems: boolean;
     markChecksToBePrinted: boolean;
-    reimbursableExpensesExportDestination: IntegrationEntity;
-    nonReimbursableExpensesExportDestination: IntegrationEntity;
+    reimbursableExpensesExportDestination: IntegrationEntityMap;
+    nonReimbursableExpensesExportDestination: IntegrationEntityMap;
 
     reimbursableExpensesAccount?: string;
     nonReimbursableExpensesAccount?: string;
     autoCreateVendor: boolean;
     hasChosenAutoSyncOption: boolean;
-    syncClasses: IntegrationEntity;
-    syncCustomers: IntegrationEntity;
-    syncLocations: IntegrationEntity;
+    syncClasses: IntegrationEntityMap;
+    syncCustomers: IntegrationEntityMap;
+    syncLocations: IntegrationEntityMap;
     exportDate: string;
     lastConfigurationTime: number;
     syncTax: boolean;
