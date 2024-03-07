@@ -1253,10 +1253,24 @@ export default {
     },
     onboarding: {
         welcome: '¡Bienvenido!',
+        welcomeVideo: {
+            title: 'Bienvenido a Expensify',
+            description: 'Recibir pago es tan fácil como enviar un mensaje.',
+            button: 'Vamos',
+        },
         whatsYourName: '¿Cómo te llamas?',
+        purpose: {
+            title: "¿Qué quieres hacer hoy?",
+            [CONST.ONBOARDING_CHOICES.TRACK]: "Seguimiento del gasto empresarial en materia de impuestos",
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: "Que mi empleador me pague",
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: "Gestionar los gastos de mi equipo",
+            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: "Seguimiento y presupuesto del gasto personal",
+            [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: "Chatea y divide facturas con amigos",
+            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: "Estoy viendo solamente"
+        },
         error: {
             requiredFirstName: 'Por favor, ingresa tu primer nombre para continuar',
-            requiredLasttName: 'Por favor, ingresa tu apellido para continuar',
+            requiredLastName: 'Por favor, ingresa tu apellido para continuar',
         },
     },
     personalDetails: {
@@ -2780,13 +2794,6 @@ export default {
         },
         errors: {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual.',
-        },
-    },
-    onboarding: {
-        welcomeVideo: {
-            title: 'Bienvenido a Expensify',
-            description: 'Recibir pago es tan fácil como enviar un mensaje.',
-            button: 'Vamos',
         },
     },
     reportCardLostOrDamaged: {

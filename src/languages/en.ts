@@ -1271,7 +1271,7 @@ export default {
         },
         error: {
             requiredFirstName: 'Please input your first name to continue',
-            requiredLasttName: 'Please input your last name to continue',
+            requiredLastName: 'Please input your last name to continue',
         },
     },
     personalDetails: {
