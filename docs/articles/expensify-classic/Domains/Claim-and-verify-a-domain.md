@@ -43,4 +43,8 @@ To complete this step, you must have a Control workspace, and you’ll need acce
 
 After successful verification, an email will be sent to all members of the Expensify domain to inform them that their accounts will be under domain control (i.e. the rules set for the domain will affect their account). 
 
+# Add another domain
+
+To add an additional domain, you’ll have to first add your email address that is connected with your domain as your [primary or secondary email] (https://help.expensify.com/articles/expensify-classic/settings/account-settings/Change-or-add-email-address) (for example, if your domain is yourcompany.com, then you want to add and verify your email address @yourcompany.com as your primary or secondary email address). Then you can complete the steps above to add the domain. 
+
 </div>
