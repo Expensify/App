@@ -124,7 +124,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                 originalFileName={policy?.originalFileName}
                                 disabled={readOnly}
                                 disabledStyle={styles.cursorDefault}
-                                errorRowStyles={undefined}
+                                errorRowStyles={styles.mt1}
                             />
                             <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
                                 <MenuItemWithTopDescription
