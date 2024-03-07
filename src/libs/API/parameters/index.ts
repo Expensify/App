@@ -115,6 +115,7 @@ export type {default as OpenWorkspaceReimburseViewParams} from './OpenWorkspaceR
 export type {default as OpenWorkspaceInvitePageParams} from './OpenWorkspaceInvitePageParams';
 export type {default as OpenWorkspaceMembersPageParams} from './OpenWorkspaceMembersPageParams';
 export type {default as OpenPolicyCategoriesPageParams} from './OpenPolicyCategoriesPageParams';
+export type {default as OpenPolicyTagsPageParams} from './OpenPolicyTagsPageParams';
 export type {default as OpenDraftWorkspaceRequestParams} from './OpenDraftWorkspaceRequestParams';
 export type {default as UpdateWorkspaceCustomUnitAndRateParams} from './UpdateWorkspaceCustomUnitAndRateParams';
 export type {default as CreateWorkspaceFromIOUPaymentParams} from './CreateWorkspaceFromIOUPaymentParams';

@@ -17,6 +17,7 @@ import type {
     DeleteWorkspaceParams,
     OpenDraftWorkspaceRequestParams,
     OpenPolicyCategoriesPageParams,
+    OpenPolicyTagsPageParams,
     OpenWorkspaceInvitePageParams,
     OpenWorkspaceMembersPageParams,
     OpenWorkspaceParams,
@@ -1846,6 +1847,19 @@ function openPolicyCategoriesPage(policyID: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_CATEGORIES_PAGE, params);
 }
 
+function OpenPolicyTagsPage(policyID: string) {
+    if (!policyID) {
+        Log.warn('openPolicyTasgPage invalid params', {policyID});
+        return;
+    }
+
+    const params: OpenPolicyTagsPageParams = {
+        policyID,
+    };
+
+    API.read(READ_COMMANDS.OPEN_POLICY_TAGS_PAGE, params);
+}
+
 function openWorkspaceInvitePage(policyID: string, clientMemberEmails: string[]) {
     if (!policyID || !clientMemberEmails) {
         Log.warn('openWorkspaceInvitePage invalid params', {policyID, clientMemberEmails});
@@ -2676,6 +2690,7 @@ export {
     createWorkspace,
     openWorkspaceMembersPage,
     openPolicyCategoriesPage,
+    OpenPolicyTagsPage,
     openWorkspaceInvitePage,
     openWorkspace,
     removeWorkspace,
