@@ -1,18 +1,19 @@
+import type {ComponentMeta} from '@storybook/react';
 import React, {useMemo, useState} from 'react';
-import _ from 'underscore';
 import Badge from '@components/Badge';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 // eslint-disable-next-line no-restricted-imports
 import {defaultStyles} from '@styles/index';
 import CONST from '@src/CONST';
+import type { BaseSelectionListProps, ListItem } from '@components/SelectionList/types';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story = {
+const story: ComponentMeta<typeof SelectionList> = {
     title: 'Components/SelectionList',
     component: SelectionList,
 };
@@ -62,24 +63,24 @@ const SECTIONS = [
     },
 ];
 
-function Default(args) {
+function Default(props: BaseSelectionListProps<ListItem>) {
     const [selectedIndex, setSelectedIndex] = useState(1);
 
-    const sections = _.map(args.sections, (section) => {
-        const data = _.map(section.data, (item, index) => {
-            const isSelected = selectedIndex === index + section.indexOffset;
+    const sections = props.sections.map((section) => {
+        const data = section.data.map((item, index) => {
+            const isSelected = selectedIndex === index + (section?.indexOffset ?? 0);
             return {...item, isSelected};
         });
 
         return {...section, data};
     });
 
-    const onSelectRow = (item) => {
-        _.forEach(sections, (section) => {
-            const newSelectedIndex = _.findIndex(section.data, (option) => option.keyForList === item.keyForList);
+    const onSelectRow = (item: ListItem) => {
+        sections.forEach((section) => {
+            const newSelectedIndex = section.data.findIndex((option) => option.keyForList === item.keyForList);
 
             if (newSelectedIndex >= 0) {
-                setSelectedIndex(newSelectedIndex + section.indexOffset);
+                setSelectedIndex(newSelectedIndex + (section?.indexOffset ?? 0));
             }
         });
     };
@@ -87,7 +88,7 @@ function Default(args) {
     return (
         <SelectionList
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...args}
+            {...props}
             sections={sections}
             ListItem={RadioListItem}
             onSelectRow={onSelectRow}
@@ -101,19 +102,18 @@ Default.args = {
     initiallyFocusedOptionKey: 'option-2',
 };
 
-function WithTextInput(args) {
+function WithTextInput(props: BaseSelectionListProps<ListItem>) {
     const [searchText, setSearchText] = useState('');
     const [selectedIndex, setSelectedIndex] = useState(1);
 
-    const sections = _.map(args.sections, (section) => {
-        const data = _.reduce(
-            section.data,
+    const sections = props.sections.map((section) => {
+        const data = section.data.reduce(
             (memo, item, index) => {
                 if (!item.text.toLowerCase().includes(searchText.trim().toLowerCase())) {
                     return memo;
                 }
 
-                const isSelected = selectedIndex === index + section.indexOffset;
+                const isSelected = selectedIndex === index + (section?.indexOffset ?? 0);
                 memo.push({...item, isSelected});
                 return memo;
             },
@@ -123,12 +123,12 @@ function WithTextInput(args) {
         return {...section, data};
     });
 
-    const onSelectRow = (item) => {
-        _.forEach(sections, (section) => {
-            const newSelectedIndex = _.findIndex(section.data, (option) => option.keyForList === item.keyForList);
+    const onSelectRow = (item: ListItem) => {
+        sections.forEach((section) => {
+            const newSelectedIndex = section.data.findIndex((option) => option.keyForList === item.keyForList);
 
             if (newSelectedIndex >= 0) {
-                setSelectedIndex(newSelectedIndex + section.indexOffset);
+                setSelectedIndex(newSelectedIndex + (section?.indexOffset ?? 0));
             }
         });
     };
@@ -136,7 +136,7 @@ function WithTextInput(args) {
     return (
         <SelectionList
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...args}
+            {...props}
             sections={sections}
             ListItem={RadioListItem}
             textInputValue={searchText}
@@ -157,7 +157,7 @@ WithTextInput.args = {
     onChangeText: () => {},
 };
 
-function WithHeaderMessage(props) {
+function WithHeaderMessage(props: BaseSelectionListProps<ListItem>) {
     return (
         <WithTextInput
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -172,12 +172,12 @@ WithHeaderMessage.args = {
     sections: [],
 };
 
-function WithAlternateText(args) {
+function WithAlternateText(props: BaseSelectionListProps<ListItem>) {
     const [selectedIndex, setSelectedIndex] = useState(1);
 
-    const sections = _.map(args.sections, (section) => {
-        const data = _.map(section.data, (item, index) => {
-            const isSelected = selectedIndex === index + section.indexOffset;
+    const sections = props.sections.map((section) => {
+        const data = section.data.map((item, index) => {
+            const isSelected = selectedIndex === index + (section?.indexOffset ?? 0);
 
             return {
                 ...item,
@@ -189,19 +189,19 @@ function WithAlternateText(args) {
         return {...section, data};
     });
 
-    const onSelectRow = (item) => {
-        _.forEach(sections, (section) => {
-            const newSelectedIndex = _.findIndex(section.data, (option) => option.keyForList === item.keyForList);
+    const onSelectRow = (item: ListItem) => {
+        sections.forEach((section) => {
+            const newSelectedIndex = section.data.findIndex((option) => option.keyForList === item.keyForList);
 
             if (newSelectedIndex >= 0) {
-                setSelectedIndex(newSelectedIndex + section.indexOffset);
+                setSelectedIndex(newSelectedIndex + (section?.indexOffset ?? 0));
             }
         });
     };
     return (
         <SelectionList
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...args}
+            {...props}
             sections={sections}
             onSelectRow={onSelectRow}
         />
@@ -212,17 +212,17 @@ WithAlternateText.args = {
     ...Default.args,
 };
 
-function MultipleSelection(args) {
+function MultipleSelection(props: BaseSelectionListProps<ListItem>) {
     const [selectedIds, setSelectedIds] = useState(['option-1', 'option-2']);
 
     const memo = useMemo(() => {
-        const allIds = [];
+        const allIds: string [] = [];
 
-        const sections = _.map(args.sections, (section) => {
-            const data = _.map(section.data, (item, index) => {
+        const sections = props.sections.map((section) => {
+            const data = section.data.map((item, index) => {
                 allIds.push(item.keyForList);
-                const isSelected = _.contains(selectedIds, item.keyForList);
-                const isAdmin = index + section.indexOffset === 0;
+                const isSelected = selectedIds.includes(item.keyForList);
+                const isAdmin = index + (section?.indexOffset ?? 0) === 0;
 
                 return {
                     ...item,
@@ -244,10 +244,10 @@ function MultipleSelection(args) {
         });
 
         return {sections, allIds};
-    }, [args.sections, selectedIds]);
+    }, [props.sections, selectedIds]);
 
-    const onSelectRow = (item) => {
-        const newSelectedIds = _.contains(selectedIds, item.keyForList) ? _.without(selectedIds, item.keyForList) : [...selectedIds, item.keyForList];
+    const onSelectRow = (item: ListItem) => {
+        const newSelectedIds = selectedIds.includes(item.keyForList) ? selectedIds.filter((i) => i !== item.keyForList) : [...selectedIds, item.keyForList];
         setSelectedIds(newSelectedIds);
     };
 
@@ -262,7 +262,7 @@ function MultipleSelection(args) {
     return (
         <SelectionList
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...args}
+            {...props}
             sections={memo.sections}
             ListItem={RadioListItem}
             onSelectRow={onSelectRow}
@@ -277,17 +277,17 @@ MultipleSelection.args = {
     onSelectAll: () => {},
 };
 
-function WithSectionHeader(args) {
+function WithSectionHeader(props: BaseSelectionListProps<ListItem>) {
     const [selectedIds, setSelectedIds] = useState(['option-1', 'option-2']);
 
     const memo = useMemo(() => {
-        const allIds = [];
+        const allIds: string[] = [];
 
-        const sections = _.map(args.sections, (section, sectionIndex) => {
-            const data = _.map(section.data, (item, itemIndex) => {
+        const sections = props.sections.map((section, sectionIndex) => {
+            const data = section.data.map((item, itemIndex) => {
                 allIds.push(item.keyForList);
-                const isSelected = _.contains(selectedIds, item.keyForList);
-                const isAdmin = itemIndex + section.indexOffset === 0;
+                const isSelected = selectedIds.includes(item.keyForList);
+                const isAdmin = itemIndex + (section?.indexOffset ?? 0) === 0;
 
                 return {
                     ...item,
@@ -309,10 +309,10 @@ function WithSectionHeader(args) {
         });
 
         return {sections, allIds};
-    }, [args.sections, selectedIds]);
+    }, [props.sections, selectedIds]);
 
-    const onSelectRow = (item) => {
-        const newSelectedIds = _.contains(selectedIds, item.keyForList) ? _.without(selectedIds, item.keyForList) : [...selectedIds, item.keyForList];
+    const onSelectRow = (item: ListItem) => {
+        const newSelectedIds = selectedIds.includes(item.keyForList) ? selectedIds.filter((i) => i !== item.keyForList) : [...selectedIds, item.keyForList];
         setSelectedIds(newSelectedIds);
     };
 
@@ -327,7 +327,7 @@ function WithSectionHeader(args) {
     return (
         <SelectionList
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...args}
+            {...props}
             sections={memo.sections}
             ListItem={RadioListItem}
             onSelectRow={onSelectRow}
@@ -340,17 +340,17 @@ WithSectionHeader.args = {
     ...MultipleSelection.args,
 };
 
-function WithConfirmButton(args) {
+function WithConfirmButton(props: BaseSelectionListProps<ListItem>) {
     const [selectedIds, setSelectedIds] = useState(['option-1', 'option-2']);
 
     const memo = useMemo(() => {
-        const allIds = [];
+        const allIds: string[] = [];
 
-        const sections = _.map(args.sections, (section, sectionIndex) => {
-            const data = _.map(section.data, (item, itemIndex) => {
+        const sections = props.sections.map((section, sectionIndex) => {
+            const data = section.data.map((item, itemIndex) => {
                 allIds.push(item.keyForList);
-                const isSelected = _.contains(selectedIds, item.keyForList);
-                const isAdmin = itemIndex + section.indexOffset === 0;
+                const isSelected = selectedIds.includes(item.keyForList);
+                const isAdmin = itemIndex + (section?.indexOffset ?? 0) === 0;
 
                 return {
                     ...item,
@@ -372,10 +372,10 @@ function WithConfirmButton(args) {
         });
 
         return {sections, allIds};
-    }, [args.sections, selectedIds]);
+    }, [props.sections, selectedIds]);
 
-    const onSelectRow = (item) => {
-        const newSelectedIds = _.contains(selectedIds, item.keyForList) ? _.without(selectedIds, item.keyForList) : [...selectedIds, item.keyForList];
+    const onSelectRow = (item: ListItem) => {
+        const newSelectedIds = selectedIds.includes(item.keyForList) ? selectedIds.filter((i) => i !== item.keyForList) : [...selectedIds, item.keyForList];
         setSelectedIds(newSelectedIds);
     };
 
@@ -390,7 +390,7 @@ function WithConfirmButton(args) {
     return (
         <SelectionList
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...args}
+            {...props}
             sections={memo.sections}
             ListItem={RadioListItem}
             onSelectRow={onSelectRow}
