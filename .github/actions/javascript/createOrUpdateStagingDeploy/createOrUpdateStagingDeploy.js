@@ -41,6 +41,7 @@ async function run() {
         // Next, we generate the checklist body
         let checklistBody = '';
         let checklistAssignees = [];
+        let checklistAssignees = [];
         if (shouldCreateNewDeployChecklist) {
             const {issueBody, issueAssignees} = await GithubUtils.generateStagingDeployCashBody(newVersionTag, _.map(mergedPRs, GithubUtils.getPullRequestURLFromNumber));
             checklistBody = issueBody;
