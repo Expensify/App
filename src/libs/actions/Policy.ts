@@ -749,9 +749,9 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
             value: {
-                ...memberRoles.reduce((member: Record<number, {role: string}>, current) => {
+                ...memberRoles.reduce((member: Record<number, {role: string, pendingAction: string | null}>, current) => {
                     // eslint-disable-next-line no-param-reassign
-                    member[current.accountID] = {role: current?.role};
+                    member[current.accountID] = {role: current?.role, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
                     return member;
                 }, {}),
                 errors: null,
@@ -764,6 +764,11 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
             value: {
+                ...memberRoles.reduce((member: Record<number, {role: string; pendingAction: string | null}>, current) => {
+                    // eslint-disable-next-line no-param-reassign
+                    member[current.accountID] = {role: current?.role, pendingAction: null};
+                    return member;
+                }, {}),
                 errors: null,
             },
         },
