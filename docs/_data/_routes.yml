@@ -19,6 +19,16 @@ platforms:
         icon: /assets/images/accounting.svg
         description: From setting up your account to ensuring you get the most out of Expensify’s suite of features, click here to get started on streamlining your expense management journey.
 
+      - href: domains
+        title: Domains
+        icon: /assets/images/shield.svg
+        description: How to claim, verify, and set up your private domain in Expensify.
+
+      - href: workspaces
+        title: Workspaces
+        icon: /assets/images/shield.svg
+        description: How to create groups, invite members, set up payment accounts and budgets, and more. 
+
       - href: settings
         title: Settings
         icon: /assets/images/gears.svg
@@ -58,6 +68,11 @@ platforms:
         title: Insights & Custom Reporting
         icon: /assets/images/monitor.svg
         description: From exporting reports to creating custom templates, here is where you can learn more about Expensify's versatile export options.
+
+      - href: copilots-and-delegates
+        title: Copilots & Delegates
+        icon: /assets/images/gears.svg
+        description: Enhance Expensify’s capabilities by integrating it with your accounting or HR software. Here is where you can learn more about creating a synchronized financial management ecosystem.
 
       - href: integrations
         title: Integrations
