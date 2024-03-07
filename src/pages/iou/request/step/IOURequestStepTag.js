@@ -162,7 +162,18 @@ export default compose(
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
         },
         parentReportActions: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID || report.reportID : '0'}`,
+            key: ({
+                report,
+                route: {
+                    params: {action, iouType},
+                },
+            }) => {
+                let reportID = '0';
+                if (action === CONST.IOU.ACTION.EDIT) {
+                    reportID = iouType === CONST.IOU.TYPE.SPLIT ? report.reportID : report.parentReportID;
+                }
+                return `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
+            },
             canEvict: false,
         },
         session: {
