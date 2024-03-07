@@ -119,8 +119,8 @@ function SearchPage({betas, reports, isSearchingForReports}) {
                 recentReports: filteredOptions,
                 personalDetails: [],
                 userToInvite: {},
+                headerMessage: '',
             };
-            header = '';
         } else if (searchValue !== '' && filteredOptions.length === 0) {
             listOptions = {
                 recentReports: [],
@@ -128,7 +128,11 @@ function SearchPage({betas, reports, isSearchingForReports}) {
                 userToInvite: null,
             };
         }
-        let header = OptionsListUtils.getHeaderMessage(listOptions.recentReports.length + listOptions.personalDetails.length !== 0, Boolean(listOptions.userToInvite), debouncedSearchValue);
+        const header = OptionsListUtils.getHeaderMessage(
+            listOptions.recentReports.length + listOptions.personalDetails.length !== 0,
+            Boolean(listOptions.userToInvite),
+            debouncedSearchValue,
+        );
         return {...listOptions, headerMessage: header};
     }, [debouncedSearchValue, filteredOptions, isScreenTransitionEnd, options, searchValue]);
 

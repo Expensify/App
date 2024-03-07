@@ -37,6 +37,7 @@ import Timing from './actions/Timing';
 import * as CollectionUtils from './CollectionUtils';
 import * as ErrorUtils from './ErrorUtils';
 import filterArrayByMatch from './filterArrayByMatch';
+import type {KeyOption} from './filterArrayByMatch';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
@@ -2015,7 +2016,7 @@ function filterOptions(options: GetOptions, searchValue: string): ReportUtils.Op
 
     const reportsByType = options.recentReports.reduce<ReportTypesOptionData>(
         (acc, option) => {
-            if (option.isChatRoom || option.isPolicyExpenseChat) {
+            if (!!option.isChatRoom || !!option.isPolicyExpenseChat) {
                 acc.chatRoomsAndPolicyExpenseChats.push(option);
             } else {
                 acc.reports.push(option);
@@ -2029,22 +2030,40 @@ function filterOptions(options: GetOptions, searchValue: string): ReportUtils.Op
             personalDetails: options.personalDetails,
         },
     );
-    const createFilter = (items: ReportUtils.OptionData[], keys: string[], term: string) =>
+    const createFilter = (items: ReportUtils.OptionData[], keys: ReadonlyArray<KeyOption<ReportUtils.OptionData>>, term: string) =>
         filterArrayByMatch(items, term, {
             keys,
             strict: true,
         });
 
+    // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
+    // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
+    const emailRegex = /\.(?=[^\s@]*@)/g;
+
     const matchResults = searchTerms.reduceRight((items, term) => {
         const personalDetails = createFilter(
             items.personalDetails,
-            ['text', 'login', 'participantsList[0].displayName', 'participantsList[0].firstName', 'participantsList[0].lastName'],
+            [
+                'text',
+                'login',
+                (item) => (item.login ? item.login.replace(emailRegex, '') : []),
+                'participantsList.0.displayName',
+                'participantsList.0.firstName',
+                'participantsList.0.lastName',
+            ],
             term,
         );
         const chatRoomsAndPolicyExpenseChats = createFilter(items.chatRoomsAndPolicyExpenseChats, ['text', 'alternateText'], term);
         const reports = createFilter(
             items.reports,
-            ['text', 'participantsList.*.login', 'participantsList.*.displayName', 'participantsList.*.firstName', 'participantsList.*.lastName'],
+            [
+                'text',
+                'participantsList.0.login',
+                (item) => (item.participantsList ? item.participantsList.filter(({login}) => login).map((i) => (i.login ? i.login.replace(emailRegex, '') : '')) : []),
+                'participantsList.0.displayName',
+                'participantsList.0.firstName',
+                'participantsList.0.lastName',
+            ],
             term,
         );
 
