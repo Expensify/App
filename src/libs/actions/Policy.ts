@@ -16,6 +16,7 @@ import type {
     DeleteWorkspaceAvatarParams,
     DeleteWorkspaceParams,
     OpenDraftWorkspaceRequestParams,
+    OpenPolicyCategoriesPageParams,
     OpenWorkspaceInvitePageParams,
     OpenWorkspaceMembersPageParams,
     OpenWorkspaceParams,
@@ -412,6 +413,7 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean) {
                 harvesting: {
                     enabled: true,
                 },
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY,
                 pendingFields: {isAutoApprovalEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             },
         },
@@ -423,6 +425,7 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 autoReporting: !enabled,
+                autoReportingFrequency: null,
                 pendingFields: {isAutoApprovalEnabled: null, harvesting: null},
             },
         },
@@ -1830,6 +1833,19 @@ function openWorkspaceMembersPage(policyID: string, clientMemberEmails: string[]
     API.read(READ_COMMANDS.OPEN_WORKSPACE_MEMBERS_PAGE, params);
 }
 
+function openPolicyCategoriesPage(policyID: string) {
+    if (!policyID) {
+        Log.warn('openPolicyCategoriesPage invalid params', {policyID});
+        return;
+    }
+
+    const params: OpenPolicyCategoriesPageParams = {
+        policyID,
+    };
+
+    API.read(READ_COMMANDS.OPEN_POLICY_CATEGORIES_PAGE, params);
+}
+
 function openWorkspaceInvitePage(policyID: string, clientMemberEmails: string[]) {
     if (!policyID || !clientMemberEmails) {
         Log.warn('openWorkspaceInvitePage invalid params', {policyID, clientMemberEmails});
@@ -2419,6 +2435,56 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
     API.write('SetWorkspaceCategoriesEnabled', parameters, onyxData);
 }
 
+function createPolicyCategory(policyID: string, categoryName: string) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        name: categoryName,
+                        enabled: true,
+                        errors: null,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        errors: null,
+                        pendingAction: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.genericFailureMessage'),
+                        pendingAction: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        categories: JSON.stringify([{name: categoryName}]),
+    };
+
+    API.write(WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES, parameters, onyxData);
+}
+
 function setWorkspaceRequiresCategory(policyID: string, requiresCategory: boolean) {
     const onyxData: OnyxData = {
         optimisticData: [
@@ -2516,6 +2582,7 @@ export {
     generatePolicyID,
     createWorkspace,
     openWorkspaceMembersPage,
+    openPolicyCategoriesPage,
     openWorkspaceInvitePage,
     openWorkspace,
     removeWorkspace,
@@ -2535,5 +2602,6 @@ export {
     updateWorkspaceDescription,
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,
+    createPolicyCategory,
     clearCategoryErrors,
 };
