@@ -114,6 +114,7 @@ export type {default as OpenWorkspaceViewParams} from './OpenWorkspaceViewParams
 export type {default as OpenWorkspaceReimburseViewParams} from './OpenWorkspaceReimburseViewParams';
 export type {default as OpenWorkspaceInvitePageParams} from './OpenWorkspaceInvitePageParams';
 export type {default as OpenWorkspaceMembersPageParams} from './OpenWorkspaceMembersPageParams';
+export type {default as OpenPolicyCategoriesPageParams} from './OpenPolicyCategoriesPageParams';
 export type {default as OpenDraftWorkspaceRequestParams} from './OpenDraftWorkspaceRequestParams';
 export type {default as UpdateWorkspaceCustomUnitAndRateParams} from './UpdateWorkspaceCustomUnitAndRateParams';
 export type {default as CreateWorkspaceFromIOUPaymentParams} from './CreateWorkspaceFromIOUPaymentParams';
@@ -148,6 +149,7 @@ export type {default as AcceptACHContractForBankAccount} from './AcceptACHContra
 export type {default as UpdateWorkspaceDescriptionParams} from './UpdateWorkspaceDescriptionParams';
 export type {default as UpdateWorkspaceMembersRoleParams} from './UpdateWorkspaceMembersRoleParams';
 export type {default as SetWorkspaceCategoriesEnabledParams} from './SetWorkspaceCategoriesEnabledParams';
+export type {default as CreateWorkspaceCategoriesParams} from './CreateWorkspaceCategoriesParams';
 export type {default as SetWorkspaceRequiresCategoryParams} from './SetWorkspaceRequiresCategoryParams';
 export type {default as SetWorkspaceAutoReportingParams} from './SetWorkspaceAutoReportingParams';
 export type {default as SetWorkspaceAutoReportingFrequencyParams} from './SetWorkspaceAutoReportingFrequencyParams';
