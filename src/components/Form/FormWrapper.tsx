@@ -120,7 +120,29 @@ function FormWrapper({
                 )}
             </FormElement>
         ),
-        [children, enabledWhenOffline, errorMessage, errors, footerContent, formID, formState?.errorFields, formState?.isLoading, isSubmitActionDangerous, isSubmitButtonVisible, onSubmit, style, styles.flex1, styles.mh0, styles.mt5, submitButtonStyles, submitFlexEnabled, submitButtonText, shouldHideFixErrorsAlert, onFixTheErrorsLinkPressed, disablePressOnEnter],
+        [
+            children,
+            enabledWhenOffline,
+            errorMessage,
+            errors,
+            footerContent,
+            formID,
+            formState?.errorFields,
+            formState?.isLoading,
+            isSubmitActionDangerous,
+            isSubmitButtonVisible,
+            onSubmit,
+            style,
+            styles.flex1,
+            styles.mh0,
+            styles.mt5,
+            submitButtonStyles,
+            submitFlexEnabled,
+            submitButtonText,
+            shouldHideFixErrorsAlert,
+            onFixTheErrorsLinkPressed,
+            disablePressOnEnter,
+        ],
     );
 
     return (

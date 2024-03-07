@@ -1260,13 +1260,13 @@ export default {
         },
         whatsYourName: '¿Cómo te llamas?',
         purpose: {
-            title: "¿Qué quieres hacer hoy?",
-            [CONST.ONBOARDING_CHOICES.TRACK]: "Seguimiento del gasto empresarial en materia de impuestos",
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: "Que mi empleador me pague",
-            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: "Gestionar los gastos de mi equipo",
-            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: "Seguimiento y presupuesto del gasto personal",
-            [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: "Chatea y divide facturas con amigos",
-            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: "Estoy viendo solamente"
+            title: '¿Qué quieres hacer hoy?',
+            [CONST.ONBOARDING_CHOICES.TRACK]: 'Seguimiento del gasto empresarial en materia de impuestos',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Que mi empleador me pague',
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
+            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Seguimiento y presupuesto del gasto personal',
+            [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chatea y divide facturas con amigos',
+            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Estoy viendo solamente',
         },
         error: {
             requiredFirstName: 'Por favor, ingresa tu primer nombre para continuar',

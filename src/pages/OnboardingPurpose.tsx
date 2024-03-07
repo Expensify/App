@@ -59,7 +59,7 @@ function OnboardingPurpose() {
     );
 
     const completeEngagement = useCallback(() => {
-        if(selectedPurpose === undefined) {
+        if (selectedPurpose === undefined) {
             return;
         }
 
