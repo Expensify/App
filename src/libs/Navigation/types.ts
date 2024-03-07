@@ -93,11 +93,16 @@ type CentralPaneNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.TAGS]: {
         policyID: string;
+        categoryName: string;
     };
 };
 
 type WorkspaceSwitcherNavigatorParamList = {
     [SCREENS.WORKSPACE_SWITCHER.ROOT]: undefined;
+};
+
+type BackToParams = {
+    backTo?: Routes;
 };
 
 type SettingsNavigatorParamList = {
@@ -193,6 +198,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.CATEGORY_CREATE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
         policyID: string;
         categoryName: string;
@@ -203,7 +211,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
-    [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: undefined;
+    [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: BackToParams;
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: undefined;
     [SCREENS.KEYBOARD_SHORTCUTS]: undefined;
     [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: undefined;
@@ -632,4 +640,5 @@ export type {
     WorkspaceSwitcherNavigatorParamList,
     OnboardEngagementNavigatorParamList,
     SwitchPolicyIDParams,
+    BackToParams,
 };

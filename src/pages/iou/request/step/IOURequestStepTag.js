@@ -14,7 +14,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import {canEditMoneyRequest} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import {policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
@@ -44,6 +46,9 @@ const propTypes = {
 
     /** Collection of tags attached to a policy */
     policyTags: tagPropTypes,
+
+    /** The actions from the parent report */
+    parentReportActions: PropTypes.shape(reportActionPropTypes),
 };
 
 const defaultProps = {
@@ -52,6 +57,7 @@ const defaultProps = {
     policyTags: null,
     policyCategories: null,
     transaction: {},
+    parentReportActions: {},
 };
 
 function IOURequestStepTag({
@@ -63,6 +69,7 @@ function IOURequestStepTag({
         params: {action, tagIndex: rawTagIndex, transactionID, backTo, iouType},
     },
     transaction,
+    parentReportActions,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -74,8 +81,10 @@ function IOURequestStepTag({
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
+    const parentReportAction = parentReportActions[report.parentReportActionID];
+    const shouldShowTag = ReportUtils.isGroupPolicy(report) && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists));
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = !ReportUtils.isGroupPolicy(report) || (!transactionTag && !OptionsListUtils.hasEnabledTags(policyTagLists));
+    const shouldShowNotFoundPage = !shouldShowTag || (isEditing && !canEditMoneyRequest(parentReportAction))
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -113,7 +122,6 @@ function IOURequestStepTag({
             {({insets}) => (
                 <>
                     <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: policyTagListName})}</Text>
-
                     <TagPicker
                         policyID={report.policyID}
                         tag={policyTagListName}
@@ -144,6 +152,10 @@ export default compose(
         },
         policyTags: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+        },
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
+            canEvict: false,
         },
     }),
 )(IOURequestStepTag);
