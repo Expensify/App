@@ -446,7 +446,6 @@ function clearAvatarErrors() {
     });
 }
 
-
 export {
     clearAvatarErrors,
     deleteAvatar,
