@@ -56,7 +56,6 @@ function OnboardingWelcomeVideo() {
 
         if (isOffline) {
             setWelcomeVideoStatus('animation');
-            setIsWelcomeVideoStatusLocked(true);
         } else if (!isOffline && isVideoLoaded) {
             setWelcomeVideoStatus('video');
             setIsWelcomeVideoStatusLocked(true);
