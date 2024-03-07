@@ -221,7 +221,7 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
         return (
             <EditRequestTaxAmountPage
                 defaultAmount={transactionTaxAmount}
-                defaultTaxAmount={getTaxAmount(transaction?.amount, transactionTaxCode, taxRates)}
+                defaultTaxAmount={getTaxAmount(transaction.amount, transactionTaxCode, taxRates)}
                 defaultCurrency={defaultCurrency}
                 onSubmit={updateTaxAmount}
             />
