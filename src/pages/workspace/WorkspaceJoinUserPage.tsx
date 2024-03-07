@@ -23,6 +23,8 @@ type WorkspaceJoinUserPageOnyxProps = {
 type WorkspaceJoinUserPageRoute = {route: StackScreenProps<AuthScreensParamList, typeof SCREENS.WORKSPACE_JOIN_USER>['route']};
 type WorkspaceJoinUserPageProps = WorkspaceJoinUserPageRoute & WorkspaceJoinUserPageOnyxProps;
 
+let isJoinLinkUsed = false;
+
 function WorkspaceJoinUserPage({route, policies}: WorkspaceJoinUserPageProps) {
     const styles = useThemeStyles();
     const policyID = route?.params?.policyID;
@@ -31,7 +33,12 @@ function WorkspaceJoinUserPage({route, policies}: WorkspaceJoinUserPageProps) {
     const isUnmounted = useRef(false);
 
     useEffect(() => {
-        if (!policy || !policies || isUnmounted.current) {
+        if (!isJoinLinkUsed) { return;}
+        Navigation.goBack(undefined, false, true);
+    }, []);
+
+    useEffect(() => {
+        if (!policy || !policies || isUnmounted.current || isJoinLinkUsed ) {
             return;
         }
         const isPolicyMember = PolicyUtils.isPolicyMember(policyID, policies as Record<string, Policy>);
@@ -40,6 +47,7 @@ function WorkspaceJoinUserPage({route, policies}: WorkspaceJoinUserPageProps) {
             return;
         }
         PolicyAction.inviteMemberToWorkspace(policyID, inviterEmail);
+        isJoinLinkUsed = true;
         Navigation.isNavigationReady().then(() => {
             if (isUnmounted.current) {
                 return;
