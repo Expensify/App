@@ -45,7 +45,6 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
     const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {isOffline} = useNetwork();
 
     const policyApproverEmail = policy?.approver;
     const policyApproverName = useMemo(() => PersonalDetailsUtils.getPersonalDetailByEmail(policyApproverEmail ?? '')?.displayName ?? policyApproverEmail, [policyApproverEmail]);
@@ -67,12 +66,9 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
         Policy.openPolicyWorkflowsPage(policy?.id);
     }, [policy]);
 
-    useEffect(() => {
-        if (isOffline) {
-            return;
-        }
-        fetchData();
-    }, [isOffline, fetchData, reimbursementAccount]);
+    useNetwork({onReconnect: fetchData});
+
+    console.log('WorkspaceWorkflowsPage', {policy});
 
     const items: ToggleSettingOptionRowProps[] = useMemo(() => {
         const {accountNumber, state, bankName} = reimbursementAccount?.achData ?? {};
