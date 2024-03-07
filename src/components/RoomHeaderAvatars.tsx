@@ -5,10 +5,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {AvatarProps} from './Avatar';
 import Avatar from './Avatar';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import Text from './Text';
-import type AvatarProps from './types';
 
 type RoomHeaderAvatarsProps = {
     icons: AvatarProps[];
@@ -21,14 +21,14 @@ function RoomHeaderAvatars({icons = [], reportID = ''}: RoomHeaderAvatarsProps) 
             Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(reportID));
             return;
         }
-        if (icon.id !== undefined) {
+        if (icon.id) {
             Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(icon.id));
         }
     };
 
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    if (icons.length) {
+    if (!icons.length) {
         return null;
     }
 
