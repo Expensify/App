@@ -467,7 +467,13 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
     API.write(WRITE_COMMANDS.EDIT_TASK, parameters, {optimisticData, successData, failureData});
 }
 
-function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assigneeEmail: string, assigneeAccountID = 0, assigneeChatReport: OnyxEntry<OnyxTypes.Report> = null) {
+function editTaskAssignee(
+    report: OnyxTypes.Report,
+    ownerAccountID: number,
+    assigneeEmail: string,
+    assigneeAccountID: number | null = 0,
+    assigneeChatReport: OnyxEntry<OnyxTypes.Report> = null,
+) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(currentUserEmail);
     const reportName = report.reportName?.trim();
@@ -476,7 +482,7 @@ function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assi
     const assigneeChatReportID = assigneeChatReport ? assigneeChatReport.reportID : '0';
     const optimisticReport: OptimisticReport = {
         reportName,
-        managerID: assigneeAccountID || report.managerID,
+        managerID: assigneeAccountID ?? report.managerID,
         pendingFields: {
             ...(assigneeAccountID && {managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         },
