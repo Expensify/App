@@ -263,7 +263,6 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
             }
 
             if (!PolicyUtils.isPaidGroupPolicy(policy)) {
-                toggleUser(item.accountID);
                 return;
             }
 
