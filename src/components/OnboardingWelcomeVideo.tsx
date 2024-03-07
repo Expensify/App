@@ -97,8 +97,9 @@ function OnboardingWelcomeVideo() {
             return (
                 <View
                     style={[
-                        // Prevent layout jumps by reserving height for the video
-                        {height: VIDEO_HEIGHT - 2 * MODAL_PADDING},
+                        // Prevent layout jumps by reserving height
+                        // for the video until it loads.
+                        {height: videoWidth / videoAspectRatio},
                     ]}
                 >
                     <VideoPlayer
@@ -130,7 +131,7 @@ function OnboardingWelcomeVideo() {
             isVisible={isModalVisible}
             type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.CENTERED_SMALL : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
             onClose={closeModal}
-            innerContainerStyle={shouldUseNarrowLayout ? {} : {paddingTop: MODAL_PADDING, paddingBottom: MODAL_PADDING}}
+            innerContainerStyle={shouldUseNarrowLayout ? undefined : {paddingTop: MODAL_PADDING, paddingBottom: MODAL_PADDING}}
         >
             <View
                 style={[styles.mh100, shouldUseNarrowLayout && styles.welcomeVideoNarrowLayout]}
