@@ -81,8 +81,7 @@ Onyx.connect({
         currentAccountID = value.accountID ?? -1;
 
         if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
-            // This means sign in in RHP was successful, so we can dismiss the modal and subscribe to user events
-            Navigation.dismissModal();
+            // This means sign in in RHP was successful, so we can subscribe to user events
             User.subscribeToUserEvents();
         }
     },
@@ -170,8 +169,9 @@ function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = f
         const shouldGetAllData = !!isUsingMemoryOnlyKeys || SessionUtils.didUserLogInDuringSession();
         // Sign out the current user if we're transitioning with a different user
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
+        const isSupportalTransition = currentUrl.includes('authTokenType=support');
         if (isLoggingInAsNewUser && isTransitioning) {
-            Session.signOutAndRedirectToSignIn();
+            Session.signOutAndRedirectToSignIn(false, isSupportalTransition);
             return;
         }
 
