@@ -2,7 +2,7 @@ import execAsync from '../utils/execAsync';
 import * as Logger from '../utils/logger';
 
 // eslint-disable-next-line @typescript-eslint/require-await
-const adbTypeText = async (text: string) => {
+const adbTypeText = (text: string) => {
     Logger.log(`📝 Typing text: ${text}`);
     execAsync(`adb shell input text "${text}"`);
     return true;
