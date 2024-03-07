@@ -426,10 +426,6 @@ const ROUTES = {
     NEW_TASK_TITLE: 'new/task/title',
     NEW_TASK_DESCRIPTION: 'new/task/description',
 
-    ONBOARD: 'onboard',
-    ONBOARD_MANAGE_EXPENSES: 'onboard/manage-expenses',
-    ONBOARD_EXPENSIFY_CLASSIC: 'onboard/expensify-classic',
-
     TEACHERS_UNITE: 'teachersunite',
     I_KNOW_A_TEACHER: 'teachersunite/i-know-a-teacher',
     I_AM_A_TEACHER: 'teachersunite/i-am-a-teacher',

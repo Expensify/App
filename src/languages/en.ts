@@ -2359,28 +2359,6 @@ export default {
         },
         copyReferralLink: 'Copy invite link',
     },
-    purposeForExpensify: {
-        [CONST.INTRO_CHOICES.TRACK]: 'Track business spend for taxes',
-        [CONST.INTRO_CHOICES.SUBMIT]: 'Get paid back by my employer',
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
-        [CONST.INTRO_CHOICES.CHAT_SPLIT]: 'Chat and split bills with friends',
-        welcomeMessage: 'Welcome to Expensify',
-        welcomeSubtitle: 'What would you like to do?',
-    },
-    manageTeams: {
-        [CONST.MANAGE_TEAMS_CHOICE.MULTI_LEVEL]: 'Multi level approval',
-        [CONST.MANAGE_TEAMS_CHOICE.CUSTOM_EXPENSE]: 'Custom expense coding',
-        [CONST.MANAGE_TEAMS_CHOICE.CARD_TRACKING]: 'Company card tracking',
-        [CONST.MANAGE_TEAMS_CHOICE.ACCOUNTING]: 'Accounting integrations',
-        [CONST.MANAGE_TEAMS_CHOICE.RULE]: 'Rule enforcement',
-        title: 'Do you require any of the following features?',
-    },
-    expensifyClassic: {
-        title: "Expensify Classic has everything you'll need",
-        firstDescription: "While we're busy working on New Expensify, it currently doesn't support some of the features you're looking for.",
-        secondDescription: "Don't worry, Expensify Classic has everything you need.",
-        buttonText: 'Take me to Expensify Classic',
-    },
     violations: {
         allTagLevelsRequired: 'All tags required',
         autoReportedRejectedExpense: ({rejectReason, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} rejected this expense with the comment "${rejectReason}"`,

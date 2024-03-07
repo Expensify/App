@@ -32,7 +32,6 @@ import type {
     RemoveFromRoomParams,
     ResolveActionableMentionWhisperParams,
     SearchForReportsParams,
-    SetNameValuePairParams,
     TogglePinnedChatParams,
     UpdateCommentParams,
     UpdatePolicyRoomNameParams,
@@ -2761,25 +2760,6 @@ function completeEngagementModal(text: string, choice: ValueOf<typeof CONST.ONBO
     notifyNewAction(conciergeChatReportID ?? '', reportCommentAction.actorAccountID, reportCommentAction.reportActionID);
 }
 
-function dismissEngagementModal() {
-    const parameters: SetNameValuePairParams = {
-        name: ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL,
-        value: true,
-    };
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL,
-            value: true,
-        },
-    ];
-
-    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
-        optimisticData,
-    });
-}
-
 /** Loads necessary data for rendering the RoomMembersPage */
 function openRoomMembersPage(reportID: string) {
     const parameters: OpenRoomMembersPageParams = {reportID};
@@ -2984,7 +2964,6 @@ export {
     getOlderActions,
     getNewerActions,
     completeEngagementModal,
-    dismissEngagementModal,
     openRoomMembersPage,
     savePrivateNotesDraft,
     getDraftPrivateNote,
