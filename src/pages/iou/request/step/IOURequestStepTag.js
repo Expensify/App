@@ -81,7 +81,7 @@ function IOURequestStepTag({
     const parentReportAction = parentReportActions[report.parentReportActionID];
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = isEditing && !canEditMoneyRequest(parentReportAction);
+    const shouldShowNotFoundPage = isEditing && !isSplitBill && !canEditMoneyRequest(parentReportAction);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
