@@ -98,8 +98,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps) {
 
             return (
                 <EmojiPickerMenuItem
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                    onPress={singleExecution((emoji) => onEmojiSelected(emoji!, item))}
+                    onPress={singleExecution((emoji) => onEmojiSelected(emoji, item))}
                     emoji={emojiCode}
                     isHighlighted={shouldEmojiBeHighlighted}
                 />

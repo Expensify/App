@@ -31,9 +31,7 @@ function EmojiSkinToneList() {
      */
     function updateSelectedSkinTone(skinToneEmoji: SkinToneEmoji) {
         setHighlightedIndex(skinToneEmoji.skinTone);
-        if (typeof setPreferredSkinTone === 'function') {
-            setPreferredSkinTone(skinToneEmoji.skinTone);
-        }
+        setPreferredSkinTone(skinToneEmoji.skinTone);
     }
 
     useEffect(() => {

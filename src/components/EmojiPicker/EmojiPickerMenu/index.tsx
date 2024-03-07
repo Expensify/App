@@ -1,4 +1,4 @@
-import lodashDebounce from 'lodash/debounce';
+import throttle from 'lodash/throttle';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
@@ -107,7 +107,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, f
         allowNegativeIndexes: true,
     });
 
-    const filterEmojis = lodashDebounce((searchTerm: string) => {
+    const filterEmojis = throttle((searchTerm: string) => {
         const [normalizedSearchTerm, newFilteredEmojiList] = suggestEmojis(searchTerm);
 
         if (emojiListRef.current) {
@@ -261,8 +261,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, f
 
             return (
                 <EmojiPickerMenuItem
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                    onPress={singleExecution((emoji) => onEmojiSelected(emoji!, item))}
+                    onPress={singleExecution((emoji) => onEmojiSelected(emoji, item))}
                     onHoverIn={() => {
                         setHighlightEmoji(false);
                         setHighlightFirstEmoji(false);
