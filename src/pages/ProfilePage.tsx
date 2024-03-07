@@ -275,7 +275,6 @@ export default withOnyx<ProfilePageProps, ProfilePageOnyxProps>({
             if ((Boolean(session) && Number(session?.accountID) === accountID) || SessionActions.isAnonymousUser() || !reportID) {
                 return `${ONYXKEYS.COLLECTION.REPORT}0`;
             }
-
             return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
         },
     },
