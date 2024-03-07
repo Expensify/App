@@ -47,6 +47,15 @@ const propTypes = {
 
     /** The actions from the parent report */
     parentReportActions: PropTypes.shape(reportActionPropTypes),
+
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user accountID */
+        accountID: PropTypes.number,
+
+        /** Currently logged in user email */
+        email: PropTypes.string,
+    }).isRequired,
 };
 
 const defaultProps = {
@@ -64,10 +73,11 @@ function IOURequestStepTag({
     policyTags,
     report,
     route: {
-        params: {action, tagIndex: rawTagIndex, transactionID, backTo, iouType},
+        params: {action, tagIndex: rawTagIndex, transactionID, backTo, iouType, reportActionID},
     },
     transaction,
     parentReportActions,
+    session,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -78,10 +88,11 @@ function IOURequestStepTag({
     const tag = TransactionUtils.getTag(transaction, tagIndex);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
-    const parentReportAction = parentReportActions[report.parentReportActionID];
+    const parentReportAction = parentReportActions[report.parentReportActionID || reportActionID];
+    const canEditSplitBill = isSplitBill && parentReportAction && session.accountID === parentReportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = isEditing && !isSplitBill && !canEditMoneyRequest(parentReportAction);
+    const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !canEditMoneyRequest(parentReportAction));
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -151,8 +162,11 @@ export default compose(
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
         },
         parentReportActions: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID || report.reportID : '0'}`,
             canEvict: false,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(IOURequestStepTag);

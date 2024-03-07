@@ -797,6 +797,7 @@ function MoneyRequestConfirmationList(props) {
                                                 props.transaction.transactionID,
                                                 props.reportID,
                                                 Navigation.getActiveRouteWithoutParams(),
+                                                props.reportActionID,
                                             ),
                                         );
                                         return;
