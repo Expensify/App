@@ -90,17 +90,17 @@ function OnboardingWelcomeVideo() {
     };
 
     const getWelcomeVideo = () => {
-        if (welcomeVideoStatus === 'video') {
-            const videoWidth = containerDimensions.current.width - 2 * MODAL_PADDING;
+        const videoWidth = containerDimensions.current.width - 2 * MODAL_PADDING;
 
-            return (
-                <View
-                    style={[
-                        // Prevent layout jumps by reserving height
-                        // for the video until it loads.
-                        {height: videoWidth / videoAspectRatio},
-                    ]}
-                >
+        return (
+            <View
+                style={[
+                    // Prevent layout jumps by reserving height
+                    // for the video until it loads.
+                    {height: videoWidth / videoAspectRatio},
+                ]}
+            >
+                {welcomeVideoStatus === 'video' ? (
                     <VideoPlayer
                         url={CONST.WELCOME_VIDEO_URL}
                         videoPlayerStyle={[styles.onboardingVideoPlayer, {width: videoWidth, height: videoWidth / videoAspectRatio}]}
@@ -110,18 +110,16 @@ function OnboardingWelcomeVideo() {
                         shouldPlay
                         isLooping
                     />
-                </View>
-            );
-        }
-
-        return (
-            <Lottie
-                source={LottieAnimations.Hands}
-                style={styles.w100}
-                webStyle={isSmallScreenWidth ? styles.h100 : styles.w100}
-                autoPlay
-                loop
-            />
+                ) : (
+                    <Lottie
+                        source={LottieAnimations.Hands}
+                        style={styles.w100}
+                        webStyle={isSmallScreenWidth ? styles.h100 : styles.w100}
+                        autoPlay
+                        loop
+                    />
+                )}
+            </View>
         );
     };
 
