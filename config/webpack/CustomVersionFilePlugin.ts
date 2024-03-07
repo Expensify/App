@@ -1,3 +1,5 @@
+import type {Compiler} from 'webpack';
+
 const fs = require('fs');
 const path = require('path');
 const APP_VERSION = require('../../package.json').version;
@@ -6,7 +8,7 @@ const APP_VERSION = require('../../package.json').version;
  * Simple webpack plugin that writes the app version (from package.json) and the webpack hash to './version.json'
  */
 class CustomVersionFilePlugin {
-    apply(compiler) {
+    apply(compiler: Compiler) {
         compiler.hooks.done.tap(
             this.constructor.name,
             () =>
@@ -30,4 +32,4 @@ class CustomVersionFilePlugin {
     }
 }
 
-module.exports = CustomVersionFilePlugin;
+export default CustomVersionFilePlugin;

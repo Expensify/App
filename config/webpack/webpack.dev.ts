@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type webpack from 'webpack';
+import getCommonConfig from './webpack.common';
 
 import portfinder = require('portfinder');
 import TimeAnalyticsWebpackPlugin = require('time-analytics-webpack-plugin');
-import getCommonConfig from './webpack.common';
 
 const {TimeAnalyticsPlugin} = TimeAnalyticsWebpackPlugin;
 const path = require('path');
