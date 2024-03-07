@@ -176,6 +176,7 @@ function IOUCurrencySelection(props) {
                             }
                             confirmCurrencySelection(option);
                         }}
+                        shouldDebounceRowSelect
                         headerMessage={headerMessage}
                         initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                         showScrollIndicator

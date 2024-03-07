@@ -50,7 +50,7 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false}: MenuIt
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...menuItemProps}
                     disabled={!!menuItemProps.disabled || isExecuting}
-                    onPress={shouldUseSingleExecution ? singleExecution(menuItemProps.onPress) : menuItemProps.onPress}
+                    onPress={shouldUseSingleExecution && menuItemProps.onPress ? singleExecution(menuItemProps.onPress) : menuItemProps.onPress}
                 />
             ))}
         </>

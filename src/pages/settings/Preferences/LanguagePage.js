@@ -38,6 +38,7 @@ function LanguagePage(props) {
                 sections={[{data: localesToLanguages}]}
                 ListItem={RadioListItem}
                 onSelectRow={(language) => App.setLocaleAndNavigate(language.value)}
+                shouldDebounceRowSelect
                 initiallyFocusedOptionKey={_.find(localesToLanguages, (locale) => locale.isSelected).keyForList}
             />
         </ScreenWrapper>

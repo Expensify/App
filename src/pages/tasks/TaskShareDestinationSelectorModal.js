@@ -98,6 +98,7 @@ function TaskShareDestinationSelectorModal({reports, isSearchingForReports}) {
                             ListItem={UserListItem}
                             sections={didScreenTransitionEnd ? options.sections : CONST.EMPTY_ARRAY}
                             onSelectRow={selectReportHandler}
+                            shouldDebounceRowSelect
                             onChangeText={setSearchValue}
                             textInputValue={searchValue}
                             headerMessage={options.headerMessage}

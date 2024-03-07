@@ -51,6 +51,7 @@ function ThemePage(props) {
                 sections={[{data: localesToThemes}]}
                 ListItem={RadioListItem}
                 onSelectRow={(theme) => User.updateTheme(theme.value)}
+                shouldDebounceRowSelect
                 initiallyFocusedOptionKey={_.find(localesToThemes, (theme) => theme.isSelected).keyForList}
             />
         </ScreenWrapper>

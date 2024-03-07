@@ -93,6 +93,7 @@ function WorkspaceProfileCurrencyPage({currencyList = {}, policy, isLoadingRepor
                     textInputValue={searchText}
                     onChangeText={setSearchText}
                     onSelectRow={onSelectCurrency}
+                    shouldDebounceRowSelect
                     headerMessage={headerMessage}
                     initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                     showScrollIndicator

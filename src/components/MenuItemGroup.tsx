@@ -5,7 +5,7 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 
 type MenuItemGroupContextProps = {
     isExecuting: boolean;
-    singleExecution: <T extends unknown[]>(action?: Action<T> | undefined) => (...params: T) => void;
+    singleExecution: <T extends unknown[]>(action: Action<T>) => (...params: T) => void;
     waitForNavigate: ReturnType<typeof useWaitForNavigation>;
 };
 

@@ -93,6 +93,7 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
                         sections={[{data: unitOptions}]}
                         ListItem={RadioListItem}
                         onSelectRow={(unit: OptionRow) => updateUnit(unit.value)}
+                        shouldDebounceRowSelect
                         initiallyFocusedOptionKey={unitOptions.find((unit) => unit.isSelected)?.keyForList}
                     />
                 </>

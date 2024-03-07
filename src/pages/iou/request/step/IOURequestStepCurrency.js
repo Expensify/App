@@ -137,6 +137,7 @@ function IOURequestStepCurrency({
                         }
                         confirmCurrencySelection(option);
                     }}
+                    shouldDebounceRowSelect
                     headerMessage={headerMessage}
                     initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                     showScrollIndicator
