@@ -21,9 +21,6 @@ function getMatchingBottomTabRouteForState(state: State<RootStackParamList>, pol
     }
 
     const tabName = CENTRAL_PANE_TO_TAB_MAPPING[topmostCentralPaneRoute.name];
-    // if (tabName === SCREENS.WORKSPACE.INITIAL) {
-    //     return {name: tabName, params: topmostCentralPaneRoute.params};
-    // }
     return {name: tabName, params: paramsWithPolicyID};
 }
 

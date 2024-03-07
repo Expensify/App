@@ -42,14 +42,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
         const navigationState = navigation.getState() as State<RootStackParamList> | undefined;
         const routes = navigationState?.routes;
         const currentRoute = routes?.[navigationState?.index ?? 0];
-        if (
-            // When we are redirected to the Settings tab from the OldDot, we don't want to call the Welcome.show() method.
-            // To prevent this, the value of the bottomTabRoute?.name is checked here
-            // bottomTabRoute?.name === SCREENS.WORKSPACE.INITIAL ||
-            currentRoute &&
-            currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR &&
-            currentRoute.name !== NAVIGATORS.CENTRAL_PANE_NAVIGATOR
-        ) {
+        if (currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && currentRoute.name !== NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
             return;
         }
 
