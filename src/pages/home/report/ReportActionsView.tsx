@@ -167,7 +167,7 @@ function ReportActionsView({
             return;
         }
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
-        Report.getOlderActions(reportID, oldestReportAction.reportActionID);
+        Report.getOlderActions(reportID);
     }, [isLoadingOlderReportActions, network.isOffline, oldestReportAction, reportID]);
 
     /**
@@ -196,10 +196,9 @@ function ReportActionsView({
                     return;
                 }
 
-                const newestReportAction = reportActions[0];
-                Report.getNewerActions(reportID, newestReportAction.reportActionID);
+                Report.getNewerActions(reportID);
             }, 500),
-        [isLoadingNewerReportActions, isLoadingInitialReportActions, reportActions, reportID, hasNewestReportAction],
+        [isLoadingNewerReportActions, isLoadingInitialReportActions, reportID, hasNewestReportAction],
     );
 
     /**
