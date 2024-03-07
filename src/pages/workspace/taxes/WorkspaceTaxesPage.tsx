@@ -104,25 +104,17 @@ function WorkspaceTaxesPage({policy}: WorkspaceTaxesPageProps) {
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
                     </View>
-                    {taxesList.length ? (
-                        <SelectionList
-                            canSelectMultiple
-                            sections={[{data: taxesList, indexOffset: 0, isDisabled: false}]}
-                            onCheckboxPress={toggleTax}
-                            onSelectRow={() => {}}
-                            onSelectAll={toggleAllTaxes}
-                            showScrollIndicator
-                            ListItem={TableListItem}
-                            customListHeader={getCustomListHeader()}
-                            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        />
-                    ) : (
-                        <WorkspaceEmptyStateSection
-                            title={translate('workspace.tags.emptyTags.title')}
-                            icon={Illustrations.EmptyStateExpenses}
-                            subtitle={translate('workspace.tags.emptyTags.subtitle')}
-                        />
-                    )}
+                    <SelectionList
+                        canSelectMultiple
+                        sections={[{data: taxesList, indexOffset: 0, isDisabled: false}]}
+                        onCheckboxPress={toggleTax}
+                        onSelectRow={() => {}}
+                        onSelectAll={toggleAllTaxes}
+                        showScrollIndicator
+                        ListItem={TableListItem}
+                        customListHeader={getCustomListHeader()}
+                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                    />
                 </ScreenWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>
