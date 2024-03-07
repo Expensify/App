@@ -3307,6 +3307,8 @@ const CONST = {
         MINIMUM_WORKSPACES_TO_SHOW_SEARCH: 8,
     },
 
+    WELCOME_VIDEO_URL: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+
     ONBOARDING_CHOICES: {...onboardingChoices},
 
     ONBOARDING_CONCIERGE: {
