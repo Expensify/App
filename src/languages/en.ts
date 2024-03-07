@@ -1758,6 +1758,7 @@ export default {
             workspaceType: 'Workspace type',
             workspaceAvatar: 'Workspace avatar',
             mustBeOnlineToViewMembers: 'You must be online in order to view members of this workspace.',
+            requested: 'Requested',
         },
         type: {
             free: 'Free',
@@ -2249,6 +2250,10 @@ export default {
     actionableMentionWhisperOptions: {
         invite: 'Invite them',
         nothing: 'Do nothing',
+    },
+    actionableMentionJoinWorkspaceOptions: {
+        accept: 'Accept',
+        decline: 'Decline',
     },
     teachersUnitePage: {
         teachersUnite: 'Teachers Unite',

@@ -128,6 +128,7 @@ const SCREENS = {
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
     DESKTOP_SIGN_IN_REDIRECT: 'DesktopSignInRedirect',
     SAML_SIGN_IN: 'SAMLSignIn',
+    WORKSPACE_JOIN_USER: 'WorkspaceJoinUser',
 
     MONEY_REQUEST: {
         MANUAL_TAB: 'manual',
