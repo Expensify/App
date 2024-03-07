@@ -1,6 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -77,6 +78,26 @@ function WorkspaceTaxesPage({policy}: WorkspaceTaxesPageProps) {
         </View>
     );
 
+    const headerButtons = (
+        <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
+            <Button
+                medium
+                success
+                onPress={() => {}}
+                icon={Expensicons.Plus}
+                text="Add rate"
+                style={[styles.mr3, isSmallScreenWidth && styles.w50]}
+            />
+            <Button
+                medium
+                onPress={() => {}}
+                icon={Expensicons.Gear}
+                text={translate('common.settings')}
+                style={[isSmallScreenWidth && styles.w50]}
+            />
+        </View>
+    );
+
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policy?.id ?? ''}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={policy?.id ?? ''}>
@@ -90,7 +111,12 @@ function WorkspaceTaxesPage({policy}: WorkspaceTaxesPageProps) {
                         icon={Illustrations.Coins}
                         title={translate('workspace.common.taxes')}
                         shouldShowBackButton={isSmallScreenWidth}
-                    />
+                    >
+                        {!isSmallScreenWidth && headerButtons}
+                    </HeaderWithBackButton>
+
+                    {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
+
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
                     </View>
