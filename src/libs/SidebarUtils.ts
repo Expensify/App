@@ -235,7 +235,6 @@ function getOptionData({
         isWaitingOnBankAccount: false,
         isAllowedToComment: true,
         isDeletedParentAction: false,
-        isShownGreenDot: false,
     };
 
     let participantAccountIDs = report.participantAccountIDs ?? [];
@@ -390,7 +389,7 @@ function getOptionData({
     if (ReportActionsUtils.isActionableJoinRequestPending(report.reportID)) {
         result.isPinned = true;
         result.isUnread = true;
-        result.isShownGreenDot = true;
+        result.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
 
     if (!hasMultipleParticipants) {

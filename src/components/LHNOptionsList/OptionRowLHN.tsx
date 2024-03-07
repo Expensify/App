@@ -53,8 +53,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     }
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    const isShownGreenDot = optionItem?.isShownGreenDot ?? false;
-    const shouldShowGreenDotIndicator = isShownGreenDot || (!hasBrickError && ReportUtils.requiresAttentionFromCurrentUser(optionItem, optionItem.parentReportAction));
+    const shouldShowGreenDotIndicator = !hasBrickError && ReportUtils.requiresAttentionFromCurrentUser(optionItem, optionItem.parentReportAction);
 
     const isHidden = optionItem.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 

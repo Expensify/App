@@ -893,7 +893,7 @@ function isCurrentActionUnread(report: Report | EmptyObject, reportAction: Repor
 }
 
 /**
- * Checks if a given report action corresponds to join user to the workspace.
+ * Checks if a given report action corresponds to a join request action.
  * @param reportAction
  */
 function isActionableJoinRequest(reportAction: OnyxEntry<ReportAction>): boolean {
@@ -901,11 +901,11 @@ function isActionableJoinRequest(reportAction: OnyxEntry<ReportAction>): boolean
 }
 
 /**
- * Checks if a given report any of the actions correspond to join user to the workspace and request is not resolved yer.
- * @param reportId
+ * Checks if any report actions correspond to a join request action that is still pending.
+ * @param reportID
  */
-function isActionableJoinRequestPending(reportId: string): boolean {
-    const sortedReportActions = getSortedReportActions(Object.values(getAllReportActions(reportId)));
+function isActionableJoinRequestPending(reportID: string): boolean {
+    const sortedReportActions = getSortedReportActions(Object.values(getAllReportActions(reportID)));
     const findPendingRequest = sortedReportActions.find(
         (reportActionItem) => isActionableJoinRequest(reportActionItem) && (reportActionItem as OriginalMessageJoinPolicyChangeLog)?.originalMessage?.choice === '',
     );

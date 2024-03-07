@@ -965,7 +965,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
 }
 
 /**
- * Invite member to the specified workspace/policyID
+ * Invite member to the specified policyID
  * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
 function inviteMemberToWorkspace(policyID: string, inviterEmail: string) {
@@ -2587,13 +2587,13 @@ function clearCategoryErrors(policyID: string, categoryName: string) {
 /**
  * Accept user join request to a workspace
  */
-function acceptJoinRequest(reportId: string, accountID: string, adminsRoomMessageReportActionID: string, policyID: string) {
-    const choice = 'accept';
+function acceptJoinRequest(reportID: string, accountID: string, adminsRoomMessageReportActionID: string, policyID: string) {
+    const choice = CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT;
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [adminsRoomMessageReportActionID]: {
                     originalMessage: {choice},
@@ -2606,7 +2606,7 @@ function acceptJoinRequest(reportId: string, accountID: string, adminsRoomMessag
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [adminsRoomMessageReportActionID]: {
                     originalMessage: {choice},
@@ -2619,7 +2619,7 @@ function acceptJoinRequest(reportId: string, accountID: string, adminsRoomMessag
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [adminsRoomMessageReportActionID]: {
                     originalMessage: {choice: ''},
@@ -2639,12 +2639,12 @@ function acceptJoinRequest(reportId: string, accountID: string, adminsRoomMessag
 /**
  * Decline user join request to a workspace
  */
-function declineJoinRequest(reportId: string, accountID: string, adminsRoomMessageReportActionID: string, policyID: string) {
-    const choice = 'decline';
+function declineJoinRequest(reportID: string, accountID: string, adminsRoomMessageReportActionID: string, policyID: string) {
+    const choice = CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.DECLINE;
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [adminsRoomMessageReportActionID]: {
                     originalMessage: {choice},
@@ -2657,7 +2657,7 @@ function declineJoinRequest(reportId: string, accountID: string, adminsRoomMessa
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [adminsRoomMessageReportActionID]: {
                     originalMessage: {choice},
@@ -2670,7 +2670,7 @@ function declineJoinRequest(reportId: string, accountID: string, adminsRoomMessa
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [adminsRoomMessageReportActionID]: {
                     originalMessage: {choice: ''},

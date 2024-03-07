@@ -398,7 +398,6 @@ type OptionData = {
     descriptiveText?: string;
     notificationPreference?: NotificationPreference | null;
     isDisabled?: boolean | null;
-    isShownGreenDot?: boolean | null;
     name?: string | null;
     isSelfDM?: boolean | null;
 } & Report;
@@ -1076,7 +1075,7 @@ function isArchivedRoom(report: OnyxEntry<Report> | EmptyObject): boolean {
 }
 
 /**
- * Whether the provided report is an archived room
+ * Whether the provided report is the admin's room
  */
 function isJoinRequestInAdminRoom(report: OnyxEntry<Report>): boolean {
     if (!report) {
