@@ -4139,6 +4139,7 @@ function chatIncludesChronos(report: OnyxEntry<Report> | EmptyObject): boolean {
  */
 function canFlagReportAction(reportAction: OnyxEntry<ReportAction>, reportID: string | undefined): boolean {
     let report = getReport(reportID);
+
     // If the childReportID exists in reportAction and is equal to the reportID,
     // the report action being evaluated is the parent report action in a thread, and we should get the parent report to evaluate instead.
     if (reportAction?.childReportID?.toString() === reportID?.toString()) {
