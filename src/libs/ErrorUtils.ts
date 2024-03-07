@@ -3,6 +3,7 @@ import CONST from '@src/CONST';
 import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type Response from '@src/types/onyx/Response';
+import type {ReceiptError} from '@src/types/onyx/Transaction';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 
@@ -60,8 +61,8 @@ type OnyxDataWithErrors = {
     errors?: Errors | null;
 };
 
-function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData): Localize.MaybePhraseKey {
-    const errors = onyxData.errors ?? {};
+function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData | null): Localize.MaybePhraseKey {
+    const errors = onyxData?.errors ?? {};
 
     if (Object.keys(errors).length === 0) {
         return '';
@@ -132,7 +133,7 @@ function getErrorsWithTranslationData(errors: Localize.MaybePhraseKey | Errors):
  * @param errors - An object containing current errors in the form
  * @param message - Message to assign to the inputID errors
  */
-function addErrorMessage<TKey extends TranslationPaths>(errors: Errors, inputID?: string, message?: TKey | Localize.MaybePhraseKey) {
+function addErrorMessage<TKey extends TranslationPaths>(errors: Errors, inputID?: string | null, message?: TKey | Localize.MaybePhraseKey) {
     if (!message || !inputID) {
         return;
     }
@@ -150,15 +151,34 @@ function addErrorMessage<TKey extends TranslationPaths>(errors: Errors, inputID?
     }
 }
 
+/**
+ * Check if the error includes a receipt.
+ */
+function isReceiptError(message: unknown): message is ReceiptError {
+    if (typeof message === 'string') {
+        return false;
+    }
+    if (Array.isArray(message)) {
+        return false;
+    }
+    if (Object.keys(message as Record<string, unknown>).length === 0) {
+        return false;
+    }
+    return ((message as Record<string, unknown>)?.error ?? '') === CONST.IOU.RECEIPT_ERROR;
+}
+
 export {
+    addErrorMessage,
     getAuthenticateErrorMessage,
-    getMicroSecondOnyxError,
-    getMicroSecondOnyxErrorObject,
-    getLatestErrorMessage,
-    getLatestErrorField,
     getEarliestErrorField,
     getErrorMessageWithTranslationData,
     getErrorsWithTranslationData,
-    addErrorMessage,
+    getLatestErrorField,
+    getLatestErrorMessage,
     getLatestErrorMessageField,
+    getMicroSecondOnyxError,
+    getMicroSecondOnyxErrorObject,
+    isReceiptError,
 };
+
+export type {OnyxDataWithErrors};

@@ -10,7 +10,7 @@ function OptionsList(props: OptionsListProps, ref: ForwardedRef<OptionsListType>
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
-            onScrollBeginDrag={() => Keyboard.dismiss()}
+            onScrollBeginDrag={Keyboard.dismiss}
         />
     );
 }

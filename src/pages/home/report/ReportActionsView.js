@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useContext, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import networkPropTypes from '@components/networkPropTypes';
@@ -33,6 +33,9 @@ const propTypes = {
 
     /** Array of report actions for this report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
+
+    /** The report's parentReportAction */
+    parentReportAction: PropTypes.shape(reportActionPropTypes),
 
     /** The report metadata loading states */
     isLoadingInitialReportActions: PropTypes.bool,
@@ -78,6 +81,7 @@ const defaultProps = {
     session: {
         authTokenType: '',
     },
+    parentReportAction: {},
 };
 
 function ReportActionsView(props) {
@@ -136,7 +140,7 @@ function ReportActionsView(props) {
     }, [props.network, isReportFullyVisible]);
 
     useEffect(() => {
-        const wasLoginChangedDetected = prevAuthTokenType === 'anonymousAccount' && !props.session.authTokenType;
+        const wasLoginChangedDetected = prevAuthTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS && !props.session.authTokenType;
         if (wasLoginChangedDetected && didUserLogInDuringSession() && isUserCreatedPolicyRoom(props.report)) {
             if (isReportFullyVisible) {
                 openReportIfNecessary();
@@ -173,25 +177,25 @@ function ReportActionsView(props) {
         }
     }, [props.report.pendingFields, didSubscribeToReportTypingEvents, reportID]);
 
+    const oldestReportAction = useMemo(() => _.last(props.reportActions), [props.reportActions]);
+
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
      */
-    const loadOlderChats = () => {
+    const loadOlderChats = useCallback(() => {
         // Only fetch more if we are neither already fetching (so that we don't initiate duplicate requests) nor offline.
         if (props.network.isOffline || props.isLoadingOlderReportActions) {
             return;
         }
-
-        const oldestReportAction = _.last(props.reportActions);
 
         // Don't load more chats if we're already at the beginning of the chat history
         if (!oldestReportAction || oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return;
         }
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
-        Report.getOlderActions(reportID, oldestReportAction.reportActionID);
-    };
+        Report.getOlderActions(reportID);
+    }, [props.isLoadingOlderReportActions, props.network.isOffline, oldestReportAction, reportID]);
 
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
@@ -219,16 +223,15 @@ function ReportActionsView(props) {
                     return;
                 }
 
-                const newestReportAction = _.first(props.reportActions);
-                Report.getNewerActions(reportID, newestReportAction.reportActionID);
+                Report.getNewerActions(reportID);
             }, 500),
-        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, props.reportActions, reportID, hasNewestReportAction],
+        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, reportID, hasNewestReportAction],
     );
 
     /**
      * Runs when the FlatList finishes laying out
      */
-    const recordTimeToMeasureItemLayout = () => {
+    const recordTimeToMeasureItemLayout = useCallback(() => {
         if (didLayout.current) {
             return;
         }
@@ -243,7 +246,7 @@ function ReportActionsView(props) {
         } else {
             Performance.markEnd(CONST.TIMING.SWITCH_REPORT);
         }
-    };
+    }, [hasCachedActions]);
 
     // Comments have not loaded at all yet do nothing
     if (!_.size(props.reportActions)) {
@@ -254,6 +257,7 @@ function ReportActionsView(props) {
         <>
             <ReportActionsList
                 report={props.report}
+                parentReportAction={props.parentReportAction}
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={props.reportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
@@ -275,6 +279,10 @@ ReportActionsView.displayName = 'ReportActionsView';
 
 function arePropsEqual(oldProps, newProps) {
     if (!_.isEqual(oldProps.reportActions, newProps.reportActions)) {
+        return false;
+    }
+
+    if (!_.isEqual(oldProps.parentReportAction, newProps.parentReportAction)) {
         return false;
     }
 

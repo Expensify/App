@@ -2,17 +2,19 @@ name: Reassure Performance Tests
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, closed]
     branches-ignore: [staging, production]
     paths-ignore: [docs/**, .github/**, contributingGuides/**, tests/**, workflow_tests/**, '**.md', '**.sh']
 
 jobs:
   perf-tests:
     if: ${{ github.actor != 'OSBotify' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-reassure-tests
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
@@ -21,6 +23,22 @@ jobs:
         run: |
             git config --global user.email "test@test.com"
             git config --global user.name "Test"
+
+      - name: Get common ancestor commit
+        run: |
+            git fetch origin main
+            common_ancestor=$(git merge-base "${{ github.sha }}" origin/main)
+            echo "COMMIT_HASH=$common_ancestor" >> "$GITHUB_ENV"
+
+      - name: Clean up deleted files
+        run: |
+            DELETED_FILES=$(git diff --name-only --diff-filter=D "$COMMIT_HASH" "${{ github.sha }}")
+            for file in $DELETED_FILES; do
+              if [ -n "$file" ]; then
+                rm -f "$file"
+                echo "Deleted file: $file"
+              fi
+            done
 
       - name: Run performance testing script
         shell: bash
@@ -43,3 +61,17 @@ jobs:
         with:
           DURATION_DEVIATION_PERCENTAGE: 20
           COUNT_DEVIATION: 0
+
+      - name: Get and save graphite string
+        # run only when merged to main
+        if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
+        id: saveGraphiteString
+        uses: ./.github/actions/javascript/getGraphiteString
+
+      - name: Send graphite data
+        env:
+          GRAPHITE_SERVER: ${{ vars.GRAPHITE_SERVER }}
+          GRAPHITE_PORT: ${{ vars.GRAPHITE_PORT }}
+        # run only when merged to main
+        if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
+        run: echo -e "${{ steps.saveGraphiteString.outputs.GRAPHITE_STRING }}" | nc -q0 "$GRAPHITE_SERVER" "$GRAPHITE_PORT"

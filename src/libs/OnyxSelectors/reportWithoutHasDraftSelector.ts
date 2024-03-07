@@ -1,6 +1,7 @@
-import type {OnyxKeyValue} from '@src/ONYXKEYS';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {Report} from '@src/types/onyx';
 
-export default function reportWithoutHasDraftSelector(report: OnyxKeyValue<'report_'>) {
+export default function reportWithoutHasDraftSelector(report: OnyxEntry<Report>) {
     if (!report) {
         return report;
     }

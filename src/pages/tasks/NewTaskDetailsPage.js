@@ -18,6 +18,7 @@ import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/NewTaskForm';
 
 const propTypes = {
     /** Task title and description data */
@@ -99,7 +100,7 @@ function NewTaskDetailsPage(props) {
                         InputComponent={TextInput}
                         ref={inputCallbackRef}
                         role={CONST.ROLE.PRESENTATION}
-                        inputID="taskTitle"
+                        inputID={INPUT_IDS.TASK_TITLE}
                         label={props.translate('task.title')}
                         accessibilityLabel={props.translate('task.title')}
                         value={taskTitle}
@@ -111,7 +112,7 @@ function NewTaskDetailsPage(props) {
                     <InputWrapper
                         InputComponent={TextInput}
                         role={CONST.ROLE.PRESENTATION}
-                        inputID="taskDescription"
+                        inputID={INPUT_IDS.TASK_DESCRIPTION}
                         label={props.translate('newTaskPage.descriptionOptional')}
                         accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
                         autoGrowHeight

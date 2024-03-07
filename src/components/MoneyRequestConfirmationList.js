@@ -24,6 +24,7 @@ import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
+import {policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,7 +42,6 @@ import SettlementButton from './SettlementButton';
 import ShowMoreButton from './ShowMoreButton';
 import Switch from './Switch';
 import tagPropTypes from './tagPropTypes';
-import taxPropTypes from './taxPropTypes';
 import Text from './Text';
 import transactionPropTypes from './transactionPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from './withCurrentUserPersonalDetails';
@@ -167,8 +167,8 @@ const propTypes = {
     policyTags: tagPropTypes,
 
     /* Onyx Props */
-    /** Collection of tax rates attached to a policy */
-    policyTaxRates: taxPropTypes,
+    /** The policy of the report */
+    policy: policyPropTypes.policy,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: iouPropTypes,
@@ -196,6 +196,7 @@ const defaultProps = {
     receiptPath: '',
     receiptFilename: '',
     listStyles: [],
+    policy: {},
     policyCategories: {},
     policyTags: {},
     transactionID: '',
@@ -206,7 +207,6 @@ const defaultProps = {
     shouldShowSmartScanFields: true,
     isPolicyExpenseChat: false,
     iou: iouDefaultProps,
-    policyTaxRates: {},
 };
 
 function MoneyRequestConfirmationList(props) {
@@ -217,17 +217,19 @@ function MoneyRequestConfirmationList(props) {
     const {onSendMoney, onConfirm, onSelectParticipant} = props;
     const {translate, toLocaleDigit} = useLocalize();
     const transaction = props.transaction;
-    const {canUseViolations} = usePermissions();
+    const {canUseP2PDistanceRequests, canUseViolations} = usePermissions();
 
     const isTypeRequest = props.iouType === CONST.IOU.TYPE.REQUEST;
     const isSplitBill = props.iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = props.iouType === CONST.IOU.TYPE.SEND;
+    const canEditDistance = isTypeRequest || (canUseP2PDistanceRequests && isSplitBill);
 
     const isSplitWithScan = isSplitBill && props.isScanRequest;
 
     const {unit, rate, currency} = props.mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
     const shouldCalculateDistanceAmount = props.isDistanceRequest && props.iouAmount === 0;
+    const taxRates = lodashGet(props.policy, 'taxRates', {});
 
     // A flag for showing the categories field
     const shouldShowCategories = props.isPolicyExpenseChat && (props.iouCategory || OptionsListUtils.hasEnabledOptions(_.values(props.policyCategories)));
@@ -241,15 +243,13 @@ function MoneyRequestConfirmationList(props) {
     const shouldShowDate = shouldShowAllFields && !isTypeSend && !isSplitWithScan;
     const shouldShowMerchant = shouldShowAllFields && !isTypeSend && !props.isDistanceRequest && !isSplitWithScan;
 
-    // Fetches the first tag list of the policy
-    const policyTag = PolicyUtils.getTag(props.policyTags);
-    const policyTagList = lodashGet(policyTag, 'tags', {});
-    const policyTagListName = lodashGet(policyTag, 'name', translate('common.tag'));
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(props.policyTags), [props.policyTags]);
+
     // A flag for showing the tags field
-    const shouldShowTags = props.isPolicyExpenseChat && (props.iouTag || OptionsListUtils.hasEnabledOptions(_.values(policyTagList)));
+    const shouldShowTags = props.isPolicyExpenseChat && (props.iouTag || OptionsListUtils.hasEnabledTags(policyTagLists));
 
     // A flag for showing tax fields - tax rate and tax amount
-    const shouldShowTax = props.isPolicyExpenseChat && props.policy.isTaxTrackingEnabled;
+    const shouldShowTax = props.isPolicyExpenseChat && lodashGet(props.policy, 'tax.trackingEnabled', props.policy.isTaxTrackingEnabled);
 
     // A flag for showing the billable field
     const shouldShowBillable = !lodashGet(props.policy, 'disabledFields.defaultBillable', true);
@@ -264,8 +264,8 @@ function MoneyRequestConfirmationList(props) {
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(props.transaction.taxAmount, props.iouCurrencyCode);
 
-    const defaultTaxKey = props.policyTaxRates.defaultExternalID;
-    const defaultTaxName = (defaultTaxKey && `${props.policyTaxRates.taxes[defaultTaxKey].name} (${props.policyTaxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
+    const defaultTaxKey = taxRates.defaultExternalID;
+    const defaultTaxName = (defaultTaxKey && `${taxRates.taxes[defaultTaxKey].name} (${taxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
     const taxRateTitle = (props.transaction.taxRate && props.transaction.taxRate.text) || defaultTaxName;
 
     const isFocused = useIsFocused();
@@ -283,15 +283,15 @@ function MoneyRequestConfirmationList(props) {
     }, [props.isEditingSplitBill, props.hasSmartScanFailed, transaction, didConfirmSplit]);
 
     const isMerchantEmpty = !props.iouMerchant || props.iouMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
-    const shouldDisplayMerchantError = props.isPolicyExpenseChat && !props.isScanRequest && isMerchantEmpty;
+    const shouldDisplayMerchantError = props.isPolicyExpenseChat && shouldDisplayFieldError && isMerchantEmpty;
 
     useEffect(() => {
-        if (shouldDisplayFieldError && props.hasSmartScanFailed) {
-            setFormError('iou.receiptScanningFailed');
-            return;
-        }
         if (shouldDisplayFieldError && didConfirmSplit) {
             setFormError('iou.error.genericSmartscanFailureMessage');
+            return;
+        }
+        if (shouldDisplayFieldError && props.hasSmartScanFailed) {
+            setFormError('iou.receiptScanningFailed');
             return;
         }
         // reset the form error whenever the screen gains or loses focus
@@ -435,7 +435,7 @@ function MoneyRequestConfirmationList(props) {
         IOU.setMoneyRequestPendingFields(props.transactionID, {waypoints: isDistanceRequestWithPendingRoute ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null});
 
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate, currency, translate, toLocaleDigit);
-        IOU.setMoneyRequestMerchant_temporaryForRefactor(props.transactionID, distanceMerchant);
+        IOU.setMoneyRequestMerchant(props.transactionID, distanceMerchant, false);
     }, [isDistanceRequestWithPendingRoute, hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, props.isDistanceRequest, props.transactionID]);
 
     /**
@@ -497,7 +497,6 @@ function MoneyRequestConfirmationList(props) {
 
                 if (props.isEditingSplitBill && TransactionUtils.areRequiredFieldsEmpty(transaction)) {
                     setDidConfirmSplit(true);
-                    setFormError('iou.error.genericSmartscanFailureMessage');
                     return;
                 }
 
@@ -552,6 +551,7 @@ function MoneyRequestConfirmationList(props) {
             />
         ) : (
             <ButtonWithDropdownMenu
+                success
                 pressOnEnter
                 isDisabled={shouldDisableButton}
                 onPress={(_event, value) => confirm(value)}
@@ -704,11 +704,15 @@ function MoneyRequestConfirmationList(props) {
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => {
-                                if (props.isEditingSplitBill) {
-                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.DATE));
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_DATE.getRoute(props.iouType, props.reportID));
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(
+                                        CONST.IOU.ACTION.EDIT,
+                                        props.iouType,
+                                        transaction.transactionID,
+                                        props.reportID,
+                                        Navigation.getActiveRouteWithoutParams(),
+                                    ),
+                                );
                             }}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
@@ -718,13 +722,14 @@ function MoneyRequestConfirmationList(props) {
                     )}
                     {props.isDistanceRequest && (
                         <MenuItemWithTopDescription
-                            shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
+                            shouldShowRightIcon={!props.isReadOnly && canEditDistance}
                             title={props.iouMerchant}
                             description={translate('common.distance')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DISTANCE.getRoute(props.iouType, props.reportID))}
-                            disabled={didConfirm || !isTypeRequest}
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            disabled={didConfirm || !canEditDistance}
                             interactive={!props.isReadOnly}
                         />
                     )}
@@ -736,22 +741,20 @@ function MoneyRequestConfirmationList(props) {
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => {
-                                if (props.isEditingSplitBill) {
-                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.MERCHANT));
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_MERCHANT.getRoute(props.iouType, props.reportID));
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(
+                                        CONST.IOU.ACTION.EDIT,
+                                        props.iouType,
+                                        transaction.transactionID,
+                                        props.reportID,
+                                        Navigation.getActiveRouteWithoutParams(),
+                                    ),
+                                );
                             }}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
-                            brickRoadIndicator={
-                                props.isPolicyExpenseChat && shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''
-                            }
-                            error={
-                                shouldDisplayMerchantError || (props.isPolicyExpenseChat && shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction))
-                                    ? translate('common.error.enterMerchant')
-                                    : ''
-                            }
+                            brickRoadIndicator={shouldDisplayMerchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            error={shouldDisplayMerchantError ? translate('common.error.enterMerchant') : ''}
                         />
                     )}
                     {shouldShowCategories && (
@@ -761,11 +764,15 @@ function MoneyRequestConfirmationList(props) {
                             description={translate('common.category')}
                             numberOfLinesTitle={2}
                             onPress={() => {
-                                if (props.isEditingSplitBill) {
-                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.CATEGORY));
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_CATEGORY.getRoute(props.iouType, props.reportID));
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
+                                        CONST.IOU.ACTION.EDIT,
+                                        props.iouType,
+                                        props.transaction.transactionID,
+                                        props.reportID,
+                                        Navigation.getActiveRouteWithoutParams(),
+                                    ),
+                                );
                             }}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
@@ -774,39 +781,42 @@ function MoneyRequestConfirmationList(props) {
                             rightLabel={canUseViolations && Boolean(props.policy.requiresCategory) ? translate('common.required') : ''}
                         />
                     )}
-                    {shouldShowTags && (
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon={!props.isReadOnly}
-                            title={PolicyUtils.getCleanedTagName(props.iouTag)}
-                            description={policyTagListName}
-                            numberOfLinesTitle={2}
-                            onPress={() => {
-                                if (props.isEditingSplitBill) {
-                                    Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
-                                            CONST.IOU.ACTION.EDIT,
-                                            CONST.IOU.TYPE.SPLIT,
-                                            props.transaction.transactionID,
-                                            props.reportID,
-                                            Navigation.getActiveRouteWithoutParams(),
-                                        ),
-                                    );
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_TAG.getRoute(props.iouType, props.reportID));
-                            }}
-                            style={[styles.moneyRequestMenuItem]}
-                            disabled={didConfirm}
-                            interactive={!props.isReadOnly}
-                            rightLabel={canUseViolations && Boolean(props.policy.requiresTag) ? translate('common.required') : ''}
-                        />
-                    )}
+                    {shouldShowTags &&
+                        _.map(policyTagLists, ({name}, index) => (
+                            <MenuItemWithTopDescription
+                                key={name}
+                                shouldShowRightIcon={!props.isReadOnly}
+                                title={TransactionUtils.getTag(transaction, index)}
+                                description={name}
+                                numberOfLinesTitle={2}
+                                onPress={() => {
+                                    if (props.isEditingSplitBill) {
+                                        Navigation.navigate(
+                                            ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
+                                                CONST.IOU.ACTION.EDIT,
+                                                CONST.IOU.TYPE.SPLIT,
+                                                index,
+                                                props.transaction.transactionID,
+                                                props.reportID,
+                                                Navigation.getActiveRouteWithoutParams(),
+                                            ),
+                                        );
+                                        return;
+                                    }
+                                    Navigation.navigate(ROUTES.MONEY_REQUEST_TAG.getRoute(props.iouType, props.reportID));
+                                }}
+                                style={[styles.moneyRequestMenuItem]}
+                                disabled={didConfirm}
+                                interactive={!props.isReadOnly}
+                                rightLabel={canUseViolations && Boolean(props.policy.requiresTag) ? translate('common.required') : ''}
+                            />
+                        ))}
 
                     {shouldShowTax && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
                             title={taxRateTitle}
-                            description={props.policyTaxRates.name}
+                            description={taxRates.name}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() =>
@@ -823,7 +833,7 @@ function MoneyRequestConfirmationList(props) {
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
                             title={formattedTaxAmount}
-                            description={props.policyTaxRates.name}
+                            description={taxRates.name}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() =>
@@ -877,9 +887,6 @@ export default compose(
         },
         policy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-        },
-        policyTaxRates: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${policyID}`,
         },
         iou: {
             key: ONYXKEYS.IOU,

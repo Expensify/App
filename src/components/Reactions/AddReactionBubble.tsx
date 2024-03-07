@@ -43,9 +43,12 @@ type AddReactionBubbleProps = {
      * ReportAction for EmojiPicker.
      */
     reportAction: ReportAction;
+
+    /** Function to update emoji picker state */
+    setIsEmojiPickerActive?: (state: boolean) => void;
 };
 
-function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWillShowPicker = () => {}, isContextMenu = false}: AddReactionBubbleProps) {
+function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWillShowPicker = () => {}, isContextMenu = false, setIsEmojiPickerActive}: AddReactionBubbleProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const ref = useRef<View | HTMLDivElement>(null);
@@ -56,7 +59,9 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
     const onPress = () => {
         const openPicker = (refParam?: PickerRefElement, anchorOrigin?: AnchorOrigin) => {
             EmojiPickerAction.showEmojiPicker(
-                () => {},
+                () => {
+                    setIsEmojiPickerActive?.(false);
+                },
                 (emojiCode, emojiObject) => {
                     onSelectEmoji(emojiObject);
                 },
@@ -68,12 +73,14 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
         };
 
         if (!EmojiPickerAction.emojiPickerRef.current?.isEmojiPickerVisible) {
+            setIsEmojiPickerActive?.(true);
             if (onPressOpenPicker) {
                 onPressOpenPicker(openPicker);
             } else {
                 openPicker();
             }
         } else {
+            setIsEmojiPickerActive?.(false);
             EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
         }
     };

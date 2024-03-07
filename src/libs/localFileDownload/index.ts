@@ -1,4 +1,4 @@
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import localFileCreate from '@libs/localFileCreate';
 import type LocalFileDownload from './types';
 
 /**
@@ -7,12 +7,12 @@ import type LocalFileDownload from './types';
  * is downloaded by the browser.
  */
 const localFileDownload: LocalFileDownload = (fileName, textContent) => {
-    const blob = new Blob([textContent], {type: 'text/plain'});
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.download = FileUtils.appendTimeToFileName(`${fileName}.txt`);
-    link.href = url;
-    link.click();
+    localFileCreate(`${fileName}.txt`, textContent).then(({path, newFileName}) => {
+        const link = document.createElement('a');
+        link.download = newFileName;
+        link.href = path;
+        link.click();
+    });
 };
 
 export default localFileDownload;
