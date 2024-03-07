@@ -80,7 +80,9 @@ const ViolationsUtils = {
                     newTransactionViolations.push({name: CONST.VIOLATIONS.MISSING_TAG, type: 'violation'});
                 }
             } else {
-                newTransactionViolations = newTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED && violation.name !== CONST.VIOLATIONS.TAG_OUT_OF_POLICY);
+                newTransactionViolations = newTransactionViolations.filter(
+                    (violation) => violation.name !== CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED && violation.name !== CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
+                );
 
                 // We first get the errorIndexes for someTagLevelsRequired. If it's not empty, we puth SOME_TAG_LEVELS_REQUIRED in Onyx.
                 // Otherwise, we put TAG_OUT_OF_POLICY in Onyx (when applicable)
