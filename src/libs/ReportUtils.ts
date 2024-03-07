@@ -1213,19 +1213,17 @@ function isMoneyRequestReport(reportOrID: OnyxEntry<Report> | string): boolean {
 /**
  * Checks if a report has only one transaction associated with it
  */
-function isOneTransactionReport(report: OnyxEntry<Report>): boolean {
-    return ReportActionsUtils.getOneTransactionThreadReportID(report?.reportID ?? '0', null) !== '0'
+function isOneTransactionReport(reportID: string): boolean {
+    const reportActions = ReportActionsUtils.getAllReportActions(reportID);
+    return ReportActionsUtils.getOneTransactionThreadReportID(reportActions) !== '0'
 }
 
 /**
  * Checks if a report is a transaction thread associated with a report that has only one transaction
  */
-function isOneTransactionThread(reportID: string, parentReport: OnyxEntry<Report> | EmptyObject): boolean {
-    if (isEmptyObject(parentReport)) {
-        return false;
-    }
-
-    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(parentReport?.reportID ?? '0', null);
+function isOneTransactionThread(reportID: string, parentReportID: string): boolean {
+    const parentReportActions = ReportActionsUtils.getAllReportActions(parentReportID);
+    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(parentReportActions);
     return reportID === transactionThreadReportID;
 }
 
@@ -1656,7 +1654,7 @@ function getIcons(
         const isManager = currentUserAccountID === report?.managerID;
 
         // For one transaction IOUs, display a simplified report icon
-        if (isOneTransactionReport(report)) {
+        if (isOneTransactionReport(report?.reportID ?? '0')) {
             return [ownerIcon];
         }
 
@@ -4039,8 +4037,7 @@ function shouldReportBeInOptionList({
     }
 
     // If this is a transaction thread associated with a report that only has one transaction, omit it
-    const parentReport = getParentReport(report);
-    if (isOneTransactionThread(report.reportID, parentReport)) {
+    if (isOneTransactionThread(report.reportID, report.parentReportID ?? '0')) {
         return false;
     }
 

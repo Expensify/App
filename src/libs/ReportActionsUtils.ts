@@ -205,17 +205,16 @@ function isTransactionThread(parentReportAction: OnyxEntry<ReportAction>): boole
     );
 }
 
-function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxCollection<ReportActions> | null): string {
-    const moneyRequestReportActions = reportActions && !_.isEmpty(reportActions) ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] : allReportActions?.[reportID];
-    const moneyRequestReportActionsArray = Object.values(moneyRequestReportActions ?? {});
+function getOneTransactionThreadReportID(reportActions: ReportActions): string {
+    const reportActionsArray = Object.values(reportActions ?? {});
 
-    if (!moneyRequestReportActionsArray.length) {
+    if (!reportActionsArray.length) {
         return '0';
     }
 
     // Get all IOU report actions for the report.
     const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.SPLIT];
-    const iouRequestActions = moneyRequestReportActionsArray.filter((action) =>
+    const iouRequestActions = reportActionsArray.filter((action) =>
         action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
         && (iouRequestTypes.includes(action.originalMessage.type) ?? [])
         && action.childReportID

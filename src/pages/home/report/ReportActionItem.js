@@ -111,9 +111,6 @@ const propTypes = {
 
     emojiReactions: EmojiReactionsPropTypes,
 
-    /** All reportActions shared with the user */
-    reportActions: PropTypes.objectOf(reportActionPropTypes),
-
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
@@ -129,6 +126,9 @@ const propTypes = {
     /** All the report actions belonging to the report's parent */
     parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
+    /** All the report actions belonging to the current report */
+    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
     /** Callback to be called on onPress */
     onPress: PropTypes.func,
 };
@@ -138,12 +138,12 @@ const defaultProps = {
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     emojiReactions: {},
     shouldShowSubscriptAvatar: false,
-    reportActions: {},
     reports: {},
     iouReport: undefined,
     shouldHideThreadDividerLine: false,
     userWallet: {},
     parentReportActions: {},
+    reportActions: {},
     onPress: undefined,
 };
 
@@ -166,7 +166,7 @@ function ReportActionItem(props) {
     const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
     const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
     const isReportActionLinked = props.linkedReportActionID && props.action.reportActionID && props.linkedReportActionID === props.action.reportActionID;
-    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(props.report.reportID, props.allReportActions);
+    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(props.reportActions);
     const transactionThreadReport = useMemo(() => {
         if (transactionThreadReportID) {
             return null;
@@ -888,9 +888,6 @@ export default compose(
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
             initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE,
         },
-        reportActions: {
-            key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-        },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
         },
@@ -920,6 +917,10 @@ export default compose(
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID || 0}`,
             canEvict: false,
         },
+        reportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID || 0}`,
+            canEvict: false,
+        },
     }),
 )(
     memo(ReportActionItem, (prevProps, nextProps) => {
@@ -930,7 +931,6 @@ export default compose(
             prevProps.draftMessage === nextProps.draftMessage &&
             prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction &&
             prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
-            _.isEqual(prevProps.reportActions, nextProps.reportActions) &&
             _.isEqual(prevProps.reports, nextProps.reports) &&
             _.isEqual(prevProps.emojiReactions, nextProps.emojiReactions) &&
             _.isEqual(prevProps.action, nextProps.action) &&
@@ -957,7 +957,8 @@ export default compose(
             _.isEqual(prevProps.policyReportFields, nextProps.policyReportFields) &&
             _.isEqual(prevProps.report.reportFields, nextProps.report.reportFields) &&
             _.isEqual(prevProps.policy, nextProps.policy) &&
-            _.isEqual(prevParentReportAction, nextParentReportAction)
+            _.isEqual(prevParentReportAction, nextParentReportAction) &&
+            _.isEqual(prevProps.reportActions, nextProps.reportActions)
         );
     }),
 );

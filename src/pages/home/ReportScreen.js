@@ -288,7 +288,7 @@ function ReportScreen({
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] || {};
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
-    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportID, allReportActions);
+    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]);
     const transactionThreadReportActions = useMemo(() => {
         if (transactionThreadReportID) {
             return null;
