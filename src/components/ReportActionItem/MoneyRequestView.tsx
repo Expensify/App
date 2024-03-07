@@ -147,7 +147,12 @@ function MoneyRequestView({
 
     const {getViolationsForField} = useViolations(transactionViolations ?? []);
     const hasViolations = useCallback((field: ViolationField): boolean => !!canUseViolations && getViolationsForField(field).length > 0, [canUseViolations, getViolationsForField]);
-    const noticeViolations = transactionViolations?.filter((violation) => violation.type === 'note').map((v) => ViolationsUtils.getViolationTranslation(v, translate));
+    const noticeViolations = [
+        {name: 'missingComment', type: 'violation'},
+        {name: 'modifiedDate', type: 'violation'},
+    ]
+        ?.filter((violation) => violation.type === 'note')
+        .map((v) => ViolationsUtils.getViolationTranslation(v, translate));
 
     let amountDescription = `${translate('iou.amount')}`;
 
@@ -287,7 +292,7 @@ function MoneyRequestView({
                         }
                     />
                 )}
-                {noticeViolations?.length && <ReceiptAudit notes={noticeViolations} />}
+                <ReceiptAudit notes={noticeViolations} />
 
                 {canUseViolations && <ViolationMessages violations={getViolationsForField('receipt')} />}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
