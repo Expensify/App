@@ -19,6 +19,7 @@ import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type IOU from './IOU';
 import type LastPaymentMethod from './LastPaymentMethod';
+import type LastSelectedDistanceRates from './LastSelectedDistanceRates';
 import type Locale from './Locale';
 import type {LoginList} from './Login';
 import type Login from './Login';
@@ -152,6 +153,7 @@ export type {
     PolicyReportFields,
     RecentlyUsedReportFields,
     LastPaymentMethod,
+    LastSelectedDistanceRates,
     InvitedEmailsToAccountIDs,
     Log,
 };
