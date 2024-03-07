@@ -106,7 +106,8 @@ async function run() {
             }
 
             const didVersionChange = newVersionTag !== currentChecklistData.tag;
-            const {issueBody, issueAssignees} = await GithubUtils.generateStagingDeployCashBody(                newVersionTag,
+            const {issueBody, issueAssignees} = await GithubUtils.generateStagingDeployCashBody(
+                newVersionTag,
                 _.pluck(PRList, 'url'),
                 _.pluck(_.where(PRList, {isVerified: true}), 'url'),
                 _.pluck(deployBlockers, 'url'),
