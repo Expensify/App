@@ -12,7 +12,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import TableListItem from '@components/SelectionList/TableListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -75,7 +75,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                 isSelected: selectedDistanceRates.find((rate) => rate.customUnitRateID === value.customUnitRateID) !== undefined,
                 rightElement: (
                     <View style={styles.flexRow}>
-                        <Text style={[styles.alignSelfCenter, !value.enabled && styles.disabledText]}>
+                        <Text style={[styles.alignSelfCenter, !value.enabled && styles.textSupporting]}>
                             {value.enabled ? translate('workspace.distanceRates.enabled') : translate('workspace.distanceRates.disabled')}
                         </Text>
                         <View style={[styles.p1, styles.pl2]}>
@@ -233,22 +233,25 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                     <HeaderWithBackButton
                         icon={Illustrations.CarIce}
                         title={translate('workspace.common.distanceRates')}
-                        shouldShowBackButton={false}
+                        shouldShowBackButton={isSmallScreenWidth}
                     >
                         {!isSmallScreenWidth && headerButtons}
                     </HeaderWithBackButton>
                     {isSmallScreenWidth && <View style={[styles.ph5]}>{headerButtons}</View>}
-                    <Text style={[styles.pl5, styles.pb2, styles.pt4, styles.textSupporting]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
+                    <View style={[styles.ph5, styles.pb5]}>
+                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
+                    </View>
+                    {/* <Text style={[styles.pl5, styles.pb2, styles.pt4, styles.textSupporting]}>{translate('workspace.distanceRates.centrallyManage')}</Text> */}
                     <SelectionList
                         canSelectMultiple
-                        ListItem={RadioListItem}
+                        ListItem={TableListItem}
                         onSelectAll={toggleAllRates}
                         onCheckboxPress={toggleRate}
                         sections={[{data: distanceRatesList, indexOffset: 0, isDisabled: false}]}
                         onSelectRow={editRate}
                         showScrollIndicator
                         customListHeader={getCustomListHeader()}
-                        containerStyle={styles.p5}
+                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                     />
                     <Modal
                         type={CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
