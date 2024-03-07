@@ -1,7 +1,8 @@
 /**
  * @jest-environment node
  */
-import * as core from '@actions/core';
+
+/* eslint-disable @typescript-eslint/naming-convention */
 import * as fns from 'date-fns';
 import {vol} from 'memfs';
 import path from 'path';
@@ -19,7 +20,9 @@ const mockGetPullRequestsMergedBetween = jest.fn();
 
 beforeAll(() => {
     // Mock core module
-    core.getInput = mockGetInput;
+    jest.mock('@actions/core', () => ({
+        getInput: mockGetInput,
+    }));
 
     // Mock octokit module
     const moctokit = {
@@ -49,8 +52,8 @@ beforeAll(() => {
                 list: jest.fn().mockResolvedValue([]),
             },
         },
-        paginate: jest.fn().mockImplementation((objectMethod) => objectMethod().then(({data}) => data)),
-    };
+        paginate: jest.fn().mockImplementation((objectMethod: () => Promise<{data: unknown}>) => objectMethod().then(({data}) => data)),
+    } as typeof GithubUtils.octokit;
     GithubUtils.internalOctokit = moctokit;
 
     // Mock GitUtils
@@ -295,7 +298,7 @@ describe('createOrUpdateStagingDeployCash', () => {
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
                 issue_number: openStagingDeployCashBefore.number,
-                // eslint-disable-next-line max-len
+                // eslint-disable-next-line max-len, @typescript-eslint/naming-convention
                 html_url: `https://github.com/Expensify/App/issues/${openStagingDeployCashBefore.number}`,
                 // eslint-disable-next-line max-len
                 body:
@@ -371,7 +374,7 @@ describe('createOrUpdateStagingDeployCash', () => {
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
                 issue_number: openStagingDeployCashBefore.number,
-                // eslint-disable-next-line max-len
+                // eslint-disable-next-line max-len, @typescript-eslint/naming-convention
                 html_url: `https://github.com/Expensify/App/issues/${openStagingDeployCashBefore.number}`,
                 // eslint-disable-next-line max-len
                 body:
