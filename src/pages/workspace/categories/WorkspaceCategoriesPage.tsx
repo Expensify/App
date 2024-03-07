@@ -111,19 +111,19 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
     );
 
     const toggleCategory = (category: PolicyOption) => {
-        setSelectedCategories((prev) => ({
-            ...prev,
-            [category.keyForList]: !prev[category.keyForList],
-        }));
+        setSelectedCategories((prev) => {
+            if (prev[category.keyForList]) {
+                const {[category.keyForList]: omittedCategory, ...newCategories} = prev;
+                return newCategories;
+            }
+            return {...prev, [category.keyForList]: true};
+        });
     };
 
     const toggleAllCategories = () => {
-        const isAllSelected = categoryList.every((category) => !!selectedCategories[category.keyForList]);
-        setSelectedCategories(
-            isAllSelected
-                ? {}
-                : Object.fromEntries(categoryList.filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).map((item) => [item.keyForList, true])),
-        );
+        const availableCategories = categoryList.filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const isAllSelected = availableCategories.length === Object.keys(selectedCategories).length;
+        setSelectedCategories(isAllSelected ? {} : Object.fromEntries(availableCategories.map((item) => [item.keyForList, true])));
     };
 
     const getCustomListHeader = () => (
