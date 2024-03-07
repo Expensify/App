@@ -8,6 +8,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import TableListItem from '@components/SelectionList/TableListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -20,14 +21,6 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type SCREENS from '@src/SCREENS';
 
-type PolicyForList = {
-    value: string;
-    text: string;
-    keyForList: string;
-    isSelected: boolean;
-    rightElement: React.ReactNode;
-};
-
 type WorkspaceTaxesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES>;
 
 function WorkspaceTaxesPage({policy}: WorkspaceTaxesPageProps) {
@@ -37,10 +30,9 @@ function WorkspaceTaxesPage({policy}: WorkspaceTaxesPageProps) {
     const {translate} = useLocalize();
     const [selectedTaxesIDs, setSelectedTaxesIDs] = useState<string[]>([]);
 
-    const taxesList = useMemo<PolicyForList[]>(
+    const taxesList = useMemo<ListItem[]>(
         () =>
             Object.entries(policy?.taxRates?.taxes ?? {}).map(([key, value]) => ({
-                value: value.name,
                 text: value.name,
                 keyForList: key,
                 isSelected: !!selectedTaxesIDs.includes(key),
@@ -59,7 +51,7 @@ function WorkspaceTaxesPage({policy}: WorkspaceTaxesPageProps) {
         [policy?.taxRates?.taxes, selectedTaxesIDs, styles, theme.icon, translate],
     );
 
-    const toggleTax = (tax: PolicyForList) => {
+    const toggleTax = (tax: ListItem) => {
         setSelectedTaxesIDs((prev) => {
             if (prev.includes(tax.keyForList)) {
                 return prev.filter((item) => item !== tax.keyForList);
