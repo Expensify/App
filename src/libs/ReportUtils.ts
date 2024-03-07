@@ -1255,16 +1255,16 @@ function getChildReportNotificationPreference(reportAction: OnyxEntry<ReportActi
  * - report is a draft
  * - report is a processing expense report and its policy has Instant reporting frequency
  */
-function canAddOrDeleteTransactions(moneyRequest: OnyxEntry<Report>): boolean {
-    if (!isMoneyRequest(moneyRequest)) {
+function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): boolean {
+    if (!isMoneyRequest(moneyRequestReport)) {
         return false;
     }
 
-    if (isReportApproved(moneyRequest) || isSettled(moneyRequest?.reportID)) {
+    if (isReportApproved(moneyRequestReport) || isSettled(moneyRequestReport?.reportID)) {
         return false;
     }
 
-    if (isGroupPolicy(moneyRequest) && isProcessingReport(moneyRequest) && !PolicyUtils.isInstantSubmitEnabled(getPolicy(moneyRequest?.policyID))) {
+    if (isGroupPolicy(moneyRequestReport) && isProcessingReport(moneyRequestReport) && !PolicyUtils.isInstantSubmitEnabled(getPolicy(moneyRequestReport?.policyID))) {
         return false;
     }
 
