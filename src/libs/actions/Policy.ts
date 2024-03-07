@@ -2555,8 +2555,6 @@ function clearCategoryErrors(policyID: string, categoryName: string) {
 }
 
 function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: string[]) {
-    const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
-
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -2570,13 +2568,10 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
         ],
         successData: [
             {
-                onyxMethod: Onyx.METHOD.SET,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: Object.keys(policyCategories).reduce<PolicyCategories>((acc, key) => {
-                    if (!categoryNamesToDelete.includes(key)) {
-                        acc[key] = policyCategories[key];
-                    }
-
+                value: categoryNamesToDelete.reduce<Record<string, null>>((acc, categoryName) => {
+                    acc[categoryName] = null;
                     return acc;
                 }, {}),
             },
