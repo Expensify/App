@@ -1,4 +1,4 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type * as FormTypes from './types/form';
@@ -589,7 +589,7 @@ type OnyxFormDraftKey = keyof OnyxFormDraftValuesMapping;
 type OnyxValueKey = keyof OnyxValuesMapping;
 
 type OnyxKey = OnyxValueKey | OnyxCollectionKey | OnyxFormKey | OnyxFormDraftKey;
-type OnyxValue<TOnyxKey extends OnyxKey> = OnyxEntry<OnyxValues[TOnyxKey]>;
+type OnyxValue<TOnyxKey extends OnyxKey> = TOnyxKey extends keyof OnyxCollectionValuesMapping ? OnyxCollection<OnyxValues[TOnyxKey]> : OnyxEntry<OnyxValues[TOnyxKey]>;
 
 type MissingOnyxKeysError = `Error: Types don't match, OnyxKey type is missing: ${Exclude<AllOnyxKeys, OnyxKey>}`;
 /** If this type errors, it means that the `OnyxKey` type is missing some keys. */

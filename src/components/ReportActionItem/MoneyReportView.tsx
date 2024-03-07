@@ -2,6 +2,7 @@ import Str from 'expensify-common/lib/str';
 import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -26,7 +27,7 @@ type MoneyReportViewProps = {
     report: Report;
 
     /** Policy that the report belongs to */
-    policy: Policy;
+    policy: OnyxEntry<Policy>;
 
     /** Policy report fields */
     policyReportFields: PolicyReportField[];
