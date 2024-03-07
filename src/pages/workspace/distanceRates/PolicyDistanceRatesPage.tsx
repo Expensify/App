@@ -238,10 +238,9 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                         {!isSmallScreenWidth && headerButtons}
                     </HeaderWithBackButton>
                     {isSmallScreenWidth && <View style={[styles.ph5]}>{headerButtons}</View>}
-                    <View style={[styles.ph5, styles.pb5]}>
+                    <View style={[styles.ph5, styles.pb5, styles.pt3]}>
                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
                     </View>
-                    {/* <Text style={[styles.pl5, styles.pb2, styles.pt4, styles.textSupporting]}>{translate('workspace.distanceRates.centrallyManage')}</Text> */}
                     <SelectionList
                         canSelectMultiple
                         ListItem={TableListItem}

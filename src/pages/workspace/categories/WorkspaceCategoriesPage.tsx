@@ -119,6 +119,7 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                 medium
                 onPress={navigateToCategoriesSettings}
                 icon={Expensicons.Gear}
+                iconStyles={[styles.mr2]}
                 text={translate('common.settings')}
                 style={[isSmallScreenWidth && styles.w50]}
             />
@@ -142,7 +143,7 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                         {!isSmallScreenWidth && settingsButton}
                     </HeaderWithBackButton>
                     {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{settingsButton}</View>}
-                    <View style={[styles.ph5, styles.pb5]}>
+                    <View style={[styles.ph5, styles.pb5, styles.pt3]}>
                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
                     </View>
                     {isLoading && (
