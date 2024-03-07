@@ -218,7 +218,7 @@ function WorkspacesListRow({
                     </Text>
                 </View>
             </View>
-            {!isJoinRequestPending && !isNarrow && (
+            {isJoinRequestPending && !isNarrow && (
                 <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.flex1, styles.justifyContentEnd, styles.mln6, styles.pr4]}>
                     <Badge
                         text={translate('workspace.common.requested')}

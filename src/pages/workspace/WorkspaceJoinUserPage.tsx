@@ -33,12 +33,14 @@ function WorkspaceJoinUserPage({route, policies}: WorkspaceJoinUserPageProps) {
     const isUnmounted = useRef(false);
 
     useEffect(() => {
-        if (!isJoinLinkUsed) { return;}
+        if (!isJoinLinkUsed) {
+            return;
+        }
         Navigation.goBack(undefined, false, true);
     }, []);
 
     useEffect(() => {
-        if (!policy || !policies || isUnmounted.current || isJoinLinkUsed ) {
+        if (!policy || !policies || isUnmounted.current || isJoinLinkUsed) {
             return;
         }
         const isPolicyMember = PolicyUtils.isPolicyMember(policyID, policies as Record<string, Policy>);
