@@ -112,7 +112,7 @@ function BaseSelectionList<TItem extends ListItem>(
 
                 // If disabled, add to the disabled indexes array
                 // eslint-disable-next-line
-                if (!!section.isDisabled || item.isDisabled || !item.isSelectable) {
+                if (!!section.isDisabled || item.isDisabled || (item.isSelectable !== undefined && !item.isSelectable)) {
                     disabledOptionsIndexes.push(disabledIndex);
                 }
                 disabledIndex += 1;

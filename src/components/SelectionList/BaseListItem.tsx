@@ -34,6 +34,8 @@ function BaseListItem<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const {hovered, bind} = useHover();
 
+    const isItemSelectable = item.isSelectable === undefined || item.isSelectable;
+
     const rightHandSideComponentRender = () => {
         if (canSelectMultiple || !rightHandSideComponent) {
             return null;
@@ -80,9 +82,9 @@ function BaseListItem<TItem extends ListItem>({
                         <PressableWithFeedback
                             accessibilityLabel={item.text}
                             role={CONST.ROLE.BUTTON}
-                            disabled={isDisabled || !item.isSelectable}
+                            disabled={isDisabled || !isItemSelectable}
                             onPress={handleCheckboxPress}
-                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle()]}
+                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), !isItemSelectable && styles.cursorDisabled]}
                         >
                             <View style={selectMultipleStyle}>
                                 {item.isSelected && (
