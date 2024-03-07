@@ -19,7 +19,9 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -96,40 +98,45 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    style={[styles.defaultModalContainer]}
-                    testID={WorkspaceTagsPage.displayName}
-                    shouldShowOfflineIndicatorInWideScreen
+                <FeatureEnabledAccessOrNotFoundWrapper
+                    policyID={route.params.policyID}
+                    featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
                 >
-                    <HeaderWithBackButton
-                        icon={Illustrations.Tag}
-                        title={translate('workspace.common.tags')}
-                        shouldShowBackButton={isSmallScreenWidth}
-                    />
-                    <View style={[styles.ph5, styles.pb5]}>
-                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
-                    </View>
-                    {tagList.length ? (
-                        <SelectionList
-                            canSelectMultiple
-                            sections={[{data: tagList, indexOffset: 0, isDisabled: false}]}
-                            onCheckboxPress={toggleTag}
-                            onSelectRow={() => {}}
-                            onSelectAll={toggleAllTags}
-                            showScrollIndicator
-                            ListItem={TableListItem}
-                            customListHeader={getCustomListHeader()}
-                            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                    <ScreenWrapper
+                        includeSafeAreaPaddingBottom={false}
+                        style={[styles.defaultModalContainer]}
+                        testID={WorkspaceTagsPage.displayName}
+                        shouldShowOfflineIndicatorInWideScreen
+                    >
+                        <HeaderWithBackButton
+                            icon={Illustrations.Tag}
+                            title={translate('workspace.common.tags')}
+                            shouldShowBackButton={isSmallScreenWidth}
                         />
-                    ) : (
-                        <WorkspaceEmptyStateSection
-                            title={translate('workspace.tags.emptyTags.title')}
-                            icon={Illustrations.EmptyStateExpenses}
-                            subtitle={translate('workspace.tags.emptyTags.subtitle')}
-                        />
-                    )}
-                </ScreenWrapper>
+                        <View style={[styles.ph5, styles.pb5]}>
+                            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
+                        </View>
+                        {tagList.length ? (
+                            <SelectionList
+                                canSelectMultiple
+                                sections={[{data: tagList, indexOffset: 0, isDisabled: false}]}
+                                onCheckboxPress={toggleTag}
+                                onSelectRow={() => {}}
+                                onSelectAll={toggleAllTags}
+                                showScrollIndicator
+                                ListItem={TableListItem}
+                                customListHeader={getCustomListHeader()}
+                                listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                            />
+                        ) : (
+                            <WorkspaceEmptyStateSection
+                                title={translate('workspace.tags.emptyTags.title')}
+                                icon={Illustrations.EmptyStateExpenses}
+                                subtitle={translate('workspace.tags.emptyTags.subtitle')}
+                            />
+                        )}
+                    </ScreenWrapper>
+                </FeatureEnabledAccessOrNotFoundWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>
     );
