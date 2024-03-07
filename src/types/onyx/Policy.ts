@@ -98,6 +98,14 @@ type Vendor = {
     email: string;
 };
 
+type TaxCode = {
+    totalTaxRateVal: string;
+    simpleName: string;
+    taxCodeRef: string;
+    taxRateRefs: Record<string, string>;
+    name: string;
+};
+
 type QuickBooksOnlineConnectionData = {
     country: string;
     edition: string;
@@ -111,7 +119,7 @@ type QuickBooksOnlineConnectionData = {
     accountsPayable: Account[];
     otherCurrentAssetAccounts: Account[];
 
-    taxCodes: string[];
+    taxCodes: TaxCode[];
     employees: Employee[];
     vendors: Vendor[];
 };
