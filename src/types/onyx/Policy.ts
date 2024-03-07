@@ -85,8 +85,8 @@ type Account = {
 
 type Employee = {
     id: number;
-    firstName: string;
-    lastName: string;
+    firstName?: string;
+    lastName?: string;
     name: string;
     email: string;
 };
