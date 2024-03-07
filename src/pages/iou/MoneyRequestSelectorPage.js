@@ -10,6 +10,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
@@ -62,6 +63,7 @@ const defaultProps = {
 function MoneyRequestSelectorPage(props) {
     const styles = useThemeStyles();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
+    const {canUseP2PDistanceRequests} = usePermissions();
 
     const iouType = lodashGet(props.route, 'params.iouType', '');
     const reportID = lodashGet(props.route, 'params.reportID', '');
@@ -75,7 +77,7 @@ function MoneyRequestSelectorPage(props) {
     const isFromGlobalCreate = !reportID;
     const isExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isExpenseReport = ReportUtils.isExpenseReport(props.report);
-    const shouldDisplayDistanceRequest = isExpenseChat || isExpenseReport || isFromGlobalCreate;
+    const shouldDisplayDistanceRequest = canUseP2PDistanceRequests || isExpenseChat || isExpenseReport || isFromGlobalCreate;
 
     const resetMoneyRequestInfo = () => {
         const moneyRequestID = `${iouType}${reportID}`;
