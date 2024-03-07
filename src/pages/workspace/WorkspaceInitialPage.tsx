@@ -161,6 +161,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.TAGS,
         },
+        // TODO: Check if user enabled Taxes in More Features page
         {
             translationKey: 'workspace.common.taxes',
             icon: Expensicons.Tax,

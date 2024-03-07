@@ -35,18 +35,16 @@ function WorkspaceTaxesPage({policy}: WorkspaceTaxesPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const [selectedTaxes, setSelectedTaxes] = useState<string[]>([]);
+    const [selectedTaxesIDs, setSelectedTaxesIDs] = useState<string[]>([]);
 
     const taxesList = useMemo<PolicyForList[]>(
         () =>
             Object.entries(policy?.taxRates?.taxes ?? {}).map(([key, value]) => ({
-                // TODO: Clean up: check if all properties are needed
                 value: value.name,
                 text: value.name,
                 keyForList: key,
-                isSelected: !!selectedTaxes.includes(key),
+                isSelected: !!selectedTaxesIDs.includes(key),
                 rightElement: (
-                    // TODO: Extract this into a separate component together with WorkspaceCategoriesPage
                     <View style={styles.flexRow}>
                         <Text style={[styles.disabledText, styles.alignSelfCenter]}>{value.isDisabled ? translate('workspace.common.disabled') : translate('workspace.common.enabled')}</Text>
                         <View style={[styles.p1, styles.pl2]}>
@@ -58,11 +56,11 @@ function WorkspaceTaxesPage({policy}: WorkspaceTaxesPageProps) {
                     </View>
                 ),
             })),
-        [policy?.taxRates?.taxes, selectedTaxes, styles, theme.icon, translate],
+        [policy?.taxRates?.taxes, selectedTaxesIDs, styles, theme.icon, translate],
     );
 
     const toggleTax = (tax: PolicyForList) => {
-        setSelectedTaxes((prev) => {
+        setSelectedTaxesIDs((prev) => {
             if (prev.includes(tax.keyForList)) {
                 return prev.filter((item) => item !== tax.keyForList);
             }
@@ -71,12 +69,13 @@ function WorkspaceTaxesPage({policy}: WorkspaceTaxesPageProps) {
     };
 
     const toggleAllTaxes = () => {
-        const isAllSelected = selectedTaxes.length === taxesList.length;
-        if (isAllSelected) {
-            setSelectedTaxes([]);
-        } else {
-            setSelectedTaxes(taxesList.map((item) => item.keyForList));
-        }
+        setSelectedTaxesIDs((prev) => {
+            if (prev.length === taxesList.length) {
+                return [];
+            }
+
+            return taxesList.map((item) => item.keyForList);
+        });
     };
 
     const getCustomListHeader = () => (
