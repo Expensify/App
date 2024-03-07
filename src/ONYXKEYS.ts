@@ -287,6 +287,7 @@ const ONYXKEYS = {
         POLICY_MEMBERS: 'policyMembers_',
         POLICY_DRAFTS: 'policyDrafts_',
         POLICY_MEMBERS_DRAFTS: 'policyMembersDrafts_',
+        POLICY_JOIN_MEMBER: 'policyJoinMember_',
         POLICY_CATEGORIES: 'policyCategories_',
         POLICY_RECENTLY_USED_CATEGORIES: 'policyRecentlyUsedCategories_',
         POLICY_TAGS: 'policyTags_',
@@ -485,6 +486,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SELECTED_TAB]: string;
     [ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT]: string;
     [ONYXKEYS.COLLECTION.NEXT_STEP]: OnyxTypes.ReportNextStep;
+    [ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER]: OnyxTypes.PolicyJoinMember;
 };
 
 type OnyxValuesMapping = {

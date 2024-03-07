@@ -35,6 +35,7 @@ import type PlaidData from './PlaidData';
 import type Policy from './Policy';
 import type {PolicyReportField, TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
+import type PolicyJoinMember from './PolicyJoinMember';
 import type {PolicyMembers} from './PolicyMember';
 import type PolicyMember from './PolicyMember';
 import type {PolicyTag, PolicyTagList, PolicyTags} from './PolicyTag';
@@ -158,4 +159,5 @@ export type {
     LastSelectedDistanceRates,
     InvitedEmailsToAccountIDs,
     Log,
+    PolicyJoinMember,
 };

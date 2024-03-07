@@ -91,7 +91,9 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, policyMemb
  */
 function shouldShowPolicy(policy: OnyxEntry<Policy>, isOffline: boolean): boolean {
     return (
-        !!policy && policy?.isPolicyExpenseChatEnabled && (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0)
+        !!policy &&
+        (policy?.isPolicyExpenseChatEnabled || Boolean(policy?.isJoinRequestPending)) &&
+        (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0)
     );
 }
 

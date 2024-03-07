@@ -52,6 +52,7 @@ import SelectionScraper from '@libs/SelectionScraper';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
+import * as Policy from '@userActions/Policy';
 import * as store from '@userActions/ReimbursementAccount/store';
 import * as Report from '@userActions/Report';
 import * as ReportActions from '@userActions/ReportActions';
@@ -61,6 +62,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {OriginalMessageActionableMentionWhisper, OriginalMessageJoinPolicyChangeLog} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
@@ -357,8 +359,27 @@ function ReportActionItem({
     );
 
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
-        if (!(ReportActionsUtils.isActionableMentionWhisper(action) && (!action.originalMessage?.resolution ?? null))) {
+        const isWhisperResolution = (action?.originalMessage as OriginalMessageActionableMentionWhisper['originalMessage'])?.resolution !== null;
+        const isJoinChoice = (action?.originalMessage as OriginalMessageJoinPolicyChangeLog['originalMessage'])?.choice === '';
+
+        if (!((ReportActionsUtils.isActionableMentionWhisper(action) && isWhisperResolution) || (ReportActionsUtils.isActionableJoinRequest(action) && isJoinChoice))) {
             return [];
+        }
+
+        if (ReportActionsUtils.isActionableJoinRequest(action)) {
+            return [
+                {
+                    text: 'actionableMentionJoinWorkspaceOptions.accept',
+                    key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT}`,
+                    onPress: () => Policy.acceptJoinRequest(report.reportID, action),
+                    isPrimary: true,
+                },
+                {
+                    text: 'actionableMentionJoinWorkspaceOptions.decline',
+                    key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.DECLINE}`,
+                    onPress: () => Policy.declineJoinRequest(report.reportID, action),
+                },
+            ];
         }
         return [
             {
