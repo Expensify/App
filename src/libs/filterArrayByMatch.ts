@@ -9,14 +9,7 @@ const rankings = {
     NO_MATCH: 0,
 } as const;
 
-const sortType = {
-    ASC: 'asc',
-    DESC: 'desc',
-    NONE: 'none',
-} as const;
-
 type Ranking = (typeof rankings)[keyof typeof rankings];
-type Sort = (typeof sortType)[keyof typeof sortType];
 
 type RankingInfo = {
     rankedValue: string;
@@ -43,28 +36,9 @@ type KeyOption<T> = KeyAttributesOptions<T> | ValueGetterKey<T> | string;
 type Options<T = unknown> = {
     keys?: ReadonlyArray<KeyOption<T>>;
     threshold?: Ranking;
-    sort?: Sort;
     strict?: boolean;
 };
 type IndexableByString = Record<string, unknown>;
-
-/**
- * Sorts the ranked items based on the sort type
- * @param rankedItems list of ranked items
- * @param sort sort type
- * @returns the sorted list of items
- */
-function sortRankedItems<T>(rankedItems: Array<RankedItem<T>>, sort?: Sort): Array<RankedItem<T>> {
-    if (sort === sortType.DESC) {
-        return rankedItems.sort((a, b) => b.rank - a.rank);
-    }
-
-    if (sort === sortType.ASC) {
-        return rankedItems.sort((a, b) => a.rank - b.rank);
-    }
-
-    return rankedItems;
-}
 
 /**
  * Generates an acronym for a string.
@@ -322,10 +296,10 @@ function getHighestRanking<T>(item: T, keys: ReadonlyArray<KeyOption<T>> | undef
  * @param items - the items to filter
  * @param searchValue - the value to use for ranking
  * @param options - options to configure
- * @returns the new sorted array
+ * @returns the new filtered array
  */
 function filterArrayByMatch<T = string>(items: readonly T[], searchValue: string, options: Options<T> = {}): T[] {
-    const {keys, threshold = rankings.MATCHES, sort = sortType.DESC, strict = false} = options;
+    const {keys, threshold = rankings.MATCHES, strict = false} = options;
 
     function reduceItemsToRanked(matches: Array<RankedItem<T>>, item: T, index: number): Array<RankedItem<T>> {
         const rankingInfo = getHighestRanking(item, keys, searchValue, options);
@@ -337,14 +311,13 @@ function filterArrayByMatch<T = string>(items: readonly T[], searchValue: string
         return matches;
     }
 
-    const matchedItems = items.reduce(reduceItemsToRanked, []);
-    let itemsToSort = matchedItems;
+    let matchedItems = items.reduce(reduceItemsToRanked, []);
 
     if (strict) {
-        itemsToSort = matchedItems.filter((item) => item.rank >= threshold + 1);
+        matchedItems = matchedItems.filter((item) => item.rank >= threshold + 1);
     }
 
-    return sortRankedItems(itemsToSort, sort).map((item) => item.item);
+    return matchedItems.map((item) => item.item);
 }
 
 export default filterArrayByMatch;
