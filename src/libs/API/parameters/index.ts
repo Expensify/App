@@ -156,5 +156,6 @@ export type {default as SetWorkspaceAutoReportingFrequencyParams} from './SetWor
 export type {default as SetWorkspaceAutoReportingMonthlyOffsetParams} from './SetWorkspaceAutoReportingMonthlyOffsetParams';
 export type {default as SetWorkspaceApprovalModeParams} from './SetWorkspaceApprovalModeParams';
 export type {default as SetWorkspacePayerParams} from './SetWorkspacePayerParams';
-export type {default as SetReimbursementFromChoiceParams} from './SetReimbursementFromChoiceParams';
+export type {default as SetWorkspaceReimbursementParams} from './SetWorkspaceReimbursementParams';
 export type {default as SwitchToOldDotParams} from './SwitchToOldDotParams';
+export type {default as OpenPolicyWorkflowsPageParams} from './OpenPolicyWorkflowsPageParams';

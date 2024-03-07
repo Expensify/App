@@ -1,9 +1,9 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 
-type SetReimbursementFromChoiceParams = {
+type SetWorkspaceReimbursementParams = {
     policyID: string;
     reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
 };
 
-export default SetReimbursementFromChoiceParams;
+export default SetWorkspaceReimbursementParams;

@@ -54,17 +54,17 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
 
     const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policy?.id ?? '')), [policy?.id]);
 
-    const authorizedPayerEmail = policy?.reimburserEmail;
+    const reimburserEmail = policy?.reimburserEmail;
     const displayNameForAuthorizedPayer = useMemo(
-        () => PersonalDetailsUtils.getPersonalDetailByEmail(authorizedPayerEmail ?? '')?.displayName ?? authorizedPayerEmail,
-        [authorizedPayerEmail],
+        () => PersonalDetailsUtils.getPersonalDetailByEmail(reimburserEmail ?? '')?.displayName ?? reimburserEmail,
+        [reimburserEmail],
     );
 
     const fetchData = useCallback(() => {
         if (!policy?.id) {
             return;
         }
-        Policy.openWorkspaceReimburseView(policy?.id);
+        Policy.openPolicyWorkflowsPage(policy?.id);
     }, [policy]);
 
     useEffect(() => {
@@ -79,6 +79,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
         const hasVBA = state === BankAccount.STATE.OPEN;
         const bankDisplayName = bankName ? `${bankName} ${accountNumber ? `${accountNumber.slice(-5)}` : ''}` : '';
         const hasReimburserEmailError = !!policy?.errorFields?.reimburserEmail;
+
         return [
             ...(canUseDelayedSubmission
                 ? [
@@ -139,8 +140,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
                 onToggle: () => {
                     const isActive = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
                     const newReimbursementChoice = isActive ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
-                    Policy.setReimbursementFromChoice(route.params.policyID, newReimbursementChoice);
-                    // todo: after enable we need to get VBA owner(?) email and set it to policy.reimburser_email with Policy.setWorkspaceReimbursement
+                    Policy.setWorkspaceReimbursement(route.params.policyID, newReimbursementChoice);
                 },
                 subMenuItems: (
                     <>
@@ -220,6 +220,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
             shouldShowNotFoundPage={!isPaidGroupPolicy || !isPolicyAdmin}
             shouldUseScrollView
             shouldSkipVBBACall
+            shouldShowLoading={false}
         >
             <View style={[styles.mt3, styles.textStrong, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                 <Section
