@@ -16,7 +16,7 @@ import React from 'react';
  */
 const mapChildrenFlat = <T, C>(element: C, fn: (child: C, index: number) => T) => {
     if (typeof element === 'function') {
-        return element(false);
+        return element(false) as C;
     }
 
     const mappedChildren = React.Children.map(element, fn);
