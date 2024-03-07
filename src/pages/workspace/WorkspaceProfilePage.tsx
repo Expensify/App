@@ -107,7 +107,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                 type={CONST.ICON_TYPE_WORKSPACE}
                                 fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                                 style={[
-                                    isSmallScreenWidth ? styles.mb1 : styles.mb3,
+                                    styles.mb1,
                                     isSmallScreenWidth ? styles.mtn17 : styles.mtn20,
                                     styles.alignItemsStart,
                                     styles.sectionMenuItemTopDescription,
