@@ -47,7 +47,7 @@ function LHNOptionsList({
     const {canUseViolations} = usePermissions();
     const {translate} = useLocalize();
     const {isExtraSmallScreenHeight, isSmallScreenWidth} = useWindowDimensions();
-    const shouldShowEmptyUI = isSmallScreenWidth && data.length === 0;
+    const shouldShowEmptyLHN = isSmallScreenWidth && data.length === 0;
 
     // When the first item renders we want to call the onFirstItemRendered callback.
     // At this point in time we know that the list is actually displaying items.
@@ -61,7 +61,7 @@ function LHNOptionsList({
         onFirstItemRendered();
     }, [onFirstItemRendered]);
 
-    const renderEmptyStateSubtitle = useCallback(
+    const renderEmptyLHNSubtitle = useCallback(
         () => (
             <View>
                 <Text
@@ -163,15 +163,15 @@ function LHNOptionsList({
     );
 
     return (
-        <View style={[style ?? styles.flex1, shouldShowEmptyUI ? styles.emptyLHNWrapper : undefined]}>
-            {shouldShowEmptyUI ? (
+        <View style={[style ?? styles.flex1, shouldShowEmptyLHN ? styles.emptyLHNWrapper : undefined]}>
+            {shouldShowEmptyLHN ? (
                 <BlockingView
                     animation={LottieAnimations.Fireworks}
                     animationStyles={styles.emptyLHNAnimation}
                     animationWebStyle={styles.emptyLHNAnimationWeb(isExtraSmallScreenHeight)}
                     title={translate('common.emptyLHN.title')}
                     shouldShowLink={false}
-                    renderCustomSubtitle={renderEmptyStateSubtitle}
+                    renderCustomSubtitle={renderEmptyLHNSubtitle}
                 />
             ) : (
                 <FlashList

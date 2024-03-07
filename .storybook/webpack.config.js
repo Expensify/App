@@ -37,12 +37,6 @@ module.exports = ({config}) => {
     config.plugins[definePluginIndex].definitions.__REACT_WEB_CONFIG__ = JSON.stringify(env);
     config.resolve.extensions = custom.resolve.extensions;
 
-    config.stats = {
-        // We can ignore the "module not installed" warning from lottie-react-native
-        // because we are not using the library for JSON format of Lottie animations.
-        warningsFilter: ['../node_modules/lottie-react-native/lib/module/LottieView/index.web.js'],
-    };
-
     const babelRulesIndex = _.findIndex(custom.module.rules, (rule) => rule.loader === 'babel-loader');
     const babelRule = custom.module.rules[babelRulesIndex];
     config.module.rules.push(babelRule);
