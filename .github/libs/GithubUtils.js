@@ -250,14 +250,14 @@ class GithubUtils {
             .then((data) => {
                 // The format of this map is following:
                 // {
-                //    'https://github.com/Expensify/App/pull/9641': [ 'PauloGasparSv', 'kidroca' ],
-                //    'https://github.com/Expensify/App/pull/9642': [ 'mountiny', 'kidroca' ]
+                //    'https://github.com/Expensify/App/pull/9641': 'PauloGasparSv',
+                //    'https://github.com/Expensify/App/pull/9642': 'mountiny'
                 // }
                 const internalQAPRMap = _.reduce(
                     _.filter(data, (pr) => !_.isEmpty(_.findWhere(pr.labels, {name: CONST.LABELS.INTERNAL_QA}))),
                     (map, pr) => {
                         // eslint-disable-next-line no-param-reassign
-                        map[pr.html_url] = _.compact(_.pluck(pr.assignees, 'login'));
+                        map[pr.html_url] = pr.merged_by.login;
                         return map;
                     },
                     {},
@@ -292,11 +292,11 @@ class GithubUtils {
                 if (!_.isEmpty(internalQAPRMap)) {
                     console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
                     issueBody += '**Internal QA:**\r\n';
-                    _.each(internalQAPRMap, (assignees, URL) => {
-                        const assigneeMentions = _.reduce(assignees, (memo, assignee) => `${memo} @${assignee}`, '');
+                    _.each(internalQAPRMap, (merger, URL) => {
+                        const mergerMention = `@${merger}`;
                         issueBody += `${_.contains(resolvedInternalQAPRs, URL) ? '- [x]' : '- [ ]'} `;
                         issueBody += `${URL}`;
-                        issueBody += ` -${assigneeMentions}`;
+                        issueBody += ` -${mergerMention}`;
                         issueBody += '\r\n';
                     });
                     issueBody += '\r\n\r\n';
@@ -326,7 +326,8 @@ class GithubUtils {
                 issueBody += `\r\n- [${isGHStatusChecked ? 'x' : ' '}] I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.`;
 
                 issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';
-                return issueBody;
+                const issueAssignees = Object.entries(internalQAPRMap);
+                return {issueBody, issueAssignees};
             })
             .catch((err) => console.warn('Error generating StagingDeployCash issue body! Continuing...', err));
     }

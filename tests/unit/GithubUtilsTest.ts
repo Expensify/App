@@ -392,14 +392,8 @@ describe('GithubUtils', () => {
                         color: 'f29513',
                     },
                 ],
-                assignees: [
-                    {
-                        login: 'octocat',
-                    },
-                    {
-                        login: 'hubot',
-                    },
-                ],
+                assignees: [],
+                merged_by: {login: 'octocat'},
             },
         ];
         const mockGithub = jest.fn(() => ({
@@ -446,7 +440,7 @@ describe('GithubUtils', () => {
         const internalQAHeader = '\r\n\r\n**Internal QA:**';
         const lineBreak = '\r\n';
         const lineBreakDouble = '\r\n\r\n';
-        const assignOctocatHubot = ' - @octocat @hubot';
+        const assignOctocat = ' - @octocat';
         const deployerVerificationsHeader = '\r\n**Deployer verifications:**';
         // eslint-disable-next-line max-len
         const timingDashboardVerification =
@@ -579,8 +573,8 @@ describe('GithubUtils', () => {
                         `${lineBreak}${closedCheckbox}${basePRList[4]}` +
                         `${lineBreak}${closedCheckbox}${basePRList[5]}` +
                         `${lineBreak}${internalQAHeader}` +
-                        `${lineBreak}${openCheckbox}${internalQAPRList[0]}${assignOctocatHubot}` +
-                        `${lineBreak}${openCheckbox}${internalQAPRList[1]}${assignOctocatHubot}` +
+                        `${lineBreak}${openCheckbox}${internalQAPRList[0]}` +
+                        `${lineBreak}${openCheckbox}${internalQAPRList[1]}${assignOctocat}` +
                         `${lineBreakDouble}${deployerVerificationsHeader}` +
                         `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                         `${lineBreak}${openCheckbox}${firebaseVerification}` +
@@ -591,23 +585,25 @@ describe('GithubUtils', () => {
         });
 
         test('Test some verified internalQA PRs', () => {
-            githubUtils.generateStagingDeployCashBody(tag, [...basePRList, ...internalQAPRList], [], [], [], [internalQAPRList[0]]).then((issueBody: string) => {
-                expect(issueBody).toBe(
-                    `${baseExpectedOutput}` +
+            githubUtils.generateStagingDeployCashBody(tag, [...basePRList, ...internalQAPRList], [], [], [], [internalQAPRList[0]]).then(({issueBody, issueAssignees}) => {
+                expect({issueBody, issueAssignees}).toBe({
+                    issueBody:
+                        `${baseExpectedOutput}` +
                         `${openCheckbox}${basePRList[2]}` +
                         `${lineBreak}${openCheckbox}${basePRList[0]}` +
                         `${lineBreak}${openCheckbox}${basePRList[1]}` +
                         `${lineBreak}${closedCheckbox}${basePRList[4]}` +
                         `${lineBreak}${closedCheckbox}${basePRList[5]}` +
                         `${lineBreak}${internalQAHeader}` +
-                        `${lineBreak}${closedCheckbox}${internalQAPRList[0]}${assignOctocatHubot}` +
-                        `${lineBreak}${openCheckbox}${internalQAPRList[1]}${assignOctocatHubot}` +
+                        `${lineBreak}${closedCheckbox}${internalQAPRList[0]}` +
+                        `${lineBreak}${openCheckbox}${internalQAPRList[1]}${assignOctocat}` +
                         `${lineBreakDouble}${deployerVerificationsHeader}` +
                         `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                         `${lineBreak}${openCheckbox}${firebaseVerification}` +
                         `${lineBreak}${openCheckbox}${ghVerification}` +
                         `${lineBreakDouble}${ccApplauseLeads}`,
-                );
+                    issueAssignees: [{login: 'octocat'}],
+                });
             });
         });
     });
