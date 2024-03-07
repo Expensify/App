@@ -45,7 +45,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
     const [removeMemberConfirmModalVisible, setRemoveMemberConfirmModalVisible] = React.useState(false);
 
     const accountID = Number(route?.params?.accountID) ?? 0;
-    const backTo = decodeURIComponent(route?.params?.backTo ?? '') as Route;
+    const backTo = route?.params?.backTo ?? ('' as Route);
 
     const member = policyMembers?.[accountID];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
@@ -64,12 +64,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
     }, [accountID, backTo, route.params.policyID]);
 
     const redirectToProfile = useCallback(() => {
-        Navigation.navigate(ROUTES.PROFILE.getRoute(accountID));
+        Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
     }, [accountID]);
 
     const openRoleSelectionModal = useCallback(() => {
-        const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-        Navigation.navigate(ROUTES.WORKSPACE_MEMBER_ROLE_SELECTION.getRoute(route.params.policyID, accountID, activeRoute));
+        Navigation.navigate(ROUTES.WORKSPACE_MEMBER_ROLE_SELECTION.getRoute(route.params.policyID, accountID, Navigation.getActiveRoute()));
     }, [accountID, route.params.policyID]);
 
     return (

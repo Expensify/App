@@ -262,8 +262,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 return;
             }
 
-            const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID, activeRoute));
+            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID, Navigation.getActiveRoute()));
         },
         [isPolicyAdmin, route.params.policyID],
     );

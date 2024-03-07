@@ -32,7 +32,7 @@ function WorkspaceMemberDetailsRoleSelectionPage({policyMembers, route}: Workspa
 
     const accountID = Number(route?.params?.accountID) ?? 0;
     const member = policyMembers?.[accountID];
-    const backTo = decodeURIComponent(route?.params?.backTo ?? '') as Route;
+    const backTo = route?.params?.backTo ?? ('' as Route);
 
     const items: ListItemType[] = [
         {
