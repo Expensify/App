@@ -44,7 +44,6 @@ function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, 
                             width={ICON_SIZE}
                             additionalStyles={{
                                 ...styles.mr3,
-                                ...styles.pb4,
                             }}
                         />
                         <View style={[styles.flexColumn, styles.flex1]}>
