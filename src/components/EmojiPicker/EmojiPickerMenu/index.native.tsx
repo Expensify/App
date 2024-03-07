@@ -41,8 +41,6 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps) {
 
     /**
      * Filter the entire list of emojis to only emojis that have the search term in their keywords
-     *
-     * @param searchTerm
      */
     const filterEmojis = lodashDebounce((searchTerm: string) => {
         const [normalizedSearchTerm, newFilteredEmojiList] = suggestEmojis(searchTerm);
@@ -75,8 +73,6 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps) {
      * Given an emoji item object, render a component based on its type.
      * Items with the code "SPACER" return nothing and are used to fill rows up to 8
      * so that the sticky headers function properly.
-     *
-     * @param item
      */
     const renderItem = useCallback(
         ({item, target}: RenderItemProps) => {

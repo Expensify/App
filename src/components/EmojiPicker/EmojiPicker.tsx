@@ -103,8 +103,6 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
 
     /**
      * Hide the emoji picker menu.
-     *
-     * @param isNavigating
      */
     const hideEmojiPicker = (isNavigating?: boolean) => {
         if (isNavigating) {
@@ -132,9 +130,6 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
 
     /**
      * Callback for the emoji picker to add whatever emoji is chosen into the main input
-     *
-     * @param emoji
-     * @param emojiObject
      */
     const selectEmoji = (emoji: string, emojiObject: Emoji) => {
         // Prevent fast click / multiple emoji selection;
@@ -151,8 +146,6 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
 
     /**
      * Whether emoji picker is active for the given id.
-     *
-     * @param id
      */
     const isActive = (id: string) => !!id && id === activeID;
 
