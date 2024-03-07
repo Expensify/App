@@ -99,6 +99,7 @@ type CentralPaneNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.TAGS]: {
         policyID: string;
+        categoryName: string;
     };
 };
 
@@ -201,6 +202,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.CATEGORY_CREATE]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {

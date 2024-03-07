@@ -431,22 +431,24 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
             },
         ];
 
-        if (selectedEmployees.find((employee) => policyMembers?.[employee]?.role === CONST.POLICY.ROLE.ADMIN)) {
-            options.push({
-                text: translate('workspace.people.makeMember'),
-                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
-                icon: Expensicons.User,
-                onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
-            });
-        }
+        if (PolicyUtils.isPaidGroupPolicy(policy)) {
+            if (selectedEmployees.find((employee) => policyMembers?.[employee]?.role === CONST.POLICY.ROLE.ADMIN)) {
+                options.push({
+                    text: translate('workspace.people.makeMember'),
+                    value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
+                    icon: Expensicons.User,
+                    onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
+                });
+            }
 
-        if (selectedEmployees.find((employee) => policyMembers?.[employee]?.role === CONST.POLICY.ROLE.USER)) {
-            options.push({
-                text: translate('workspace.people.makeAdmin'),
-                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
-                icon: Expensicons.MakeAdmin,
-                onSelected: () => changeUserRole(CONST.POLICY.ROLE.ADMIN),
-            });
+            if (selectedEmployees.find((employee) => policyMembers?.[employee]?.role === CONST.POLICY.ROLE.USER)) {
+                options.push({
+                    text: translate('workspace.people.makeAdmin'),
+                    value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
+                    icon: Expensicons.MakeAdmin,
+                    onSelected: () => changeUserRole(CONST.POLICY.ROLE.ADMIN),
+                });
+            }
         }
 
         return options;
