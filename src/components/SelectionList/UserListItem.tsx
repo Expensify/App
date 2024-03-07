@@ -82,7 +82,7 @@ function UserListItem({
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
-                            text={Str.removeSMSDomain(item.text)}
+                            text={Str.removeSMSDomain(item.text ?? '')}
                             style={[
                                 styles.optionDisplayName,
                                 isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
@@ -94,7 +94,7 @@ function UserListItem({
                         {!!item.alternateText && (
                             <TextWithTooltip
                                 shouldShowTooltip={showTooltip}
-                                text={Str.removeSMSDomain(item.alternateText)}
+                                text={Str.removeSMSDomain(item.alternateText ?? '')}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                             />
                         )}
