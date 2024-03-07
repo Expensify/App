@@ -69,8 +69,6 @@ const getItemType = (item: GetItemTypeProps): string | undefined => {
 /**
  * Return a unique key for each emoji item
  *
- * @param item
- * @param index
  */
 const keyExtractor = (item: PickerEmoji, index: number): string => `emoji_picker_${item.code}_${index}`;
 
