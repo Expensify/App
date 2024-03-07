@@ -283,7 +283,7 @@ function AvatarWithImagePicker({
 
     return (
         <View style={StyleSheet.flatten([styles.alignItemsCenter, style])}>
-            <View style={[styles.pRelative, avatarStyle]}>
+            <View style={[styles.w100]}>
                 <OfflineWithFeedback
                     pendingAction={pendingAction}
                     errors={errors}
@@ -306,6 +306,7 @@ function AvatarWithImagePicker({
                             accessibilityLabel={translate('avatarWithImagePicker.editImage')}
                             disabled={isAvatarCropModalOpen || (disabled && !enablePreview)}
                             disabledStyle={disabledStyle}
+                            style={[styles.pRelative, avatarStyle]}
                             ref={anchorRef}
                         >
                             <View>
