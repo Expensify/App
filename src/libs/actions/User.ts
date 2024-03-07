@@ -492,9 +492,7 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
     // "reportActions_5134363522480668" -> "5134363522480668"
     const reportIDs = reportActionsOnly
         .map((value) => value.key.split('_')[1])
-        .filter((reportID) => {
-            return reportID === Navigation.getTopmostReportId() && Visibility.isVisible() && Visibility.hasFocus();
-        });
+        .filter((reportID) => reportID === Navigation.getTopmostReportId() && Visibility.isVisible() && Visibility.hasFocus());
 
     Promise.all(reportIDs.map((reportID) => isChannelMuted(reportID)))
         .then((muted) => muted.every((isMuted) => isMuted))
