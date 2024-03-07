@@ -62,6 +62,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {OriginalMessageActionableMentionWhisper, OriginalMessageJoinPolicyChangeLog} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
@@ -362,29 +363,25 @@ function ReportActionItem({
     );
 
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
-        if (!(ReportActionsUtils.isActionableMentionWhisper(action) && (!action.originalMessage?.resolution ?? null))) {
-    const actionableItemButtons = useMemo(() => {
-        if (
-            !(
-                (ReportActionsUtils.isActionableMentionWhisper(props.action) || ReportActionsUtils.isActionableJoinRequest(props.action)) &&
-                !(lodashGet(props.action, 'originalMessage.resolution', null) || lodashGet(props.action, 'originalMessage.choice', ''))
-            )
-        ) {
+        const isWhisperResolution = (action?.originalMessage as OriginalMessageActionableMentionWhisper['originalMessage'])?.resolution !== null;
+        const isJoinChoice = (action?.originalMessage as OriginalMessageJoinPolicyChangeLog['originalMessage'])?.choice === '';
+
+        if (!((ReportActionsUtils.isActionableMentionWhisper(action) && isWhisperResolution) || (ReportActionsUtils.isActionableJoinRequest(action) && isJoinChoice))) {
             return [];
         }
 
-        if (ReportActionsUtils.isActionableJoinRequest(props.action)) {
+        if (ReportActionsUtils.isActionableJoinRequest(action)) {
             return [
                 {
                     text: 'actionableMentionJoinWorkspaceOptions.accept',
-                    key: `${props.action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT}`,
-                    onPress: () => Policy.acceptJoinRequest(props.report.reportID, props.action.actorAccountID, props.action.reportActionID, props.action.originalMessage.policyID),
+                    key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT}`,
+                    onPress: () => Policy.acceptJoinRequest(report.reportID, action),
                     isPrimary: true,
                 },
                 {
                     text: 'actionableMentionJoinWorkspaceOptions.decline',
-                    key: `${props.action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.DECLINE}`,
-                    onPress: () => Policy.declineJoinRequest(props.report.reportID, props.action.actorAccountID, props.action.reportActionID, props.action.originalMessage.policyID),
+                    key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.DECLINE}`,
+                    onPress: () => Policy.declineJoinRequest(report.reportID, action),
                 },
             ];
         }

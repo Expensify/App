@@ -58,6 +58,7 @@ import type {
     Transaction,
 } from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {OriginalMessageJoinPolicyChangeLog} from '@src/types/onyx/OriginalMessage';
 import type {Attributes, CustomUnit, Rate, Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -2587,15 +2588,18 @@ function clearCategoryErrors(policyID: string, categoryName: string) {
 /**
  * Accept user join request to a workspace
  */
-function acceptJoinRequest(reportID: string, accountID: string, adminsRoomMessageReportActionID: string, policyID: string) {
+function acceptJoinRequest(reportID: string, reportAction: OnyxEntry<ReportAction>) {
     const choice = CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT;
+    if (!reportAction) {
+        return;
+    }
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [adminsRoomMessageReportActionID]: {
+                [reportAction.reportActionID]: {
                     originalMessage: {choice},
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
@@ -2608,7 +2612,7 @@ function acceptJoinRequest(reportID: string, accountID: string, adminsRoomMessag
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [adminsRoomMessageReportActionID]: {
+                [reportAction.reportActionID]: {
                     originalMessage: {choice},
                     pendingAction: null,
                 },
@@ -2621,7 +2625,7 @@ function acceptJoinRequest(reportID: string, accountID: string, adminsRoomMessag
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [adminsRoomMessageReportActionID]: {
+                [reportAction.reportActionID]: {
                     originalMessage: {choice: ''},
                     pendingAction: null,
                 },
@@ -2630,7 +2634,11 @@ function acceptJoinRequest(reportID: string, accountID: string, adminsRoomMessag
     ];
 
     const parameters = {
-        requests: JSON.stringify({[policyID]: {requests: [{accountID, adminsRoomMessageReportActionID}]}}),
+        requests: JSON.stringify({
+            [(reportAction.originalMessage as OriginalMessageJoinPolicyChangeLog['originalMessage']).policyID]: {
+                requests: [{accountID: reportAction?.actorAccountID, adminsRoomMessageReportActionID: reportAction.reportActionID}],
+            },
+        }),
     };
 
     API.write(WRITE_COMMANDS.ACCEPT_JOIN_REQUEST, parameters, {optimisticData, failureData, successData});
@@ -2639,14 +2647,17 @@ function acceptJoinRequest(reportID: string, accountID: string, adminsRoomMessag
 /**
  * Decline user join request to a workspace
  */
-function declineJoinRequest(reportID: string, accountID: string, adminsRoomMessageReportActionID: string, policyID: string) {
+function declineJoinRequest(reportID: string, reportAction: OnyxEntry<ReportAction>) {
+    if (!reportAction) {
+        return;
+    }
     const choice = CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.DECLINE;
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [adminsRoomMessageReportActionID]: {
+                [reportAction.reportActionID]: {
                     originalMessage: {choice},
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
@@ -2659,7 +2670,7 @@ function declineJoinRequest(reportID: string, accountID: string, adminsRoomMessa
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [adminsRoomMessageReportActionID]: {
+                [reportAction.reportActionID]: {
                     originalMessage: {choice},
                     pendingAction: null,
                 },
@@ -2672,7 +2683,7 @@ function declineJoinRequest(reportID: string, accountID: string, adminsRoomMessa
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [adminsRoomMessageReportActionID]: {
+                [reportAction.reportActionID]: {
                     originalMessage: {choice: ''},
                     pendingAction: null,
                 },
@@ -2681,7 +2692,11 @@ function declineJoinRequest(reportID: string, accountID: string, adminsRoomMessa
     ];
 
     const parameters = {
-        requests: JSON.stringify({[policyID]: {requests: [{accountID, adminsRoomMessageReportActionID}]}}),
+        requests: JSON.stringify({
+            [(reportAction.originalMessage as OriginalMessageJoinPolicyChangeLog['originalMessage']).policyID]: {
+                requests: [{accountID: reportAction?.actorAccountID, adminsRoomMessageReportActionID: reportAction.reportActionID}],
+            },
+        }),
     };
 
     API.write(WRITE_COMMANDS.DECLINE_JOIN_REQUEST, parameters, {optimisticData, failureData, successData});
