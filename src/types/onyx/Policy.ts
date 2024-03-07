@@ -176,9 +176,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The approver of the policy */
         approver?: string;
 
-        /** The email of the reimburser */
-        reimburserEmail?: string;
-
         /** The approval mode set up on this policy */
         approvalMode?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
 
