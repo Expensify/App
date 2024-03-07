@@ -1565,12 +1565,17 @@ const styles = (theme: ThemeColors) =>
 
         OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>
             ({
-                width: shouldUseNarrowLayout ? 500 : '100%',
+                width: shouldUseNarrowLayout ? variables.onboardingModalWidth : '100%',
                 height: shouldUseNarrowLayout ? 732 : '100%',
                 maxHeight: '100%',
                 borderRadius: shouldUseNarrowLayout ? 16 : 0,
                 overflow: 'hidden',
             } satisfies ViewStyle),
+
+        welcomeVideoNarrowLayout: {
+            width: variables.onboardingModalWidth,
+            paddingBottom: 20,
+        },
 
         onlyEmojisText: {
             fontSize: variables.fontSizeOnlyEmojis,

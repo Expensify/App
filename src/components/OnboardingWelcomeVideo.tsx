@@ -133,7 +133,7 @@ function OnboardingWelcomeVideo() {
             innerContainerStyle={shouldUseNarrowLayout ? {} : {paddingTop: MODAL_PADDING, paddingBottom: MODAL_PADDING}}
         >
             <View
-                style={[shouldUseNarrowLayout ? {width: 500, height: 555} : {}, {maxHeight: '100%'}]}
+                style={[styles.mh100, shouldUseNarrowLayout && styles.welcomeVideoNarrowLayout]}
                 onLayout={storeContainerDimensions}
             >
                 <View style={shouldUseNarrowLayout ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{getWelcomeVideo()}</View>
