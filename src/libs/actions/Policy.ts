@@ -17,6 +17,7 @@ import type {
     DeleteWorkspaceParams,
     OpenDraftWorkspaceRequestParams,
     OpenPolicyCategoriesPageParams,
+    OpenPolicyWorkflowsPageParams,
     OpenWorkspaceInvitePageParams,
     OpenWorkspaceMembersPageParams,
     OpenWorkspaceParams,
@@ -32,7 +33,6 @@ import type {
     UpdateWorkspaceDescriptionParams,
     UpdateWorkspaceGeneralSettingsParams,
     UpdateWorkspaceMembersRoleParams,
-    OpenPolicyWorkflowsPageParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';

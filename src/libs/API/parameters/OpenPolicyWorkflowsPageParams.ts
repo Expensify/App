@@ -1,5 +1,5 @@
 type OpenPolicyWorkflowsPageParams = {
-	policyID: string;
-}
+    policyID: string;
+};
 
 export default OpenPolicyWorkflowsPageParams;

@@ -277,17 +277,10 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, ignoreLocalCurrentStep ? '' : localCurrentStep, policyID);
     }
 
-    function shouldClearReimbursementAccount() {
-        return backTo !== ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID);
-    }
-
     useEffect(
         () => {
             fetchData();
             return () => {
-                if (!shouldClearReimbursementAccount()) {
-                    return;
-                }
                 BankAccounts.clearReimbursementAccount();
             };
         },

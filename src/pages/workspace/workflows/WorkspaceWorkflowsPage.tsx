@@ -53,11 +53,10 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
 
     const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policy?.id ?? '')), [policy?.id]);
 
-    const reimburserEmail = policy?.reimburserEmail;
-    const displayNameForAuthorizedPayer = useMemo(
-        () => PersonalDetailsUtils.getPersonalDetailByEmail(reimburserEmail ?? '')?.displayName ?? reimburserEmail,
-        [reimburserEmail],
-    );
+    const displayNameForAuthorizedPayer = useMemo(() => {
+        const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([policy?.reimburserAccountID ?? 0], 0);
+        return personalDetails[policy?.reimburserAccountID ?? 0]?.displayName ?? policy?.reimburserEmail;
+    }, [policy?.reimburserEmail]);
 
     const fetchData = useCallback(() => {
         if (!policy?.id) {
@@ -68,7 +67,11 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
 
     useNetwork({onReconnect: fetchData});
 
-    console.log('WorkspaceWorkflowsPage', {policy});
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    console.log('WorkspaceWorkflowsPage', {policy, reimbursementAccount});
 
     const items: ToggleSettingOptionRowProps[] = useMemo(() => {
         const {accountNumber, state, bankName} = reimbursementAccount?.achData ?? {};
@@ -242,8 +245,9 @@ export default withPolicy(
             key: ONYXKEYS.BETAS,
         },
         // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
+        reimbursementAccount: ({policy}) => {{
+            console.log('WorkspaceWorkflowsPage', `reimbursementAccount: ${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policy?.id}`)
+            return {key: `${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policy?.id}`};
+        }}
     })(WorkspaceWorkflowsPage),
 );
