@@ -31,8 +31,8 @@ function EmojiPickerMenuItem({emoji, onPress, onHoverIn = () => {}, onHoverOut =
             ref={ref}
             style={({pressed}) => [
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
-                isHighlighted && isUsingKeyboardMovement ? themeStyles.emojiItemKeyboardHighlighted : {},
-                isHighlighted && !isUsingKeyboardMovement ? themeStyles.emojiItemHighlighted : {},
+                isHighlighted && isUsingKeyboardMovement && themeStyles.emojiItemKeyboardHighlighted,
+                isHighlighted && !isUsingKeyboardMovement && themeStyles.emojiItemHighlighted,
                 themeStyles.emojiItem,
             ]}
             accessibilityLabel={emoji}
