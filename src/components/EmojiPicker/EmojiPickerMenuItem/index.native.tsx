@@ -7,7 +7,7 @@ import getButtonState from '@libs/getButtonState';
 import CONST from '@src/CONST';
 import type EmojiPickerMenuItemProps from './types';
 
-function EmojiPickerMenuItem({emoji, onPress, onHoverIn, onHoverOut, onFocus, onBlur, isFocused, isHighlighted, isUsingKeyboardMovement}: EmojiPickerMenuItemProps) {
+function EmojiPickerMenuItem({emoji, onPress, onHoverIn = () => {}, onHoverOut = () => {}, onFocus = () => {}, onBlur = () => {}, isFocused = false, isHighlighted = false, isUsingKeyboardMovement = false}: EmojiPickerMenuItemProps) {
     const ref = useRef<HTMLDivElement | null>(null);
     const StyleUtils = useStyleUtils();
     const themeStyles = useThemeStyles();
@@ -35,8 +35,7 @@ function EmojiPickerMenuItem({emoji, onPress, onHoverIn, onHoverOut, onFocus, on
                 isHighlighted && !isUsingKeyboardMovement ? themeStyles.emojiItemHighlighted : {},
                 themeStyles.emojiItem,
             ]}
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            accessibilityLabel={emoji!}
+            accessibilityLabel={emoji}
             role={CONST.ROLE.BUTTON}
         >
             <Text style={[themeStyles.emojiText]}>{emoji}</Text>

@@ -1,9 +1,9 @@
 type EmojiPickerMenuItemProps = {
     /** The unicode that is used to display the emoji */
-    emoji?: string;
+    emoji: string;
 
     /** The function to call when an emoji is selected */
-    onPress: (emoji?: string) => void;
+    onPress: (emoji: string) => void;
 
     /** Handles what to do when we hover over this item with our cursor */
     onHoverIn?: () => void;

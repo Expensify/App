@@ -9,12 +9,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type CategoryShortcutButtonProps = {
     /** The emoji code of the category header */
-    code: string;
+    code: 'frequentlyUsed' | 'smileysAndEmotion' | 'peopleAndBody' | 'foodAndDrink' | 'travelAndPlaces' | 'activities' | 'objects' | 'symbols' | 'flags';
 
     /** The icon representation of the category that this button links to */
     icon: IconAsset;
@@ -32,7 +31,7 @@ function CategoryShortcutButton({code, icon, onPress}: CategoryShortcutButtonPro
 
     return (
         <Tooltip
-            text={translate(`emojiPicker.headers.${code}` as TranslationPaths)}
+            text={translate(`emojiPicker.headers.${code}`)}
             shiftVertical={-4}
         >
             <PressableWithoutFeedback
