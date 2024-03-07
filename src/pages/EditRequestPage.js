@@ -128,6 +128,11 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
     const updateTaxAmount = useCallback(
         (transactionChanges) => {
             const newTaxAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(transactionChanges.amount));
+
+            if (newTaxAmount === TransactionUtils.getTaxAmount(transaction)) {
+                Navigation.dismissModal();
+                return;
+            }
             IOU.updateMoneyRequestTaxAmount(transaction.transactionID, report.reportID, newTaxAmount, policy, policyTags, policyCategories);
             Navigation.dismissModal(report.reportID);
         },
