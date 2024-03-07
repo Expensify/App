@@ -1083,7 +1083,7 @@ function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>): boolean
 }
 
 /**
- * Checks whether all the transactions linked to the IOU report are of the Distance Request type with pending routes
+ * Whether the provided report has transactions
  */
 function hasTransactions(reportID: string | undefined): boolean {
     const transactions = TransactionUtils.getAllReportTransactions(reportID);
