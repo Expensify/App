@@ -17,6 +17,7 @@ import Performance from '@libs/Performance';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {didUserLogInDuringSession} from '@libs/SessionUtils';
+import shouldFetchReport from '@libs/shouldFetchReport';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as Report from '@userActions/Report';
@@ -107,13 +108,19 @@ function ReportActionsView(props) {
     const isReportFullyVisible = useMemo(() => getIsReportFullyVisible(isFocused), [isFocused]);
 
     const openReportIfNecessary = () => {
-        const createChatError = _.get(props.report, ['errorFields', 'createChat']);
-        // If the report is optimistic (AKA not yet created) we don't need to call openReport again
-        if (props.report.isOptimisticReport || !_.isEmpty(createChatError)) {
+        if (!shouldFetchReport(props.report)) {
             return;
         }
 
         Report.openReport(reportID);
+    };
+
+    const reconnectReportIfNecessary = () => {
+        if (!shouldFetchReport(props.report)) {
+            return;
+        }
+
+        Report.reconnect(reportID);
     };
 
     useEffect(() => {
@@ -131,7 +138,7 @@ function ReportActionsView(props) {
             if (isReportFullyVisible) {
                 openReportIfNecessary();
             } else {
-                Report.reconnect(reportID);
+                reconnectReportIfNecessary();
             }
         }
         // update ref with current network state
@@ -145,7 +152,7 @@ function ReportActionsView(props) {
             if (isReportFullyVisible) {
                 openReportIfNecessary();
             } else {
-                Report.reconnect(reportID);
+                reconnectReportIfNecessary();
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -30,6 +30,7 @@ import Performance from '@libs/Performance';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import shouldFetchReport from '@libs/shouldFetchReport';
 import reportMetadataPropTypes from '@pages/reportMetadataPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as ComposerActions from '@userActions/Composer';
@@ -356,6 +357,10 @@ function ReportScreen({
         // is not stored locally yet. If report.reportID exists, then the report has been stored locally and nothing more needs to be done.
         // If it doesn't exist, then we fetch the report from the API.
         if (report.reportID && report.reportID === getReportID(route) && !isLoadingInitialReportActions) {
+            return;
+        }
+
+        if (!shouldFetchReport(report)) {
             return;
         }
 
