@@ -365,7 +365,7 @@ function ReportScreen({
         }
 
         Report.openReport(reportIDFromPath);
-    }, [report.reportID, route, isLoadingInitialReportActions]);
+    }, [report, route, isLoadingInitialReportActions]);
 
     const dismissBanner = useCallback(() => {
         setIsBannerVisible(false);
