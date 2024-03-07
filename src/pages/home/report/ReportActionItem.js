@@ -62,7 +62,6 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
@@ -78,6 +77,7 @@ import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import reportActionPropTypes from './reportActionPropTypes';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
+import transactionPropTypes from '@components/transactionPropTypes';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -129,6 +129,9 @@ const propTypes = {
     /** All the report actions belonging to the current report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
+    /** All the transactions shared wit hthe user */
+    transactions: PropTypes.objectOf(PropTypes.shape(transactionPropTypes)),
+
     /** Callback to be called on onPress */
     onPress: PropTypes.func,
 };
@@ -144,6 +147,7 @@ const defaultProps = {
     userWallet: {},
     parentReportActions: {},
     reportActions: {},
+    transactions: {},
     onPress: undefined,
 };
 
@@ -167,13 +171,20 @@ function ReportActionItem(props) {
     const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
     const isReportActionLinked = props.linkedReportActionID && props.action.reportActionID && props.linkedReportActionID === props.action.reportActionID;
     const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(props.reportActions);
+    let transaction = {};
     const transactionThreadReport = useMemo(() => {
         if (transactionThreadReportID === '0') {
             return {};
         }
-        return props.reports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? {};
-    }, [props.reports, transactionThreadReportID]);
+        const report = props.reports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? {};
 
+        // Get the transaction associated with the report
+        const transactionID = props.reportActions?.[report.parentReportActionID ?? '']?.originalMessage?.IOUTransactionID ?? 0;
+        transaction = props.transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        return report;
+    }, [props.reports, transactionThreadReportID, props.reportActions, props.transactions]);
+
+    const transactionCurrency = !_.isEmpty(transaction) ? (transaction.modifiedCurrency ?? transaction.currency) : props.report.currency;
     const reportScrollManager = useReportScrollManager();
 
     const highlightedBackgroundColorIfNeeded = useMemo(
@@ -707,9 +718,9 @@ function ReportActionItem(props) {
         if (ReportUtils.isExpenseReport(props.report) || ReportUtils.isIOUReport(props.report)) {
             return (
                 <OfflineWithFeedback pendingAction={props.action.pendingAction}>
-                    {transactionThreadReport && !isEmptyObject(transactionThreadReport) ? (
+                    {transactionThreadReport && !_.isEmpty(transactionThreadReport) ? (
                         <>
-                            {transactionThreadReport.currency !== props.report.currency && (
+                            {transactionCurrency !== props.report.currency && (
                                 <MoneyReportView
                                     report={props.report}
                                     policy={props.policy}
@@ -721,7 +732,7 @@ function ReportActionItem(props) {
                                 <MoneyRequestView
                                     report={transactionThreadReport}
                                     shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                                    shouldShowAnimatedBackground={transactionThreadReport.currency === props.report.currency}
+                                    shouldShowAnimatedBackground={transactionCurrency === props.report.currency}
                                 />
                             </ShowContextMenuContext.Provider>
                         </>
@@ -921,6 +932,9 @@ export default compose(
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID || 0}`,
             canEvict: false,
         },
+        transactions: {
+            key: ONYXKEYS.COLLECTION.TRANSACTION,
+        },
     }),
 )(
     memo(ReportActionItem, (prevProps, nextProps) => {
@@ -958,7 +972,8 @@ export default compose(
             _.isEqual(prevProps.report.reportFields, nextProps.report.reportFields) &&
             _.isEqual(prevProps.policy, nextProps.policy) &&
             _.isEqual(prevParentReportAction, nextParentReportAction) &&
-            _.isEqual(prevProps.reportActions, nextProps.reportActions)
+            _.isEqual(prevProps.reportActions, nextProps.reportActions) &&
+            _.isEqual(prevProps.transactions, nextProps.transactions)
         );
     }),
 );

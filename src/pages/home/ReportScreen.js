@@ -291,7 +291,7 @@ function ReportScreen({
             return [];
         }
 
-        const reportActions = Object.values(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {});
+        const reportActions = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? [];
         return ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
     }, [allReportActions, transactionThreadReportID]);
 
