@@ -403,7 +403,7 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
     return announceRoomMembers;
 }
 
-function setWorkspaceAutoReporting(policyID: string, enabled: boolean) {
+function setWorkspaceAutoReporting(policyID: string, enabled: boolean, frequency?: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -413,7 +413,7 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean) {
                 harvesting: {
                     enabled: true,
                 },
-                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY,
+                autoReportingFrequency: enabled ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
                 pendingFields: {isAutoApprovalEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             },
         },
@@ -442,6 +442,10 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean) {
     ];
 
     const params: SetWorkspaceAutoReportingParams = {policyID, enabled};
+    if (frequency && frequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT) {
+        params.frequency = frequency;
+    }
+
     API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING, params, {optimisticData, failureData, successData});
 }
 
