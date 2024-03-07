@@ -427,12 +427,8 @@ function ReportActionItem({
                     isWhisper={isWhisper}
                 />
             );
-        } else if (
-            action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
-            action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED ||
-            action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED
-        ) {
-            children = <TaskAction actionName={action.actionName} />;
+        } else if (ReportActionsUtils.isTaskAction(action)) {
+            children = <TaskAction action={action} />;
         } else if (ReportActionsUtils.isCreatedTaskReportAction(action)) {
             children = (
                 <ShowContextMenuContext.Provider value={contextValue}>
