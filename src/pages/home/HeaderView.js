@@ -171,9 +171,6 @@ function HeaderView(props) {
     );
 
     const canJoinOrLeave = !isSelfDM && !isGroupChat && (isChatThread || isUserCreatedPolicyRoom || canLeaveRoom);
-    console.log('canJoinOrLeave :>> ', canJoinOrLeave);
-    console.log('isGroupChat :>> ', isGroupChat);
-    console.log('props.report :>> ', props.report);
     const canJoin = canJoinOrLeave && !isWhisperAction && props.report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const canLeave = canJoinOrLeave && ((isChatThread && props.report.notificationPreference.length) || isUserCreatedPolicyRoom || canLeaveRoom);
     if (canJoin) {
