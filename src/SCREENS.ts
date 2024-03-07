@@ -215,6 +215,7 @@ const SCREENS = {
         INVITE_MESSAGE: 'Workspace_Invite_Message',
         CATEGORIES: 'Workspace_Categories',
         TAGS: 'Workspace_Tags',
+        TAXES: 'Workspace_Taxes',
         CURRENCY: 'Workspace_Profile_Currency',
         WORKFLOWS: 'Workspace_Workflows',
         WORKFLOWS_APPROVER: 'Workspace_Workflows_Approver',

@@ -1732,6 +1732,7 @@ export default {
             reimburse: 'Reimbursements',
             categories: 'Categories',
             tags: 'Tags',
+            taxes: 'Taxes',
             bills: 'Bills',
             invoices: 'Invoices',
             travel: 'Travel',
@@ -1783,6 +1784,9 @@ export default {
                 title: "You haven't created any tags",
                 subtitle: 'Add a tag to track projects, locations, departments, and more.',
             },
+        },
+        taxes: {
+            subtitle: 'Add tax names, rates, and set defaults.',
         },
         emptyWorkspace: {
             title: 'Create a workspace',

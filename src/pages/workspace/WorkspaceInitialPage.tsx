@@ -161,6 +161,12 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.TAGS,
         },
+        {
+            translationKey: 'workspace.common.taxes',
+            icon: Expensicons.Tax,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAXES.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.TAXES,
+        },
     ];
 
     const menuItems: WorkspaceMenuItem[] = [

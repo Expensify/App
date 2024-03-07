@@ -1756,6 +1756,7 @@ export default {
             reimburse: 'Reembolsos',
             categories: 'Categorías',
             tags: 'Etiquetas',
+            taxes: 'Impuestos',
             bills: 'Pagar facturas',
             invoices: 'Enviar facturas',
             travel: 'Viajes',
@@ -1807,6 +1808,9 @@ export default {
                 title: 'No has creado ninguna etiqueta',
                 subtitle: 'Añade una etiqueta para realizar el seguimiento de proyectos, ubicaciones, departamentos y otros.',
             },
+        },
+        taxes: {
+            subtitle: 'Añada nombres de impuestos, tipos impositivos y establezca valores por defecto.',
         },
         emptyWorkspace: {
             title: 'Crea un espacio de trabajo',

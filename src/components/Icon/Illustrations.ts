@@ -35,6 +35,7 @@ import BigRocket from '@assets/images/simple-illustrations/simple-illustration__
 import PinkBill from '@assets/images/simple-illustrations/simple-illustration__bill.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
 import CoffeeMug from '@assets/images/simple-illustrations/simple-illustration__coffeemug.svg';
+import Coins from '@assets/images/simple-illustrations/simple-illustration__coins.svg';
 import CommentBubbles from '@assets/images/simple-illustrations/simple-illustration__commentbubbles.svg';
 import ConciergeBubble from '@assets/images/simple-illustrations/simple-illustration__concierge-bubble.svg';
 import ConciergeNew from '@assets/images/simple-illustrations/simple-illustration__concierge.svg';
@@ -148,4 +149,5 @@ export {
     ThreeLeggedLaptopWoman,
     House,
     Tag,
+    Coins,
 };

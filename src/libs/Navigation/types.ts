@@ -95,6 +95,9 @@ type CentralPaneNavigatorParamList = {
         policyID: string;
         categoryName: string;
     };
+    [SCREENS.WORKSPACE.TAXES]: {
+        policyID: string;
+    };
 };
 
 type WorkspaceSwitcherNavigatorParamList = {
