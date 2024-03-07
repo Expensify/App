@@ -221,6 +221,29 @@ function IOURequestStepConfirmation({
     /**
      * @param {Array} selectedParticipants
      * @param {String} trimmedComment
+     * @param {File} [receiptObj]
+     */
+    const trackExpense = useCallback(
+        (selectedParticipants, trimmedComment, receiptObj) => {
+            IOU.trackExpense(
+                report,
+                transaction.amount,
+                transaction.currency,
+                transaction.created,
+                transaction.merchant,
+                currentUserPersonalDetails.login,
+                currentUserPersonalDetails.accountID,
+                selectedParticipants[0],
+                trimmedComment,
+                receiptObj,
+            );
+        },
+        [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID],
+    );
+
+    /**
+     * @param {Array} selectedParticipants
+     * @param {String} trimmedComment
      */
     const createDistanceRequest = useCallback(
         (selectedParticipants, trimmedComment) => {
@@ -309,6 +332,11 @@ function IOURequestStepConfirmation({
                 return;
             }
 
+            if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
+                trackExpense(selectedParticipants, trimmedComment, receiptFile);
+                return;
+            }
+
             if (receiptFile) {
                 // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
                 if (transaction.amount === 0) {
@@ -347,7 +375,18 @@ function IOURequestStepConfirmation({
 
             requestMoney(selectedParticipants, trimmedComment);
         },
-        [iouType, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, report, requestType, createDistanceRequest, requestMoney, receiptFile],
+        [
+            transaction,
+            iouType,
+            receiptFile,
+            requestType,
+            requestMoney,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            report.reportID,
+            trackExpense,
+            createDistanceRequest,
+        ],
     );
 
     /**

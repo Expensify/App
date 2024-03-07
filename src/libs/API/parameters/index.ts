@@ -156,3 +156,4 @@ export type {default as SetWorkspaceAutoReportingFrequencyParams} from './SetWor
 export type {default as SetWorkspaceAutoReportingMonthlyOffsetParams} from './SetWorkspaceAutoReportingMonthlyOffsetParams';
 export type {default as SetWorkspaceApprovalModeParams} from './SetWorkspaceApprovalModeParams';
 export type {default as SwitchToOldDotParams} from './SwitchToOldDotParams';
+export type {default as TrackExpenseParams} from './TrackExpenseParams';
