@@ -81,7 +81,7 @@ import type {
     ReportUserIsTyping,
 } from '@src/types/onyx';
 import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
-import type {NotificationPreference, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
+import type {NotificationPreference, Participant, Participants, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -803,13 +803,24 @@ function openReport(
  */
 function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true, reportName?: string) {
     let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
-
+    let chat: ReportUtils.OptimisticChatReport | EmptyObject = {};
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
-    const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
 
+    if (!newGroupDraft) {
+        chat = ReportUtils.getChatByParticipants(participantAccountIDs);
+    }
     if (!chat) {
         if (newGroupDraft) {
-            newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs, reportName, CONST.REPORT.CHAT_TYPE.GROUP_CHAT);
+            const participants: Participants = participantAccountIDs.reduce((obj: Participants, accountID: number) => {
+                const participant: Participant = {
+                    hidden: false,
+                    role: accountID === currentUserAccountID ? 'admin' : 'member',
+                };
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+                return {...obj, [accountID]: participant};
+            }, {} as Participants);
+
+            newChat = ReportUtils.buildOptimisticGroupChatReport(participants, reportName, CONST.REPORT.CHAT_TYPE.GROUP_CHAT);
         } else {
             newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
         }

@@ -20,6 +20,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {
     Beta,
+    Participants,
     PersonalDetails,
     PersonalDetailsList,
     Policy,
@@ -245,6 +246,39 @@ type OptimisticChatReport = Pick<
     | 'parentReportID'
     | 'participantAccountIDs'
     | 'visibleChatMemberAccountIDs'
+    | 'policyID'
+    | 'reportID'
+    | 'reportName'
+    | 'stateNum'
+    | 'statusNum'
+    | 'visibility'
+    | 'description'
+    | 'writeCapability'
+> & {
+    isOptimisticReport: true;
+};
+
+type OptimisticGroupChatReport = Pick<
+    Report,
+    | 'type'
+    | 'chatType'
+    | 'chatReportID'
+    | 'iouReportID'
+    | 'isOwnPolicyExpenseChat'
+    | 'isPinned'
+    | 'lastActorAccountID'
+    | 'lastMessageTranslationKey'
+    | 'lastMessageHtml'
+    | 'lastMessageText'
+    | 'lastReadTime'
+    | 'lastVisibleActionCreated'
+    | 'notificationPreference'
+    | 'oldPolicyName'
+    | 'ownerAccountID'
+    | 'pendingFields'
+    | 'parentReportActionID'
+    | 'parentReportID'
+    | 'participants'
     | 'policyID'
     | 'reportID'
     | 'reportName'
@@ -913,6 +947,10 @@ function isDM(report: OnyxEntry<Report>): boolean {
 
 function isSelfDM(report: OnyxEntry<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.SELF_DM;
+}
+
+function isGroupChatType(report: OnyxEntry<Report>): boolean {
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.GROUP_CHAT;
 }
 
 /**
@@ -3520,6 +3558,56 @@ function buildOptimisticChatReport(
     };
 }
 
+/**
+ * Builds an optimistic group chat report with a randomly generated reportID and as much information as we currently have
+ */
+function buildOptimisticGroupChatReport(
+    participantList: Participants,
+    reportName: string = CONST.REPORT.DEFAULT_REPORT_NAME,
+    chatType: ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined = undefined,
+    policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
+    ownerAccountID: number = CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
+    isOwnPolicyExpenseChat = false,
+    oldPolicyName = '',
+    visibility: ValueOf<typeof CONST.REPORT.VISIBILITY> | undefined = undefined,
+    writeCapability: ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES> | undefined = undefined,
+    notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+    parentReportActionID = '',
+    parentReportID = '',
+    description = '',
+): OptimisticGroupChatReport {
+    const currentTime = DateUtils.getDBTime();
+    const isNewlyCreatedWorkspaceChat = chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT && isOwnPolicyExpenseChat;
+    return {
+        isOptimisticReport: true,
+        type: CONST.REPORT.TYPE.CHAT,
+        chatType,
+        isOwnPolicyExpenseChat,
+        isPinned: reportName === CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS || isNewlyCreatedWorkspaceChat,
+        lastActorAccountID: 0,
+        lastMessageTranslationKey: '',
+        lastMessageHtml: '',
+        lastMessageText: undefined,
+        lastReadTime: currentTime,
+        lastVisibleActionCreated: currentTime,
+        notificationPreference,
+        oldPolicyName,
+        ownerAccountID: ownerAccountID || CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
+        parentReportActionID,
+        parentReportID,
+        // For group chats we need to have participants object
+        participants: participantList,
+        policyID,
+        reportID: generateReportID(),
+        reportName,
+        stateNum: 0,
+        statusNum: 0,
+        visibility,
+        description,
+        writeCapability,
+    };
+}
+
 function getCurrentUserAvatarOrDefault(): UserUtils.AvatarSource {
     return allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID);
 }
@@ -5189,6 +5277,7 @@ export {
     buildOptimisticWorkspaceChats,
     buildOptimisticTaskReport,
     buildOptimisticChatReport,
+    buildOptimisticGroupChatReport,
     buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
     buildOptimisticRenamedRoomReportAction,
@@ -5327,6 +5416,7 @@ export {
     getDefaultGroupAvatar,
     canAddOrDeleteTransactions,
     shouldCreateNewMoneyRequestReport,
+    isGroupChatType,
 };
 
 export type {

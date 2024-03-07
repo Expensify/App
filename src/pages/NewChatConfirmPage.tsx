@@ -79,8 +79,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
     };
 
     const createGroup = () => {
-        const optionsWithoutCreator = selectedOptions.filter((selectedOption: OptionData) => selectedOption.accountID !== personalData.accountID);
-        const logins = optionsWithoutCreator.map((option: OptionData) => option.login) as string[];
+        const logins = selectedOptions.map((option: OptionData) => option.login) as string[];
         if (logins.length < 1) {
             return;
         }
