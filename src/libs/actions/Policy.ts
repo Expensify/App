@@ -57,7 +57,7 @@ import type {
     ReportAction,
     Transaction,
 } from '@src/types/onyx';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CustomUnit, Rate, Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -749,7 +749,7 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
             value: {
-                ...memberRoles.reduce((member: Record<number, {role: string; pendingAction: string | null}>, current) => {
+                ...memberRoles.reduce((member: Record<number, {role: string; pendingAction: PendingAction}>, current) => {
                     // eslint-disable-next-line no-param-reassign
                     member[current.accountID] = {role: current?.role, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
                     return member;
@@ -764,7 +764,7 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
             value: {
-                ...memberRoles.reduce((member: Record<number, {role: string; pendingAction: string | null}>, current) => {
+                ...memberRoles.reduce((member: Record<number, {role: string; pendingAction: PendingAction}>, current) => {
                     // eslint-disable-next-line no-param-reassign
                     member[current.accountID] = {role: current?.role, pendingAction: null};
                     return member;
