@@ -113,15 +113,31 @@ Onyx.connect({
     },
 });
 
+// map of reportID to all reportActions for that report
 const allReportActions: OnyxCollection<ReportActions> = {};
+
+// map of reportID to the ID of the oldest reportAction for that report
+const oldestReportActions: Record<string, string> = {};
+
+// map of report to the ID of the newest action for that report
+const newestReportActions: Record<string, string> = {};
+
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (action, key) => {
-        if (!key || !action) {
+    callback: (actions, key) => {
+        if (!key || !actions) {
             return;
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
-        allReportActions[reportID] = action;
+        allReportActions[reportID] = actions;
+        const sortedActions = ReportActionsUtils.getSortedReportActions(Object.values(actions));
+
+        if (sortedActions.length === 0) {
+            return;
+        }
+
+        oldestReportActions[reportID] = sortedActions[0].reportActionID;
+        newestReportActions[reportID] = sortedActions[sortedActions.length - 1].reportActionID;
     },
 });
 
@@ -879,7 +895,7 @@ function reconnect(reportID: string) {
  * Gets the older actions that have not been read yet.
  * Normally happens when you scroll up on a chat, and the actions have not been read yet.
  */
-function getOlderActions(reportID: string, reportActionID: string) {
+function getOlderActions(reportID: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -912,7 +928,7 @@ function getOlderActions(reportID: string, reportActionID: string) {
 
     const parameters: GetOlderActionsParams = {
         reportID,
-        reportActionID,
+        reportActionID: oldestReportActions[reportID],
     };
 
     API.read(READ_COMMANDS.GET_OLDER_ACTIONS, parameters, {optimisticData, successData, failureData});
@@ -922,7 +938,7 @@ function getOlderActions(reportID: string, reportActionID: string) {
  * Gets the newer actions that have not been read yet.
  * Normally happens when you are not located at the bottom of the list and scroll down on a chat.
  */
-function getNewerActions(reportID: string, reportActionID: string) {
+function getNewerActions(reportID: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -955,7 +971,7 @@ function getNewerActions(reportID: string, reportActionID: string) {
 
     const parameters: GetNewerActionsParams = {
         reportID,
-        reportActionID,
+        reportActionID: newestReportActions[reportID],
     };
 
     API.read(READ_COMMANDS.GET_NEWER_ACTIONS, parameters, {optimisticData, successData, failureData});
