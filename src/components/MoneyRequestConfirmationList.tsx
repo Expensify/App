@@ -161,6 +161,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     /** Whether smart scan failed */
     hasSmartScanFailed?: boolean;
 
+    /** The ID of the report action */
     reportActionID?: string;
 };
 
@@ -320,7 +321,7 @@ function MoneyRequestConfirmationList({
      */
     const getParticipantsWithAmount = useCallback(
         (participantsList: Participant[]) => {
-            const calculatedIouAmount = IOUUtils.calculateAmount(participantsList.length, iouAmount, iouCurrencyCode ?? 'USD');
+            const calculatedIouAmount = IOUUtils.calculateAmount(participantsList.length, iouAmount, iouCurrencyCode ?? '');
             return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
                 participantsList,
                 iouAmount > 0 ? CurrencyUtils.convertToDisplayString(calculatedIouAmount, iouCurrencyCode) : '',
@@ -355,13 +356,13 @@ function MoneyRequestConfirmationList({
         ];
     }, [isSplitBill, isTypeRequest, iouType, iouAmount, receiptPath, formattedAmount, isDistanceRequestWithPendingRoute, translate]);
 
-    const selectedParticipants = useMemo(() => selectedParticipantsProp.filter((participant) => participant.selected), [selectedParticipantsProp]);
+    const selectedParticipants: Participant[] = useMemo(() => selectedParticipantsProp.filter((participant) => participant.selected), [selectedParticipantsProp]);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const payeePersonalDetails = useMemo(() => payeePersonalDetailsProp || currentUserPersonalDetails, [payeePersonalDetailsProp, currentUserPersonalDetails]);
     const canModifyParticipants = !isReadOnly && canModifyParticipantsProp && hasMultipleParticipants;
     const shouldDisablePaidBySection = canModifyParticipants;
 
-    const optionSelectorSections = useMemo(() => {
+    const optionSelectorSections: OptionsListUtils.CategorySection[] = useMemo(() => {
         const sections = [];
         const unselectedParticipants = selectedParticipantsProp.filter((participant) => !participant.selected);
         if (hasMultipleParticipants) {
@@ -564,7 +565,7 @@ function MoneyRequestConfirmationList({
 
         return (
             <>
-                {formError.length && (
+                {!!formError.length && (
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
