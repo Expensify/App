@@ -77,7 +77,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
     const hasError = !!account && !isEmptyObject(account?.errors) && !needToClearError;
     const isLoadingResendValidationForm = account?.loadingForm === CONST.FORMS.RESEND_VALIDATE_CODE_FORM;
     const shouldDisableResendValidateCode = isOffline ?? account?.isLoading;
-    const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account ?? {});
+    const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
 
     useEffect(() => {
         if (!(inputValidateCodeRef.current && hasError && (session?.autoAuthState === CONST.AUTO_AUTH_STATE.FAILED || account?.isLoading))) {

@@ -35,7 +35,7 @@ function LocalePicker({account, preferredLocale = CONST.LOCALES.DEFAULT, size = 
         keyForList: language,
         isSelected: preferredLocale === language,
     }));
-    const shouldDisablePicker = AccountUtils.isValidateCodeFormSubmitting(account ?? {});
+    const shouldDisablePicker = AccountUtils.isValidateCodeFormSubmitting(account);
 
     return (
         <Picker
