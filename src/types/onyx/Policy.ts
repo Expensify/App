@@ -98,7 +98,7 @@ type Vendor = {
     email: string;
 };
 
-type ConnectionData = {
+type QuickBooksOnlineConnectionData = {
     country: string;
     edition: string;
     homeCurrency: string;
@@ -156,13 +156,19 @@ type ConnectionConfig = {
         exporter: string;
     };
 };
-type Connection = {
+type Connection<ConnectionData> = {
     lastSync?: ConnectionLastSync;
     data: ConnectionData;
     config: ConnectionConfig;
 };
 
-type AccountingSoftware = 'quickbooksOnline' | 'xero';
+type Connections = {
+    quickbooksOnline: {
+        lastSync?: ConnectionLastSync;
+        data: Connection<QuickBooksOnlineConnectionData>;
+        config: ConnectionConfig;
+    };
+};
 
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
@@ -309,7 +315,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         chatReportIDAnnounce?: number;
 
         /** All the integration connections attached to the policy */
-        connections?: Record<AccountingSoftware, Connection>;
+        connections?: Connections;
 
         /** Whether the Categories feature is enabled */
         areCategoriesEnabled?: boolean;
