@@ -218,6 +218,7 @@ function getOneTransactionThreadReportID(reportActions: ReportActions): string {
         action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
         && (iouRequestTypes.includes(action.originalMessage.type) ?? [])
         && action.childReportID
+        && action.originalMessage.IOUTransactionID
     );
 
     // If we don't have any IOU request actions, or we have more than one IOU request actions, this isn't a oneTransaction report and we don't want to return the transactionThreadReportActions
