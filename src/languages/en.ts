@@ -1789,6 +1789,11 @@ export default {
             subtitle: 'Add tax names, rates, and set defaults.',
             value: 'Value',
             name: 'Name',
+            errors: {
+                value: {
+                    percentageRange: 'Please enter a valid percentage between 0 and 100',
+                },
+            },
         },
         emptyWorkspace: {
             title: 'Create a workspace',

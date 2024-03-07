@@ -4,9 +4,10 @@ import {View} from 'react-native';
 import AmountPicker from '@components/AmountPicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
 import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,7 +16,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceNewTaxForm';
@@ -31,13 +31,15 @@ function WorkspaceNewTaxPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM>): Partial<Record<string, TranslationPaths>> => {
+    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM> => {
         const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.VALUE, INPUT_IDS.NAME]);
 
         const value = Number(values[INPUT_IDS.VALUE]);
         if (value > 100 || value < 0) {
             errors[INPUT_IDS.VALUE] = 'workspace.taxes.errors.value.percentageRange';
         }
+
+        console.log({values, errors});
 
         return errors;
     }, []);
@@ -66,14 +68,9 @@ function WorkspaceNewTaxPage({
                     validate={validate}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
+                    shouldValidateOnBlur={false}
                 >
                     <View style={styles.mhn5}>
-                        <InputWrapper
-                            InputComponent={AmountPicker}
-                            inputID={INPUT_IDS.VALUE}
-                            description={translate('workspace.taxes.value')}
-                            rightLabel={translate('common.required')}
-                        />
                         <InputWrapper
                             InputComponent={TextPicker}
                             inputID={INPUT_IDS.NAME}
@@ -82,7 +79,14 @@ function WorkspaceNewTaxPage({
                             accessibilityLabel={translate('workspace.editor.nameInputLabel')}
                             maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
                             multiline={false}
-                            autoFocus
+                        />
+                        <InputWrapper
+                            InputComponent={AmountPicker}
+                            inputID={INPUT_IDS.VALUE}
+                            description={translate('workspace.taxes.value')}
+                            rightLabel={translate('common.required')}
+                            hideCurrencySymbol
+                            extraSymbol={<Text style={styles.iouAmountText}>%</Text>}
                         />
                     </View>
                 </FormProvider>

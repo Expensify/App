@@ -28,6 +28,12 @@ type TextInputWithCurrencySymbolProps = {
 
     /** Whether the currency symbol is pressable */
     isCurrencyPressable: boolean;
+
+    /** Whether to hide the currency symbol */
+    hideCurrencySymbol?: boolean;
+
+    /** Extra symbol to display next to the currency symbol */
+    extraSymbol?: React.ReactNode;
 };
 
 export default TextInputWithCurrencySymbolProps;

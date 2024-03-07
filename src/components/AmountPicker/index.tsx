@@ -9,10 +9,7 @@ import variables from '@styles/variables';
 import AmountSelectorModal from './AmountSelectorModal';
 import type {AmountPickerProps} from './types';
 
-function AmountPicker(
-    {value, description, placeholder = '', errorText = '', onInputChange, furtherDetails, shouldShowTooltips = true, rightLabel}: AmountPickerProps,
-    forwardedRef: ForwardedRef<View>,
-) {
+function AmountPicker({value, description, placeholder = '', errorText = '', onInputChange, furtherDetails, rightLabel, ...rest}: AmountPickerProps, forwardedRef: ForwardedRef<View>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -50,11 +47,12 @@ function AmountPicker(
                 <FormHelpMessage message={errorText} />
             </View>
             <AmountSelectorModal
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...rest}
                 isVisible={isPickerVisible}
                 description={description}
                 onClose={hidePickerModal}
                 onValueSelected={updateInput}
-                shouldShowTooltips={shouldShowTooltips}
             />
         </View>
     );

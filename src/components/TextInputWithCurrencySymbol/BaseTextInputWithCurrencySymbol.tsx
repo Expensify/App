@@ -20,6 +20,8 @@ function BaseTextInputWithCurrencySymbol(
         onSelectionChange = () => {},
         onKeyPress = () => {},
         isCurrencyPressable = true,
+        hideCurrencySymbol = false,
+        extraSymbol,
     }: TextInputWithCurrencySymbolProps,
     ref: React.ForwardedRef<BaseTextInputRef>,
 ) {
@@ -64,8 +66,9 @@ function BaseTextInputWithCurrencySymbol(
     if (isCurrencySymbolLTR) {
         return (
             <>
-                {currencySymbolButton}
+                {!hideCurrencySymbol && currencySymbolButton}
                 {amountTextInput}
+                {extraSymbol}
             </>
         );
     }
@@ -73,7 +76,8 @@ function BaseTextInputWithCurrencySymbol(
     return (
         <>
             {amountTextInput}
-            {currencySymbolButton}
+            {!hideCurrencySymbol && currencySymbolButton}
+            {extraSymbol}
         </>
     );
 }

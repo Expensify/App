@@ -9,10 +9,7 @@ import variables from '@styles/variables';
 import TextSelectorModal from './TextSelectorModal';
 import type {TextPickerProps} from './types';
 
-function TextPicker(
-    {value, description, placeholder = '', errorText = '', onInputChange, furtherDetails, shouldShowTooltips = true, rightLabel, ...rest}: TextPickerProps,
-    forwardedRef: ForwardedRef<View>,
-) {
+function TextPicker({value, description, placeholder = '', errorText = '', onInputChange, furtherDetails, rightLabel, ...rest}: TextPickerProps, forwardedRef: ForwardedRef<View>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -55,7 +52,6 @@ function TextPicker(
                 description={description}
                 onClose={hidePickerModal}
                 onValueSelected={updateInput}
-                shouldShowTooltips={shouldShowTooltips}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />

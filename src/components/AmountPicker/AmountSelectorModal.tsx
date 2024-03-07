@@ -1,16 +1,16 @@
 import React from 'react';
+import {ScrollView, View} from 'react-native';
 import AmountForm from '@components/AmountForm';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {AmountSelectorModalProps} from './types';
 
-function AmountSelectorModal({value, description = '', onValueSelected, isVisible, onClose}: AmountSelectorModalProps) {
+function AmountSelectorModal({value, description = '', onValueSelected, isVisible, onClose, ...rest}: AmountSelectorModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -26,26 +26,29 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
             useNativeDriver
         >
             <ScreenWrapper
-                style={styles.pb0}
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
-                testID="AmountSelectorModal"
+                testID={AmountSelectorModal.displayName}
             >
                 <HeaderWithBackButton
                     title={description}
                     onBackButtonPress={onClose}
                 />
-                <AmountForm
-                    value={currentValue}
-                    onInputChange={setValue}
-                    hideCurrency
-                    extraSymbol={<Text style={styles.iouAmountText}>%</Text>}
-                />
-                <Button
-                    success
-                    text={translate('common.save')}
-                    onPress={() => onValueSelected?.(currentValue ?? '')}
-                />
+                <ScrollView contentContainerStyle={[styles.flex1, styles.mh5, styles.mb5]}>
+                    <View style={styles.flex1}>
+                        <AmountForm
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                            {...rest}
+                            value={currentValue}
+                            onInputChange={setValue}
+                        />
+                    </View>
+                    <Button
+                        success
+                        text={translate('common.save')}
+                        onPress={() => onValueSelected?.(currentValue ?? '')}
+                    />
+                </ScrollView>
             </ScreenWrapper>
         </Modal>
     );

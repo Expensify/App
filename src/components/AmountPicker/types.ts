@@ -1,3 +1,4 @@
+import type {AmountFormProps} from '@components/AmountForm';
 import type {MenuItemBaseProps} from '@components/MenuItem';
 import type {ListItem} from '@components/SelectionList/types';
 import type {MaybePhraseKey} from '@libs/Localize';
@@ -24,10 +25,8 @@ type AmountSelectorModalProps = {
 
     /** Function to call when the user closes the modal */
     onClose?: () => void;
-
-    /** Whether to show the toolip text */
-    shouldShowTooltips?: boolean;
-} & Pick<MenuItemBaseProps, 'description'>;
+} & Pick<MenuItemBaseProps, 'description'> &
+    AmountFormProps;
 
 type AmountPickerProps = {
     /** Item to display */
@@ -47,6 +46,7 @@ type AmountPickerProps = {
 
     /** Whether to show the toolip text */
     shouldShowTooltips?: boolean;
-} & Pick<MenuItemBaseProps, 'rightLabel' | 'description'>;
+} & Pick<MenuItemBaseProps, 'rightLabel' | 'description'> &
+    AmountFormProps;
 
 export type {AmountPickerItem, AmountSelectorModalProps, AmountPickerProps, AmountPickerListItem};

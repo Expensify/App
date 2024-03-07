@@ -28,7 +28,7 @@ function TextSelectorModal({value, description = '', onValueSelected, isVisible,
             <ScreenWrapper
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
-                testID="TextSelectorModal"
+                testID={TextSelectorModal.displayName}
             >
                 <HeaderWithBackButton
                     title={description}
@@ -37,10 +37,10 @@ function TextSelectorModal({value, description = '', onValueSelected, isVisible,
                 <ScrollView contentContainerStyle={[styles.flex1, styles.mh5, styles.mb5]}>
                     <View style={styles.flex1}>
                         <TextInput
-                            value={currentValue}
-                            onInputChange={setValue}
                             // eslint-disable-next-line react/jsx-props-no-spreading
                             {...rest}
+                            value={currentValue}
+                            onInputChange={setValue}
                         />
                     </View>
                     <Button
