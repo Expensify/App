@@ -51,6 +51,7 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel}) {
                         onLongPress={(event) =>
                             showContextMenuForReport(event, anchor, (report && report.reportID) || '', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))
                         }
+                        shouldUseHapticsOnLongPress
                     >
                         <View style={[styles.videoThumbnailPlayButton]}>
                             <Icon

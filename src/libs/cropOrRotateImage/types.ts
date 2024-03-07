@@ -1,4 +1,4 @@
-import type {RNImageManipulatorResult} from '@oguzhnatly/react-native-image-manipulator';
+import type {ImageResult} from 'expo-image-manipulator';
 
 type CropOrRotateImageOptions = {
     type: string;
@@ -6,20 +6,21 @@ type CropOrRotateImageOptions = {
     compress: number;
 };
 
-type CropOptions = {
-    originX: number;
-    originY: number;
-    width: number;
-    height: number;
+type CropAction = {
+    crop: {
+        originX: number;
+        originY: number;
+        width: number;
+        height: number;
+    };
 };
 
-type Action = {
-    crop?: CropOptions;
-    rotate?: number;
-};
+type RotateOption = {rotate: number};
 
-type CustomRNImageManipulatorResult = RNImageManipulatorResult & {size: number; type: string; name: string};
+type Action = CropAction | RotateOption;
+
+type CustomRNImageManipulatorResult = ImageResult & {size: number; type: string; name: string};
 
 type CropOrRotateImage = (uri: string, actions: Action[], options: CropOrRotateImageOptions) => Promise<File | CustomRNImageManipulatorResult>;
 
-export type {CropOrRotateImage, CropOptions, Action, CropOrRotateImageOptions, CustomRNImageManipulatorResult};
+export type {CustomRNImageManipulatorResult, CropOrRotateImage};
