@@ -262,9 +262,14 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 return;
             }
 
+            if (!PolicyUtils.isPaidGroupPolicy(policy)) {
+                toggleUser(item.accountID);
+                return;
+            }
+
             Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID, Navigation.getActiveRoute()));
         },
-        [isPolicyAdmin, route.params.policyID],
+        [isPolicyAdmin, policy, route.params.policyID, toggleUser],
     );
 
     /**
