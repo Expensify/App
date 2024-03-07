@@ -77,7 +77,7 @@ function IOURequestStartPage({
         [CONST.IOU.TYPE.REQUEST]: translate('iou.requestMoney'),
         [CONST.IOU.TYPE.SEND]: translate('iou.sendMoney'),
         [CONST.IOU.TYPE.SPLIT]: translate('iou.splitBill'),
-        [CONST.IOU.TYPE.TRACK_EXPENSE]: 'Track Expense',
+        [CONST.IOU.TYPE.TRACK_EXPENSE]: translate('iou.trackExpense'),
     };
     const transactionRequestType = useRef(TransactionUtils.getRequestType(transaction));
     const previousIOURequestType = usePrevious(transactionRequestType.current);

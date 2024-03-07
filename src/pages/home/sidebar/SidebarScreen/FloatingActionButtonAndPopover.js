@@ -192,14 +192,14 @@ function FloatingActionButtonAndPopover(props) {
                         ? [
                               {
                                   icon: Expensicons.TrackExpense,
-                                  text: 'Track Expense',
+                                  text: translate('iou.trackExpense'),
                                   onSelected: () =>
                                       interceptAnonymousUser(() =>
                                           IOU.startMoneyRequest_temporaryForRefactor(
                                               CONST.IOU.TYPE.TRACK_EXPENSE,
                                               // When starting to create a track expense from the global FAB, we need to retrieve selfDM reportID.
                                               // If it doesn't exist, we generate a random optimistic reportID and use it for all of the routes in the creation flow.
-                                              props.account.selfDMReportID || ReportUtils.generateReportID(),
+                                              props.account.selfDMReportID || ReportUtils.findSelfDMReportID() || ReportUtils.generateReportID(),
                                           ),
                                       ),
                               },

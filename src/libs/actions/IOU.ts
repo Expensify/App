@@ -4036,13 +4036,15 @@ function replaceReceipt(transactionID: string, file: File, source: string) {
  * @param transactionID of the transaction to set the participants of
  * @param report attached to the transaction
  */
-function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxTypes.Report) {
+function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxTypes.Report, iouType: ValueOf<typeof CONST.IOU.TYPE>) {
     // If the report is iou or expense report, we should get the chat report to set participant for request money
     const chatReport = ReportUtils.isMoneyRequestReport(report) ? ReportUtils.getReport(report.chatReportID) : report;
     const currentUserAccountID = currentUserPersonalDetails.accountID;
-    const participants: Participant[] = ReportUtils.isPolicyExpenseChat(chatReport)
-        ? [{reportID: chatReport?.reportID, isPolicyExpenseChat: true, selected: true}]
-        : (chatReport?.participantAccountIDs ?? []).filter((accountID) => currentUserAccountID !== accountID).map((accountID) => ({accountID, selected: true}));
+    const shouldAddAsReport = iouType === CONST.IOU.TYPE.TRACK_EXPENSE && !isEmptyObject(chatReport) && (ReportUtils.isSelfDM(chatReport) || ReportUtils.isAdminRoom(chatReport));
+    const participants: Participant[] =
+        ReportUtils.isPolicyExpenseChat(chatReport) || shouldAddAsReport
+            ? [{reportID: chatReport?.reportID, isPolicyExpenseChat: ReportUtils.isPolicyExpenseChat(chatReport), selected: true}]
+            : (chatReport?.participantAccountIDs ?? []).filter((accountID) => currentUserAccountID !== accountID).map((accountID) => ({accountID, selected: true}));
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, participantsAutoAssigned: true});
 }

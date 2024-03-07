@@ -101,15 +101,15 @@ function IOURequestStepConfirmation({
             return translate('iou.splitBill');
         }
         if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
-            return 'Track Expense';
+            return translate('iou.trackExpense');
         }
         return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
     }, [iouType, transaction, translate]);
     const participants = useMemo(
         () =>
             _.map(transaction.participants, (participant) => {
-                const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-                return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
+                const participantReportID = lodashGet(participant, 'reportID', '');
+                return participantReportID ? OptionsListUtils.getReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
             }),
         [transaction.participants, personalDetails],
     );
@@ -130,7 +130,7 @@ function IOURequestStepConfirmation({
         if (policyExpenseChat) {
             Policy.openDraftWorkspaceRequest(policyExpenseChat.policyID);
         }
-    }, [participants, transaction.billable, policy, transactionID]);
+    }, [isOffline, participants, transaction.billable, policy, transactionID]);
 
     const defaultBillable = lodashGet(policy, 'defaultBillable', false);
     useEffect(() => {
@@ -185,13 +185,6 @@ function IOURequestStepConfirmation({
 
         IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID, receiptType);
     }, [receiptType, receiptPath, receiptFilename, requestType, iouType, transactionID, reportID]);
-
-    useEffect(() => {
-        const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
-        if (policyExpenseChat) {
-            Policy.openDraftWorkspaceRequest(policyExpenseChat.policyID);
-        }
-    }, [isOffline, participants, transaction.billable, policy]);
 
     /**
      * @param {Array} selectedParticipants

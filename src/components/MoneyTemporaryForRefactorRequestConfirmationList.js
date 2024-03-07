@@ -381,7 +381,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const splitOrRequestOptions = useMemo(() => {
         let text;
         if (isTypeTrackExpense) {
-            text = 'Track Expense';
+            text = translate('iou.trackExpense');
         } else if (isTypeSplit && iouAmount === 0) {
             text = translate('iou.split');
         } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute) {

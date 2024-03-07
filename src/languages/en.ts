@@ -503,6 +503,8 @@ export default {
             send: 'send money',
             split: 'split a bill',
             request: 'request money',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            'track-expense': 'track an expense',
         },
     },
     reportAction: {
@@ -592,6 +594,7 @@ export default {
         participants: 'Participants',
         requestMoney: 'Request money',
         sendMoney: 'Send money',
+        trackExpense: 'Track expense',
         pay: 'Pay',
         cancelPayment: 'Cancel payment',
         cancelPaymentConfirmation: 'Are you sure that you want to cancel this payment?',

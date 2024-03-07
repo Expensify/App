@@ -921,6 +921,15 @@ function isConciergeChatReport(report: OnyxEntry<Report>): boolean {
     return report?.participantAccountIDs?.length === 1 && Number(report.participantAccountIDs?.[0]) === CONST.ACCOUNT_ID.CONCIERGE && !isChatThread(report);
 }
 
+function findSelfDMReportID(): string | undefined {
+    if (!allReports) {
+        return;
+    }
+
+    const selfDMReport = Object.values(allReports).find((report) => isSelfDM(report) && !isThread(report));
+    return selfDMReport?.reportID;
+}
+
 /**
  * Checks if the supplied report belongs to workspace based on the provided params. If the report's policyID is _FAKE_ or has no value, it means this report is a DM.
  * In this case report and workspace members must be compared to determine whether the report belongs to the workspace.
@@ -4341,7 +4350,7 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
 
 /**
  * Helper method to define what money request options we want to show for particular method.
- * There are 3 money request options: Request, Split and Send:
+ * There are 4 money request options: Request, Split, Send and Track expense:
  * - Request option should show for:
  *     - DMs
  *     - own policy expense chats
@@ -4353,13 +4362,16 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
  *     - chat/ policy rooms with more than 1 participants
  *     - groups chats with 3 and more participants
  *     - corporate workspace chats
+ * - Track expense option should show for:
+ *    - Self DMs
+ *    - admin rooms
  *
  * None of the options should show in chat threads or if there is some special Expensify account
  * as a participant of the report.
  */
-function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[]): Array<ValueOf<typeof CONST.IOU.TYPE>> {
+function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[], canUseTrackExpense = true): Array<ValueOf<typeof CONST.IOU.TYPE>> {
     // In any thread or task report, we do not allow any new money requests yet
-    if (isChatThread(report) || isTaskReport(report) || isSelfDM(report)) {
+    if (isChatThread(report) || isTaskReport(report) || (!canUseTrackExpense && isSelfDM(report))) {
         return [];
     }
 
@@ -4385,6 +4397,10 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
     // Your own workspace chats will have the split bill option.
     if ((isChatRoom(report) && otherParticipants.length > 0) || (isDM(report) && hasMultipleOtherParticipants) || (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat)) {
         options = [CONST.IOU.TYPE.SPLIT];
+    }
+
+    if (canUseTrackExpense && isAdminRoom(report)) {
+        options = [...options, CONST.IOU.TYPE.TRACK_EXPENSE];
     }
 
     if (canRequestMoney(report, policy, otherParticipants)) {
@@ -5295,6 +5311,7 @@ export {
     canEditRoomVisibility,
     canEditPolicyDescription,
     getPolicyDescriptionText,
+    findSelfDMReportID,
 };
 
 export type {

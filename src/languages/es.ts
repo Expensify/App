@@ -496,6 +496,8 @@ export default {
             send: 'enviar dinero',
             split: 'dividir una factura',
             request: 'pedir dinero',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            'track-expense': 'rastrear un gasto',
         },
     },
     reportAction: {
@@ -585,6 +587,7 @@ export default {
         participants: 'Participantes',
         requestMoney: 'Pedir dinero',
         sendMoney: 'Enviar dinero',
+        trackExpense: 'Seguimiento de gastos',
         pay: 'Pagar',
         cancelPayment: 'Cancelar el pago',
         cancelPaymentConfirmation: '¿Estás seguro de que quieres cancelar este pago?',
