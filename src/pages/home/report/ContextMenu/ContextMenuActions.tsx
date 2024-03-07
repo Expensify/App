@@ -347,9 +347,8 @@ const ContextMenuActions: ContextMenuAction[] = [
         // `ContextMenuItem` with `successText` and `successIcon` which will fall back to
         // the `text` and `icon`
         onPress: (closePopover, {reportAction, selection, reportID}) => {
-            const isTaskAction = ReportActionsUtils.isTaskAction(reportAction);
             const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
-            const messageHtml = isTaskAction ? TaskUtils.getTaskReportActionMessage(reportAction?.actionName) : getActionHtml(reportAction);
+            const messageHtml = getActionHtml(reportAction);
             const messageText = ReportActionsUtils.getReportActionMessageText(reportAction);
 
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
@@ -358,6 +357,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                 if (isReportPreviewAction) {
                     const iouReport = ReportUtils.getReport(ReportActionsUtils.getIOUReportIDFromReportActionPreview(reportAction));
                     const displayMessage = ReportUtils.getReportPreviewMessage(iouReport, reportAction);
+                    Clipboard.setString(displayMessage);
+                } else if (ReportActionsUtils.isTaskAction(reportAction)) {
+                    const displayMessage = TaskUtils.getTaskReportActionMessage(reportAction).text;
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
                     const modifyExpenseMessage = ModifiedExpenseMessage.getForReportAction(reportID, reportAction);
