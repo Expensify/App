@@ -23,6 +23,7 @@ type OriginalMessageActionName =
     | 'TASKCOMPLETED'
     | 'TASKEDITED'
     | 'TASKREOPENED'
+    | 'ACTIONABLEJOINREQUEST'
     | 'ACTIONABLEMENTIONWHISPER'
     | ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
 type OriginalMessageApproved = {
@@ -219,6 +220,17 @@ type OriginalMessagePolicyChangeLog = {
     originalMessage: ChangeLog;
 };
 
+type OriginalMessageJoinPolicyChangeLog = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLEJOINREQUEST;
+    originalMessage: {
+        choice: string;
+        email: string;
+        inviterEmail: string;
+        lastModified: string;
+        policyID: string;
+    };
+};
+
 type OriginalMessageRoomChangeLog = {
     actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG>;
     originalMessage: ChangeLog;
@@ -296,6 +308,7 @@ type OriginalMessage =
     | OriginalMessageRoomChangeLog
     | OriginalMessagePolicyChangeLog
     | OriginalMessagePolicyTask
+    | OriginalMessageJoinPolicyChangeLog
     | OriginalMessageModifiedExpense
     | OriginalMessageReimbursementQueued
     | OriginalMessageReimbursementDequeued
@@ -317,6 +330,7 @@ export type {
     OriginalMessageCreated,
     OriginalMessageRenamed,
     OriginalMessageAddComment,
+    OriginalMessageJoinPolicyChangeLog,
     OriginalMessageActionableMentionWhisper,
     OriginalMessageChronosOOOList,
     OriginalMessageSource,

@@ -1084,6 +1084,16 @@ function isArchivedRoom(report: OnyxEntry<Report> | EmptyObject): boolean {
 }
 
 /**
+ * Whether the provided report is the admin's room
+ */
+function isJoinRequestInAdminRoom(report: OnyxEntry<Report>): boolean {
+    if (!report) {
+        return false;
+    }
+    return ReportActionsUtils.isActionableJoinRequestPending(report.reportID);
+}
+
+/**
  * Checks if the current user is allowed to comment on the given report.
  */
 function isAllowedToComment(report: OnyxEntry<Report>): boolean {
@@ -1908,6 +1918,10 @@ function isUnreadWithMention(reportOrOption: OnyxEntry<Report> | OptionData): bo
 function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | OptionData, parentReportAction: EmptyObject | OnyxEntry<ReportAction> = {}) {
     if (!optionOrReport) {
         return false;
+    }
+
+    if (isJoinRequestInAdminRoom(optionOrReport)) {
+        return true;
     }
 
     if (isArchivedRoom(optionOrReport) || isArchivedRoom(getReport(optionOrReport.parentReportID))) {
@@ -5358,6 +5372,7 @@ export {
     canEditRoomVisibility,
     canEditPolicyDescription,
     getPolicyDescriptionText,
+    isJoinRequestInAdminRoom,
     canAddOrDeleteTransactions,
     shouldCreateNewMoneyRequestReport,
 };
