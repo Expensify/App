@@ -16,6 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -68,34 +69,39 @@ function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    style={[styles.defaultModalContainer]}
-                    testID={CreateCategoryPage.displayName}
+                <FeatureEnabledAccessOrNotFoundWrapper
+                    policyID={route.params.policyID}
+                    featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
                 >
-                    <HeaderWithBackButton
-                        title={translate('workspace.categories.addCategory')}
-                        onBackButtonPress={Navigation.goBack}
-                    />
-                    <FormProvider
-                        formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE_FORM}
-                        onSubmit={createCategory}
-                        submitButtonText={translate('common.save')}
-                        validate={validate}
-                        style={[styles.mh5, styles.flex1]}
-                        enabledWhenOffline
+                    <ScreenWrapper
+                        includeSafeAreaPaddingBottom={false}
+                        style={[styles.defaultModalContainer]}
+                        testID={CreateCategoryPage.displayName}
                     >
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            maxLength={CONST.CATEGORY_NAME_LIMIT}
-                            label={translate('common.name')}
-                            accessibilityLabel={translate('common.name')}
-                            inputID={INPUT_IDS.CATEGORY_NAME}
-                            role={CONST.ROLE.PRESENTATION}
-                            autoFocus
+                        <HeaderWithBackButton
+                            title={translate('workspace.categories.addCategory')}
+                            onBackButtonPress={Navigation.goBack}
                         />
-                    </FormProvider>
-                </ScreenWrapper>
+                        <FormProvider
+                            formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE_FORM}
+                            onSubmit={createCategory}
+                            submitButtonText={translate('common.save')}
+                            validate={validate}
+                            style={[styles.mh5, styles.flex1]}
+                            enabledWhenOffline
+                        >
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                maxLength={CONST.CATEGORY_NAME_LIMIT}
+                                label={translate('common.name')}
+                                accessibilityLabel={translate('common.name')}
+                                inputID={INPUT_IDS.CATEGORY_NAME}
+                                role={CONST.ROLE.PRESENTATION}
+                                autoFocus
+                            />
+                        </FormProvider>
+                    </ScreenWrapper>
+                </FeatureEnabledAccessOrNotFoundWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>
     );
