@@ -135,7 +135,9 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     const policyIDFromState = getPolicyIDFromState(rootState);
     const policyID = extractedPolicyID ?? policyIDFromState;
 
-    if (policyID) {
+    const isFullScreenOnTop = rootState.routes?.at(-1)?.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR;
+
+    if (policyID && !isFullScreenOnTop) {
         // The stateFromPath doesn't include proper path if there is a policy passed with /w/id.
         // We need to replace the path in the state with the proper one.
         // To avoid this hacky solution we may want to create custom getActionFromState function in the future.
