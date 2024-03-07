@@ -77,6 +77,7 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
                                 styles.interactiveStepHeaderStepButton,
                                 isLockedStep && styles.interactiveStepHeaderLockedStepButton,
                                 isCompletedStep && styles.interactiveStepHeaderCompletedStepButton,
+                                !onStepSelected && styles.cursorDefault,
                             ]}
                             disabled={isLockedStep || !onStepSelected}
                             onPress={moveToStep}

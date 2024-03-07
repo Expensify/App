@@ -5,7 +5,7 @@ import type {LiteralUnion, ValueOf} from 'type-fest';
 import Log from '@libs/Log';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxUpdateEvent, OnyxUpdatesFromServer, ReportUserIsTyping} from '@src/types/onyx';
+import type {OnyxUpdatesFromServer, ReportUserIsTyping} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import TYPE from './EventType';
 import Pusher from './library';
@@ -22,8 +22,6 @@ type Args = {
     authEndpoint: string;
 };
 
-type PushJSON = OnyxUpdateEvent[] | OnyxUpdatesFromServer;
-
 type UserIsTypingEvent = ReportUserIsTyping & {
     userLogin?: string;
 };
@@ -37,7 +35,7 @@ type PusherEventMap = {
     [TYPE.USER_IS_LEAVING_ROOM]: UserIsLeavingRoomEvent;
 };
 
-type EventData<EventName extends string> = EventName extends keyof PusherEventMap ? PusherEventMap[EventName] : PushJSON;
+type EventData<EventName extends string> = EventName extends keyof PusherEventMap ? PusherEventMap[EventName] : OnyxUpdatesFromServer;
 
 type EventCallbackError = {type: ValueOf<typeof CONST.ERROR>; data: {code: number}};
 
@@ -87,7 +85,8 @@ function callSocketEventCallbacks(eventName: SocketEventName, data?: EventCallba
 function init(args: Args, params?: unknown): Promise<void> {
     return new Promise((resolve) => {
         if (socket) {
-            return resolve();
+            resolve();
+            return;
         }
 
         // Use this for debugging
@@ -412,4 +411,4 @@ export {
     getPusherSocketID,
 };
 
-export type {EventCallbackError, States, PushJSON, UserIsTypingEvent, UserIsLeavingRoomEvent};
+export type {EventCallbackError, States, UserIsTypingEvent, UserIsLeavingRoomEvent};

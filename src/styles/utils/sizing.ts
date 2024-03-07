@@ -10,6 +10,10 @@ export default {
         height: '100%',
     },
 
+    h68: {
+        height: 272,
+    },
+
     w15: {
         width: '15%',
     },

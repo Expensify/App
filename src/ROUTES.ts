@@ -73,7 +73,6 @@ const ROUTES = {
     SETTINGS_TIMEZONE: 'settings/profile/timezone',
     SETTINGS_TIMEZONE_SELECT: 'settings/profile/timezone/select',
     SETTINGS_PRONOUNS: 'settings/profile/pronouns',
-    SETTINGS_LOUNGE_ACCESS: 'settings/profile/lounge-access',
     SETTINGS_PREFERENCES: 'settings/preferences',
     SETTINGS_PRIORITY_MODE: 'settings/preferences/priority-mode',
     SETTINGS_LANGUAGE: 'settings/preferences/language',
@@ -85,28 +84,28 @@ const ROUTES = {
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_WALLET: 'settings/wallet',
     SETTINGS_WALLET_DOMAINCARD: {
-        route: '/settings/wallet/card/:domain',
-        getRoute: (domain: string) => `/settings/wallet/card/${domain}` as const,
+        route: 'settings/wallet/card/:domain',
+        getRoute: (domain: string) => `settings/wallet/card/${domain}` as const,
     },
     SETTINGS_REPORT_FRAUD: {
-        route: '/settings/wallet/card/:domain/report-virtual-fraud',
-        getRoute: (domain: string) => `/settings/wallet/card/${domain}/report-virtual-fraud` as const,
+        route: 'settings/wallet/card/:domain/report-virtual-fraud',
+        getRoute: (domain: string) => `settings/wallet/card/${domain}/report-virtual-fraud` as const,
     },
     SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME: {
-        route: '/settings/wallet/card/:domain/get-physical/name',
-        getRoute: (domain: string) => `/settings/wallet/card/${domain}/get-physical/name` as const,
+        route: 'settings/wallet/card/:domain/get-physical/name',
+        getRoute: (domain: string) => `settings/wallet/card/${domain}/get-physical/name` as const,
     },
     SETTINGS_WALLET_CARD_GET_PHYSICAL_PHONE: {
-        route: '/settings/wallet/card/:domain/get-physical/phone',
-        getRoute: (domain: string) => `/settings/wallet/card/${domain}/get-physical/phone` as const,
+        route: 'settings/wallet/card/:domain/get-physical/phone',
+        getRoute: (domain: string) => `settings/wallet/card/${domain}/get-physical/phone` as const,
     },
     SETTINGS_WALLET_CARD_GET_PHYSICAL_ADDRESS: {
-        route: '/settings/wallet/card/:domain/get-physical/address',
-        getRoute: (domain: string) => `/settings/wallet/card/${domain}/get-physical/address` as const,
+        route: 'settings/wallet/card/:domain/get-physical/address',
+        getRoute: (domain: string) => `settings/wallet/card/${domain}/get-physical/address` as const,
     },
     SETTINGS_WALLET_CARD_GET_PHYSICAL_CONFIRM: {
-        route: '/settings/wallet/card/:domain/get-physical/confirm',
-        getRoute: (domain: string) => `/settings/wallet/card/${domain}/get-physical/confirm` as const,
+        route: 'settings/wallet/card/:domain/get-physical/confirm',
+        getRoute: (domain: string) => `settings/wallet/card/${domain}/get-physical/confirm` as const,
     },
     SETTINGS_ADD_DEBIT_CARD: 'settings/wallet/add-debit-card',
     SETTINGS_ADD_BANK_ACCOUNT: 'settings/wallet/add-bank-account',
@@ -118,8 +117,8 @@ const ROUTES = {
     SETTINGS_WALLET_TRANSFER_BALANCE: 'settings/wallet/transfer-balance',
     SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT: 'settings/wallet/choose-transfer-account',
     SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED: {
-        route: '/settings/wallet/card/:domain/report-card-lost-or-damaged',
-        getRoute: (domain: string) => `/settings/wallet/card/${domain}/report-card-lost-or-damaged` as const,
+        route: 'settings/wallet/card/:domain/report-card-lost-or-damaged',
+        getRoute: (domain: string) => `settings/wallet/card/${domain}/report-card-lost-or-damaged` as const,
     },
     SETTINGS_WALLET_CARD_ACTIVATE: {
         route: 'settings/wallet/card/:domain/activate',
@@ -160,6 +159,17 @@ const ROUTES = {
         getRoute: (source: string) => `settings/troubleshoot/console/share-log?source=${encodeURI(source)}` as const,
     },
 
+    SETTINGS_EXIT_SURVEY_REASON: 'settings/exit-survey/reason',
+    SETTINGS_EXIT_SURVEY_RESPONSE: {
+        route: 'settings/exit-survey/response',
+        getRoute: (reason?: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>, backTo?: string) =>
+            getUrlWithBackToParam(`settings/exit-survey/response${reason ? `?reason=${encodeURIComponent(reason)}` : ''}`, backTo),
+    },
+    SETTINGS_EXIT_SURVEY_CONFIRM: {
+        route: 'settings/exit-survey/confirm',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/exit-survey/confirm', backTo),
+    },
+
     KEYBOARD_SHORTCUTS: 'keyboard-shortcuts',
 
     NEW: 'new',
@@ -176,8 +186,9 @@ const ROUTES = {
         getRoute: (reportID: string) => `r/${reportID}/avatar` as const,
     },
     EDIT_REQUEST: {
-        route: 'r/:threadReportID/edit/:field',
-        getRoute: (threadReportID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => `r/${threadReportID}/edit/${field}` as const,
+        route: 'r/:threadReportID/edit/:field/:tagIndex?',
+        getRoute: (threadReportID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>, tagIndex?: number) =>
+            `r/${threadReportID}/edit/${field}${typeof tagIndex === 'number' ? `/${tagIndex}` : ''}` as const,
     },
     EDIT_CURRENCY_REQUEST: {
         route: 'r/:threadReportID/edit/currency',
@@ -219,13 +230,18 @@ const ROUTES = {
         route: 'r/:reportID/settings/who-can-post',
         getRoute: (reportID: string) => `r/${reportID}/settings/who-can-post` as const,
     },
+    REPORT_SETTINGS_VISIBILITY: {
+        route: 'r/:reportID/settings/visibility',
+        getRoute: (reportID: string) => `r/${reportID}/settings/visibility` as const,
+    },
     SPLIT_BILL_DETAILS: {
         route: 'r/:reportID/split/:reportActionID',
         getRoute: (reportID: string, reportActionID: string) => `r/${reportID}/split/${reportActionID}` as const,
     },
     EDIT_SPLIT_BILL: {
-        route: `r/:reportID/split/:reportActionID/edit/:field`,
-        getRoute: (reportID: string, reportActionID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => `r/${reportID}/split/${reportActionID}/edit/${field}` as const,
+        route: `r/:reportID/split/:reportActionID/edit/:field/:tagIndex?`,
+        getRoute: (reportID: string, reportActionID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>, tagIndex?: number) =>
+            `r/${reportID}/split/${reportActionID}/edit/${field}${typeof tagIndex === 'number' ? `/${tagIndex}` : ''}` as const,
     },
     EDIT_SPLIT_BILL_CURRENCY: {
         route: 'r/:reportID/split/:reportActionID/edit/currency',
@@ -282,9 +298,9 @@ const ROUTES = {
         route: ':iouType/new/currency/:reportID?',
         getRoute: (iouType: string, reportID: string, currency: string, backTo: string) => `${iouType}/new/currency/${reportID}?currency=${currency}&backTo=${backTo}` as const,
     },
-    MONEY_REQUEST_CATEGORY: {
-        route: ':iouType/new/category/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/category/${reportID}` as const,
+    MONEY_REQUEST_HOLD_REASON: {
+        route: ':iouType/edit/reason/:transactionID?',
+        getRoute: (iouType: string, transactionID: string, reportID: string, backTo: string) => `${iouType}/edit/reason/${transactionID}?backTo=${backTo}&reportID=${reportID}` as const,
     },
     MONEY_REQUEST_MERCHANT: {
         route: ':iouType/new/merchant/:reportID?',
@@ -329,9 +345,9 @@ const ROUTES = {
             getUrlWithBackToParam(`create/${iouType}/taxAmount/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_CATEGORY: {
-        route: 'create/:iouType/category/:transactionID/:reportID',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/category/${transactionID}/${reportID}`, backTo),
+        route: ':action/:iouType/category/:transactionID/:reportID',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action}/${iouType}/category/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_CURRENCY: {
         route: 'create/:iouType/currency/:transactionID/:reportID/:pageIndex?',
@@ -369,9 +385,9 @@ const ROUTES = {
             getUrlWithBackToParam(`${action}/${iouType}/scan/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_TAG: {
-        route: ':action/:iouType/tag/:transactionID/:reportID',
-        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action}/${iouType}/tag/${transactionID}/${reportID}`, backTo),
+        route: ':action/:iouType/tag/:tagIndex/:transactionID/:reportID',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, tagIndex: number, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action}/${iouType}/tag/${tagIndex}/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_WAYPOINT: {
         route: ':action/:iouType/waypoint/:transactionID/:reportID/:pageIndex',
@@ -450,9 +466,13 @@ const ROUTES = {
         route: 'workspace/:policyID/profile/name',
         getRoute: (policyID: string) => `workspace/${policyID}/profile/name` as const,
     },
-    WORKSPACE_DESCRIPTION: {
-        route: 'workspace/:policyID/description',
-        getRoute: (policyID: string) => `workspace/${policyID}/description` as const,
+    WORKSPACE_PROFILE_DESCRIPTION: {
+        route: 'workspace/:policyID/profile/description',
+        getRoute: (policyID: string) => `workspace/${policyID}/profile/description` as const,
+    },
+    WORKSPACE_PROFILE_SHARE: {
+        route: 'workspace/:policyID/profile/share',
+        getRoute: (policyID: string) => `workspace/${policyID}/profile/share` as const,
     },
     WORKSPACE_AVATAR: {
         route: 'workspace/:policyID/avatar',
@@ -461,6 +481,22 @@ const ROUTES = {
     WORKSPACE_SETTINGS_CURRENCY: {
         route: 'workspace/:policyID/settings/currency',
         getRoute: (policyID: string) => `workspace/${policyID}/settings/currency` as const,
+    },
+    WORKSPACE_WORKFLOWS: {
+        route: 'workspace/:policyID/workflows',
+        getRoute: (policyID: string) => `workspace/${policyID}/workflows` as const,
+    },
+    WORKSPACE_WORKFLOWS_APPROVER: {
+        route: 'workspace/:policyID/settings/workflows/approver',
+        getRoute: (policyId: string) => `workspace/${policyId}/settings/workflows/approver` as const,
+    },
+    WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY: {
+        route: 'workspace/:policyID/settings/workflows/auto-reporting-frequency',
+        getRoute: (policyID: string) => `workspace/${policyID}/settings/workflows/auto-reporting-frequency` as const,
+    },
+    WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET: {
+        route: 'workspace/:policyID/settings/workflows/auto-reporting-frequency/monthly-offset',
+        getRoute: (policyID: string) => `workspace/${policyID}/settings/workflows/auto-reporting-frequency/monthly-offset` as const,
     },
     WORKSPACE_CARD: {
         route: 'workspace/:policyID/card',
@@ -498,10 +534,39 @@ const ROUTES = {
         route: 'workspace/:policyID/members',
         getRoute: (policyID: string) => `workspace/${policyID}/members` as const,
     },
+    WORKSPACE_CATEGORIES: {
+        route: 'workspace/:policyID/categories',
+        getRoute: (policyID: string) => `workspace/${policyID}/categories` as const,
+    },
+    WORKSPACE_CATEGORY_SETTINGS: {
+        route: 'workspace/:policyID/categories/:categoryName',
+        getRoute: (policyID: string, categoryName: string) => `workspace/${policyID}/categories/${encodeURI(categoryName)}` as const,
+    },
+    WORKSPACE_CATEGORIES_SETTINGS: {
+        route: 'workspace/:policyID/categories/settings',
+        getRoute: (policyID: string) => `workspace/${policyID}/categories/settings` as const,
+    },
+    WORKSPACE_CATEGORY_CREATE: {
+        route: 'workspace/:policyID/categories/new',
+        getRoute: (policyID: string) => `workspace/${policyID}/categories/new` as const,
+    },
+    WORKSPACE_TAGS: {
+        route: 'workspace/:policyID/tags',
+        getRoute: (policyID: string) => `workspace/${policyID}/tags` as const,
+    },
+    WORKSPACE_MEMBER_DETAILS: {
+        route: 'workspace/:policyID/members/:accountID',
+        getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`workspace/${policyID}/members/${accountID}`, backTo),
+    },
+    WORKSPACE_MEMBER_ROLE_SELECTION: {
+        route: 'workspace/:policyID/members/:accountID/role-selection',
+        getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`workspace/${policyID}/members/${accountID}/role-selection`, backTo),
+    },
+
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {
         route: 'referral/:contentType',
-        getRoute: (contentType: string) => `referral/${contentType}` as const,
+        getRoute: (contentType: string, backTo?: string) => getUrlWithBackToParam(`referral/${contentType}`, backTo),
     },
     PROCESS_MONEY_REQUEST_HOLD: 'hold-request-educational',
 } as const;
@@ -537,4 +602,4 @@ type Route = RouteIsPlainString extends true ? never : AllRoutes;
 
 type HybridAppRoute = (typeof HYBRID_APP_ROUTES)[keyof typeof HYBRID_APP_ROUTES];
 
-export type {Route, HybridAppRoute};
+export type {Route, HybridAppRoute, AllRoutes};

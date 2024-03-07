@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import categoryPropTypes from '@components/categoryPropTypes';
 import TagPicker from '@components/TagPicker';
 import tagPropTypes from '@components/tagPropTypes';
@@ -10,8 +9,14 @@ import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import {canEditMoneyRequest} from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import {policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
@@ -41,6 +46,9 @@ const propTypes = {
 
     /** Collection of tags attached to a policy */
     policyTags: tagPropTypes,
+
+    /** The actions from the parent report */
+    parentReportActions: PropTypes.shape(reportActionPropTypes),
 };
 
 const defaultProps = {
@@ -49,6 +57,7 @@ const defaultProps = {
     policyTags: null,
     policyCategories: null,
     transaction: {},
+    parentReportActions: {},
 };
 
 function IOURequestStepTag({
@@ -57,18 +66,26 @@ function IOURequestStepTag({
     policyTags,
     report,
     route: {
-        params: {action, transactionID, backTo, iouType},
+        params: {action, tagIndex: rawTagIndex, transactionID, backTo, iouType},
     },
-    transaction: {tag},
+    transaction,
+    parentReportActions,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    // Fetches the first tag list of the policy
-    const tagListKey = _.first(_.keys(policyTags));
-    const policyTagListName = PolicyUtils.getTagListName(policyTags) || translate('common.tag');
+    const tagIndex = Number(rawTagIndex);
+    const policyTagListName = PolicyUtils.getTagListName(policyTags, tagIndex);
+    const transactionTag = TransactionUtils.getTag(transaction);
+    const tag = TransactionUtils.getTag(transaction, tagIndex);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
+    const parentReportAction = parentReportActions[report.parentReportActionID];
+    const shouldShowTag = ReportUtils.isGroupPolicy(report) && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists));
+
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = !shouldShowTag || (isEditing && !canEditMoneyRequest(parentReportAction));
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -80,9 +97,9 @@ function IOURequestStepTag({
      */
     const updateTag = (selectedTag) => {
         const isSelectedTag = selectedTag.searchText === tag;
-        const updatedTag = !isSelectedTag ? selectedTag.searchText : '';
+        const updatedTag = IOUUtils.insertTagIntoTransactionTagsString(transactionTag, isSelectedTag ? '' : selectedTag.searchText, tagIndex);
         if (isSplitBill && isEditing) {
-            IOU.setDraftSplitTransaction(transactionID, {tag: selectedTag.searchText});
+            IOU.setDraftSplitTransaction(transactionID, {tag: updatedTag});
             navigateBack();
             return;
         }
@@ -101,16 +118,18 @@ function IOURequestStepTag({
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID={IOURequestStepTag.displayName}
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             {({insets}) => (
                 <>
                     <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: policyTagListName})}</Text>
                     <TagPicker
                         policyID={report.policyID}
-                        tag={tagListKey}
-                        selectedTag={tag || ''}
-                        onSubmit={updateTag}
+                        tag={policyTagListName}
+                        tagIndex={tagIndex}
+                        selectedTag={tag}
                         insets={insets}
+                        onSubmit={updateTag}
                     />
                 </>
             )}
@@ -134,6 +153,10 @@ export default compose(
         },
         policyTags: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+        },
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
+            canEvict: false,
         },
     }),
 )(IOURequestStepTag);

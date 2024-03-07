@@ -30,6 +30,7 @@ type ThemeColors = {
     buttonDefaultBG: Color;
     buttonHoveredBG: Color;
     buttonPressedBG: Color;
+    buttonSuccessText: Color;
     danger: Color;
     dangerHover: Color;
     dangerPressed: Color;
@@ -86,9 +87,10 @@ type ThemeColors = {
     skeletonLHNOut: Color;
     QRLogo: Color;
     starDefaultBG: Color;
-    loungeAccessOverlay: Color;
     mapAttributionText: Color;
     white: Color;
+    videoPlayerBG: Color;
+    transparentWhite: Color;
 
     PAGE_THEMES: Record<string, {backgroundColor: Color; statusBarStyle: StatusBarStyle}>;
 

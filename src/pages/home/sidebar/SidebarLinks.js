@@ -15,7 +15,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Navigation from '@libs/Navigation/Navigation';
 import onyxSubscribe from '@libs/onyxSubscribe';
-import SidebarUtils from '@libs/SidebarUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import safeAreaInsetPropTypes from '@pages/safeAreaInsetPropTypes';
 import * as App from '@userActions/App';
@@ -44,7 +43,7 @@ const propTypes = {
     isActiveReport: PropTypes.func.isRequired,
 };
 
-function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport, isCreateMenuOpen, activePolicy}) {
+function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport, isCreateMenuOpen, activePolicy, reportIDsWithErrors}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const modal = useRef({});
@@ -52,15 +51,10 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
     const {isSmallScreenWidth} = useWindowDimensions();
 
     useEffect(() => {
-        if (!isSmallScreenWidth) {
-            return;
-        }
         App.confirmReadyToOpenApp();
-    }, [isSmallScreenWidth]);
+    }, []);
 
     useEffect(() => {
-        SidebarUtils.setIsSidebarLoadedReady();
-
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
                 updateLocale();
@@ -96,7 +90,6 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
         ReportActionContextMenu.hideContextMenu(false);
 
         return () => {
-            SidebarUtils.resetIsSidebarLoadedReadyPromise();
             if (unsubscribeEscapeKey) {
                 unsubscribeEscapeKey();
             }
@@ -161,6 +154,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                     shouldDisableFocusOptions={isSmallScreenWidth}
                     optionMode={viewMode}
                     onFirstItemRendered={App.setSidebarLoaded}
+                    reportIDsWithErrors={reportIDsWithErrors}
                 />
                 {isLoading && optionListItems.length === 0 && (
                     <View style={[StyleSheet.absoluteFillObject, styles.appBG]}>

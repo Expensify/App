@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import type {FileObject} from '@components/AttachmentModal';
 import type {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -41,6 +42,7 @@ type Message = {
     /** Fragment edited flag */
     isEdited?: boolean;
 
+    /** Whether thread's parent message is deleted or not */
     isDeletedParentAction?: boolean;
 
     /** Whether the pending transaction was reversed and didn't post to the card */
@@ -110,7 +112,7 @@ type Person = {
     text?: string;
 };
 
-type ReportActionBase = {
+type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
     reportActionID: string;
 
@@ -121,6 +123,9 @@ type ReportActionBase = {
     previousReportActionID?: string;
 
     actorAccountID?: number;
+
+    /** The account of the last message's actor */
+    actor?: string;
 
     /** Person who created the action */
     person?: Person[];
@@ -180,7 +185,7 @@ type ReportActionBase = {
     isFirstItem?: boolean;
 
     /** Informations about attachments of report action */
-    attachmentInfo?: File | EmptyObject;
+    attachmentInfo?: FileObject | EmptyObject;
 
     /** Receipt tied to report action */
     receipt?: Receipt;
@@ -188,8 +193,6 @@ type ReportActionBase = {
     /** ISO-formatted datetime */
     lastModified?: string;
 
-    /** Is this action pending? */
-    pendingAction?: OnyxCommon.PendingAction;
     delegateAccountID?: number;
 
     /** Server side errors keyed by microtime */
@@ -215,7 +218,7 @@ type ReportActionBase = {
 
     /** Flag for checking if data is from optimistic data */
     isOptimisticAction?: boolean;
-};
+}>;
 
 type ReportAction = ReportActionBase & OriginalMessage;
 
