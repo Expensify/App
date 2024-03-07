@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
+import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -104,7 +105,6 @@ function WorkspacesListRow({
     isJoinRequestPending,
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const threeDotsMenuContainerRef = useRef<View>(null);
@@ -163,23 +163,12 @@ function WorkspacesListRow({
                             />
                         </>
                     ) : (
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.border, styles.pv1, styles.pl1, styles.pr2]}>
-                            <Icon
-                                src={Expensicons.Hourglass}
-                                fill={theme.icon}
-                                width={variables.iconSizeExtraSmall}
-                                height={variables.iconSizeExtraSmall}
-                                additionalStyles={styles.workspaceTypeWrapper}
-                            />
-                            <View>
-                                <Text
-                                    numberOfLines={1}
-                                    style={styles.labelStrong}
-                                >
-                                    {translate('workspace.common.requested')}
-                                </Text>
-                            </View>
-                        </View>
+                        <Badge
+                            text={translate('workspace.common.requested')}
+                            textStyles={styles.textStrong}
+                            badgeStyles={[styles.alignSelfCenter, styles.badgeBordered]}
+                            icon={Expensicons.Hourglass}
+                        />
                     ))}
             </View>
             <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
@@ -229,25 +218,14 @@ function WorkspacesListRow({
                     </Text>
                 </View>
             </View>
-            {isJoinRequestPending && !isNarrow && (
+            {!isJoinRequestPending && !isNarrow && (
                 <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.flex1, styles.justifyContentEnd, styles.mln6, styles.pr4]}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.border, styles.pv1, styles.pl1, styles.pr2]}>
-                        <Icon
-                            src={Expensicons.Hourglass}
-                            fill={theme.icon}
-                            width={variables.iconSizeExtraSmall}
-                            height={variables.iconSizeExtraSmall}
-                            additionalStyles={styles.workspaceTypeWrapper}
-                        />
-                        <View style={styles.flex1}>
-                            <Text
-                                numberOfLines={1}
-                                style={styles.labelStrong}
-                            >
-                                {translate('workspace.common.requested')}
-                            </Text>
-                        </View>
-                    </View>
+                    <Badge
+                        text={translate('workspace.common.requested')}
+                        textStyles={styles.textStrong}
+                        badgeStyles={[styles.alignSelfCenter, styles.badgeBordered]}
+                        icon={Expensicons.Hourglass}
+                    />
                 </View>
             )}
 
