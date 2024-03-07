@@ -147,7 +147,7 @@ function MoneyRequestView({
 
     const {getViolationsForField} = useViolations(transactionViolations ?? []);
     const hasViolations = useCallback((field: ViolationField): boolean => !!canUseViolations && getViolationsForField(field).length > 0, [canUseViolations, getViolationsForField]);
-    const noticeViolations = transactionViolations?.filter((violation) => violation.type === 'notice').map((v) => ViolationsUtils.getViolationTranslation(v, translate));
+    const noticeViolations = transactionViolations?.filter((violation) => violation.type === 'note').map((v) => ViolationsUtils.getViolationTranslation(v, translate));
 
     let amountDescription = `${translate('iou.amount')}`;
 
