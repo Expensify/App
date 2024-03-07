@@ -1,4 +1,4 @@
-import {Report} from '@src/types/onyx';
+import type Report from '@src/types/onyx/Report';
 
 export default function shouldFetchReport(report: Report) {
     // If the report is optimistic, there's no need to fetch it. The original action should create it.
