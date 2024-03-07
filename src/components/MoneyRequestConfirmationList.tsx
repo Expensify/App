@@ -221,12 +221,13 @@ function MoneyRequestConfirmationList({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
-    const {canUseViolations} = usePermissions();
+    const {canUseP2PDistanceRequests, canUseViolations} = usePermissions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.REQUEST;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
+    const canEditDistance = isTypeRequest || (canUseP2PDistanceRequests && isSplitBill);
 
     const isSplitWithScan = isSplitBill && isScanRequest;
 
@@ -722,13 +723,13 @@ function MoneyRequestConfirmationList({
                     )}
                     {isDistanceRequest && (
                         <MenuItemWithTopDescription
-                            shouldShowRightIcon={!isReadOnly && isTypeRequest}
+                            shouldShowRightIcon={!isReadOnly && canEditDistance}
                             title={iouMerchant}
                             description={translate('common.distance')}
                             style={styles.moneyRequestMenuItem}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DISTANCE.getRoute(iouType, reportID))}
-                            disabled={didConfirm || !isTypeRequest}
+                            disabled={didConfirm || !canEditDistance}
                             interactive={!isReadOnly}
                         />
                     )}
