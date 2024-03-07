@@ -1,7 +1,8 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import type {MutableRefObject} from 'react';
 import React from 'react';
-import type {GestureResponderEvent} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {GestureResponderEvent, Text, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -29,6 +30,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Beta, ReportAction, ReportActionReactions, Report as ReportType} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {ContextMenuAnchor} from './ReportActionContextMenu';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /** Gets the HTML version of the message in an action */
@@ -53,7 +55,7 @@ type ShouldShow = (
     reportAction: OnyxEntry<ReportAction>,
     isArchivedRoom: boolean,
     betas: OnyxEntry<Beta[]>,
-    menuTarget: MutableRefObject<HTMLElement | null> | undefined,
+    menuTarget: MutableRefObject<ContextMenuAnchor> | undefined,
     isChronosReport: boolean,
     reportID: string,
     isPinnedChat: boolean,
@@ -70,6 +72,8 @@ type ContextMenuActionPayload = {
     close: () => void;
     openContextMenu: () => void;
     interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
+    anchor?: MutableRefObject<HTMLDivElement | View | Text | null>;
+    checkIfContextMenuActive?: () => void;
     openOverflowMenu: (event: GestureResponderEvent | MouseEvent) => void;
     event?: GestureResponderEvent | MouseEvent | KeyboardEvent;
     setIsEmojiPickerActive?: (state: boolean) => void;
@@ -404,7 +408,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
 
             // Only hide the copylink menu item when context menu is opened over img element.
-            const isAttachmentTarget = menuTarget?.current?.tagName === 'IMG' && isAttachment;
+            const isAttachmentTarget = menuTarget?.current && 'tagName' in menuTarget.current && menuTarget?.current.tagName === 'IMG' && isAttachment;
             return Permissions.canUseCommentLinking(betas) && type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget && !ReportActionsUtils.isMessageDeleted(reportAction);
         },
         onPress: (closePopover, {reportAction, reportID}) => {

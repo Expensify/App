@@ -832,7 +832,7 @@ function hasRequestFromCurrentAccount(reportID: string, currentAccountID: number
  * Checks if a given report action corresponds to an actionable mention whisper.
  * @param reportAction
  */
-function isActionableMentionWhisper(reportAction: OnyxEntry<ReportAction>): boolean {
+function isActionableMentionWhisper(reportAction: OnyxEntry<ReportAction>): reportAction is ReportActionBase & OriginalMessageActionableMentionWhisper {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLEMENTIONWHISPER;
 }
 
