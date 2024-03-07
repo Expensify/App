@@ -8,7 +8,16 @@ import getButtonState from '@libs/getButtonState';
 import CONST from '@src/CONST';
 import type EmojiPickerMenuItemProps from './types';
 
-function EmojiPickerMenuItem({emoji, onPress, onHoverIn = () => {}, onHoverOut = () => {}, onFocus = () => {}, onBlur = () => {}, isFocused = false, isHighlighted = false}: EmojiPickerMenuItemProps) {
+function EmojiPickerMenuItem({
+    emoji,
+    onPress,
+    onHoverIn = () => {},
+    onHoverOut = () => {},
+    onFocus = () => {},
+    onBlur = () => {},
+    isFocused = false,
+    isHighlighted = false,
+}: EmojiPickerMenuItemProps) {
     const [isHovered, setIsHovered] = useState(false);
     const ref = useRef<HTMLDivElement | null>(null);
     const StyleUtils = useStyleUtils();
