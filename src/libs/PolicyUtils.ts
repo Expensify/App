@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, PolicyMembers, PolicyTagList, PolicyTags} from '@src/types/onyx';
+import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Navigation from './Navigation/Navigation';
@@ -268,6 +269,10 @@ function goBackFromInvalidPolicy() {
     Navigation.navigateWithSwitchPolicyID({route: ROUTES.ALL_SETTINGS});
 }
 
+function isPolicyFeatureEnabled(policy: OnyxEntry<Policy> | EmptyObject, featureName: PolicyFeatureName): boolean {
+    return Boolean(policy?.[featureName]);
+}
+
 export {
     getActivePolicies,
     hasAccountingConnections,
@@ -299,6 +304,7 @@ export {
     getPathWithoutPolicyID,
     getPolicyMembersByIdWithoutCurrentUser,
     goBackFromInvalidPolicy,
+    isPolicyFeatureEnabled,
 };
 
 export type {MemberEmailsToAccountIDs};
