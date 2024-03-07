@@ -5091,9 +5091,9 @@ function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
 /**
  * Get pending visible chat members for reports
  */
-function getPendingVisibleChatMembers(accountIDs: number[], previousPendingVisibleChatMembers: PendingChatMember[], pendingAction: PendingAction): PendingChatMember[] {
-    const pendingVisibleChatMembers = accountIDs.map((accountID) => ({accountID: accountID.toString(), pendingAction}));
-    return [...previousPendingVisibleChatMembers, ...pendingVisibleChatMembers];
+function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers: PendingChatMember[], pendingAction: PendingAction): PendingChatMember[] {
+    const pendingChatMembers = accountIDs.map((accountID) => ({accountID: accountID.toString(), pendingAction}));
+    return [...previousPendingChatMembers, ...pendingChatMembers];
 }
 
 export {
@@ -5296,7 +5296,7 @@ export {
     getAvailableReportFields,
     reportFieldsEnabled,
     getAllAncestorReportActionIDs,
-    getPendingVisibleChatMembers,
+    getPendingChatMembers,
     canEditRoomVisibility,
     canEditPolicyDescription,
     getPolicyDescriptionText,

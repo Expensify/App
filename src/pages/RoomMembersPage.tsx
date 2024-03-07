@@ -183,7 +183,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                     return;
                 }
             }
-            const pendingVisibleChatMember = report?.pendingVisibleChatMembers?.find((member) => member.accountID === accountID.toString());
+            const pendingVisibleChatMember = report?.pendingChatMembers?.find((member) => member.accountID === accountID.toString());
 
             result.push({
                 keyForList: String(accountID),

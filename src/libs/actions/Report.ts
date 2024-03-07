@@ -2416,7 +2416,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
 
     const logins = inviteeEmails.map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, inviteeAccountIDs);
-    const pendingVisibleChatMembers = ReportUtils.getPendingVisibleChatMembers(inviteeAccountIDs, report?.pendingVisibleChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    const pendingChatMembers = ReportUtils.getPendingChatMembers(inviteeAccountIDs, report?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2425,7 +2425,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
             value: {
                 participantAccountIDs: participantAccountIDsAfterInvitation,
                 visibleChatMemberAccountIDs: visibleMemberAccountIDsAfterInvitation,
-                pendingVisibleChatMembers,
+                pendingChatMembers,
             },
         },
         ...newPersonalDetailsOnyxData.optimisticData,
@@ -2436,7 +2436,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                pendingVisibleChatMembers: report?.pendingVisibleChatMembers ?? null,
+                pendingChatMembers: report?.pendingChatMembers ?? null,
             },
         },
         ...newPersonalDetailsOnyxData.finallyData,
@@ -2448,7 +2448,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
             value: {
                 participantAccountIDs: report.participantAccountIDs,
                 visibleChatMemberAccountIDs: report.visibleChatMemberAccountIDs,
-                pendingVisibleChatMembers: report?.pendingVisibleChatMembers ?? null,
+                pendingChatMembers: report?.pendingChatMembers ?? null,
             },
         },
         ...newPersonalDetailsOnyxData.finallyData,
@@ -2470,7 +2470,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
 
     const participantAccountIDsAfterRemoval = report?.participantAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
     const visibleChatMemberAccountIDsAfterRemoval = report?.visibleChatMemberAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
-    const pendingVisibleChatMembers = ReportUtils.getPendingVisibleChatMembers(targetAccountIDs, report?.pendingVisibleChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const pendingChatMembers = ReportUtils.getPendingChatMembers(targetAccountIDs, report?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2479,7 +2479,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             value: {
                 participantAccountIDs: participantAccountIDsAfterRemoval,
                 visibleChatMemberAccountIDs: visibleChatMemberAccountIDsAfterRemoval,
-                pendingVisibleChatMembers,
+                pendingChatMembers,
             },
         },
     ];
@@ -2491,7 +2491,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             value: {
                 participantAccountIDs: report?.participantAccountIDs,
                 visibleChatMemberAccountIDs: report?.visibleChatMemberAccountIDs,
-                pendingVisibleChatMembers: report?.pendingVisibleChatMembers ?? null,
+                pendingChatMembers: report?.pendingChatMembers ?? null,
             },
         },
     ];
@@ -2505,7 +2505,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             value: {
                 participantAccountIDs: participantAccountIDsAfterRemoval,
                 visibleChatMemberAccountIDs: visibleChatMemberAccountIDsAfterRemoval,
-                pendingVisibleChatMembers: report?.pendingVisibleChatMembers ?? null,
+                pendingChatMembers: report?.pendingChatMembers ?? null,
             },
         },
     ];

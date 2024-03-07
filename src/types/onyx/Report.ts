@@ -17,6 +17,7 @@ type Note = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errors?: OnyxCommon.Errors;
 }>;
 
+/** The pending member of report */
 type PendingChatMember = {
     accountID: string;
     pendingAction: OnyxCommon.PendingAction;
@@ -175,8 +176,8 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         isLoadingPrivateNotes?: boolean;
         selected?: boolean;
 
-        /** Pending member of the report */
-        pendingVisibleChatMembers?: PendingChatMember[];
+        /** Pending members of the report */
+        pendingChatMembers?: PendingChatMember[];
 
         /** If the report contains reportFields, save the field id and its value */
         reportFields?: Record<string, PolicyReportField>;
