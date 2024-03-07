@@ -1787,6 +1787,8 @@ export default {
         },
         taxes: {
             subtitle: 'Add tax names, rates, and set defaults.',
+            value: 'Value',
+            name: 'Name',
         },
         emptyWorkspace: {
             title: 'Create a workspace',

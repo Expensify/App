@@ -558,6 +558,10 @@ const ROUTES = {
         route: 'workspace/:policyID/taxes',
         getRoute: (policyID: string) => `workspace/${policyID}/taxes` as const,
     },
+    WORKSPACE_TAXES_NEW: {
+        route: 'workspace/:policyID/taxes/new',
+        getRoute: (policyID: string) => `workspace/${policyID}/taxes/new` as const,
+    },
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {
         route: 'referral/:contentType',

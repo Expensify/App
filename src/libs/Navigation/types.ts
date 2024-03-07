@@ -225,6 +225,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: {
         backTo: Routes;
     };
+    [SCREENS.WORKSPACE.TAXES_NEW]: {
+        policyID: string;
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type NewChatNavigatorParamList = {

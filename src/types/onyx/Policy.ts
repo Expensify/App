@@ -43,7 +43,7 @@ type TaxRate = {
     code: string;
 
     /** This contains the tax name and tax value as one name */
-    modifiedName: string;
+    modifiedName?: string;
 
     /** Indicates if the tax rate is disabled. */
     isDisabled?: boolean;

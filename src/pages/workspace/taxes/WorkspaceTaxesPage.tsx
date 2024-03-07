@@ -15,12 +15,14 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Navigation from '@libs/Navigation/Navigation';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
-import type SCREENS from '@src/SCREENS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
 type WorkspaceTaxesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES>;
 
@@ -83,7 +85,7 @@ function WorkspaceTaxesPage({policy}: WorkspaceTaxesPageProps) {
             <Button
                 medium
                 success
-                onPress={() => {}}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_NEW.getRoute(policy?.id ?? ''))}
                 icon={Expensicons.Plus}
                 text="Add rate"
                 style={[styles.mr3, isSmallScreenWidth && styles.w50]}

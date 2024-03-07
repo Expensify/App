@@ -38,4 +38,5 @@ export type {WorkspaceCategoryCreateForm} from './WorkspaceCategoryCreateForm';
 export type {WorkspaceSettingsForm} from './WorkspaceSettingsForm';
 export type {ReportPhysicalCardForm} from './ReportPhysicalCardForm';
 export type {WorkspaceDescriptionForm} from './WorkspaceDescriptionForm';
+export type {WorkspaceNewTaxForm} from './WorkspaceNewTaxForm';
 export type {default as Form} from './Form';
