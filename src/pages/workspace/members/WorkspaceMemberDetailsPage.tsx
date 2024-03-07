@@ -42,7 +42,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
 
-    const [removeMemberConfirmModalVisible, setRemoveMemberConfirmModalVisible] = React.useState(false);
+    const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
 
     const accountID = Number(route?.params?.accountID) ?? 0;
     const backTo = route?.params?.backTo ?? ('' as Route);
@@ -54,12 +54,12 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
     const displayName = details.displayName ?? '';
 
     const askForConfirmationToRemove = () => {
-        setRemoveMemberConfirmModalVisible(true);
+        setIsRemoveMemberConfirmModalVisible(true);
     };
 
     const removeUser = useCallback(() => {
         Policy.removeMembers([accountID], route.params.policyID);
-        setRemoveMemberConfirmModalVisible(false);
+        setIsRemoveMemberConfirmModalVisible(false);
         Navigation.goBack(backTo);
     }, [accountID, backTo, route.params.policyID]);
 
@@ -109,9 +109,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
                         <ConfirmModal
                             danger
                             title={translate('workspace.people.removeMemberTitle')}
-                            isVisible={removeMemberConfirmModalVisible}
+                            isVisible={isRemoveMemberConfirmModalVisible}
                             onConfirm={removeUser}
-                            onCancel={() => setRemoveMemberConfirmModalVisible(false)}
+                            onCancel={() => setIsRemoveMemberConfirmModalVisible(false)}
                             prompt={translate('workspace.people.removeMemberPrompt', {memberName: displayName})}
                             confirmText={translate('common.remove')}
                             cancelText={translate('common.cancel')}
