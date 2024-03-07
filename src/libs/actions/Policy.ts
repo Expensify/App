@@ -41,6 +41,7 @@ import type {
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as NumberUtils from '@libs/NumberUtils';
@@ -2611,7 +2612,9 @@ function enablePolicyCategories(policyID: string, isEnabled: boolean) {
     });
 
     if (isEnabled) {
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+        const navigationAction = getIsNarrowLayout() ? Navigation.goBack : () => Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+
+        navigationAction();
     }
 }
 
@@ -2665,7 +2668,9 @@ function enablePolicyConnections(policyID: string, isEnabled: boolean) {
 
     // TODO: Integrate navigation to a screen, once it appears
     // if (isEnabled) {
-    //     Navigation.navigate(ROUTES.WORKSPACE_.getRoute(policyID));
+    //     const navigationAction = getIsNarrowLayout() ? Navigation.goBack : () => Navigation.navigate(ROUTES.WORKSPACE_.getRoute(policyID));
+
+    //     navigationAction();
     // }
 }
 
@@ -2719,7 +2724,9 @@ function enablePolicyDistanceRates(policyID: string, isEnabled: boolean) {
 
     // TODO: Integrate navigation to a screen, once it appears
     // if (isEnabled) {
-    //     Navigation.navigate(ROUTES.WORKSPACE_.getRoute(policyID));
+    //     const navigationAction = getIsNarrowLayout() ? Navigation.goBack : () => Navigation.navigate(ROUTES.WORKSPACE_.getRoute(policyID));
+
+    //     navigationAction();
     // }
 }
 
@@ -2773,7 +2780,9 @@ function enablePolicyReportFields(policyID: string, isEnabled: boolean) {
 
     // TODO: Integrate navigation to a screen, once it appears
     // if (isEnabled) {
-    //     Navigation.navigate(ROUTES.WORKSPACE_.getRoute(policyID));
+    //     const navigationAction = getIsNarrowLayout() ? Navigation.goBack : () => Navigation.navigate(ROUTES.WORKSPACE_.getRoute(policyID));
+
+    //     navigationAction();
     // }
 }
 
@@ -2826,7 +2835,9 @@ function enablePolicyTags(policyID: string, isEnabled: boolean) {
     });
 
     if (isEnabled) {
-        Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
+        const navigationAction = getIsNarrowLayout() ? Navigation.goBack : () => Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
+
+        navigationAction();
     }
 }
 
@@ -2884,7 +2895,9 @@ function enablePolicyTaxes(policyID: string, isEnabled: boolean) {
 
     // TODO: Integrate navigation to a screen, once it appears
     // if (isEnabled) {
-    //     Navigation.navigate(ROUTES.WORKSPACE_.getRoute(policyID));
+    //     const navigationAction = getIsNarrowLayout() ? Navigation.goBack : () => Navigation.navigate(ROUTES.WORKSPACE_.getRoute(policyID));
+
+    //     navigationAction();
     // }
 }
 
@@ -2937,7 +2950,9 @@ function enablePolicyWorkflows(policyID: string, isEnabled: boolean) {
     });
 
     if (isEnabled) {
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID));
+        const navigationAction = getIsNarrowLayout() ? Navigation.goBack : () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID));
+
+        navigationAction();
     }
 }
 
