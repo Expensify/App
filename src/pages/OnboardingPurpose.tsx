@@ -18,6 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 type ValuesType<T> = T[keyof T];
 type SelectedPurposeType = ValuesType<typeof CONST.ONBOARDING_CHOICES> | undefined;
@@ -42,12 +43,7 @@ function OnboardingPurpose() {
     const paddingHorizontal = shouldUseNarrowLayout ? styles.ph8 : styles.ph5;
 
     const handleGoBack = useCallback(() => {
-        Navigation.goBack();
-    }, []);
-
-    const closeModal = useCallback(() => {
-        Report.dismissEngagementModal();
-        Navigation.goBack();
+        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
     }, []);
 
     const selectedCheckboxIcon = useMemo(
@@ -63,23 +59,15 @@ function OnboardingPurpose() {
     );
 
     const completeEngagement = useCallback(() => {
-        if (selectedPurpose === undefined) {
-            return;
-        }
-
-        /*
-        ! This functionality is temporarily removed until we can disable PurposeForUsingExpensifyPage
-        ! and refactor the function to support new options for Report.completeEngagementModal();
-
-        const translationKey = `onboarding.purpose.${selectedPurpose}` as const;
-        Report.completeEngagementModal(translate(translationKey), selectedPurpose);
-        */
+        Navigation.closeFullScreen();
 
         if (!isSmallScreenWidth) {
             // Only navigate to concierge chat for wide-screen devices
-            Report.navigateToConciergeChat(false);
+            Report.navigateToConciergeChat();
         }
-    }, [isSmallScreenWidth, selectedPurpose]);
+
+        Navigation.navigate(ROUTES.WELCOME_VIDEO_ROOT);
+    }, [isSmallScreenWidth]);
 
     const menuItems: MenuItemProps[] = Object.values(CONST.ONBOARDING_CHOICES).map((choice) => {
         const translationKey = `onboarding.purpose.${choice}` as const;
@@ -108,7 +96,6 @@ function OnboardingPurpose() {
                 <HeaderWithBackButton
                     shouldShowBackButton
                     onBackButtonPress={handleGoBack}
-                    onCloseButtonPress={closeModal}
                     iconFill={theme.iconColorfulBackground}
                     progressBarPercentage={66.6}
                 />
