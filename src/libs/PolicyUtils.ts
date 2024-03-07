@@ -181,7 +181,9 @@ function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<PolicyTagLi
         return [];
     }
 
-    return Object.values(policyTagList).filter((policyTagListValue) => policyTagListValue !== null);
+    return Object.values(policyTagList)
+        .filter((policyTagListValue) => policyTagListValue !== null)
+        .sort((tagA, tagB) => tagA.orderWeight - tagB.orderWeight);
 }
 
 /**
@@ -225,7 +227,7 @@ function isPaidGroupPolicy(policy: OnyxEntry<Policy> | EmptyObject): boolean {
  * Checks if policy's scheduled submit / auto reporting frequency is "instant".
  * Note: Free policies have "instant" submit always enabled.
  */
-function isInstantSubmitEnabled(policy: OnyxEntry<Policy>): boolean {
+function isInstantSubmitEnabled(policy: OnyxEntry<Policy> | EmptyObject): boolean {
     return policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT || policy?.type === CONST.POLICY.TYPE.FREE;
 }
 
@@ -238,6 +240,13 @@ function isSubmitAndClose(policy: OnyxEntry<Policy>): boolean {
 
 function extractPolicyIDFromPath(path: string) {
     return path.match(CONST.REGEX.POLICY_ID_FROM_PATH)?.[1];
+}
+
+/**
+ * Whether the policy has active accounting integration connections
+ */
+function hasAccountingConnections(policy: OnyxEntry<Policy>) {
+    return Boolean(policy?.connections);
 }
 
 function getPathWithoutPolicyID(path: string) {
@@ -261,6 +270,7 @@ function goBackFromInvalidPolicy() {
 
 export {
     getActivePolicies,
+    hasAccountingConnections,
     hasPolicyMemberError,
     hasPolicyError,
     hasPolicyErrorFields,

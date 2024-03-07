@@ -67,6 +67,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.WORKSPACE.CATEGORIES]: {
                     path: ROUTES.WORKSPACE_CATEGORIES.route,
                 },
+                [SCREENS.WORKSPACE.TAGS]: {
+                    path: ROUTES.WORKSPACE_TAGS.route,
+                },
             },
         },
         [SCREENS.NOT_FOUND]: '*',
@@ -279,6 +282,15 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: {
                             path: ROUTES.WORKSPACE_WORKFLOWS_PAYER.route,
+                        }
+                        [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
+                            path: ROUTES.WORKSPACE_MEMBER_DETAILS.route,
+                        },
+                        [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE_SELECTION]: {
+                            path: ROUTES.WORKSPACE_MEMBER_ROLE_SELECTION.route,
+                        },
+                        [SCREENS.WORKSPACE.CATEGORY_CREATE]: {
+                            path: ROUTES.WORKSPACE_CATEGORY_CREATE.route,
                         },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,

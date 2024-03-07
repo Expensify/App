@@ -21,7 +21,7 @@ type AttachmentCarouselPagerContextValue = {
 
     /** The index of the active page */
     activePage: number;
-    pagerRef: ForwardedRef<PagerView>;
+    pagerRef?: ForwardedRef<PagerView>;
     isPagerScrolling: SharedValue<boolean>;
     isScrollEnabled: SharedValue<boolean>;
     onTap: () => void;
