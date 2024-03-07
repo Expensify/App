@@ -82,7 +82,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const canHoldOrUnholdRequest = !isSettled && !isApproved && !isDeletedParentAction;
 
     // If the report supports adding transactions to it, then it also supports deleting transactions from it.
-    const canDeleteRequest = isActionOwner && ReportUtils.canAddTransactionsToMoneyRequest(moneyRequestReport) && !isDeletedParentAction;
+    const canDeleteRequest = isActionOwner && ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) && !isDeletedParentAction;
 
     const changeMoneyRequestStatus = () => {
         if (isOnHold) {

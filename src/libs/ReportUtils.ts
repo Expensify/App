@@ -1255,16 +1255,16 @@ function getChildReportNotificationPreference(reportAction: OnyxEntry<ReportActi
  * - report is a draft
  * - report is a processing expense report and its policy has Instant reporting frequency
  */
-function canAddTransactionsToMoneyRequest(report: OnyxEntry<Report>): boolean {
-    if (!isIOUReport(report) && !isExpenseReport(report)) {
+function canAddOrDeleteTransactions(moneyRequest: OnyxEntry<Report>): boolean {
+    if (!isMoneyRequest(moneyRequest)) {
         return false;
     }
 
-    if (isReportApproved(report) || isSettled(report?.reportID)) {
+    if (isReportApproved(moneyRequest) || isSettled(moneyRequest?.reportID)) {
         return false;
     }
 
-    if (isGroupPolicy(report) && isProcessingReport(report) && !PolicyUtils.isInstantSubmitEnabled(getPolicy(report?.policyID))) {
+    if (isGroupPolicy(moneyRequest) && isProcessingReport(moneyRequest) && !PolicyUtils.isInstantSubmitEnabled(getPolicy(moneyRequest?.policyID))) {
         return false;
     }
 
@@ -1285,14 +1285,13 @@ function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: 
         // For now, users cannot delete split actions
         const isSplitAction = reportAction?.originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 
-        if (isSplitAction || isSettled(String(reportAction?.originalMessage?.IOUReportID)) || (!isEmptyObject(report) && isReportApproved(report))) {
+        if (isSplitAction) {
             return false;
         }
 
         if (isActionOwner) {
-            if (!isEmptyObject(report) && isPaidGroupPolicyExpenseReport(report)) {
-                // If the report supports adding transactions to it, then it also supports deleting transactions from it.
-                return canAddTransactionsToMoneyRequest(report);
+            if (!isEmptyObject(report) && isMoneyRequest(report)) {
+                return canAddOrDeleteTransactions(report);
             }
             return true;
         }
@@ -2974,7 +2973,6 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
 
     const isInstantSubmitEnabled = PolicyUtils.isInstantSubmitEnabled(policy);
 
-    // Define the state and status of the report based on whether the policy is free or paid
     const stateNum = isInstantSubmitEnabled ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.OPEN;
     const statusNum = isInstantSubmitEnabled ? CONST.REPORT.STATUS_NUM.SUBMITTED : CONST.REPORT.STATUS_NUM.OPEN;
 
@@ -4315,7 +4313,7 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
     // User can request money in any IOU report, unless paid, but user can only request money in an expense report
     // which is tied to their workspace chat.
     if (isMoneyRequestReport(report)) {
-        const canAddTransactions = canAddTransactionsToMoneyRequest(report);
+        const canAddTransactions = canAddOrDeleteTransactions(report);
         return isGroupPolicy(report) ? isOwnPolicyExpenseChat && canAddTransactions : canAddTransactions;
     }
 
@@ -5093,7 +5091,7 @@ function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
    - we have one but we can't add more transactions to it due to: report is approved or settled, or report is processing and policy isn't on Instant submit reporting frequency
  */
 function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxEntry<Report> | undefined | null, chatReport: OnyxEntry<Report> | null): boolean {
-    return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddTransactionsToMoneyRequest(existingIOUReport);
+    return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddOrDeleteTransactions(existingIOUReport);
 }
 
 export {
@@ -5298,7 +5296,7 @@ export {
     canEditRoomVisibility,
     canEditPolicyDescription,
     getPolicyDescriptionText,
-    canAddTransactionsToMoneyRequest,
+    canAddOrDeleteTransactions,
     shouldCreateNewMoneyRequestReport,
 };
 
