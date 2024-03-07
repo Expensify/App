@@ -29,7 +29,6 @@ export {
     resetReimbursementAccount,
     resetFreePlanBankAccount,
     hideBankAccountErrors,
-    setWorkspaceIDForReimbursementAccount,
     setBankAccountSubStep,
     updateReimbursementAccountDraft,
     requestResetFreePlanBankAccount,

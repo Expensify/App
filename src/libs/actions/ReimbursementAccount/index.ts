@@ -2,11 +2,10 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import type {BankAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
-import deleteFromBankAccountList from './deleteFromBankAccountList';
 import resetFreePlanBankAccount from './resetFreePlanBankAccount';
 
 export {goToWithdrawalAccountSetupStep, navigateToBankAccountRoute} from './navigation';
-export {setBankAccountFormValidationErrors, setPersonalBankAccountFormValidationErrorFields, resetReimbursementAccount, showBankAccountFormValidationError} from './errors';
+export {setBankAccountFormValidationErrors, resetReimbursementAccount} from './errors';
 
 /**
  * Set the current sub step in first step of adding withdrawal bank account:
@@ -20,10 +19,6 @@ function setBankAccountSubStep(subStep: BankAccountSubStep | null): Promise<void
 
 function hideBankAccountErrors() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', errors: null});
-}
-
-function setWorkspaceIDForReimbursementAccount(workspaceID: string | null) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_WORKSPACE_ID, workspaceID);
 }
 
 function updateReimbursementAccountDraft(bankAccountData: Partial<ReimbursementAccountForm>) {
@@ -45,13 +40,4 @@ function cancelResetFreePlanBankAccount() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {shouldShowResetModal: false});
 }
 
-export {
-    resetFreePlanBankAccount,
-    setBankAccountSubStep,
-    hideBankAccountErrors,
-    setWorkspaceIDForReimbursementAccount,
-    updateReimbursementAccountDraft,
-    requestResetFreePlanBankAccount,
-    cancelResetFreePlanBankAccount,
-    deleteFromBankAccountList,
-};
+export {resetFreePlanBankAccount, setBankAccountSubStep, hideBankAccountErrors, updateReimbursementAccountDraft, requestResetFreePlanBankAccount, cancelResetFreePlanBankAccount};
