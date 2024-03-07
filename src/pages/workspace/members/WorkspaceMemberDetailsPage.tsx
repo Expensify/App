@@ -63,7 +63,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
         Navigation.goBack(backTo);
     }, [accountID, backTo, route.params.policyID]);
 
-    const redirectToProfile = useCallback(() => {
+    const navigateToProfile = useCallback(() => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
     }, [accountID]);
 
@@ -127,7 +127,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
                         <MenuItem
                             title={translate('common.profile')}
                             icon={Expensicons.Info}
-                            onPress={redirectToProfile}
+                            onPress={navigateToProfile}
                             shouldShowRightIcon
                         />
                     </View>
