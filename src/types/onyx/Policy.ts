@@ -82,7 +82,7 @@ type Connection = {
 
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
-type PolicyFeatureName = 'areCategoriesEnabled' | 'areTagsEnabled' | 'areDistanceRatesEnabled' | 'areWorkflowsEnabled' | 'areReportFieldsEnabled' | 'areConnectionsEnabled' | 'tax';
+type PolicyFeatureName = ValueOf<typeof CONST.POLICY.MORE_FEATURES>;
 
 type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
