@@ -581,7 +581,7 @@ function ComposerWithSuggestions(
      * @param [shouldDelay=false] Impose delay before focusing the composer
      */
     const focus = useCallback((shouldDelay = false) => {
-        focusComposerWithDelay(null)(shouldDelay);
+        focusComposerWithDelay(textInputRef.current)(shouldDelay);
     }, []);
 
     const setUpComposeFocusManager = useCallback(() => {
