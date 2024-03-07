@@ -84,7 +84,7 @@ function IOURequestStepTag({
     const parentReportAction = parentReportActions[report.parentReportActionID];
     const shouldShowTag = ReportUtils.isGroupPolicy(report) && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists));
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = !shouldShowTag || (isEditing && !canEditMoneyRequest(parentReportAction))
+    const shouldShowNotFoundPage = !shouldShowTag || (isEditing && !canEditMoneyRequest(parentReportAction));
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -116,8 +116,8 @@ function IOURequestStepTag({
             headerTitle={policyTagListName}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            shouldShowNotFoundPage={shouldShowNotFoundPage}
             testID={IOURequestStepTag.displayName}
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             {({insets}) => (
                 <>
