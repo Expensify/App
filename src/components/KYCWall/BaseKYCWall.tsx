@@ -3,7 +3,6 @@ import {Dimensions} from 'react-native';
 import type {EmitterSubscription, GestureResponderEvent} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import * as BankAccounts from '@libs/actions/BankAccounts';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Log from '@libs/Log';
@@ -156,10 +155,6 @@ function KYCWall({
              */
             Wallet.setKYCWallSource(source, chatReportID);
 
-            if (shouldShowAddPaymentMenu) {
-                setShouldShowAddPaymentMenu(false);
-                return;
-            }
 
             // Use event target as fallback if anchorRef is null for safety
             const targetElement = anchorRef.current ?? (event?.currentTarget as HTMLElement);
@@ -185,7 +180,20 @@ function KYCWall({
                 const position = getAnchorPosition(clickedElementLocation);
 
                 setPositionAddPaymentMenu(position);
-                setShouldShowAddPaymentMenu(true);
+                
+                switch (iouPaymentType) {
+                    case CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT:
+                        selectPaymentMethod(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
+                        break;
+                    case CONST.PAYMENT_METHODS.DEBIT_CARD:
+                        selectPaymentMethod(CONST.PAYMENT_METHODS.DEBIT_CARD);
+                        break;
+                    case CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT:
+                        selectPaymentMethod(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT);
+                        break;
+                    default:
+                        selectPaymentMethod(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
+                }
 
                 return;
             }
@@ -244,22 +252,7 @@ function KYCWall({
 
     return (
         <>
-            <AddPaymentMethodMenu
-                isVisible={shouldShowAddPaymentMenu}
-                iouReport={iouReport}
-                onClose={() => setShouldShowAddPaymentMenu(false)}
-                anchorRef={anchorRef}
-                anchorPosition={{
-                    vertical: anchorPosition.anchorPositionVertical,
-                    horizontal: anchorPosition.anchorPositionHorizontal,
-                }}
-                anchorAlignment={anchorAlignment}
-                onItemSelected={(item: PaymentMethod) => {
-                    setShouldShowAddPaymentMenu(false);
-                    selectPaymentMethod(item);
-                }}
-                shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
-            />
+            
             {children(continueAction, viewRef(anchorRef))}
         </>
     );
