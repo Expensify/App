@@ -157,6 +157,7 @@ const WRITE_COMMANDS = {
     CANCEL_PAYMENT: 'CancelPayment',
     ACCEPT_ACH_CONTRACT_FOR_BANK_ACCOUNT: 'AcceptACHContractForBankAccount',
     SWITCH_TO_OLD_DOT: 'SwitchToOldDot',
+    CREATE_POLICY_TAX: 'CreatePolicyTax',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -312,6 +313,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET]: Parameters.SetWorkspaceAutoReportingMonthlyOffsetParams;
     [WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE]: Parameters.SetWorkspaceApprovalModeParams;
     [WRITE_COMMANDS.SWITCH_TO_OLD_DOT]: Parameters.SwitchToOldDotParams;
+    [WRITE_COMMANDS.CREATE_WORKSPACE_TAX]: Parameters.CreateWorkspaceTaxParams;
 };
 
 const READ_COMMANDS = {
