@@ -18,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BankAccountList, FundList, ReimbursementAccount, UserWallet, WalletTerms} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
 import type {AnchorPosition, DomRect, KYCWallProps, PaymentMethod} from './types';
 
@@ -246,7 +247,7 @@ function KYCWall({
         <>
             <AddPaymentMethodMenu
                 isVisible={shouldShowAddPaymentMenu}
-                iouReport={iouReport}
+                iouReport={isEmptyObject(iouReport) ? undefined : iouReport}
                 onClose={() => setShouldShowAddPaymentMenu(false)}
                 anchorRef={anchorRef}
                 anchorPosition={{
