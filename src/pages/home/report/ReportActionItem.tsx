@@ -169,7 +169,7 @@ function ReportActionItem({
     const StyleUtils = useStyleUtils();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => ReportActionContextMenu.isActiveReportAction(action.reportActionID));
-    const [isEmojiPickerActive, setIsEmojiPickerActive] = useState();
+    const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
 
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState<OnyxTypes.DecisionName>(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
@@ -325,7 +325,7 @@ function ReportActionItem({
                 false,
                 [],
                 false,
-                setIsEmojiPickerActive,
+                setIsEmojiPickerActive as () => void,
             );
         },
         [draftMessage, action, report.reportID, toggleContextMenuFromActiveReportAction, originalReport, originalReportID],
@@ -803,7 +803,7 @@ function ReportActionItem({
                             checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                             setIsEmojiPickerActive={setIsEmojiPickerActive}
                         />
-                        <View style={StyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || isEmojiPickerActive || draftMessage !== undefined)}>
+                        <View style={StyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || draftMessage !== undefined)}>
                             <OfflineWithFeedback
                                 onClose={() => ReportActions.clearReportActionErrors(report.reportID, action)}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
