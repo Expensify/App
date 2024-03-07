@@ -1079,7 +1079,15 @@ function findLastAccessedReport(
  * Whether the provided report is a closed expense report with no expenses
  */
 function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>): boolean {
-    return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN;
+    return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && isExpenseReport(report) && !hasTransactions(report.reportID);
+}
+
+/**
+ * Checks whether all the transactions linked to the IOU report are of the Distance Request type with pending routes
+ */
+function hasTransactions(reportID: string | undefined): boolean {
+    const transactions = TransactionUtils.getAllReportTransactions(reportID);
+    return transactions && transactions.length > 0;
 }
 
 /**

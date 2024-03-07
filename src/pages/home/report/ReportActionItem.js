@@ -381,25 +381,22 @@ function ReportActionItem(props) {
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
             const iouReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(props.action);
             const iouReport = ReportUtils.getReport(iouReportID);
-            const isClosedReport = ReportUtils.isClosedExpenseReportWithNoExpenses(iouReport);
-            if (!isClosedReport) {
-                children = (
-                    <ReportPreview
-                        iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(props.action)}
-                        chatReportID={props.report.reportID}
-                        policyID={props.report.policyID}
-                        containerStyles={props.displayAsGroup ? [] : [styles.mt2]}
-                        action={props.action}
-                        isHovered={hovered}
-                        contextMenuAnchor={popoverAnchorRef}
-                        checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
-                        isWhisper={isWhisper}
-                        transactionViolations={props.transactionViolations}
-                    />
-                );
-            } else {
-                children = <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedReport')}</comment>`} />;
-            }
+            children = ReportUtils.isClosedExpenseReportWithNoExpenses(iouReport) ? (
+                <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedReport')}</comment>`} />
+            ) : (
+                <ReportPreview
+                    iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(props.action)}
+                    chatReportID={props.report.reportID}
+                    policyID={props.report.policyID}
+                    containerStyles={props.displayAsGroup ? [] : [styles.mt2]}
+                    action={props.action}
+                    isHovered={hovered}
+                    contextMenuAnchor={popoverAnchorRef}
+                    checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
+                    isWhisper={isWhisper}
+                    transactionViolations={props.transactionViolations}
+                />
+            );
         } else if (
             props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
             props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED ||
