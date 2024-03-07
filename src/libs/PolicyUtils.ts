@@ -3,9 +3,11 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, PolicyMembers, PolicyTagList, PolicyTags} from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import Navigation from './Navigation/Navigation';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 type UnitRate = {rate: number};
@@ -93,7 +95,7 @@ function shouldShowPolicy(policy: OnyxEntry<Policy>, isOffline: boolean): boolea
     );
 }
 
-function isExpensifyTeam(email: string): boolean {
+function isExpensifyTeam(email: string | undefined): boolean {
     const emailDomain = Str.extractEmailDomain(email ?? '');
     return emailDomain === CONST.EXPENSIFY_PARTNER_NAME || emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
 }
@@ -179,7 +181,9 @@ function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<PolicyTagLi
         return [];
     }
 
-    return Object.values(policyTagList).filter((policyTagListValue) => policyTagListValue !== null);
+    return Object.values(policyTagList)
+        .filter((policyTagListValue) => policyTagListValue !== null)
+        .sort((tagA, tagB) => tagA.orderWeight - tagB.orderWeight);
 }
 
 /**
@@ -238,6 +242,13 @@ function extractPolicyIDFromPath(path: string) {
     return path.match(CONST.REGEX.POLICY_ID_FROM_PATH)?.[1];
 }
 
+/**
+ * Whether the policy has active accounting integration connections
+ */
+function hasAccountingConnections(policy: OnyxEntry<Policy>) {
+    return Boolean(policy?.connections);
+}
+
 function getPathWithoutPolicyID(path: string) {
     return path.replace(CONST.REGEX.PATH_WITHOUT_POLICY_ID, '/');
 }
@@ -250,8 +261,16 @@ function getPolicyMembersByIdWithoutCurrentUser(policyMembers: OnyxCollection<Po
         : [];
 }
 
+function goBackFromInvalidPolicy() {
+    Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
+
+    // Needed when workspace with given policyID does not exist
+    Navigation.navigateWithSwitchPolicyID({route: ROUTES.ALL_SETTINGS});
+}
+
 export {
     getActivePolicies,
+    hasAccountingConnections,
     hasPolicyMemberError,
     hasPolicyError,
     hasPolicyErrorFields,
@@ -279,6 +298,7 @@ export {
     extractPolicyIDFromPath,
     getPathWithoutPolicyID,
     getPolicyMembersByIdWithoutCurrentUser,
+    goBackFromInvalidPolicy,
 };
 
 export type {MemberEmailsToAccountIDs};

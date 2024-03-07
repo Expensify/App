@@ -1,12 +1,14 @@
 import React, {useMemo} from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -33,6 +35,7 @@ const BANK_INFO_STEP_INDEXES = CONST.REIMBURSEMENT_ACCOUNT_SUBSTEP_INDEX.BANK_AC
 function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, onMove}: ConfirmationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
 
     const isLoading = reimbursementAccount?.isLoading ?? false;
     const setupType = reimbursementAccount?.achData?.subStep ?? '';
@@ -86,7 +89,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                 )}
                 <Button
                     isLoading={isLoading}
-                    isDisabled={isLoading}
+                    isDisabled={isLoading || isOffline}
                     success
                     style={[styles.w100]}
                     onPress={onNext}

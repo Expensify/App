@@ -9,6 +9,7 @@ import type {CardList} from './Card';
 import type Log from './Console';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
+import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type Download from './Download';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
@@ -18,6 +19,7 @@ import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type IOU from './IOU';
 import type LastPaymentMethod from './LastPaymentMethod';
+import type LastSelectedDistanceRates from './LastSelectedDistanceRates';
 import type Locale from './Locale';
 import type {LoginList} from './Login';
 import type Login from './Login';
@@ -30,6 +32,7 @@ import type {PersonalDetailsList} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
 import type PlaidData from './PlaidData';
 import type Policy from './Policy';
+import type {TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
 import type {PolicyMembers} from './PolicyMember';
 import type PolicyMember from './PolicyMember';
@@ -81,6 +84,7 @@ export type {
     CardList,
     Credentials,
     Currency,
+    CurrencyList,
     CustomStatusDraft,
     Download,
     FrequentlyUsedEmoji,
@@ -127,6 +131,9 @@ export type {
     SecurityGroup,
     Session,
     Task,
+    TaxRate,
+    TaxRates,
+    TaxRatesWithDefault,
     Transaction,
     TransactionViolation,
     TransactionViolations,
@@ -146,6 +153,7 @@ export type {
     PolicyReportFields,
     RecentlyUsedReportFields,
     LastPaymentMethod,
+    LastSelectedDistanceRates,
     InvitedEmailsToAccountIDs,
     Log,
 };

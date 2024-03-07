@@ -1,13 +1,15 @@
 import React from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import BankAccount from '@libs/models/BankAccount';
@@ -68,6 +70,7 @@ function CompanyOwnersListUBO({
 }: CompanyOwnersListUBOProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
 
     const isLoading = reimbursementAccount?.isLoading ?? false;
     const requestorData = getSubstepValues(REQUESTOR_PERSONAL_INFO_KEYS, null, reimbursementAccount);
@@ -136,6 +139,7 @@ function CompanyOwnersListUBO({
             <Button
                 success
                 isLoading={isLoading}
+                isDisabled={isOffline}
                 style={[styles.w100, styles.mt2, styles.pb5, styles.ph5]}
                 onPress={handleUBOsConfirmation}
                 text={translate('common.confirm')}

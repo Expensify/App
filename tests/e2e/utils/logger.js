@@ -1,3 +1,4 @@
+/* eslint-disable import/no-import-module-exports */
 import fs from 'fs';
 import path from 'path';
 import _ from 'underscore';
@@ -66,12 +67,4 @@ const error = (...args) => {
     log(...lines);
 };
 
-module.exports = {
-    log,
-    info,
-    warn,
-    note,
-    error,
-    success,
-    writeToLogFile,
-};
+export {log, info, warn, note, error, success, writeToLogFile};
