@@ -1,7 +1,8 @@
 /* eslint-disable no-param-reassign */
+import {Dimensions} from 'react-native';
 import type {PanGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';
-import {useDerivedValue, useSharedValue, useWorkletCallback, withDecay, withSpring} from 'react-native-reanimated';
+import {runOnJS, useDerivedValue, useSharedValue, useWorkletCallback, withDecay, withSpring} from 'react-native-reanimated';
 import {SPRING_CONFIG} from './constants';
 import type {MultiGestureCanvasVariables} from './types';
 import * as MultiGestureCanvasUtils from './utils';
@@ -10,10 +11,24 @@ import * as MultiGestureCanvasUtils from './utils';
 // We're using a "withDecay" animation to smoothly phase out the pan animation
 // https://docs.swmansion.com/react-native-reanimated/docs/animations/withDecay/
 const PAN_DECAY_DECELARATION = 0.9915;
+const SCREEN_HEIGHT = Dimensions.get('screen').height;
+const SNAP_POINT = SCREEN_HEIGHT / 4;
+const SNAP_POINT_HIDDEN = SCREEN_HEIGHT / 1.2;
 
 type UsePanGestureProps = Pick<
     MultiGestureCanvasVariables,
-    'canvasSize' | 'contentSize' | 'zoomScale' | 'totalScale' | 'offsetX' | 'offsetY' | 'panTranslateX' | 'panTranslateY' | 'shouldDisableTransformationGestures' | 'stopAnimation'
+    | 'canvasSize'
+    | 'contentSize'
+    | 'zoomScale'
+    | 'totalScale'
+    | 'offsetX'
+    | 'offsetY'
+    | 'panTranslateX'
+    | 'panTranslateY'
+    | 'shouldDisableTransformationGestures'
+    | 'stopAnimation'
+    | 'onSwipeDown'
+    | 'isSwipingDownToClose'
 >;
 
 const usePanGesture = ({
@@ -27,15 +42,23 @@ const usePanGesture = ({
     panTranslateY,
     shouldDisableTransformationGestures,
     stopAnimation,
+    isSwipingDownToClose,
+    onSwipeDown,
 }: UsePanGestureProps): PanGesture => {
     // The content size after fitting it to the canvas and zooming
     const zoomedContentWidth = useDerivedValue(() => contentSize.width * totalScale.value, [contentSize.width]);
     const zoomedContentHeight = useDerivedValue(() => contentSize.height * totalScale.value, [contentSize.height]);
 
+    // Used to track previous touch position for the "swipe down to close" gesture
+    const previousTouch = useSharedValue<{x: number; y: number} | null>(null);
+
     // Velocity of the pan gesture
     // We need to keep track of the velocity to properly phase out/decay the pan animation
     const panVelocityX = useSharedValue(0);
     const panVelocityY = useSharedValue(0);
+
+    // Disable "swipe down to close" gesture when content is bigger than the canvas
+    const enableSwipeDownToClose = useDerivedValue(() => canvasSize.height < zoomedContentHeight.value, [canvasSize.height]);
 
     // Calculates bounds of the scaled content
     // Can we pan left/right/up/down
@@ -113,8 +136,22 @@ const usePanGesture = ({
                 });
             }
         } else {
-            // Animated back to the boundary
-            offsetY.value = withSpring(clampedOffset.y, SPRING_CONFIG);
+            const finalTranslateY = offsetY.value + panVelocityY.value * 0.2;
+
+            if (finalTranslateY > SNAP_POINT && zoomScale.value <= 1) {
+                offsetY.value = withSpring(SNAP_POINT_HIDDEN, SPRING_CONFIG, () => {
+                    isSwipingDownToClose.value = false;
+                });
+
+                if (onSwipeDown) {
+                    runOnJS(onSwipeDown)();
+                }
+            } else {
+                // Animated back to the boundary
+                offsetY.value = withSpring(clampedOffset.y, SPRING_CONFIG, () => {
+                    isSwipingDownToClose.value = false;
+                });
+            }
         }
 
         // Reset velocity variables after we finished the pan gesture
@@ -125,14 +162,36 @@ const usePanGesture = ({
     const panGesture = Gesture.Pan()
         .manualActivation(true)
         .averageTouches(true)
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        .onTouchesMove((_evt, state) => {
+        .onTouchesUp(() => {
+            previousTouch.value = null;
+        })
+        .onTouchesMove((evt, state) => {
             // We only allow panning when the content is zoomed in
-            if (zoomScale.value <= 1 || shouldDisableTransformationGestures.value) {
-                return;
+            if (zoomScale.value > 1 && !shouldDisableTransformationGestures.value) {
+                state.activate();
             }
 
-            state.activate();
+            // TODO: this needs tuning to work properly
+            if (!shouldDisableTransformationGestures.value && zoomScale.value === 1 && previousTouch.value !== null) {
+                const velocityX = Math.abs(evt.allTouches[0].x - previousTouch.value.x);
+                const velocityY = evt.allTouches[0].y - previousTouch.value.y;
+
+                if (Math.abs(velocityY) > velocityX && velocityY > 20) {
+                    state.activate();
+
+                    isSwipingDownToClose.value = true;
+                    previousTouch.value = null;
+
+                    return;
+                }
+            }
+
+            if (previousTouch.value === null) {
+                previousTouch.value = {
+                    x: evt.allTouches[0].x,
+                    y: evt.allTouches[0].y,
+                };
+            }
         })
         .onStart(() => {
             stopAnimation();
@@ -147,15 +206,23 @@ const usePanGesture = ({
             panVelocityX.value = evt.velocityX;
             panVelocityY.value = evt.velocityY;
 
-            panTranslateX.value += evt.changeX;
-            panTranslateY.value += evt.changeY;
+            if (!isSwipingDownToClose.value) {
+                panTranslateX.value += evt.changeX;
+            }
+
+            if (enableSwipeDownToClose.value || isSwipingDownToClose.value) {
+                panTranslateY.value += evt.changeY;
+            }
         })
         .onEnd(() => {
             // Add pan translation to total offset and reset gesture variables
             offsetX.value += panTranslateX.value;
             offsetY.value += panTranslateY.value;
+
+            // Reset pan gesture variables
             panTranslateX.value = 0;
             panTranslateY.value = 0;
+            previousTouch.value = null;
 
             // If we are swiping (in the pager), we don't want to return to boundaries
             if (shouldDisableTransformationGestures.value) {

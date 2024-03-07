@@ -6,6 +6,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
 import type {Locale, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
@@ -57,6 +58,9 @@ type CustomLHNOptionsListProps = {
 
     /** Callback to fire when the list is laid out */
     onFirstItemRendered: () => void;
+
+    /** Report IDs with errors mapping to their corresponding error objects */
+    reportIDsWithErrors: Record<string, OnyxCommon.Errors>;
 };
 
 type LHNOptionsListProps = CustomLHNOptionsListProps & LHNOptionsListOnyxProps;
@@ -112,6 +116,9 @@ type OptionRowLHNDataProps = {
 
     /** Callback to execute when the OptionList lays out */
     onLayout?: (event: LayoutChangeEvent) => void;
+
+    /** The report errors */
+    reportErrors: OnyxCommon.Errors | undefined;
 };
 
 type OptionRowLHNProps = {
