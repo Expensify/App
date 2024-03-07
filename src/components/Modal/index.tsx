@@ -33,7 +33,7 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
         if (statusBarColor) {
             setPreviousStatusBarColor(statusBarColor);
             // If it is a full screen modal then match it with appBG, otherwise we use the backdrop color
-            setStatusBarColor(isFullScreenModal || isSmallScreenWidth ? theme.appBG : StyleUtils.getThemeBackgroundColor(statusBarColor));
+            setStatusBarColor(isFullScreenModal ? theme.appBG : StyleUtils.getThemeBackgroundColor(statusBarColor));
         }
 
         onModalShow?.();
