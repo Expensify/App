@@ -27,7 +27,6 @@ function EmojiSkinToneList() {
 
     /**
      * Set the preferred skin tone in Onyx and close the skin tone picker
-     * @param skinToneEmoji
      */
     function updateSelectedSkinTone(skinToneEmoji: SkinToneEmoji) {
         setHighlightedIndex(skinToneEmoji.skinTone);
