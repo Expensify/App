@@ -16,8 +16,10 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -46,36 +48,41 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    style={[styles.defaultModalContainer]}
-                    testID={CategorySettingsPage.displayName}
+                <FeatureEnabledAccessOrNotFoundWrapper
+                    policyID={route.params.policyID}
+                    featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
                 >
-                    <HeaderWithBackButton title={route.params.categoryName} />
-                    <View style={styles.flexGrow1}>
-                        <OfflineWithFeedback
-                            errors={ErrorUtils.getLatestErrorMessageField(policyCategory)}
-                            pendingAction={policyCategory?.pendingFields?.enabled}
-                            errorRowStyles={styles.mh5}
-                            onClose={() => Policy.clearCategoryErrors(route.params.policyID, route.params.categoryName)}
-                        >
-                            <View style={[styles.mt2, styles.mh5]}>
-                                <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                    <Text>{translate('workspace.categories.enableCategory')}</Text>
-                                    <Switch
-                                        isOn={policyCategory.enabled}
-                                        accessibilityLabel={translate('workspace.categories.enableCategory')}
-                                        onToggle={updateWorkspaceRequiresCategory}
-                                    />
+                    <ScreenWrapper
+                        includeSafeAreaPaddingBottom={false}
+                        style={[styles.defaultModalContainer]}
+                        testID={CategorySettingsPage.displayName}
+                    >
+                        <HeaderWithBackButton title={route.params.categoryName} />
+                        <View style={styles.flexGrow1}>
+                            <OfflineWithFeedback
+                                errors={ErrorUtils.getLatestErrorMessageField(policyCategory)}
+                                pendingAction={policyCategory?.pendingFields?.enabled}
+                                errorRowStyles={styles.mh5}
+                                onClose={() => Policy.clearCategoryErrors(route.params.policyID, route.params.categoryName)}
+                            >
+                                <View style={[styles.mt2, styles.mh5]}>
+                                    <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                                        <Text>{translate('workspace.categories.enableCategory')}</Text>
+                                        <Switch
+                                            isOn={policyCategory.enabled}
+                                            accessibilityLabel={translate('workspace.categories.enableCategory')}
+                                            onToggle={updateWorkspaceRequiresCategory}
+                                        />
+                                    </View>
                                 </View>
-                            </View>
-                        </OfflineWithFeedback>
-                        <MenuItemWithTopDescription
-                            title={policyCategory.name}
-                            description={translate(`workspace.categories.categoryName`)}
-                        />
-                    </View>
-                </ScreenWrapper>
+                            </OfflineWithFeedback>
+                            <MenuItemWithTopDescription
+                                title={policyCategory.name}
+                                description={translate(`workspace.categories.categoryName`)}
+                            />
+                        </View>
+                    </ScreenWrapper>
+                </FeatureEnabledAccessOrNotFoundWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>
     );
