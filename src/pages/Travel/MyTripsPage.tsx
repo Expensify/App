@@ -39,7 +39,9 @@ function MyTripsPage({betas}: MyTripsPageProps) {
                 shouldShowBackButton={isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            {canSeeTravelPage ? <ManageTrips /> : <FullPageNotFoundView />}
+            <FullPageNotFoundView shouldShow={canSeeTravelPage}>
+                <ManageTrips />
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
