@@ -137,6 +137,12 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
     const updateTaxRate = useCallback(
         (transactionChanges) => {
             const newTaxCode = transactionChanges.data.code;
+
+            if (!newTaxCode) {
+                Navigation.dismissModal();
+                return;
+            }
+
             IOU.updateMoneyRequestTaxRate(transaction.transactionID, report.reportID, newTaxCode, policy, policyTags, policyCategories);
             Navigation.dismissModal(report.reportID);
         },
