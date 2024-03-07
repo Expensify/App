@@ -59,7 +59,12 @@ function OnboardingPurpose() {
     );
 
     const completeEngagement = useCallback(() => {
+        if(selectedPurpose === undefined) {
+            return;
+        }
+
         Navigation.closeFullScreen();
+        Report.completeEngagementModal(CONST.ONBOARDING_CONCIERGE[selectedPurpose], selectedPurpose);
 
         if (!isSmallScreenWidth) {
             // Only navigate to concierge chat for wide-screen devices
@@ -67,7 +72,7 @@ function OnboardingPurpose() {
         }
 
         Navigation.navigate(ROUTES.WELCOME_VIDEO_ROOT);
-    }, [isSmallScreenWidth]);
+    }, [isSmallScreenWidth, selectedPurpose]);
 
     const menuItems: MenuItemProps[] = Object.values(CONST.ONBOARDING_CHOICES).map((choice) => {
         const translationKey = `onboarding.purpose.${choice}` as const;
