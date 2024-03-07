@@ -38,6 +38,7 @@ import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import reportActionPropTypes from './report/reportActionPropTypes';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -51,6 +52,9 @@ const propTypes = {
 
     /** Onyx Props */
     parentReport: reportPropTypes,
+
+    /** The report action the transaction is tied to from the parent report */
+    parentReportAction: PropTypes.shape(reportActionPropTypes),
 
     /** URL to the assigned guide's appointment booking calendar */
     guideCalendarLink: PropTypes.string,
@@ -81,6 +85,7 @@ const defaultProps = {
     report: null,
     guideCalendarLink: null,
     parentReport: {},
+    parentReportAction: {},
     session: {
         accountID: 0,
     },
@@ -110,9 +115,8 @@ function HeaderView(props) {
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const isConcierge = ReportUtils.hasSingleParticipant(props.report) && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
-    const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
-    const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(props.report, parentReportAction);
-    const isWhisperAction = ReportActionsUtils.isWhisperAction(parentReportAction);
+    const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(props.report, props.parentReportAction);
+    const isWhisperAction = ReportActionsUtils.isWhisperAction(props.parentReportAction);
     const isUserCreatedPolicyRoom = ReportUtils.isUserCreatedPolicyRoom(props.report);
     const isPolicyMember = useMemo(() => !_.isEmpty(props.policy), [props.policy]);
     const canLeaveRoom = ReportUtils.canLeaveRoom(props.report, isPolicyMember);
