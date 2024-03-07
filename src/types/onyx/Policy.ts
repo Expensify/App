@@ -82,6 +82,24 @@ type Connection = {
 
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
+type Subscription = {
+    ownerUserCount?: number;
+    totalUserCount?: number;
+    endDate?: string;
+};
+
+type ChangeOwnerErrors = {
+    changeOwner?: {
+        noBillingCard?: boolean;
+        amountOwed?: number;
+        ownerOwesAmount?: string;
+        hasFailedSettlements?: boolean;
+        subscription?: Subscription;
+        duplicateSubscription?: string;
+        failedToClearBalance?: boolean;
+    };
+};
+
 type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** The ID of the policy */
@@ -109,7 +127,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         avatar?: string;
 
         /** Error objects keyed by field name containing errors keyed by microtime */
-        errorFields?: OnyxCommon.ErrorFields;
+        errorFields?: OnyxCommon.ErrorFields | ChangeOwnerErrors;
 
         /** A list of errors keyed by microtime */
         errors?: OnyxCommon.Errors;
