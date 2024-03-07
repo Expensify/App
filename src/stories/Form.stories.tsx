@@ -12,7 +12,7 @@ import Picker from '@components/Picker';
 import StatePicker from '@components/StatePicker';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import {MaybePhraseKey} from '@libs/Localize';
+import type {MaybePhraseKey} from '@libs/Localize';
 import NetworkConnection from '@libs/NetworkConnection';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as FormActions from '@userActions/FormActions';
