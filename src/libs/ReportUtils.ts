@@ -1256,7 +1256,7 @@ function getChildReportNotificationPreference(reportAction: OnyxEntry<ReportActi
  * - report is a processing expense report and its policy has Instant reporting frequency
  */
 function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): boolean {
-    if (!isMoneyRequest(moneyRequestReport)) {
+    if (!isMoneyRequestReport(moneyRequestReport)) {
         return false;
     }
 
