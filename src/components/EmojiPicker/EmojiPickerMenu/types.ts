@@ -11,12 +11,9 @@ type EmojiPickerMenuProps = {
 type RenderItemProps = {
     item: Emoji & {
         spacer?: boolean;
-
         header?: boolean;
     };
-
     target: string;
-
     index?: number;
 };
 
