@@ -183,7 +183,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                     return;
                 }
             }
-            const pendingVisibleChatMember = report?.pendingChatMembers?.find((member) => member.accountID === accountID.toString());
+            const pendingChatMember = report?.pendingChatMembers?.find((member) => member.accountID === accountID.toString());
 
             result.push({
                 keyForList: String(accountID),
@@ -200,7 +200,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                         id: Number(accountID),
                     },
                 ],
-                pendingAction: pendingVisibleChatMember?.pendingAction,
+                pendingAction: pendingChatMember?.pendingAction,
             });
         });
 

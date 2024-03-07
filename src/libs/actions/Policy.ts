@@ -868,6 +868,7 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
         }
         const optimisticReport = ReportUtils.buildOptimisticChatReport([sessionAccountID, cleanAccountID], undefined, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, cleanAccountID);
         const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(login);
+
         workspaceMembersChats.reportCreationData[login] = {
             reportID: optimisticReport.reportID,
             reportActionID: optimisticCreatedAction.reportActionID,
@@ -940,6 +941,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, accountIDs);
 
     const announceRoomMembers = buildAnnounceRoomMembersOnyxData(policyID, accountIDs);
+
     // create onyx data for policy expense chats for each new member
     const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs);
 
