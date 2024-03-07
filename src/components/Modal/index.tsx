@@ -1,7 +1,6 @@
 import React, {useState} from 'react';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import StatusBar from '@libs/StatusBar';
 import CONST from '@src/CONST';
 import BaseModal from './BaseModal';
@@ -11,7 +10,6 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const [previousStatusBarColor, setPreviousStatusBarColor] = useState<string>();
-    const {isSmallScreenWidth} = useWindowDimensions();
     const setStatusBarColor = (color = theme.appBG) => {
         if (!fullscreen) {
             return;
