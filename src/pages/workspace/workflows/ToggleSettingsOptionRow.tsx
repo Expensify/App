@@ -51,6 +51,7 @@ function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, 
                                 style={{
                                     ...styles.textMicroBold,
                                     ...styles.textNormal,
+                                    ...styles.lh20,
                                 }}
                             >
                                 {title}
