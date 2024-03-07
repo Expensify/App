@@ -94,11 +94,12 @@ function OnboardingWelcomeVideo() {
         return (
             <View
                 style={[
+                    styles.w100,
                     // Prevent layout jumps by reserving height
                     // for the video until it loads. Also, when
                     // welcomeVideoStatus === 'animation' it will
-                    // set as much height as the video would.
-                    {width: '100%', aspectRatio: VIDEO_ASPECT_RATIO},
+                    // set the same aspect ratio as the video would.
+                    {aspectRatio: VIDEO_ASPECT_RATIO},
                 ]}
             >
                 {welcomeVideoStatus === 'video' ? (
