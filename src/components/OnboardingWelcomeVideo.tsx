@@ -89,13 +89,21 @@ function OnboardingWelcomeVideo() {
     };
 
     const getWelcomeVideo = () => {
+        // When container didn't even mount and set it's dimensions,
+        // don't bother rendering the video player.
+        if (!containerDimensions.current) {
+            return;
+        }
+
         const videoWidth = containerDimensions.current.width - 2 * MODAL_PADDING;
 
         return (
             <View
                 style={[
                     // Prevent layout jumps by reserving height
-                    // for the video until it loads.
+                    // for the video until it loads. Also, when
+                    // welcomeVideoStatus === 'animation' it will
+                    // set as much height as the video would.
                     {height: videoWidth / videoAspectRatio},
                 ]}
             >
