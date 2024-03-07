@@ -60,16 +60,16 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
 
     return (
         <View style={styles.bottomTabBarContainer}>
-            <Tooltip text={translate('common.chats')}>
-                <PressableWithFeedback
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.HOME);
-                    }}
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.chats')}
-                    wrapperStyle={styles.flex1}
-                    style={styles.bottomTabBarItem}
-                >
+            <PressableWithFeedback
+                onPress={() => {
+                    Navigation.navigate(ROUTES.HOME);
+                }}
+                role={CONST.ROLE.BUTTON}
+                accessibilityLabel={translate('common.chats')}
+                wrapperStyle={styles.flex1}
+                style={styles.bottomTabBarItem}
+            >
+                <Tooltip text={translate('common.chats')}>
                     <View>
                         <Icon
                             src={Expensicons.ChatBubble}
@@ -81,8 +81,9 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                             <View style={styles.bottomTabStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger)} />
                         )}
                     </View>
-                </PressableWithFeedback>
-            </Tooltip>
+                </Tooltip>
+            </PressableWithFeedback>
+
             <BottomTabBarFloatingActionButton />
             <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
                 <BottomTabAvatar isSelected={currentTabName === SCREENS.SETTINGS.ROOT} />

@@ -1,7 +1,7 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import AvatarWithIndicator from '@components/AvatarWithIndicator';
@@ -11,17 +11,12 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
-import Navigation from '@libs/Navigation/Navigation';
 import * as UserUtils from '@libs/UserUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 const propTypes = {
-    /** Whether the create menu is open or not */
-    isCreateMenuOpen: PropTypes.bool,
-
     /** The personal details of the person who is logged in */
     currentUserPersonalDetails: personalDetailsPropType,
 
@@ -30,10 +25,11 @@ const propTypes = {
 
     /** Whether the avatar is selected */
     isSelected: PropTypes.bool,
+
+    onPress: PropTypes.func,
 };
 
 const defaultProps = {
-    isCreateMenuOpen: false,
     currentUserPersonalDetails: {
         pendingFields: {avatar: ''},
         accountID: '',
@@ -41,26 +37,18 @@ const defaultProps = {
     },
     isLoading: true,
     isSelected: false,
+    onPress: () => {},
 };
 
-function PressableAvatarWithIndicator({isCreateMenuOpen, currentUserPersonalDetails, isLoading, isSelected}) {
+function PressableAvatarWithIndicator({currentUserPersonalDetails, isLoading, isSelected, onPress}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
-    const showSettingsPage = useCallback(() => {
-        if (isCreateMenuOpen) {
-            // Prevent opening Settings page when click profile avatar quickly after clicking FAB icon
-            return;
-        }
-
-        Navigation.navigate(ROUTES.SETTINGS);
-    }, [isCreateMenuOpen]);
 
     return (
         <PressableWithoutFeedback
             accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
             role={CONST.ROLE.BUTTON}
-            onPress={showSettingsPage}
+            onPress={onPress}
         >
             <OfflineWithFeedback pendingAction={lodashGet(currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                 <View style={[isSelected && styles.selectedAvatarBorder]}>
