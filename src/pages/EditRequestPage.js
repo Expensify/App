@@ -77,7 +77,7 @@ const defaultProps = {
 
 const getTaxAmount = (transactionAmount, transactionTaxCode, taxRates) => {
     const percentage = (transactionTaxCode ? taxRates.taxes[transactionTaxCode].value : taxRates.defaultValue) || '';
-    return CurrencyUtils.convertToBackendAmount(Number.parseFloat(TransactionUtils.calculateTaxAmount(percentage, transactionAmount)));
+    return CurrencyUtils.convertToBackendAmount(Number.parseFloat(TransactionUtils.calculateTaxAmount(percentage, Math.abs(transactionAmount))));
 };
 
 function EditRequestPage({report, route, policy, policyCategories, policyTags, parentReportActions, transaction}) {
@@ -221,7 +221,7 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
         return (
             <EditRequestTaxAmountPage
                 defaultAmount={transactionTaxAmount}
-                defaultTaxAmount={getTaxAmount(transactionAmount, transactionTaxCode, taxRates)}
+                defaultTaxAmount={getTaxAmount(transaction?.amount, transactionTaxCode, taxRates)}
                 defaultCurrency={defaultCurrency}
                 onSubmit={updateTaxAmount}
             />
