@@ -242,6 +242,13 @@ function extractPolicyIDFromPath(path: string) {
     return path.match(CONST.REGEX.POLICY_ID_FROM_PATH)?.[1];
 }
 
+/**
+ * Whether the policy has active accounting integration connections
+ */
+function hasAccountingConnections(policy: OnyxEntry<Policy>) {
+    return Boolean(policy?.connections);
+}
+
 function getPathWithoutPolicyID(path: string) {
     return path.replace(CONST.REGEX.PATH_WITHOUT_POLICY_ID, '/');
 }
@@ -263,6 +270,7 @@ function goBackFromInvalidPolicy() {
 
 export {
     getActivePolicies,
+    hasAccountingConnections,
     hasPolicyMemberError,
     hasPolicyError,
     hasPolicyErrorFields,
