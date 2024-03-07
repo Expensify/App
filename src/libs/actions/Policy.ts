@@ -2585,15 +2585,11 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: Object.keys(policyCategories).reduce<PolicyCategories>((acc, key) => {
-                    if (categoryNamesToDelete.includes(key)) {
-                        acc[key] = {
-                            ...policyCategories[key],
-                            pendingAction: null,
-                            errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.deleteFailureMessage'),
-                        };
-                    }
-
+                value: categoryNamesToDelete.reduce<Record<string, Partial<PolicyCategory>>>((acc, categoryName) => {
+                    acc[categoryName] = {
+                        pendingAction: null,
+                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.deleteFailureMessage'),
+                    };
                     return acc;
                 }, {}),
             },
