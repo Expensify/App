@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
 import type {ImageStyle, StyleProp} from 'react-native';
-import {Image, ScrollView, StyleSheet, View} from 'react-native';
+import {Image, StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
@@ -10,6 +10,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
