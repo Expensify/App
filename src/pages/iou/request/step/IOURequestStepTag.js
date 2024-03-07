@@ -46,7 +46,7 @@ const propTypes = {
     policyTags: tagPropTypes,
 
     /** The actions from the parent report */
-    parentReportActions: PropTypes.shape(reportActionPropTypes),
+    reportActions: PropTypes.shape(reportActionPropTypes),
 
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
@@ -64,7 +64,7 @@ const defaultProps = {
     policyTags: null,
     policyCategories: null,
     transaction: {},
-    parentReportActions: {},
+    reportActions: {},
 };
 
 function IOURequestStepTag({
@@ -76,7 +76,7 @@ function IOURequestStepTag({
         params: {action, tagIndex: rawTagIndex, transactionID, backTo, iouType, reportActionID},
     },
     transaction,
-    parentReportActions,
+    reportActions,
     session,
 }) {
     const styles = useThemeStyles();
@@ -88,11 +88,11 @@ function IOURequestStepTag({
     const tag = TransactionUtils.getTag(transaction, tagIndex);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
-    const parentReportAction = parentReportActions[report.parentReportActionID || reportActionID];
-    const canEditSplitBill = isSplitBill && parentReportAction && session.accountID === parentReportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
+    const reportAction = reportActions[report.parentReportActionID || reportActionID];
+    const canEditSplitBill = isSplitBill && reportAction && session.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !canEditMoneyRequest(parentReportAction));
+    const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !canEditMoneyRequest(reportAction));
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -161,7 +161,7 @@ export default compose(
         policyTags: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
         },
-        parentReportActions: {
+        reportActions: {
             key: ({
                 report,
                 route: {
