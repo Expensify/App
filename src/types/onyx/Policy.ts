@@ -80,11 +80,11 @@ type Account = {
     glCode?: string;
     name: string;
     currency: string;
-    id: number;
+    id: string;
 };
 
 type Employee = {
-    id: number;
+    id: string;
     firstName?: string;
     lastName?: string;
     name: string;
@@ -92,7 +92,7 @@ type Employee = {
 };
 
 type Vendor = {
-    id: number;
+    id: string;
     name: string;
     currency: string;
     email: string;
@@ -127,20 +127,20 @@ type QuickBooksOnlineConnectionData = {
 type IntegrationEntityMap = 'NONE' | 'DEFAULT' | 'TAG' | 'REPORT_FIELD';
 
 type ConnectionConfig = {
-    realmId: number;
+    realmId: string;
     credentials: {
         access_token: string;
         refresh_token: string;
         expires: number;
-        companyID: number;
-        readlmId: number;
+        companyID: string;
+        readlmId: string;
         scope: string;
         companyName: string;
         token_type: string;
     };
     companyName: string;
     autoSync: {
-        jobID: number;
+        jobID: string;
         enabled: boolean;
     };
     syncPeople: boolean;
