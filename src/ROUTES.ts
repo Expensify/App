@@ -394,7 +394,7 @@ const ROUTES = {
             reportID: string,
             backTo = '',
             reportActionID?: string,
-        ) => getUrlWithBackToParam(`${action}/${iouType}/tag/${tagIndex}/${transactionID}/${reportID}${typeof reportActionID === 'string' ? `/${reportActionID}` : ''}`, backTo),
+        ) => getUrlWithBackToParam(`${action}/${iouType}/tag/${tagIndex}/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
     },
     MONEY_REQUEST_STEP_WAYPOINT: {
         route: ':action/:iouType/waypoint/:transactionID/:reportID/:pageIndex',
