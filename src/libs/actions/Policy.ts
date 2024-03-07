@@ -413,7 +413,6 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean, frequency
                 harvesting: {
                     enabled: true,
                 },
-                autoReportingFrequency: enabled ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
                 pendingFields: {isAutoApprovalEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             },
         },
@@ -425,7 +424,6 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean, frequency
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 autoReporting: !enabled,
-                autoReportingFrequency: null,
                 pendingFields: {isAutoApprovalEnabled: null, harvesting: null},
             },
         },
