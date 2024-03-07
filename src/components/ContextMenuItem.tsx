@@ -44,6 +44,8 @@ type ContextMenuItemProps = {
 
     /** Styles to apply to ManuItem wrapper */
     wrapperStyle?: StyleProp<ViewStyle>;
+
+    shouldPreventDefault?: boolean;
 };
 
 type ContextMenuItemHandle = {
@@ -63,6 +65,7 @@ function ContextMenuItem(
         isFocused = false,
         shouldLimitWidth = true,
         wrapperStyle,
+        shouldPreventDefault = true,
     }: ContextMenuItemProps,
     ref: ForwardedRef<ContextMenuItemHandle>,
 ) {
@@ -94,6 +97,7 @@ function ContextMenuItem(
             tooltipText={itemText}
             onPress={triggerPressAndUpdateSuccess}
             isDelayButtonStateComplete={!isThrottledButtonActive}
+            shouldPreventDefault={shouldPreventDefault}
         >
             {({hovered, pressed}) => (
                 <Icon

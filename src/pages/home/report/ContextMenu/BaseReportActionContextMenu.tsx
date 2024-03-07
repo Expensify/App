@@ -257,6 +257,7 @@ function BaseReportActionContextMenu({
                             description={contextAction.getDescription?.(selection) ?? ''}
                             isAnonymousAction={contextAction.isAnonymousAction}
                             isFocused={focusedIndex === index}
+                            shouldPreventDefault={contextAction.shouldPreventDefault}
                         />
                     );
                 })}
