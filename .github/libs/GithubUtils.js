@@ -326,7 +326,7 @@ class GithubUtils {
                 issueBody += `\r\n- [${isGHStatusChecked ? 'x' : ' '}] I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.`;
 
                 issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';
-                const issueAssignees = Object.values(internalQAPRMap);
+                const issueAssignees = _.values(internalQAPRMap);
                 const issue = {issueBody, issueAssignees};
                 return issue;
             })
