@@ -1,13 +1,13 @@
 import React, {useCallback} from 'react';
 import type {GestureResponderEvent, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import Icon from '@components/Icon';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import Icon from './Icon';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
 
