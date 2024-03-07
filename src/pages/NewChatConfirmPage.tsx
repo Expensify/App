@@ -3,12 +3,16 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
+import Badge from '@components/Badge';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import TableListItem from '@components/SelectionList/TableListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as GroupChatUtils from '@libs/GroupChatUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -33,6 +37,7 @@ type NewChatConfirmPageProps = NewChatConfirmPageOnyxProps;
 
 function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmPageProps) {
     const {translate} = useLocalize();
+    const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails() || CONST.EMPTY_OBJECT;
 
@@ -46,34 +51,50 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
 
     const groupName = GroupChatUtils.getGroupChatConfirmName(selectedOptions);
 
-    const sections = useMemo(() => {
-        const sectionsList = [];
-        if (selectedOptions) {
-            sectionsList.push({
-                title: translate('common.members'),
-                data: selectedOptions,
-                shouldShow: true,
-                indexOffset: 0,
-            });
-        }
-        return sectionsList;
-    }, [translate, selectedOptions]);
-
+    const sections = useMemo(
+        () =>
+            selectedOptions
+                .map((selectedOption) => {
+                    const accountID = selectedOption.accountID;
+                    let roleBadge = null;
+                    const isAdmin = personalData.accountID === selectedOption.accountID;
+                    if (isAdmin) {
+                        roleBadge = (
+                            <Badge
+                                text={translate('common.admin')}
+                                textStyles={styles.textStrong}
+                                badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered, styles.activeItemBadge]}
+                            />
+                        );
+                    }
+                    return {
+                        value: selectedOption?.text ?? '',
+                        text: selectedOption?.text ?? '',
+                        keyForList: selectedOption?.keyForList ?? '',
+                        isSelected: !isAdmin,
+                        rightElement: roleBadge,
+                        accountID,
+                        icons: selectedOption?.icons,
+                    };
+                })
+                .sort((a, b) => a.text.toLowerCase().localeCompare(b.text.toLowerCase())),
+        [selectedOptions, personalData.accountID, translate, styles.textStrong, styles.justifyContentCenter, styles.badgeBordered, styles.activeItemBadge, StyleUtils],
+    );
     /**
      * Removes a selected option from list if already selected.
      */
-    const unselectOption = (option: OptionData) => {
+    const unselectOption = (option: ListItem) => {
         if (!selectedOptions) {
             return;
         }
-        const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);
+        const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.accountID === option.accountID);
 
         if (isOptionInList && personalData && option.accountID === personalData.accountID) {
             return;
         }
 
         if (isOptionInList) {
-            const newSelectedAccountIDs = selectedOptions.filter((selectedOption) => selectedOption.login !== option.login).map((optionData) => optionData.accountID) as number[];
+            const newSelectedAccountIDs = selectedOptions.filter((selectedOption) => selectedOption.accountID !== option.accountID).map((optionData) => optionData.accountID) as number[];
             Report.setGroupDraft(newSelectedAccountIDs);
         }
     };
@@ -114,17 +135,13 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                 description={translate('groupConfirmPage.groupName')}
             />
             <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                <OptionsSelector
-                    // @ts-expect-error TODO: Remove this once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TypeScript.
-                    canSelectMultipleOptions
-                    shouldShowMultipleOptionSelectorAsButton
-                    sections={sections}
-                    selectedOptions={selectedOptions}
-                    onAddToSelection={unselectOption}
-                    shouldShowTextInput={false}
-                    shouldShowConfirmButton
+                <SelectionList
+                    sections={[{data: sections, indexOffset: 0, isDisabled: false}]}
+                    ListItem={TableListItem}
+                    onSelectRow={unselectOption}
+                    showConfirmButton
                     confirmButtonText={translate('newChatPage.startGroup')}
-                    onConfirmSelection={createGroup}
+                    onConfirm={createGroup}
                 />
             </View>
         </ScreenWrapper>
