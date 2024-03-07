@@ -600,10 +600,6 @@ function hasNoteTypeViolation(transactionID: string, transactionViolations: Onyx
     return Boolean(transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === 'note'));
 }
 
-function getTransactionNoteViolations(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): TransactionViolation[] | null {
-    return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.filter((violation: TransactionViolation) => violation.type === 'note') ?? null;
-}
-
 function getTransactionViolations(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): TransactionViolation[] | null {
     return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID] ?? null;
 }
@@ -649,7 +645,6 @@ export {
     getTagArrayFromName,
     getTagForDisplay,
     getTransactionViolations,
-    getTransactionNoteViolations,
     getLinkedTransaction,
     getAllReportTransactions,
     hasReceipt,
