@@ -156,3 +156,4 @@ export type {default as SetWorkspaceAutoReportingMonthlyOffsetParams} from './Se
 export type {default as SetWorkspaceApprovalModeParams} from './SetWorkspaceApprovalModeParams';
 export type {default as SwitchToOldDotParams} from './SwitchToOldDotParams';
 export type {default as OpenPolicyDistanceRatesPageParams} from './OpenPolicyDistanceRatesPageParams';
+export type {default as CreatePolicyDistanceRateParams} from './CreatePolicyDistanceRateParams';
