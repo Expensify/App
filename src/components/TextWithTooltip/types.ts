@@ -7,8 +7,8 @@ type TextWithTooltipProps = {
     /** Whether to show the toolip text */
     shouldShowTooltip: boolean;
 
-    /** Additional text styles */
-    textStyles?: StyleProp<TextStyle>;
+    /** Additional styles */
+    style?: StyleProp<TextStyle>;
 
     /** Custom number of lines for text wrapping */
     numberOfLines?: number;
