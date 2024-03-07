@@ -69,10 +69,7 @@ const propTypes = {
     allReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     /** All the report actions for this report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
-
-    /** The report actions for the first transaction thread associated with the report */
-    transactionThreadReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+    reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
     /** The report's parentReportAction */
     parentReportAction: PropTypes.shape(reportActionPropTypes),
@@ -290,10 +287,12 @@ function ReportScreen({
     const didSubscribeToReportLeavingEvents = useRef(false);
     const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]);
     const transactionThreadReportActions = useMemo(() => {
-        if (transactionThreadReportID) {
-            return null;
+        if (transactionThreadReportID === '0') {
+            return [];
         }
-        return ReportActionsUtils.getSortedReportActionsForDisplay(Object.values(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportReportID}`]));
+
+        const reportActions = Object.values(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {});
+        return ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
     }, [allReportActions, transactionThreadReportID]);
 
     useEffect(() => {

@@ -168,10 +168,10 @@ function ReportActionItem(props) {
     const isReportActionLinked = props.linkedReportActionID && props.action.reportActionID && props.linkedReportActionID === props.action.reportActionID;
     const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(props.reportActions);
     const transactionThreadReport = useMemo(() => {
-        if (transactionThreadReportID) {
-            return null;
+        if (transactionThreadReportID === '0') {
+            return {};
         }
-        return props.reports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportReportID}`];
+        return props.reports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? {};
     }, [props.reports, transactionThreadReportID]);
 
     const reportScrollManager = useReportScrollManager();
