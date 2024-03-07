@@ -281,4 +281,4 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
 export default Policy;
 
-export type {Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault};
+export type {PolicyReportField, PolicyReportFieldType, Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault};

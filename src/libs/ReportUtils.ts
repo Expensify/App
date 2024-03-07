@@ -23,7 +23,6 @@ import type {
     PersonalDetailsList,
     Policy,
     PolicyReportField,
-    PolicyReportFields,
     Report,
     ReportAction,
     ReportMetadata,
@@ -2042,7 +2041,7 @@ function getFormulaTypeReportField(reportFields: Record<string, PolicyReportFiel
 /**
  * Given a set of report fields, return the field that refers to title
  */
-function getTitleReportField(reportFields: PolicyReportFields) {
+function getTitleReportField(reportFields: Record<string, PolicyReportField>) {
     return Object.values(reportFields).find((field) => isReportFieldOfTypeTitle(field));
 }
 

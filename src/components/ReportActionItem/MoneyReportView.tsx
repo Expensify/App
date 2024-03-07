@@ -57,7 +57,7 @@ function MoneyReportView({report, policy, shouldShowHorizontalRule}: MoneyReport
     ];
 
     const sortedPolicyReportFields = useMemo<PolicyReportField[]>((): PolicyReportField[] => {
-        const fields = ReportUtils.getAvailableReportFields(report, Object.values(policy.reportFields || {}));
+        const fields = ReportUtils.getAvailableReportFields(report, Object.values(policy?.reportFields ?? {}));
         return fields.sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight);
     }, [policy, report]);
 
