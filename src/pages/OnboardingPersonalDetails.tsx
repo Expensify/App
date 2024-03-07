@@ -52,7 +52,7 @@ function OnboardingPersonalDetails({currentUserPersonalDetails}: OnboardingPerso
 
         // Then we validate the last name field
         if (values.lastName.length === 0) {
-            ErrorUtils.addErrorMessage(errors, 'lastName', 'onboarding.error.requiredLasttName');
+            ErrorUtils.addErrorMessage(errors, 'lastName', 'onboarding.error.requiredLastName');
         }
         if (!ValidationUtils.isValidDisplayName(values.lastName)) {
             ErrorUtils.addErrorMessage(errors, 'lastName', 'personalDetails.error.hasInvalidCharacter');

@@ -19,8 +19,8 @@ import VideoPlayer from './VideoPlayer';
 
 // Aspect ratio and height of the video.
 // Useful before video loads to reserve space.
-const VIDEO_ASPECT_RATIO = 484 / 272.25;
-const VIDEO_HEIGHT = 320;
+const VIDEO_ASPECT_RATIO = 1280 / 960;
+const VIDEO_HEIGHT = 379;
 
 const MODAL_PADDING = variables.spacing2;
 
@@ -102,9 +102,7 @@ function OnboardingWelcomeVideo() {
                     ]}
                 >
                     <VideoPlayer
-                        // Temporary file supplied for testing purposes, to
-                        // be changed when correct one gets uploaded on backend
-                        url="https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4"
+                        url={CONST.WELCOME_VIDEO_URL}
                         videoPlayerStyle={[styles.onboardingVideoPlayer, {width: videoWidth, height: videoWidth / videoAspectRatio}]}
                         onVideoLoaded={setAspectRatio}
                         onPlaybackStatusUpdate={setVideoStatus}
@@ -135,7 +133,7 @@ function OnboardingWelcomeVideo() {
             innerContainerStyle={shouldUseNarrowLayout ? {} : {paddingTop: MODAL_PADDING, paddingBottom: MODAL_PADDING}}
         >
             <View
-                style={[shouldUseNarrowLayout ? {width: 500, height: 500} : {}, {maxHeight: '100%'}]}
+                style={[shouldUseNarrowLayout ? {width: 500, height: 555} : {}, {maxHeight: '100%'}]}
                 onLayout={storeContainerDimensions}
             >
                 <View style={shouldUseNarrowLayout ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{getWelcomeVideo()}</View>

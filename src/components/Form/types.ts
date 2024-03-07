@@ -112,9 +112,6 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
     /** Whether the form submit action is dangerous */
     isSubmitActionDangerous?: boolean;
 
-    /** Custom error message to show when there is an error in the form */
-    fixErrorsAlert?: string;
-
     /** Should fix the errors alert be displayed when there is an error in the form */
     shouldHideFixErrorsAlert?: boolean;
 

@@ -56,7 +56,6 @@ function FormWrapper({
     isSubmitActionDangerous = false,
     formID,
     scrollContextEnabled = false,
-    fixErrorsAlert,
     shouldHideFixErrorsAlert = false,
     disablePressOnEnter = true,
 }: FormWrapperProps) {
@@ -140,7 +139,6 @@ function FormWrapper({
             submitButtonStyles,
             submitFlexEnabled,
             submitButtonText,
-            fixErrorsAlert,
             shouldHideFixErrorsAlert,
             onFixTheErrorsLinkPressed,
             disablePressOnEnter,

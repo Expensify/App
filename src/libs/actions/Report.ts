@@ -32,7 +32,6 @@ import type {
     RemoveFromRoomParams,
     ResolveActionableMentionWhisperParams,
     SearchForReportsParams,
-    SetNameValuePairParams,
     TogglePinnedChatParams,
     UpdateCommentParams,
     UpdatePolicyRoomNameParams,
@@ -2688,7 +2687,7 @@ function getReportPrivateNote(reportID: string | undefined) {
  * - Sets the introSelected NVP to the choice the user made
  * - Creates an optimistic report comment from concierge
  */
-function completeEngagementModal(text: string, choice: ValueOf<typeof CONST.INTRO_CHOICES>) {
+function completeEngagementModal(text: string, choice: ValueOf<typeof CONST.ONBOARDING_CHOICES>) {
     const conciergeAccountID = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE])[0];
     const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text, undefined, conciergeAccountID);
     const reportCommentAction: OptimisticAddCommentReportAction = reportComment.reportAction;
@@ -2759,25 +2758,6 @@ function completeEngagementModal(text: string, choice: ValueOf<typeof CONST.INTR
         successData,
     });
     notifyNewAction(conciergeChatReportID ?? '', reportCommentAction.actorAccountID, reportCommentAction.reportActionID);
-}
-
-function dismissEngagementModal() {
-    const parameters: SetNameValuePairParams = {
-        name: ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL,
-        value: true,
-    };
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL,
-            value: true,
-        },
-    ];
-
-    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
-        optimisticData,
-    });
 }
 
 /** Loads necessary data for rendering the RoomMembersPage */
@@ -2984,7 +2964,6 @@ export {
     getOlderActions,
     getNewerActions,
     completeEngagementModal,
-    dismissEngagementModal,
     openRoomMembersPage,
     savePrivateNotesDraft,
     getDraftPrivateNote,
