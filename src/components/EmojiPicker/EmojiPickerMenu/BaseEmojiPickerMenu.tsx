@@ -48,7 +48,6 @@ type GetItemTypeProps = Partial<HeaderEmoji> & Partial<Emoji>;
 
 /**
  * Improves FlashList's recycling when there are different types of items
- * @param item
  */
 const getItemType = (item: GetItemTypeProps): string | undefined => {
     // item is undefined only when list is empty
