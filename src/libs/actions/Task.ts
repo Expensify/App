@@ -480,7 +480,7 @@ function editTaskAssignee(
     assigneeChatReport: OnyxEntry<OnyxTypes.Report> = null,
 ) {
     // Create the EditedReportAction on the task
-    const editTaskReportAction = ReportUtils.buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID);
+    const editTaskReportAction = ReportUtils.buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID ?? 0);
     const reportName = report.reportName?.trim();
 
     let assigneeChatReportOnyxData;
