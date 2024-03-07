@@ -1276,7 +1276,6 @@ function canAddOrDeleteTransactions(moneyRequest: OnyxEntry<Report>): boolean {
  * policy admin
  */
 function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: string): boolean {
-    console.log('can delete reportAction');
     const report = getReport(reportID);
 
     const isActionOwner = reportAction?.actorAccountID === currentUserAccountID;
