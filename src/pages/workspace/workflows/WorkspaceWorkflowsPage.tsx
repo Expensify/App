@@ -69,6 +69,8 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    console.log('policy', policy);
+
     const items: ToggleSettingOptionRowProps[] = useMemo(() => {
         const {accountNumber, state, bankName} = reimbursementAccount?.achData ?? {};
         const hasVBA = state === BankAccount.STATE.OPEN;
