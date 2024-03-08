@@ -1,17 +1,17 @@
 import type {ParamListBase, StackActionHelpers, StackNavigationState} from '@react-navigation/native';
 import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/native';
-import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
-import { NativeStackView } from '@react-navigation/native-stack';
+import {NativeStackView} from '@react-navigation/native-stack';
+import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import CustomFullScreenRouter from './CustomFullScreenRouter';
-import type {FullScreenNavigatorProps, FullScreenNavigatorRouterOptions} from './types';
+import type {FullScreenNativeNavigatorProps, FullScreenNavigatorRouterOptions} from './types';
 
-function CustomFullScreenNavigator(props: FullScreenNavigatorProps) {
+function CustomFullScreenNavigator(props: FullScreenNativeNavigatorProps) {
     const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
         StackNavigationState<ParamListBase>,
         FullScreenNavigatorRouterOptions,
         StackActionHelpers<ParamListBase>,
-        StackNavigationOptions,
-        StackNavigationEventMap
+        NativeStackNavigationOptions,
+        NativeStackNavigationEventMap
     >(CustomFullScreenRouter, {
         children: props.children,
         screenOptions: props.screenOptions,
@@ -33,4 +33,6 @@ function CustomFullScreenNavigator(props: FullScreenNavigatorProps) {
 
 CustomFullScreenNavigator.displayName = 'CustomFullScreenNavigator';
 
-export default createNavigatorFactory<StackNavigationState<ParamListBase>, StackNavigationOptions, StackNavigationEventMap, typeof CustomFullScreenNavigator>(CustomFullScreenNavigator);
+export default createNavigatorFactory<StackNavigationState<ParamListBase>, NativeStackNavigationOptions, NativeStackNavigationEventMap, typeof CustomFullScreenNavigator>(
+    CustomFullScreenNavigator,
+);

@@ -1,13 +1,13 @@
 import type {ParamListBase, StackActionHelpers, StackNavigationState} from '@react-navigation/native';
 import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/native';
-import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
+import {NativeStackView} from '@react-navigation/native-stack';
+import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import React, {useRef} from 'react';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import { NativeStackView } from '@react-navigation/native-stack';
 import CustomRouter from './CustomRouter';
-import type {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from './types';
+import type {ResponsiveNativeStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from './types';
 
-function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
+function ResponsiveStackNavigator(props: ResponsiveNativeStackNavigatorProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const isSmallScreenWidthRef = useRef(isSmallScreenWidth);
@@ -18,8 +18,8 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
         StackNavigationState<ParamListBase>,
         ResponsiveStackNavigatorRouterOptions,
         StackActionHelpers<ParamListBase>,
-        StackNavigationOptions,
-        StackNavigationEventMap
+        NativeStackNavigationOptions,
+        NativeStackNavigationEventMap
     >(CustomRouter, {
         children: props.children,
         screenOptions: props.screenOptions,
@@ -41,4 +41,6 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
 
 ResponsiveStackNavigator.displayName = 'ResponsiveStackNavigator';
 
-export default createNavigatorFactory<StackNavigationState<ParamListBase>, StackNavigationOptions, StackNavigationEventMap, typeof ResponsiveStackNavigator>(ResponsiveStackNavigator);
+export default createNavigatorFactory<StackNavigationState<ParamListBase>, NativeStackNavigationOptions, NativeStackNavigationEventMap, typeof ResponsiveStackNavigator>(
+    ResponsiveStackNavigator,
+);
