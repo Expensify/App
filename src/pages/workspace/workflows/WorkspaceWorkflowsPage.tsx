@@ -69,7 +69,8 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
 
     useEffect(() => {
         fetchData();
-    }, [fetchData]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const items: ToggleSettingOptionRowProps[] = useMemo(() => {
         const {accountNumber, state, bankName} = reimbursementAccount?.achData ?? {};
@@ -78,7 +79,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
         const hasReimburserEmailError = !!policy?.errorFields?.reimburserEmail;
 
         return [
-            ...(canUseDelayedSubmission
+            ...(!canUseDelayedSubmission
                 ? [
                       {
                           icon: Illustrations.ReceiptEnvelope,
@@ -144,8 +145,8 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
                         <MenuItem
                             titleStyle={styles.textLabelSupportingNormal}
                             descriptionTextStyle={styles.textNormalThemeText}
-                            title={hasVBA ? translate('common.bankAccount') : undefined}
-                            description={state !== BankAccount.STATE.OPEN ? translate('workflowsPage.connectBankAccount') : bankDisplayName}
+                            title={hasVBA ? translate('common.bankAccount') : translate('workflowsPage.connectBankAccount')}
+                            description={state === BankAccount.STATE.OPEN ?  bankDisplayName : undefined}
                             onPress={() => navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID))}
                             shouldShowRightIcon
                             wrapperStyle={containerStyle}
