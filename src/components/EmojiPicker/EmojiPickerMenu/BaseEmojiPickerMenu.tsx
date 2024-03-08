@@ -4,13 +4,14 @@ import React, {useMemo} from 'react';
 import type {LegacyRef} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import type {Emoji, HeaderEmoji, PickerEmoji, PickerEmojis} from '@assets/emojis/types';
+import type {Emoji, HeaderEmoji} from '@assets/emojis/types';
 import CategoryShortcutBar from '@components/EmojiPicker/CategoryShortcutBar';
 import EmojiSkinToneList from '@components/EmojiPicker/EmojiSkinToneList';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import type {EmojiPickerList, EmojiSpacer} from '@libs/EmojiUtils';
 import CONST from '@src/CONST';
 import type {OnyxValue} from '@src/ONYXKEYS';
 import type {EmojiPropTypes, RenderItemProps} from './types';
@@ -29,13 +30,13 @@ type BaseEmojiPickerMenuProps = {
     listWrapperStyle?: StyleProp<ViewStyle>;
 
     /** The data for the emoji list */
-    data: PickerEmoji[];
+    data: EmojiPickerList;
 
     /** Function to render each item in the list */
     renderItem: ({item, target}: RenderItemProps) => void;
 
     /** Extra data to be passed to the list for re-rendering */
-    extraData?: Array<PickerEmojis | OnyxValue<'preferredEmojiSkinTone'> | ((skinTone: number) => void)>;
+    extraData?: Array<EmojiPickerList | OnyxValue<'preferredEmojiSkinTone'> | ((skinTone: number) => void)>;
 
     /** Array of indices for the sticky headers */
     stickyHeaderIndices?: number[];
@@ -69,7 +70,7 @@ const getItemType = (item: GetItemTypeProps): string | undefined => {
  * Return a unique key for each emoji item
  *
  */
-const keyExtractor = (item: PickerEmoji, index: number): string => `emoji_picker_${item.code}_${index}`;
+const keyExtractor = (item: Emoji | HeaderEmoji | EmojiSpacer, index: number): string => `emoji_picker_${item.code}_${index}`;
 
 /**
  * Renders the list empty component
@@ -83,7 +84,7 @@ function ListEmptyComponent() {
 
 function BaseEmojiPickerMenu(
     {headerEmojis, scrollToHeader, isFiltered, listWrapperStyle, data, renderItem, stickyHeaderIndices, extraData, alwaysBounceVertical}: BaseEmojiPickerMenuProps,
-    forwardedRef: LegacyRef<FlashList<PickerEmoji>>,
+    forwardedRef: LegacyRef<FlashList<Emoji | HeaderEmoji | EmojiSpacer>>,
 ) {
     const styles = useThemeStyles();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
@@ -108,7 +109,7 @@ function BaseEmojiPickerMenu(
                     keyboardShouldPersistTaps="handled"
                     data={data}
                     drawDistance={CONST.EMOJI_DRAW_AMOUNT}
-                    renderItem={renderItem as ListRenderItem<PickerEmoji>}
+                    renderItem={renderItem as ListRenderItem<Emoji | HeaderEmoji | EmojiSpacer>}
                     keyExtractor={keyExtractor}
                     numColumns={CONST.EMOJI_NUM_PER_ROW}
                     stickyHeaderIndices={stickyHeaderIndices}

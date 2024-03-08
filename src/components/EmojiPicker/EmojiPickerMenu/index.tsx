@@ -3,7 +3,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import {scrollTo} from 'react-native-reanimated';
-import type {Emoji, PickerEmojis} from '@assets/emojis/types';
+import type {Emoji} from '@assets/emojis/types';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -115,14 +115,14 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, f
         }
         if (normalizedSearchTerm === '') {
             // There are no headers when searching, so we need to re-make them sticky when there is no search term
-            setFilteredEmojis(allEmojis as PickerEmojis);
+            setFilteredEmojis(allEmojis);
             setHeaderIndices(headerRowIndices);
             setFocusedIndex(-1);
             setHighlightEmoji(false);
             return;
         }
         // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
-        setFilteredEmojis(newFilteredEmojiList as PickerEmojis);
+        setFilteredEmojis(newFilteredEmojiList as EmojiUtils.EmojiPickerList);
         setHeaderIndices([]);
         setHighlightFirstEmoji(true);
         setIsUsingKeyboardMovement(false);
