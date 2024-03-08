@@ -5,9 +5,16 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import * as ErrorUtils from '@src/libs/ErrorUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {TaxRate} from '@src/types/onyx';
+import type {TaxRate, TaxRates} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
+
+/**
+ * Get new tax object
+ */
+function getNextTaxID(name: string): string {
+    return `id_${name.toUpperCase().replaceAll(' ', '_')}`;
+}
 
 function createWorkspaceTax(policyID: string, taxRate: TaxRate) {
     const onyxData: OnyxData = {

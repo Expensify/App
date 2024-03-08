@@ -15,15 +15,18 @@ import {createWorkspaceTax} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceNewTaxForm';
 import type {TaxRate} from '@src/types/onyx';
 
-type WorkspaceNewTaxPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES_NEW>;
+type WorkspaceNewTaxPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES_NEW>;
 
 function WorkspaceNewTaxPage({
+    policy,
     route: {
         params: {policyID},
     },
@@ -44,7 +47,9 @@ function WorkspaceNewTaxPage({
 
     const submitForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM>) => {
-            // TODO: Add proper code generation
+            // get next tax id that is not present in the list
+            const taxes = policy.taxRates?.taxes ?? {};
+            const nextTaxID = Object.keys(taxes).length + 1;
             const taxRate = {
                 ...values,
                 code: `tax_${Date.now()}`,
@@ -95,4 +100,4 @@ function WorkspaceNewTaxPage({
 
 WorkspaceNewTaxPage.displayName = 'WorkspaceNewTaxPage';
 
-export default WorkspaceNewTaxPage;
+export default withPolicyAndFullscreenLoading(WorkspaceNewTaxPage);
