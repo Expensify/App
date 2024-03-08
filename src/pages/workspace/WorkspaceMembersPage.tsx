@@ -282,7 +282,7 @@ function WorkspaceMembersPage({
                 return;
             }
 
-            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID, Navigation.getActiveRoute()));
+            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID));
         },
         [isPolicyAdmin, policy, route.params.policyID],
     );
