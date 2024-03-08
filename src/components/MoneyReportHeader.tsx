@@ -55,14 +55,10 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(moneyRequestReport);
     const policyType = policy?.type;
-    const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isAutoReimbursable = ReportUtils.canBeAutoReimbursed(moneyRequestReport, policy);
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicy(moneyRequestReport);
     const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && session?.accountID === moneyRequestReport.managerID;
-    const isPayer = isPaidGroupPolicy
-        ? // In a group policy, the admin approver can pay the report directly by skipping the approval step
-          isPolicyAdmin && (isApproved || isManager)
-        : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
+    const isPayer = ReportUtils.isPayer(session, moneyRequestReport);
     const isDraft = ReportUtils.isDraftExpenseReport(moneyRequestReport);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
@@ -103,7 +99,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const shouldDisableSettlementButton =
         shouldShowSettlementButton && ((shouldShowPayButton && !canAllowSettlement) || (shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(moneyRequestReport)));
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
-    const shouldShowNextStep = isFromPaidPolicy && !!nextStep?.message?.length;
+    const shouldShowNextStep = !ReportUtils.isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length;
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport.currency);
