@@ -1,5 +1,7 @@
 function syncSelectors(selectedIndex: number) {
     const allSelects = document.querySelectorAll('select');
+
+    // eslint-disable-next-line @typescript-eslint/prefer-for-of -- for-of doesn't work with this data
     for (let i = 0; i < allSelects.length; i++) {
         allSelects[i].selectedIndex = selectedIndex;
     }
@@ -19,6 +21,8 @@ function selectOption(select: HTMLSelectElement) {
     allOptions.forEach((option) => {
         if (option.value === selectedValue) {
             const toShow = document.getElementsByClassName(option.value);
+
+            // eslint-disable-next-line @typescript-eslint/prefer-for-of -- for-of doesn't work with this data
             for (let i = 0; i < toShow.length; i++) {
                 toShow[i].classList.remove('hidden');
             }
@@ -26,6 +30,8 @@ function selectOption(select: HTMLSelectElement) {
         }
 
         const toHide = document.getElementsByClassName(option.value);
+
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of -- for-of doesn't work with this data
         for (let i = 0; i < toHide.length; i++) {
             toHide[i].classList.add('hidden');
         }
