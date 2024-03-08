@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import EReceiptBackground from '@assets/images/eReceipt_background.svg';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,6 +15,7 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
 import PendingMapView from './MapView/PendingMapView';
+import ScrollView from './ScrollView';
 import Text from './Text';
 import ThumbnailImage from './ThumbnailImage';
 

@@ -328,7 +328,7 @@ function getOptionData({
             const newName = lastAction?.originalMessage?.newName ?? '';
             result.alternateText = Localize.translate(preferredLocale, 'newRoomPage.roomRenamedTo', {newName});
         } else if (ReportActionsUtils.isTaskAction(lastAction)) {
-            result.alternateText = TaskUtils.getTaskReportActionMessage(lastAction.actionName);
+            result.alternateText = TaskUtils.getTaskReportActionMessage(lastAction).text;
         } else if (
             lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ||
             lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM ||
@@ -385,6 +385,12 @@ function getOptionData({
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result as Report);
+
+    if (ReportActionsUtils.isActionableJoinRequestPending(report.reportID)) {
+        result.isPinned = true;
+        result.isUnread = true;
+        result.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+    }
 
     if (!hasMultipleParticipants) {
         result.accountID = personalDetail?.accountID;
