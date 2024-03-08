@@ -5,6 +5,7 @@ import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
 import createModalCardStyleInterpolator from './createModalCardStyleInterpolator';
 import getRightModalNavigatorOptions from './getRightModalNavigatorOptions';
+import transition from './transition';
 
 type ScreenOptions = Record<string, StackNavigationOptions>;
 
@@ -14,6 +15,11 @@ const commonScreenOptions: StackNavigationOptions = {
     animationEnabled: true,
     cardOverlayEnabled: true,
     animationTypeForReplace: 'push',
+};
+const hideKeyboardOnSwipe = {
+    // temporary solution - better to hide a keyboard than see keyboard flickering
+    // see https://github.com/software-mansion/react-native-screens/issues/2021 for more details
+    keyboardHandlingEnabled: true,
 };
 
 type GetRootNavigatorScreenOptions = (isSmallScreenWidth: boolean, styles: ThemeStyles, StyleUtils: StyleUtilsType) => ScreenOptions;
@@ -26,6 +32,8 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
             ...commonScreenOptions,
             ...getRightModalNavigatorOptions(isSmallScreenWidth),
             cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
+            animation: transition,
+            ...hideKeyboardOnSwipe,
         },
         leftModalNavigator: {
             ...commonScreenOptions,
@@ -80,9 +88,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
             ...commonScreenOptions,
             animationEnabled: isSmallScreenWidth,
             cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, true, props),
-            // temporary solution - better to hide a keyboard than see keyboard flickering
-            // see https://github.com/software-mansion/react-native-screens/issues/2021 for more details
-            keyboardHandlingEnabled: true,
+            ...hideKeyboardOnSwipe,
             cardStyle: {
                 ...StyleUtils.getNavigationModalCardStyle(),
                 paddingRight: isSmallScreenWidth ? 0 : variables.sideBarWidth,
