@@ -35,9 +35,6 @@ type OfflineWithFeedbackProps = ChildrenProps & {
     /** Whether we should show the error messages */
     shouldShowErrorMessages?: boolean;
 
-    /** */
-    shouldShowErrorOnTop?: boolean;
-
     /** Whether we should disable opacity */
     shouldDisableOpacity?: boolean;
 
@@ -81,7 +78,6 @@ function OfflineWithFeedback({
     shouldDisableStrikeThrough = false,
     shouldHideOnDelete = true,
     shouldShowErrorMessages = true,
-    shouldShowErrorOnTop = false,
     style,
     ...rest
 }: OfflineWithFeedbackProps) {
@@ -135,25 +131,8 @@ function OfflineWithFeedback({
     if (needsStrikeThrough && !hideChildren) {
         children = applyStrikeThrough(children);
     }
-
-    const renderErrorMessage = () => {
-        if (!shouldShowErrorMessages && !hasErrorMessages) {
-            return null;
-        }
-        return (
-            <MessagesRow
-                messages={errorMessages}
-                type="error"
-                onClose={onClose}
-                containerStyles={errorRowStyles}
-                canDismiss={canDismissError}
-            />
-        );
-    };
-
     return (
         <View style={style}>
-            {shouldShowErrorOnTop && renderErrorMessage()}
             {!hideChildren && (
                 <View
                     style={[needsOpacity ? styles.offlineFeedback.pending : {}, contentContainerStyle]}
@@ -162,7 +141,15 @@ function OfflineWithFeedback({
                     {children}
                 </View>
             )}
-            {!shouldShowErrorOnTop && renderErrorMessage()}
+            {shouldShowErrorMessages && hasErrorMessages && (
+                <MessagesRow
+                    messages={errorMessages}
+                    type="error"
+                    onClose={onClose}
+                    containerStyles={errorRowStyles}
+                    canDismiss={canDismissError}
+                />
+            )}
         </View>
     );
 }
