@@ -478,6 +478,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/avatar',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/avatar` as const,
     },
+    WORKSPACE_JOIN_USER: {
+        route: 'settings/workspaces/:policyID/join',
+        getRoute: (policyID: string, inviterEmail: string) => `settings/workspaces/${policyID}/join?email=${inviterEmail}` as const,
+    },
     WORKSPACE_SETTINGS_CURRENCY: {
         route: 'settings/workspaces/:policyID/settings/currency',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/settings/currency` as const,
@@ -554,6 +558,15 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/tags',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags` as const,
     },
+    WORKSPACE_MEMBER_DETAILS: {
+        route: 'settings/workspaces/:policyID/members/:accountID',
+        getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/members/${accountID}`, backTo),
+    },
+    WORKSPACE_MEMBER_ROLE_SELECTION: {
+        route: 'settings/workspaces/:policyID/members/:accountID/role-selection',
+        getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/members/${accountID}/role-selection`, backTo),
+    },
+
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {
         route: 'referral/:contentType',

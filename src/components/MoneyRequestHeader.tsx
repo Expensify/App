@@ -7,7 +7,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -79,16 +78,11 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
     const isPending = TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction);
 
-    const isRequestModifiable = !isSettled && !isApproved && !ReportActionsUtils.isDeletedAction(parentReportAction);
-    const canModifyRequest = isActionOwner && !isSettled && !isApproved && !ReportActionsUtils.isDeletedAction(parentReportAction);
-    let canDeleteRequest = canModifyRequest;
+    const isDeletedParentAction = ReportActionsUtils.isDeletedAction(parentReportAction);
+    const canHoldOrUnholdRequest = !isSettled && !isApproved && !isDeletedParentAction;
 
-    if (ReportUtils.isPaidGroupPolicyExpenseReport(moneyRequestReport)) {
-        // If it's a paid policy expense report, only allow deleting the request if it's in draft state or instantly submitted state or the user is the policy admin
-        canDeleteRequest =
-            canDeleteRequest &&
-            (ReportUtils.isDraftExpenseReport(moneyRequestReport) || ReportUtils.isExpenseReportWithInstantSubmittedState(moneyRequestReport) || PolicyUtils.isPolicyAdmin(policy));
-    }
+    // If the report supports adding transactions to it, then it also supports deleting transactions from it.
+    const canDeleteRequest = isActionOwner && ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) && !isDeletedParentAction;
 
     const changeMoneyRequestStatus = () => {
         if (isOnHold) {
@@ -108,7 +102,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     }, [canDeleteRequest]);
 
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(report)];
-    if (isRequestModifiable) {
+    if (canHoldOrUnholdRequest) {
         const isRequestIOU = parentReport?.type === 'iou';
         const isHoldCreator = ReportUtils.isHoldCreator(transaction, report?.reportID) && isRequestIOU;
         const canModifyStatus = isPolicyAdmin || isActionOwner || isApprover;

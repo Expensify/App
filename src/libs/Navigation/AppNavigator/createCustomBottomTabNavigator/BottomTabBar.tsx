@@ -11,6 +11,7 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Session from '@libs/actions/Session';
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
@@ -42,7 +43,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
         const navigationState = navigation.getState() as State<RootStackParamList> | undefined;
         const routes = navigationState?.routes;
         const currentRoute = routes?.[navigationState?.index ?? 0];
-        if (currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && currentRoute.name !== NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
+        if (Boolean(currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && currentRoute.name !== NAVIGATORS.CENTRAL_PANE_NAVIGATOR) || Session.isAnonymousUser()) {
             return;
         }
 
