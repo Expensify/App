@@ -58,12 +58,9 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
         return personalDetails[policy?.reimburserAccountID ?? 0]?.displayName ?? policy?.reimburserEmail;
     }, [policy?.reimburserAccountID, policy?.reimburserEmail]);
 
-    const fetchData = useCallback(() => {
-        if (!policy?.id) {
-            return;
-        }
-        Policy.openPolicyWorkflowsPage(policy?.id);
-    }, [policy]);
+    const fetchData = () => {
+        Policy.openPolicyWorkflowsPage(policy?.id ?? route.params.policyID);
+    }
 
     useNetwork({onReconnect: fetchData});
 
