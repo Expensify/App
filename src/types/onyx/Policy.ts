@@ -126,7 +126,7 @@ type QuickBooksOnlineConnectionData = {
 
 type IntegrationEntityMap = 'NONE' | 'DEFAULT' | 'TAG' | 'REPORT_FIELD';
 
-type ConnectionConfig = {
+type QBOConnectionConfig = {
     realmId: string;
     companyName: string;
     autoSync: {
@@ -154,14 +154,14 @@ type ConnectionConfig = {
         exporter: string;
     };
 };
-type Connection<ConnectionData> = {
+type Connection<ConnectionData, ConnectionConfig> = {
     lastSync?: ConnectionLastSync;
     data: ConnectionData;
     config: ConnectionConfig;
 };
 
 type Connections = {
-    quickbooksOnline: Connection<QuickBooksOnlineConnectionData>;
+    quickbooksOnline: Connection<QuickBooksOnlineConnectionData, QBOConnectionConfig>;
 };
 
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
