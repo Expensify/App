@@ -48,6 +48,7 @@ export default {
     defaultAvatarPreviewSize: 360,
     fabBottom: 25,
     fontSizeOnlyEmojis: 30,
+    fontSizeEmojisWithinText: 19,
     fontSizeOnlyEmojisHeight: 35,
     fontSizeSmall: getValueUsingPixelRatio(11, 17),
     fontSizeExtraSmall: 9,
