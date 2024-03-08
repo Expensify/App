@@ -101,7 +101,7 @@
     "date-fns-tz": "^2.0.0",
     "dom-serializer": "^0.2.2",
     "domhandler": "^4.3.0",
-    "expensify-common": "github:Expensify/expensify-common#eb11f2543f0ca9fb55723a479ef12aabf904f0a8",
+    "expensify-common": "github:Expensify/expensify-common#7ce83cd75c7893dbea4b1517ff04b9589144eafe",
     "expo": "^50.0.3",
     "expo-av": "~13.10.4",
     "expo-image": "1.10.1",
