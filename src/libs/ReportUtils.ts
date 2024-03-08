@@ -28,6 +28,7 @@ import type {
     ReportAction,
     ReportMetadata,
     Session,
+    Task,
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
@@ -514,6 +515,14 @@ Onyx.connect({
         reportActionsByReport[reportID] = actions;
     },
 });
+
+function getCurrentUserAvatarOrDefault(): UserUtils.AvatarSource {
+    return currentUserPersonalDetails?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID);
+}
+
+function getCurrentUserDisplayNameOrEmail(): string | undefined {
+    return currentUserPersonalDetails?.displayName ?? currentUserEmail;
+}
 
 function getChatType(report: OnyxEntry<Report> | Participant | EmptyObject): ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined {
     return report?.chatType;
@@ -1065,6 +1074,20 @@ function findLastAccessedReport(
     }
 
     return adminReport ?? sortedReports.at(-1) ?? null;
+}
+
+/**
+ * Whether the provided report has expenses
+ */
+function hasExpenses(reportID?: string): boolean {
+    return !!Object.values(allTransactions ?? {}).find((transaction) => `${transaction?.reportID}` === `${reportID}`);
+}
+
+/**
+ * Whether the provided report is a closed expense report with no expenses
+ */
+function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>): boolean {
+    return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && isExpenseReport(report) && !hasExpenses(report.reportID);
 }
 
 /**
@@ -1844,7 +1867,7 @@ function buildOptimisticCancelPaymentReportAction(expenseReportID: string, amoun
         person: [
             {
                 style: 'strong',
-                text: currentUserPersonalDetails?.displayName ?? currentUserEmail,
+                text: getCurrentUserDisplayNameOrEmail(),
                 type: 'TEXT',
             },
         ],
@@ -2611,6 +2634,10 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         return parentReportActionMessage;
     }
 
+    if (isClosedExpenseReportWithNoExpenses(report)) {
+        return Localize.translateLocal('parentReportAction.deletedReport');
+    }
+
     if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
         return Localize.translateLocal('parentReportAction.deletedTask');
     }
@@ -3185,14 +3212,14 @@ function buildOptimisticIOUReportAction(
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: currentUserPersonalDetails?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        avatar: getCurrentUserAvatarOrDefault(),
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(iouReportID, type, amount, comment, currency, paymentType, isSettlingUp),
         person: [
             {
                 style: 'strong',
-                text: currentUserPersonalDetails?.displayName ?? currentUserEmail,
+                text: getCurrentUserDisplayNameOrEmail(),
                 type: 'TEXT',
             },
         ],
@@ -3218,14 +3245,14 @@ function buildOptimisticApprovedReportAction(amount: number, currency: string, e
         actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: currentUserPersonalDetails?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        avatar: getCurrentUserAvatarOrDefault(),
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.APPROVED, Math.abs(amount), '', currency),
         person: [
             {
                 style: 'strong',
-                text: currentUserPersonalDetails?.displayName ?? currentUserEmail,
+                text: getCurrentUserDisplayNameOrEmail(),
                 type: 'TEXT',
             },
         ],
@@ -3260,14 +3287,14 @@ function buildOptimisticMovedReportAction(fromPolicyID: string, toPolicyID: stri
         actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: currentUserPersonalDetails?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        avatar: getCurrentUserAvatarOrDefault(),
         isAttachment: false,
         originalMessage,
         message: movedActionMessage,
         person: [
             {
                 style: 'strong',
-                text: currentUserPersonalDetails?.displayName ?? currentUserEmail,
+                text: getCurrentUserDisplayNameOrEmail(),
                 type: 'TEXT',
             },
         ],
@@ -3293,14 +3320,14 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
         actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: currentUserPersonalDetails?.avatar ?? UserUtils.getDefaultAvatar(currentUserAccountID),
+        avatar: getCurrentUserAvatarOrDefault(),
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, Math.abs(amount), '', currency),
         person: [
             {
                 style: 'strong',
-                text: currentUserPersonalDetails?.displayName ?? currentUserEmail,
+                text: getCurrentUserDisplayNameOrEmail(),
                 type: 'TEXT',
             },
         ],
@@ -3366,7 +3393,7 @@ function buildOptimisticModifiedExpenseReportAction(
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: currentUserPersonalDetails?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        avatar: getCurrentUserAvatarOrDefault(),
         created: DateUtils.getDBTime(),
         isAttachment: false,
         message: [
@@ -3449,7 +3476,7 @@ function buildOptimisticTaskReportAction(taskReportID: string, actionName: Origi
         actionName,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: currentUserPersonalDetails?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        avatar: getCurrentUserAvatarOrDefault(),
         isAttachment: false,
         originalMessage,
         message: [
@@ -3525,10 +3552,6 @@ function buildOptimisticChatReport(
     };
 }
 
-function getCurrentUserAvatarOrDefault(): UserUtils.AvatarSource {
-    return allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID);
-}
-
 /**
  * Returns the necessary reportAction onyx data to indicate that the chat has been created optimistically
  * @param [created] - Action created time
@@ -3555,7 +3578,7 @@ function buildOptimisticCreatedReportAction(emailCreatingAction: string, created
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail,
+                text: getCurrentUserDisplayNameOrEmail(),
             },
         ],
         automatic: false,
@@ -3591,7 +3614,7 @@ function buildOptimisticRenamedRoomReportAction(newName: string, oldName: string
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail,
+                text: getCurrentUserDisplayNameOrEmail(),
             },
         ],
         originalMessage: {
@@ -3632,11 +3655,11 @@ function buildOptimisticHoldReportAction(comment: string, created = DateUtils.ge
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail,
+                text: getCurrentUserDisplayNameOrEmail(),
             },
         ],
         automatic: false,
-        avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        avatar: getCurrentUserAvatarOrDefault(),
         created,
         shouldShow: true,
     };
@@ -3663,20 +3686,35 @@ function buildOptimisticUnHoldReportAction(created = DateUtils.getDBTime()): Opt
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'normal',
-                text: allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail,
+                text: getCurrentUserDisplayNameOrEmail(),
             },
         ],
         automatic: false,
-        avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        avatar: getCurrentUserAvatarOrDefault(),
         created,
         shouldShow: true,
     };
 }
 
-/**
- * Returns the necessary reportAction onyx data to indicate that a task report has been edited
- */
-function buildOptimisticEditedTaskReportAction(emailEditingTask: string): OptimisticEditedTaskReportAction {
+function buildOptimisticEditedTaskFieldReportAction({title, description}: Task): OptimisticEditedTaskReportAction {
+    // We do not modify title & description in one request, so we need to create a different optimistic action for each field modification
+    let field = '';
+    let value = '';
+    if (title !== undefined) {
+        field = 'task title';
+        value = title;
+    } else if (description !== undefined) {
+        field = 'description';
+        value = description;
+    }
+
+    let changelog = 'edited this task';
+    if (field && value) {
+        changelog = `updated the ${field} to ${value}`;
+    } else if (field) {
+        changelog = `removed the ${field}`;
+    }
+
     return {
         reportActionID: NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.TASKEDITED,
@@ -3684,21 +3722,43 @@ function buildOptimisticEditedTaskReportAction(emailEditingTask: string): Optimi
         actorAccountID: currentUserAccountID,
         message: [
             {
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                style: 'strong',
-                text: emailEditingTask,
-            },
-            {
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                style: 'normal',
-                text: ' edited this task',
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                text: changelog,
+                html: changelog,
             },
         ],
         person: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail,
+                text: getCurrentUserDisplayNameOrEmail(),
+            },
+        ],
+        automatic: false,
+        avatar: getCurrentUserAvatarOrDefault(),
+        created: DateUtils.getDBTime(),
+        shouldShow: false,
+    };
+}
+
+function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: number): OptimisticEditedTaskReportAction {
+    return {
+        reportActionID: NumberUtils.rand64(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.TASKEDITED,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        actorAccountID: currentUserAccountID,
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                text: `assigned to ${getDisplayNameForParticipant(assigneeAccountID)}`,
+                html: `assigned to <mention-user accountID=${assigneeAccountID}></mention-user>`,
+            },
+        ],
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
             },
         ],
         automatic: false,
@@ -3741,7 +3801,7 @@ function buildOptimisticClosedReportAction(emailClosingReport: string, policyNam
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail,
+                text: getCurrentUserDisplayNameOrEmail(),
             },
         ],
         reportActionID: NumberUtils.rand64(),
@@ -4006,7 +4066,7 @@ function shouldReportBeInOptionList({
     report: OnyxEntry<Report>;
     currentReportId: string;
     isInGSDMode: boolean;
-    betas: Beta[];
+    betas: OnyxEntry<Beta[]>;
     policies: OnyxCollection<Policy>;
     excludeEmptyChats: boolean;
     doesReportHaveViolations: boolean;
@@ -5150,6 +5210,7 @@ export {
     getPolicyName,
     getPolicyType,
     isArchivedRoom,
+    isClosedExpenseReportWithNoExpenses,
     isExpensifyOnlyParticipantInReport,
     canCreateTaskInReport,
     isPolicyExpenseChatAdmin,
@@ -5197,7 +5258,8 @@ export {
     buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
     buildOptimisticRenamedRoomReportAction,
-    buildOptimisticEditedTaskReportAction,
+    buildOptimisticEditedTaskFieldReportAction,
+    buildOptimisticChangedTaskAssigneeReportAction,
     buildOptimisticIOUReport,
     buildOptimisticApprovedReportAction,
     buildOptimisticMovedReportAction,

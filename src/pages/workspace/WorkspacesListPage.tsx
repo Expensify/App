@@ -117,11 +117,12 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
     const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
+    const isLessThanMediumScreen = isMediumScreenWidth || isSmallScreenWidth;
 
     const confirmDeleteAndHideModal = () => {
         if (!policyIDToDelete || !policyNameToDelete) {
@@ -195,7 +196,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                                 workspaceType={item.type}
                                 isJoinRequestPending={item?.isJoinRequestPending}
                                 rowStyles={hovered && styles.hoveredComponentBG}
-                                layoutWidth={isSmallScreenWidth ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}
+                                layoutWidth={isLessThanMediumScreen ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}
                                 brickRoadIndicator={item.brickRoadIndicator}
                                 shouldDisableThreeDotsMenu={item.disabled}
                             />
@@ -204,11 +205,11 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                 </PressableWithoutFeedback>
             );
         },
-        [isSmallScreenWidth, styles.mb3, styles.mh5, styles.ph5, styles.hoveredComponentBG, translate],
+        [isLessThanMediumScreen, styles.mb3, styles.mh5, styles.ph5, styles.hoveredComponentBG, translate],
     );
 
     const listHeaderComponent = useCallback(() => {
-        if (isSmallScreenWidth) {
+        if (isLessThanMediumScreen) {
             return <View style={styles.mt5} />;
         }
 
@@ -241,7 +242,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                 <View style={[styles.ml10, styles.mr2]} />
             </View>
         );
-    }, [isSmallScreenWidth, styles, translate]);
+    }, [isLessThanMediumScreen, styles, translate]);
 
     const policyRooms = useMemo(() => {
         if (!reports || isEmptyObject(reports)) {
@@ -346,7 +347,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
             >
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
-                    shouldShowBackButton={isSmallScreenWidth}
+                    shouldShowBackButton={isLessThanMediumScreen}
                     onBackButtonPress={() => Navigation.goBack()}
                 >
                     <Button
@@ -358,7 +359,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                     />
                 </HeaderWithBackButton>
                 <ScrollView contentContainerStyle={styles.pt3}>
-                    <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <View style={[styles.flex1, isLessThanMediumScreen ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <FeatureList
                             menuItems={workspaceFeatures}
                             title={translate('workspace.emptyWorkspace.title')}
@@ -385,7 +386,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
             <View style={styles.flex1}>
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
-                    shouldShowBackButton={isSmallScreenWidth}
+                    shouldShowBackButton={isLessThanMediumScreen}
                     onBackButtonPress={() => Navigation.goBack()}
                 >
                     <Button

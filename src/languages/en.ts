@@ -1810,6 +1810,9 @@ export default {
             genericFailureMessage: 'An error occurred removing a user from the workspace, please try again.',
             removeMembersPrompt: 'Are you sure you want to remove these members?',
             removeMembersTitle: 'Remove members',
+            removeMemberButtonTitle: 'Remove from workspace',
+            removeMemberPrompt: ({memberName}) => `Are you sure you want to remove ${memberName}`,
+            removeMemberTitle: 'Remove member',
             makeMember: 'Make member',
             makeAdmin: 'Make admin',
             selectAll: 'Select all',
@@ -2201,6 +2204,7 @@ export default {
         viewAttachment: 'View attachment',
     },
     parentReportAction: {
+        deletedReport: '[Deleted report]',
         deletedMessage: '[Deleted message]',
         deletedRequest: '[Deleted request]',
         reversedTransaction: '[Reversed transaction]',

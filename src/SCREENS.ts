@@ -227,6 +227,8 @@ const SCREENS = {
         CATEGORY_CREATE: 'Category_Create',
         CATEGORY_SETTINGS: 'Category_Settings',
         CATEGORIES_SETTINGS: 'Categories_Settings',
+        MEMBER_DETAILS: 'Workspace_Member_Details',
+        MEMBER_DETAILS_ROLE_SELECTION: 'Workspace_Member_Details_Role_Selection',
     },
 
     EDIT_REQUEST: {

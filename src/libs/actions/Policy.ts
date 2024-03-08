@@ -57,7 +57,8 @@ import type {
     ReportAction,
     Transaction,
 } from '@src/types/onyx';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {OriginalMessageJoinPolicyChangeLog} from '@src/types/onyx/OriginalMessage';
 import type {Attributes, CustomUnit, Rate, Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -749,9 +750,9 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
             value: {
-                ...memberRoles.reduce((member: Record<number, {role: string}>, current) => {
+                ...memberRoles.reduce((member: Record<number, {role: string; pendingAction: PendingAction}>, current) => {
                     // eslint-disable-next-line no-param-reassign
-                    member[current.accountID] = {role: current?.role};
+                    member[current.accountID] = {role: current?.role, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
                     return member;
                 }, {}),
                 errors: null,
@@ -764,6 +765,11 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
             value: {
+                ...memberRoles.reduce((member: Record<number, {role: string; pendingAction: PendingAction}>, current) => {
+                    // eslint-disable-next-line no-param-reassign
+                    member[current.accountID] = {role: current?.role, pendingAction: null};
+                    return member;
+                }, {}),
                 errors: null,
             },
         },
@@ -2587,15 +2593,18 @@ function clearCategoryErrors(policyID: string, categoryName: string) {
 /**
  * Accept user join request to a workspace
  */
-function acceptJoinRequest(reportID: string, accountID: string, adminsRoomMessageReportActionID: string, policyID: string) {
+function acceptJoinRequest(reportID: string, reportAction: OnyxEntry<ReportAction>) {
     const choice = CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT;
+    if (!reportAction) {
+        return;
+    }
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [adminsRoomMessageReportActionID]: {
+                [reportAction.reportActionID]: {
                     originalMessage: {choice},
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
@@ -2608,7 +2617,7 @@ function acceptJoinRequest(reportID: string, accountID: string, adminsRoomMessag
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [adminsRoomMessageReportActionID]: {
+                [reportAction.reportActionID]: {
                     originalMessage: {choice},
                     pendingAction: null,
                 },
@@ -2621,7 +2630,7 @@ function acceptJoinRequest(reportID: string, accountID: string, adminsRoomMessag
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [adminsRoomMessageReportActionID]: {
+                [reportAction.reportActionID]: {
                     originalMessage: {choice: ''},
                     pendingAction: null,
                 },
@@ -2630,7 +2639,11 @@ function acceptJoinRequest(reportID: string, accountID: string, adminsRoomMessag
     ];
 
     const parameters = {
-        requests: JSON.stringify({[policyID]: {requests: [{accountID, adminsRoomMessageReportActionID}]}}),
+        requests: JSON.stringify({
+            [(reportAction.originalMessage as OriginalMessageJoinPolicyChangeLog['originalMessage']).policyID]: {
+                requests: [{accountID: reportAction?.actorAccountID, adminsRoomMessageReportActionID: reportAction.reportActionID}],
+            },
+        }),
     };
 
     API.write(WRITE_COMMANDS.ACCEPT_JOIN_REQUEST, parameters, {optimisticData, failureData, successData});
@@ -2639,14 +2652,17 @@ function acceptJoinRequest(reportID: string, accountID: string, adminsRoomMessag
 /**
  * Decline user join request to a workspace
  */
-function declineJoinRequest(reportID: string, accountID: string, adminsRoomMessageReportActionID: string, policyID: string) {
+function declineJoinRequest(reportID: string, reportAction: OnyxEntry<ReportAction>) {
+    if (!reportAction) {
+        return;
+    }
     const choice = CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.DECLINE;
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [adminsRoomMessageReportActionID]: {
+                [reportAction.reportActionID]: {
                     originalMessage: {choice},
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
@@ -2659,7 +2675,7 @@ function declineJoinRequest(reportID: string, accountID: string, adminsRoomMessa
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [adminsRoomMessageReportActionID]: {
+                [reportAction.reportActionID]: {
                     originalMessage: {choice},
                     pendingAction: null,
                 },
@@ -2672,7 +2688,7 @@ function declineJoinRequest(reportID: string, accountID: string, adminsRoomMessa
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [adminsRoomMessageReportActionID]: {
+                [reportAction.reportActionID]: {
                     originalMessage: {choice: ''},
                     pendingAction: null,
                 },
@@ -2681,7 +2697,11 @@ function declineJoinRequest(reportID: string, accountID: string, adminsRoomMessa
     ];
 
     const parameters = {
-        requests: JSON.stringify({[policyID]: {requests: [{accountID, adminsRoomMessageReportActionID}]}}),
+        requests: JSON.stringify({
+            [(reportAction.originalMessage as OriginalMessageJoinPolicyChangeLog['originalMessage']).policyID]: {
+                requests: [{accountID: reportAction?.actorAccountID, adminsRoomMessageReportActionID: reportAction.reportActionID}],
+            },
+        }),
     };
 
     API.write(WRITE_COMMANDS.DECLINE_JOIN_REQUEST, parameters, {optimisticData, failureData, successData});
