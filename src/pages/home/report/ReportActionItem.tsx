@@ -1,5 +1,5 @@
-import lodashIsEqual from 'lodash/isEqual';
 import lodashIsEmpty from 'lodash/isEmpty';
+import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
 import {InteractionManager, View} from 'react-native';
@@ -205,11 +205,11 @@ function ReportActionItem({
     // Get the transaction associated with the report
     const transaction = useMemo(() => {
         const reportAction = reportActions?.[transactionThreadReport?.parentReportActionID ?? ''];
-        const transactionID = reportAction?.originalMessage?.IOUReportID ?? 0;
+        const transactionID = (reportAction as OnyxTypes.OriginalMessageIOU)?.originalMessage.IOUTransactionID ? (reportAction as OnyxTypes.OriginalMessageIOU).originalMessage.IOUTransactionID : 0;
         return transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     }, [transactionThreadReport, reportActions, transactions]);
 
-    const transactionCurrency = !lodashIsEmpty(transaction) ? (transaction?.modifiedCurrency ?? transaction?.currency) : report.currency;
+    const transactionCurrency = !lodashIsEmpty(transaction) ? transaction?.modifiedCurrency ?? transaction?.currency : report.currency;
     const reportScrollManager = useReportScrollManager();
 
     const highlightedBackgroundColorIfNeeded = useMemo(
@@ -777,7 +777,7 @@ function ReportActionItem({
                                 />
                             </ShowContextMenuContext.Provider>
                         </>
-                        ) : (
+                    ) : (
                         <MoneyReportView
                             report={report}
                             policy={policy}

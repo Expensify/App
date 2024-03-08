@@ -1240,7 +1240,7 @@ function isMoneyRequestReport(reportOrID: OnyxEntry<Report> | string): boolean {
  */
 function isOneTransactionReport(reportID: string): boolean {
     const reportActions = ReportActionsUtils.getAllReportActions(reportID);
-    return ReportActionsUtils.getOneTransactionThreadReportID(reportActions) !== '0'
+    return ReportActionsUtils.getOneTransactionThreadReportID(reportActions) !== '0';
 }
 
 /**
@@ -4580,7 +4580,7 @@ function shouldReportShowSubscript(report: OnyxEntry<Report>): boolean {
         return true;
     }
 
-    if (isExpenseReport(report) && isOneTransactionReport(report)) {
+    if (isExpenseReport(report) && isOneTransactionReport(report?.reportID ?? '')) {
         return true;
     }
 

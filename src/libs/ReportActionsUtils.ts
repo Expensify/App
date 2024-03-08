@@ -213,7 +213,7 @@ function isTransactionThread(parentReportAction: OnyxEntry<ReportAction>): boole
     );
 }
 
-function getOneTransactionThreadReportID(reportActions:  OnyxEntry<ReportActions>): string {
+function getOneTransactionThreadReportID(reportActions: OnyxEntry<ReportActions>): string {
     const reportActionsArray = Object.values(reportActions ?? {});
 
     if (!reportActionsArray.length) {
@@ -222,11 +222,12 @@ function getOneTransactionThreadReportID(reportActions:  OnyxEntry<ReportActions
 
     // Get all IOU report actions for the report.
     const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.SPLIT];
-    const iouRequestActions = reportActionsArray.filter((action) =>
-        action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
-        && (iouRequestTypes.includes(action.originalMessage.type) ?? [])
-        && action.childReportID
-        && action.originalMessage.IOUTransactionID
+    const iouRequestActions = reportActionsArray.filter(
+        (action) =>
+            action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
+            (iouRequestTypes.includes(action.originalMessage.type) ?? []) &&
+            action.childReportID &&
+            action.originalMessage.IOUTransactionID,
     );
 
     // If we don't have any IOU request actions, or we have more than one IOU request actions, this isn't a oneTransaction report and we don't want to return the transactionThreadReportActions
