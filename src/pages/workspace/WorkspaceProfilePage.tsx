@@ -193,6 +193,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                         text={translate('common.share')}
                                         onPress={onPressShare}
                                         medium
+                                        icon={Expensicons.QrCode}
                                     />
                                     <Button
                                         accessibilityLabel={translate('common.delete')}
@@ -200,6 +201,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                         style={[styles.ml2]}
                                         onPress={() => setIsDeleteModalOpen(true)}
                                         medium
+                                        icon={Expensicons.Trashcan}
                                     />
                                 </View>
                             )}

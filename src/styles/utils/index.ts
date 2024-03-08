@@ -3,6 +3,7 @@ import type {AnimatableNumericValue, Animated, ColorValue, DimensionValue, Image
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
+import type ImageSVGProps from '@components/ImageSVG/types';
 import * as Browser from '@libs/Browser';
 import * as UserUtils from '@libs/UserUtils';
 // eslint-disable-next-line no-restricted-imports
@@ -458,6 +459,20 @@ function getWidthAndHeightStyle(width: number, height?: number): ViewStyle {
         width,
         height: height ?? width,
     };
+}
+
+function getIconWidthAndHeightStyle(small: boolean, medium: boolean, large: boolean, width: number, height: number): Pick<ImageSVGProps, 'width' | 'height'> {
+    switch (true) {
+        case small:
+            return {width: variables.iconSizeExtraSmall, height: variables.iconSizeExtraSmall};
+        case medium:
+            return {width: variables.iconSizeSmall, height: variables.iconSizeSmall};
+        case large:
+            return {width: variables.iconSizeNormal, height: variables.iconSizeNormal};
+        default: {
+            return {width, height};
+        }
+    }
 }
 
 /**
@@ -1096,6 +1111,7 @@ const staticStyleUtils = {
     getOpacityStyle,
     getMultiGestureCanvasContainerStyle,
     getSignInBgStyles,
+    getIconWidthAndHeightStyle,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({

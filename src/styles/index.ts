@@ -573,23 +573,21 @@ const styles = (theme: ThemeColors) =>
         buttonSmall: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeSmall,
-            paddingHorizontal: 14,
+            paddingHorizontal: 12,
             backgroundColor: theme.buttonDefaultBG,
         },
 
         buttonMedium: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeNormal,
-            paddingRight: 16,
-            paddingLeft: 16,
+            paddingHorizontal: 16,
             backgroundColor: theme.buttonDefaultBG,
         },
 
         buttonLarge: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeLarge,
-            paddingRight: 10,
-            paddingLeft: 10,
+            paddingHorizontal: 20,
             backgroundColor: theme.buttonDefaultBG,
         },
 

@@ -237,11 +237,13 @@ function Button(
                 <View style={[styles.justifyContentBetween, styles.flexRow]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
                         {icon && (
-                            <View style={[styles.mr1, iconStyles]}>
+                            <View style={[large ? styles.mr2 : styles.mr1, iconStyles]}>
                                 <Icon
                                     src={icon}
                                     fill={iconFill ?? (success || danger ? theme.textLight : theme.icon)}
                                     small={small}
+                                    medium={medium}
+                                    large={large}
                                 />
                             </View>
                         )}
