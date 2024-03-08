@@ -22,6 +22,8 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.PROFILE_AVATAR]: ROUTES.PROFILE_AVATAR.route,
         [SCREENS.WORKSPACE_AVATAR]: ROUTES.WORKSPACE_AVATAR.route,
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
+        [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
+        [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
 
         // Sidebar
         [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]: {
@@ -69,6 +71,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
                 [SCREENS.WORKSPACE.TAGS]: {
                     path: ROUTES.WORKSPACE_TAGS.route,
+                },
+                [SCREENS.WORKSPACE.DISTANCE_RATES]: {
+                    path: ROUTES.WORKSPACE_DISTANCE_RATES.route,
                 },
             },
         },
@@ -283,6 +288,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
                             path: ROUTES.WORKSPACE_CATEGORIES_SETTINGS.route,
+                        },
+                        [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
+                            path: ROUTES.WORKSPACE_MEMBER_DETAILS.route,
+                        },
+                        [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE_SELECTION]: {
+                            path: ROUTES.WORKSPACE_MEMBER_ROLE_SELECTION.route,
                         },
                         [SCREENS.WORKSPACE.CATEGORY_CREATE]: {
                             path: ROUTES.WORKSPACE_CATEGORY_CREATE.route,

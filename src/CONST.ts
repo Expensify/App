@@ -575,6 +575,7 @@ const CONST = {
             LIMIT: 50,
             TYPE: {
                 ADDCOMMENT: 'ADDCOMMENT',
+                ACTIONABLEJOINREQUEST: 'ACTIONABLEJOINREQUEST',
                 APPROVED: 'APPROVED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
                 CLOSED: 'CLOSED',
@@ -677,6 +678,10 @@ const CONST = {
         ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
             INVITE: 'invited',
             NOTHING: 'nothing',
+        },
+        ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION: {
+            ACCEPT: 'accept',
+            DECLINE: 'decline',
         },
         ARCHIVE_REASON: {
             DEFAULT: 'default',
@@ -1411,6 +1416,11 @@ const CONST = {
             REMOVE: 'remove',
             MAKE_MEMBER: 'makeMember',
             MAKE_ADMIN: 'makeAdmin',
+        },
+        DISTANCE_RATES_BULK_ACTION_TYPES: {
+            DELETE: 'delete',
+            DISABLE: 'disable',
+            ENABLE: 'enable',
         },
     },
 
