@@ -1,98 +1,85 @@
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
-import reportPropTypes from '@pages/reportPropTypes';
+import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EditTaskForm';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-const propTypes = {
-    /** The report currently being looked at */
-    report: reportPropTypes,
+type TaskTitlePageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps;
 
-    /* Onyx Props */
-    ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    report: {},
-};
-
-function TaskTitlePage(props) {
+function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps) {
     const styles = useThemeStyles();
-    /**
-     * @param {Object} values
-     * @param {String} values.title
-     * @returns {Object} - An object containing the errors for each inputID
-     */
-    const validate = useCallback((values) => {
-        const errors = {};
+    const {translate} = useLocalize();
 
-        if (_.isEmpty(values.title)) {
+    const validate = useCallback(({title}: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> = {};
+
+        if (!title) {
             errors.title = 'newTaskPage.pleaseEnterTaskName';
-        } else if (values.title.length > CONST.TITLE_CHARACTER_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'title', ['common.error.characterLimitExceedCounter', {length: values.title.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
         }
 
         return errors;
     }, []);
 
     const submit = useCallback(
-        (values) => {
-            if (values.title !== props.report.reportName) {
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
+            if (values.title !== report?.reportName && !isEmptyObject(report)) {
                 // Set the title of the report in the store and then call EditTask API
                 // to update the title of the report on the server
-                Task.editTask(props.report, {title: values.title});
+                Task.editTask(report, {title: values.title});
             }
 
-            Navigation.dismissModal(props.report.reportID);
+            Navigation.dismissModal(report?.reportID);
         },
-        [props],
+        [report],
     );
 
-    if (!ReportUtils.isTaskReport(props.report)) {
+    if (!ReportUtils.isTaskReport(report)) {
         Navigation.isNavigationReady().then(() => {
-            Navigation.dismissModal(props.report.reportID);
+            Navigation.dismissModal(report?.reportID);
         });
     }
 
-    const inputRef = useRef(null);
-    const isOpen = ReportUtils.isOpenTaskReport(props.report);
-    const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID);
-    const isTaskNonEditable = ReportUtils.isTaskReport(props.report) && (!canModifyTask || !isOpen);
+    const inputRef = useRef<AnimatedTextInputRef | null>(null);
+    const isOpen = ReportUtils.isOpenTaskReport(report);
+    const canModifyTask = Task.canModifyTask(report, currentUserPersonalDetails.accountID);
+    const isTaskNonEditable = ReportUtils.isTaskReport(report) && (!canModifyTask || !isOpen);
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
+            onEntryTransitionEnd={() => {
+                inputRef?.current?.focus();
+            }}
             shouldEnableMaxHeight
             testID={TaskTitlePage.displayName}
         >
             {({didScreenTransitionEnd}) => (
                 <FullPageNotFoundView shouldShow={isTaskNonEditable}>
-                    <HeaderWithBackButton title={props.translate('task.task')} />
+                    <HeaderWithBackButton title={translate('task.task')} />
                     <FormProvider
                         style={[styles.flexGrow1, styles.ph5]}
                         formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}
                         validate={validate}
                         onSubmit={submit}
-                        submitButtonText={props.translate('common.save')}
+                        submitButtonText={translate('common.save')}
                         enabledWhenOffline
                     >
                         <View style={[styles.mb4]}>
@@ -101,17 +88,17 @@ function TaskTitlePage(props) {
                                 role={CONST.ROLE.PRESENTATION}
                                 inputID={INPUT_IDS.TITLE}
                                 name={INPUT_IDS.TITLE}
-                                label={props.translate('task.title')}
-                                accessibilityLabel={props.translate('task.title')}
-                                defaultValue={(props.report && props.report.reportName) || ''}
-                                ref={(el) => {
-                                    if (!el) {
+                                label={translate('task.title')}
+                                accessibilityLabel={translate('task.title')}
+                                defaultValue={report?.reportName ?? ''}
+                                ref={(element: AnimatedTextInputRef) => {
+                                    if (!element) {
                                         return;
                                     }
                                     if (!inputRef.current && didScreenTransitionEnd) {
-                                        el.focus();
+                                        element.focus();
                                     }
-                                    inputRef.current = el;
+                                    inputRef.current = element;
                                 }}
                             />
                         </View>
@@ -122,17 +109,8 @@ function TaskTitlePage(props) {
     );
 }
 
-TaskTitlePage.propTypes = propTypes;
-TaskTitlePage.defaultProps = defaultProps;
 TaskTitlePage.displayName = 'TaskTitlePage';
 
-export default compose(
-    withLocalize,
-    withCurrentUserPersonalDetails,
-    withReportOrNotFound(),
-    withOnyx({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
-        },
-    }),
-)(TaskTitlePage);
+const ComponentWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(TaskTitlePage);
+
+export default withReportOrNotFound()(ComponentWithCurrentUserPersonalDetails);
