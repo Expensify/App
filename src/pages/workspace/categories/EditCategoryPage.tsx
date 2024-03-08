@@ -74,7 +74,7 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
                     testID={EditCategoryPage.displayName}
                 >
                     <HeaderWithBackButton
-                        title={translate('workspace.categories.addCategory')}
+                        title={translate('workspace.categories.editCategory')}
                         onBackButtonPress={Navigation.goBack}
                     />
                     <FormProvider
