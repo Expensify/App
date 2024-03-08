@@ -429,8 +429,8 @@ function BaseSelectionList<TItem extends ListItem>(
                                 />
                             </View>
                         )}
-                        {!!headerMessage && renderTopMessage(headerMessage)}
                         {!!notFoundMessage && !showLoadingPlaceholder && flattenedSections.allOptions.length === 0 && renderTopMessage(notFoundMessage)}
+                        {!!headerMessage && renderTopMessage(headerMessage)}
                         {!!headerContent && headerContent}
                         {flattenedSections.allOptions.length === 0 && showLoadingPlaceholder ? (
                             <OptionsListSkeletonView shouldAnimate />
