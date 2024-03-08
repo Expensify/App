@@ -12,7 +12,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
@@ -68,7 +67,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
     useEffect(() => {
         fetchData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [policy?.reimbursementChoice]);
 
     const items: ToggleSettingOptionRowProps[] = useMemo(() => {
         const {accountNumber, state, bankName} = reimbursementAccount?.achData ?? {};
@@ -153,7 +152,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
                         {hasVBA && (
                             <OfflineWithFeedback
                                 pendingAction={policy?.pendingFields?.reimburserEmail}
-                                errors={ErrorUtils.getLatestErrorField(policy?.errorFields ?? {}, 'reimburserEmail')}
+                                errors={policy?.errorFields?.reimburserEmail}
                                 onClose={() => Policy.clearWorkspacePayerError(policy?.id ?? route.params.policyID)}
                             >
                                 <MenuItem

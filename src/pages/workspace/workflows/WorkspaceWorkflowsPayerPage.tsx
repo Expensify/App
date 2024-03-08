@@ -171,7 +171,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
             return;
         }
 
-        Policy.setWorkspacePayer(policy?.id ?? '', "authorizedPayer");
+        Policy.setWorkspacePayer(policy?.id ?? '', 'authorizedPayer');
         Navigation.goBack();
     };
 
@@ -202,9 +202,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
                             subtitle={policyName}
                             onBackButtonPress={Navigation.goBack}
                         />
-                        <OfflineWithFeedback
-                            pendingAction={policy?.pendingFields?.reimburserEmail}
-                        >
+                        <OfflineWithFeedback pendingAction={policy?.pendingFields?.reimburserEmail}>
                             <SelectionList
                                 sections={sections}
                                 textInputLabel={translate('optionsSelector.findMember')}
