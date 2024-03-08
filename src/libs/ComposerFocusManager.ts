@@ -120,18 +120,26 @@ function saveFocusState(id: ModalId, isInUploadingContext = false, shouldClearFo
  * Additionally, if we are closing the RHP, we can ignore the focused input.
  */
 function focus(input: InputElement, shouldIgnoreFocused = false) {
-    if (!input) {
-        return;
-    }
-    if (shouldIgnoreFocused) {
-        isWindowReadyToFocus().then(() => input.focus());
-        return;
-    }
     const activeInput = getActiveInput();
-    if (activeInput) {
+    if (!input || activeInput && !shouldIgnoreFocused) {
         return;
     }
     isWindowReadyToFocus().then(() => input.focus());
+}
+
+function tryRestoreTopmostFocus(shouldIgnoreFocused: boolean, isInUploadingContext = false) {
+    const topmost = [...focusMap].filter(([, v]) => v.input && v.isInUploadingContext === isInUploadingContext).at(-1);
+    if (topmost === undefined) {
+        return;
+    }
+    const [modalId, {input}] = topmost;
+
+    // This modal is still active
+    if (activeModals.indexOf(modalId) >= 0) {
+        return;
+    }
+    focus(input, shouldIgnoreFocused);
+    focusMap.delete(modalId);
 }
 
 /**
@@ -141,13 +149,13 @@ function restoreFocusState(id: ModalId, shouldIgnoreFocused = false, restoreFocu
     if (!id || !activeModals.length) {
         return;
     }
-    const index = activeModals.indexOf(id);
+    const activeModalIndex = activeModals.indexOf(id);
 
     // This id has been removed from the stack.
-    if (index < 0) {
+    if (activeModalIndex < 0) {
         return;
     }
-    activeModals.splice(index, 1);
+    activeModals.splice(activeModalIndex, 1);
     if (restoreFocusType === CONST.MODAL.RESTORE_FOCUS_TYPE.PRESERVE) {
         return;
     }
@@ -159,9 +167,9 @@ function restoreFocusState(id: ModalId, shouldIgnoreFocused = false, restoreFocu
     }
 
     // This modal is not the topmost one, do not restore it.
-    if (activeModals.length > index) {
+    if (activeModals.length > activeModalIndex) {
         if (input) {
-            const lastId = activeModals.slice(-1)[0];
+            const lastId = activeModals.at(-1);
             focusMap.set(lastId, {...focusMap.get(lastId), input});
         }
         return;
@@ -172,18 +180,7 @@ function restoreFocusState(id: ModalId, shouldIgnoreFocused = false, restoreFocu
     }
 
     // Try to find the topmost one and restore it
-    const stack = [...focusMap].filter(([, v]) => v.input && v.isInUploadingContext === isInUploadingContext);
-    if (stack.length < 1) {
-        return;
-    }
-    const [lastId, {input: lastInput}] = stack.slice(-1)[0];
-
-    // The previous modal is still active
-    if (activeModals.indexOf(lastId) >= 0) {
-        return;
-    }
-    focus(lastInput, shouldIgnoreFocused);
-    focusMap.delete(lastId);
+    tryRestoreTopmostFocus(shouldIgnoreFocused, isInUploadingContext);
 }
 
 function resetReadyToFocus(id: ModalId) {
@@ -230,19 +227,6 @@ function refocusAfterModalFullyClosed(id: ModalId, restoreType: RestoreFocusType
     isReadyToFocus(id)?.then(() => restoreFocusState(id, false, restoreType, isInUploadingContext));
 }
 
-/**
- * So far, this will only be called in file canceled event handler.
- */
-function tryRestoreFocusByExternal(isInUploadingContext = false) {
-    const stack = [...focusMap].filter(([, value]) => value.isInUploadingContext === isInUploadingContext && value.input);
-    if (stack.length < 1) {
-        return;
-    }
-    const [key, {input}] = stack.slice(-1)[0];
-    focusMap.delete(key);
-    focus(input);
-}
-
 export type {InputElement};
 
 export default {
@@ -256,5 +240,5 @@ export default {
     setReadyToFocus,
     isReadyToFocus,
     refocusAfterModalFullyClosed,
-    tryRestoreFocusByExternal,
+    tryRestoreTopmostFocus,
 };
