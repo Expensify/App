@@ -33,7 +33,7 @@ type FileNameAndExtension = {
  * @param receiptPath
  * @param receiptFileName
  */
-function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction> | undefined, receiptPath: string | null = null, receiptFileName: string | null = null): ThumbnailAndImageURI {
+function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPath: string | null = null, receiptFileName: string | null = null): ThumbnailAndImageURI {
     if (TransactionUtils.isFetchingWaypointsFromServer(transaction)) {
         return {thumbnail: null, image: ReceiptGeneric, isLocalFile: true};
     }

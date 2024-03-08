@@ -1,6 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
 import {format} from 'date-fns';
-import {isEmpty} from 'lodash';
 import React, {useCallback, useEffect, useMemo, useReducer, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -45,6 +44,7 @@ import ShowMoreButton from './ShowMoreButton';
 import Switch from './Switch';
 import Text from './Text';
 
+type IouType = ValueOf<typeof CONST.IOU.TYPE>;
 type MoneyRequestConfirmationListOnyxProps = {
     /** Collection of categories attached to a policy */
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
@@ -69,7 +69,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     onConfirm?: (selectedParticipants: Participant[]) => void;
 
     /** Callback to parent modal to send money */
-    onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => void;
+    onSendMoney?: (paymentMethod: IouType | PaymentMethodType | undefined) => void;
 
     /** Callback to inform a participant is selected */
     onSelectParticipant?: (option: Participant) => void;
@@ -263,7 +263,7 @@ function MoneyRequestConfirmationList({
     // A flag for showing the billable field
     const shouldShowBillable = !(policy?.disabledFields?.defaultBillable ?? true);
 
-    const hasRoute = TransactionUtils.hasRoute(transaction);
+    const hasRoute = TransactionUtils.hasRoute(transaction ?? null);
     const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate);
     const formattedAmount = isDistanceRequestWithPendingRoute
         ? ''
@@ -284,12 +284,12 @@ function MoneyRequestConfirmationList({
     const [didConfirm, setDidConfirm] = useState(false);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
 
-    const shouldDisplayFieldError = useMemo(() => {
+    const shouldDisplayFieldError: boolean = useMemo(() => {
         if (!isEditingSplitBill) {
             return false;
         }
 
-        return (!!hasSmartScanFailed && TransactionUtils.hasMissingSmartscanFields(transaction)) || (didConfirmSplit && TransactionUtils.areRequiredFieldsEmpty(transaction));
+        return (!!hasSmartScanFailed && TransactionUtils.hasMissingSmartscanFields(transaction ?? null)) || (didConfirmSplit && TransactionUtils.areRequiredFieldsEmpty(transaction ?? null));
     }, [isEditingSplitBill, hasSmartScanFailed, transaction, didConfirmSplit]);
 
     const isMerchantEmpty = !iouMerchant || iouMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
@@ -321,7 +321,7 @@ function MoneyRequestConfirmationList({
      * Returns the participants with amount
      */
     const getParticipantsWithAmount = useCallback(
-        (participantsList: Participant[]) => {
+        (participantsList: Participant[]): Participant[] => {
             const calculatedIouAmount = IOUUtils.calculateAmount(participantsList.length, iouAmount, iouCurrencyCode ?? '');
             return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
                 participantsList,
@@ -336,7 +336,7 @@ function MoneyRequestConfirmationList({
         setDidConfirm(false);
     }
 
-    const splitOrRequestOptions: Array<DropdownOption<string>> = useMemo(() => {
+    const splitOrRequestOptions: Array<DropdownOption<IouType>> = useMemo(() => {
         let text;
         if (isSplitBill && iouAmount === 0) {
             text = translate('iou.split');
@@ -423,7 +423,7 @@ function MoneyRequestConfirmationList({
         canModifyParticipants,
     ]);
 
-    const selectedOptions = useMemo(() => {
+    const selectedOptions: Array<Participant | OptionsListUtils.PayeePersonalDetails> = useMemo(() => {
         if (!hasMultipleParticipants) {
             return [];
         }
@@ -471,7 +471,7 @@ function MoneyRequestConfirmationList({
     };
 
     const confirm = useCallback(
-        (paymentMethod: PaymentMethodType | undefined) => {
+        (paymentMethod: IouType | PaymentMethodType | undefined) => {
             if (!selectedParticipants.length) {
                 return;
             }
@@ -496,7 +496,7 @@ function MoneyRequestConfirmationList({
                     return;
                 }
 
-                if (isEditingSplitBill && TransactionUtils.areRequiredFieldsEmpty(transaction)) {
+                if (isEditingSplitBill && TransactionUtils.areRequiredFieldsEmpty(transaction ?? null)) {
                     setDidConfirmSplit(true);
                     return;
                 }
@@ -556,13 +556,12 @@ function MoneyRequestConfirmationList({
                 pressOnEnter
                 isDisabled={shouldDisableButton}
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                onPress={(_event, value) => confirm(value as PaymentMethodType)}
+                onPress={(_event, value) => confirm(value)}
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                 enterKeyEventListenerPriority={1}
             />
         );
-
         return (
             <>
                 {!!formError.length && (
@@ -591,7 +590,7 @@ function MoneyRequestConfirmationList({
     ]);
 
     const {image: receiptImage, thumbnail: receiptThumbnail} =
-        receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : ({} as ReceiptUtils.ThumbnailAndImageURI);
+        receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction ?? null, receiptPath, receiptFilename) : ({} as ReceiptUtils.ThumbnailAndImageURI);
     return (
         // @ts-expect-error This component is deprecated and will not be migrated to TypeScript (context: https://expensify.slack.com/archives/C01GTK53T8Q/p1709232289899589?thread_ts=1709156803.359359&cid=C01GTK53T8Q)
         <OptionsSelector
@@ -667,8 +666,8 @@ function MoneyRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
                     disabled={didConfirm}
-                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    error={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? translate('common.error.enterAmount') : ''}
+                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction ?? null) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    error={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction ?? null) ? translate('common.error.enterAmount') : ''}
                 />
             )}
             <MenuItemWithTopDescription
@@ -716,8 +715,8 @@ function MoneyRequestConfirmationList({
                             }}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
-                            brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            error={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
+                            brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction ?? null) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            error={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction ?? null) ? translate('common.error.enterDate') : ''}
                         />
                     )}
                     {isDistanceRequest && (
@@ -785,7 +784,7 @@ function MoneyRequestConfirmationList({
                             <MenuItemWithTopDescription
                                 key={name}
                                 shouldShowRightIcon={!isReadOnly}
-                                title={TransactionUtils.getTag(transaction, index)}
+                                title={TransactionUtils.getTag(transaction ?? null, index)}
                                 description={name}
                                 numberOfLinesTitle={2}
                                 onPress={() => {

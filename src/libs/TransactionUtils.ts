@@ -140,7 +140,7 @@ function hasReceipt(transaction: Transaction | undefined | null): boolean {
     return !!transaction?.receipt?.state || hasEReceipt(transaction);
 }
 
-function isMerchantMissing(transaction: OnyxEntry<Transaction> | undefined) {
+function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
     if (transaction?.modifiedMerchant && transaction.modifiedMerchant !== '') {
         return transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     }
@@ -156,15 +156,15 @@ function isPartialMerchant(merchant: string): boolean {
     return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 }
 
-function isAmountMissing(transaction: OnyxEntry<Transaction> | undefined) {
+function isAmountMissing(transaction: OnyxEntry<Transaction>) {
     return transaction?.amount === 0 && (!transaction.modifiedAmount || transaction.modifiedAmount === 0);
 }
 
-function isCreatedMissing(transaction: OnyxEntry<Transaction> | undefined) {
+function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
     return transaction?.created === '' && (!transaction.created || transaction.modifiedCreated === '');
 }
 
-function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction> | undefined): boolean {
+function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>): boolean {
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
     const isFromExpenseReport = parentReport?.type === CONST.REPORT.TYPE.EXPENSE;
     const isSplitPolicyExpenseChat = !!transaction?.comment?.splits?.some((participant) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`]?.isOwnPolicyExpenseChat);
@@ -321,7 +321,7 @@ function getOriginalAmount(transaction: Transaction): number {
 /**
  * Verify if the transaction is expecting the distance to be calculated on the server
  */
-function isFetchingWaypointsFromServer(transaction: OnyxEntry<Transaction> | undefined): boolean {
+function isFetchingWaypointsFromServer(transaction: OnyxEntry<Transaction>): boolean {
     return !!transaction?.pendingFields?.waypoints;
 }
 
@@ -402,7 +402,7 @@ function getTagArrayFromName(tagName: string): string[] {
  * Return the tag from the transaction. When the tagIndex is passed, return the tag based on the index.
  * This "tag" field has no "modified" complement.
  */
-function getTag(transaction: OnyxEntry<Transaction> | undefined, tagIndex?: number): string {
+function getTag(transaction: OnyxEntry<Transaction>, tagIndex?: number): string {
     if (tagIndex !== undefined) {
         const tagsArray = getTagArrayFromName(transaction?.tag ?? '');
         return tagsArray[tagIndex] ?? '';
@@ -482,14 +482,14 @@ function isReceiptBeingScanned(transaction: OnyxEntry<Transaction>): boolean {
 /**
  * Check if the transaction has a non-smartscanning receipt and is missing required fields
  */
-function hasMissingSmartscanFields(transaction: OnyxEntry<Transaction> | undefined): boolean {
+function hasMissingSmartscanFields(transaction: OnyxEntry<Transaction>): boolean {
     return Boolean(transaction && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && areRequiredFieldsEmpty(transaction));
 }
 
 /**
  * Check if the transaction has a defined route
  */
-function hasRoute(transaction: OnyxEntry<Transaction> | undefined): boolean {
+function hasRoute(transaction: OnyxEntry<Transaction>): boolean {
     return !!transaction?.routes?.route0?.geometry?.coordinates;
 }
 
