@@ -40,7 +40,7 @@ type EditReportFieldPageProps = EditReportFieldPageOnyxProps & {
 };
 
 function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) {
-    const reportField = report?.reportFields?.[route.params.fieldID] ?? policy?.reportFields?.[route.params.fieldID];
+    const reportField = report?.fieldList?.[route.params.fieldID] ?? policy?.fieldList?.[route.params.fieldID];
     const isDisabled = ReportUtils.isReportFieldDisabled(report, reportField ?? null, policy);
 
     if (!reportField || !report || isDisabled) {
@@ -105,7 +105,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
                 fieldID={reportField.fieldID}
                 fieldName={Str.UCFirst(reportField.name)}
                 fieldValue={fieldValue}
-                fieldOptions={reportField.values}
+                fieldOptions={reportField.values.filter((value) => !(value in reportField.disabledOptions))}
                 onSubmit={handleReportFieldChange}
             />
         );

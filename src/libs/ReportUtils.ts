@@ -2063,7 +2063,7 @@ function getTitleReportField(reportFields: Record<string, PolicyReportField>) {
  * Get the report fields attached to the policy given policyID
  */
 function getReportFieldsByPolicyID(policyID: string) {
-    return Object.entries(allPolicies ?? {}).find(([key]) => key.replace(ONYXKEYS.COLLECTION.POLICY, '') === policyID)?.[1]?.reportFields;
+    return Object.entries(allPolicies ?? {}).find(([key]) => key.replace(ONYXKEYS.COLLECTION.POLICY, '') === policyID)?.[1]?.fieldList;
 }
 
 /**
@@ -2072,7 +2072,7 @@ function getReportFieldsByPolicyID(policyID: string) {
 
 function getAvailableReportFields(report: Report, policyReportFields: PolicyReportField[]): PolicyReportField[] {
     // Get the report fields that are attached to a report. These will persist even if a field is deleted from the policy.
-    const reportFields = Object.values(report.reportFields ?? {});
+    const reportFields = Object.values(report.fieldList ?? {});
     const reportIsSettled = isSettled(report.reportID);
 
     // If the report is settled, we don't want to show any new field that gets added to the policy.
@@ -2083,7 +2083,7 @@ function getAvailableReportFields(report: Report, policyReportFields: PolicyRepo
     // If the report is unsettled, we want to merge the new fields that get added to the policy with the fields that
     // are attached to the report.
     const mergedFieldIds = Array.from(new Set([...policyReportFields.map(({fieldID}) => fieldID), ...reportFields.map(({fieldID}) => fieldID)]));
-    return mergedFieldIds.map((id) => report?.reportFields?.[id] ?? policyReportFields.find(({fieldID}) => fieldID === id)) as PolicyReportField[];
+    return mergedFieldIds.map((id) => report?.fieldList?.[id] ?? policyReportFields.find(({fieldID}) => fieldID === id)) as PolicyReportField[];
 }
 
 /**
@@ -2091,7 +2091,7 @@ function getAvailableReportFields(report: Report, policyReportFields: PolicyRepo
  */
 function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | undefined = undefined): string {
     const isReportSettled = isSettled(report?.reportID ?? '');
-    const reportFields = isReportSettled ? report?.reportFields : getReportFieldsByPolicyID(report?.policyID ?? '');
+    const reportFields = isReportSettled ? report?.fieldList : getReportFieldsByPolicyID(report?.policyID ?? '');
     const titleReportField = getFormulaTypeReportField(reportFields ?? {});
 
     if (titleReportField && report?.reportName && reportFieldsEnabled(report)) {

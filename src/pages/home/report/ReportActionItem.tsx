@@ -921,7 +921,7 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
             prevProps.report?.total === nextProps.report?.total &&
             prevProps.report?.nonReimbursableTotal === nextProps.report?.nonReimbursableTotal &&
             prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
-            lodashIsEqual(prevProps.report.reportFields, nextProps.report.reportFields) &&
+            lodashIsEqual(prevProps.report.fieldList, nextProps.report.fieldList) &&
             lodashIsEqual(prevProps.policy, nextProps.policy) &&
             lodashIsEqual(prevParentReportAction, nextParentReportAction)
         );

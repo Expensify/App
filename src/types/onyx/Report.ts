@@ -171,7 +171,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         selected?: boolean;
 
         /** If the report contains reportFields, save the field id and its value */
-        reportFields?: Record<string, PolicyReportField>;
+        fieldList?: Record<string, PolicyReportField>;
     },
     PolicyReportField['fieldID']
 >;

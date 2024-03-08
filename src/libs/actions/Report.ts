@@ -1617,7 +1617,7 @@ function updateReportField(reportID: string, reportField: PolicyReportField, pre
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                reportFields: {
+                fieldList: {
                     [reportField.fieldID]: reportField,
                 },
                 pendingFields: {
@@ -1627,7 +1627,7 @@ function updateReportField(reportID: string, reportField: PolicyReportField, pre
         },
     ];
 
-    if (reportField.type === 'dropdown') {
+    if (reportField.type === 'dropdown' && reportField.value) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.RECENTLY_USED_REPORT_FIELDS,
@@ -1642,7 +1642,7 @@ function updateReportField(reportID: string, reportField: PolicyReportField, pre
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                reportFields: {
+                fieldList: {
                     [reportField.fieldID]: previousReportField,
                 },
                 pendingFields: {
