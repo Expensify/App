@@ -9,7 +9,6 @@ import playSound, {SOUNDS} from '@libs/Sound';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as IOU from '@userActions/IOU';
 import * as PaymentMethods from '@userActions/PaymentMethods';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -20,8 +19,10 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+import type {PaymentType} from './ButtonWithDropdownMenu/types';
 import * as Expensicons from './Icon/Expensicons';
 import KYCWall from './KYCWall';
+import {useSession} from './OnyxProvider';
 
 type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
 
@@ -134,6 +135,14 @@ function SettlementButton({
         PaymentMethods.openWalletPage();
     }, []);
 
+    const policy = ReportUtils.getPolicy(policyID);
+    const session = useSession();
+    const chatReport = ReportUtils.getReport(chatReportID);
+    const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport as OnyxEntry<Report>);
+    const shouldShowPaywithExpensifyOption =
+        !isPaidGroupPolicy ||
+        (!shouldHidePaymentOptions && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && policy?.reimburserEmail === session?.email);
+
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
         const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
@@ -245,6 +254,7 @@ function SettlementButton({
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu
+                    success
                     buttonRef={buttonRef}
                     isDisabled={isDisabled}
                     isLoading={isLoading}
