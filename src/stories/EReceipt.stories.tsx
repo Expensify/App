@@ -1,14 +1,11 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-
-/* eslint-disable rulesdir/prefer-actions-set-data */
+/* eslint-disable @typescript-eslint/naming-convention, rulesdir/prefer-actions-set-data */
 import type {ComponentMeta, ComponentStory} from '@storybook/react';
 import React from 'react';
-import type {NullishDeep} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {EReceiptOnyxProps, EReceiptProps} from '@components/EReceipt';
 import EReceipt from '@components/EReceipt';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction} from '@src/types/onyx';
+import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 
 type EReceiptStory = ComponentStory<typeof EReceipt>;
 
@@ -154,7 +151,7 @@ const transactionData = {
         created: '2023-01-11 13:46:20',
         hasEReceipt: true,
     },
-} as Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, NullishDeep<Transaction>>;
+} as CollectionDataSet<typeof ONYXKEYS.COLLECTION.TRANSACTION>;
 
 Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, transactionData);
 Onyx.merge('cardList', {

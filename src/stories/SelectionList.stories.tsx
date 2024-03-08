@@ -110,7 +110,7 @@ function WithTextInput(props: BaseSelectionListProps<ListItem>) {
     const [selectedIndex, setSelectedIndex] = useState(1);
 
     const sections = props.sections.map((section) => {
-        const data = section.data.reduce<Array<ListItem & {isSelected: boolean}>>((memo, item, index) => {
+        const data = section.data.reduce<ListItem[]>((memo, item, index) => {
             if (!item.text.toLowerCase().includes(searchText.trim().toLowerCase())) {
                 return memo;
             }
@@ -210,9 +210,7 @@ function WithAlternateText(props: BaseSelectionListProps<ListItem>) {
 }
 
 WithAlternateText.args = {
-    sections: SECTIONS,
-    onSelectRow: () => {},
-    initiallyFocusedOptionKey: 'option-2',
+    ...Default.args,
 };
 
 function MultipleSelection(props: BaseSelectionListProps<ListItem>) {
@@ -250,7 +248,7 @@ function MultipleSelection(props: BaseSelectionListProps<ListItem>) {
     }, [props.sections, selectedIds]);
 
     const onSelectRow = (item: ListItem) => {
-        const newSelectedIds = selectedIds.includes(item.keyForList) ? selectedIds.filter((i) => i !== item.keyForList) : [...selectedIds, item.keyForList];
+        const newSelectedIds = selectedIds.includes(item.keyForList) ? selectedIds.filter((id) => id !== item.keyForList) : [...selectedIds, item.keyForList];
         setSelectedIds(newSelectedIds);
     };
 
@@ -315,7 +313,7 @@ function WithSectionHeader(props: BaseSelectionListProps<ListItem>) {
     }, [props.sections, selectedIds]);
 
     const onSelectRow = (item: ListItem) => {
-        const newSelectedIds = selectedIds.includes(item.keyForList) ? selectedIds.filter((i) => i !== item.keyForList) : [...selectedIds, item.keyForList];
+        const newSelectedIds = selectedIds.includes(item.keyForList) ? selectedIds.filter((id) => id !== item.keyForList) : [...selectedIds, item.keyForList];
         setSelectedIds(newSelectedIds);
     };
 
@@ -378,7 +376,7 @@ function WithConfirmButton(props: BaseSelectionListProps<ListItem>) {
     }, [props.sections, selectedIds]);
 
     const onSelectRow = (item: ListItem) => {
-        const newSelectedIds = selectedIds.includes(item.keyForList) ? selectedIds.filter((i) => i !== item.keyForList) : [...selectedIds, item.keyForList];
+        const newSelectedIds = selectedIds.includes(item.keyForList) ? selectedIds.filter((id) => id !== item.keyForList) : [...selectedIds, item.keyForList];
         setSelectedIds(newSelectedIds);
     };
 
