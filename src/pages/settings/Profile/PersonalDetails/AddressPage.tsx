@@ -48,6 +48,7 @@ function AddressPage({privatePersonalDetails, route}: AddressPageProps) {
     usePrivatePersonalDetails();
     const {translate} = useLocalize();
     const address = useMemo(() => privatePersonalDetails?.address, [privatePersonalDetails]);
+
     const countryFromUrlTemp = route?.params?.country;
     // Check if country is valid
     const countryFromUrl = CONST.ALL_COUNTRIES[countryFromUrlTemp as keyof typeof CONST.ALL_COUNTRIES] ? countryFromUrlTemp : '';
