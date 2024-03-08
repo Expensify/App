@@ -67,7 +67,7 @@ function Icon({
 }: IconProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
-    const {width: iconWidth, height: iconHeight} = StyleUtils.getIconWidthAndHeightStyle(small, medium, large, width, height)
+    const {width: iconWidth, height: iconHeight} = StyleUtils.getIconWidthAndHeightStyle(small, medium, large, width, height);
     const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, styles.pAbsolute, additionalStyles];
 
     if (inline) {
