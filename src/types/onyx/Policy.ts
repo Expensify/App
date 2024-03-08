@@ -128,16 +128,6 @@ type IntegrationEntityMap = 'NONE' | 'DEFAULT' | 'TAG' | 'REPORT_FIELD';
 
 type ConnectionConfig = {
     realmId: string;
-    credentials: {
-        access_token: string;
-        refresh_token: string;
-        expires: number;
-        companyID: string;
-        realmId: string;
-        scope: string;
-        companyName: string;
-        token_type: string;
-    };
     companyName: string;
     autoSync: {
         jobID: string;
