@@ -88,6 +88,20 @@ type Connection = {
 
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
+type PendingJoinRequestPolicy = {
+    isJoinRequestPending: boolean;
+    policyDetailsForNonMembers: Record<
+        string,
+        OnyxCommon.OnyxValueWithOfflineFeedback<{
+            name: string;
+            ownerAccountID: number;
+            ownerEmail: string;
+            type: ValueOf<typeof CONST.POLICY.TYPE>;
+            avatar?: string;
+        }>
+    >;
+};
+
 type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** The ID of the policy */
@@ -250,10 +264,10 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the Connections feature is enabled */
         areConnectionsEnabled?: boolean;
-    },
+    } & Partial<PendingJoinRequestPolicy>,
     'generalSettings' | 'addWorkspaceRoom'
 >;
 
 export default Policy;
 
-export type {Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault};
+export type {Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault, PendingJoinRequestPolicy};
