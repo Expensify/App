@@ -17,6 +17,7 @@ import type {
     DeleteWorkspaceParams,
     OpenDraftWorkspaceRequestParams,
     OpenPolicyCategoriesPageParams,
+    OpenPolicyDistanceRatesPageParams,
     OpenWorkspaceInvitePageParams,
     OpenWorkspaceMembersPageParams,
     OpenWorkspaceParams,
@@ -2758,6 +2759,16 @@ function declineJoinRequest(reportID: string, reportAction: OnyxEntry<ReportActi
     API.write(WRITE_COMMANDS.DECLINE_JOIN_REQUEST, parameters, {optimisticData, failureData, successData});
 }
 
+function openPolicyDistanceRatesPage(policyID?: string) {
+    if (!policyID) {
+        return;
+    }
+
+    const params: OpenPolicyDistanceRatesPageParams = {policyID};
+
+    API.read(READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE, params);
+}
+
 export {
     removeMembers,
     updateWorkspaceMembersRole,
@@ -2812,4 +2823,5 @@ export {
     declineJoinRequest,
     createPolicyCategory,
     clearCategoryErrors,
+    openPolicyDistanceRatesPage,
 };
