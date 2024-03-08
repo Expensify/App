@@ -52,7 +52,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
 
     const accountID = Number(route.params.accountID);
     const policyID = route.params.policyID;
-    const backTo = route.params.backTo ?? ('' as Route);
 
     const member = policyMembers?.[accountID];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
@@ -87,7 +86,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
     }, [accountID, backTo, policyID]);
 
     const navigateToProfile = useCallback(() => {
-        Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.PROFILE.getRoute(accountID));
     }, [accountID]);
 
     const openRoleSelectionModal = useCallback(() => {
@@ -107,7 +106,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
                     <HeaderWithBackButton
                         title={displayName}
                         subtitle={policy?.name}
-                        onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
                     <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
                         <View style={[styles.avatarSectionWrapper, styles.pb0]}>
