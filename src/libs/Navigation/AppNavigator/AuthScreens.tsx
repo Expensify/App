@@ -63,6 +63,7 @@ const loadConciergePage = () => require('../../../pages/ConciergePage').default 
 const loadProfileAvatar = () => require('../../../pages/settings/Profile/ProfileAvatar').default as React.ComponentType;
 const loadWorkspaceAvatar = () => require('../../../pages/workspace/WorkspaceAvatar').default as React.ComponentType;
 const loadReportAvatar = () => require('../../../pages/ReportAvatar').default as React.ComponentType;
+const loadWorkspaceJoinUser = () => require('@pages/workspace/WorkspaceJoinUserPage').default as React.ComponentType;
 
 let timezone: Timezone | null;
 let currentAccountID = -1;
@@ -81,8 +82,7 @@ Onyx.connect({
         currentAccountID = value.accountID ?? -1;
 
         if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
-            // This means sign in in RHP was successful, so we can dismiss the modal and subscribe to user events
-            Navigation.dismissModal();
+            // This means sign in in RHP was successful, so we can subscribe to user events
             User.subscribeToUserEvents();
         }
     },
@@ -170,8 +170,9 @@ function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = f
         const shouldGetAllData = !!isUsingMemoryOnlyKeys || SessionUtils.didUserLogInDuringSession();
         // Sign out the current user if we're transitioning with a different user
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
+        const isSupportalTransition = currentUrl.includes('authTokenType=support');
         if (isLoggingInAsNewUser && isTransitioning) {
-            Session.signOutAndRedirectToSignIn();
+            Session.signOutAndRedirectToSignIn(false, isSupportalTransition);
             return;
         }
 
@@ -355,6 +356,14 @@ function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = f
                     name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
                     options={screenOptions.fullScreen}
                     component={DesktopSignInRedirectPage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.WORKSPACE_JOIN_USER}
+                    options={{
+                        headerShown: false,
+                        presentation: 'transparentModal',
+                    }}
+                    getComponent={loadWorkspaceJoinUser}
                 />
             </RootStack.Navigator>
         </View>
