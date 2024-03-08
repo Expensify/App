@@ -3,7 +3,7 @@ import {ActivityIndicator, Image, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import {Gesture, GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
-import {interpolate, runOnUI, useSharedValue, useWorkletCallback} from 'react-native-reanimated';
+import {clamp, interpolate, runOnUI, useSharedValue, useWorkletCallback} from 'react-native-reanimated';
 import Button from '@components/Button';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -133,11 +133,6 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
     }, [imageUri, originalImageHeight, originalImageWidth, rotation, translateSlider]);
 
     /**
-     * Validates that value is within the provided mix/max range.
-     */
-    const clamp = useWorkletCallback((value: number, [min, max]) => interpolate(value, [min, max], [min, max], 'clamp'), []);
-
-    /**
      * Returns current image size taking into account scale and rotation.
      */
     const getDisplayedImageSize = useWorkletCallback(() => {
@@ -163,12 +158,12 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
             const {height, width} = getDisplayedImageSize();
             const maxOffsetX = (width - imageContainerSize) / 2;
             const maxOffsetY = (height - imageContainerSize) / 2;
-            translateX.value = clamp(offsetX, [maxOffsetX * -1, maxOffsetX]);
-            translateY.value = clamp(offsetY, [maxOffsetY * -1, maxOffsetY]);
+            translateX.value = clamp(offsetX, maxOffsetX * -1, maxOffsetX);
+            translateY.value = clamp(offsetY, maxOffsetY * -1, maxOffsetY);
             prevMaxOffsetX.value = maxOffsetX;
             prevMaxOffsetY.value = maxOffsetY;
         },
-        [imageContainerSize, scale, clamp],
+        [imageContainerSize, scale],
     );
 
     const newScaleValue = useWorkletCallback((newSliderValue: number, containerSize: number) => {
@@ -224,7 +219,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
         onChange: (event: GestureUpdateEvent<PanGestureHandlerEventPayload & PanGestureChangeEventPayload>) => {
             'worklet';
 
-            const newSliderValue = clamp(translateSlider.value + event.changeX, [0, sliderContainerSize]);
+            const newSliderValue = clamp(translateSlider.value + event.changeX, 0, sliderContainerSize);
             const newScale = newScaleValue(newSliderValue, sliderContainerSize);
 
             const differential = newScale / scale.value;
@@ -325,7 +320,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
         if (!locationX || !isPressableEnabled.value) {
             return;
         }
-        const newSliderValue = clamp(locationX, [0, sliderContainerSize]);
+        const newSliderValue = clamp(locationX, 0, sliderContainerSize);
         const newScale = newScaleValue(newSliderValue, sliderContainerSize);
         translateSlider.value = newSliderValue;
         const differential = newScale / scale.value;
