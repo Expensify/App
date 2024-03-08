@@ -106,7 +106,7 @@ type TaxCode = {
     name: string;
 };
 
-type QuickBooksOnlineConnectionData = {
+type QBOConnectionData = {
     country: string;
     edition: string;
     homeCurrency: string;
@@ -161,7 +161,7 @@ type Connection<ConnectionData, ConnectionConfig> = {
 };
 
 type Connections = {
-    quickbooksOnline: Connection<QuickBooksOnlineConnectionData, QBOConnectionConfig>;
+    quickbooksOnline: Connection<QBOConnectionData, QBOConnectionConfig>;
 };
 
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
