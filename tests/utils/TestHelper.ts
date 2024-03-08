@@ -1,4 +1,5 @@
 import Str from 'expensify-common/lib/str';
+import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import * as Session from '@src/libs/actions/Session';
@@ -18,7 +19,13 @@ type MockFetch = ReturnType<typeof jest.fn> & {
     resume?: () => Promise<void>;
 };
 
-type Response = {ok: boolean; json: () => Promise<{jsonCode: number}>};
+type Response = {
+    ok?: boolean;
+    json?: () => Promise<{jsonCode: number}>;
+    jsonCode?: number;
+    onyxData?: OnyxUpdate[];
+};
+
 type QueueItem = (value: Response | PromiseLike<Response>) => void;
 
 type FormData = {
@@ -51,7 +58,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
 
     HttpUtils.xhr = jest.fn().mockImplementation(() => {
         // Your mocked response object
-        const mockedResponse = {
+        const mockedResponse: Response = {
             onyxData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,

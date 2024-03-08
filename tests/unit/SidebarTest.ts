@@ -59,11 +59,11 @@ describe('Sidebar', () => {
                 waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() => {
-                        const reportCollection = {
+                        const reportCollection: ReportActionCollectionDataSet = {
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                         } as ReportCollectionDataSet;
 
-                        const reportAction = {
+                        const reportAction: ReportActionCollectionDataSet = {
                             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionID]: action},
                         } as ReportActionCollectionDataSet;
 
@@ -111,11 +111,11 @@ describe('Sidebar', () => {
                 waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() => {
-                        const reportCollection = {
+                        const reportCollection: ReportCollectionDataSet = {
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                         } as ReportCollectionDataSet;
 
-                        const reportAction = {
+                        const reportAction: ReportActionCollectionDataSet = {
                             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionID]: action},
                         } as ReportActionCollectionDataSet;
 
