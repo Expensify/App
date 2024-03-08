@@ -121,7 +121,7 @@ function saveFocusState(id: ModalId, isInUploadingContext = false, shouldClearFo
  */
 function focus(input: InputElement, shouldIgnoreFocused = false) {
     const activeInput = getActiveInput();
-    if (!input || activeInput && !shouldIgnoreFocused) {
+    if (!input || (activeInput && !shouldIgnoreFocused)) {
         return;
     }
     isWindowReadyToFocus().then(() => input.focus());
