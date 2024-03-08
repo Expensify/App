@@ -83,7 +83,7 @@ function ListEmptyComponent() {
 }
 
 function BaseEmojiPickerMenu(
-    {headerEmojis, scrollToHeader, isFiltered, listWrapperStyle, data, renderItem, stickyHeaderIndices, extraData, alwaysBounceVertical}: BaseEmojiPickerMenuProps,
+    {headerEmojis, scrollToHeader, isFiltered, listWrapperStyle = [], data, renderItem, stickyHeaderIndices = [], extraData = [], alwaysBounceVertical = false}: BaseEmojiPickerMenuProps,
     forwardedRef: LegacyRef<FlashList<Emoji | HeaderEmoji | EmojiSpacer>>,
 ) {
     const styles = useThemeStyles();

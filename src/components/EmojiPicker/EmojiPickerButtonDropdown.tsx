@@ -30,8 +30,11 @@ type EmojiPickerButtonDropdownProps = {
     style: StyleProp<ViewStyle>;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function EmojiPickerButtonDropdown({isDisabled, onModalHide, onInputChange, value, disabled, style}: EmojiPickerButtonDropdownProps, forwardedRef: ForwardedRef<AnimatedTextInputRef>) {
+function EmojiPickerButtonDropdown(
+    {isDisabled = false, onModalHide, onInputChange, value, disabled, style}: EmojiPickerButtonDropdownProps,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    forwardedRef: ForwardedRef<AnimatedTextInputRef>,
+) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);

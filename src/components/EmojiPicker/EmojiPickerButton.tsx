@@ -30,7 +30,7 @@ type EmojiPickerButtonProps = WithNavigationFocusProps & {
     onEmojiSelected: EmojiPickerAction.OnEmojiSelected;
 };
 
-function EmojiPickerButton({isDisabled, id, emojiPickerID, shiftVertical, isFocused, onModalHide, onEmojiSelected}: EmojiPickerButtonProps) {
+function EmojiPickerButton({isDisabled = false, id = '', emojiPickerID = '', shiftVertical = 0, isFocused, onModalHide, onEmojiSelected}: EmojiPickerButtonProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
