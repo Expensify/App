@@ -2702,13 +2702,6 @@ function enablePolicyConnections(policyID: string, isEnabled: boolean) {
         successData,
         failureData,
     });
-
-    // TODO: Integrate navigation to a screen, once it appears
-    // if (isEnabled) {
-    //     const navigationAction = getIsNarrowLayout() ? Navigation.goBack : () => Navigation.navigate(ROUTES.WORKSPACE_.getRoute(policyID));
-
-    //     navigationAction();
-    // }
 }
 
 function enablePolicyDistanceRates(policyID: string, isEnabled: boolean) {
@@ -2758,13 +2751,6 @@ function enablePolicyDistanceRates(policyID: string, isEnabled: boolean) {
         successData,
         failureData,
     });
-
-    // TODO: Integrate navigation to a screen, once it appears
-    // if (isEnabled) {
-    //     const navigationAction = getIsNarrowLayout() ? Navigation.goBack : () => Navigation.navigate(ROUTES.WORKSPACE_.getRoute(policyID));
-
-    //     navigationAction();
-    // }
 }
 
 function enablePolicyReportFields(policyID: string, isEnabled: boolean) {
@@ -2814,13 +2800,6 @@ function enablePolicyReportFields(policyID: string, isEnabled: boolean) {
         successData,
         failureData,
     });
-
-    // TODO: Integrate navigation to a screen, once it appears
-    // if (isEnabled) {
-    //     const navigationAction = getIsNarrowLayout() ? Navigation.goBack : () => Navigation.navigate(ROUTES.WORKSPACE_.getRoute(policyID));
-
-    //     navigationAction();
-    // }
 }
 
 function enablePolicyTags(policyID: string, isEnabled: boolean) {
@@ -2929,13 +2908,6 @@ function enablePolicyTaxes(policyID: string, isEnabled: boolean) {
         successData,
         failureData,
     });
-
-    // TODO: Integrate navigation to a screen, once it appears
-    // if (isEnabled) {
-    //     const navigationAction = getIsNarrowLayout() ? Navigation.goBack : () => Navigation.navigate(ROUTES.WORKSPACE_.getRoute(policyID));
-
-    //     navigationAction();
-    // }
 }
 
 function enablePolicyWorkflows(policyID: string, isEnabled: boolean) {
