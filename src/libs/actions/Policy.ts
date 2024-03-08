@@ -1884,7 +1884,7 @@ function openPolicyCategoriesPage(policyID: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_CATEGORIES_PAGE, params);
 }
 
-function OpenPolicyTagsPage(policyID: string) {
+function openPolicyTagsPage(policyID: string) {
     if (!policyID) {
         Log.warn('openPolicyTasgPage invalid params', {policyID});
         return;
@@ -2844,7 +2844,7 @@ export {
     createWorkspace,
     openWorkspaceMembersPage,
     openPolicyCategoriesPage,
-    OpenPolicyTagsPage,
+    openPolicyTagsPage,
     openWorkspaceInvitePage,
     openWorkspace,
     removeWorkspace,

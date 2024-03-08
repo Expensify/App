@@ -53,7 +53,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
     const [selectedTags, setSelectedTags] = useState<Record<string, boolean>>({});
 
     function fetchTags() {
-        Policy.OpenPolicyTagsPage(route.params.policyID);
+        Policy.openPolicyTagsPage(route.params.policyID);
     }
 
     const {isOffline} = useNetwork({onReconnect: fetchTags});
