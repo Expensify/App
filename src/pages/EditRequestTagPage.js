@@ -16,7 +16,7 @@ const propTypes = {
     policyID: PropTypes.string.isRequired,
 
     /** The tag name to which the default tag belongs to */
-    tagName: PropTypes.string,
+    tagListName: PropTypes.string,
 
     /** The index of a tag list */
     tagIndex: PropTypes.number.isRequired,
@@ -26,10 +26,10 @@ const propTypes = {
 };
 
 const defaultProps = {
-    tagName: '',
+    tagListName: '',
 };
 
-function EditRequestTagPage({defaultTag, policyID, tagName, tagIndex, onSubmit}) {
+function EditRequestTagPage({defaultTag, policyID, tagListName, tagIndex, onSubmit}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -46,13 +46,13 @@ function EditRequestTagPage({defaultTag, policyID, tagName, tagIndex, onSubmit})
             {({insets}) => (
                 <>
                     <HeaderWithBackButton
-                        title={tagName || translate('common.tag')}
+                        title={tagListName || translate('common.tag')}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: tagName || translate('common.tag')})}</Text>
+                    <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagListName: tagListName || translate('common.tag')})}</Text>
                     <TagPicker
                         selectedTag={defaultTag}
-                        tagListName={tagName}
+                        tagListName={tagListName}
                         tagIndex={tagIndex}
                         policyID={policyID}
                         shouldShowDisabledAndSelectedOption

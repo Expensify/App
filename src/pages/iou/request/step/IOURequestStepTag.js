@@ -122,7 +122,7 @@ function IOURequestStepTag({
         >
             {({insets}) => (
                 <>
-                    <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: policyTagListName})}</Text>
+                    <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagListName: policyTagListName})}</Text>
                     <TagPicker
                         policyID={report.policyID}
                         tagListName={policyTagListName}

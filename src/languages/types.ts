@@ -210,7 +210,7 @@ type UpdatedTheDistanceParams = {newDistanceToDisplay: string; oldDistanceToDisp
 
 type FormattedMaxLengthParams = {formattedMaxLength: string};
 
-type TagSelectionParams = {tagName: string};
+type TagSelectionParams = {tagListName: string};
 
 type WalletProgramParams = {walletProgram: string};
 
