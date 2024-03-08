@@ -40,8 +40,9 @@ function PolicyNewDistanceRatePage({policy, route}: PolicyDistanceRatePageProps)
         const newRate: Rate = {
             currency,
             name: CONST.CUSTOM_UNITS.DEFAULT_RATE,
-            rate: Number(values.rate),
+            rate: parseFloat(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
             customUnitRateID,
+            enabled: true,
         };
 
         createPolicyDistanceRate(route.params.policyID, customUnitID, newRate);
@@ -51,7 +52,11 @@ function PolicyNewDistanceRatePage({policy, route}: PolicyDistanceRatePageProps)
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <ScreenWrapper testID={PolicyNewDistanceRatePage.displayName}>
+                <ScreenWrapper
+                    includeSafeAreaPaddingBottom={false}
+                    style={[styles.defaultModalContainer]}
+                    testID={PolicyNewDistanceRatePage.displayName}
+                >
                     <HeaderWithBackButton title={translate('workspace.distanceRates.addRate')} />
                     <FormProvider
                         formID={ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM}
@@ -77,7 +82,7 @@ function PolicyNewDistanceRatePage({policy, route}: PolicyDistanceRatePageProps)
     );
 }
 
-PolicyNewDistanceRatePage.displayName = 'CreateDistanceRatePage';
+PolicyNewDistanceRatePage.displayName = 'PolicyNewDistanceRatePage';
 
 export default withOnyx<PolicyDistanceRatePageProps, PolicyNewDistanceRatePageOnyxProps>({
     policy: {

@@ -14,6 +14,7 @@ import type {
     CreateWorkspaceFromIOUPaymentParams,
     CreateWorkspaceParams,
     DeleteMembersFromWorkspaceParams,
+    DeletePolicyDistanceRatesParams,
     DeleteWorkspaceAvatarParams,
     DeleteWorkspaceParams,
     OpenDraftWorkspaceRequestParams,
@@ -2719,7 +2720,11 @@ function openPolicyDistanceRatesPage(policyID?: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE, params);
 }
 
-function createPolicyDistanceRate(policyID: string, customUnitID: string, customUnitRate: Rate) {
+function createPolicyDistanceRate(customUnitRate: Rate, customUnitID: string, policyID?: string) {
+    if (!policyID) {
+        return;
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2739,6 +2744,25 @@ function createPolicyDistanceRate(policyID: string, customUnitID: string, custom
         },
     ];
 
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnitID]: {
+                        rates: {
+                            [customUnitRate.customUnitRateID ?? '']: {
+                                errors: null,
+                                pendingAction: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2749,7 +2773,7 @@ function createPolicyDistanceRate(policyID: string, customUnitID: string, custom
                         rates: {
                             [customUnitRate.customUnitRateID ?? '']: {
                                 errors: ErrorUtils.getMicroSecondOnyxError('workspace.distanceRates.errors.createRateGenericFailureMessage'),
-                                pendingAction: null,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                             },
                         },
                     },
@@ -2761,10 +2785,103 @@ function createPolicyDistanceRate(policyID: string, customUnitID: string, custom
     const params: CreatePolicyDistanceRateParams = {
         policyID,
         customUnitID,
-        customUnitRate,
+        customUnitRate: JSON.stringify(customUnitRate),
     };
 
-    API.write(WRITE_COMMANDS.CREATE_POLICY_DISTANCE_RATE, params, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.CREATE_POLICY_DISTANCE_RATE, params, {optimisticData, successData, failureData});
+}
+
+function clearCreateDistanceRateError(policyID: string, currentRates: Record<string, Rate>, customUnitID?: string, customUnitRateIDToClear?: string) {
+    if (!policyID || !customUnitID || !customUnitRateIDToClear) {
+        return;
+    }
+
+    const updatedRates = {...currentRates};
+    delete updatedRates[customUnitRateIDToClear];
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        customUnits: {
+            [customUnitID]: {
+                rates: updatedRates,
+            },
+        },
+    });
+}
+
+function deletePolicyDistanceRates(policyID: string, rateIDsToDelete: string[], customUnit?: CustomUnit) {
+    if (!policyID || !rateIDsToDelete || !customUnit) {
+        return;
+    }
+
+    const currentRates = customUnit.rates;
+    const optimisticRates: Record<string, Rate> = {};
+    const successRates: Record<string, Rate> = {};
+
+    Object.keys(customUnit.rates).forEach((rateID) => {
+        if (rateIDsToDelete.includes(rateID)) {
+            optimisticRates[rateID] = {
+                ...customUnit.rates[rateID],
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            };
+            successRates[rateID] = {
+                ...customUnit.rates[rateID],
+                pendingAction: null,
+            };
+        } else {
+            optimisticRates[rateID] = customUnit.rates[rateID];
+            successRates[rateID] = customUnit.rates[rateID];
+        }
+    });
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnit.customUnitID]: {
+                        rates: optimisticRates,
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnit.customUnitID]: {
+                        rates: successRates,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnit.customUnitID]: {
+                        rates: currentRates,
+                    },
+                    errors: ErrorUtils.getMicroSecondOnyxError('workspace.distanceRates.errors.deleteRateGenericFailureMessage'),
+                },
+            },
+        },
+    ];
+
+    const params: DeletePolicyDistanceRatesParams = {
+        policyID,
+        customUnitRateIDs: rateIDsToDelete,
+    };
+
+    API.write(WRITE_COMMANDS.DELETE_POLICY_DISTANCE_RATES, params, {optimisticData, successData, failureData});
 }
 
 export {
@@ -2824,4 +2941,6 @@ export {
     openPolicyDistanceRatesPage,
     generateCustomUnitID,
     createPolicyDistanceRate,
+    clearCreateDistanceRateError,
+    deletePolicyDistanceRates,
 };

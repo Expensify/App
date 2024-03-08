@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -13,6 +13,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import TableListItem from '@components/SelectionList/TableListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -33,13 +34,7 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 
-type RateForList = {
-    value: string;
-    text: string;
-    keyForList: string;
-    isSelected: boolean;
-    rightElement: React.ReactNode;
-};
+type RateForList = ListItem & {value: string};
 
 type PolicyDistanceRatesPageOnyxProps = {
     /** Policy details */
@@ -56,6 +51,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     const [selectedDistanceRates, setSelectedDistanceRates] = useState<Rate[]>([]);
     const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
     const dropdownButtonRef = useRef(null);
+    const policyID = route.params.policyID;
 
     const customUnit: CustomUnit | undefined = useMemo(
         () => (policy?.customUnits !== undefined ? policy?.customUnits[Object.keys(policy?.customUnits)[0]] : undefined),
@@ -64,8 +60,18 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     const customUnitRates: Record<string, Rate> = useMemo(() => customUnit?.rates ?? {}, [customUnit]);
 
     function fetchDistanceRates() {
-        Policy.openPolicyDistanceRatesPage(route.params.policyID);
+        Policy.openPolicyDistanceRatesPage(policyID);
     }
+
+    const dismissError = useCallback(
+        (item: RateForList) => {
+            if (item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+                return;
+            }
+            Policy.clearCreateDistanceRateError(policyID, customUnitRates, customUnit?.customUnitID, item.value);
+        },
+        [customUnit?.customUnitID, customUnitRates, policyID],
+    );
 
     const {isOffline} = useNetwork({onReconnect: fetchDistanceRates});
 
@@ -83,6 +89,8 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                 )}`,
                 keyForList: value.customUnitRateID ?? '',
                 isSelected: selectedDistanceRates.find((rate) => rate.customUnitRateID === value.customUnitRateID) !== undefined,
+                pendingAction: value.pendingAction,
+                errors: value.errors ?? undefined,
                 rightElement: (
                     <View style={styles.flexRow}>
                         <Text style={[styles.alignSelfCenter, !value.enabled && styles.textSupporting]}>
@@ -101,15 +109,15 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     );
 
     const addRate = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(route.params.policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyID));
     };
 
     const openSettings = () => {
-        // Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(route.params.policyID));
+        // Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID));
     };
 
     const editRate = () => {
-        // Navigation.navigate(ROUTES.WORKSPACE_EDIT_DISTANCE_RATE.getRoute(route.params.policyID, rateID));
+        // Navigation.navigate(ROUTES.WORKSPACE_EDIT_DISTANCE_RATE.getRoute(policyID, rateID));
     };
 
     const disableRates = () => {
@@ -127,7 +135,12 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
 
     const deleteRates = () => {
         if (selectedDistanceRates.length !== Object.values(customUnitRates).length) {
-            // run deleteWorkspaceDistanceRates for all selected rows
+            Policy.deletePolicyDistanceRates(
+                policyID,
+                selectedDistanceRates.map((rate) => rate.customUnitRateID ?? ''),
+                customUnit,
+            );
+            setSelectedDistanceRates([]);
             return;
         }
 
@@ -232,8 +245,8 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     );
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
+        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
+            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
                 <ScreenWrapper
                     includeSafeAreaPaddingBottom={false}
                     style={[styles.defaultModalContainer]}
@@ -266,6 +279,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                             onCheckboxPress={toggleRate}
                             sections={[{data: distanceRatesList, indexOffset: 0, isDisabled: false}]}
                             onSelectRow={editRate}
+                            onDismissError={dismissError}
                             showScrollIndicator
                             customListHeader={getCustomListHeader()}
                             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
