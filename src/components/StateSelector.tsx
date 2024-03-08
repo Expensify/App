@@ -15,7 +15,7 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 type State = keyof typeof COMMON_CONST.STATES;
 
 type StateSelectorProps = {
-    /** Form error text. e.g when no country is selected */
+    /** Form error text. e.g when no state is selected */
     errorText?: MaybePhraseKey;
 
     /** Current selected state  */
