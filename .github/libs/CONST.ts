@@ -29,4 +29,4 @@ const CONST: Const = {
 CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
 CONST.APP_REPO_GIT_URL = `git@github.com:${CONST.GITHUB_OWNER}/${CONST.APP_REPO}.git`;
 
-export default CONST;
+module.exports = CONST;
