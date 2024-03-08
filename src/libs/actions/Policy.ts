@@ -2610,7 +2610,6 @@ function enablePolicyCategories(policyID: string, isEnabled: boolean) {
                 pendingFields: {
                     areCategoriesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
         },
     ];
@@ -2622,7 +2621,6 @@ function enablePolicyCategories(policyID: string, isEnabled: boolean) {
                 pendingFields: {
                     areCategoriesEnabled: null,
                 },
-                pendingAction: null,
             },
         },
     ];
@@ -2635,7 +2633,6 @@ function enablePolicyCategories(policyID: string, isEnabled: boolean) {
                 pendingFields: {
                     areCategoriesEnabled: null,
                 },
-                pendingAction: null,
             },
         },
     ];
@@ -2665,7 +2662,6 @@ function enablePolicyConnections(policyID: string, isEnabled: boolean) {
                 pendingFields: {
                     areConnectionsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
         },
     ];
@@ -2677,7 +2673,6 @@ function enablePolicyConnections(policyID: string, isEnabled: boolean) {
                 pendingFields: {
                     areConnectionsEnabled: null,
                 },
-                pendingAction: null,
             },
         },
     ];
@@ -2690,7 +2685,6 @@ function enablePolicyConnections(policyID: string, isEnabled: boolean) {
                 pendingFields: {
                     areConnectionsEnabled: null,
                 },
-                pendingAction: null,
             },
         },
     ];
@@ -2714,7 +2708,6 @@ function enablePolicyDistanceRates(policyID: string, isEnabled: boolean) {
                 pendingFields: {
                     areDistanceRatesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
         },
     ];
@@ -2726,7 +2719,6 @@ function enablePolicyDistanceRates(policyID: string, isEnabled: boolean) {
                 pendingFields: {
                     areDistanceRatesEnabled: null,
                 },
-                pendingAction: null,
             },
         },
     ];
@@ -2739,7 +2731,6 @@ function enablePolicyDistanceRates(policyID: string, isEnabled: boolean) {
                 pendingFields: {
                     areDistanceRatesEnabled: null,
                 },
-                pendingAction: null,
             },
         },
     ];
@@ -2763,7 +2754,6 @@ function enablePolicyReportFields(policyID: string, isEnabled: boolean) {
                 pendingFields: {
                     areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
         },
     ];
@@ -2775,7 +2765,6 @@ function enablePolicyReportFields(policyID: string, isEnabled: boolean) {
                 pendingFields: {
                     areReportFieldsEnabled: null,
                 },
-                pendingAction: null,
             },
         },
     ];
@@ -2788,7 +2777,6 @@ function enablePolicyReportFields(policyID: string, isEnabled: boolean) {
                 pendingFields: {
                     areReportFieldsEnabled: null,
                 },
-                pendingAction: null,
             },
         },
     ];
@@ -2812,7 +2800,6 @@ function enablePolicyTags(policyID: string, isEnabled: boolean) {
                 pendingFields: {
                     areTagsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
         },
     ];
@@ -2824,7 +2811,6 @@ function enablePolicyTags(policyID: string, isEnabled: boolean) {
                 pendingFields: {
                     areTagsEnabled: null,
                 },
-                pendingAction: null,
             },
         },
     ];
@@ -2837,7 +2823,6 @@ function enablePolicyTags(policyID: string, isEnabled: boolean) {
                 pendingFields: {
                     areTagsEnabled: null,
                 },
-                pendingAction: null,
             },
         },
     ];
@@ -2869,7 +2854,6 @@ function enablePolicyTaxes(policyID: string, isEnabled: boolean) {
                 pendingFields: {
                     tax: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
         },
     ];
@@ -2881,7 +2865,6 @@ function enablePolicyTaxes(policyID: string, isEnabled: boolean) {
                 pendingFields: {
                     tax: null,
                 },
-                pendingAction: null,
             },
         },
     ];
@@ -2896,7 +2879,6 @@ function enablePolicyTaxes(policyID: string, isEnabled: boolean) {
                 pendingFields: {
                     tax: null,
                 },
-                pendingAction: null,
             },
         },
     ];
@@ -2920,7 +2902,6 @@ function enablePolicyWorkflows(policyID: string, isEnabled: boolean) {
                 pendingFields: {
                     areWorkflowsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
         },
     ];
@@ -2932,7 +2913,6 @@ function enablePolicyWorkflows(policyID: string, isEnabled: boolean) {
                 pendingFields: {
                     areWorkflowsEnabled: null,
                 },
-                pendingAction: null,
             },
         },
     ];
@@ -2945,7 +2925,6 @@ function enablePolicyWorkflows(policyID: string, isEnabled: boolean) {
                 pendingFields: {
                     areWorkflowsEnabled: null,
                 },
-                pendingAction: null,
             },
         },
     ];

@@ -49,7 +49,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.distanceRates.title',
             subtitleTranslationKey: 'workspace.moreFeatures.distanceRates.subtitle',
             isActive: policy?.areDistanceRatesEnabled ?? false,
-            pendingAction: policy?.pendingFields?.areDistanceRatesEnabled && policy.pendingAction,
+            pendingAction: policy?.pendingFields?.areDistanceRatesEnabled,
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyDistanceRates(policy?.id ?? '', isEnabled);
             },
@@ -59,7 +59,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.workflows.title',
             subtitleTranslationKey: 'workspace.moreFeatures.workflows.subtitle',
             isActive: policy?.areWorkflowsEnabled ?? false,
-            pendingAction: policy?.pendingFields?.areWorkflowsEnabled && policy.pendingAction,
+            pendingAction: policy?.pendingFields?.areWorkflowsEnabled,
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyWorkflows(policy?.id ?? '', isEnabled);
             },
@@ -72,7 +72,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.categories.title',
             subtitleTranslationKey: 'workspace.moreFeatures.categories.subtitle',
             isActive: policy?.areCategoriesEnabled ?? false,
-            pendingAction: policy?.pendingFields?.areCategoriesEnabled && policy.pendingAction,
+            pendingAction: policy?.pendingFields?.areCategoriesEnabled,
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyCategories(policy?.id ?? '', isEnabled);
             },
@@ -82,7 +82,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.tags.title',
             subtitleTranslationKey: 'workspace.moreFeatures.tags.subtitle',
             isActive: policy?.areTagsEnabled ?? false,
-            pendingAction: policy?.pendingFields?.areTagsEnabled && policy.pendingAction,
+            pendingAction: policy?.pendingFields?.areTagsEnabled,
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyTags(policy?.id ?? '', isEnabled);
             },
@@ -92,7 +92,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.taxes.title',
             subtitleTranslationKey: 'workspace.moreFeatures.taxes.subtitle',
             isActive: policy?.tax?.trackingEnabled ?? false,
-            pendingAction: policy?.pendingFields?.tax && policy.pendingAction,
+            pendingAction: policy?.pendingFields?.tax,
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyTaxes(policy?.id ?? '', isEnabled);
             },
@@ -102,7 +102,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.reportFields.title',
             subtitleTranslationKey: 'workspace.moreFeatures.reportFields.subtitle',
             isActive: policy?.areReportFieldsEnabled ?? false,
-            pendingAction: policy?.pendingFields?.areReportFieldsEnabled && policy.pendingAction,
+            pendingAction: policy?.pendingFields?.areReportFieldsEnabled,
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyReportFields(policy?.id ?? '', isEnabled);
             },
@@ -115,7 +115,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.connections.title',
             subtitleTranslationKey: 'workspace.moreFeatures.connections.subtitle',
             isActive: policy?.areConnectionsEnabled ?? false,
-            pendingAction: policy?.pendingFields?.areConnectionsEnabled && policy.pendingAction,
+            pendingAction: policy?.pendingFields?.areConnectionsEnabled,
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyConnections(policy?.id ?? '', isEnabled);
             },
