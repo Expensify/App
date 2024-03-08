@@ -56,7 +56,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
     const avatar = details.avatar ?? UserUtils.getDefaultAvatar();
     const fallbackIcon = details.fallbackIcon ?? '';
     const displayName = details.displayName ?? '';
-    const isOwner = policy?.owner === details.login;
+    const isSelectedMemberOwner = policy?.owner === details.login;
     const isCurrentUserAdmin = policyMembers?.[currentUserPersonalDetails?.accountID]?.role === CONST.POLICY.ROLE.ADMIN;
     const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
 
@@ -110,7 +110,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
                                     {displayName}
                                 </Text>
                             )}
-                            {isOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
+                            {isSelectedMemberOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
                                 <Button
                                     text={translate('workspace.people.transferOwner')}
                                     onPress={startChangeOwnershipFlow}
@@ -124,7 +124,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
                                     text={translate('workspace.people.removeMemberButtonTitle')}
                                     onPress={askForConfirmationToRemove}
                                     medium
-                                    isDisabled={isOwner && isCurrentUserOwner}
+                                    isDisabled={isSelectedMemberOwner && isCurrentUserOwner}
                                     icon={Expensicons.RemoveMembers}
                                     iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
                                     style={styles.mv5}
