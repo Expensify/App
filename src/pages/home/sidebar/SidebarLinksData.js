@@ -1,5 +1,4 @@
 import {deepEqual} from 'fast-equals';
-import {keys, map} from 'lodash';
 import lodashGet from 'lodash/get';
 import lodashMap from 'lodash/map';
 import PropTypes from 'prop-types';
@@ -17,7 +16,6 @@ import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
-import {hasValidDraftComment} from '@libs/DraftCommentStore';
 import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -95,8 +93,6 @@ const propTypes = {
         ),
     }),
 
-    reportsDraftComments: PropTypes.objectOf(PropTypes.string),
-
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
@@ -109,15 +105,7 @@ const defaultProps = {
     policyMembers: {},
     transactionViolations: {},
     allReportActions: {},
-    reportsDraftComments: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
-};
-
-const useReportsWithDrafts = (reports, drafts) => {
-    const reportIDsWithDrafts = useMemo(() => map(keys(drafts), (k) => k.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, '')), [drafts]);
-    const reportsWithDrafts = useMemo(() => reportIDsWithDrafts.filter(hasValidDraftComment).map((reportID) => reports[ONYXKEYS.COLLECTION.REPORT + reportID]), []);
-
-    return reportsWithDrafts;
 };
 
 function SidebarLinksData({
@@ -135,7 +123,6 @@ function SidebarLinksData({
     policyMembers,
     transactionViolations,
     currentUserPersonalDetails,
-    reportsDraftComments,
 }) {
     const styles = useThemeStyles();
     const {activeWorkspaceID} = useActiveWorkspace();
@@ -149,41 +136,18 @@ function SidebarLinksData({
 
     const reportIDsRef = useRef(null);
     const isLoading = isLoadingApp;
-
-    const reportsWithDrafts = useReportsWithDrafts(chatReports, reportsDraftComments);
-
-    const groupedReports = useMemo(
-        () => SidebarUtils.getGroupedReports(null, chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs),
-        [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs],
-    );
-
-    // We need to make sure the current report is in the list of reports, but we do not want
-    // to have to re-generate the list every time the currentReportID changes. To do that
-    // we first generate the list as if there was no current report, then here we check if
-    // the current report is missing from the list, which should very rarely happen. In this
-    // case we re-generate the list a 2nd time with the current report included.
-    const groupedReportsWithCurrentReport = useMemo(() => {
-        if (currentReportID && groupedReports.some((group) => group.some((report) => report.reportID === currentReportID)) === false) {
-            return SidebarUtils.getGroupedReports(
-                currentReportID,
-                chatReports,
-                betas,
-                policies,
-                priorityMode,
-                allReportActions,
-                transactionViolations,
-                activeWorkspaceID,
-                policyMemberAccountIDs,
-            );
-        }
-        return groupedReports;
-    }, [currentReportID, groupedReports, chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs]);
-
-    const orderedReportIDs = useMemo(() => {
-        // Substituting the first group with the reports with drafts
-        groupedReports[1] = reportsWithDrafts;
-
-        const reportIDs = groupedReportsWithCurrentReport.flat().map((report) => report.reportID);
+    const optionListItems = useMemo(() => {
+        const reportIDs = SidebarUtils.getOrderedReportIDs(
+            null,
+            chatReports,
+            betas,
+            policies,
+            priorityMode,
+            allReportActions,
+            transactionViolations,
+            activeWorkspaceID,
+            policyMemberAccountIDs,
+        );
 
         if (deepEqual(reportIDsRef.current, reportIDs)) {
             return reportIDsRef.current;
@@ -196,7 +160,29 @@ function SidebarLinksData({
             reportIDsRef.current = reportIDs;
         }
         return reportIDsRef.current || [];
-    }, [groupedReportsWithCurrentReport, reportsWithDrafts, isLoading, network.isOffline, prevPriorityMode, priorityMode]);
+    }, [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, isLoading, network.isOffline, prevPriorityMode]);
+
+    // We need to make sure the current report is in the list of reports, but we do not want
+    // to have to re-generate the list every time the currentReportID changes. To do that
+    // we first generate the list as if there was no current report, then here we check if
+    // the current report is missing from the list, which should very rarely happen. In this
+    // case we re-generate the list a 2nd time with the current report included.
+    const optionListItemsWithCurrentReport = useMemo(() => {
+        if (currentReportID && !_.contains(optionListItems, currentReportID)) {
+            return SidebarUtils.getOrderedReportIDs(
+                currentReportID,
+                chatReports,
+                betas,
+                policies,
+                priorityMode,
+                allReportActions,
+                transactionViolations,
+                activeWorkspaceID,
+                policyMemberAccountIDs,
+            );
+        }
+        return optionListItems;
+    }, [currentReportID, optionListItems, chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs]);
 
     const currentReportIDRef = useRef(currentReportID);
     currentReportIDRef.current = currentReportID;
@@ -216,7 +202,7 @@ function SidebarLinksData({
                 // Data props:
                 isActiveReport={isActiveReport}
                 isLoading={isLoading}
-                optionListItems={orderedReportIDs}
+                optionListItems={optionListItemsWithCurrentReport}
                 activeWorkspaceID={activeWorkspaceID}
             />
         </View>
@@ -344,10 +330,6 @@ export default compose(
         },
         transactionViolations: {
             key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-            initialValue: {},
-        },
-        reportsDraftComments: {
-            key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
             initialValue: {},
         },
     }),
