@@ -52,8 +52,6 @@ const ViolationsUtils = {
         if (policyRequiresTags) {
             const selectedTags = updatedTransaction.tag?.split(CONST.COLON) ?? [];
             const policyTagKeys = Object.keys(policyTagList);
-
-            // At the moment, we only return violations for tags for workspaces with single-level tags
             if (policyTagKeys.length === 1) {
                 const policyTagListName = policyTagKeys[0];
                 const policyTags = policyTagList[policyTagListName]?.tags;
