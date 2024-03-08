@@ -11,8 +11,6 @@ import ActiveRouteContext from './ActiveRouteContext';
 
 const loadWorkspaceInitialPage = () => require('../../../../pages/workspace/WorkspaceInitialPage').default as React.ComponentType;
 
-const loadTravelMenuPage = () => require('../../../../pages/Travel/TravelMenu').default as React.ComponentType;
-
 const Tab = createCustomBottomTabNavigator<BottomTabNavigatorParamList>();
 
 const screenOptions: StackNavigationOptions = {
@@ -36,10 +34,6 @@ function BottomTabNavigator() {
                 <Tab.Screen
                     name={SCREENS.WORKSPACE.INITIAL}
                     getComponent={loadWorkspaceInitialPage}
-                />
-                <Tab.Screen
-                    name={SCREENS.TRAVEL.HOME}
-                    getComponent={loadTravelMenuPage}
                 />
             </Tab.Navigator>
         </ActiveRouteContext.Provider>

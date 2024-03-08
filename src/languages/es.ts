@@ -1750,6 +1750,7 @@ export default {
             saveMoney: 'Ahorra dinero en tus reservas',
             alerts: 'Recibe alertas en tiempo real si cambian tus planes de viaje',
         },
+        bookTravel: 'Reservar viajes',
     },
     workspace: {
         common: {
@@ -2928,8 +2929,5 @@ export default {
         offlineTitle: 'Parece que estás atrapado aquí...',
         offline:
             'Parece que estás desconectado. Desafortunadamente, Expensify Classic no funciona sin conexión, pero New Expensify sí. Si prefieres utilizar Expensify Classic, inténtalo de nuevo cuando tengas conexión a internet.',
-    },
-    travel: {
-        myTrips: 'Mis viajes',
     },
 } satisfies EnglishTranslation;

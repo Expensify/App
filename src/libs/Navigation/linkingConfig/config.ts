@@ -34,14 +34,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     path: ROUTES.WORKSPACE_INITIAL.route,
                     exact: true,
                 },
-                [SCREENS.TRAVEL.HOME]: ROUTES.TRAVEL_HOME,
             },
         },
 
         [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]: {
             screens: {
                 [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
-
                 [SCREENS.SETTINGS.WORKSPACES]: ROUTES.SETTINGS_WORKSPACES,
                 [SCREENS.WORKSPACE.PROFILE]: ROUTES.WORKSPACE_PROFILE.route,
                 [SCREENS.WORKSPACE.CARD]: {
@@ -68,8 +66,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.WORKSPACE.CATEGORIES]: {
                     path: ROUTES.WORKSPACE_CATEGORIES.route,
                 },
-
-                [SCREENS.TRAVEL.MY_TRIPS]: ROUTES.TRAVEL_MY_TRIPS,
             },
         },
         [SCREENS.NOT_FOUND]: '*',
@@ -527,6 +523,11 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.PROCESS_MONEY_REQUEST_HOLD]: {
                     screens: {
                         [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: ROUTES.PROCESS_MONEY_REQUEST_HOLD,
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.TRAVEL]: {
+                    screens: {
+                        [SCREENS.TRAVEL.MY_TRIPS]: ROUTES.TRAVEL_MY_TRIPS,
                     },
                 },
             },

@@ -34,7 +34,7 @@ function ManageTrips() {
                     subtitle={translate('travel.subtitle')}
                     ctaText={translate('travel.bookOrManage')}
                     ctaAccessibilityLabel={translate('travel.bookOrManage')}
-                    onCtaPress={() => console.log('pressed')}
+                    onCtaPress={() => {}}
                     illustration={LottieAnimations.Plane}
                     illustrationStyle={styles.travelIllustrationStyle}
                     illustrationBackgroundColor={colors.blue600}

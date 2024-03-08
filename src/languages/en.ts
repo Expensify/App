@@ -1726,6 +1726,7 @@ export default {
             saveMoney: 'Save money on your bookings',
             alerts: 'Get real time alerts if your travel plans change',
         },
+        bookTravel: 'Book Travel',
     },
     workspace: {
         common: {
