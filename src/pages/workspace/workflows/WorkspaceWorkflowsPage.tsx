@@ -60,7 +60,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                           title: translate('workflowsPage.delaySubmissionTitle'),
                           subtitle: translate('workflowsPage.delaySubmissionDescription'),
                           onToggle: (isEnabled: boolean) => {
-                              Policy.setWorkspaceAutoReporting(route.params.policyID, isEnabled, policy?.autoReportingFrequency ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY);
+                              Policy.setWorkspaceAutoReporting(route.params.policyID, isEnabled);
                           },
                           subMenuItems: (
                               <MenuItem
