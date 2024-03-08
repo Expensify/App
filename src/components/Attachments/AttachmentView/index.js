@@ -1,7 +1,7 @@
 import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
 import React, {memo, useEffect, useState} from 'react';
-import {ActivityIndicator, ScrollView, View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import * as AttachmentsPropTypes from '@components/Attachments/propTypes';
@@ -9,6 +9,7 @@ import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
@@ -160,8 +161,9 @@ function AttachmentView({
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source) : source;
 
         const onPDFLoadComplete = (path) => {
-            if (path && (transaction.transactionID || reportActionID)) {
-                CachedPDFPaths.add(transaction.transactionID || reportActionID, path);
+            const id = (transaction && transaction.transactionID) || reportActionID;
+            if (path && id) {
+                CachedPDFPaths.add(id, path);
             }
             if (!loadComplete) {
                 setLoadComplete(true);

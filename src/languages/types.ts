@@ -99,6 +99,7 @@ type ReportArchiveReasonsPolicyDeletedParams = {
 type RequestCountParams = {
     count: number;
     scanningReceipts: number;
+    pendingReceipts: number;
 };
 
 type SettleExpensifyCardParams = {
@@ -109,7 +110,7 @@ type RequestAmountParams = {amount: string};
 
 type RequestedAmountMessageParams = {formattedAmount: string; comment?: string};
 
-type SplitAmountParams = {amount: string | number};
+type SplitAmountParams = {amount: number};
 
 type DidSplitAmountMessageParams = {formattedAmount: string; comment: string};
 
