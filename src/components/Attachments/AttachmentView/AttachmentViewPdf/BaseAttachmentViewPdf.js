@@ -29,6 +29,7 @@ function BaseAttachmentViewPdf({
     errorLabelStyles,
     style,
     isUsedAsChatAttachment,
+    onError,
 }) {
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
     const isScrollEnabled = attachmentCarouselPagerContext === null ? undefined : attachmentCarouselPagerContext.isScrollEnabled;
@@ -91,6 +92,7 @@ function BaseAttachmentViewPdf({
             onLoadComplete={onLoadComplete}
             errorLabelStyles={errorLabelStyles}
             isUsedAsChatAttachment={isUsedAsChatAttachment}
+            onError={onError}
         />
     );
 }

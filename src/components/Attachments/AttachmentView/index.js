@@ -26,6 +26,7 @@ import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
+import DefaultAttachmentView from './AttachmentViewPdf/DefaultAttachmentView';
 import AttachmentViewVideo from './AttachmentViewVideo';
 import {attachmentViewDefaultProps, attachmentViewPropTypes} from './propTypes';
 
@@ -108,6 +109,7 @@ function AttachmentView({
     const StyleUtils = useStyleUtils();
     const [loadComplete, setLoadComplete] = useState(false);
     const isVideo = (typeof source === 'string' && Str.isVideo(source)) || (file && Str.isVideo(file.name));
+    const [isPdfFailedToLoad, setIsPdfFailedToLoad] = useState(false);
 
     useEffect(() => {
         if (!isFocused && !(file && isUsedInAttachmentModal)) {
@@ -170,6 +172,17 @@ function AttachmentView({
             }
         };
 
+        if (isPdfFailedToLoad) {
+            return (
+                <DefaultAttachmentView
+                    file={file}
+                    shouldShowDownloadIcon={shouldShowDownloadIcon}
+                    shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
+                    containerStyles={containerStyles}
+                />
+            );
+        }
+
         // We need the following View component on android native
         // So that the event will propagate properly and
         // the Password protected preview will be shown for pdf attachement we are about to send.
@@ -188,6 +201,9 @@ function AttachmentView({
                     style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
                     isUsedInCarousel={isUsedInCarousel}
                     isUsedAsChatAttachment={!(isUsedInAttachmentModal || isUsedInCarousel)}
+                    onError={() => {
+                        setIsPdfFailedToLoad(true);
+                    }}
                 />
             </View>
         );

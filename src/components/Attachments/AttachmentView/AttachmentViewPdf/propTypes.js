@@ -16,6 +16,9 @@ const attachmentViewPdfPropTypes = {
     /** Styles for the error label */
     errorLabelStyles: stylePropTypes,
 
+    /** Callback when the pdf fails to load */
+    onError: PropTypes.func,
+
     /** Whether the attachment is used as a chat attachment */
     isUsedAsChatAttachment: PropTypes.bool,
 };

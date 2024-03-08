@@ -2,19 +2,13 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import PDF from 'react-native-pdf';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import Text from '@components/Text';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import PDFPasswordForm from './PDFPasswordForm';
 import {defaultProps, propTypes as pdfViewPropTypes} from './pdfViewPropTypes';
@@ -41,7 +35,7 @@ const propTypes = {
 const THUMBNAIL_HEIGHT = 250;
 const THUMBNAIL_WIDTH = 250;
 
-function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused, onScaleChanged, sourceURL, errorLabelStyles, isUsedAsChatAttachment}) {
+function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused, onScaleChanged, sourceURL, onError, isUsedAsChatAttachment}) {
     const [shouldRequestPassword, setShouldRequestPassword] = useState(false);
     const [shouldAttemptPDFLoad, setShouldAttemptPDFLoad] = useState(true);
     const [shouldShowLoadingIndicator, setShouldShowLoadingIndicator] = useState(true);
@@ -54,8 +48,6 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     const themeStyles = useThemeStyles();
     const {isKeyboardShown} = useKeyboardState();
     const StyleUtils = useStyleUtils();
-    const {isOffline} = useNetwork();
-    const theme = useTheme();
 
     useEffect(() => {
         onToggleKeyboard(isKeyboardShown);
@@ -94,6 +86,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         setShouldShowLoadingIndicator(false);
         setShouldRequestPassword(false);
         setShouldAttemptPDFLoad(false);
+        onError(error);
     };
 
     /**
@@ -122,29 +115,6 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         setShouldShowLoadingIndicator(false);
         setSuccessToLoadPDF(true);
         onLoadComplete(path);
-    };
-    // eslint-disable-next-line no-unused-vars
-    const rendeFailedToLoadPDF = () => {
-        if (!isUsedAsChatAttachment) {
-            return (
-                <View style={[themeStyles.flex1, themeStyles.justifyContentCenter, themeStyles.alignItemsCenter]}>
-                    <Text style={errorLabelStyles}>{translate('attachmentView.failedToLoadPDF')}</Text>
-                </View>
-            );
-        }
-
-        return (
-            <View style={[themeStyles.overflowHidden, themeStyles.hoveredComponentBG, themeStyles.componentBorderRadiusNormal]}>
-                <View style={[StyleUtils.getWidthAndHeightStyle(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT), themeStyles.alignItemsCenter, themeStyles.justifyContentCenter]}>
-                    <Icon
-                        src={isOffline ? Expensicons.OfflineCloud : Expensicons.Document}
-                        height={variables.iconSizeSuperLarge}
-                        width={variables.iconSizeSuperLarge}
-                        fill={theme.border}
-                    />
-                </View>
-            </View>
-        );
     };
 
     function renderPDFView() {
@@ -192,10 +162,6 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
                 )}
             </View>
         );
-    }
-
-    if (failedToLoadPDF) {
-        return rendeFailedToLoadPDF();
     }
 
     return onPress && !successToLoadPDF ? (
