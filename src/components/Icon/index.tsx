@@ -28,7 +28,7 @@ type IconProps = {
     /** Is large icon */
     large?: boolean;
 
-    /** Is medium large */
+    /** Is medium icon */
     medium?: boolean;
 
     /** Is inline icon */
