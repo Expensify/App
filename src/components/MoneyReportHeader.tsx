@@ -9,7 +9,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -53,15 +52,11 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);
-    const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(moneyRequestReport);
     const policyType = policy?.type;
-    const isAutoReimbursable = ReportUtils.canBeAutoReimbursed(moneyRequestReport, policy);
-    const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicy(moneyRequestReport);
-    const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && session?.accountID === moneyRequestReport.managerID;
     const isPayer = ReportUtils.isPayer(session, moneyRequestReport);
-    const isDraft = ReportUtils.isDraftExpenseReport(moneyRequestReport);
+    const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
     const cancelPayment = useCallback(() => {
@@ -72,25 +67,15 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
         setIsConfirmModalVisible(false);
     }, [moneyRequestReport, chatReport]);
 
-    const isOnInstantSubmitPolicy = PolicyUtils.isInstantSubmitEnabled(policy);
-    const isOnSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
-    const shouldShowPayButton = useMemo(
-        () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reimbursableSpend !== 0 && !ReportUtils.isArchivedRoom(chatReport) && !isAutoReimbursable,
-        [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableSpend, chatReport, isAutoReimbursable],
-    );
-    const shouldShowApproveButton = useMemo(() => {
-        if (!isPaidGroupPolicy) {
-            return false;
-        }
-        if (isOnInstantSubmitPolicy && isOnSubmitAndClosePolicy) {
-            return false;
-        }
-        return isManager && !isDraft && !isApproved && !isSettled;
-    }, [isPaidGroupPolicy, isManager, isDraft, isApproved, isSettled, isOnInstantSubmitPolicy, isOnSubmitAndClosePolicy]);
+    const shouldShowPayButton = useMemo(() => IOU.canIOUBePaid(moneyRequestReport, chatReport, policy), [moneyRequestReport, chatReport, policy]);
+
+    const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(moneyRequestReport, chatReport, policy), [moneyRequestReport, chatReport, policy]);
+
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
+
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0;
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
-    const shouldShowNextStep = isFromPaidPolicy && !!nextStep?.message?.length;
+    const shouldShowNextStep = !ReportUtils.isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length;
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport.currency);
