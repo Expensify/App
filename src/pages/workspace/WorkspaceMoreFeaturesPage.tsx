@@ -156,7 +156,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 />
             </View>
         ),
-        [styles.mt7, translate],
+        [styles, translate],
     );
 
     const renderSection = useCallback(
@@ -176,7 +176,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 </Section>
             </View>
         ),
-        [isSmallScreenWidth, renderItem, styles.mt3, styles.p5, styles.p8, styles.textStrong, styles.workspaceSection, styles.workspaceSectionMobile, translate],
+        [isSmallScreenWidth, styles, renderItem, translate],
     );
 
     return (
