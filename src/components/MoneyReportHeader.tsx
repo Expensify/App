@@ -54,7 +54,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(moneyRequestReport);
     const policyType = policy?.type;
     const isPayer = ReportUtils.isPayer(session, moneyRequestReport);
-    const isDraft = ReportUtils.isDraftExpenseReport(moneyRequestReport);
+    const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
     const cancelPayment = useCallback(() => {

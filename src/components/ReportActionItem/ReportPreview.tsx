@@ -119,7 +119,7 @@ function ReportPreview({
     const numberOfRequests = ReportActionUtils.getNumberOfMoneyRequests(action);
     const moneyRequestComment = action?.childLastMoneyRequestComment ?? '';
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
-    const isDraftExpenseReport = isPolicyExpenseChat && ReportUtils.isDraftExpenseReport(iouReport);
+    const isOpenExpenseReport = isPolicyExpenseChat && ReportUtils.isOpenExpenseReport(iouReport);
 
     const isApproved = ReportUtils.isReportApproved(iouReport);
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport);
@@ -147,7 +147,7 @@ function ReportPreview({
             pendingReceipts: numberOfPendingRequests,
         });
 
-    const shouldShowSubmitButton = isDraftExpenseReport && reimbursableSpend !== 0;
+    const shouldShowSubmitButton = isOpenExpenseReport && reimbursableSpend !== 0;
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(
