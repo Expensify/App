@@ -95,7 +95,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
             const formattedMember = {
                 keyForList: accountIDKey,
                 accountID,
-                isSelected: policy?.reimburserEmail === details?.login,
+                isSelected: policy?.reimburserEmail === details?.login ?? policy?.reimburserAccountID === accountID,
                 isDisabled: policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyMember.errors),
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
@@ -112,14 +112,14 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
                 pendingAction: policyMember.pendingAction,
             };
 
-            if (policy?.reimburserEmail === details?.login) {
+            if (policy?.reimburserEmail === details?.login ?? policy?.reimburserAccountID === accountID) {
                 authorizedPayerDetails.push(formattedMember);
             } else {
                 policyAdminDetails.push(formattedMember);
             }
         });
         return [policyAdminDetails, authorizedPayerDetails];
-    }, [personalDetails, policyMembers, translate, policy?.reimburserEmail, isDeletedPolicyMember, policy?.owner, styles, StyleUtils]);
+    }, [personalDetails, policyMembers, translate, policy?.reimburserEmail, isDeletedPolicyMember, policy?.owner, styles, StyleUtils, policy?.reimburserAccountID]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArray: MembersSection[] = [];
