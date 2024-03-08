@@ -16,7 +16,6 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -172,7 +171,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
             return;
         }
 
-        Policy.setWorkspacePayer(policy?.id ?? '', authorizedPayer);
+        Policy.setWorkspacePayer(policy?.id ?? '', "authorizedPayer");
         Navigation.goBack();
     };
 
@@ -205,9 +204,6 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
                         />
                         <OfflineWithFeedback
                             pendingAction={policy?.pendingFields?.reimburserEmail}
-                            errors={ErrorUtils.getEarliestErrorField(policy ?? {}, 'reimburserEmail')}
-                            errorRowStyles={[styles.mh5, styles.mv3]}
-                            onClose={() => Policy.clearWorkspacePayerError(policy?.id ?? '')}
                             shouldShowErrorOnTop
                         >
                             <SelectionList

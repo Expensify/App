@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
@@ -150,7 +151,11 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
                             hoverAndPressStyle={[styles.mr0, styles.br2]}
                         />
                         {hasVBA && (
-                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.reimburserEmail}>
+                            <OfflineWithFeedback
+                                pendingAction={policy?.pendingFields?.reimburserEmail}
+                                errors={ErrorUtils.getLatestErrorField(policy?.errorFields ?? {}, 'reimburserEmail')}
+                                onClose={() => Policy.clearWorkspacePayerError(policy?.id ?? route.params.policyID)}
+                            >
                                 <MenuItem
                                     titleStyle={styles.textLabelSupportingNormal}
                                     descriptionTextStyle={styles.textNormalThemeText}
@@ -241,7 +246,7 @@ export default withPolicy(
             key: ONYXKEYS.BETAS,
         },
         reimbursementAccount: {
-             // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
+            // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
             key: ({route}) => `${ONYXKEYS.REIMBURSEMENT_ACCOUNT}${route.params.policyID}`,
         },
     })(WorkspaceWorkflowsPage),
