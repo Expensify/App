@@ -46,6 +46,67 @@ function getTagViolationsForSingleLevelTags(
     return newTransactionViolations;
 };
 
+/**
+ * Calculates some tag levels required and missing tag violations for the given transaction
+ */
+function getTagViolationsForMultiLevelTags(
+    updatedTransaction: Transaction,
+    transactionViolations: TransactionViolation[],
+    policyRequiresTags: boolean,
+    policyTagList: PolicyTagList,
+): TransactionViolation[] {
+    const policyTagKeys = Object.keys(policyTagList);
+    const selectedTags = updatedTransaction.tag?.split(CONST.COLON) ?? [];
+    let newTransactionViolations = [...transactionViolations];
+    newTransactionViolations = newTransactionViolations.filter(
+        (violation) => violation.name !== CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED && violation.name !== CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
+    );
+
+    // We first get the errorIndexes for someTagLevelsRequired. If it's not empty, we puth SOME_TAG_LEVELS_REQUIRED in Onyx.
+    // Otherwise, we put TAG_OUT_OF_POLICY in Onyx (when applicable)
+    const errorIndexes = [];
+    for (let i = 0; i < policyTagKeys.length; i++) {
+        const isTagRequired = policyTagList[policyTagKeys[i]].required ?? true;
+        const isTagSelected = Boolean(selectedTags[i]);
+        if (isTagRequired && (!isTagSelected || (selectedTags.length === 1 && selectedTags[0] === ''))) {
+            errorIndexes.push(i);
+        }
+    }
+    if (errorIndexes.length !== 0) {
+        newTransactionViolations.push({
+            name: CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED,
+            type: 'violation',
+            data: {
+                errorIndexes,
+            },
+        });
+    } else {
+        let hasInvalidTag = false;
+        for (let i = 0; i < policyTagKeys.length; i++) {
+            const selectedTag = selectedTags[i];
+            const tags = policyTagList[policyTagKeys[i]].tags;
+            const isTagInPolicy = Object.values(tags).some((tag) => tag.name === selectedTag && Boolean(tag.enabled));
+            if (!isTagInPolicy) {
+                newTransactionViolations.push({
+                    name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
+                    type: 'violation',
+                    data: {
+                        tagName: policyTagKeys[i],
+                    },
+                });
+                hasInvalidTag = true;
+                break;
+            }
+        }
+        if (!hasInvalidTag) {
+            newTransactionViolations = reject(newTransactionViolations, {
+                name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
+            });
+        }
+    }
+     return newTransactionViolations;
+};
+
 
 const ViolationsUtils = {
     /**
@@ -90,57 +151,11 @@ const ViolationsUtils = {
         }
 
         if (policyRequiresTags) {
-            const selectedTags = updatedTransaction.tag?.split(CONST.COLON) ?? [];
             const policyTagKeys = Object.keys(policyTagList);
             if (policyTagKeys.length === 1) {
                 newTransactionViolations = getTagViolationsForSingleLevelTags(updatedTransaction, newTransactionViolations, policyRequiresTags, policyTagList);
             } else {
-                newTransactionViolations = newTransactionViolations.filter(
-                    (violation) => violation.name !== CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED && violation.name !== CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
-                );
-
-                // We first get the errorIndexes for someTagLevelsRequired. If it's not empty, we puth SOME_TAG_LEVELS_REQUIRED in Onyx.
-                // Otherwise, we put TAG_OUT_OF_POLICY in Onyx (when applicable)
-                const errorIndexes = [];
-                for (let i = 0; i < policyTagKeys.length; i++) {
-                    const isTagRequired = policyTagList[policyTagKeys[i]].required ?? true;
-                    const isTagSelected = Boolean(selectedTags[i]);
-                    if (isTagRequired && (!isTagSelected || (selectedTags.length === 1 && selectedTags[0] === ''))) {
-                        errorIndexes.push(i);
-                    }
-                }
-                if (errorIndexes.length !== 0) {
-                    newTransactionViolations.push({
-                        name: CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED,
-                        type: 'violation',
-                        data: {
-                            errorIndexes,
-                        },
-                    });
-                } else {
-                    let hasInvalidTag = false;
-                    for (let i = 0; i < policyTagKeys.length; i++) {
-                        const selectedTag = selectedTags[i];
-                        const tags = policyTagList[policyTagKeys[i]].tags;
-                        const isTagInPolicy = Object.values(tags).some((tag) => tag.name === selectedTag && Boolean(tag.enabled));
-                        if (!isTagInPolicy) {
-                            newTransactionViolations.push({
-                                name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
-                                type: 'violation',
-                                data: {
-                                    tagName: policyTagKeys[i],
-                                },
-                            });
-                            hasInvalidTag = true;
-                            break;
-                        }
-                    }
-                    if (!hasInvalidTag) {
-                        newTransactionViolations = reject(newTransactionViolations, {
-                            name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
-                        });
-                    }
-                }
+                newTransactionViolations = getTagViolationsForMultiLevelTags(updatedTransaction, newTransactionViolations, policyRequiresTags, policyTagList);
             }
         }
 
