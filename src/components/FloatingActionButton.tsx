@@ -1,6 +1,7 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect, useRef} from 'react';
-import type {GestureResponderEvent, Role} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {GestureResponderEvent, Role, Text} from 'react-native';
 import {Platform, View} from 'react-native';
 import Animated, {createAnimatedPropAdapter, Easing, interpolateColor, processColor, useAnimatedProps, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
@@ -58,12 +59,12 @@ type FloatingActionButtonProps = {
     role: Role;
 };
 
-function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: FloatingActionButtonProps, ref: ForwardedRef<HTMLDivElement | View>) {
+function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: FloatingActionButtonProps, ref: ForwardedRef<HTMLDivElement | View | Text>) {
     const {success, buttonDefaultBG, textLight, textDark} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
     const {translate} = useLocalize();
-    const fabPressable = useRef<HTMLDivElement | View | null>(null);
+    const fabPressable = useRef<HTMLDivElement | View | Text | null>(null);
     const sharedValue = useSharedValue(isActive ? 1 : 0);
     const buttonRef = ref;
 
@@ -112,9 +113,9 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
                 <View style={styles.bottomTabBarItem}>
                     <AnimatedPressable
                         ref={(el) => {
-                            fabPressable.current = el;
+                            fabPressable.current = el ?? null;
                             if (buttonRef && 'current' in buttonRef) {
-                                buttonRef.current = el;
+                                buttonRef.current = el ?? null;
                             }
                         }}
                         accessibilityLabel={accessibilityLabel}
