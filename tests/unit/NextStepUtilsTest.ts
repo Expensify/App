@@ -440,38 +440,6 @@ describe('libs/NextStepUtils', () => {
 
                 expect(result).toMatchObject(optimisticNextStep);
             });
-
-            test('prevented self approval', () => {
-                optimisticNextStep.title = 'Next Steps:';
-                optimisticNextStep.message = [
-                    {
-                        text: "Oops! Looks like you're reviewing",
-                    },
-                    {
-                        text: ' your own report. ',
-                        type: 'strong',
-                    },
-                    {
-                        text: 'Approving your own reports is ',
-                    },
-                    {
-                        text: 'forbidden',
-                        type: 'strong',
-                    },
-                    {
-                        text: ' by your policy.',
-                    },
-                ];
-
-                return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-                    submitsTo: currentUserAccountID,
-                    preventSelfApprovalEnabled: true,
-                }).then(() => {
-                    const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
-
-                    expect(result).toMatchObject(optimisticNextStep);
-                });
-            });
         });
 
         describe('it generates an optimistic nextStep once a report has been approved', () => {

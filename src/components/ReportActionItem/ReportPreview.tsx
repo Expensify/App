@@ -213,6 +213,10 @@ function ReportPreview({
     const isPayer = ReportUtils.isPayer(session, iouReport);
     const isOnInstantSubmitPolicy = PolicyUtils.isInstantSubmitEnabled(policy);
     const isOnSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
+    const shouldShowPayButton = useMemo(
+        () => isPayer && !isDraftExpenseReport && !iouSettled && !iouReport?.isWaitingOnBankAccount && reimbursableSpend !== 0 && !iouCanceled && !isAutoReimbursable,
+        [isPayer, isDraftExpenseReport, iouSettled, reimbursableSpend, iouCanceled, isAutoReimbursable, iouReport],
+    );
     const shouldShowApproveButton = useMemo(() => {
         if (!isPaidGroupPolicy) {
             return false;
@@ -222,21 +226,7 @@ function ReportPreview({
         }
         return isCurrentUserManager && !isDraftExpenseReport && !isApproved && !iouSettled;
     }, [isPaidGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, isOnInstantSubmitPolicy, isOnSubmitAndClosePolicy, iouSettled]);
-    const shouldShowPayButton = useMemo(
-        () =>
-            isPayer &&
-            !isDraftExpenseReport &&
-            !iouSettled &&
-            !shouldShowApproveButton &&
-            !iouReport?.isWaitingOnBankAccount &&
-            reimbursableSpend !== 0 &&
-            !iouCanceled &&
-            !isAutoReimbursable,
-        [isPayer, isDraftExpenseReport, iouSettled, reimbursableSpend, iouCanceled, isAutoReimbursable, iouReport, shouldShowApproveButton],
-    );
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
-    const shouldDisableSettlementButton =
-        shouldShowSettlementButton && ((shouldShowPayButton && !canAllowSettlement) || (shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(iouReport)));
 
     /*
      Show subtitle if at least one of the money requests is not being smart scanned, and either:
@@ -344,59 +334,6 @@ function ReportPreview({
                                     />
                                 )}
                             </View>
-                            <View style={styles.flexRow}>
-                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text style={styles.textHeadline}>{getDisplayAmount()}</Text>
-                                    {ReportUtils.isSettled(iouReportID) && (
-                                        <View style={styles.defaultCheckmarkWrapper}>
-                                            <Icon
-                                                src={Expensicons.Checkmark}
-                                                fill={theme.iconSuccessFill}
-                                            />
-                                        </View>
-                                    )}
-                                </View>
-                            </View>
-                            {shouldShowSubtitle && (
-                                <View style={styles.flexRow}>
-                                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                        <Text style={[styles.textLabelSupporting, styles.textNormal, styles.mb1, styles.lh20]}>{previewSubtitle || moneyRequestComment}</Text>
-                                    </View>
-                                </View>
-                            )}
-                            {shouldShowSettlementButton && (
-                                <SettlementButton
-                                    currency={iouReport?.currency}
-                                    policyID={policyID}
-                                    chatReportID={chatReportID}
-                                    iouReport={iouReport}
-                                    onPress={(paymentType?: PaymentMethodType) => chatReport && iouReport && paymentType && IOU.payMoneyRequest(paymentType, chatReport, iouReport)}
-                                    enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                                    addBankAccountRoute={bankAccountRoute}
-                                    shouldHidePaymentOptions={!shouldShowPayButton}
-                                    shouldShowApproveButton={shouldShowApproveButton}
-                                    style={[styles.mt3]}
-                                    kycWallAnchorAlignment={{
-                                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                                    }}
-                                    paymentMethodDropdownAnchorAlignment={{
-                                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                                    }}
-                                    isDisabled={shouldDisableSettlementButton}
-                                />
-                            )}
-                            {shouldShowSubmitButton && (
-                                <Button
-                                    medium
-                                    success={isWaitingForSubmissionFromCurrentUser}
-                                    text={translate('common.submit')}
-                                    style={styles.mt3}
-                                    onPress={() => iouReport && IOU.submitReport(iouReport)}
-                                    isDisabled={shouldDisableSubmitButton}
-                                />
-                            )}
                         </View>
                     </View>
                 </PressableWithoutFeedback>
