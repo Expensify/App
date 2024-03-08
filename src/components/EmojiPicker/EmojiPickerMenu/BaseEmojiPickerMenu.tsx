@@ -33,7 +33,7 @@ type BaseEmojiPickerMenuProps = {
     data: EmojiPickerList;
 
     /** Function to render each item in the list */
-    renderItem: ({item, target}: RenderItemProps) => void;
+    renderItem: (item: RenderItemProps) => void;
 
     /** Extra data to be passed to the list for re-rendering */
     extraData?: Array<EmojiPickerList | OnyxValue<'preferredEmojiSkinTone'> | ((skinTone: number) => void)>;
