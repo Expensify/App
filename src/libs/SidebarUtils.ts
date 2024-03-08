@@ -60,116 +60,6 @@ function compareStringDates(a: string, b: string): 0 | 1 | -1 {
     return 0;
 }
 
-function filterReportsToDisplay(
-    reports: Report[],
-    currentReportId: string | null,
-    allReportActions: OnyxCollection<ReportAction[]>,
-    transactionViolations: OnyxCollection<TransactionViolation[]>,
-    betas: Beta[],
-    policies: Record<string, Policy>,
-    isInGSDMode: boolean,
-): Report[] {
-    return reports.filter((report) => {
-        const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`;
-        const parentReportActions = allReportActions?.[parentReportActionsKey];
-        const parentReportAction = parentReportActions?.find((action) => action && report && action?.reportActionID === report?.parentReportActionID);
-        const doesReportHaveViolations =
-            betas.includes(CONST.BETAS.VIOLATIONS) && !!parentReportAction && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
-        return ReportUtils.shouldReportBeInOptionList({
-            report,
-            currentReportId: currentReportId ?? '',
-            isInGSDMode,
-            betas,
-            policies,
-            excludeEmptyChats: true,
-            doesReportHaveViolations,
-        });
-    });
-}
-
-function filterReportsBelongingToWorkspace(reports: Report[], currentPolicyID: string, policyMemberAccountIDs: number[]): Report[] {
-    if (currentPolicyID || policyMemberAccountIDs.length > 0) {
-        return reports.filter((report) => ReportUtils.doesReportBelongToWorkspace(report, policyMemberAccountIDs, currentPolicyID));
-    }
-    return reports;
-}
-
-function groupReports(reports: Report[]) {
-    // The LHN is split into four distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
-    // 1. Pinned/GBR - Always sorted by reportDisplayName
-    // 3. Non-archived reports and settled IOUs
-    //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
-    //      - Sorted by reportDisplayName in GSD (focus) view mode
-    // 4. Archived reports
-    //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
-    //      - Sorted by reportDisplayName in GSD (focus) view mode
-    const pinnedAndGBRReports: Report[] = [];
-    const draftReports: Report[] = [];
-    const nonArchivedReports: Report[] = [];
-    const archivedReports: Report[] = [];
-
-    // There are a few properties that need to be calculated for the report which are used when sorting reports.
-    reports.forEach((report) => {
-        const isPinned = report.isPinned ?? false;
-        const reportAction = ReportActionsUtils.getReportAction(report.parentReportID ?? '', report.parentReportActionID ?? '');
-        if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report, reportAction)) {
-            pinnedAndGBRReports.push(report);
-        } else if (hasValidDraftComment(report.reportID)) {
-            draftReports.push(report);
-        } else if (ReportUtils.isArchivedRoom(report)) {
-            archivedReports.push(report);
-        } else {
-            nonArchivedReports.push(report);
-        }
-    });
-
-    return {
-        pinnedAndGBRReports,
-        draftReports,
-        nonArchivedReports,
-        archivedReports,
-    };
-}
-
-function updateReportsNames(reports: Report[]) {
-    reports.forEach((report) => {
-        // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
-        // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
-        // the reportDisplayName property to the report object directly.
-        // eslint-disable-next-line no-param-reassign
-        report.displayName = ReportUtils.getReportName(report);
-    });
-}
-
-function sortPinnedAndGBRReports(reports: Report[]) {
-    return reports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
-}
-
-function sortDraftReports(reports: Report[]) {
-    return reports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
-}
-
-function sortNonArchivedReports(reports: Report[], isInDefaultMode: boolean) {
-    if (isInDefaultMode) {
-        return reports.sort((a, b) => {
-            const compareDates = a?.lastVisibleActionCreated && b?.lastVisibleActionCreated ? compareStringDates(b.lastVisibleActionCreated, a.lastVisibleActionCreated) : 0;
-            if (compareDates) {
-                return compareDates;
-            }
-            const compareDisplayNames = a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0;
-            return compareDisplayNames;
-        });
-    }
-    return reports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
-}
-
-function sortArchivedReports(reports: Report[], isInDefaultMode: boolean) {
-    if (isInDefaultMode) {
-        return reports.sort((a, b) => (a?.lastVisibleActionCreated && b?.lastVisibleActionCreated ? compareStringDates(b.lastVisibleActionCreated, a.lastVisibleActionCreated) : 0));
-    }
-    return reports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
-}
-
 /**
  * @returns An array of reportIDs sorted in the proper order
  */
@@ -189,7 +79,22 @@ function getOrderedReportIDs(
     const allReportsDictValues = Object.values(allReports);
 
     // Filter out all the reports that shouldn't be displayed
-    let reportsToDisplay = filterReportsToDisplay(allReportsDictValues, currentReportId, allReportActions, transactionViolations, betas, policies, isInGSDMode);
+    let reportsToDisplay = allReportsDictValues.filter((report) => {
+        const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`;
+        const parentReportActions = allReportActions?.[parentReportActionsKey];
+        const parentReportAction = parentReportActions?.find((action) => action && report && action?.reportActionID === report?.parentReportActionID);
+        const doesReportHaveViolations =
+            betas.includes(CONST.BETAS.VIOLATIONS) && !!parentReportAction && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
+        return ReportUtils.shouldReportBeInOptionList({
+            report,
+            currentReportId: currentReportId ?? '',
+            isInGSDMode,
+            betas,
+            policies,
+            excludeEmptyChats: true,
+            doesReportHaveViolations,
+        });
+    });
 
     if (reportsToDisplay.length === 0) {
         // Display Concierge chat report when there is no report to be displayed
@@ -199,17 +104,60 @@ function getOrderedReportIDs(
         }
     }
 
-    reportsToDisplay = filterReportsBelongingToWorkspace(reportsToDisplay, currentPolicyID, policyMemberAccountIDs);
+    // The LHN is split into four distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
+    // 1. Pinned/GBR - Always sorted by reportDisplayName
+    // 2. Drafts - Always sorted by reportDisplayName
+    // 3. Non-archived reports and settled IOUs
+    //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
+    //      - Sorted by reportDisplayName in GSD (focus) view mode
+    // 4. Archived reports
+    //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
+    //      - Sorted by reportDisplayName in GSD (focus) view mode
+    const pinnedAndGBRReports: Report[] = [];
+    const draftReports: Report[] = [];
+    const nonArchivedReports: Report[] = [];
+    const archivedReports: Report[] = [];
 
-    updateReportsNames(reportsToDisplay);
+    if (currentPolicyID || policyMemberAccountIDs.length > 0) {
+        reportsToDisplay = reportsToDisplay.filter((report) => ReportUtils.doesReportBelongToWorkspace(report, policyMemberAccountIDs, currentPolicyID));
+    }
+    // There are a few properties that need to be calculated for the report which are used when sorting reports.
+    reportsToDisplay.forEach((report) => {
+        // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
+        // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
+        // the reportDisplayName property to the report object directly.
+        // eslint-disable-next-line no-param-reassign
+        report.displayName = ReportUtils.getReportName(report);
 
-    const {pinnedAndGBRReports, draftReports, nonArchivedReports, archivedReports} = groupReports(reportsToDisplay);
+        const isPinned = report.isPinned ?? false;
+        const reportAction = ReportActionsUtils.getReportAction(report.parentReportID ?? '', report.parentReportActionID ?? '');
+        if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report, reportAction)) {
+            pinnedAndGBRReports.push(report);
+        } else if (report.hasDraft) {
+            draftReports.push(report);
+        } else if (ReportUtils.isArchivedRoom(report)) {
+            archivedReports.push(report);
+        } else {
+            nonArchivedReports.push(report);
+        }
+    });
 
     // Sort each group of reports accordingly
-    sortPinnedAndGBRReports(pinnedAndGBRReports);
-    sortDraftReports(draftReports);
-    sortNonArchivedReports(nonArchivedReports, isInDefaultMode);
-    sortArchivedReports(archivedReports, isInDefaultMode);
+    pinnedAndGBRReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
+    draftReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
+
+    if (isInDefaultMode) {
+        nonArchivedReports.sort((a, b) => {
+            const compareDates = a?.lastVisibleActionCreated && b?.lastVisibleActionCreated ? compareStringDates(b.lastVisibleActionCreated, a.lastVisibleActionCreated) : 0;
+            const compareDisplayNames = a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0;
+            return compareDates || compareDisplayNames;
+        });
+        // For archived reports ensure that most recent reports are at the top by reversing the order
+        archivedReports.sort((a, b) => (a?.lastVisibleActionCreated && b?.lastVisibleActionCreated ? compareStringDates(b.lastVisibleActionCreated, a.lastVisibleActionCreated) : 0));
+    } else {
+        nonArchivedReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
+        archivedReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
+    }
 
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
@@ -441,5 +389,4 @@ function getOptionData({
 export default {
     getOptionData,
     getOrderedReportIDs,
-    sortDraftReports,
 };
