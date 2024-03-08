@@ -1,3 +1,8 @@
+/**
+ * This file is a slim version of match-sorter library (https://github.com/kentcdodds/match-sorter) adjusted to the needs.
+   Use `threshold` option with one of the rankings defined below to control the strictness of the match.
+*/
+
 const rankings = {
     CASE_SENSITIVE_EQUAL: 7,
     EQUAL: 6,
@@ -115,13 +120,9 @@ function getItemValues<T>(item: T, key: KeyOption<T>): string[] {
     } else if (keyCopy.includes('.')) {
         return getNestedValues<T>(keyCopy, item);
     } else {
-        value = null;
-    }
-
-    // because `value` can also be undefined
-    if (value == null) {
         return [];
     }
+
     if (Array.isArray(value)) {
         return value as string[];
     }
