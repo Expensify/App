@@ -133,7 +133,7 @@ function getOrderedReportIDs(
         const reportAction = ReportActionsUtils.getReportAction(report.parentReportID ?? '', report.parentReportActionID ?? '');
         if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report, reportAction)) {
             pinnedAndGBRReports.push(report);
-        } else if (report.hasDraft) {
+        } else if (hasValidDraftComment(report.reportID)) {
             draftReports.push(report);
         } else if (ReportUtils.isArchivedRoom(report)) {
             archivedReports.push(report);

@@ -93,6 +93,8 @@ const propTypes = {
         ),
     }),
 
+    reportsDrafts: PropTypes.objectOf(PropTypes.string),
+
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
@@ -105,6 +107,7 @@ const defaultProps = {
     policyMembers: {},
     transactionViolations: {},
     allReportActions: {},
+    reportsDrafts: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -123,6 +126,7 @@ function SidebarLinksData({
     policyMembers,
     transactionViolations,
     currentUserPersonalDetails,
+    reportsDrafts,
 }) {
     const styles = useThemeStyles();
     const {activeWorkspaceID} = useActiveWorkspace();
@@ -160,7 +164,20 @@ function SidebarLinksData({
             reportIDsRef.current = reportIDs;
         }
         return reportIDsRef.current || [];
-    }, [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, isLoading, network.isOffline, prevPriorityMode]);
+    }, [
+        chatReports,
+        betas,
+        policies,
+        priorityMode,
+        allReportActions,
+        transactionViolations,
+        activeWorkspaceID,
+        policyMemberAccountIDs,
+        isLoading,
+        network.isOffline,
+        prevPriorityMode,
+        reportsDrafts,
+    ]);
 
     // We need to make sure the current report is in the list of reports, but we do not want
     // to have to re-generate the list every time the currentReportID changes. To do that
@@ -330,6 +347,10 @@ export default compose(
         },
         transactionViolations: {
             key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+            initialValue: {},
+        },
+        reportsDrafts: {
+            key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
             initialValue: {},
         },
     }),
