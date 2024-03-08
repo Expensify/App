@@ -3040,6 +3040,7 @@ function acceptJoinRequest(reportID: string, reportAction: OnyxEntry<ReportActio
             },
         },
     ];
+
     const parameters = {
         requests: JSON.stringify({
             [(reportAction.originalMessage as OriginalMessageJoinPolicyChangeLog['originalMessage']).policyID]: {
@@ -3097,6 +3098,7 @@ function declineJoinRequest(reportID: string, reportAction: OnyxEntry<ReportActi
             },
         },
     ];
+
     const parameters = {
         requests: JSON.stringify({
             [(reportAction.originalMessage as OriginalMessageJoinPolicyChangeLog['originalMessage']).policyID]: {
