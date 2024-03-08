@@ -39,8 +39,6 @@ function WorkspaceNewTaxPage({
             errors[INPUT_IDS.VALUE] = 'workspace.taxes.errors.value.percentageRange';
         }
 
-        console.log({values, errors});
-
         return errors;
     }, []);
 

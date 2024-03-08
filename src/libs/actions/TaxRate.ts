@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import * as ErrorUtils from '@src/libs/ErrorUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TaxRate} from '@src/types/onyx';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 function createWorkspaceTax(policyID: string, taxRate: TaxRate) {
@@ -73,5 +74,24 @@ function createWorkspaceTax(policyID: string, taxRate: TaxRate) {
     API.write(WRITE_COMMANDS.CREATE_POLICY_TAX, parameters, onyxData);
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {createWorkspaceTax};
+function clearTaxRateError(policyID: string, taxID: string, pendingAction?: PendingAction) {
+    if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            taxRates: {
+                taxes: {
+                    [taxID]: null,
+                },
+            },
+        });
+        return;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        taxRates: {
+            taxes: {
+                [taxID]: {pendingAction: null, errors: null},
+            },
+        },
+    });
+}
+
+export {createWorkspaceTax, clearTaxRateError};
