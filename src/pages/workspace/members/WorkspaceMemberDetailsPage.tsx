@@ -30,6 +30,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import useCurrentUserPersonalDetails from "@hooks/useCurrentUserPersonalDetails";
 
 type WorkspacePolicyOnyxProps = {
     /** Personal details of all users */
@@ -42,6 +43,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
 
@@ -54,6 +56,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
     const avatar = details.avatar ?? UserUtils.getDefaultAvatar();
     const fallbackIcon = details.fallbackIcon ?? '';
     const displayName = details.displayName ?? '';
+    const isOwner = policy?.owner === details.login;
+    const isCurrentUserAdmin = policyMembers?.[currentUserPersonalDetails?.accountID]?.role === CONST.POLICY.ROLE.ADMIN;
+    const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
 
     const askForConfirmationToRemove = () => {
         setIsRemoveMemberConfirmModalVisible(true);
@@ -72,6 +77,10 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
     const openRoleSelectionModal = useCallback(() => {
         Navigation.navigate(ROUTES.WORKSPACE_MEMBER_ROLE_SELECTION.getRoute(route.params.policyID, accountID, Navigation.getActiveRoute()));
     }, [accountID, route.params.policyID]);
+
+    const startChangeOwnershipFlow = useCallback(() => {
+
+    }, []);
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
@@ -101,14 +110,26 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
                                     {displayName}
                                 </Text>
                             )}
-                            <Button
-                                text={translate('workspace.people.removeMemberButtonTitle')}
-                                onPress={askForConfirmationToRemove}
-                                medium
-                                icon={Expensicons.RemoveMembers}
-                                iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
-                                style={styles.mv5}
-                            />
+                            {isOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
+                                <Button
+                                    text={translate('workspace.people.transferOwner')}
+                                    onPress={startChangeOwnershipFlow}
+                                    medium
+                                    icon={Expensicons.Transfer}
+                                    iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
+                                    style={styles.mv5}
+                                />
+                            ) : (
+                                <Button
+                                    text={translate('workspace.people.removeMemberButtonTitle')}
+                                    onPress={askForConfirmationToRemove}
+                                    medium
+                                    isDisabled={isOwner && isCurrentUserOwner}
+                                    icon={Expensicons.RemoveMembers}
+                                    iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
+                                    style={styles.mv5}
+                                />
+                            )}
                             <ConfirmModal
                                 danger
                                 title={translate('workspace.people.removeMemberTitle')}

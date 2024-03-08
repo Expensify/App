@@ -1837,6 +1837,7 @@ export default {
             removeMemberButtonTitle: 'Quitar del espacio de trabajo',
             removeMemberPrompt: ({memberName}) => `¿Estás seguro de que deseas eliminar a ${memberName}`,
             removeMemberTitle: 'Eliminar miembro',
+            transferOwner: 'Transferir la propiedad',
             makeMember: 'Hacer miembro',
             makeAdmin: 'Hacer administrador',
             selectAll: 'Seleccionar todo',

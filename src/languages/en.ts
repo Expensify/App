@@ -1813,6 +1813,7 @@ export default {
             removeMemberButtonTitle: 'Remove from workspace',
             removeMemberPrompt: ({memberName}) => `Are you sure you want to remove ${memberName}`,
             removeMemberTitle: 'Remove member',
+            transferOwner: 'Transfer owner',
             makeMember: 'Make member',
             makeAdmin: 'Make admin',
             selectAll: 'Select all',
