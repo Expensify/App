@@ -241,7 +241,8 @@ export default withPolicy(
             key: ONYXKEYS.BETAS,
         },
         reimbursementAccount: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${route.params.policyID}`,
+             // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
+            key: ({route}) => `${ONYXKEYS.REIMBURSEMENT_ACCOUNT}${route.params.policyID}`,
         },
     })(WorkspaceWorkflowsPage),
 );
