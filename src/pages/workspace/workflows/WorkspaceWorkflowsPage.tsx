@@ -84,7 +84,11 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
                           title: translate('workflowsPage.delaySubmissionTitle'),
                           subtitle: translate('workflowsPage.delaySubmissionDescription'),
                           onToggle: (isEnabled: boolean) => {
-                              Policy.setWorkspaceAutoReporting(route.params.policyID, isEnabled);
+                              const frequency =
+                                  policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT || !policy?.autoReportingFrequency
+                                      ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY
+                                      : policy.autoReportingFrequency;
+                              Policy.setWorkspaceAutoReporting(route.params.policyID, isEnabled, frequency);
                           },
                           subMenuItems: (
                               <MenuItem
@@ -92,6 +96,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
                                   titleStyle={styles.textLabelSupportingNormal}
                                   descriptionTextStyle={styles.textNormalThemeText}
                                   onPress={onPressAutoReportingFrequency}
+                                  // Instant submit is the equivalent of delayed submissions being turned off, so we show the feature as disabled if the frequency is instant
                                   description={
                                       getAutoReportingFrequencyDisplayNames(preferredLocale)[
                                           (policy?.autoReportingFrequency as AutoReportingFrequencyKey) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY
@@ -102,7 +107,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
                                   hoverAndPressStyle={[styles.mr0, styles.br2]}
                               />
                           ),
-                          isActive: policy?.harvesting?.enabled ?? false,
+                          isActive: (policy?.harvesting?.enabled && policy.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT) ?? false,
                           pendingAction: policy?.pendingFields?.isAutoApprovalEnabled,
                       },
                   ]
