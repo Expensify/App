@@ -72,6 +72,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
                 // This is necessary to cover whole screen. Including translated sidebar.
                 marginLeft: isSmallScreenWidth ? 0 : -variables.sideBarWidth,
             },
+            animation: 'slide_from_right',
         },
 
         centralPaneNavigator: {
