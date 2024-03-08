@@ -114,7 +114,7 @@ function MoneyRequestPreviewContent({
         merchantOrDescription = description || '';
     }
 
-    const receiptImages = hasReceipt ? [{...ReceiptUtils.getThumbnailAndImageURIs(transaction)}] : [];
+    const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(transaction)] : [];
 
     const hasPendingWaypoints = transaction?.pendingFields?.waypoints;
     const showMapAsImage = isDistanceRequest && hasPendingWaypoints;
