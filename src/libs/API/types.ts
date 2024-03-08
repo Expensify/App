@@ -319,7 +319,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.JOIN_POLICY_VIA_INVITE_LINK]: Parameters.JoinPolicyInviteLinkParams;
     [WRITE_COMMANDS.ACCEPT_JOIN_REQUEST]: Parameters.AcceptJoinRequestParams;
     [WRITE_COMMANDS.DECLINE_JOIN_REQUEST]: Parameters.DeclineJoinRequestParams;
-    [WRITE_COMMANDS.CREATE_WORKSPACE_TAX]: Parameters.CreateWorkspaceTaxParams;
+    [WRITE_COMMANDS.CREATE_POLICY_TAX]: Parameters.CreatePolicyTaxParams;
 };
 
 const READ_COMMANDS = {

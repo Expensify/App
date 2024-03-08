@@ -1,6 +1,6 @@
 import type {TaxRate} from '@src/types/onyx/Policy';
 
-type CreateWorkspaceTaxParams = {
+type CreatePolicyTaxParams = {
     policyID: string;
     taxFields: Pick<TaxRate, 'name' | 'value'> & {
         enabled: true;
@@ -8,4 +8,4 @@ type CreateWorkspaceTaxParams = {
     };
 };
 
-export default CreateWorkspaceTaxParams;
+export default CreatePolicyTaxParams;

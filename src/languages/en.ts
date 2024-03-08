@@ -1790,7 +1790,11 @@ export default {
             subtitle: 'Add tax names, rates, and set defaults.',
             value: 'Value',
             name: 'Name',
+            newRate: 'New rate',
             errors: {
+                name: {
+                    alreadyExists: 'A tax with this name already exists',
+                },
                 value: {
                     percentageRange: 'Please enter a valid percentage between 0 and 100',
                 },

@@ -5,7 +5,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import * as ErrorUtils from '@src/libs/ErrorUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {TaxRate, TaxRates} from '@src/types/onyx';
+import type {TaxRate} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
 
@@ -101,4 +101,4 @@ function clearTaxRateError(policyID: string, taxID: string, pendingAction?: Pend
     });
 }
 
-export {createWorkspaceTax, clearTaxRateError};
+export {createWorkspaceTax, clearTaxRateError, getNextTaxID};
