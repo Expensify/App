@@ -925,7 +925,7 @@ function signInWithValidateCodeAndNavigate(accountID: number, validateCode: stri
     if (exitTo) {
         handleExitToNavigation(exitTo);
     } else {
-        Navigation.navigate(ROUTES.HOME);
+        Navigation.goBack();
     }
 }
 
