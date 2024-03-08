@@ -125,7 +125,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         if ((
             (isDefaultRoom && isChatThread && isPolicyMember) || 
             (!isUserCreatedPolicyRoom && participants.length) || 
-            (isUserCreatedPolicyRoom && (isPolicyMember || isChatThread))
+            (isUserCreatedPolicyRoom && (isPolicyMember || (isChatThread && !ReportUtils.isPublicRoom(report))))
           ) && !ReportUtils.isConciergeChatReport(report)) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
