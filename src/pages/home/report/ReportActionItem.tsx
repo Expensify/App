@@ -205,7 +205,9 @@ function ReportActionItem({
     // Get the transaction associated with the report
     const transaction = useMemo(() => {
         const reportAction = reportActions?.[transactionThreadReport?.parentReportActionID ?? ''];
-        const transactionID = (reportAction as OnyxTypes.OriginalMessageIOU)?.originalMessage.IOUTransactionID ? (reportAction as OnyxTypes.OriginalMessageIOU).originalMessage.IOUTransactionID : 0;
+        const transactionID = (reportAction as OnyxTypes.OriginalMessageIOU)?.originalMessage.IOUTransactionID
+            ? (reportAction as OnyxTypes.OriginalMessageIOU).originalMessage.IOUTransactionID
+            : 0;
         return transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     }, [transactionThreadReport, reportActions, transactions]);
 
