@@ -6,7 +6,10 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 // eslint-disable-next-line no-restricted-imports
 import {defaultStyles} from '@styles/index';
 import CONST from '@src/CONST';
+import withNavigationFallback from '@components/withNavigationFallback';
 import type { BaseSelectionListProps, ListItem } from '@components/SelectionList/types';
+
+const SelectionListWithNavigation = withNavigationFallback(SelectionList);
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -86,7 +89,7 @@ function Default(props: BaseSelectionListProps<ListItem>) {
     };
 
     return (
-        <SelectionList
+        <SelectionListWithNavigation
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             sections={sections}
@@ -107,7 +110,7 @@ function WithTextInput(props: BaseSelectionListProps<ListItem>) {
     const [selectedIndex, setSelectedIndex] = useState(1);
 
     const sections = props.sections.map((section) => {
-        const data = section.data.reduce(
+        const data = section.data.reduce<Array<ListItem & {isSelected: boolean}>>(
             (memo, item, index) => {
                 if (!item.text.toLowerCase().includes(searchText.trim().toLowerCase())) {
                     return memo;
@@ -134,7 +137,7 @@ function WithTextInput(props: BaseSelectionListProps<ListItem>) {
     };
 
     return (
-        <SelectionList
+        <SelectionListWithNavigation
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             sections={sections}
@@ -199,7 +202,7 @@ function WithAlternateText(props: BaseSelectionListProps<ListItem>) {
         });
     };
     return (
-        <SelectionList
+        <SelectionListWithNavigation
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             sections={sections}
@@ -209,14 +212,17 @@ function WithAlternateText(props: BaseSelectionListProps<ListItem>) {
 }
 
 WithAlternateText.args = {
-    ...Default.args,
+    // ...Default.args,
+    sections: SECTIONS,
+    onSelectRow: () => {},
+    initiallyFocusedOptionKey: 'option-2',
 };
 
 function MultipleSelection(props: BaseSelectionListProps<ListItem>) {
     const [selectedIds, setSelectedIds] = useState(['option-1', 'option-2']);
 
     const memo = useMemo(() => {
-        const allIds: string [] = [];
+        const allIds: string[] = [];
 
         const sections = props.sections.map((section) => {
             const data = section.data.map((item, index) => {
@@ -228,7 +234,7 @@ function MultipleSelection(props: BaseSelectionListProps<ListItem>) {
                     ...item,
                     isSelected,
                     alternateText: `${item.keyForList}@email.com`,
-                    accountID: item.keyForList,
+                    accountID: Number(item.keyForList),
                     login: item.text,
                     rightElement: isAdmin && (
                         <Badge
@@ -260,7 +266,7 @@ function MultipleSelection(props: BaseSelectionListProps<ListItem>) {
     };
 
     return (
-        <SelectionList
+        <SelectionListWithNavigation
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             sections={memo.sections}
@@ -293,7 +299,7 @@ function WithSectionHeader(props: BaseSelectionListProps<ListItem>) {
                     ...item,
                     isSelected,
                     alternateText: `${item.keyForList}@email.com`,
-                    accountID: item.keyForList,
+                    accountID: Number(item.keyForList),
                     login: item.text,
                     rightElement: isAdmin && (
                         <Badge
@@ -325,7 +331,7 @@ function WithSectionHeader(props: BaseSelectionListProps<ListItem>) {
     };
 
     return (
-        <SelectionList
+        <SelectionListWithNavigation
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             sections={memo.sections}
@@ -350,13 +356,13 @@ function WithConfirmButton(props: BaseSelectionListProps<ListItem>) {
             const data = section.data.map((item, itemIndex) => {
                 allIds.push(item.keyForList);
                 const isSelected = selectedIds.includes(item.keyForList);
-                const isAdmin = itemIndex + (section?.indexOffset ?? 0) === 0;
+                const isAdmin = itemIndex + (section.indexOffset ?? 0) === 0;
 
                 return {
                     ...item,
                     isSelected,
                     alternateText: `${item.keyForList}@email.com`,
-                    accountID: item.keyForList,
+                    accountID: Number(item.keyForList),
                     login: item.text,
                     rightElement: isAdmin && (
                         <Badge
@@ -388,7 +394,7 @@ function WithConfirmButton(props: BaseSelectionListProps<ListItem>) {
     };
 
     return (
-        <SelectionList
+        <SelectionListWithNavigation
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             sections={memo.sections}
