@@ -885,11 +885,11 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
         initialValue: {} as OnyxTypes.Report,
     },
     policyReportFields: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS}${report.policyID ?? ''}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS}${report.policyID ?? 0}`,
         initialValue: {},
     },
     policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID ?? ''}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID ?? 0}`,
         initialValue: {} as OnyxTypes.Policy,
     },
     emojiReactions: {
