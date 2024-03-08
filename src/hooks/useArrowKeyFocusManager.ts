@@ -132,7 +132,7 @@ export default function useArrowKeyFocusManager({
 
                 if (newFocusedIndex > maxIndex) {
                     if (disableCyclicTraversal) {
-                        break;
+                        return actualIndex;
                     }
                     newFocusedIndex = 0;
                 }
