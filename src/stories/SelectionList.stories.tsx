@@ -3,11 +3,11 @@ import React, {useMemo, useState} from 'react';
 import Badge from '@components/Badge';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
+import type {BaseSelectionListProps, ListItem} from '@components/SelectionList/types';
+import withNavigationFallback from '@components/withNavigationFallback';
 // eslint-disable-next-line no-restricted-imports
 import {defaultStyles} from '@styles/index';
 import CONST from '@src/CONST';
-import withNavigationFallback from '@components/withNavigationFallback';
-import type { BaseSelectionListProps, ListItem } from '@components/SelectionList/types';
 
 const SelectionListWithNavigation = withNavigationFallback(SelectionList);
 
@@ -110,18 +110,15 @@ function WithTextInput(props: BaseSelectionListProps<ListItem>) {
     const [selectedIndex, setSelectedIndex] = useState(1);
 
     const sections = props.sections.map((section) => {
-        const data = section.data.reduce<Array<ListItem & {isSelected: boolean}>>(
-            (memo, item, index) => {
-                if (!item.text.toLowerCase().includes(searchText.trim().toLowerCase())) {
-                    return memo;
-                }
-
-                const isSelected = selectedIndex === index + (section?.indexOffset ?? 0);
-                memo.push({...item, isSelected});
+        const data = section.data.reduce<Array<ListItem & {isSelected: boolean}>>((memo, item, index) => {
+            if (!item.text.toLowerCase().includes(searchText.trim().toLowerCase())) {
                 return memo;
-            },
-            [],
-        );
+            }
+
+            const isSelected = selectedIndex === index + (section?.indexOffset ?? 0);
+            memo.push({...item, isSelected});
+            return memo;
+        }, []);
 
         return {...section, data};
     });
@@ -207,6 +204,7 @@ function WithAlternateText(props: BaseSelectionListProps<ListItem>) {
             {...props}
             sections={sections}
             onSelectRow={onSelectRow}
+            ListItem={RadioListItem}
         />
     );
 }
