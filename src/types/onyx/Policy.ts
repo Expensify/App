@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
@@ -68,16 +69,99 @@ type TaxRatesWithDefault = {
     taxes: TaxRates;
 };
 
-// These types are for the Integration connections for a policy (eg. Quickbooks, Xero, etc).
-// This data is not yet used in the codebase which is why it is given a very generic type, but the data is being put into Onyx for future use.
-// Once the data is being used, these types should be defined appropriately.
-type ConnectionLastSync = Record<string, unknown>;
-type ConnectionData = Record<string, unknown>;
-type ConnectionConfig = Record<string, unknown>;
-type Connection = {
+type ConnectionLastSync = {
+    successfulDate?: string;
+    errorDate?: string;
+    isSuccessful: boolean;
+    source: 'DIRECT' | 'EXPENSIFYWEB' | 'EXPENSIFYAPI' | 'AUTOSYNC' | 'AUTOAPPROVE';
+};
+
+type Account = {
+    glCode?: string;
+    name: string;
+    currency: string;
+    id: string;
+};
+
+type Employee = {
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    name: string;
+    email: string;
+};
+
+type Vendor = {
+    id: string;
+    name: string;
+    currency: string;
+    email: string;
+};
+
+type TaxCode = {
+    totalTaxRateVal: string;
+    simpleName: string;
+    taxCodeRef: string;
+    taxRateRefs: Record<string, string>;
+    name: string;
+};
+
+type QBOConnectionData = {
+    country: string;
+    edition: string;
+    homeCurrency: string;
+    isMultiCurrencyEnabled: boolean;
+
+    journalEntryAccounts: Account[];
+    bankAccounts: Account[];
+    creditCards: Account[];
+    accountsReceivable: Account[];
+    accountsPayable: Account[];
+    otherCurrentAssetAccounts: Account[];
+
+    taxCodes: TaxCode[];
+    employees: Employee[];
+    vendors: Vendor[];
+};
+
+type IntegrationEntityMap = 'NONE' | 'DEFAULT' | 'TAG' | 'REPORT_FIELD';
+
+type QBOConnectionConfig = {
+    realmId: string;
+    companyName: string;
+    autoSync: {
+        jobID: string;
+        enabled: boolean;
+    };
+    syncPeople: boolean;
+    syncItems: boolean;
+    markChecksToBePrinted: boolean;
+    reimbursableExpensesExportDestination: IntegrationEntityMap;
+    nonReimbursableExpensesExportDestination: IntegrationEntityMap;
+
+    reimbursableExpensesAccount?: string;
+    nonReimbursableExpensesAccount?: string;
+    autoCreateVendor: boolean;
+    hasChosenAutoSyncOption: boolean;
+    syncClasses: IntegrationEntityMap;
+    syncCustomers: IntegrationEntityMap;
+    syncLocations: IntegrationEntityMap;
+    exportDate: string;
+    lastConfigurationTime: number;
+    syncTax: boolean;
+    enableNewCategories: boolean;
+    export: {
+        exporter: string;
+    };
+};
+type Connection<ConnectionData, ConnectionConfig> = {
     lastSync?: ConnectionLastSync;
     data: ConnectionData;
     config: ConnectionConfig;
+};
+
+type Connections = {
+    quickbooksOnline: Connection<QBOConnectionData, QBOConnectionConfig>;
 };
 
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
@@ -239,7 +323,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         chatReportIDAnnounce?: number;
 
         /** All the integration connections attached to the policy */
-        connections?: Record<string, Connection>;
+        connections?: Connections;
 
         /** Whether the Categories feature is enabled */
         areCategoriesEnabled?: boolean;
