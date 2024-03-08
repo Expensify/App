@@ -115,6 +115,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     const disableRates = () => {
         if (selectedDistanceRates.length !== Object.values(customUnitRates).length) {
             // run enableWorkspaceDistanceRates for all selected rows
+            return;
         }
 
         setIsWarningModalVisible(true);
@@ -127,6 +128,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     const deleteRates = () => {
         if (selectedDistanceRates.length !== Object.values(customUnitRates).length) {
             // run deleteWorkspaceDistanceRates for all selected rows
+            return;
         }
 
         setIsWarningModalVisible(true);
