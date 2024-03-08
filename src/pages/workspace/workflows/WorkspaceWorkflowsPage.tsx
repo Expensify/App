@@ -17,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
@@ -152,7 +153,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
                         {hasVBA && (
                             <OfflineWithFeedback
                                 pendingAction={policy?.pendingFields?.reimburserEmail}
-                                errors={policy?.errorFields?.reimburserEmail}
+                                errors={ErrorUtils.getLatestErrorField(policy ?? {}, 'reimburserEmail')}
                                 onClose={() => Policy.clearWorkspacePayerError(policy?.id ?? route.params.policyID)}
                             >
                                 <MenuItem
