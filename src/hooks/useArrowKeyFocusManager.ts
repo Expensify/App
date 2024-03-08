@@ -12,6 +12,7 @@ type Config = {
     itemsPerRow?: number;
     disableCyclicTraversal?: boolean;
     disableHorizontalKeys?: boolean;
+    allowNegativeIndexes?: boolean;
 };
 
 type UseArrowKeyFocusManager = [number, (index: number) => void];
@@ -44,6 +45,7 @@ export default function useArrowKeyFocusManager({
     itemsPerRow,
     disableCyclicTraversal = false,
     disableHorizontalKeys = false,
+    allowNegativeIndexes = false,
 }: Config): UseArrowKeyFocusManager {
     const allowHorizontalArrowKeys = !!itemsPerRow;
     const [focusedIndex, setFocusedIndex] = useState(initialFocusedIndex);
@@ -85,6 +87,9 @@ export default function useArrowKeyFocusManager({
                 newFocusedIndex -= allowHorizontalArrowKeys ? itemsPerRow : 1;
                 if (newFocusedIndex < 0) {
                     if (disableCyclicTraversal) {
+                        if (!allowNegativeIndexes) {
+                            return actualIndex;
+                        }
                         break;
                     }
                     newFocusedIndex = maxIndex;
@@ -96,7 +101,7 @@ export default function useArrowKeyFocusManager({
             }
             return newFocusedIndex;
         });
-    }, [allowHorizontalArrowKeys, disableCyclicTraversal, disabledIndexes, itemsPerRow, maxIndex]);
+    }, [allowHorizontalArrowKeys, disableCyclicTraversal, disabledIndexes, itemsPerRow, maxIndex, allowNegativeIndexes]);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_UP, arrowUpCallback, arrowConfig);
 
