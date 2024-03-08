@@ -516,6 +516,10 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.buttonBorderRadius,
         },
 
+        componentBorderRadiusNormal: {
+            borderRadius: variables.componentBorderRadiusNormal,
+        },
+
         bottomTabBarContainer: {
             flexDirection: 'row',
             height: variables.bottomTabHeight,
@@ -2109,6 +2113,16 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'center',
             verticalAlign: 'middle',
             width: 200,
+        },
+
+        chatItemPDFAttachmentLoading: {
+            backgroundColor: 'transparent',
+            borderColor: theme.border,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+            textAlign: 'center',
+            verticalAlign: 'middle',
+            opacity: 1,
         },
 
         sidebarVisible: {

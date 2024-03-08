@@ -1,16 +1,13 @@
 import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
 import React, {memo, useEffect, useState} from 'react';
-import {ActivityIndicator, ScrollView, View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import * as AttachmentsPropTypes from '@components/Attachments/propTypes';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import Text from '@components/Text';
-import Tooltip from '@components/Tooltip';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -25,6 +22,7 @@ import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
+import DefaultAttachmentView from './AttachmentViewPdf/DefaultAttachmentView';
 import AttachmentViewVideo from './AttachmentViewVideo';
 import {attachmentViewDefaultProps, attachmentViewPropTypes} from './propTypes';
 
@@ -107,6 +105,7 @@ function AttachmentView({
     const StyleUtils = useStyleUtils();
     const [loadComplete, setLoadComplete] = useState(false);
     const isVideo = (typeof source === 'string' && Str.isVideo(source)) || (file && Str.isVideo(file.name));
+    const [isPdfFailedToLoad, setIsPdfFailedToLoad] = useState(false);
 
     useEffect(() => {
         if (!isFocused && !(file && isUsedInAttachmentModal)) {
@@ -169,6 +168,17 @@ function AttachmentView({
             }
         };
 
+        if (isPdfFailedToLoad) {
+            return (
+                <DefaultAttachmentView
+                    file={file}
+                    shouldShowDownloadIcon={shouldShowDownloadIcon}
+                    shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
+                    containerStyles={containerStyles}
+                />
+            );
+        }
+
         // We need the following View component on android native
         // So that the event will propagate properly and
         // the Password protected preview will be shown for pdf attachement we are about to send.
@@ -186,6 +196,10 @@ function AttachmentView({
                     errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [styles.cursorAuto]}
                     style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
                     isUsedInCarousel={isUsedInCarousel}
+                    isUsedAsChatAttachment={!(isUsedInAttachmentModal || isUsedInCarousel)}
+                    onError={() => {
+                        setIsPdfFailedToLoad(true);
+                    }}
                 />
             </View>
         );
@@ -229,36 +243,42 @@ function AttachmentView({
     }
 
     return (
-        <View style={[styles.defaultAttachmentView, ...containerStyles]}>
-            <View style={styles.mr2}>
-                <Icon
-                    fill={theme.icon}
-                    src={Expensicons.Paperclip}
-                />
-            </View>
+        <DefaultAttachmentView
+            file={file}
+            shouldShowDownloadIcon={shouldShowDownloadIcon}
+            shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
+            containerStyles={containerStyles}
+        />
+        // <View style={[styles.defaultAttachmentView, ...containerStyles]}>
+        //     <View style={styles.mr2}>
+        //         <Icon
+        //             fill={theme.icon}
+        //             src={Expensicons.Paperclip}
+        //         />
+        //     </View>
 
-            <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{file && file.name}</Text>
-            {!shouldShowLoadingSpinnerIcon && shouldShowDownloadIcon && (
-                <Tooltip text={translate('common.download')}>
-                    <View style={styles.ml2}>
-                        <Icon
-                            fill={theme.icon}
-                            src={Expensicons.Download}
-                        />
-                    </View>
-                </Tooltip>
-            )}
-            {shouldShowLoadingSpinnerIcon && (
-                <View style={styles.ml2}>
-                    <Tooltip text={translate('common.downloading')}>
-                        <ActivityIndicator
-                            size="small"
-                            color={theme.textSupporting}
-                        />
-                    </Tooltip>
-                </View>
-            )}
-        </View>
+        //     <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{file && file.name}</Text>
+        //     {!shouldShowLoadingSpinnerIcon && shouldShowDownloadIcon && (
+        //         <Tooltip text={translate('common.download')}>
+        //             <View style={styles.ml2}>
+        //                 <Icon
+        //                     fill={theme.icon}
+        //                     src={Expensicons.Download}
+        //                 />
+        //             </View>
+        //         </Tooltip>
+        //     )}
+        //     {shouldShowLoadingSpinnerIcon && (
+        //         <View style={styles.ml2}>
+        //             <Tooltip text={translate('common.downloading')}>
+        //                 <ActivityIndicator
+        //                     size="small"
+        //                     color={theme.textSupporting}
+        //                 />
+        //             </Tooltip>
+        //         </View>
+        //     )}
+        // </View>
     );
 }
 

@@ -2,17 +2,22 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import PDF from 'react-native-pdf';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import Text from '@components/Text';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import PDFPasswordForm from './PDFPasswordForm';
 import {defaultProps, propTypes as pdfViewPropTypes} from './pdfViewPropTypes';
+import Text from '@components/Text';
 
 const propTypes = {
     ...pdfViewPropTypes,
@@ -33,7 +38,10 @@ const propTypes = {
  * is (temporarily) rendered.
  */
 
-function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused, onScaleChanged, sourceURL, errorLabelStyles}) {
+const THUMBNAIL_HEIGHT = 250;
+const THUMBNAIL_WIDTH = 250;
+
+function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused, onScaleChanged, sourceURL, errorLabelStyles, onError, isUsedAsChatAttachment}) {
     const [shouldRequestPassword, setShouldRequestPassword] = useState(false);
     const [shouldAttemptPDFLoad, setShouldAttemptPDFLoad] = useState(true);
     const [shouldShowLoadingIndicator, setShouldShowLoadingIndicator] = useState(true);
@@ -46,6 +54,8 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     const themeStyles = useThemeStyles();
     const {isKeyboardShown} = useKeyboardState();
     const StyleUtils = useStyleUtils();
+    const {isOffline} = useNetwork();
+    const theme = useTheme();
 
     useEffect(() => {
         onToggleKeyboard(isKeyboardShown);
@@ -84,6 +94,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         setShouldShowLoadingIndicator(false);
         setShouldRequestPassword(false);
         setShouldAttemptPDFLoad(false);
+        onError(error);
     };
 
     /**
@@ -113,9 +124,33 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         setSuccessToLoadPDF(true);
         onLoadComplete(path);
     };
+    const rendeFailedToLoadPDF = () => {
+        if (!isUsedAsChatAttachment) {
+            return (
+                <View style={[themeStyles.flex1, themeStyles.justifyContentCenter, themeStyles.alignItemsCenter]}>
+                    <Text style={errorLabelStyles}>{translate('attachmentView.failedToLoadPDF')}</Text>
+                </View>
+            );
+        }
+
+        return (
+            <View style={[themeStyles.overflowHidden, themeStyles.hoveredComponentBG, themeStyles.componentBorderRadiusNormal]}>
+                <View style={[StyleUtils.getWidthAndHeightStyle(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT), themeStyles.alignItemsCenter, themeStyles.justifyContentCenter]}>
+                    <Icon
+                        src={isOffline ? Expensicons.OfflineCloud : Expensicons.Document}
+                        height={variables.iconSizeSuperLarge}
+                        width={variables.iconSizeSuperLarge}
+                        fill={theme.border}
+                    />
+                </View>
+            </View>
+        );
+    };
 
     function renderPDFView() {
-        const pdfStyles = [themeStyles.imageModalPDF, StyleUtils.getWidthAndHeightStyle(windowWidth, windowHeight)];
+        const pdfHeight = isUsedAsChatAttachment ? THUMBNAIL_HEIGHT : windowHeight;
+        const pdfWeight = isUsedAsChatAttachment ? THUMBNAIL_WIDTH : windowWidth;
+        const pdfStyles = [StyleUtils.getWidthAndHeightStyle(pdfWeight, pdfHeight), themeStyles.imageModalPDF];
 
         // If we haven't yet successfully validated the password and loaded the PDF,
         // then we need to hide the react-native-pdf/PDF component so that PDFPasswordForm
@@ -124,22 +159,18 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         if (shouldRequestPassword) {
             pdfStyles.push(themeStyles.invisible);
         }
-
-        const containerStyles = shouldRequestPassword && isSmallScreenWidth ? [themeStyles.w100, themeStyles.flex1] : [themeStyles.alignItemsCenter, themeStyles.flex1];
+        const containerStyles =
+            (shouldRequestPassword && isSmallScreenWidth) || isUsedAsChatAttachment ? [themeStyles.w100, themeStyles.flex1] : [themeStyles.alignItemsCenter, themeStyles.flex1];
+        const loadingIndicatorStyles = isUsedAsChatAttachment ? [themeStyles.chatItemPDFAttachmentLoading, StyleUtils.getWidthAndHeightStyle(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT)] : [];
 
         return (
             <View style={containerStyles}>
-                {failedToLoadPDF && (
-                    <View style={[themeStyles.flex1, themeStyles.justifyContentCenter]}>
-                        <Text style={errorLabelStyles}>{translate('attachmentView.failedToLoadPDF')}</Text>
-                    </View>
-                )}
                 {shouldAttemptPDFLoad && (
                     <PDF
                         fitPolicy={0}
                         trustAllCerts={false}
-                        renderActivityIndicator={() => <FullScreenLoadingIndicator />}
-                        source={{uri: sourceURL, cache: true, expiration: 864000}}
+                        renderActivityIndicator={() => <FullScreenLoadingIndicator style={loadingIndicatorStyles} />}
+                        source={{uri: sourceURL}}
                         style={pdfStyles}
                         onError={handleFailureToLoadPDF}
                         password={password}
@@ -162,6 +193,10 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
             </View>
         );
     }
+    // // uncomment this code to see failedToLoadPDF
+    // if (failedToLoadPDF) {
+    //     return rendeFailedToLoadPDF();
+    // }
 
     return onPress && !successToLoadPDF ? (
         <PressableWithoutFeedback

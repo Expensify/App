@@ -48,6 +48,8 @@ const propTypes = {
      * - `undefined` if password isn't needed to view the PDF file
      * - `null` if the password is required but hasn't been provided yet */
     password: PropTypes.string,
+    /** Callback invoked when the PDF document fails to load */
+    onError: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -95,7 +97,7 @@ const WebPDFDocument = memo(
         return (
             <Document
                 loading={<FullScreenLoadingIndicator />}
-                error={<Text style={errorLabelStyles}>{translate('attachmentView.failedToLoadPDF')}</Text>}
+                onLoadError={onError}
                 file={sourceURL}
                 options={{
                     cMapUrl: 'cmaps/',

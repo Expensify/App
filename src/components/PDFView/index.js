@@ -270,6 +270,7 @@ class PDFView extends Component {
                         pageWidth={pageWidth}
                         password={this.state.password}
                         initiatePasswordChallenge={this.initiatePasswordChallenge}
+                        onError={this.props.onError}
                     />
                 </View>
                 {(this.state.password === PDFViewConstants.REQUIRED_PASSWORD_MISSING || this.state.isCheckingPassword) && (
