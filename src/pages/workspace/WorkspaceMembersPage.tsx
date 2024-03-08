@@ -254,6 +254,19 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
         [selectedEmployees, addUser, removeUser],
     );
 
+    /** Opens the member details page */
+    const openMemberDetails = useCallback(
+        (item: MemberOption) => {
+            if (!isPolicyAdmin || !PolicyUtils.isPaidGroupPolicy(policy)) {
+                Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
+                return;
+            }
+
+            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID, Navigation.getActiveRoute()));
+        },
+        [isPolicyAdmin, policy, route.params.policyID],
+    );
+
     /**
      * Dismisses the errors on one item
      */
@@ -451,7 +464,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                     <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                         shouldAlwaysShowDropdownMenu
                         pressOnEnter
-                        customText={translate('workspace.people.selected', {selectedNumber: selectedEmployees.length})}
+                        customText={translate('workspace.common.selected', {selectedNumber: selectedEmployees.length})}
                         buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                         onPress={() => null}
                         options={getBulkActionsButtonOptions()}
@@ -465,7 +478,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                         onPress={inviteUser}
                         text={translate('workspace.invite.member')}
                         icon={Expensicons.Plus}
-                        iconStyles={{transform: [{scale: 0.6}]}}
+                        iconStyles={StyleUtils.getTransformScaleStyle(0.6)}
                         innerStyles={[isSmallScreenWidth && styles.alignItemsCenter]}
                         style={[isSmallScreenWidth && styles.flexGrow1]}
                     />
@@ -525,13 +538,8 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                         disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                         headerMessage={getHeaderMessage()}
                         headerContent={getHeaderContent()}
-                        onSelectRow={(item) => {
-                            if (!isPolicyAdmin) {
-                                Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
-                                return;
-                            }
-                            toggleUser(item.accountID);
-                        }}
+                        onSelectRow={openMemberDetails}
+                        onCheckboxPress={(item) => toggleUser(item.accountID)}
                         onSelectAll={() => toggleAllUsers(data)}
                         onDismissError={dismissError}
                         showLoadingPlaceholder={!isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) || isEmptyObject(policyMembers))}

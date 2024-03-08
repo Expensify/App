@@ -4665,16 +4665,6 @@ const styles = (theme: ThemeColors) =>
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
         },
-        notSoFastPopoverWrapper: {
-            maxWidth: variables.popoverWidth,
-            padding: 20,
-        },
-        notSoFastPopoverTitle: {
-            fontSize: variables.fontSizeLarge,
-            fontWeight: FontUtils.fontWeight.bold,
-            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            lineHeight: variables.lineHeightXLarge,
-        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
