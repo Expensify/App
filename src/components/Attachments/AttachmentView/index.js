@@ -12,7 +12,6 @@ import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContex
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CachedPDFPaths from '@libs/actions/CachedPDFPaths';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
@@ -100,7 +99,6 @@ function AttachmentView({
     optionalVideoDuration,
 }) {
     const {updateCurrentlyPlayingURL} = usePlaybackContext();
-    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [loadComplete, setLoadComplete] = useState(false);
@@ -155,7 +153,7 @@ function AttachmentView({
 
     // Check both source and file.name since PDFs dragged into the text field
     // will appear with a source that is a blob
-    if ((_.isString(source) && Str.isPDF(source)) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename')))) {
+    if (!isPdfFailedToLoad && ((_.isString(source) && Str.isPDF(source)) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename'))))) {
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source) : source;
 
         const onPDFLoadComplete = (path) => {
@@ -167,17 +165,6 @@ function AttachmentView({
                 setLoadComplete(true);
             }
         };
-
-        if (isPdfFailedToLoad) {
-            return (
-                <DefaultAttachmentView
-                    file={file}
-                    shouldShowDownloadIcon={shouldShowDownloadIcon}
-                    shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
-                    containerStyles={containerStyles}
-                />
-            );
-        }
 
         // We need the following View component on android native
         // So that the event will propagate properly and
@@ -249,36 +236,6 @@ function AttachmentView({
             shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
             containerStyles={containerStyles}
         />
-        // <View style={[styles.defaultAttachmentView, ...containerStyles]}>
-        //     <View style={styles.mr2}>
-        //         <Icon
-        //             fill={theme.icon}
-        //             src={Expensicons.Paperclip}
-        //         />
-        //     </View>
-
-        //     <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{file && file.name}</Text>
-        //     {!shouldShowLoadingSpinnerIcon && shouldShowDownloadIcon && (
-        //         <Tooltip text={translate('common.download')}>
-        //             <View style={styles.ml2}>
-        //                 <Icon
-        //                     fill={theme.icon}
-        //                     src={Expensicons.Download}
-        //                 />
-        //             </View>
-        //         </Tooltip>
-        //     )}
-        //     {shouldShowLoadingSpinnerIcon && (
-        //         <View style={styles.ml2}>
-        //             <Tooltip text={translate('common.downloading')}>
-        //                 <ActivityIndicator
-        //                     size="small"
-        //                     color={theme.textSupporting}
-        //                 />
-        //             </Tooltip>
-        //         </View>
-        //     )}
-        // </View>
     );
 }
 
