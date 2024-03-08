@@ -4642,6 +4642,7 @@ const styles = (theme: ThemeColors) =>
         videoPlayerTimeComponentWidth: {
             width: 40,
         },
+
         colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),
 
         updateAnimation: {
