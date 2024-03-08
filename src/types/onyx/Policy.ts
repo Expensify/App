@@ -126,6 +126,9 @@ type QBOConnectionData = {
 
 type IntegrationEntityMap = 'NONE' | 'DEFAULT' | 'TAG' | 'REPORT_FIELD';
 
+/**
+ * User configuration for the QuickBooks Online accounting integration.
+ */
 type QBOConnectionConfig = {
     realmId: string;
     companyName: string;
