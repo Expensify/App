@@ -171,11 +171,7 @@ type Connection<ConnectionData> = {
 };
 
 type Connections = {
-    quickbooksOnline: {
-        lastSync?: ConnectionLastSync;
-        data: Connection<QuickBooksOnlineConnectionData>;
-        config: ConnectionConfig;
-    };
+    quickbooksOnline: Connection<QuickBooksOnlineConnectionData>;
 };
 
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
