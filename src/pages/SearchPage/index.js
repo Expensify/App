@@ -60,7 +60,7 @@ function SearchPage({betas, reports, isSearchingForReports}) {
         personalDetails: [],
         betas: [],
     });
-    const [filteredOptions, setFilteredOptions] = useState([]);
+    const [filteredOptions, setFilteredOptions] = useState({});
 
     const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
@@ -87,7 +87,9 @@ function SearchPage({betas, reports, isSearchingForReports}) {
 
     useEffect(() => {
         if (debouncedSearchValue.trim() === '') {
-            setFilteredOptions({});
+            if(!_.isEmpty(filteredOptions)) {
+                setFilteredOptions({});
+            }
 
             return;
         }
