@@ -14,7 +14,7 @@ type CreateDistanceRequestParams = {
     billable?: boolean;
     transactionThreadReportID: string;
     createdReportActionIDForThread: string;
-    payerEmail?: string;
+    payerEmail: string;
     customUnitRateID?: string;
 };
 
