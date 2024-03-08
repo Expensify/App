@@ -1973,6 +1973,11 @@ export default {
                 'Parece que tu espacio de trabajo está configurado actualmente en una moneda diferente a USD. Por favor, haz clic en el botón de abajo para actualizar tu moneda a USD ahora.',
             updateToUSD: 'Actualizar a USD',
         },
+        connection: {
+            error: {
+                genericUpdate: `Error inesperado al actualizar el campo. Por favor, inténtalo más tarde'`,
+            },
+        },
     },
     getAssistancePage: {
         title: 'Obtener ayuda',

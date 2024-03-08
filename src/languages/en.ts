@@ -1947,6 +1947,11 @@ export default {
             updateCurrencyPrompt: 'It looks like your Workspace is currently set to a different currency than USD. Please click the button below to update your currency to USD now.',
             updateToUSD: 'Update to USD',
         },
+        connection: {
+            error: {
+                genericUpdate: `Unexpected error while updating the field, please try again later`,
+            },
+        },
     },
     getAssistancePage: {
         title: 'Get assistance',
