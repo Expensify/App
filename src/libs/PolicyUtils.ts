@@ -236,7 +236,7 @@ function isInstantSubmitEnabled(policy: OnyxEntry<Policy> | EmptyObject): boolea
 /**
  * Checks if policy's approval mode is "optional", a.k.a. "Submit & Close"
  */
-function isSubmitAndClose(policy: OnyxEntry<Policy> | EmptyObject): boolean {
+function isSubmitAndClose(policy: OnyxEntry<Policy>): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
