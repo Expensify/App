@@ -261,6 +261,7 @@ function MoneyRequestView({
                                     isLocalFile={receiptURIs?.isLocalFile}
                                     transaction={transaction}
                                     enablePreviewModal
+                                    filename={receiptURIs?.filename}
                                 />
                             )}
                         </View>

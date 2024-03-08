@@ -39,6 +39,9 @@ type ReportActionItemImageProps = {
 
     /** Whether there are other images displayed in the same parent container */
     isSingleImage?: boolean;
+
+    /** Filename of attachment */
+    filename?: string;
 };
 
 /**
@@ -47,7 +50,7 @@ type ReportActionItemImageProps = {
  * and optional preview modal as well.
  */
 
-function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, transaction, isLocalFile = false, isSingleImage = true}: ReportActionItemImageProps) {
+function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, transaction, isLocalFile = false, isSingleImage = true, filename}: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const attachmentModalSource = tryResolveUrlFromApiRoot(image ?? '');
