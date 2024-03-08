@@ -7,7 +7,6 @@ import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import type {FormProviderProps} from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Picker from '@components/Picker';
 import StatePicker from '@components/StatePicker';
 import Text from '@components/Text';
@@ -17,10 +16,25 @@ import NetworkConnection from '@libs/NetworkConnection';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import {defaultStyles} from '@src/styles';
 
-type FormStory = Story<FormProviderProps<typeof ONYXKEYS.FORMS.TEST_FORM>>;
+type FormStory = Story<FormProviderProps>;
+
+type StorybookFormValues = {
+    routingNumber?: string;
+    accountNumber?: string;
+    street?: string;
+    dob?: string;
+    pickFruit?: string;
+    pickAnotherFruit?: string;
+    state?: string;
+    checkbox?: boolean;
+};
+
+type StorybookFormErrors = Partial<Record<keyof StorybookFormValues, string>>;
+
+const STORYBOOK_FORM_ID = 'TestForm' as keyof OnyxFormValuesMapping;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -41,7 +55,7 @@ const story: ComponentMeta<typeof FormProvider> = {
     },
 };
 
-function Template(args: FormProviderProps<typeof ONYXKEYS.FORMS.TEST_FORM>) {
+function Template(args: FormProviderProps) {
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
     NetworkConnection.setOfflineStatus(false);
     FormActions.setIsLoading(args.formID, !!args.formState?.isLoading);
@@ -153,7 +167,7 @@ function Template(args: FormProviderProps<typeof ONYXKEYS.FORMS.TEST_FORM>) {
 /**
  * Story to exhibit the native event handlers for TextInput in the Form Component
  */
-function WithNativeEventHandler(args: FormProviderProps<typeof ONYXKEYS.FORMS.TEST_FORM>) {
+function WithNativeEventHandler(args: FormProviderProps) {
     const [log, setLog] = useState('');
 
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
@@ -192,10 +206,10 @@ const ServerError: FormStory = Template.bind({});
 const InputError: FormStory = Template.bind({});
 
 const defaultArgs = {
-    formID: ONYXKEYS.FORMS.TEST_FORM,
+    formID: STORYBOOK_FORM_ID,
     submitButtonText: 'Submit',
-    validate: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.TEST_FORM>) => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.TEST_FORM> = {};
+    validate: (values: StorybookFormValues) => {
+        const errors: StorybookFormErrors = {};
         if (!ValidationUtils.isRequiredFulfilled(values.routingNumber)) {
             errors.routingNumber = 'Please enter a routing number';
         }
@@ -222,10 +236,10 @@ const defaultArgs = {
         }
         return errors;
     },
-    onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.TEST_FORM>) => {
+    onSubmit: (values: StorybookFormValues) => {
         setTimeout(() => {
             alert(`Form submitted!\n\nInput values: ${JSON.stringify(values, null, 4)}`);
-            FormActions.setIsLoading(ONYXKEYS.FORMS.TEST_FORM, false);
+            FormActions.setIsLoading(STORYBOOK_FORM_ID, false);
         }, 1000);
     },
     formState: {
