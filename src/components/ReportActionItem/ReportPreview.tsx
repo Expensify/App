@@ -331,6 +331,7 @@ function ReportPreview({
                                         success={isWaitingForSubmissionFromCurrentUser}
                                         text={translate('common.submit')}
                                         onPress={() => iouReport && IOU.submitReport(iouReport)}
+                                        isDisabled={shouldDisableSubmitButton}
                                     />
                                 )}
                             </View>
