@@ -23,6 +23,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.WORKSPACE_AVATAR]: ROUTES.WORKSPACE_AVATAR.route,
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
         [SCREENS.RECEIPT]: ROUTES.RECEIPT.route,
+        [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
 
         // Sidebar
         [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]: {
@@ -280,6 +281,15 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
                             path: ROUTES.WORKSPACE_CATEGORIES_SETTINGS.route,
+                        },
+                        [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
+                            path: ROUTES.WORKSPACE_MEMBER_DETAILS.route,
+                        },
+                        [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE_SELECTION]: {
+                            path: ROUTES.WORKSPACE_MEMBER_ROLE_SELECTION.route,
+                        },
+                        [SCREENS.WORKSPACE.CATEGORY_CREATE]: {
+                            path: ROUTES.WORKSPACE_CATEGORY_CREATE.route,
                         },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
