@@ -540,7 +540,7 @@ function AttachmentModal({
                                 setDownloadButtonVisibility={setDownloadButtonVisibility}
                             />
                         ) : (
-                            (!!sourceForAttachmentView || TransactionUtils.isFetchingWaypointsFromServer(transaction)) &&
+                            !!sourceForAttachmentView &&
                             shouldLoadAttachment &&
                             !isLoading &&
                             !shouldShowNotFoundPage && (
