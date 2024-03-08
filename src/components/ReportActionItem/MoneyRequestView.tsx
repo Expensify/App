@@ -129,7 +129,8 @@ function MoneyRequestView({
     const canEditDate = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE);
     const canEditReceipt = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
     const canEditDistance = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE);
-    const isReceiptBeingScanned = TransactionUtils.hasReceipt(transaction) && !TransactionUtils.isReceiptBeingScanned(transaction);
+    const hasReceipt = TransactionUtils.hasReceipt(transaction);
+    const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
     // if the policy of the report is either Collect or Control, then this report must be tied to workspace chat
@@ -149,6 +150,7 @@ function MoneyRequestView({
     const {getViolationsForField} = useViolations(transactionViolations ?? []);
     const hasViolations = useCallback((field: ViolationField): boolean => !!canUseViolations && getViolationsForField(field).length > 0, [canUseViolations, getViolationsForField]);
     const noteTypeViolations = transactionViolations?.filter((violation) => violation.type === 'note').map((v) => ViolationsUtils.getViolationTranslation(v, translate));
+    const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && hasReceipt;
 
     let amountDescription = `${translate('iou.amount')}`;
 
@@ -190,7 +192,6 @@ function MoneyRequestView({
         }
     }
 
-    const hasReceipt = TransactionUtils.hasReceipt(transaction);
     let receiptURIs;
     const hasErrors = canEdit && TransactionUtils.hasMissingSmartscanFields(transaction);
     if (hasReceipt) {
@@ -288,7 +289,7 @@ function MoneyRequestView({
                         }
                     />
                 )}
-                {!isReceiptBeingScanned && canUseViolations && <ReceiptAudit notes={noteTypeViolations} />}
+                {shouldShowNotesViolations && <ReceiptAudit notes={noteTypeViolations} />}
                 {canUseViolations && <ViolationMessages violations={getViolationsForField('receipt')} />}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
                     <MenuItemWithTopDescription

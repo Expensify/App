@@ -27,8 +27,6 @@ export default function ReceiptAudit({notes = []}: {notes?: string[]}) {
                 </View>
                 <Text style={[styles.textLabel, styles.textSupporting]}>{issuesFoundText}</Text>
             </View>
-
-            {/* // If notes is a array of strings, map through it & show notes. */}
             <View style={[styles.mt2, styles.gap1]}>{notes.length > 0 && notes.map((message) => <Text style={[styles.textLabelError]}>{message}</Text>)}</View>
         </View>
     );
