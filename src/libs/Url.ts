@@ -50,6 +50,7 @@ function appendParam(url: string, paramName: string, paramValue: string) {
         const regex = new RegExp(`${paramName}=([^&]*)`);
         return url.replace(regex, `${paramName}=${paramValue}`);
     }
+
     // If parameter doesn't exist, append it
     const separator = url.includes('?') ? '&' : '?';
     return `${url}${separator}${paramName}=${paramValue}`;
