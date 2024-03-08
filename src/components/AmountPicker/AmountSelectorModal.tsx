@@ -1,10 +1,11 @@
-import React from 'react';
-import {ScrollView, View} from 'react-native';
+import React, {useState} from 'react';
+import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -14,7 +15,7 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [currentValue, setValue] = React.useState(value);
+    const [currentValue, setValue] = useState(value);
 
     return (
         <Modal

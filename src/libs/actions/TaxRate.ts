@@ -10,6 +10,13 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 /**
+ * Get tax value with percentage
+ */
+function getTaxValueWithPercentage(value: string): string {
+    return `${value}%`;
+}
+
+/**
  * Get new tax object
  */
 function getNextTaxID(name: string): string {
@@ -101,4 +108,4 @@ function clearTaxRateError(policyID: string, taxID: string, pendingAction?: Pend
     });
 }
 
-export {createWorkspaceTax, clearTaxRateError, getNextTaxID};
+export {createWorkspaceTax, clearTaxRateError, getNextTaxID, getTaxValueWithPercentage};

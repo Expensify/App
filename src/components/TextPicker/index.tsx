@@ -48,6 +48,7 @@ function TextPicker({value, description, placeholder = '', errorText = '', onInp
                 <FormHelpMessage message={errorText} />
             </View>
             <TextSelectorModal
+                value={value}
                 isVisible={isPickerVisible}
                 description={description}
                 onClose={hidePickerModal}

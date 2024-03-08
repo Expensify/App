@@ -33,7 +33,7 @@ type AmountPickerProps = {
     value?: string;
 
     /** A placeholder value to display */
-    placeholder?: string;
+    title?: string | ((value?: string) => string);
 
     /** Form Error description */
     errorText?: MaybePhraseKey;

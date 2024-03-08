@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -15,7 +15,7 @@ function TextSelectorModal({value, description = '', onValueSelected, isVisible,
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [currentValue, setValue] = React.useState(value);
+    const [currentValue, setValue] = useState(value);
 
     return (
         <Modal

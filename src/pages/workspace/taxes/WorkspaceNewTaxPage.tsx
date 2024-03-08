@@ -11,7 +11,7 @@ import Text from '@components/Text';
 import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {createWorkspaceTax, getNextTaxID} from '@libs/actions/TaxRate';
+import {createWorkspaceTax, getNextTaxID, getTaxValueWithPercentage} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -53,9 +53,10 @@ function WorkspaceNewTaxPage({
     );
 
     const submitForm = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM>) => {
+        ({value, ...values}: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM>) => {
             const taxRate = {
                 ...values,
+                value: getTaxValueWithPercentage(value),
                 code: getNextTaxID(values[INPUT_IDS.NAME]),
             } satisfies TaxRate;
             createWorkspaceTax(policyID, taxRate);
@@ -95,6 +96,7 @@ function WorkspaceNewTaxPage({
                         <InputWrapper
                             InputComponent={AmountPicker}
                             inputID={INPUT_IDS.VALUE}
+                            title={(v) => (v ? getTaxValueWithPercentage(v) : '')}
                             description={translate('workspace.taxes.value')}
                             rightLabel={translate('common.required')}
                             hideCurrencySymbol
