@@ -216,7 +216,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                             >
                                 <Image
                                     source={{uri}}
-                                    style={[contentSize ?? styles.opacity0]}
+                                    style={[contentSize ?? styles.invisibleImage]}
                                     isAuthTokenRequired={isAuthTokenRequired}
                                     onError={onError}
                                     onLoad={updateContentSize}
@@ -234,7 +234,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                             <Image
                                 source={{uri}}
                                 resizeMode="contain"
-                                style={[fallbackSize ?? styles.opacity0]}
+                                style={[fallbackSize ?? styles.invisibleImage]}
                                 isAuthTokenRequired={isAuthTokenRequired}
                                 onLoad={updateContentSize}
                                 onLoadEnd={() => setFallbackImageLoaded(true)}
