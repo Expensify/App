@@ -435,7 +435,9 @@ function ReportActionItem({
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
-            children = (
+            children = ReportUtils.isClosedExpenseReportWithNoExpenses(iouReport) ? (
+                <RenderHTML html={`<comment>${translate('parentReportAction.deletedReport')}</comment>`} />
+            ) : (
                 <ReportPreview
                     iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(action)}
                     chatReportID={report.reportID}

@@ -1077,6 +1077,20 @@ function findLastAccessedReport(
 }
 
 /**
+ * Whether the provided report has expenses
+ */
+function hasExpenses(reportID?: string): boolean {
+    return !!Object.values(allTransactions ?? {}).find((transaction) => `${transaction?.reportID}` === `${reportID}`);
+}
+
+/**
+ * Whether the provided report is a closed expense report with no expenses
+ */
+function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>): boolean {
+    return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && isExpenseReport(report) && !hasExpenses(report.reportID);
+}
+
+/**
  * Whether the provided report is an archived room
  */
 function isArchivedRoom(report: OnyxEntry<Report> | EmptyObject): boolean {
@@ -2618,6 +2632,10 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
             return getAdminRoomInvitedParticipants(parentReportAction, parentReportActionMessage);
         }
         return parentReportActionMessage;
+    }
+
+    if (isClosedExpenseReportWithNoExpenses(report)) {
+        return Localize.translateLocal('parentReportAction.deletedReport');
     }
 
     if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
@@ -5192,6 +5210,7 @@ export {
     getPolicyName,
     getPolicyType,
     isArchivedRoom,
+    isClosedExpenseReportWithNoExpenses,
     isExpensifyOnlyParticipantInReport,
     canCreateTaskInReport,
     isPolicyExpenseChatAdmin,
