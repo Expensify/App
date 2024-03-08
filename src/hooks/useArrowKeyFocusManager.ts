@@ -84,7 +84,10 @@ export default function useArrowKeyFocusManager({
             while (disabledIndexes.includes(newFocusedIndex)) {
                 newFocusedIndex -= allowHorizontalArrowKeys ? itemsPerRow : 1;
                 if (newFocusedIndex < 0) {
-                    break;
+                    if (disableCyclicTraversal) {
+                        break;
+                    }
+                    newFocusedIndex = maxIndex;
                 }
                 if (newFocusedIndex === currentFocusedIndex) {
                     // all indexes are disabled
@@ -127,8 +130,11 @@ export default function useArrowKeyFocusManager({
                     newFocusedIndex += allowHorizontalArrowKeys ? itemsPerRow : 1;
                 }
 
-                if (newFocusedIndex < 0) {
-                    break;
+                if (newFocusedIndex > maxIndex) {
+                    if (disableCyclicTraversal) {
+                        break;
+                    }
+                    newFocusedIndex = 0;
                 }
                 if (newFocusedIndex === currentFocusedIndex) {
                     // all indexes are disabled
