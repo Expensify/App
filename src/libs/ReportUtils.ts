@@ -5176,26 +5176,28 @@ function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
     return isAutoReimbursable;
 }
 
-function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>): boolean {
+function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAccountID?: number): boolean {
     const policy = getPolicy(report?.policyID);
-    const {submitsTo, isPreventSelfApprovalEnabled, preventSelfApprovalEnabled} = policy;
+    const {isPreventSelfApprovalEnabled, preventSelfApprovalEnabled} = policy;
 
-    const isOwner = currentUserAccountID === report?.ownerAccountID;
-    const isSelfApproval = isOwner && currentUserAccountID === submitsTo;
+    const isOwner = (approverAccountID ?? currentUserAccountID) === report?.ownerAccountID;
 
-    return !((isPreventSelfApprovalEnabled ?? preventSelfApprovalEnabled) && isOwner && isSelfApproval);
+    return !((isPreventSelfApprovalEnabled ?? preventSelfApprovalEnabled) && isOwner);
 }
 
 function isAllowedToSubmitDraftExpenseReport(report: OnyxEntry<Report>): boolean {
-    return isAllowedToApproveExpenseReport(report);
+    const policy = getPolicy(report?.policyID);
+    const {submitsTo} = policy;
+
+    return isAllowedToApproveExpenseReport(report, submitsTo);
 }
 
 /**
  * Used from money request actions to decide if we need to build an optimistic money request report.
-   Create a new report if:
-   - we don't have an iouReport set in the chatReport
-   - we have one, but it's waiting on the payee adding a bank account
-   - we have one but we can't add more transactions to it due to: report is approved or settled, or report is processing and policy isn't on Instant submit reporting frequency
+ Create a new report if:
+ - we don't have an iouReport set in the chatReport
+ - we have one, but it's waiting on the payee adding a bank account
+ - we have one but we can't add more transactions to it due to: report is approved or settled, or report is processing and policy isn't on Instant submit reporting frequency
  */
 function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxEntry<Report> | undefined | null, chatReport: OnyxEntry<Report> | null): boolean {
     return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddOrDeleteTransactions(existingIOUReport);
