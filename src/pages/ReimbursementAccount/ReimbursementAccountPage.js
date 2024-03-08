@@ -252,7 +252,6 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
     const policyName = lodashGet(policy, 'name', '');
     const policyID = lodashGet(route.params, 'policyID', '');
-    const backTo = lodashGet(route.params, 'backTo');
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
