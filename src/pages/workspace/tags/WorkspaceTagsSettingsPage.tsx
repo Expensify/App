@@ -66,12 +66,12 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
                                         />
                                     </View>
                                 </View>
+                                <MenuItemWithTopDescription
+                                    title={policyTagName}
+                                    description={translate(`workspace.tags.customTagName`)}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID))}
+                                />
                             </OfflineWithFeedback>
-                            <MenuItemWithTopDescription
-                                title={policyTagName}
-                                description={translate(`workspace.tags.customTagName`)}
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID))}
-                            />
                         </View>
                     </ScreenWrapper>
                 )}
