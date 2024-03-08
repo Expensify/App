@@ -7,6 +7,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import ModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/ModalNavigatorScreenOptions';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -132,6 +133,7 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.PRIVATE_NOTES}
                         component={ModalStackNavigators.PrivateNotesModalStackNavigator}
+                        options={hideKeyboardOnSwipe}
                     />
                     <Stack.Screen
                         name="ProcessMoneyRequestHold"
