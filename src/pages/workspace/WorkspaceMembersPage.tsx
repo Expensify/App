@@ -87,6 +87,10 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     const {isSmallScreenWidth} = useWindowDimensions();
     const dropdownButtonRef = useRef(null);
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
+    const isLoading = useMemo(
+        () => !isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) || isEmptyObject(policyMembers)),
+        [isOfflineAndNoMemberDataAvailable, personalDetails, policyMembers],
+    );
 
     /**
      * Get filtered personalDetails list with current policyMembers
@@ -373,7 +377,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
             return translate('workspace.common.mustBeOnlineToViewMembers');
         }
 
-        return '';
+        return !isLoading && isEmptyObject(policyMembers) ? translate('workspace.common.memberNotFound') : '';
     };
 
     const getHeaderContent = () => (
@@ -539,12 +543,11 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                         disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                         headerMessage={getHeaderMessage()}
                         headerContent={getHeaderContent()}
-                        notFoundMessage={translate('workspace.common.memberNotFound')}
                         onSelectRow={openMemberDetails}
                         onCheckboxPress={(item) => toggleUser(item.accountID)}
                         onSelectAll={() => toggleAllUsers(data)}
                         onDismissError={dismissError}
-                        showLoadingPlaceholder={!isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) || isEmptyObject(policyMembers))}
+                        showLoadingPlaceholder={isLoading}
                         showScrollIndicator
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         ref={textInputRef}

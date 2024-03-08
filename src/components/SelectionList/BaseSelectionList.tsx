@@ -43,7 +43,6 @@ function BaseSelectionList<TItem extends ListItem>(
         onScroll,
         onScrollBeginDrag,
         headerMessage = '',
-        notFoundMessage = '',
         confirmButtonText = '',
         onConfirm,
         headerContent,
@@ -381,12 +380,6 @@ function BaseSelectionList<TItem extends ListItem>(
         isActive: !disableKeyboardShortcuts && isFocused,
     });
 
-    const renderTopMessage = (message: string) => (
-        <View style={[styles.ph5, styles.pb5]}>
-            <Text style={[styles.textLabel, styles.colorMuted]}>{message}</Text>
-        </View>
-    );
-
     return (
         <ArrowKeyFocusManager
             disabledIndexes={flattenedSections.disabledOptionsIndexes}
@@ -429,8 +422,11 @@ function BaseSelectionList<TItem extends ListItem>(
                                 />
                             </View>
                         )}
-                        {!!notFoundMessage && !showLoadingPlaceholder && flattenedSections.allOptions.length === 0 && renderTopMessage(notFoundMessage)}
-                        {!!headerMessage && renderTopMessage(headerMessage)}
+                        {!!headerMessage && (
+                            <View style={[styles.ph5, styles.pb5]}>
+                                <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
+                            </View>
+                        )}
                         {!!headerContent && headerContent}
                         {flattenedSections.allOptions.length === 0 && showLoadingPlaceholder ? (
                             <OptionsListSkeletonView shouldAnimate />
