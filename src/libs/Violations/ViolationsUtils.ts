@@ -7,6 +7,46 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyCategories, PolicyTagList, Transaction, TransactionViolation} from '@src/types/onyx';
 
+/**
+ * Calculates tag out of policy and missing tag violations for the given transaction
+ */
+function getTagViolationsForSingleLevelTags(
+    updatedTransaction: Transaction,
+    transactionViolations: TransactionViolation[],
+    policyRequiresTags: boolean,
+    policyTagList: PolicyTagList,
+): TransactionViolation[] {
+    const policyTagKeys = Object.keys(policyTagList);
+    const policyTagListName = policyTagKeys[0];
+    const policyTags = policyTagList[policyTagListName]?.tags;
+    const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAG_OUT_OF_POLICY);
+    let newTransactionViolations = [...transactionViolations];
+    const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_TAG);
+    const isTagInPolicy = policyTags ? !!policyTags[updatedTransaction.tag ?? '']?.enabled : false;
+
+    // Add 'tagOutOfPolicy' violation if tag is not in policy
+    if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy) {
+        newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: 'violation'});
+    }
+
+    // Remove 'tagOutOfPolicy' violation if tag is in policy
+    if (hasTagOutOfPolicyViolation && updatedTransaction.tag && isTagInPolicy) {
+        newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY});
+    }
+
+    // Remove 'missingTag' violation if tag is valid according to policy
+    if (hasMissingTagViolation && isTagInPolicy) {
+        newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_TAG});
+    }
+
+    // Add 'missingTag violation' if tag is required and not set
+    if (!hasMissingTagViolation && !updatedTransaction.tag && policyRequiresTags) {
+        newTransactionViolations.push({name: CONST.VIOLATIONS.MISSING_TAG, type: 'violation'});
+    }
+    return newTransactionViolations;
+};
+
+
 const ViolationsUtils = {
     /**
      * Checks a transaction for policy violations and returns an object with Onyx method, key and updated transaction
@@ -53,30 +93,7 @@ const ViolationsUtils = {
             const selectedTags = updatedTransaction.tag?.split(CONST.COLON) ?? [];
             const policyTagKeys = Object.keys(policyTagList);
             if (policyTagKeys.length === 1) {
-                const policyTagListName = policyTagKeys[0];
-                const policyTags = policyTagList[policyTagListName]?.tags;
-                const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAG_OUT_OF_POLICY);
-                const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_TAG);
-                const isTagInPolicy = policyTags ? !!policyTags[updatedTransaction.tag ?? '']?.enabled : false;
-
-                // Add 'tagOutOfPolicy' violation if tag is not in policy
-                if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy) {
-                    newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: 'violation'});
-                }
-
-                // Remove 'tagOutOfPolicy' violation if tag is in policy
-                if (hasTagOutOfPolicyViolation && updatedTransaction.tag && isTagInPolicy) {
-                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY});
-                }
-
-                // Remove 'missingTag' violation if tag is valid according to policy
-                if (hasMissingTagViolation && isTagInPolicy) {
-                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_TAG});
-                }
-                // Add 'missingTag violation' if tag is required and not set
-                if (!hasMissingTagViolation && !updatedTransaction.tag && policyRequiresTags) {
-                    newTransactionViolations.push({name: CONST.VIOLATIONS.MISSING_TAG, type: 'violation'});
-                }
+                newTransactionViolations = getTagViolationsForSingleLevelTags(updatedTransaction, newTransactionViolations, policyRequiresTags, policyTagList);
             } else {
                 newTransactionViolations = newTransactionViolations.filter(
                     (violation) => violation.name !== CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED && violation.name !== CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
