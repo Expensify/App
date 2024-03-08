@@ -124,7 +124,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
                                     text={translate('workspace.people.removeMemberButtonTitle')}
                                     onPress={askForConfirmationToRemove}
                                     medium
-                                    isDisabled={isSelectedMemberOwner && isCurrentUserOwner}
+                                    isDisabled={isSelectedMemberOwner}
                                     icon={Expensicons.RemoveMembers}
                                     iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
                                     style={styles.mv5}
@@ -143,6 +143,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
                         </View>
                         <View style={styles.w100}>
                             <MenuItemWithTopDescription
+                                disabled={isSelectedMemberOwner}
                                 title={member?.role === CONST.POLICY.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}
                                 description={translate('common.role')}
                                 shouldShowRightIcon
