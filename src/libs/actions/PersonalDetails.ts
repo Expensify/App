@@ -18,6 +18,7 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
+import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -137,7 +138,7 @@ function updateDateOfBirth({dob}: DateOfBirthForm) {
     Navigation.goBack();
 }
 
-function updateAddress(street: string, street2: string, city: string, state: string, zip: string, country: string) {
+function updateAddress(street: string, street2: string, city: string, state: string, zip: string, country: Country | '') {
     const parameters: UpdateHomeAddressParams = {
         homeAddressStreet: street,
         addressStreet2: street2,
