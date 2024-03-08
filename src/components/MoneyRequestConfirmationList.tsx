@@ -618,8 +618,6 @@ function MoneyRequestConfirmationList({
                 </View>
             )}
 
-            {console.log('receiptImage', receiptImage)}
-            {console.log('receiptThumbnail', receiptThumbnail)}
             {receiptImage || receiptThumbnail ? (
                 <Image
                     style={styles.moneyRequestImage}
