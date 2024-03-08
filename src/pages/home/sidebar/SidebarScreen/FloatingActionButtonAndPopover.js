@@ -160,7 +160,7 @@ function FloatingActionButtonAndPopover(props) {
                     {
                         icon: Expensicons.ChatBubble,
                         text: translate('sidebarScreen.fabNewChat'),
-                        onSelected: () => interceptAnonymousUser(() => Report.startNewChat()),
+                        onSelected: () => interceptAnonymousUser(Report.startNewChat),
                     },
                     {
                         icon: Expensicons.MoneyCircle,

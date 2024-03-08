@@ -247,7 +247,7 @@ Onyx.connect({
 let newGroupDraft: OnyxEntry<NewGroupChat>;
 Onyx.connect({
     key: ONYXKEYS.NEW_GROUP,
-    callback: (val) => (newGroupDraft = val),
+    callback: (value) => (newGroupDraft = value),
 });
 
 function clearGroupChat() {
@@ -811,13 +811,13 @@ function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true
     }
     if (!chat) {
         if (newGroupDraft) {
-            const participants: Participants = participantAccountIDs.reduce((obj: Participants, accountID: number) => {
+            const participants: Participants = participantAccountIDs.reduce((acc: Participants, accountID: number) => {
                 const participant: Participant = {
                     hidden: false,
                     role: accountID === currentUserAccountID ? 'admin' : 'member',
                 };
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-                return {...obj, [accountID]: participant};
+                return {...acc, [accountID]: participant};
             }, {} as Participants);
 
             newChat = ReportUtils.buildOptimisticGroupChatReport(participants, reportName, CONST.REPORT.CHAT_TYPE.GROUP_CHAT);
