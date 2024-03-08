@@ -116,6 +116,7 @@ const WRITE_COMMANDS = {
     CREATE_WORKSPACE_FROM_IOU_PAYMENT: 'CreateWorkspaceFromIOUPayment',
     SET_WORKSPACE_CATEGORIES_ENABLED: 'SetWorkspaceCategoriesEnabled',
     CREATE_WORKSPACE_CATEGORIES: 'CreateWorkspaceCategories',
+    RENAME_WORKSPACE_CATEGORY: 'RenameWorkspaceCategory',
     SET_WORKSPACE_REQUIRES_CATEGORY: 'SetWorkspaceRequiresCategory',
     CREATE_TASK: 'CreateTask',
     CANCEL_TASK: 'CancelTask',
@@ -269,6 +270,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CREATE_WORKSPACE_FROM_IOU_PAYMENT]: Parameters.CreateWorkspaceFromIOUPaymentParams;
     [WRITE_COMMANDS.SET_WORKSPACE_CATEGORIES_ENABLED]: Parameters.SetWorkspaceCategoriesEnabledParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES]: Parameters.CreateWorkspaceCategoriesParams;
+    [WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY]: Parameters.RenameWorkspaceCategoriesParams;
     [WRITE_COMMANDS.SET_WORKSPACE_REQUIRES_CATEGORY]: Parameters.SetWorkspaceRequiresCategoryParams;
     [WRITE_COMMANDS.CREATE_TASK]: Parameters.CreateTaskParams;
     [WRITE_COMMANDS.CANCEL_TASK]: Parameters.CancelTaskParams;

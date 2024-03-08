@@ -2522,6 +2522,59 @@ function createPolicyCategory(policyID: string, categoryName: string) {
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES, parameters, onyxData);
 }
 
+function renamePolicyCategory(policyID: string, policyCategory: {oldName: string; newName: string}) {
+    const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[policyCategory.oldName] ?? {};
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [policyCategory.oldName]: {
+                        name: policyCategory.newName,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    errors: {
+                        [policyCategory.oldName]: null,
+                        [policyCategory.newName]: {
+                            ...policyCategoryToUpdate,
+                            name: policyCategory.newName,
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [policyCategory.oldName]: {
+                        name: policyCategory.oldName,
+                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.genericFailureMessage'),
+                        pendingAction: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        categories: JSON.stringify([{[policyCategory.oldName]: policyCategory.newName}]),
+    };
+
+    API.write(WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY, parameters, onyxData);
+}
+
 function setWorkspaceRequiresCategory(policyID: string, requiresCategory: boolean) {
     const onyxData: OnyxData = {
         optimisticData: [
@@ -2760,5 +2813,6 @@ export {
     acceptJoinRequest,
     declineJoinRequest,
     createPolicyCategory,
+    renamePolicyCategory,
     clearCategoryErrors,
 };
