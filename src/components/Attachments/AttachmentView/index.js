@@ -107,6 +107,7 @@ function AttachmentView({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [loadComplete, setLoadComplete] = useState(false);
+    const [isPdfFailedToLoad, setIsPdfFailedToLoad] = useState(false);
     const isVideo = (typeof source === 'string' && Str.isVideo(source)) || (file && Str.isVideo(file.name));
 
     useEffect(() => {
@@ -157,7 +158,7 @@ function AttachmentView({
 
     // Check both source and file.name since PDFs dragged into the text field
     // will appear with a source that is a blob
-    if ((_.isString(source) && Str.isPDF(source)) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename')))) {
+    if (!isPdfFailedToLoad && ((_.isString(source) && Str.isPDF(source)) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename'))))) {
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source) : source;
 
         const onPDFLoadComplete = (path) => {
@@ -187,6 +188,10 @@ function AttachmentView({
                     errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [styles.cursorAuto]}
                     style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
                     isUsedInCarousel={isUsedInCarousel}
+                    isUsedAsChatAttachment={!(isUsedInAttachmentModal || isUsedInCarousel)}
+                    onError={() => {
+                        setIsPdfFailedToLoad(true);
+                    }}
                 />
             </View>
         );

@@ -124,6 +124,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         setSuccessToLoadPDF(true);
         onLoadComplete(path);
     };
+    // eslint-disable-next-line no-unused-vars
     const rendeFailedToLoadPDF = () => {
         if (!isUsedAsChatAttachment) {
             return (
