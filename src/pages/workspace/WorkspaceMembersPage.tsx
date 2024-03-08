@@ -257,12 +257,8 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     /** Opens the member details page */
     const openMemberDetails = useCallback(
         (item: MemberOption) => {
-            if (!isPolicyAdmin) {
+            if (!isPolicyAdmin || !PolicyUtils.isPaidGroupPolicy(policy)) {
                 Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
-                return;
-            }
-
-            if (!PolicyUtils.isPaidGroupPolicy(policy)) {
                 return;
             }
 
