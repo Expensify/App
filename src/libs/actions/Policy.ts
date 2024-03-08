@@ -17,6 +17,7 @@ import type {
     DeleteWorkspaceParams,
     OpenDraftWorkspaceRequestParams,
     OpenPolicyCategoriesPageParams,
+    OpenPolicyDistanceRatesPageParams,
     OpenWorkspaceInvitePageParams,
     OpenWorkspaceMembersPageParams,
     OpenWorkspaceParams,
@@ -66,6 +67,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type AnnounceRoomMembersOnyxData = {
     onyxOptimisticData: OnyxUpdate[];
+    onyxSuccessData: OnyxUpdate[];
     onyxFailureData: OnyxUpdate[];
 };
 
@@ -373,6 +375,7 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
     const announceRoomMembers: AnnounceRoomMembersOnyxData = {
         onyxOptimisticData: [],
         onyxFailureData: [],
+        onyxSuccessData: [],
     };
 
     if (!announceReport) {
@@ -382,6 +385,7 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
     if (announceReport?.participantAccountIDs) {
         // Everyone in special policy rooms is visible
         const participantAccountIDs = [...announceReport.participantAccountIDs, ...accountIDs];
+        const pendingChatMembers = ReportUtils.getPendingChatMembers(accountIDs, announceReport?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
         announceRoomMembers.onyxOptimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -389,6 +393,7 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
             value: {
                 participantAccountIDs,
                 visibleChatMemberAccountIDs: participantAccountIDs,
+                pendingChatMembers,
             },
         });
     }
@@ -399,6 +404,14 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
         value: {
             participantAccountIDs: announceReport?.participantAccountIDs,
             visibleChatMemberAccountIDs: announceReport?.visibleChatMemberAccountIDs,
+            pendingChatMembers: announceReport?.pendingChatMembers ?? null,
+        },
+    });
+    announceRoomMembers.onyxSuccessData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport?.reportID}`,
+        value: {
+            pendingChatMembers: announceReport?.pendingChatMembers ?? null,
         },
     });
     return announceRoomMembers;
@@ -572,6 +585,7 @@ function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: numbe
     const announceRoomMembers: AnnounceRoomMembersOnyxData = {
         onyxOptimisticData: [],
         onyxFailureData: [],
+        onyxSuccessData: [],
     };
 
     if (!announceReport) {
@@ -580,12 +594,15 @@ function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: numbe
 
     if (announceReport?.participantAccountIDs) {
         const remainUsers = announceReport.participantAccountIDs.filter((e) => !accountIDs.includes(e));
+        const pendingChatMembers = ReportUtils.getPendingChatMembers(accountIDs, announceReport?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
         announceRoomMembers.onyxOptimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
             value: {
                 participantAccountIDs: [...remainUsers],
                 visibleChatMemberAccountIDs: [...remainUsers],
+                pendingChatMembers,
             },
         });
 
@@ -595,6 +612,14 @@ function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: numbe
             value: {
                 participantAccountIDs: announceReport.participantAccountIDs,
                 visibleChatMemberAccountIDs: announceReport.visibleChatMemberAccountIDs,
+                pendingChatMembers: announceReport?.pendingChatMembers ?? null,
+            },
+        });
+        announceRoomMembers.onyxSuccessData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
+            value: {
+                pendingChatMembers: announceReport?.pendingChatMembers ?? null,
             },
         });
     }
@@ -638,6 +663,26 @@ function removeMembers(accountIDs: number[], policyID: string) {
         ...announceRoomMembers.onyxOptimisticData,
     ];
 
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: membersListKey,
+            value: successMembersState,
+        },
+        ...announceRoomMembers.onyxSuccessData,
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: membersListKey,
+            value: failureMembersState,
+        },
+        ...announceRoomMembers.onyxFailureData,
+    ];
+
+    const pendingChatMembers = ReportUtils.getPendingChatMembers(accountIDs, [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
     workspaceChats.forEach((report) => {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -647,6 +692,21 @@ function removeMembers(accountIDs: number[], policyID: string) {
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 oldPolicyName: policy.name,
                 hasDraft: false,
+                pendingChatMembers,
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+            value: {
+                pendingChatMembers: null,
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+            value: {
+                pendingChatMembers: null,
             },
         });
     });
@@ -683,23 +743,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
         }
     }
 
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: membersListKey,
-            value: successMembersState,
-        },
-    ];
-
     const filteredWorkspaceChats = workspaceChats.filter((report): report is Report => report !== null);
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: membersListKey,
-            value: failureMembersState,
-        },
-        ...announceRoomMembers.onyxFailureData,
-    ];
 
     filteredWorkspaceChats.forEach(({reportID, stateNum, statusNum, hasDraft, oldPolicyName = null}) => {
         failureData.push({
@@ -847,6 +891,12 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
                 },
                 isOptimisticReport: true,
                 hasOutstandingChildRequest,
+                pendingChatMembers: [
+                    {
+                        accountID: accountID.toString(),
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                ],
             },
         });
         workspaceMembersChats.onyxOptimisticData.push({
@@ -866,6 +916,7 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
                     createChat: null,
                 },
                 isOptimisticReport: false,
+                pendingChatMembers: null,
             },
         });
         workspaceMembersChats.onyxSuccessData.push({
@@ -943,6 +994,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
         },
         ...newPersonalDetailsOnyxData.finallyData,
         ...membersChats.onyxSuccessData,
+        ...announceRoomMembers.onyxSuccessData,
     ];
 
     const failureData: OnyxUpdate[] = [
@@ -1577,7 +1629,6 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
         expenseReportActionData,
         expenseCreatedReportActionID,
     } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
-
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -1701,6 +1752,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     addWorkspaceRoom: null,
                 },
                 pendingAction: null,
+                pendingChatMembers: [],
             },
         },
         {
@@ -2707,6 +2759,16 @@ function declineJoinRequest(reportID: string, reportAction: OnyxEntry<ReportActi
     API.write(WRITE_COMMANDS.DECLINE_JOIN_REQUEST, parameters, {optimisticData, failureData, successData});
 }
 
+function openPolicyDistanceRatesPage(policyID?: string) {
+    if (!policyID) {
+        return;
+    }
+
+    const params: OpenPolicyDistanceRatesPageParams = {policyID};
+
+    API.read(READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE, params);
+}
+
 export {
     removeMembers,
     updateWorkspaceMembersRole,
@@ -2761,4 +2823,5 @@ export {
     declineJoinRequest,
     createPolicyCategory,
     clearCategoryErrors,
+    openPolicyDistanceRatesPage,
 };
