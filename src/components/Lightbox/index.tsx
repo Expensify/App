@@ -9,10 +9,8 @@ import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCa
 import type {CanvasSize, ContentSize, OnScaleChangedCallback, ZoomRange} from '@components/MultiGestureCanvas/types';
 import {getCanvasFitScale} from '@components/MultiGestureCanvas/utils';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import NUMBER_OF_CONCURRENT_LIGHTBOXES from './numberOfConcurrentLightboxes';
-
-const DEFAULT_IMAGE_SIZE = 200;
-const DEFAULT_IMAGE_DIMENSION: ContentSize = {width: DEFAULT_IMAGE_SIZE, height: DEFAULT_IMAGE_SIZE};
 
 const cachedImageDimensions = new Map<string, ContentSize | undefined>();
 
@@ -41,6 +39,7 @@ type LightboxProps = {
  */
 function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChangedProp, onError, style, zoomRange = DEFAULT_ZOOM_RANGE}: LightboxProps) {
     const StyleUtils = useStyleUtils();
+    const styles = useThemeStyles();
 
     /**
      * React hooks must be used in the render function of the component at top-level and unconditionally.
@@ -217,7 +216,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                             >
                                 <Image
                                     source={{uri}}
-                                    style={[contentSize ?? DEFAULT_IMAGE_DIMENSION, !contentSize && {opacity: 0}]}
+                                    style={[contentSize ?? styles.opacity0]}
                                     isAuthTokenRequired={isAuthTokenRequired}
                                     onError={onError}
                                     onLoad={updateContentSize}
@@ -235,7 +234,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                             <Image
                                 source={{uri}}
                                 resizeMode="contain"
-                                style={[fallbackSize ?? DEFAULT_IMAGE_DIMENSION, !contentSize && {opacity: 0}]}
+                                style={[fallbackSize ?? styles.opacity0]}
                                 isAuthTokenRequired={isAuthTokenRequired}
                                 onLoad={updateContentSize}
                                 onLoadEnd={() => setFallbackImageLoaded(true)}
