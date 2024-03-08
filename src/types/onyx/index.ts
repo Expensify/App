@@ -19,6 +19,7 @@ import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type IOU from './IOU';
 import type LastPaymentMethod from './LastPaymentMethod';
+import type LastSelectedDistanceRates from './LastSelectedDistanceRates';
 import type Locale from './Locale';
 import type {LoginList} from './Login';
 import type Login from './Login';
@@ -26,6 +27,7 @@ import type MapboxAccessToken from './MapboxAccessToken';
 import type Modal from './Modal';
 import type Network from './Network';
 import type {OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
+import type {DecisionName, OriginalMessageIOU} from './OriginalMessage';
 import type PersonalBankAccount from './PersonalBankAccount';
 import type {PersonalDetailsList} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
@@ -33,6 +35,7 @@ import type PlaidData from './PlaidData';
 import type Policy from './Policy';
 import type {TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
+import type PolicyJoinMember from './PolicyJoinMember';
 import type {PolicyMembers} from './PolicyMember';
 import type PolicyMember from './PolicyMember';
 import type {PolicyReportField, PolicyReportFields} from './PolicyReportField';
@@ -44,7 +47,7 @@ import type RecentlyUsedTags from './RecentlyUsedTags';
 import type RecentWaypoint from './RecentWaypoint';
 import type ReimbursementAccount from './ReimbursementAccount';
 import type Report from './Report';
-import type {ReportActions} from './ReportAction';
+import type {ReportActionBase, ReportActions} from './ReportAction';
 import type ReportAction from './ReportAction';
 import type ReportActionReactions from './ReportActionReactions';
 import type ReportActionsDraft from './ReportActionsDraft';
@@ -151,7 +154,12 @@ export type {
     PolicyReportField,
     PolicyReportFields,
     RecentlyUsedReportFields,
+    DecisionName,
+    OriginalMessageIOU,
+    ReportActionBase,
     LastPaymentMethod,
+    LastSelectedDistanceRates,
     InvitedEmailsToAccountIDs,
     Log,
+    PolicyJoinMember,
 };
