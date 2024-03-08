@@ -28,9 +28,7 @@ function StateSelectionPage() {
     const {translate} = useLocalize();
 
     const [searchValue, setSearchValue] = useState('');
-
-    const params = route.params as RouteParams | undefined; // Type assertion
-
+    const params = route.params as RouteParams | undefined;
     const currentState = params?.state;
     const label = params?.label;
 
