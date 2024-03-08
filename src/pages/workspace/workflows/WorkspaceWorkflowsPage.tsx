@@ -60,10 +60,11 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                           title: translate('workflowsPage.delaySubmissionTitle'),
                           subtitle: translate('workflowsPage.delaySubmissionDescription'),
                           onToggle: (isEnabled: boolean) => {
-                                const frequency = policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT || !policy?.autoReportingFrequency
-                                    ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY 
-                                    : policy.autoReportingFrequency;
-                                Policy.setWorkspaceAutoReporting(route.params.policyID, isEnabled, frequency);
+                              const frequency =
+                                  policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT || !policy?.autoReportingFrequency
+                                      ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY
+                                      : policy.autoReportingFrequency;
+                              Policy.setWorkspaceAutoReporting(route.params.policyID, isEnabled, frequency);
                           },
                           subMenuItems: (
                               <MenuItem
