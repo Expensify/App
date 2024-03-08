@@ -337,9 +337,10 @@ export default {
         sizeExceeded: 'Attachment size is larger than 24 MB limit.',
         attachmentTooSmall: 'Attachment too small',
         sizeNotMet: 'Attachment size must be greater than 240 bytes.',
-        wrongFileType: 'Attachment is the wrong type',
+        wrongFileType: 'Invalid file type',
         notAllowedExtension: 'This file type is not allowed',
         folderNotAllowedMessage: 'Uploading a folder is not allowed. Try a different file.',
+        protectedPDFNotSupported: 'Password-protected PDF is not supported',
     },
     avatarCropModal: {
         title: 'Edit photo',
@@ -866,6 +867,7 @@ export default {
         },
         security: 'Security',
         signOut: 'Sign out',
+        restoreStashed: 'Restore stashed login',
         signOutConfirmationText: "You'll lose any offline changes if you sign-out.",
         versionLetter: 'v',
         readTheTermsAndPrivacy: {
@@ -1729,6 +1731,7 @@ export default {
             settings: 'Settings',
             reimburse: 'Reimbursements',
             categories: 'Categories',
+            tags: 'Tags',
             bills: 'Bills',
             invoices: 'Invoices',
             travel: 'Travel',
@@ -1751,6 +1754,7 @@ export default {
             workspaceType: 'Workspace type',
             workspaceAvatar: 'Workspace avatar',
             mustBeOnlineToViewMembers: 'You must be online in order to view members of this workspace.',
+            requested: 'Requested',
         },
         type: {
             free: 'Free',
@@ -1767,6 +1771,19 @@ export default {
                 subtitle: 'Add a category to organize your spend.',
             },
             genericFailureMessage: 'An error occurred while updating the category, please try again.',
+            addCategory: 'Add category',
+            categoryRequiredError: 'Category name is required.',
+            existingCategoryError: 'A category with this name already exists.',
+            invalidCategoryName: 'Invalid category name.',
+        },
+        tags: {
+            requiresTag: 'Members must tag all spend',
+            enableTag: 'Enable tag',
+            subtitle: 'Tags add more detailed ways to classify costs.',
+            emptyTags: {
+                title: "You haven't created any tags",
+                subtitle: 'Add a tag to track projects, locations, departments, and more.',
+            },
         },
         emptyWorkspace: {
             title: 'Create a workspace',
@@ -1793,6 +1810,9 @@ export default {
             genericFailureMessage: 'An error occurred removing a user from the workspace, please try again.',
             removeMembersPrompt: 'Are you sure you want to remove these members?',
             removeMembersTitle: 'Remove members',
+            removeMemberButtonTitle: 'Remove from workspace',
+            removeMemberPrompt: ({memberName}) => `Are you sure you want to remove ${memberName}`,
+            removeMemberTitle: 'Remove member',
             makeMember: 'Make member',
             makeAdmin: 'Make admin',
             selectAll: 'Select all',
@@ -2184,6 +2204,7 @@ export default {
         viewAttachment: 'View attachment',
     },
     parentReportAction: {
+        deletedReport: '[Deleted report]',
         deletedMessage: '[Deleted message]',
         deletedRequest: '[Deleted request]',
         reversedTransaction: '[Reversed transaction]',
@@ -2226,6 +2247,10 @@ export default {
     actionableMentionWhisperOptions: {
         invite: 'Invite them',
         nothing: 'Do nothing',
+    },
+    actionableMentionJoinWorkspaceOptions: {
+        accept: 'Accept',
+        decline: 'Decline',
     },
     teachersUnitePage: {
         teachersUnite: 'Teachers Unite',
