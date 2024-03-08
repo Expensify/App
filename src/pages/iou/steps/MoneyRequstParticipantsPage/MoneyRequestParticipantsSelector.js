@@ -12,6 +12,7 @@ import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
+import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
@@ -34,9 +35,6 @@ const propTypes = {
 
     /** Callback to add participants in MoneyRequestModal */
     onAddParticipants: PropTypes.func.isRequired,
-
-    /** An object that holds data about which referral banners have been dismissed */
-    dismissedReferralBanners: PropTypes.objectOf(PropTypes.bool),
 
     /** Selected participants from MoneyRequestModal with login */
     participants: PropTypes.arrayOf(
@@ -66,7 +64,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    dismissedReferralBanners: {},
     participants: [],
     safeAreaPaddingBottomStyle: {},
     reports: {},
@@ -77,7 +74,6 @@ const defaultProps = {
 
 function MoneyRequestParticipantsSelector({
     betas,
-    dismissedReferralBanners,
     participants,
     reports,
     navigateToRequest,
@@ -282,10 +278,15 @@ function MoneyRequestParticipantsSelector({
         navigateToSplit();
     }, [shouldShowSplitBillErrorMessage, navigateToSplit]);
 
-    const footerContent = useMemo(
-        () => (
+    const {isDismissed} = useDismissedReferralBanners({referralContentType});
+
+    const footerContent = useMemo(() => {
+        if (isDismissed && !shouldShowSplitBillErrorMessage && !participants.length) {
+            return null;
+        }
+        return (
             <View>
-                {!dismissedReferralBanners[referralContentType] && (
+                {!isDismissed && (
                     <ReferralProgramCTA
                         referralContentType={referralContentType}
                         style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.mb5]}
@@ -310,9 +311,8 @@ function MoneyRequestParticipantsSelector({
                     />
                 )}
             </View>
-        ),
-        [handleConfirmSelection, participants.length, dismissedReferralBanners, referralContentType, shouldShowSplitBillErrorMessage, styles, translate],
-    );
+        );
+    }, [handleConfirmSelection, participants.length, isDismissed, referralContentType, shouldShowSplitBillErrorMessage, styles, translate]);
 
     const itemRightSideComponent = useCallback(
         (item) => {
@@ -371,10 +371,6 @@ MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector
 MoneyRequestParticipantsSelector.defaultProps = defaultProps;
 
 export default withOnyx({
-    dismissedReferralBanners: {
-        key: ONYXKEYS.ACCOUNT,
-        selector: (data) => data.dismissedReferralBanners || {},
-    },
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
     },

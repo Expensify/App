@@ -1,18 +1,16 @@
 import PropTypes from 'prop-types';
 import React, {useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxProvider';
-import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
@@ -22,10 +20,9 @@ import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SearchPageFooter from './SearchPageFooter';
 
 const propTypes = {
-    /* Onyx Props */
-
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
@@ -55,11 +52,12 @@ const setPerformanceTimersEnd = () => {
     Performance.markEnd(CONST.TIMING.SEARCH_RENDER);
 };
 
-function SearchPage({betas, reports, isSearchingForReports}) {
+const SerachPageFooterInstance = <SearchPageFooter />;
+
+function SearchPage({betas, reports, isSearchingForReports, navigation}) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const themeStyles = useThemeStyles();
     const personalDetails = usePersonalDetails();
 
     const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
@@ -145,18 +143,7 @@ function SearchPage({betas, reports, isSearchingForReports}) {
     };
 
     const isOptionsDataReady = useMemo(() => ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails), [personalDetails]);
-    const [showFooter, setShowFooter] = useState(true);
-
-    const SearchPageFooter = useMemo(
-        () => (
-            <ReferralProgramCTA
-                referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND}
-                style={themeStyles.flexShrink0}
-                onDismiss={() => setShowFooter(false)}
-            />
-        ),
-        [themeStyles],
-    );
+    const {isDismissed} = useDismissedReferralBanners({referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND});
 
     return (
         <ScreenWrapper
@@ -172,23 +159,21 @@ function SearchPage({betas, reports, isSearchingForReports}) {
                         title={translate('common.search')}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    <View style={[themeStyles.flex1, themeStyles.w100]}>
-                        <SelectionList
-                            sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
-                            ListItem={UserListItem}
-                            textInputValue={searchValue}
-                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            textInputHint={offlineMessage}
-                            onChangeText={setSearchValue}
-                            headerMessage={headerMessage}
-                            onLayout={setPerformanceTimersEnd}
-                            autoFocus
-                            onSelectRow={selectReport}
-                            showLoadingPlaceholder={!didScreenTransitionEnd || !isOptionsDataReady}
-                            footerContent={showFooter && SearchPageFooter}
-                            isLoadingNewOptions={isSearchingForReports}
-                        />
-                    </View>
+                    <SelectionList
+                        sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
+                        ListItem={UserListItem}
+                        textInputValue={searchValue}
+                        textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                        textInputHint={offlineMessage}
+                        onChangeText={setSearchValue}
+                        headerMessage={headerMessage}
+                        onLayout={setPerformanceTimersEnd}
+                        autoFocus
+                        onSelectRow={selectReport}
+                        showLoadingPlaceholder={!didScreenTransitionEnd || !isOptionsDataReady}
+                        footerContent={!isDismissed && SerachPageFooterInstance}
+                        isLoadingNewOptions={isSearchingForReports}
+                    />
                 </>
             )}
         </ScreenWrapper>

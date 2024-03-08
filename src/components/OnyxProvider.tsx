@@ -16,6 +16,7 @@ const [withPreferredTheme, PreferredThemeProvider, PreferredThemeContext] = crea
 const [withFrequentlyUsedEmojis, FrequentlyUsedEmojisProvider, , useFrequentlyUsedEmojis] = createOnyxContext(ONYXKEYS.FREQUENTLY_USED_EMOJIS);
 const [withPreferredEmojiSkinTone, PreferredEmojiSkinToneProvider, PreferredEmojiSkinToneContext] = createOnyxContext(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
 const [, SessionProvider, , useSession] = createOnyxContext(ONYXKEYS.SESSION);
+const [, AccountProvider, , useAccount] = createOnyxContext(ONYXKEYS.ACCOUNT);
 
 type OnyxProviderProps = {
     /** Rendered child component */
@@ -37,6 +38,7 @@ function OnyxProvider(props: OnyxProviderProps) {
                 FrequentlyUsedEmojisProvider,
                 PreferredEmojiSkinToneProvider,
                 SessionProvider,
+                AccountProvider,
             ]}
         >
             {props.children}
@@ -67,4 +69,5 @@ export {
     withPreferredEmojiSkinTone,
     PreferredEmojiSkinToneContext,
     useSession,
+    useAccount,
 };
