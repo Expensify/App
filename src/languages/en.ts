@@ -2430,7 +2430,7 @@ export default {
             return '';
         },
         smartscanFailed: 'Receipt scanning failed. Enter details manually.',
-        someTagLevelsRequired: 'Missing tag',
+        someTagLevelsRequired: ({tagName}: ViolationsTagOutOfPolicyParams) => `Missing ${tagName ?? 'Tag'}`,
         tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `${tagName ?? 'Tag'} no longer valid`,
         taxAmountChanged: 'Tax amount was modified',
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'Tax'} no longer valid`,

@@ -2922,7 +2922,7 @@ export default {
             return '';
         },
         smartscanFailed: 'No se pudo escanear el recibo. Introduce los datos manualmente',
-        someTagLevelsRequired: 'Falta etiqueta',
+        someTagLevelsRequired: ({tagName}: ViolationsTagOutOfPolicyParams) => `Falta ${tagName ?? 'Tag'}`,
         tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `La etiqueta ${tagName ? `${tagName} ` : ''}ya no es válida`,
         taxAmountChanged: 'El importe del impuesto fue modificado',
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'El impuesto'} ya no es válido`,
