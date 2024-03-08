@@ -208,6 +208,16 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
+        policyID: string;
+        accountID: string;
+        backTo: Routes;
+    };
+    [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE_SELECTION]: {
+        policyID: string;
+        accountID: string;
+        backTo: Routes;
+    };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
@@ -569,6 +579,10 @@ type AuthScreensParamList = SharedScreensParamList & {
     };
     [SCREENS.WORKSPACE_AVATAR]: {
         policyID: string;
+    };
+    [SCREENS.WORKSPACE_JOIN_USER]: {
+        policyID: string;
+        email: string;
     };
     [SCREENS.REPORT_AVATAR]: {
         reportID: string;

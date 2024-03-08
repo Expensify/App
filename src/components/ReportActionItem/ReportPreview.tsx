@@ -200,9 +200,9 @@ function ReportPreview({
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
 
-    const shouldShowPayButton = useMemo(() => IOU.shouldShowPayButton(iouReport, chatReport, policy), [iouReport, chatReport, policy]);
+    const shouldShowPayButton = useMemo(() => IOU.canIOUBePaid(iouReport, chatReport, policy), [iouReport, chatReport, policy]);
 
-    const shouldShowApproveButton = useMemo(() => IOU.shouldShowApproveButton(iouReport, chatReport, policy), [iouReport, chatReport, policy]);
+    const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(iouReport, chatReport, policy), [iouReport, chatReport, policy]);
 
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
 

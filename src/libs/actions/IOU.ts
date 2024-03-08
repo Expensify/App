@@ -845,37 +845,26 @@ function getMoneyRequestInformation(
     // STEP 2: Get the money request report. If the moneyRequestReportID has been provided, we want to add the transaction to this specific report.
     // If no such reportID has been provided, let's use the chatReport.iouReportID property. In case that is not present, build a new optimistic money request report.
     let iouReport: OnyxEntry<OnyxTypes.Report> = null;
-    const shouldCreateNewMoneyRequestReport = !moneyRequestReportID && (!chatReport.iouReportID || ReportUtils.hasIOUWaitingOnCurrentUserBankAccount(chatReport));
     if (moneyRequestReportID) {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`] ?? null;
-    } else if (!shouldCreateNewMoneyRequestReport) {
+    } else {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
     }
 
-    let isFromPaidPolicy = false;
-    if (isPolicyExpenseChat) {
-        isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy ?? null);
+    const shouldCreateNewMoneyRequestReport = ReportUtils.shouldCreateNewMoneyRequestReport(iouReport, chatReport);
 
-        // If the linked expense report on paid policy is not draft and not instantly submitted, we need to create a new draft expense report
-        if (iouReport && isFromPaidPolicy && !ReportUtils.isDraftExpenseReport(iouReport) && !ReportUtils.isExpenseReportWithInstantSubmittedState(iouReport)) {
-            iouReport = null;
-        }
-    }
-
-    if (iouReport) {
-        if (isPolicyExpenseChat) {
-            iouReport = {...iouReport};
-            if (iouReport?.currency === currency && typeof iouReport.total === 'number') {
-                // Because of the Expense reports are stored as negative values, we subtract the total from the amount
-                iouReport.total -= amount;
-            }
-        } else {
-            iouReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, payeeAccountID, amount, currency);
-        }
-    } else {
+    if (!iouReport || shouldCreateNewMoneyRequestReport) {
         iouReport = isPolicyExpenseChat
             ? ReportUtils.buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID ?? '', payeeAccountID, amount, currency)
             : ReportUtils.buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
+    } else if (isPolicyExpenseChat) {
+        iouReport = {...iouReport};
+        if (iouReport?.currency === currency && typeof iouReport.total === 'number') {
+            // Because of the Expense reports are stored as negative values, we subtract the total from the amount
+            iouReport.total -= amount;
+        }
+    } else {
+        iouReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, payeeAccountID, amount, currency);
     }
 
     // STEP 3: Build optimistic receipt and transaction
@@ -1860,10 +1849,8 @@ function createSplitsAndOnyxData(
         }
 
         // STEP 2: Get existing IOU/Expense report and update its total OR build a new optimistic one
-        // For Control policy expense chats, if the report is already approved, create a new expense report
         let oneOnOneIOUReport: OneOnOneIOUReport = oneOnOneChatReport.iouReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`] : null;
-        const shouldCreateNewOneOnOneIOUReport =
-            !oneOnOneIOUReport || (isOwnPolicyExpenseChat && ReportUtils.isControlPolicyExpenseReport(oneOnOneIOUReport) && ReportUtils.isReportApproved(oneOnOneIOUReport));
+        const shouldCreateNewOneOnOneIOUReport = ReportUtils.shouldCreateNewMoneyRequestReport(oneOnOneIOUReport, oneOnOneChatReport);
 
         if (!oneOnOneIOUReport || shouldCreateNewOneOnOneIOUReport) {
             oneOnOneIOUReport = isOwnPolicyExpenseChat
@@ -2501,8 +2488,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
         }
 
         let oneOnOneIOUReport: OneOnOneIOUReport = oneOnOneChatReport?.iouReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`] : null;
-        const shouldCreateNewOneOnOneIOUReport =
-            !oneOnOneIOUReport || (isPolicyExpenseChat && ReportUtils.isControlPolicyExpenseReport(oneOnOneIOUReport) && ReportUtils.isReportApproved(oneOnOneIOUReport));
+        const shouldCreateNewOneOnOneIOUReport = ReportUtils.shouldCreateNewMoneyRequestReport(oneOnOneIOUReport, oneOnOneChatReport);
 
         if (!oneOnOneIOUReport || shouldCreateNewOneOnOneIOUReport) {
             oneOnOneIOUReport = isPolicyExpenseChat
@@ -3691,7 +3677,7 @@ function sendMoneyWithWallet(report: OnyxTypes.Report, amount: number, currency:
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 
-function shouldShowPayButton(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject) {
+function canIOUBePaid(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
     const iouCanceled = ReportUtils.isArchivedRoom(chatReport);
 
@@ -3715,30 +3701,28 @@ function shouldShowPayButton(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObjec
     return isPayer && !isDraftExpenseReport && !iouSettled && !iouReport?.isWaitingOnBankAccount && reimbursableSpend !== 0 && !iouCanceled && !isAutoReimbursable;
 }
 
-function shouldShowApproveButton(
-    iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject,
-    chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObject,
-    policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject,
-) {
+function canApproveIOU(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject) {
     if (isEmptyObject(chatReport)) {
         return false;
     }
+    const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
+    if (!isPaidGroupPolicy) {
+        return false;
+    }
+
+    const isOnInstantSubmitPolicy = PolicyUtils.isInstantSubmitEnabled(policy);
+    const isOnSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
+    if (isOnInstantSubmitPolicy && isOnSubmitAndClosePolicy) {
+        return false;
+    }
+
     const managerID = iouReport?.managerID ?? 0;
     const isCurrentUserManager = managerID === userAccountID;
-    const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
 
     const isDraftExpenseReport = isPolicyExpenseChat && ReportUtils.isDraftExpenseReport(iouReport);
     const isApproved = ReportUtils.isReportApproved(iouReport);
     const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
-    const isOnInstantSubmitPolicy = PolicyUtils.isInstantSubmitEnabled(policy);
-    const isOnSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
-    if (!isPaidGroupPolicy) {
-        return false;
-    }
-    if (isOnInstantSubmitPolicy && isOnSubmitAndClosePolicy) {
-        return false;
-    }
 
     return isCurrentUserManager && !isDraftExpenseReport && !isApproved && !iouSettled;
 }
@@ -3750,7 +3734,7 @@ function hasIOUToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObj
         const iouReport = ReportUtils.getReport(action.childReportID ?? '');
         const policy = ReportUtils.getPolicy(iouReport?.policyID);
 
-        const shouldShowSettlementButton = shouldShowPayButton(iouReport, chatReport, policy) || shouldShowApproveButton(iouReport, chatReport, policy);
+        const shouldShowSettlementButton = canIOUBePaid(iouReport, chatReport, policy) || canApproveIOU(iouReport, chatReport, policy);
         return action.childReportID?.toString() !== excludedIOUReportID && action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && shouldShowSettlementButton;
     });
 }
@@ -4426,6 +4410,6 @@ export {
     cancelPayment,
     navigateToStartStepIfScanFileCannotBeRead,
     savePreferredPaymentMethod,
-    shouldShowPayButton,
-    shouldShowApproveButton,
+    canIOUBePaid,
+    canApproveIOU,
 };
