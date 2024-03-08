@@ -210,7 +210,6 @@ function WithAlternateText(props: BaseSelectionListProps<ListItem>) {
 }
 
 WithAlternateText.args = {
-    // ...Default.args,
     sections: SECTIONS,
     onSelectRow: () => {},
     initiallyFocusedOptionKey: 'option-2',
