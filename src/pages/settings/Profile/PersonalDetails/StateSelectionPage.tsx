@@ -59,7 +59,7 @@ function StateSelectionPage() {
             const backTo = params?.backTo ?? '';
 
             // Determine navigation action based on "backTo" presence and route stack length.
-            if (navigation.getState().routes.length === 1) {
+            if (navigation.getState()?.routes.length === 1) {
                 // If this is the only page in the navigation stack (examples include direct navigation to this page via URL or page reload).
                 if (_.isEmpty(backTo)) {
                     // No "backTo": default back navigation.
