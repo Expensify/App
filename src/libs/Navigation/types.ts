@@ -12,6 +12,7 @@ import type {
 } from '@react-navigation/native';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -90,10 +91,18 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.CATEGORIES]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.TAGS]: {
+        policyID: string;
+        categoryName: string;
+    };
 };
 
 type WorkspaceSwitcherNavigatorParamList = {
     [SCREENS.WORKSPACE_SWITCHER.ROOT]: undefined;
+};
+
+type BackToParams = {
+    backTo?: Routes;
 };
 
 type SettingsNavigatorParamList = {
@@ -107,7 +116,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.LEGAL_NAME]: undefined;
     [SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH]: undefined;
     [SCREENS.SETTINGS.PROFILE.ADDRESS]: {
-        country?: string;
+        country?: Country | '';
     };
     [SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY]: {
         backTo?: Routes;
@@ -189,6 +198,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.CATEGORY_CREATE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
         policyID: string;
         categoryName: string;
@@ -196,10 +208,20 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
+        policyID: string;
+        accountID: string;
+        backTo: Routes;
+    };
+    [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE_SELECTION]: {
+        policyID: string;
+        accountID: string;
+        backTo: Routes;
+    };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
-    [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: undefined;
+    [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: BackToParams;
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: undefined;
     [SCREENS.KEYBOARD_SHORTCUTS]: undefined;
     [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: undefined;
@@ -515,14 +537,17 @@ type BottomTabNavigatorParamList = {
     [SCREENS.WORKSPACE.INITIAL]: undefined;
 };
 
-type PublicScreensParamList = {
+type SharedScreensParamList = {
     [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]: NavigatorScreenParams<BottomTabNavigatorParamList>;
     [SCREENS.TRANSITION_BETWEEN_APPS]: {
         email?: string;
+        accountID?: number;
         error?: string;
         shortLivedAuthToken?: string;
         shortLivedToken?: string;
+        authTokenType?: ValueOf<typeof CONST.AUTH_TOKEN_TYPES>;
         exitTo?: Routes | HybridAppRoute;
+        shouldForceLogin: string;
         domain?: Routes;
     };
     [SCREENS.VALIDATE_LOGIN]: {
@@ -530,6 +555,9 @@ type PublicScreensParamList = {
         validateCode: string;
         exitTo?: Routes | HybridAppRoute;
     };
+};
+
+type PublicScreensParamList = SharedScreensParamList & {
     [SCREENS.UNLINK_LOGIN]: {
         accountID?: string;
         validateCode?: string;
@@ -539,19 +567,8 @@ type PublicScreensParamList = {
     [SCREENS.SAML_SIGN_IN]: undefined;
 };
 
-type AuthScreensParamList = {
-    [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]: NavigatorScreenParams<BottomTabNavigatorParamList>;
+type AuthScreensParamList = SharedScreensParamList & {
     [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]: NavigatorScreenParams<CentralPaneNavigatorParamList>;
-    [SCREENS.VALIDATE_LOGIN]: {
-        accountID: string;
-        validateCode: string;
-    };
-    [SCREENS.TRANSITION_BETWEEN_APPS]: {
-        shouldForceLogin: string;
-        email: string;
-        shortLivedAuthToken: string;
-        exitTo: string;
-    };
     [SCREENS.CONCIERGE]: undefined;
     [SCREENS.REPORT_ATTACHMENTS]: {
         reportID: string;
@@ -563,6 +580,10 @@ type AuthScreensParamList = {
     [SCREENS.WORKSPACE_AVATAR]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE_JOIN_USER]: {
+        policyID: string;
+        email: string;
+    };
     [SCREENS.REPORT_AVATAR]: {
         reportID: string;
     };
@@ -571,6 +592,10 @@ type AuthScreensParamList = {
     [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
     [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: NavigatorScreenParams<FullScreenNavigatorParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
+    [SCREENS.TRANSACTION_RECEIPT]: {
+        reportID: string;
+        transactionID: string;
+    };
 };
 
 type RootStackParamList = PublicScreensParamList & AuthScreensParamList;
@@ -633,4 +658,5 @@ export type {
     WorkspaceSwitcherNavigatorParamList,
     OnboardEngagementNavigatorParamList,
     SwitchPolicyIDParams,
+    BackToParams,
 };
