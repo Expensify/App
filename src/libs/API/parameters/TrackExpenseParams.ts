@@ -18,6 +18,7 @@ type TrackExpenseParams = {
     receipt: Receipt;
     receiptState?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     tag?: string;
+    gpsPoints?: string;
     transactionThreadReportID: string;
     createdReportActionIDForThread: string;
 };

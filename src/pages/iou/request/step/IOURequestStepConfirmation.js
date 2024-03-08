@@ -224,7 +224,7 @@ function IOURequestStepConfirmation({
      * @param {File} [receiptObj]
      */
     const trackExpense = useCallback(
-        (selectedParticipants, trimmedComment, receiptObj) => {
+        (selectedParticipants, trimmedComment, receiptObj, gpsPoints) => {
             IOU.trackExpense(
                 report,
                 transaction.amount,
@@ -236,6 +236,7 @@ function IOURequestStepConfirmation({
                 selectedParticipants[0],
                 trimmedComment,
                 receiptObj,
+                gpsPoints,
             );
         },
         [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID],
@@ -333,6 +334,36 @@ function IOURequestStepConfirmation({
             }
 
             if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
+                if (receiptFile) {
+                    // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
+                    if (transaction.amount === 0) {
+                        getCurrentPosition(
+                            (successData) => {
+                                trackExpense(selectedParticipants, trimmedComment, receiptFile, {
+                                    lat: successData.coords.latitude,
+                                    long: successData.coords.longitude,
+                                });
+                            },
+                            (errorData) => {
+                                Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
+                                // When there is an error, the money can still be requested, it just won't include the GPS coordinates
+                                trackExpense(selectedParticipants, trimmedComment, receiptFile);
+                            },
+                            {
+                                // It's OK to get a cached location that is up to an hour old because the only accuracy needed is the country the user is in
+                                maximumAge: 1000 * 60 * 60,
+
+                                // 15 seconds, don't wait too long because the server can always fall back to using the IP address
+                                timeout: 15000,
+                            },
+                        );
+                        return;
+                    }
+
+                    // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
+                    trackExpense(selectedParticipants, trimmedComment, receiptFile);
+                    return;
+                }
                 trackExpense(selectedParticipants, trimmedComment, receiptFile);
                 return;
             }

@@ -91,7 +91,7 @@ type TrackExpenseInformation = {
     transaction: OnyxTypes.Transaction;
     iouAction: OptimisticIOUReportAction;
     createdChatReportActionID: string;
-    createdExpenseReportActionID: string;
+    createdExpenseReportActionID?: string;
     reportPreviewAction?: OnyxTypes.ReportAction;
     transactionThreadReportID: string;
     createdReportActionIDForThread: string;
@@ -1291,7 +1291,7 @@ function getTrackExpenseInformation(
         transaction: optimisticTransaction,
         iouAction,
         createdChatReportActionID: '0',
-        createdExpenseReportActionID: '0',
+        createdExpenseReportActionID: undefined,
         reportPreviewAction: undefined,
         transactionThreadReportID: optimisticTransactionThread.reportID,
         createdReportActionIDForThread: optimisticCreatedActionForTransactionThread.reportActionID,
@@ -1935,6 +1935,7 @@ function trackExpense(
     participant: Participant,
     comment: string,
     receipt: Receipt,
+    gpsPoints = undefined,
 ) {
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {
@@ -1957,16 +1958,18 @@ function trackExpense(
         comment,
         created: currentCreated,
         merchant,
-        iouReportID: iouReport?.reportID ?? '0',
+        iouReportID: iouReport?.reportID,
         chatReportID: chatReport.reportID,
         transactionID: transaction.transactionID,
         reportActionID: iouAction.reportActionID,
         createdChatReportActionID,
         createdExpenseReportActionID,
-        reportPreviewReportActionID: reportPreviewAction?.reportActionID ?? '0',
+        reportPreviewReportActionID: reportPreviewAction?.reportActionID,
         receipt,
         receiptState: receipt?.state,
         tag: '',
+        // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
+        gpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
         transactionThreadReportID,
         createdReportActionIDForThread,
     };
