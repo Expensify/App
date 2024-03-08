@@ -124,7 +124,6 @@ function ReportActionsListItemRenderer({
         />
     ) : (
         <ReportActionItem
-            // @ts-expect-error TODO: Remove this once ReportActionItem (https://github.com/Expensify/App/issues/31982) is migrated to TypeScript.
             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
             report={report}
             action={action}
