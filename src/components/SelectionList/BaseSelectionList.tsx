@@ -22,6 +22,7 @@ import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, Section, SectionListDataType} from './types';
 
 function BaseSelectionList<TItem extends ListItem>(
     {
