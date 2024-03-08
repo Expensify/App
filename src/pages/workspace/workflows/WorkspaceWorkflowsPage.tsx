@@ -56,7 +56,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
     const displayNameForAuthorizedPayer = useMemo(() => {
         const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([policy?.reimburserAccountID ?? 0], 0);
         return personalDetails[policy?.reimburserAccountID ?? 0]?.displayName ?? policy?.reimburserEmail;
-    }, [policy?.reimburserEmail]);
+    }, [policy?.reimburserAccountID, policy?.reimburserEmail]);
 
     const fetchData = useCallback(() => {
         if (!policy?.id) {
@@ -69,9 +69,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
 
     useEffect(() => {
         fetchData();
-    }, []);
-
-    console.log('WorkspaceWorkflowsPage', {policy, reimbursementAccount});
+    }, [fetchData]);
 
     const items: ToggleSettingOptionRowProps[] = useMemo(() => {
         const {accountNumber, state, bankName} = reimbursementAccount?.achData ?? {};
@@ -244,10 +242,8 @@ export default withPolicy(
         betas: {
             key: ONYXKEYS.BETAS,
         },
-        // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-        reimbursementAccount: ({policy}) => {{
-            console.log('WorkspaceWorkflowsPage', `reimbursementAccount: ${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policy?.id}`)
-            return {key: `${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policy?.id}`};
-        }}
+        reimbursementAccount: {
+            key: ({route}) => `${ONYXKEYS.REIMBURSEMENT_ACCOUNT}${route.params.policyID}`,
+        },
     })(WorkspaceWorkflowsPage),
 );

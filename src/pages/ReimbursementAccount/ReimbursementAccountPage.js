@@ -79,7 +79,6 @@ const propTypes = {
             /** A step to navigate to if we need to drop the user into a specific point in the flow */
             stepToOpen: PropTypes.string,
             policyID: PropTypes.string,
-            backTo: PropTypes.string,
         }),
     }),
 };
