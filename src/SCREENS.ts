@@ -225,6 +225,7 @@ const SCREENS = {
         SHARE: 'Workspace_Profile_Share',
         NAME: 'Workspace_Profile_Name',
         CATEGORY_CREATE: 'Category_Create',
+        CATEGORY_EDIT: 'Category_Edit',
         CATEGORY_SETTINGS: 'Category_Settings',
         CATEGORIES_SETTINGS: 'Categories_Settings',
         MEMBER_DETAILS: 'Workspace_Member_Details',

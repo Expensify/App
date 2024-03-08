@@ -201,6 +201,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.CATEGORY_CREATE]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.CATEGORY_EDIT]: {
+        policyID: string;
+        categoryName: string;
+    };
     [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
         policyID: string;
         categoryName: string;
