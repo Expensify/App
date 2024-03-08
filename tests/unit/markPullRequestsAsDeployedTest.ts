@@ -16,6 +16,24 @@ type PullRequest = {
     merged_by: {login: string};
 };
 
+type PullRequestParams = {
+    pull_number: number;
+};
+
+type PullRequestData = {
+    data?: PullRequest;
+};
+
+type Commit = {
+    commit_sha: string;
+};
+
+type CommitData = {
+    data: {
+        message: string;
+    };
+};
+
 let run;
 
 const mockGetInput = jest.fn();
@@ -66,7 +84,7 @@ function mockGetInputDefaultImplementation(key: string): boolean | string {
     }
 }
 
-function mockGetCommitDefaultImplementation({commit_sha}: {commit_sha: string}): {data: {message: string}} {
+function mockGetCommitDefaultImplementation({commit_sha}: Commit): CommitData {
     if (commit_sha === 'abcd') {
         return {data: {message: 'Test commit 1'}};
     }
@@ -136,7 +154,7 @@ beforeAll(() => {
 });
 
 beforeEach(() => {
-    mockGetPullRequest.mockImplementation(({pull_number}: {pull_number: number}) => (pull_number in PRList ? {data: PRList[pull_number]} : {}));
+    mockGetPullRequest.mockImplementation(({pull_number}: PullRequestParams): PullRequestData => (pull_number in PRList ? {data: PRList[pull_number]} : {}));
     mockListTags.mockResolvedValue({
         data: defaultTags,
     });
@@ -217,7 +235,7 @@ platform | result
             }
             return mockGetInputDefaultImplementation(key);
         });
-        mockGetPullRequest.mockImplementation(({pull_number}) => {
+        mockGetPullRequest.mockImplementation(({pull_number}: PullRequestParams) => {
             if (pull_number === 3) {
                 return {
                     data: {
@@ -234,11 +252,11 @@ platform | result
         mockListTags.mockResolvedValue({
             data: [{name: '42.42.42-43', commit: {sha: 'xyz'}}, ...defaultTags],
         });
-        mockGetCommit.mockImplementation(({commit_sha}) => {
+        mockGetCommit.mockImplementation(({commit_sha}: Commit) => {
             if (commit_sha === 'xyz') {
                 return {data: {message: 'Test PR 3 (cherry picked from commit dagdag)', committer: {name: 'freyja'}}};
             }
-            return mockGetCommitDefaultImplementation(commit_sha);
+            return mockGetCommitDefaultImplementation({commit_sha});
         });
 
         // Note: we import this in here so that it executes after all the mocks are set up

@@ -263,7 +263,7 @@ test('[ReportScreen] should press of the report item', () => {
         .then(() =>
             measurePerformance(
                 <ReportScreenWrapper
-                    // @ts-expect-error TODO: Remove this once ReportScreen is migrated to TypeScript.
+                    // @ts-expect-error TODO: Remove this once ReportScreen (https://github.com/Expensify/App/issues/25216) is migrated to TypeScript.
                     navigation={navigation}
                     route={mockRoute}
                 />,
