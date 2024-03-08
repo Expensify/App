@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import categoryPropTypes from '@components/categoryPropTypes';
 import TagPicker from '@components/TagPicker';
@@ -11,7 +11,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import {canEditMoneyRequest} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
@@ -78,10 +80,12 @@ function IOURequestStepTag({
     const tag = TransactionUtils.getTag(transaction, tagIndex);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
     const parentReportAction = parentReportActions[report.parentReportActionID];
+    const shouldShowTag = ReportUtils.isGroupPolicy(report) && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists));
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = isEditing && !canEditMoneyRequest(parentReportAction);
+    const shouldShowNotFoundPage = !shouldShowTag || (isEditing && !canEditMoneyRequest(parentReportAction));
 
     const navigateBack = () => {
         Navigation.goBack(backTo);

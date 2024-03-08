@@ -1,10 +1,11 @@
 import React from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
