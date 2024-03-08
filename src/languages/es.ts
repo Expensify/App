@@ -1780,6 +1780,7 @@ export default {
             mustBeOnlineToViewMembers: 'Debes estar en línea para poder ver los miembros de este espacio de trabajo.',
             requested: 'Solicitado',
             distanceRates: 'Tasas de distancia',
+            selected: ({selectedNumber}) => `${selectedNumber} seleccionados`,
         },
         type: {
             free: 'Gratis',
@@ -1841,7 +1842,6 @@ export default {
             makeMember: 'Hacer miembro',
             makeAdmin: 'Hacer administrador',
             selectAll: 'Seleccionar todo',
-            selected: ({selectedNumber}) => `${selectedNumber} seleccionados`,
             error: {
                 genericAdd: 'Ha ocurrido un problema al añadir el miembro al espacio de trabajo.',
                 cannotRemove: 'No puedes eliminarte ni a ti mismo ni al dueño del espacio de trabajo.',
@@ -1948,7 +1948,6 @@ export default {
             disableRate: 'Desactivar tasa',
             disableRates: 'Desactivar tasas',
             enableRates: 'Activar tasas',
-            selected: 'Seleccionada',
             status: 'Estado',
             enabled: 'Activada',
             disabled: 'Desactivada',

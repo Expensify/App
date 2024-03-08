@@ -1756,6 +1756,7 @@ export default {
             mustBeOnlineToViewMembers: 'You must be online in order to view members of this workspace.',
             requested: 'Requested',
             distanceRates: 'Distance rates',
+            selected: ({selectedNumber}) => `${selectedNumber} selected`,
         },
         type: {
             free: 'Free',
@@ -1817,7 +1818,6 @@ export default {
             makeMember: 'Make member',
             makeAdmin: 'Make admin',
             selectAll: 'Select all',
-            selected: ({selectedNumber}) => `${selectedNumber} selected`,
             error: {
                 genericAdd: 'There was a problem adding this workspace member.',
                 cannotRemove: 'You cannot remove yourself or the workspace owner.',
@@ -1923,7 +1923,6 @@ export default {
             disableRate: 'Disable rate',
             disableRates: 'Disable rates',
             enableRates: 'Enable rates',
-            selected: 'Selected',
             status: 'Status',
             enabled: 'Enabled',
             disabled: 'Disabled',

@@ -215,7 +215,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                 <ButtonWithDropdownMenu<WorkspaceDistanceRatesBulkActionType>
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter
-                    customText={`${selectedDistanceRates.length} ${translate('workspace.distanceRates.selected')}`}
+                    customText={translate('workspace.common.selected', {selectedNumber: selectedDistanceRates.length})}
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                     onPress={() => null}
                     options={getBulkActionsButtonOptions()}
