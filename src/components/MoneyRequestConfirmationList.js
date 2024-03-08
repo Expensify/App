@@ -629,7 +629,6 @@ function MoneyRequestConfirmationList(props) {
                     // So if we have a thumbnail, it means we're retrieving the image from the server
                     isAuthTokenRequired={!_.isEmpty(receiptThumbnail)}
                     fileExtension={fileExtension}
-                    transactionID={props.transactionID || (props.transaction && props.transaction.transactionID)}
                 />
             ) : (
                 // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")

@@ -90,9 +90,7 @@ function ReportActionItemImage({
     } else {
         propsObj = {
             isThumbnail,
-            ...(isThumbnail && {iconSize: isSingleImage ? 'medium' : ('small' as IconSize)}),
-            fileExtension,
-            transactionID: transaction?.transactionID,
+            ...(isThumbnail && {iconSize: isSingleImage ? 'medium' : ('small' as IconSize), fileExtension}),
             source: thumbnail ?? image ?? '',
         };
     }
