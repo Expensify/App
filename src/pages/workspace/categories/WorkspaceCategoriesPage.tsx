@@ -152,22 +152,21 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
     const selectedCategoriesArray = Object.keys(selectedCategories).filter((key) => selectedCategories[key]);
 
     const getHeaderButtons = () => {
+        const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES>>> = [];
+
         if (selectedCategoriesArray.length > 0) {
-            const isAllEnabled = selectedCategoriesArray.every((categoryName) => policyCategories?.[categoryName].enabled);
-
-            const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES>>> = [
-                {
-                    icon: Expensicons.Trashcan,
-                    text: translate('workspace.categories.deleteCategories'),
-                    value: CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES.DELETE,
-                    onSelected: () => {
-                        setSelectedCategories({});
-                        deleteWorkspaceCategories(route.params.policyID, selectedCategoriesArray);
-                    },
+            options.push({
+                icon: Expensicons.Trashcan,
+                text: translate('workspace.categories.deleteCategories'),
+                value: CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES.DELETE,
+                onSelected: () => {
+                    setSelectedCategories({});
+                    deleteWorkspaceCategories(route.params.policyID, selectedCategoriesArray);
                 },
-            ];
+            });
 
-            if (isAllEnabled) {
+            const enabledCategories = selectedCategoriesArray.filter((categoryName) => policyCategories?.[categoryName].enabled);
+            if (enabledCategories.length > 0) {
                 const categoriesToDisable = selectedCategoriesArray
                     .filter((categoryName) => policyCategories?.[categoryName].enabled)
                     .reduce<Record<string, {name: string; enabled: boolean}>>((acc, categoryName) => {
@@ -187,7 +186,10 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                         setWorkspaceCategoryEnabled(route.params.policyID, categoriesToDisable);
                     },
                 });
-            } else {
+            }
+
+            const disabledCategories = selectedCategoriesArray.filter((categoryName) => !policyCategories?.[categoryName].enabled);
+            if (disabledCategories.length > 0) {
                 const categoriesToEnable = selectedCategoriesArray
                     .filter((categoryName) => !policyCategories?.[categoryName].enabled)
                     .reduce<Record<string, {name: string; enabled: boolean}>>((acc, categoryName) => {
