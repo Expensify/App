@@ -8,6 +8,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -36,6 +37,7 @@ type HoldReasonPageProps = {
 function HoldReasonPage({route}: HoldReasonPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const {transactionID, reportID, backTo} = route.params;
 
@@ -86,7 +88,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
                         defaultValue={undefined}
                         label={translate('iou.reason')}
                         accessibilityLabel={translate('iou.reason')}
-                        autoFocus
+                        ref={inputCallbackRef}
                     />
                 </View>
             </FormProvider>
