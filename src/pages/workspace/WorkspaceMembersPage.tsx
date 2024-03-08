@@ -372,7 +372,8 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
         if (isOfflineAndNoMemberDataAvailable) {
             return translate('workspace.common.mustBeOnlineToViewMembers');
         }
-        return !data.length ? translate('workspace.common.memberNotFound') : '';
+
+        return '';
     };
 
     const getHeaderContent = () => (
@@ -538,6 +539,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                         disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                         headerMessage={getHeaderMessage()}
                         headerContent={getHeaderContent()}
+                        notFoundMessage={translate('workspace.common.memberNotFound')}
                         onSelectRow={openMemberDetails}
                         onCheckboxPress={(item) => toggleUser(item.accountID)}
                         onSelectAll={() => toggleAllUsers(data)}

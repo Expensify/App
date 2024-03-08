@@ -211,6 +211,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Message to display at the top of the list */
     headerMessage?: string;
 
+    /** Message to display when no items found */
+    notFoundMessage?: string;
+
     /** Text to display on the confirm button */
     confirmButtonText?: string;
 
