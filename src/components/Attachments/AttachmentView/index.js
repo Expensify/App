@@ -1,254 +1,219 @@
-import Str from 'expensify-common/lib/str';
-import PropTypes from 'prop-types';
-import React, {memo, useEffect, useState} from 'react';
-import {ScrollView, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
-import * as AttachmentsPropTypes from '@components/Attachments/propTypes';
-import DistanceEReceipt from '@components/DistanceEReceipt';
-import EReceipt from '@components/EReceipt';
+import React, {useCallback, useEffect, useState} from 'react';
+import {View} from 'react-native';
+import PDF from 'react-native-pdf';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Icon from '@components/Icon';
-import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import * as Expensicons from '@components/Icon/Expensicons';
+import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Text from '@components/Text';
+import useKeyboardState from '@hooks/useKeyboardState';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CachedPDFPaths from '@libs/actions/CachedPDFPaths';
-import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import compose from '@libs/compose';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
-import ONYXKEYS from '@src/ONYXKEYS';
-import AttachmentViewImage from './AttachmentViewImage';
-import AttachmentViewPdf from './AttachmentViewPdf';
-import DefaultAttachmentView from './AttachmentViewPdf/DefaultAttachmentView';
-import AttachmentViewVideo from './AttachmentViewVideo';
-import {attachmentViewDefaultProps, attachmentViewPropTypes} from './propTypes';
+import CONST from '@src/CONST';
+import PDFPasswordForm from './PDFPasswordForm';
+import {defaultProps, propTypes as pdfViewPropTypes} from './pdfViewPropTypes';
 
 const propTypes = {
-    ...attachmentViewPropTypes,
-    ...withLocalizePropTypes,
-
-    /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
-    source: AttachmentsPropTypes.attachmentSourcePropType.isRequired,
-
-    /** Flag to show/hide download icon */
-    shouldShowDownloadIcon: PropTypes.bool,
-
-    /** Flag to show the loading indicator */
-    shouldShowLoadingSpinnerIcon: PropTypes.bool,
-
-    /** Notify parent that the UI should be modified to accommodate keyboard */
-    onToggleKeyboard: PropTypes.func,
-
-    /** Extra styles to pass to View wrapper */
-    // eslint-disable-next-line react/forbid-prop-types
-    containerStyles: PropTypes.arrayOf(PropTypes.object),
-
-    /** Denotes whether it is a workspace avatar or not */
-    isWorkspaceAvatar: PropTypes.bool,
-
-    /** Denotes whether it is an icon (ex: SVG) */
-    maybeIcon: PropTypes.bool,
-
-    /** The id of the transaction related to the attachment */
-    // eslint-disable-next-line react/no-unused-prop-types
-    transactionID: PropTypes.string,
-
-    /** The id of the report action related to the attachment */
-    reportActionID: PropTypes.string,
-
-    isHovered: PropTypes.bool,
-
-    optionalVideoDuration: PropTypes.number,
+    ...pdfViewPropTypes,
 };
 
-const defaultProps = {
-    ...attachmentViewDefaultProps,
-    shouldShowDownloadIcon: false,
-    shouldShowLoadingSpinnerIcon: false,
-    onToggleKeyboard: () => {},
-    containerStyles: [],
-    isWorkspaceAvatar: false,
-    maybeIcon: false,
-    transactionID: '',
-    reportActionID: '',
-    isHovered: false,
-    optionalVideoDuration: 0,
-};
+/**
+ * On the native layer, we use react-native-pdf/PDF to display PDFs. If a PDF is
+ * password-protected we render a PDFPasswordForm to request a password
+ * from the user.
+ *
+ * In order to render things nicely during a password challenge we need
+ * to keep track of additional state. In particular, the
+ * react-native-pdf/PDF component is both conditionally rendered and hidden
+ * depending upon the situation. It needs to be rerendered on each password
+ * submission because it doesn't dynamically handle updates to its
+ * password property. And we need to hide it during password challenges
+ * so that PDFPasswordForm doesn't bounce when react-native-pdf/PDF
+ * is (temporarily) rendered.
+ */
 
-function AttachmentView({
-    source,
-    file,
-    isAuthTokenRequired,
-    onPress,
-    shouldShowLoadingSpinnerIcon,
-    shouldShowDownloadIcon,
-    containerStyles,
-    onToggleKeyboard,
-    translate,
-    isFocused,
-    isUsedInCarousel,
-    isUsedInAttachmentModal,
-    isWorkspaceAvatar,
-    maybeIcon,
-    fallbackSource,
-    transaction,
-    reportActionID,
-    isHovered,
-    optionalVideoDuration,
-}) {
-    const {updateCurrentlyPlayingURL} = usePlaybackContext();
-    const styles = useThemeStyles();
+const THUMBNAIL_HEIGHT = 250;
+const THUMBNAIL_WIDTH = 250;
+
+function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused, onScaleChanged, sourceURL, errorLabelStyles, onError, isUsedAsChatAttachment}) {
+    const [shouldRequestPassword, setShouldRequestPassword] = useState(false);
+    const [shouldAttemptPDFLoad, setShouldAttemptPDFLoad] = useState(true);
+    const [shouldShowLoadingIndicator, setShouldShowLoadingIndicator] = useState(true);
+    const [isPasswordInvalid, setIsPasswordInvalid] = useState(false);
+    const [failedToLoadPDF, setFailedToLoadPDF] = useState(false);
+    const [successToLoadPDF, setSuccessToLoadPDF] = useState(false);
+    const [password, setPassword] = useState('');
+    const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
+    const {translate} = useLocalize();
+    const themeStyles = useThemeStyles();
+    const {isKeyboardShown} = useKeyboardState();
     const StyleUtils = useStyleUtils();
-    const [loadComplete, setLoadComplete] = useState(false);
-    const isVideo = (typeof source === 'string' && Str.isVideo(source)) || (file && Str.isVideo(file.name));
-    const [isPdfFailedToLoad, setIsPdfFailedToLoad] = useState(false);
+    const {isOffline} = useNetwork();
+    const theme = useTheme();
 
     useEffect(() => {
-        if (!isFocused && !(file && isUsedInAttachmentModal)) {
+        onToggleKeyboard(isKeyboardShown);
+    });
+
+    /**
+     * Initiate password challenge if message received from react-native-pdf/PDF
+     * indicates that a password is required or invalid.
+     *
+     * For a password challenge the message is "Password required or incorrect password."
+     * Note that the message doesn't specify whether the password is simply empty or
+     * invalid.
+     */
+
+    const initiatePasswordChallenge = useCallback(() => {
+        setShouldShowLoadingIndicator(false);
+
+        // Render password form, and don't render PDF and loading indicator.
+        setShouldRequestPassword(true);
+        setShouldAttemptPDFLoad(false);
+
+        // The message provided by react-native-pdf doesn't indicate whether this
+        // is an initial password request or if the password is invalid. So we just assume
+        // that if a password was already entered then it's an invalid password error.
+        if (password) {
+            setIsPasswordInvalid(true);
+        }
+    }, [password]);
+
+    const handleFailureToLoadPDF = (error) => {
+        if (error.message.match(/password/i)) {
+            initiatePasswordChallenge();
             return;
         }
-        updateCurrentlyPlayingURL(isVideo ? source : null);
-    }, [isFocused, isVideo, source, updateCurrentlyPlayingURL, file, isUsedInAttachmentModal]);
+        setFailedToLoadPDF(true);
+        setShouldShowLoadingIndicator(false);
+        setShouldRequestPassword(false);
+        setShouldAttemptPDFLoad(false);
+        onError(error);
+    };
 
-    const [imageError, setImageError] = useState(false);
-
-    useNetwork({onReconnect: () => setImageError(false)});
-
-    // Handles case where source is a component (ex: SVG) or a number
-    // Number may represent a SVG or an image
-    if ((maybeIcon && typeof source === 'number') || _.isFunction(source)) {
-        let iconFillColor = '';
-        let additionalStyles = [];
-        if (isWorkspaceAvatar) {
-            const defaultWorkspaceAvatarColor = StyleUtils.getDefaultWorkspaceAvatarColor(file.name);
-            iconFillColor = defaultWorkspaceAvatarColor.fill;
-            additionalStyles = [defaultWorkspaceAvatarColor];
+    /**
+     * When the password is submitted via PDFPasswordForm, save the password
+     * in state and attempt to load the PDF. Also show the loading indicator
+     * since react-native-pdf/PDF will need to reload the PDF.
+     *
+     * @param {String} pdfPassword Password submitted via PDFPasswordForm
+     */
+    const attemptPDFLoadWithPassword = (pdfPassword) => {
+        // Render react-native-pdf/PDF so that it can validate the password.
+        // Note that at this point in the password challenge, shouldRequestPassword is true.
+        // Thus react-native-pdf/PDF will be rendered - but not visible.
+        setPassword(pdfPassword);
+        setShouldAttemptPDFLoad(true);
+        setShouldShowLoadingIndicator(true);
+    };
+    /**
+     * After the PDF is successfully loaded hide PDFPasswordForm and the loading
+     * indicator.
+     * @param {Number} numberOfPages
+     * @param {Number} path - Path to cache location
+     */
+    const finishPDFLoad = (numberOfPages, path) => {
+        setShouldRequestPassword(false);
+        setShouldShowLoadingIndicator(false);
+        setSuccessToLoadPDF(true);
+        onLoadComplete(path);
+    };
+    const rendeFailedToLoadPDF = () => {
+        if (!isUsedAsChatAttachment) {
+            return (
+                <View style={[themeStyles.flex1, themeStyles.justifyContentCenter, themeStyles.alignItemsCenter]}>
+                    <Text style={errorLabelStyles}>{translate('attachmentView.failedToLoadPDF')}</Text>
+                </View>
+            );
         }
 
         return (
-            <Icon
-                src={source}
-                height={variables.defaultAvatarPreviewSize}
-                width={variables.defaultAvatarPreviewSize}
-                fill={iconFillColor}
-                additionalStyles={additionalStyles}
-            />
+            <View style={[themeStyles.overflowHidden, themeStyles.hoveredComponentBG, themeStyles.componentBorderRadiusNormal]}>
+                <View style={[StyleUtils.getWidthAndHeightStyle(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT), themeStyles.alignItemsCenter, themeStyles.justifyContentCenter]}>
+                    <Icon
+                        src={isOffline ? Expensicons.OfflineCloud : Expensicons.Document}
+                        height={variables.iconSizeSuperLarge}
+                        width={variables.iconSizeSuperLarge}
+                        fill={theme.border}
+                    />
+                </View>
+            </View>
         );
-    }
+    };
 
-    if (TransactionUtils.hasEReceipt(transaction)) {
+    function renderPDFView() {
+        const pdfHeight = isUsedAsChatAttachment ? THUMBNAIL_HEIGHT : windowHeight;
+        const pdfWeight = isUsedAsChatAttachment ? THUMBNAIL_WIDTH : windowWidth;
+        const pdfStyles = [StyleUtils.getWidthAndHeightStyle(pdfWeight, pdfHeight), themeStyles.imageModalPDF];
+
+        // If we haven't yet successfully validated the password and loaded the PDF,
+        // then we need to hide the react-native-pdf/PDF component so that PDFPasswordForm
+        // is positioned nicely. We're specifically hiding it because we still need to render
+        // the PDF component so that it can validate the password.
+        if (shouldRequestPassword) {
+            pdfStyles.push(themeStyles.invisible);
+        }
+        const containerStyles =
+            (shouldRequestPassword && isSmallScreenWidth) || isUsedAsChatAttachment ? [themeStyles.w100, themeStyles.flex1] : [themeStyles.alignItemsCenter, themeStyles.flex1];
+        const loadingIndicatorStyles = isUsedAsChatAttachment ? [themeStyles.chatItemPDFAttachmentLoading, StyleUtils.getWidthAndHeightStyle(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT)] : [];
+
         return (
-            <View style={[styles.flex1, styles.alignItemsCenter]}>
-                <ScrollView
-                    style={styles.w100}
-                    contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}
-                >
-                    <EReceipt transactionID={transaction.transactionID} />
-                </ScrollView>
+            <View style={containerStyles}>
+                {shouldAttemptPDFLoad && (
+                    <PDF
+                        fitPolicy={0}
+                        trustAllCerts={false}
+                        renderActivityIndicator={() => <FullScreenLoadingIndicator style={loadingIndicatorStyles} />}
+                        source={{uri: sourceURL}}
+                        style={pdfStyles}
+                        onError={handleFailureToLoadPDF}
+                        password={password}
+                        onLoadComplete={finishPDFLoad}
+                        onPageSingleTap={onPress}
+                        onScaleChanged={onScaleChanged}
+                    />
+                )}
+                {shouldRequestPassword && (
+                    <KeyboardAvoidingView style={themeStyles.flex1}>
+                        <PDFPasswordForm
+                            isFocused={isFocused}
+                            onSubmit={attemptPDFLoadWithPassword}
+                            onPasswordUpdated={() => setIsPasswordInvalid(false)}
+                            isPasswordInvalid={isPasswordInvalid}
+                            shouldShowLoadingIndicator={shouldShowLoadingIndicator}
+                        />
+                    </KeyboardAvoidingView>
+                )}
             </View>
         );
     }
+    // // uncomment this code to see failedToLoadPDF
+    // if (failedToLoadPDF) {
+    //     return rendeFailedToLoadPDF();
+    // }
 
-    // Check both source and file.name since PDFs dragged into the text field
-    // will appear with a source that is a blob
-    if (!isPdfFailedToLoad && ((_.isString(source) && Str.isPDF(source)) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename'))))) {
-        const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source) : source;
-
-        const onPDFLoadComplete = (path) => {
-            const id = (transaction && transaction.transactionID) || reportActionID;
-            if (path && id) {
-                CachedPDFPaths.add(id, path);
-            }
-            if (!loadComplete) {
-                setLoadComplete(true);
-            }
-        };
-
-        // We need the following View component on android native
-        // So that the event will propagate properly and
-        // the Password protected preview will be shown for pdf attachement we are about to send.
-        return (
-            <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
-                <AttachmentViewPdf
-                    source={source}
-                    file={file}
-                    isFocused={isFocused}
-                    isAuthTokenRequired={isAuthTokenRequired}
-                    encryptedSourceUrl={encryptedSourceUrl}
-                    onPress={onPress}
-                    onToggleKeyboard={onToggleKeyboard}
-                    onLoadComplete={onPDFLoadComplete}
-                    errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [styles.cursorAuto]}
-                    style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
-                    isUsedInCarousel={isUsedInCarousel}
-                    isUsedAsChatAttachment={!(isUsedInAttachmentModal || isUsedInCarousel)}
-                    onError={() => {
-                        setIsPdfFailedToLoad(true);
-                    }}
-                />
-            </View>
-        );
-    }
-
-    if (TransactionUtils.isDistanceRequest(transaction)) {
-        return <DistanceEReceipt transaction={transaction} />;
-    }
-
-    // For this check we use both source and file.name since temporary file source is a blob
-    // both PDFs and images will appear as images when pasted into the text field.
-    // We also check for numeric source since this is how static images (used for preview) are represented in RN.
-    const isImage = typeof source === 'number' || Str.isImage(source);
-    if (isImage || (file && Str.isImage(file.name))) {
-        return (
-            <AttachmentViewImage
-                url={imageError ? fallbackSource : source}
-                file={file}
-                isAuthTokenRequired={isAuthTokenRequired}
-                loadComplete={loadComplete}
-                isFocused={isFocused}
-                isUsedInCarousel={isUsedInCarousel}
-                isImage={isImage}
-                onPress={onPress}
-                onError={() => {
-                    setImageError(true);
-                }}
-            />
-        );
-    }
-
-    if (isVideo) {
-        return (
-            <AttachmentViewVideo
-                source={source}
-                shouldUseSharedVideoElement={isUsedInCarousel}
-                isHovered={isHovered}
-                videoDuration={optionalVideoDuration}
-            />
-        );
-    }
-
-    return (
-        <DefaultAttachmentView
-            file={file}
-            shouldShowDownloadIcon={shouldShowDownloadIcon}
-            shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
-            containerStyles={containerStyles}
-        />
+    return onPress && !successToLoadPDF ? (
+        <PressableWithoutFeedback
+            onPress={onPress}
+            style={[themeStyles.flex1, themeStyles.alignSelfStretch, !failedToLoadPDF && themeStyles.flexRow]}
+            accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+            accessibilityLabel={fileName || translate('attachmentView.unknownFilename')}
+        >
+            {renderPDFView()}
+        </PressableWithoutFeedback>
+    ) : (
+        renderPDFView()
     );
 }
 
-AttachmentView.propTypes = propTypes;
-AttachmentView.defaultProps = defaultProps;
-AttachmentView.displayName = 'AttachmentView';
+PDFView.displayName = 'PDFView';
+PDFView.propTypes = propTypes;
+PDFView.defaultProps = defaultProps;
 
-export default compose(
-    memo,
-    withLocalize,
-    withOnyx({
-        transaction: {
-            key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-        },
-    }),
-)(AttachmentView);
+export default PDFView;
