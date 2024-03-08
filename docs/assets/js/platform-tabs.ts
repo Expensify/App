@@ -7,7 +7,7 @@ if (expensifyClassicContent) {
     tab.innerHTML = 'Expensify Classic';
     tab.id = 'platform-tab-expensify-classic';
     tab.classList.add('active');
-    platformTabs.appendChild(tab);
+    platformTabs?.appendChild(tab);
 }
 
 if (newExpensifyContent) {
@@ -18,5 +18,5 @@ if (newExpensifyContent) {
     if (!expensifyClassicContent) {
         tab.classList.add('active');
     }
-    platformTabs.appendChild(tab);
+    platformTabs?.appendChild(tab);
 }

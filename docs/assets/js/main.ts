@@ -1,49 +1,47 @@
-/* eslint-disable no-unused-vars */
+import type {IStaticOptions as TocbotOptions} from 'tocbot';
+
 function toggleHeaderMenu() {
     const lhn = document.getElementById('lhn');
     const lhnContent = document.getElementById('lhn-content');
     const anguleUpIcon = document.getElementById('angle-up-icon');
     const barsIcon = document.getElementById('bars-icon');
-    if (lhnContent.className === 'expanded') {
+
+    if (lhnContent?.className === 'expanded') {
         // Collapse the LHN in mobile
-        lhn.className = '';
+        if (lhn) {
+            lhn.className = '';
+        }
+
         lhnContent.className = '';
-        barsIcon.classList.remove('hide');
-        anguleUpIcon.classList.add('hide');
+        barsIcon?.classList.remove('hide');
+        anguleUpIcon?.classList.add('hide');
         document.body.classList.remove('disable-scrollbar');
     } else {
         // Expand the LHN in mobile
-        lhn.className = 'expanded';
-        lhnContent.className = 'expanded';
-        barsIcon.classList.add('hide');
-        anguleUpIcon.classList.remove('hide');
+        if (lhn) {
+            lhn.className = 'expanded';
+        }
+
+        if (lhnContent) {
+            lhnContent.className = 'expanded';
+        }
+
+        barsIcon?.classList.add('hide');
+        anguleUpIcon?.classList.remove('hide');
         document.body.classList.add('disable-scrollbar');
     }
 }
 
-/**
- * Clamp a number in a range.
- *
- * @param {Number} num
- * @param {Number} min
- * @param {Number} max
- * @returns {Number}
- */
-function clamp(num, min, max) {
+/** Clamp a number in a range. */
+function clamp(num: number, min: number, max: number): number {
     return Math.min(Math.max(num, min), max);
 }
 
-/**
- * Check if a number is in a range.
- *
- * @param {Number} num
- * @param {Number} min
- * @param {Number} max
- * @returns {Boolean}
- */
-function isInRange(num, min, max) {
+/** Check if a number is in a range. */
+function isInRange(num: number, min: number, max: number): boolean {
     return num >= min && num <= max;
 }
+
 /**
  * Checks if the user has navigated within the docs using internal links and uses browser history to navigate back.
  * If a page is directly accessed (e.g., via deep link, bookmark, or opened in a new tab),the user will be navigated
@@ -72,11 +70,18 @@ function navigateBack() {
 
 function injectFooterCopywrite() {
     const footer = document.getElementById('footer-copywrite-date');
-    footer.innerHTML = `&copy;2008-${new Date().getFullYear()} Expensify, Inc.`;
+
+    if (footer) {
+        footer.innerHTML = `&copy;2008-${new Date().getFullYear()} Expensify, Inc.`;
+    }
 }
 
 function closeSidebar() {
-    document.getElementById('sidebar-layer').style.display = 'none';
+    const sidebarLayer = document.getElementById('sidebar-layer');
+
+    if (sidebarLayer) {
+        sidebarLayer.style.display = 'none';
+    }
 
     // Make the body scrollable again
     const body = document.body;
@@ -90,7 +95,7 @@ function closeSidebar() {
     window.scrollTo(0, parseInt(scrollY || '0', 10) * -1);
 }
 
-function closeSidebarOnClickOutside(event) {
+function closeSidebarOnClickOutside(event: MouseEvent) {
     const sidebarLayer = document.getElementById('sidebar-layer');
 
     if (event.target !== sidebarLayer) {
@@ -100,8 +105,13 @@ function closeSidebarOnClickOutside(event) {
 }
 
 function openSidebar() {
-    document.getElementById('sidebar-layer').style.display = 'block';
-    document.getElementById('gsc-i-id1').focus();
+    const sidebarLayer = document.getElementById('sidebar-layer');
+
+    if (sidebarLayer) {
+        sidebarLayer.style.display = 'block';
+    }
+
+    document.getElementById('gsc-i-id1')?.focus();
 
     // Make body unscrollable
     const yAxis = document.documentElement.style.getPropertyValue('y-axis');
@@ -109,10 +119,9 @@ function openSidebar() {
     body.style.position = 'fixed';
     body.style.top = `-${yAxis}`;
 
-    document.getElementById('gsc-i-id1').focus();
+    document.getElementById('gsc-i-id1')?.focus();
 
     // Close the sidebar when clicking sidebar layer (outside the sidebar search)
-    const sidebarLayer = document.getElementById('sidebar-layer');
     if (sidebarLayer) {
         sidebarLayer.addEventListener('click', closeSidebarOnClickOutside);
     }
@@ -133,15 +142,15 @@ function changeSVGViewBoxGoogle() {
 
 // Function to insert element after another
 // In this case, we insert the label element after the Google Search Input so we can have the same label animation effect
-function insertElementAfter(referenceNode, newNode) {
-    referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
+function insertElementAfter(referenceNode: HTMLElement | null, newNode: HTMLLabelElement) {
+    referenceNode?.parentNode?.insertBefore(newNode, referenceNode.nextSibling);
 }
 
 // Update the ICON for search input.
 /* Change the path of the Google Search Button icon into Expensify icon */
 function updateGoogleSearchIcon() {
     const node = document.querySelector('.gsc-search-button.gsc-search-button-v2 svg path');
-    node.setAttribute(
+    node?.setAttribute(
         'd',
         'M8 1c3.9 0 7 3.1 7 7 0 1.4-.4 2.7-1.1 3.8l5.2 5.2c.6.6.6 1.5 0 2.1-.6.6-1.5.6-2.1 0l-5.2-5.2C10.7 14.6 9.4 15 8 15c-3.9 0-7-3.1-7-7s3.1-7 7-7zm0 3c2.2 0 4 1.8 4 4s-1.8 4-4 4-4-1.8-4-4 1.8-4 4-4z',
     );
@@ -156,7 +165,7 @@ window.addEventListener('load', () => {
 
     // Add required into the search input
     const searchInput = document.getElementById('gsc-i-id1');
-    searchInput.setAttribute('required', '');
+    searchInput?.setAttribute('required', '');
 
     // Insert search label after the search input
     const searchLabel = document.createElement('label');
@@ -165,7 +174,7 @@ window.addEventListener('load', () => {
     insertElementAfter(searchInput, searchLabel);
 });
 
-const tocbotOptions = {
+const tocbotOptions: TocbotOptions = {
     // Where to render the table of contents.
     tocSelector: '.article-toc',
 
@@ -230,33 +239,31 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // eslint-disable-next-line es/no-optional-chaining
     expensifyClassicTab?.addEventListener('click', () => {
         expensifyClassicTab.classList.add('active');
-        expensifyClassicContent.classList.remove('hidden');
+        expensifyClassicContent?.classList.remove('hidden');
 
-        newExpensifyTab.classList.remove('active');
-        newExpensifyContent.classList.add('hidden');
+        newExpensifyTab?.classList.remove('active');
+        newExpensifyContent?.classList.add('hidden');
         window.tocbot.refresh({
             ...tocbotOptions,
             contentSelector: '#expensify-classic',
         });
     });
 
-    // eslint-disable-next-line es/no-optional-chaining
     newExpensifyTab?.addEventListener('click', () => {
         newExpensifyTab.classList.add('active');
-        newExpensifyContent.classList.remove('hidden');
+        newExpensifyContent?.classList.remove('hidden');
 
-        expensifyClassicTab.classList.remove('active');
-        expensifyClassicContent.classList.add('hidden');
+        expensifyClassicTab?.classList.remove('active');
+        expensifyClassicContent?.classList.add('hidden');
         window.tocbot.refresh({
             ...tocbotOptions,
             contentSelector: '#new-expensify',
         });
     });
 
-    document.getElementById('header-button').addEventListener('click', toggleHeaderMenu);
+    document.getElementById('header-button')?.addEventListener('click', toggleHeaderMenu);
 
     // Back button doesn't exist on all the pages
     const backButton = document.getElementById('back-button');
@@ -269,27 +276,33 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // This event listener checks if a link clicked in the LHN points to some section of the same page and toggles
     // the LHN menu in responsive view.
-    lhnContent.addEventListener('click', (event) => {
-        const clickedLink = event.target;
+    lhnContent?.addEventListener('click', (event) => {
+        const clickedLink = event.target as HTMLElement;
         if (clickedLink) {
             const href = clickedLink.getAttribute('href');
-            if (href && href.startsWith('#') && !!document.getElementById(href.slice(1))) {
+            if (href?.startsWith('#') && !!document.getElementById(href.slice(1))) {
                 toggleHeaderMenu();
             }
         }
     });
-    lhnContent.addEventListener('wheel', (e) => {
+    lhnContent?.addEventListener('wheel', (event) => {
         const scrollTop = lhnContent.scrollTop;
-        const isScrollingPastLHNTop = e.deltaY < 0 && scrollTop === 0;
-        const isScrollingPastLHNBottom = e.deltaY > 0 && isInRange(lhnContent.scrollHeight - lhnContent.offsetHeight, scrollTop - 1, scrollTop + 1);
+        const isScrollingPastLHNTop = event.deltaY < 0 && scrollTop === 0;
+        const isScrollingPastLHNBottom = event.deltaY > 0 && isInRange(lhnContent.scrollHeight - lhnContent.offsetHeight, scrollTop - 1, scrollTop + 1);
         if (isScrollingPastLHNTop || isScrollingPastLHNBottom) {
-            e.preventDefault();
+            event.preventDefault();
         }
     });
-    window.addEventListener('scroll', (e) => {
-        const scrollingElement = e.target.scrollingElement;
-        const scrollPercentageInArticleContent = clamp(scrollingElement.scrollTop - articleContent.offsetTop, 0, articleContent.scrollHeight) / articleContent.scrollHeight;
-        lhnContent.scrollTop = scrollPercentageInArticleContent * lhnContent.scrollHeight;
+    window.addEventListener('scroll', (event) => {
+        const scrollingElement = (event.target as Document)?.scrollingElement;
+        const articleContentTopOffset = articleContent?.offsetTop ?? 0;
+        const articleContentScrollHeight = articleContent?.scrollHeight ?? 0;
+        const scrollingElementScrollTop = scrollingElement?.scrollTop ?? 0;
+        const scrollPercentageInArticleContent = clamp(scrollingElementScrollTop - articleContentTopOffset, 0, articleContentScrollHeight) / articleContentScrollHeight;
+
+        if (lhnContent) {
+            lhnContent.scrollTop = scrollPercentageInArticleContent * lhnContent.scrollHeight;
+        }
 
         // Count property of y-axis to keep scroll position & reference it later for making the body fixed when sidebar opened
         document.documentElement.style.setProperty('y-axis', `${window.scrollY}px`);

@@ -1,11 +1,11 @@
-function syncSelectors(selectedIndex) {
+function syncSelectors(selectedIndex: number) {
     const allSelects = document.querySelectorAll('select');
     for (let i = 0; i < allSelects.length; i++) {
         allSelects[i].selectedIndex = selectedIndex;
     }
 }
 
-function selectOption(select) {
+function selectOption(select: HTMLSelectElement) {
     if (!select) {
         return;
     }
@@ -32,4 +32,4 @@ function selectOption(select) {
     });
 }
 
-window.onload = selectOption(document.getElementsByClassName('selector')[0]);
+window.onload = () => selectOption(document.getElementsByClassName('selector')[0] as HTMLSelectElement);

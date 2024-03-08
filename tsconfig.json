@@ -47,7 +47,7 @@
             "@userActions/*": ["./src/libs/actions/*"]
         }
     },
-    "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "**/docs/*"],
+    "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "docs/_site"],
     "include": ["src", "desktop", "web", "website", "docs", "assets", "config", "tests", "jest", "__mocks__", ".github/**/*", ".storybook/**/*"],
     "extends": "expo/tsconfig.base"
 }
