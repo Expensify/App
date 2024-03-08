@@ -133,7 +133,7 @@ type ConnectionConfig = {
         refresh_token: string;
         expires: number;
         companyID: string;
-        readlmId: string;
+        realmId: string;
         scope: string;
         companyName: string;
         token_type: string;
