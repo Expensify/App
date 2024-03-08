@@ -2252,7 +2252,7 @@ function openReportFromDeepLink(url: string, isAuthenticated: boolean) {
             Navigation.waitForProtectedRoutes().then(() => {
                 const route = ReportUtils.getRouteFromLink(url);
 
-                if (route && Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(route)) {
+                if (route && Session.isAnonymousUser() && !Session.canAnonymousUserAccessRoute(route)) {
                     Session.signOutAndRedirectToSignIn(true);
                     return;
                 }

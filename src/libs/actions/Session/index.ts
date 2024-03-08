@@ -935,7 +935,7 @@ function signInWithValidateCodeAndNavigate(accountID: number, validateCode: stri
  * @param {string} route
  */
 
-const canAccessRouteByAnonymousUser = (route: string) => {
+const canAnonymousUserAccessRoute = (route: string) => {
     const reportID = ReportUtils.getReportIDFromLink(route);
     if (reportID) {
         return true;
@@ -948,9 +948,9 @@ const canAccessRouteByAnonymousUser = (route: string) => {
     if (route.startsWith('/')) {
         routeRemovedReportId = routeRemovedReportId.slice(1);
     }
-    const routesCanAccessByAnonymousUser = [ROUTES.SIGN_IN_MODAL, ROUTES.REPORT_WITH_ID_DETAILS.route, ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.route, ROUTES.CONCIERGE];
+    const routesAccessibleByAnonymousUser = [ROUTES.SIGN_IN_MODAL, ROUTES.REPORT_WITH_ID_DETAILS.route, ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.route, ROUTES.CONCIERGE];
 
-    if ((routesCanAccessByAnonymousUser as string[]).includes(routeRemovedReportId)) {
+    if ((routesAccessibleByAnonymousUser as string[]).includes(routeRemovedReportId)) {
         return true;
     }
     return false;
@@ -986,7 +986,7 @@ export {
     toggleTwoFactorAuth,
     validateTwoFactorAuth,
     waitForUserSignIn,
-    canAccessRouteByAnonymousUser,
+    canAnonymousUserAccessRoute,
     signInWithSupportAuthToken,
     isSupportAuthToken,
     hasStashedSession,
