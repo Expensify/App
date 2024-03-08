@@ -223,11 +223,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         >
             <FullPageNotFoundView
                 shouldShow={
-                    isEmptyObject(report) ||
-                    !ReportUtils.isChatThread(report) && (
-                        (ReportUtils.isUserCreatedPolicyRoom(report) && !isPolicyMember) ||
-                        (ReportUtils.isDefaultRoom(report))
-                    )
+                    isEmptyObject(report) || (!ReportUtils.isChatThread(report) && ((ReportUtils.isUserCreatedPolicyRoom(report) && !isPolicyMember) || ReportUtils.isDefaultRoom(report)))
                 }
                 subtitleKey={isEmptyObject(report) ? undefined : 'roomMembersPage.notAuthorized'}
                 onBackButtonPress={() => {
