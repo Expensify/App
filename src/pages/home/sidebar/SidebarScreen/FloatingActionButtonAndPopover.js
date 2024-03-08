@@ -182,7 +182,7 @@ function FloatingActionButtonAndPopover(props) {
                                 Navigation.navigate(
                                     // When starting to create a send money request from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
                                     // for all of the routes in the creation flow.
-                                    ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.SEND, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID()),
+                                    IOU.startMoneyRequest(CONST.IOU.TYPE.SEND, ReportUtils.generateReportID()),
                                 ),
                             ),
                     },
