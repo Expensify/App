@@ -1778,6 +1778,7 @@ export default {
             workspaceType: 'Tipo de espacio de trabajo',
             workspaceAvatar: 'Espacio de trabajo avatar',
             mustBeOnlineToViewMembers: 'Debes estar en línea para poder ver los miembros de este espacio de trabajo.',
+            requested: 'Solicitado',
         },
         type: {
             free: 'Gratis',
@@ -2691,6 +2692,7 @@ export default {
         viewAttachment: 'Ver archivo adjunto',
     },
     parentReportAction: {
+        deletedReport: '[Informe eliminado]',
         deletedMessage: '[Mensaje eliminado]',
         deletedRequest: '[Solicitud eliminada]',
         reversedTransaction: '[Transacción anulada]',
@@ -2711,6 +2713,10 @@ export default {
     actionableMentionWhisperOptions: {
         invite: 'Invitar',
         nothing: 'No hacer nada',
+    },
+    actionableMentionJoinWorkspaceOptions: {
+        accept: 'Aceptar',
+        decline: 'Rechazar',
     },
     moderation: {
         flagDescription: 'Todos los mensajes marcados se enviarán a un moderador para su revisión.',

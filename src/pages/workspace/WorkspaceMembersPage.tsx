@@ -87,6 +87,10 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     const {isSmallScreenWidth} = useWindowDimensions();
     const dropdownButtonRef = useRef(null);
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
+    const isLoading = useMemo(
+        () => !isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) || isEmptyObject(policyMembers)),
+        [isOfflineAndNoMemberDataAvailable, personalDetails, policyMembers],
+    );
 
     /**
      * Get filtered personalDetails list with current policyMembers
@@ -257,12 +261,8 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     /** Opens the member details page */
     const openMemberDetails = useCallback(
         (item: MemberOption) => {
-            if (!isPolicyAdmin) {
+            if (!isPolicyAdmin || !PolicyUtils.isPaidGroupPolicy(policy)) {
                 Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
-                return;
-            }
-
-            if (!PolicyUtils.isPaidGroupPolicy(policy)) {
                 return;
             }
 
@@ -376,7 +376,8 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
         if (isOfflineAndNoMemberDataAvailable) {
             return translate('workspace.common.mustBeOnlineToViewMembers');
         }
-        return !data.length ? translate('workspace.common.memberNotFound') : '';
+
+        return !isLoading && isEmptyObject(policyMembers) ? translate('workspace.common.memberNotFound') : '';
     };
 
     const getHeaderContent = () => (
@@ -546,7 +547,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                         onCheckboxPress={(item) => toggleUser(item.accountID)}
                         onSelectAll={() => toggleAllUsers(data)}
                         onDismissError={dismissError}
-                        showLoadingPlaceholder={!isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) || isEmptyObject(policyMembers))}
+                        showLoadingPlaceholder={isLoading}
                         showScrollIndicator
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         ref={textInputRef}

@@ -52,6 +52,7 @@ import SelectionScraper from '@libs/SelectionScraper';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
+import * as Policy from '@userActions/Policy';
 import * as store from '@userActions/ReimbursementAccount/store';
 import * as Report from '@userActions/Report';
 import * as ReportActions from '@userActions/ReportActions';
@@ -61,6 +62,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {OriginalMessageActionableMentionWhisper, OriginalMessageJoinPolicyChangeLog} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
@@ -361,8 +363,27 @@ function ReportActionItem({
     );
 
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
-        if (!(ReportActionsUtils.isActionableMentionWhisper(action) && (!action.originalMessage?.resolution ?? null))) {
+        const isWhisperResolution = (action?.originalMessage as OriginalMessageActionableMentionWhisper['originalMessage'])?.resolution !== null;
+        const isJoinChoice = (action?.originalMessage as OriginalMessageJoinPolicyChangeLog['originalMessage'])?.choice === '';
+
+        if (!((ReportActionsUtils.isActionableMentionWhisper(action) && isWhisperResolution) || (ReportActionsUtils.isActionableJoinRequest(action) && isJoinChoice))) {
             return [];
+        }
+
+        if (ReportActionsUtils.isActionableJoinRequest(action)) {
+            return [
+                {
+                    text: 'actionableMentionJoinWorkspaceOptions.accept',
+                    key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT}`,
+                    onPress: () => Policy.acceptJoinRequest(report.reportID, action),
+                    isPrimary: true,
+                },
+                {
+                    text: 'actionableMentionJoinWorkspaceOptions.decline',
+                    key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.DECLINE}`,
+                    onPress: () => Policy.declineJoinRequest(report.reportID, action),
+                },
+            ];
         }
         return [
             {
@@ -414,7 +435,9 @@ function ReportActionItem({
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
-            children = (
+            children = ReportUtils.isClosedExpenseReportWithNoExpenses(iouReport) ? (
+                <RenderHTML html={`<comment>${translate('parentReportAction.deletedReport')}</comment>`} />
+            ) : (
                 <ReportPreview
                     iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(action)}
                     chatReportID={report.reportID}
@@ -857,16 +880,16 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
     iouReport: {
         key: ({action}) => {
             const iouReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(action);
-            return `${ONYXKEYS.COLLECTION.REPORT}${iouReportID ?? ''}`;
+            return `${ONYXKEYS.COLLECTION.REPORT}${iouReportID ?? 0}`;
         },
         initialValue: {} as OnyxTypes.Report,
     },
     policyReportFields: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS}${report.policyID ?? ''}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS}${report.policyID ?? 0}`,
         initialValue: {},
     },
     policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID ?? ''}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID ?? 0}`,
         initialValue: {} as OnyxTypes.Policy,
     },
     emojiReactions: {

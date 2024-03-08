@@ -91,7 +91,9 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, policyMemb
  */
 function shouldShowPolicy(policy: OnyxEntry<Policy>, isOffline: boolean): boolean {
     return (
-        !!policy && policy?.isPolicyExpenseChatEnabled && (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0)
+        !!policy &&
+        (policy?.isPolicyExpenseChatEnabled || Boolean(policy?.isJoinRequestPending)) &&
+        (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0)
     );
 }
 
@@ -234,7 +236,7 @@ function isInstantSubmitEnabled(policy: OnyxEntry<Policy> | EmptyObject): boolea
 /**
  * Checks if policy's approval mode is "optional", a.k.a. "Submit & Close"
  */
-function isSubmitAndClose(policy: OnyxEntry<Policy>): boolean {
+function isSubmitAndClose(policy: OnyxEntry<Policy> | EmptyObject): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 

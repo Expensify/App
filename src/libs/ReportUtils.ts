@@ -45,7 +45,7 @@ import type {
     ReimbursementDeQueuedMessage,
 } from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
-import type {NotificationPreference} from '@src/types/onyx/Report';
+import type {NotificationPreference, PendingChatMember} from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import type {Receipt, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -1077,10 +1077,34 @@ function findLastAccessedReport(
 }
 
 /**
+ * Whether the provided report has expenses
+ */
+function hasExpenses(reportID?: string): boolean {
+    return !!Object.values(allTransactions ?? {}).find((transaction) => `${transaction?.reportID}` === `${reportID}`);
+}
+
+/**
+ * Whether the provided report is a closed expense report with no expenses
+ */
+function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>): boolean {
+    return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && isExpenseReport(report) && !hasExpenses(report.reportID);
+}
+
+/**
  * Whether the provided report is an archived room
  */
 function isArchivedRoom(report: OnyxEntry<Report> | EmptyObject): boolean {
     return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED;
+}
+
+/**
+ * Whether the provided report is the admin's room
+ */
+function isJoinRequestInAdminRoom(report: OnyxEntry<Report>): boolean {
+    if (!report) {
+        return false;
+    }
+    return ReportActionsUtils.isActionableJoinRequestPending(report.reportID);
 }
 
 /**
@@ -1910,6 +1934,10 @@ function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | Op
         return false;
     }
 
+    if (isJoinRequestInAdminRoom(optionOrReport)) {
+        return true;
+    }
+
     if (isArchivedRoom(optionOrReport) || isArchivedRoom(getReport(optionOrReport.parentReportID))) {
         return false;
     }
@@ -2606,6 +2634,10 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         return parentReportActionMessage;
     }
 
+    if (isClosedExpenseReportWithNoExpenses(report)) {
+        return Localize.translateLocal('parentReportAction.deletedReport');
+    }
+
     if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
         return Localize.translateLocal('parentReportAction.deletedTask');
     }
@@ -2663,6 +2695,14 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
         return report?.oldPolicyName ?? '';
     }
     return getPolicyName(report);
+}
+
+/**
+ * Get pending members for reports
+ */
+function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers: PendingChatMember[], pendingAction: PendingAction): PendingChatMember[] {
+    const pendingChatMembers = accountIDs.map((accountID) => ({accountID: accountID.toString(), pendingAction}));
+    return [...previousPendingChatMembers, ...pendingChatMembers];
 }
 
 /**
@@ -3797,16 +3837,19 @@ function buildOptimisticWorkspaceChats(policyID: string, policyName: string): Op
     const announceReportActionData = {
         [announceCreatedAction.reportActionID]: announceCreatedAction,
     };
-
-    const adminsChatData = buildOptimisticChatReport(
-        [currentUserAccountID ?? -1],
-        CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
-        CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
-        policyID,
-        CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
-        false,
-        policyName,
-    );
+    const pendingChatMembers = getPendingChatMembers(currentUserAccountID ? [currentUserAccountID] : [], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    const adminsChatData = {
+        ...buildOptimisticChatReport(
+            [currentUserAccountID ?? -1],
+            CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
+            CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+            policyID,
+            CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
+            false,
+            policyName,
+        ),
+        pendingChatMembers,
+    };
     const adminsChatReportID = adminsChatData.reportID;
     const adminsCreatedAction = buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
     const adminsReportActionData = {
@@ -5128,8 +5171,8 @@ function getAllAncestorReportActionIDs(report: Report | null | undefined): Ances
     return allAncestorIDs;
 }
 
-function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = null): boolean {
-    if (!policy) {
+function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | EmptyObject): boolean {
+    if (isEmptyObject(policy)) {
         return false;
     }
     type CurrencyType = (typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES)[number];
@@ -5178,6 +5221,7 @@ export {
     getPolicyName,
     getPolicyType,
     isArchivedRoom,
+    isClosedExpenseReportWithNoExpenses,
     isExpensifyOnlyParticipantInReport,
     canCreateTaskInReport,
     isPolicyExpenseChatAdmin,
@@ -5355,9 +5399,11 @@ export {
     getAvailableReportFields,
     reportFieldsEnabled,
     getAllAncestorReportActionIDs,
+    getPendingChatMembers,
     canEditRoomVisibility,
     canEditPolicyDescription,
     getPolicyDescriptionText,
+    isJoinRequestInAdminRoom,
     canAddOrDeleteTransactions,
     shouldCreateNewMoneyRequestReport,
 };

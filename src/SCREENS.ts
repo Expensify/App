@@ -128,6 +128,7 @@ const SCREENS = {
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
     DESKTOP_SIGN_IN_REDIRECT: 'DesktopSignInRedirect',
     SAML_SIGN_IN: 'SAMLSignIn',
+    WORKSPACE_JOIN_USER: 'WorkspaceJoinUser',
 
     MONEY_REQUEST: {
         MANUAL_TAB: 'manual',
@@ -275,6 +276,7 @@ const SCREENS = {
     GET_ASSISTANCE: 'GetAssistance',
     REFERRAL_DETAILS: 'Referral_Details',
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
+    TRANSACTION_RECEIPT: 'TransactionReceipt',
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;

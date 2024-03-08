@@ -478,6 +478,10 @@ const ROUTES = {
         route: 'workspace/:policyID/avatar',
         getRoute: (policyID: string) => `workspace/${policyID}/avatar` as const,
     },
+    WORKSPACE_JOIN_USER: {
+        route: 'workspace/:policyID/join',
+        getRoute: (policyID: string, inviterEmail: string) => `workspace/${policyID}/join?email=${inviterEmail}` as const,
+    },
     WORKSPACE_SETTINGS_CURRENCY: {
         route: 'workspace/:policyID/settings/currency',
         getRoute: (policyID: string) => `workspace/${policyID}/settings/currency` as const,
@@ -569,6 +573,10 @@ const ROUTES = {
         getRoute: (contentType: string, backTo?: string) => getUrlWithBackToParam(`referral/${contentType}`, backTo),
     },
     PROCESS_MONEY_REQUEST_HOLD: 'hold-request-educational',
+    TRANSACTION_RECEIPT: {
+        route: 'r/:reportID/transaction/:transactionID/receipt',
+        getRoute: (reportID: string, transactionID: string) => `r/${reportID}/transaction/${transactionID}/receipt` as const,
+    },
 } as const;
 
 /**

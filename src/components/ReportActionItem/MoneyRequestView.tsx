@@ -262,7 +262,6 @@ function MoneyRequestView({
                                     filename={receiptURIs?.filename}
                                     transaction={transaction}
                                     enablePreviewModal
-                                    canEditReceipt={canEditReceipt}
                                 />
                             )}
                         </View>

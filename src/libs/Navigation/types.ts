@@ -580,6 +580,10 @@ type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.WORKSPACE_AVATAR]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE_JOIN_USER]: {
+        policyID: string;
+        email: string;
+    };
     [SCREENS.REPORT_AVATAR]: {
         reportID: string;
     };
@@ -588,6 +592,10 @@ type AuthScreensParamList = SharedScreensParamList & {
     [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
     [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: NavigatorScreenParams<FullScreenNavigatorParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
+    [SCREENS.TRANSACTION_RECEIPT]: {
+        reportID: string;
+        transactionID: string;
+    };
 };
 
 type RootStackParamList = PublicScreensParamList & AuthScreensParamList;
