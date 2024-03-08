@@ -39,7 +39,7 @@ const addSkewList: string[] = [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT, SIDE_EF
 /**
  * Regex to get API command from the command
  */
-const APICommandRegex = /[?&]command=([^&]+)/;
+const APICommandRegex = /\/api\/([^&?]+)\??.*/;
 
 /**
  * Send an HTTP request, and attempt to resolve the json response.
@@ -52,6 +52,8 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
         signal: canCancel ? cancellationController.signal : undefined,
         method,
         body,
+        // We want to include the cookie accountID that is returned form the API
+        credentials: 'include',
     })
         .then((response) => {
             // We are calculating the skew to minimize the delay when posting the messages
