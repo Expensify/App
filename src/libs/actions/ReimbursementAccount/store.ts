@@ -12,16 +12,16 @@ Onyx.connect({
     },
 });
 
-function getBankAccountList() {
+function getBankAccountList(): OnyxEntry<OnyxTypes.BankAccountList> {
     return bankAccountList;
 }
 
-function hasCreditBankAccount() {
+function hasCreditBankAccount(): boolean {
     if (!bankAccountList) {
         return false;
     }
 
-    Object.values(bankAccountList).some((bankAccountJSON) => {
+    return Object.values(bankAccountList).some((bankAccountJSON) => {
         const bankAccount = new BankAccount(bankAccountJSON);
         return bankAccount.isDefaultCredit();
     });
