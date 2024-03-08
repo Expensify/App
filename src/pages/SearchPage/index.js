@@ -63,12 +63,6 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}) {
     const {isOffline} = useNetwork();
     const themeStyles = useThemeStyles();
     const personalDetails = usePersonalDetails();
-    const [options, setOptions] = useState({
-        recentReports: [],
-        personalDetails: [],
-        betas: [],
-    });
-    const [filteredOptions, setFilteredOptions] = useState({});
 
     const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
@@ -83,69 +77,48 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}) {
         Report.searchInServer(debouncedSearchValue.trim());
     }, [debouncedSearchValue]);
 
-    useEffect(() => {
+    const searchOptions = useMemo(() => {
         if (!isScreenTransitionEnd) {
-            return;
+            return {
+                recentReports: [],
+                personalDetails: [],
+                userToInvite: null,
+                headerMessage: '',
+            };
         }
-
-        const searchOptions = OptionsListUtils.getSearchOptions(reports, personalDetails, '', betas);
-        setOptions(searchOptions);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        const options = OptionsListUtils.getSearchOptions(reports, personalDetails, '', betas);
+        const header = OptionsListUtils.getHeaderMessage(options.recentReports.length + options.personalDetails.length !== 0, Boolean(options.userToInvite), debouncedSearchValue);
+        return {...options, headerMessage: header};
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isScreenTransitionEnd]);
 
-    useEffect(() => {
-        if (debouncedSearchValue.trim() === '') {
-            if(!_.isEmpty(filteredOptions)) {
-                setFilteredOptions({});
+    const filteredOptions = useMemo(() => {
+        if(debouncedSearchValue.trim() === '') {
+            return {
+                recentReports: [],
+                personalDetails: [],
+                userToInvite: null,
+                headerMessage: ''
             }
-
-            return;
         }
-
-        const filteredResults = OptionsListUtils.filterOptions(options, debouncedSearchValue);
-        setFilteredOptions(filteredResults);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [debouncedSearchValue]);
+        
+        const options = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue);
+        const header = OptionsListUtils.getHeaderMessage(options.length, false, debouncedSearchValue);
+        return {
+            recentReports: options,
+            personalDetails: [],
+            userToInvite: null,
+            headerMessage: header
+        }
+    }, [searchOptions, debouncedSearchValue]);
 
     const {
         recentReports,
         personalDetails: localPersonalDetails,
         userToInvite,
         headerMessage,
-    } = useMemo(() => {
-        if (!isScreenTransitionEnd) {
-            return {
-                recentReports: [],
-                personalDetails: [],
-                userToInvite: {},
-                headerMessage: '',
-            };
-        }
-
-        let listOptions = options;
-
-        if (searchValue !== '' && filteredOptions.length > 0) {
-            listOptions = {
-                recentReports: filteredOptions,
-                personalDetails: [],
-                userToInvite: {},
-                headerMessage: '',
-            };
-        } else if (searchValue !== '' && filteredOptions.length === 0) {
-            listOptions = {
-                recentReports: [],
-                personalDetails: [],
-                userToInvite: null,
-            };
-        }
-        const header = OptionsListUtils.getHeaderMessage(
-            listOptions.recentReports.length + listOptions.personalDetails.length !== 0,
-            Boolean(listOptions.userToInvite),
-            debouncedSearchValue,
-        );
-        return {...listOptions, headerMessage: header};
-    }, [debouncedSearchValue, filteredOptions, isScreenTransitionEnd, options, searchValue]);
-
+    } = debouncedSearchValue.trim() !== '' ? filteredOptions : searchOptions;
+    
     const sections = useMemo(() => {
         const newSections = [];
         let indexOffset = 0;
@@ -167,6 +140,7 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}) {
             });
             indexOffset += recentReports.length;
         }
+
         if (!_.isEmpty(userToInvite)) {
             newSections.push({
                 data: [userToInvite],
@@ -196,7 +170,7 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}) {
     };
 
     const isOptionsDataReady = useMemo(() => ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails), [personalDetails]);
-
+    
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
