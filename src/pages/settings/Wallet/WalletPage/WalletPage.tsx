@@ -75,7 +75,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
     });
 
     const addPaymentMethodAnchorRef = useRef(null);
-    const paymentMethodButtonRef = useRef<HTMLElement | null>(null);
+    const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
     const [anchorPosition, setAnchorPosition] = useState({
         anchorPositionHorizontal: 0,
         anchorPositionVertical: 0,
@@ -164,7 +164,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
             setShouldShowDefaultDeleteMenu(false);
             return;
         }
-        paymentMethodButtonRef.current = nativeEvent?.currentTarget as HTMLElement;
+        paymentMethodButtonRef.current = nativeEvent?.currentTarget as HTMLDivElement;
 
         // The delete/default menu
         if (accountType) {
