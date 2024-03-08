@@ -55,21 +55,21 @@ const story: ComponentMeta<typeof FormProvider> = {
     },
 };
 
-function Template(args: FormProviderProps) {
+function Template(props: FormProviderProps) {
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
     NetworkConnection.setOfflineStatus(false);
-    FormActions.setIsLoading(args.formID, !!args.formState?.isLoading);
-    FormActions.setDraftValues(args.formID, args.draftValues);
+    FormActions.setIsLoading(props.formID, !!props.formState?.isLoading);
+    FormActions.setDraftValues(props.formID, props.draftValues);
 
-    if (args.formState?.error) {
-        FormActions.setErrors(args.formID, {error: args.formState.error as MaybePhraseKey});
+    if (props.formState?.error) {
+        FormActions.setErrors(props.formID, {error: props.formState.error as MaybePhraseKey});
     } else {
-        FormActions.clearErrors(args.formID);
+        FormActions.clearErrors(props.formID);
     }
 
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <FormProvider {...args}>
+        <FormProvider {...props}>
             <View>
                 <InputWrapper
                     InputComponent={TextInput}
@@ -167,23 +167,23 @@ function Template(args: FormProviderProps) {
 /**
  * Story to exhibit the native event handlers for TextInput in the Form Component
  */
-function WithNativeEventHandler(args: FormProviderProps) {
+function WithNativeEventHandler(props: FormProviderProps) {
     const [log, setLog] = useState('');
 
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
     NetworkConnection.setOfflineStatus(false);
-    FormActions.setIsLoading(args.formID, !!args.formState?.isLoading);
-    FormActions.setDraftValues(args.formID, args.draftValues);
+    FormActions.setIsLoading(props.formID, !!props.formState?.isLoading);
+    FormActions.setDraftValues(props.formID, props.draftValues);
 
-    if (args.formState?.error) {
-        FormActions.setErrors(args.formID, {error: args.formState.error as MaybePhraseKey});
+    if (props.formState?.error) {
+        FormActions.setErrors(props.formID, {error: props.formState.error as MaybePhraseKey});
     } else {
-        FormActions.clearErrors(args.formID);
+        FormActions.clearErrors(props.formID);
     }
 
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <FormProvider {...args}>
+        <FormProvider {...props}>
             <InputWrapper
                 InputComponent={TextInput}
                 role={CONST.ROLE.PRESENTATION}
