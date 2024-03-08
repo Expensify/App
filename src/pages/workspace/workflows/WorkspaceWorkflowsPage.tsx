@@ -60,7 +60,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
 
     const fetchData = () => {
         Policy.openPolicyWorkflowsPage(policy?.id ?? route.params.policyID);
-    }
+    };
 
     useNetwork({onReconnect: fetchData});
 
@@ -69,8 +69,6 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    console.log('policy', policy);
-
     const items: ToggleSettingOptionRowProps[] = useMemo(() => {
         const {accountNumber, state, bankName} = reimbursementAccount?.achData ?? {};
         const hasVBA = state === BankAccount.STATE.OPEN;
@@ -78,7 +76,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
         const hasReimburserEmailError = !!policy?.errorFields?.reimburserEmail;
 
         return [
-            ...(!canUseDelayedSubmission
+            ...(canUseDelayedSubmission
                 ? [
                       {
                           icon: Illustrations.ReceiptEnvelope,
@@ -145,7 +143,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
                             titleStyle={styles.textLabelSupportingNormal}
                             descriptionTextStyle={styles.textNormalThemeText}
                             title={hasVBA ? translate('common.bankAccount') : translate('workflowsPage.connectBankAccount')}
-                            description={state === BankAccount.STATE.OPEN ?  bankDisplayName : undefined}
+                            description={state === BankAccount.STATE.OPEN ? bankDisplayName : undefined}
                             onPress={() => navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID))}
                             shouldShowRightIcon
                             wrapperStyle={containerStyle}
@@ -243,7 +241,7 @@ export default withPolicy(
             key: ONYXKEYS.BETAS,
         },
         reimbursementAccount: {
-            key: ({route}) => `${ONYXKEYS.REIMBURSEMENT_ACCOUNT}${route.params.policyID}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${route.params.policyID}`,
         },
     })(WorkspaceWorkflowsPage),
 );
