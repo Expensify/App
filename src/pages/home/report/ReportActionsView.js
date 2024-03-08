@@ -34,6 +34,9 @@ const propTypes = {
     /** Array of report actions for this report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
+    /** The report's parentReportAction */
+    parentReportAction: PropTypes.shape(reportActionPropTypes),
+
     /** The report metadata loading states */
     isLoadingInitialReportActions: PropTypes.bool,
 
@@ -78,6 +81,7 @@ const defaultProps = {
     session: {
         authTokenType: '',
     },
+    parentReportAction: {},
 };
 
 function ReportActionsView(props) {
@@ -136,7 +140,7 @@ function ReportActionsView(props) {
     }, [props.network, isReportFullyVisible]);
 
     useEffect(() => {
-        const wasLoginChangedDetected = prevAuthTokenType === 'anonymousAccount' && !props.session.authTokenType;
+        const wasLoginChangedDetected = prevAuthTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS && !props.session.authTokenType;
         if (wasLoginChangedDetected && didUserLogInDuringSession() && isUserCreatedPolicyRoom(props.report)) {
             if (isReportFullyVisible) {
                 openReportIfNecessary();
@@ -190,7 +194,7 @@ function ReportActionsView(props) {
             return;
         }
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
-        Report.getOlderActions(reportID, oldestReportAction.reportActionID);
+        Report.getOlderActions(reportID);
     }, [props.isLoadingOlderReportActions, props.network.isOffline, oldestReportAction, reportID]);
 
     /**
@@ -219,10 +223,9 @@ function ReportActionsView(props) {
                     return;
                 }
 
-                const newestReportAction = _.first(props.reportActions);
-                Report.getNewerActions(reportID, newestReportAction.reportActionID);
+                Report.getNewerActions(reportID);
             }, 500),
-        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, props.reportActions, reportID, hasNewestReportAction],
+        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, reportID, hasNewestReportAction],
     );
 
     /**
@@ -254,6 +257,7 @@ function ReportActionsView(props) {
         <>
             <ReportActionsList
                 report={props.report}
+                parentReportAction={props.parentReportAction}
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={props.reportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
@@ -275,6 +279,10 @@ ReportActionsView.displayName = 'ReportActionsView';
 
 function arePropsEqual(oldProps, newProps) {
     if (!_.isEqual(oldProps.reportActions, newProps.reportActions)) {
+        return false;
+    }
+
+    if (!_.isEqual(oldProps.parentReportAction, newProps.parentReportAction)) {
         return false;
     }
 

@@ -14,6 +14,7 @@ function RadioListItem({
     isDisabled,
     canSelectMultiple,
     onSelectRow,
+    onCheckboxPress,
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
@@ -35,6 +36,7 @@ function RadioListItem({
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
+            onCheckboxPress={onCheckboxPress}
             onDismissError={onDismissError}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             rightHandSideComponent={rightHandSideComponent}
@@ -45,7 +47,7 @@ function RadioListItem({
                     <TextWithTooltip
                         shouldShowTooltip={showTooltip}
                         text={fullTitle}
-                        textStyles={[
+                        style={[
                             styles.optionDisplayName,
                             isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
                             styles.sidebarLinkTextBold,
@@ -60,7 +62,7 @@ function RadioListItem({
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
                             text={item.alternateText}
-                            textStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                            style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                         />
                     )}
                 </View>

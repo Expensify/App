@@ -8,7 +8,6 @@ import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
 import FixedFooter from '@components/FixedFooter';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import SectionList from '@components/SectionList';
 import Text from '@components/Text';
@@ -30,6 +29,7 @@ function BaseSelectionList<TItem extends ListItem>(
         ListItem,
         canSelectMultiple = false,
         onSelectRow,
+        onCheckboxPress,
         onSelectAll,
         onDismissError,
         textInputLabel = '',
@@ -290,6 +290,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 showTooltip={showTooltip}
                 canSelectMultiple={canSelectMultiple}
                 onSelectRow={() => selectRow(item)}
+                onCheckboxPress={onCheckboxPress ? () => onCheckboxPress?.(item) : undefined}
                 onDismissError={() => onDismissError?.(item)}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
@@ -417,6 +418,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                     onSubmitEditing={selectFocusedOption}
                                     blurOnSubmit={!!flattenedSections.allOptions.length}
                                     isLoading={isLoadingNewOptions}
+                                    testID="selection-list-text-input"
                                 />
                             </View>
                         )}
@@ -431,28 +433,19 @@ function BaseSelectionList<TItem extends ListItem>(
                         ) : (
                             <>
                                 {!headerMessage && canSelectMultiple && shouldShowSelectAll && (
-                                    <PressableWithFeedback
-                                        style={[styles.peopleRow, styles.userSelectNone, styles.ph4, styles.pb3, listHeaderWrapperStyle]}
-                                        onPress={selectAllRow}
-                                        accessibilityLabel={translate('workspace.people.selectAll')}
-                                        role="button"
-                                        accessibilityState={{checked: flattenedSections.allSelected}}
-                                        disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
-                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                                        onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
-                                    >
+                                    <View style={[styles.peopleRow, styles.userSelectNone, styles.ph4, styles.pb3, listHeaderWrapperStyle]}>
                                         <Checkbox
-                                            accessibilityLabel={translate('workspace.people.selectAll')}
                                             isChecked={flattenedSections.allSelected}
                                             onPress={selectAllRow}
                                             disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
+                                            accessibilityLabel={translate('workspace.people.selectAll')}
                                         />
                                         {customListHeader ?? (
                                             <View style={[styles.flex1]}>
                                                 <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
                                             </View>
                                         )}
-                                    </PressableWithFeedback>
+                                    </View>
                                 )}
                                 {!headerMessage && !canSelectMultiple && customListHeader}
                                 <SectionList
