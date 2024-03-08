@@ -159,3 +159,6 @@ export type {default as SetWorkspaceApprovalModeParams} from './SetWorkspaceAppr
 export type {default as SetPolicyRequiresTag} from './SetPolicyRequiresTag';
 export type {default as RenamePolicyTaglist} from './RenamePolicyTaglist';
 export type {default as SwitchToOldDotParams} from './SwitchToOldDotParams';
+export type {default as AcceptJoinRequestParams} from './AcceptJoinRequest';
+export type {default as DeclineJoinRequestParams} from './DeclineJoinRequest';
+export type {default as JoinPolicyInviteLinkParams} from './JoinPolicyInviteLink';
