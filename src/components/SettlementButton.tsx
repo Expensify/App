@@ -142,7 +142,6 @@ function SettlementButton({
     const shouldShowPaywithExpensifyOption =
         !isPaidGroupPolicy ||
         (!shouldHidePaymentOptions && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && policy?.reimburserEmail === session?.email);
-
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
         const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
@@ -215,7 +214,6 @@ function SettlementButton({
         // We don't want to reorder the options when the preferred payment method changes while the button is still visible
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currency, formattedAmount, iouReport, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton]);
-
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA 
             || iouPaymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT 
@@ -253,7 +251,7 @@ function SettlementButton({
             shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
         >
             {(triggerKYCFlow, buttonRef) => (
-                <ButtonWithDropdownMenu
+                <ButtonWithDropdownMenu<PaymentType>
                     success
                     buttonRef={buttonRef}
                     isDisabled={isDisabled}
