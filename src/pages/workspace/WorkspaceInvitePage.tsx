@@ -283,11 +283,28 @@ function WorkspaceInvitePage({
         return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue);
     }, [excludedUsers, translate, searchTerm, policyName, usersToInvite, personalDetails.length]);
 
+    const footerContent = useMemo(
+        () => (
+            <FormAlertWithSubmitButton
+                isDisabled={!selectedOptions.length}
+                isAlertVisible={shouldShowAlertPrompt}
+                buttonText={translate('common.next')}
+                onSubmit={inviteUser}
+                message={[policy?.alertMessage ?? '', {isTranslated: true}]}
+                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+                enabledWhenOffline
+                disablePressOnEnter
+            />
+        ),
+        [inviteUser, policy?.alertMessage, selectedOptions.length, shouldShowAlertPrompt, styles, translate],
+    );
+
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
             shouldUseCachedViewportHeight
             testID={WorkspaceInvitePage.displayName}
+            includeSafeAreaPaddingBottom={false}
         >
             <FullPageNotFoundView
                 shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
@@ -321,19 +338,8 @@ function WorkspaceInvitePage({
                     showScrollIndicator
                     showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetailsProp)}
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                    footerContent={footerContent}
                 />
-                <View style={[styles.flexShrink0]}>
-                    <FormAlertWithSubmitButton
-                        isDisabled={!selectedOptions.length}
-                        isAlertVisible={shouldShowAlertPrompt}
-                        buttonText={translate('common.next')}
-                        onSubmit={inviteUser}
-                        message={[policy?.alertMessage ?? '', {isTranslated: true}]}
-                        containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
-                        enabledWhenOffline
-                        disablePressOnEnter
-                    />
-                </View>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
