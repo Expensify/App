@@ -160,6 +160,7 @@ const WRITE_COMMANDS = {
     JOIN_POLICY_VIA_INVITE_LINK: 'JoinWorkspaceViaInviteLink',
     ACCEPT_JOIN_REQUEST: 'AcceptJoinRequest',
     DECLINE_JOIN_REQUEST: 'DeclineJoinRequest',
+    UPDATE_CONNECTION_CONFIG: 'UpdateConnectionConfig',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
