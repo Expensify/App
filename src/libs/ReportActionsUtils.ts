@@ -6,7 +6,15 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ActionName, ChangeLog, IOUMessage, OriginalMessageActionableMentionWhisper, OriginalMessageIOU, OriginalMessageReimbursementDequeued} from '@src/types/onyx/OriginalMessage';
+import type {
+    ActionName,
+    ChangeLog,
+    IOUMessage,
+    OriginalMessageActionableMentionWhisper,
+    OriginalMessageIOU,
+    OriginalMessageJoinPolicyChangeLog,
+    OriginalMessageReimbursementDequeued,
+} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -382,10 +390,6 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
-    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.TASKEDITED) {
-        return false;
-    }
-
     // Filter out any unsupported reportAction types
     if (!supportedActionTypes.includes(reportAction.actionName)) {
         return false;
@@ -675,7 +679,8 @@ function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return (
         reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
         reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED ||
-        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED
+        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED ||
+        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKEDITED
     );
 }
 
@@ -832,7 +837,7 @@ function hasRequestFromCurrentAccount(reportID: string, currentAccountID: number
  * Checks if a given report action corresponds to an actionable mention whisper.
  * @param reportAction
  */
-function isActionableMentionWhisper(reportAction: OnyxEntry<ReportAction>): boolean {
+function isActionableMentionWhisper(reportAction: OnyxEntry<ReportAction>): reportAction is ReportActionBase & OriginalMessageActionableMentionWhisper {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLEMENTIONWHISPER;
 }
 
@@ -882,6 +887,26 @@ function isCurrentActionUnread(report: Report | EmptyObject, reportAction: Repor
     }
     const prevReportAction = sortedReportActions[currentActionIndex - 1];
     return isReportActionUnread(reportAction, lastReadTime) && (!prevReportAction || !isReportActionUnread(prevReportAction, lastReadTime));
+}
+
+/**
+ * Checks if a given report action corresponds to a join request action.
+ * @param reportAction
+ */
+function isActionableJoinRequest(reportAction: OnyxEntry<ReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLEJOINREQUEST;
+}
+
+/**
+ * Checks if any report actions correspond to a join request action that is still pending.
+ * @param reportID
+ */
+function isActionableJoinRequestPending(reportID: string): boolean {
+    const sortedReportActions = getSortedReportActions(Object.values(getAllReportActions(reportID)));
+    const findPendingRequest = sortedReportActions.find(
+        (reportActionItem) => isActionableJoinRequest(reportActionItem) && (reportActionItem as OriginalMessageJoinPolicyChangeLog)?.originalMessage?.choice === '',
+    );
+    return !!findPendingRequest;
 }
 
 function isApprovedOrSubmittedReportAction(action: OnyxEntry<ReportAction> | EmptyObject) {
@@ -949,6 +974,8 @@ export {
     isActionableMentionWhisper,
     getActionableMentionWhisperMessage,
     isCurrentActionUnread,
+    isActionableJoinRequest,
+    isActionableJoinRequestPending,
 };
 
 export type {LastVisibleMessage};
