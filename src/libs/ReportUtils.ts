@@ -5176,23 +5176,18 @@ function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
     return isAutoReimbursable;
 }
 
-function isAllowedToSubmitDraftExpenseReport(report: OnyxEntry<Report>): boolean {
+function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>): boolean {
     const policy = getPolicy(report?.policyID);
     const {submitsTo, isPreventSelfApprovalEnabled, preventSelfApprovalEnabled} = policy;
 
-    const isSelfApproval = currentUserAccountID === submitsTo;
-
-    return !((isPreventSelfApprovalEnabled ?? preventSelfApprovalEnabled) && isSelfApproval);
-}
-
-function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>): boolean {
-    const policy = getPolicy(report?.policyID);
-    const {ownerAccountID, submitsTo, isPreventSelfApprovalEnabled, preventSelfApprovalEnabled} = policy;
-
-    const isOwner = currentUserAccountID === ownerAccountID;
-    const isSelfApproval = currentUserAccountID === submitsTo;
+    const isOwner = currentUserAccountID === report?.ownerAccountID;
+    const isSelfApproval = isOwner && currentUserAccountID === submitsTo;
 
     return !((isPreventSelfApprovalEnabled ?? preventSelfApprovalEnabled) && isOwner && isSelfApproval);
+}
+
+function isAllowedToSubmitDraftExpenseReport(report: OnyxEntry<Report>): boolean {
+    return isAllowedToApproveExpenseReport(report);
 }
 
 /**
