@@ -61,7 +61,7 @@ describe('Post test build comments action tests', () => {
     });
 
     test('Test GH action', async () => {
-        when(core.getInput).calledWith('PR_NUMBER', {required: true}).mockReturnValue(12);
+        when(core.getInput).calledWith('PR_NUMBER', {required: true}).mockReturnValue('12');
         when(core.getInput).calledWith('ANDROID', {required: true}).mockReturnValue('success');
         when(core.getInput).calledWith('IOS', {required: true}).mockReturnValue('success');
         when(core.getInput).calledWith('WEB', {required: true}).mockReturnValue('success');
