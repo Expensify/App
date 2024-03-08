@@ -45,8 +45,8 @@ function hasSameExpensifyOrigin(url1: string, url2: string): boolean {
  * Appends or updates a query parameter in a given URL.
  */
 function appendParam(url: string, paramName: string, paramValue: string) {
+    // If parameter exists, replace it
     if (url.includes(`${paramName}=`)) {
-        // If parameter exists, replace it
         const regex = new RegExp(`${paramName}=([^&]*)`);
         return url.replace(regex, `${paramName}=${paramValue}`);
     }
