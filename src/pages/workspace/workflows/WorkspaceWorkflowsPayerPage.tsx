@@ -204,7 +204,6 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
                         />
                         <OfflineWithFeedback
                             pendingAction={policy?.pendingFields?.reimburserEmail}
-                            shouldShowErrorOnTop
                         >
                             <SelectionList
                                 sections={sections}
