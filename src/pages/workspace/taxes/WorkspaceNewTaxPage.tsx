@@ -90,6 +90,7 @@ function WorkspaceNewTaxPage({
                             multiline={false}
                             role={CONST.ROLE.PRESENTATION}
                             autoFocus
+                            shouldSaveDraft
                         />
                         <InputWrapper
                             InputComponent={AmountPicker}
@@ -98,6 +99,7 @@ function WorkspaceNewTaxPage({
                             rightLabel={translate('common.required')}
                             hideCurrencySymbol
                             extraSymbol={<Text style={styles.iouAmountText}>%</Text>}
+                            shouldSaveDraft
                         />
                     </View>
                 </FormProvider>

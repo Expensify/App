@@ -406,6 +406,7 @@ const ONYXKEYS = {
         EXIT_SURVEY_RESPONSE_FORM: 'exitSurveyResponseForm',
         EXIT_SURVEY_RESPONSE_FORM_DRAFT: 'exitSurveyResponseFormDraft',
         WORKSPACE_NEW_TAX_FORM: 'workspaceNewTaxForm',
+        WORKSPACE_NEW_TAX_FORM_DRAFT: 'workspaceNewTaxFormDraft',
     },
 } as const;
 
