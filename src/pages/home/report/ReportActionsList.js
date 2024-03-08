@@ -176,6 +176,7 @@ function ReportActionsList({
     const hasFooterRendered = useRef(false);
     const lastVisibleActionCreatedRef = useRef(report.lastVisibleActionCreated);
     const lastReadTimeRef = useRef(report.lastReadTime);
+    const isUnreadMessageFocused = useRef(false);
 
     const sortedVisibleReportActions = useMemo(
         () => _.filter(sortedReportActions, (s) => isOffline || s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || s.errors),
@@ -325,30 +326,54 @@ function ReportActionsList({
     }, [report.reportID]);
 
     /**
+     * Check if the new floating message counter needs to be shown/hidden.
+     * @returns {boolean}
+     */
+    const showFloatingMessageCounter = () => {
+        const hasUnreadMessageAndFloatingMessageIsHidden = !isFloatingMessageCounterVisible && !!currentUnreadMarker;
+        const isFocusOutsideUnreadMessage = isFloatingMessageCounterVisible && !isUnreadMessageFocused.current;
+
+        if (isFloatingMessageCounterVisible && isUnreadMessageFocused.current) {
+            isUnreadMessageFocused.current = false;
+        }
+
+        return hasUnreadMessageAndFloatingMessageIsHidden || isFocusOutsideUnreadMessage;
+    };
+
+    /**
      * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
      */
     const handleUnreadFloatingButton = () => {
-        if (scrollingVerticalOffset.current > VERTICAL_OFFSET_THRESHOLD && !isFloatingMessageCounterVisible && !!currentUnreadMarker) {
-            setIsFloatingMessageCounterVisible(true);
-        }
+        const showMessageCounter = showFloatingMessageCounter();
+
+        setIsFloatingMessageCounterVisible(showMessageCounter);
 
         if (scrollingVerticalOffset.current < VERTICAL_OFFSET_THRESHOLD && isFloatingMessageCounterVisible) {
             if (readActionSkipped.current) {
                 readActionSkipped.current = false;
                 Report.readNewestAction(report.reportID);
             }
-            setIsFloatingMessageCounterVisible(false);
         }
     };
 
     const trackVerticalScrolling = (event) => {
         scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
-        handleUnreadFloatingButton();
         onScroll(event);
     };
 
-    const scrollToBottomAndMarkReportAsRead = () => {
-        reportScrollManager.scrollToBottom();
+    const getScrollIndex = () => {
+        const bottomIndex = 0;
+        const firstUnreadMessageIndex = _.findIndex(sortedReportActions, (reportAction) => reportAction.reportActionID === currentUnreadMarker);
+
+        return firstUnreadMessageIndex > -1 ? firstUnreadMessageIndex : bottomIndex;
+    };
+
+    const scrollToUnreadMessageAndMarkReportAsRead = () => {
+        const scrollIndex = getScrollIndex();
+
+        isUnreadMessageFocused.current = true;
+
+        reportScrollManager.scrollToIndex(scrollIndex, false);
         readActionSkipped.current = false;
         Report.readNewestAction(report.reportID);
     };
@@ -548,7 +573,7 @@ function ReportActionsList({
         <>
             <FloatingMessageCounter
                 isActive={isFloatingMessageCounterVisible && !!currentUnreadMarker}
-                onClick={scrollToBottomAndMarkReportAsRead}
+                onClick={scrollToUnreadMessageAndMarkReportAsRead}
             />
             <Animated.View style={[animatedStyles, styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}>
                 <InvertedFlatList
@@ -570,6 +595,7 @@ function ReportActionsList({
                     keyboardShouldPersistTaps="handled"
                     onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}
+                    onScrollEnd={handleUnreadFloatingButton}
                     onScrollToIndexFailed={() => {}}
                     extraData={extraData}
                 />
