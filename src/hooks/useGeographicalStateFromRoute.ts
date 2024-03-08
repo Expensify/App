@@ -12,7 +12,10 @@ const removeHash = (arg: string): string => arg.replace(/-hash-.*$/, '');
 
 /**
  * Extracts the 'state' (default) query parameter from the route/ url and validates it against COMMON_CONST.STATES, returning its ISO code or `undefined`.
- * Example: const stateISO = useGeographicalStateFromRoute(); // Assuming 'state' param is 'CA' or another valid state, returns the corresponding ISO code or `undefined` if invalid.
+ * Example 1: Url: https://dev.new.expensify.com:8082/settings/profile/address?state=MO Returns: MO
+ * Example 2: Url: https://dev.new.expensify.com:8082/settings/profile/address?state=ASDF Returns: undefined
+ * Example 3: Url: https://dev.new.expensify.com:8082/settings/profile/address Returns: undefined
+ * Example 4: Url: https://dev.new.expensify.com:8082/settings/profile/address?state=MO-hash-a12341 Returns: MO
  */
 export default function useGeographicalStateFromRoute(stateParamName = 'state'): State | undefined {
     const route = useRoute<RouteProp<CustomParamList, string>>();
