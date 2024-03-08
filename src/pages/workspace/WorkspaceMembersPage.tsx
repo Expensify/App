@@ -337,7 +337,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 keyForList: accountIDKey,
                 accountID,
                 isSelected,
-                isSelectable: isPolicyAdmin && accountID !== session?.accountID && accountID !== policy?.ownerAccountID,
+                isSelectable: isPolicyAdmin && accountID !== policy?.ownerAccountID,
                 isDisabled:
                     isPolicyAdmin &&
                     (policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
