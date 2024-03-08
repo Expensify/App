@@ -1,20 +1,21 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import type {DropdownOption, WorkspaceDistanceRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
-import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import TableListItem from '@components/SelectionList/TableListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -22,12 +23,12 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
-import {openPolicyDistanceRatesPage} from '@userActions/Policy';
+import * as Policy from '@userActions/Policy';
 import ButtonWithDropdownMenu from '@src/components/ButtonWithDropdownMenu';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type Policy from '@src/types/onyx/Policy';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 
 type RateForList = {
@@ -40,7 +41,7 @@ type RateForList = {
 
 type PolicyDistanceRatesPageOnyxProps = {
     /** Policy details */
-    policy: OnyxEntry<Policy>;
+    policy: OnyxEntry<OnyxTypes.Policy>;
 };
 
 type PolicyDistanceRatesPageProps = PolicyDistanceRatesPageOnyxProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES>;
@@ -60,9 +61,16 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     );
     const customUnitRates: Record<string, Rate> = useMemo(() => customUnit?.rates ?? {}, [customUnit]);
 
+    function fetchDistanceRates() {
+        Policy.openPolicyDistanceRatesPage(route.params.policyID);
+    }
+
+    const {isOffline} = useNetwork({onReconnect: fetchDistanceRates});
+
     useEffect(() => {
-        openPolicyDistanceRatesPage(route.params.policyID);
-    }, [route.params.policyID]);
+        fetchDistanceRates();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const distanceRatesList = useMemo<RateForList[]>(
         () =>
@@ -103,7 +111,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     };
 
     const disableRates = () => {
-        if (selectedDistanceRates.length !== customUnitRates.length) {
+        if (selectedDistanceRates.length !== Object.values(customUnitRates).length) {
             // run enableWorkspaceDistanceRates for all selected rows
         }
 
@@ -111,15 +119,11 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     };
 
     const enableRates = () => {
-        if (selectedDistanceRates.length !== customUnitRates.length) {
-            // run enableWorkspaceDistanceRates for all selected rows
-        }
-
-        setIsWarningModalVisible(true);
+        // run enableWorkspaceDistanceRates for all selected rows
     };
 
     const deleteRates = () => {
-        if (selectedDistanceRates.length !== customUnitRates.length) {
+        if (selectedDistanceRates.length !== Object.values(customUnitRates).length) {
             // run deleteWorkspaceDistanceRates for all selected rows
         }
 
@@ -182,6 +186,8 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
         return options;
     };
 
+    const isLoading = !isOffline && customUnit === undefined;
+
     const headerButtons = (
         <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
             {selectedDistanceRates.length === 0 ? (
@@ -241,32 +247,34 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                     <View style={[styles.ph5, styles.pb5, styles.pt3]}>
                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
                     </View>
-                    <SelectionList
-                        canSelectMultiple
-                        ListItem={TableListItem}
-                        onSelectAll={toggleAllRates}
-                        onCheckboxPress={toggleRate}
-                        sections={[{data: distanceRatesList, indexOffset: 0, isDisabled: false}]}
-                        onSelectRow={editRate}
-                        showScrollIndicator
-                        customListHeader={getCustomListHeader()}
-                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                    />
-                    <Modal
-                        type={CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
+                    {isLoading && (
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            style={[styles.flex1]}
+                            color={theme.spinner}
+                        />
+                    )}
+                    {Object.values(customUnitRates).length > 0 && (
+                        <SelectionList
+                            canSelectMultiple
+                            ListItem={TableListItem}
+                            onSelectAll={toggleAllRates}
+                            onCheckboxPress={toggleRate}
+                            sections={[{data: distanceRatesList, indexOffset: 0, isDisabled: false}]}
+                            onSelectRow={editRate}
+                            showScrollIndicator
+                            customListHeader={getCustomListHeader()}
+                            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        />
+                    )}
+                    <ConfirmModal
+                        onConfirm={() => setIsWarningModalVisible(false)}
                         isVisible={isWarningModalVisible}
-                        onClose={() => setIsWarningModalVisible(false)}
-                    >
-                        <View style={[styles.notSoFastPopoverWrapper]}>
-                            <Text style={[styles.notSoFastPopoverTitle]}>{translate('workspace.distanceRates.oopsNotSoFast')}</Text>
-                            <Text style={[styles.mt3]}>{translate('workspace.distanceRates.workspaceNeeds')}</Text>
-                            <Button
-                                text={translate('common.buttonConfirm')}
-                                onPress={() => setIsWarningModalVisible(false)}
-                                style={[styles.mt5]}
-                            />
-                        </View>
-                    </Modal>
+                        title={translate('workspace.distanceRates.oopsNotSoFast')}
+                        prompt={translate('workspace.distanceRates.workspaceNeeds')}
+                        confirmText={translate('common.buttonConfirm')}
+                        shouldShowCancelButton={false}
+                    />
                 </ScreenWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>
