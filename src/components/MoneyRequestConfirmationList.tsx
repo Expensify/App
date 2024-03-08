@@ -358,8 +358,7 @@ function MoneyRequestConfirmationList({
     }, [isSplitBill, isTypeRequest, iouType, iouAmount, receiptPath, formattedAmount, isDistanceRequestWithPendingRoute, translate]);
 
     const selectedParticipants: Participant[] = useMemo(() => selectedParticipantsProp.filter((participant) => participant.selected), [selectedParticipantsProp]);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const payeePersonalDetails = useMemo(() => payeePersonalDetailsProp || currentUserPersonalDetails, [payeePersonalDetailsProp, currentUserPersonalDetails]);
+    const payeePersonalDetails = useMemo(() => payeePersonalDetailsProp ?? currentUserPersonalDetails, [payeePersonalDetailsProp, currentUserPersonalDetails]);
     const canModifyParticipants = !isReadOnly && canModifyParticipantsProp && hasMultipleParticipants;
     const shouldDisablePaidBySection = canModifyParticipants;
 
@@ -443,7 +442,7 @@ function MoneyRequestConfirmationList({
         */
         IOU.setMoneyRequestPendingFields(transactionID, {waypoints: isDistanceRequestWithPendingRoute ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null});
 
-        const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate ?? 0, currency ?? 'USD', translate, toLocaleDigit);
+        const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate ?? 0, currency ?? CONST.CURRENCY.USD, translate, toLocaleDigit);
         IOU.setMoneyRequestMerchant(transactionID, distanceMerchant, false);
     }, [isDistanceRequestWithPendingRoute, hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transactionID]);
 
@@ -476,7 +475,7 @@ function MoneyRequestConfirmationList({
             if (!selectedParticipants.length) {
                 return;
             }
-            if (iouCategory && iouCategory.length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
+            if (iouCategory.length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
                 setFormError('iou.error.invalidCategoryLength');
                 return;
             }
@@ -609,7 +608,7 @@ function MoneyRequestConfirmationList({
             shouldShowTextInput={false}
             shouldUseStyleForChildren={false}
             optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
-            footerContent={(!isEmpty(iou?.id) || isEditingSplitBill) && footerContent}
+            footerContent={(!!iou?.id || isEditingSplitBill) && footerContent}
             listStyles={listStyles}
             shouldAllowScrollingChildren
         >
@@ -619,6 +618,8 @@ function MoneyRequestConfirmationList({
                 </View>
             )}
 
+            {console.log('receiptImage', receiptImage)}
+            {console.log('receiptThumbnail', receiptThumbnail)}
             {receiptImage || receiptThumbnail ? (
                 <Image
                     style={styles.moneyRequestImage}
