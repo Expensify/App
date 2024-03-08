@@ -26,7 +26,4 @@ function promiseDoWhile(condition: () => boolean, action: () => Promise<void>) {
     });
 }
 
-export default {
-    promiseWhile,
-    promiseDoWhile,
-};
+export {promiseWhile, promiseDoWhile};

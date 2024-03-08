@@ -1,45 +1,31 @@
-const _ = require('underscore');
-
 const SEMANTIC_VERSION_LEVELS = {
     MAJOR: 'MAJOR',
     MINOR: 'MINOR',
     PATCH: 'PATCH',
     BUILD: 'BUILD',
-};
-const MAX_INCREMENTS = 99;
+} as const;
+
+const MAX_INCREMENTS = 99 as const;
 
 /**
  * Transforms a versions string into a number
- *
- * @param {String} versionString
- * @returns {Array}
  */
-const getVersionNumberFromString = (versionString) => {
+const getVersionNumberFromString = (versionString: string) => {
     const [version, build] = versionString.split('-');
-    const [major, minor, patch] = _.map(version.split('.'), (n) => Number(n));
+    const [major, minor, patch] = version.split('.').map((n) => Number(n));
 
     return [major, minor, patch, Number.isInteger(Number(build)) ? Number(build) : 0];
 };
 
 /**
  * Transforms version numbers components into a version string
- *
- * @param {Number} major
- * @param {Number} minor
- * @param {Number} patch
- * @param {Number} [build]
- * @returns {String}
  */
-const getVersionStringFromNumber = (major, minor, patch, build = 0) => `${major}.${minor}.${patch}-${build}`;
+const getVersionStringFromNumber = (major: number, minor: number, patch: number, build = 0): string => `${major}.${minor}.${patch}-${build}`;
 
 /**
  * Increments a minor version
- *
- * @param {Number} major
- * @param {Number} minor
- * @returns {String}
  */
-const incrementMinor = (major, minor) => {
+const incrementMinor = (major: number, minor: number): string => {
     if (minor < MAX_INCREMENTS) {
         return getVersionStringFromNumber(major, minor + 1, 0, 0);
     }
@@ -49,13 +35,8 @@ const incrementMinor = (major, minor) => {
 
 /**
  * Increments a Patch version
- *
- * @param {Number} major
- * @param {Number} minor
- * @param {Number} patch
- * @returns {String}
  */
-const incrementPatch = (major, minor, patch) => {
+const incrementPatch = (major: number, minor: number, patch: number): string => {
     if (patch < MAX_INCREMENTS) {
         return getVersionStringFromNumber(major, minor, patch + 1, 0);
     }
@@ -64,12 +45,8 @@ const incrementPatch = (major, minor, patch) => {
 
 /**
  * Increments a build version
- *
- * @param {String} version
- * @param {String} level
- * @returns {String}
  */
-const incrementVersion = (version, level) => {
+const incrementVersion = (version: string, level: string): string => {
     const [major, minor, patch, build] = getVersionNumberFromString(version);
 
     // Majors will always be incremented
@@ -92,12 +69,7 @@ const incrementVersion = (version, level) => {
     return incrementPatch(major, minor, patch);
 };
 
-/**
- * @param {String} currentVersion
- * @param {String} level
- * @returns {String}
- */
-function getPreviousVersion(currentVersion, level) {
+function getPreviousVersion(currentVersion: string, level: string): string {
     const [major, minor, patch, build] = getVersionNumberFromString(currentVersion);
 
     if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
