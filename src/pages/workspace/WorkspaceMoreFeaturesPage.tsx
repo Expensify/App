@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -140,37 +140,43 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         },
     ];
 
-    const renderItem = (item: Item) => (
-        <View
-            key={item.titleTranslationKey}
-            style={styles.mt7}
-        >
-            <ToggleSettingOptionRow
-                icon={item.icon}
-                title={translate(item.titleTranslationKey)}
-                subtitle={translate(item.subtitleTranslationKey)}
-                isActive={item.isActive}
-                pendingAction={item.pendingAction}
-                onToggle={item.action}
-            />
-        </View>
+    const renderItem = useCallback(
+        (item: Item) => (
+            <View
+                key={item.titleTranslationKey}
+                style={styles.mt7}
+            >
+                <ToggleSettingOptionRow
+                    icon={item.icon}
+                    title={translate(item.titleTranslationKey)}
+                    subtitle={translate(item.subtitleTranslationKey)}
+                    isActive={item.isActive}
+                    pendingAction={item.pendingAction}
+                    onToggle={item.action}
+                />
+            </View>
+        ),
+        [styles.mt7, translate],
     );
 
-    const renderSection = (section: SectionObject) => (
-        <View
-            key={section.titleTranslationKey}
-            style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}
-        >
-            <Section
-                containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
-                title={translate(section.titleTranslationKey)}
-                titleStyles={styles.textStrong}
-                subtitle={translate(section.subtitleTranslationKey)}
-                subtitleMuted
+    const renderSection = useCallback(
+        (section: SectionObject) => (
+            <View
+                key={section.titleTranslationKey}
+                style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}
             >
-                {section.items.map(renderItem)}
-            </Section>
-        </View>
+                <Section
+                    containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
+                    title={translate(section.titleTranslationKey)}
+                    titleStyles={styles.textStrong}
+                    subtitle={translate(section.subtitleTranslationKey)}
+                    subtitleMuted
+                >
+                    {section.items.map(renderItem)}
+                </Section>
+            </View>
+        ),
+        [isSmallScreenWidth, renderItem, styles.mt3, styles.p5, styles.p8, styles.textStrong, styles.workspaceSection, styles.workspaceSectionMobile, translate],
     );
 
     return (
