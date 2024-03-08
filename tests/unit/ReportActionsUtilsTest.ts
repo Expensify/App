@@ -285,9 +285,7 @@ describe('ReportActionsUtils', () => {
                     reportActionID: '1661970171066216',
                     actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED,
                     originalMessage: {
-                        amount: 0,
-                        currency: 'USD',
-                        type: 'create',
+                        paymentType: 'ACH',
                     },
                     message: [{html: 'Waiting for the bank account', type: 'Action type', text: 'Action text'}],
                 },
@@ -304,7 +302,6 @@ describe('ReportActionsUtils', () => {
             ];
 
             const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
-            input.pop();
             expect(result).toStrictEqual(input);
         });
 
@@ -390,9 +387,7 @@ describe('ReportActionsUtils', () => {
                         reportActionID: '1661970171066216',
                         actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED,
                         originalMessage: {
-                            amount: 0,
-                            currency: 'USD',
-                            type: 'create',
+                            paymentType: 'ACH',
                         },
                         message: [{html: 'Waiting for the bank account', type: 'Action type', text: 'Action text'}],
                     },
