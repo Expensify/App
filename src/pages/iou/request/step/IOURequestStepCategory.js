@@ -121,7 +121,6 @@ function IOURequestStepCategory({
                 selectedCategory={transactionCategory}
                 policyID={report.policyID}
                 onSubmit={updateCategory}
-                shouldShowDisabledAndSelectedOption={isEditing}
             />
         </StepScreenWrapper>
     );

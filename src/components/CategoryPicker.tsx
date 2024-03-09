@@ -34,17 +34,15 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             return [];
         }
 
-        const selectedCategoryInList = Object.values(policyCategories ?? {}).some((category) => category.name === selectedCategory && category.enabled);
-
         return [
             {
                 name: selectedCategory,
-                enabled: selectedCategoryInList,
+                enabled: true,
                 accountID: null,
                 isSelected: true,
             },
         ];
-    }, [selectedCategory, policyCategories]);
+    }, [selectedCategory]);
 
     const [sections, headerMessage, shouldShowTextInput] = useMemo(() => {
         const validPolicyRecentlyUsedCategories = policyRecentlyUsedCategories?.filter((p) => !isEmptyObject(p));
