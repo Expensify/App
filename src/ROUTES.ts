@@ -428,7 +428,7 @@ const ROUTES = {
 
         getRoute: (state?: string, backTo?: string, label?: string) =>
             `${getUrlWithBackToParam(`moneyrequest/state${state ? `?state=${encodeURIComponent(state)}` : ''}`, backTo)}${
-                // Nullish operator ?? doesnt seem to be a replacement for || here
+                // the label param can be an empty string so we cannot use a nullish ?? operator
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 label ? `${backTo || state ? '&' : '?'}label=${encodeURIComponent(label)}` : ''
             }` as const,
