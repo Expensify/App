@@ -283,7 +283,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
         // Svg images are converted to a png blob to preserve transparency, so we need to update the
         // image name and type accordingly.
         const isSvg = imageType.includes('image/svg');
-        const name = isSvg ? 'fileName.png' : imageName;
+        const name = FileUtils.cleanFileName(isSvg ? 'fileName.png' : imageName);
         const type = isSvg ? 'image/png' : imageType;
 
         cropOrRotateImage(imageUri, [{rotate: rotation.value % 360}, {crop}], {compress: 1, name, type})
