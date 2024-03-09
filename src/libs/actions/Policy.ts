@@ -2697,7 +2697,6 @@ function enablePolicyCategories(policyID: string, enabled: boolean) {
 
     if (enabled) {
         const navigationAction = getIsNarrowLayout() ? Navigation.goBack : () => Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
-
         navigationAction();
     }
 }
@@ -2791,7 +2790,6 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
 
     if (enabled) {
         const navigationAction = getIsNarrowLayout() ? Navigation.goBack : () => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID));
-
         navigationAction();
     }
 }
@@ -2885,7 +2883,6 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
 
     if (enabled) {
         const navigationAction = getIsNarrowLayout() ? Navigation.goBack : () => Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
-
         navigationAction();
     }
 }
@@ -2983,7 +2980,6 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
 
     if (enabled) {
         const navigationAction = getIsNarrowLayout() ? Navigation.goBack : () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID));
-
         navigationAction();
     }
 }
