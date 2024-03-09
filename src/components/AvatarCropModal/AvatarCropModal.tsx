@@ -49,6 +49,13 @@ type AvatarCropModalProps = {
     maskImage?: IconAsset;
 };
 
+function getScaleValueFromSlider(newSliderValue: number, containerSize: number) {
+    'worklet';
+
+    const {MAX_SCALE, MIN_SCALE} = CONST.AVATAR_CROP_MODAL;
+    return (newSliderValue / containerSize) * (MAX_SCALE - MIN_SCALE) + MIN_SCALE;
+}
+
 // This component can't be written using class since reanimated API uses hooks.
 function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose, onSave, isVisible, maskImage}: AvatarCropModalProps) {
     const {translate} = useLocalize();
@@ -163,11 +170,6 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
         [displayedImageHeight, displayedImageWidth, imageContainerSize, prevMaxOffsetX, prevMaxOffsetY, translateX, translateY],
     );
 
-    const newScaleValue = useWorkletCallback((newSliderValue: number, containerSize: number) => {
-        const {MAX_SCALE, MIN_SCALE} = CONST.AVATAR_CROP_MODAL;
-        return (newSliderValue / containerSize) * (MAX_SCALE - MIN_SCALE) + MIN_SCALE;
-    });
-
     /**
      * Calculates new x & y image translate value on image panning
      * and updates image's offset.
@@ -216,7 +218,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
             'worklet';
 
             const newSliderValue = clamp(translateSlider.value + event.changeX, 0, sliderContainerSize);
-            const newScale = newScaleValue(newSliderValue, sliderContainerSize);
+            const newScale = getScaleValueFromSlider(newSliderValue, sliderContainerSize);
 
             const differential = newScale / scale.value;
 
@@ -317,7 +319,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
             return;
         }
         const newSliderValue = clamp(locationX, 0, sliderContainerSize);
-        const newScale = newScaleValue(newSliderValue, sliderContainerSize);
+        const newScale = getScaleValueFromSlider(newSliderValue, sliderContainerSize);
         translateSlider.value = newSliderValue;
         const differential = newScale / scale.value;
         scale.value = newScale;
