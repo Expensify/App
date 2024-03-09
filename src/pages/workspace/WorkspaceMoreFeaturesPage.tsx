@@ -194,7 +194,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                         shouldShowBackButton={isSmallScreenWidth}
                     />
 
-                    <ScrollView>{sections.map(renderSection)}</ScrollView>
+                    <ScrollView contentContainerStyle={styles.pb2}>{sections.map(renderSection)}</ScrollView>
                 </ScreenWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>
