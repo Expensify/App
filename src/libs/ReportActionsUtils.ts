@@ -809,10 +809,10 @@ function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): 
 }
 
 /**
- * MARKEDREIMBURSED reportActions come from marking a report as reimbursed in OldDot. For now, we just
- * concat all of the text elements of the message to create the full message.
+ * Helper method to format message of OldDot Actions.
+ * For now, we just concat all of the text elements of the message to create the full message.
  */
-function getMarkedReimbursedMessage(reportAction: OnyxEntry<ReportAction>): string {
+function getMessageOfOldDotReportAction(reportAction: OnyxEntry<ReportAction>): string {
     return reportAction?.message?.map((element) => element.text).join('') ?? '';
 }
 
@@ -977,7 +977,7 @@ export {
     getFirstVisibleReportActionID,
     isMemberChangeAction,
     getMemberChangeMessageFragment,
-    getMarkedReimbursedMessage,
+    getMessageOfOldDotReportAction,
     getMemberChangeMessagePlainText,
     isReimbursementDeQueuedAction,
     isActionableMentionWhisper,

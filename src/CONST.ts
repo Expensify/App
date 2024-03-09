@@ -573,20 +573,20 @@ const CONST = {
         SPLIT_REPORTID: '-2',
         ACTIONS: {
             LIMIT: 50,
-            // OldDot Actions render getMessage from Web-Expensify/lib/Report/Action PHP files via getMarkedReimbursedMessage in ReportActionsUtils.ts
+            // OldDot Actions render getMessage from Web-Expensify/lib/Report/Action PHP files via getMessageOfOldDotReportAction in ReportActionsUtils.ts
             TYPE: {
                 ACTIONABLEMENTIONWHISPER: 'ACTIONABLEMENTIONWHISPER',
                 ADDCOMMENT: 'ADDCOMMENT',
                 ACTIONABLEJOINREQUEST: 'ACTIONABLEJOINREQUEST',
                 APPROVED: 'APPROVED',
-                CHANGEFIELD: 'CHANGEFIELD',  // OldDot Action
+                CHANGEFIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGEPOLICY: 'CHANGEPOLICY', // OldDot Action
                 CHANGETYPE: 'CHANGETYPE', // OldDot Action
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
                 DELEGATESUBMIT: 'DELEGATESUBMIT', // OldDot Action
-                DELETEDACCOUNT: 'DELETEDACCOUNT',  // OldDot Action
+                DELETEDACCOUNT: 'DELETEDACCOUNT', // OldDot Action
                 DONATION: 'DONATION', // OldDot Action
                 EXPORTEDTOINTEGRATION: 'EXPORTEDTOINTEGRATION', // OldDot Action
                 EXPORTEDTOQUICKBOOKS: 'EXPORTEDTOQUICKBOOKS', // OldDot Action
