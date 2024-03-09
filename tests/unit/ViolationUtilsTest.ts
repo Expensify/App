@@ -136,6 +136,7 @@ describe('getViolationsOnyxData', () => {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         Dinner: {name: 'Dinner', enabled: true, 'GL Code': ''},
                     },
+                    orderWeight: 1,
                 },
             };
             transaction.tag = 'Lunch';
@@ -210,9 +211,12 @@ describe('getViolationsOnyxData', () => {
                         Accounting: {
                             name: 'Accounting',
                             enabled: true,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            'GL Code': '',
                         },
                     },
                     required: true,
+                    orderWeight: 1,
                 },
                 Region: {
                     name: 'Region',
@@ -220,8 +224,12 @@ describe('getViolationsOnyxData', () => {
                         Africa: {
                             name: 'Africa',
                             enabled: true,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            'GL Code': '',
                         },
                     },
+                    required: false,
+                    orderWeight: 1,
                 },
                 Project: {
                     name: 'Project',
@@ -229,9 +237,12 @@ describe('getViolationsOnyxData', () => {
                         Project1: {
                             name: 'Project1',
                             enabled: true,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            'GL Code': '',
                         },
                     },
                     required: true,
+                    orderWeight: 1,
                 },
             };
         });
