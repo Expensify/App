@@ -1,6 +1,6 @@
 type EnablePolicyDistanceRatesParams = {
     policyID: string;
-    isEnabled: boolean;
+    enabled: boolean;
 };
 
 export default EnablePolicyDistanceRatesParams;

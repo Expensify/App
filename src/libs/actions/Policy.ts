@@ -2652,14 +2652,14 @@ function clearCategoryErrors(policyID: string, categoryName: string) {
     });
 }
 
-function enablePolicyCategories(policyID: string, isEnabled: boolean) {
+function enablePolicyCategories(policyID: string, enabled: boolean) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    areCategoriesEnabled: isEnabled,
+                    areCategoriesEnabled: enabled,
                     pendingFields: {
                         areCategoriesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
@@ -2682,7 +2682,7 @@ function enablePolicyCategories(policyID: string, isEnabled: boolean) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    areCategoriesEnabled: !isEnabled,
+                    areCategoriesEnabled: !enabled,
                     pendingFields: {
                         areCategoriesEnabled: null,
                     },
@@ -2691,25 +2691,25 @@ function enablePolicyCategories(policyID: string, isEnabled: boolean) {
         ],
     };
 
-    const parameters: EnablePolicyCategoriesParams = {policyID, isEnabled};
+    const parameters: EnablePolicyCategoriesParams = {policyID, enabled};
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES, parameters, onyxData);
 
-    if (isEnabled) {
+    if (enabled) {
         const navigationAction = getIsNarrowLayout() ? Navigation.goBack : () => Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
 
         navigationAction();
     }
 }
 
-function enablePolicyConnections(policyID: string, isEnabled: boolean) {
+function enablePolicyConnections(policyID: string, enabled: boolean) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    areConnectionsEnabled: isEnabled,
+                    areConnectionsEnabled: enabled,
                     pendingFields: {
                         areConnectionsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
@@ -2732,7 +2732,7 @@ function enablePolicyConnections(policyID: string, isEnabled: boolean) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    areConnectionsEnabled: !isEnabled,
+                    areConnectionsEnabled: !enabled,
                     pendingFields: {
                         areConnectionsEnabled: null,
                     },
@@ -2741,19 +2741,19 @@ function enablePolicyConnections(policyID: string, isEnabled: boolean) {
         ],
     };
 
-    const parameters: EnablePolicyConnectionsParams = {policyID, isEnabled};
+    const parameters: EnablePolicyConnectionsParams = {policyID, enabled};
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS, parameters, onyxData);
 }
 
-function enablePolicyDistanceRates(policyID: string, isEnabled: boolean) {
+function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    areDistanceRatesEnabled: isEnabled,
+                    areDistanceRatesEnabled: enabled,
                     pendingFields: {
                         areDistanceRatesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
@@ -2776,7 +2776,7 @@ function enablePolicyDistanceRates(policyID: string, isEnabled: boolean) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    areDistanceRatesEnabled: !isEnabled,
+                    areDistanceRatesEnabled: !enabled,
                     pendingFields: {
                         areDistanceRatesEnabled: null,
                     },
@@ -2785,19 +2785,19 @@ function enablePolicyDistanceRates(policyID: string, isEnabled: boolean) {
         ],
     };
 
-    const parameters: EnablePolicyDistanceRatesParams = {policyID, isEnabled};
+    const parameters: EnablePolicyDistanceRatesParams = {policyID, enabled};
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, onyxData);
 }
 
-function enablePolicyReportFields(policyID: string, isEnabled: boolean) {
+function enablePolicyReportFields(policyID: string, enabled: boolean) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    areReportFieldsEnabled: isEnabled,
+                    areReportFieldsEnabled: enabled,
                     pendingFields: {
                         areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
@@ -2820,7 +2820,7 @@ function enablePolicyReportFields(policyID: string, isEnabled: boolean) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    areReportFieldsEnabled: !isEnabled,
+                    areReportFieldsEnabled: !enabled,
                     pendingFields: {
                         areReportFieldsEnabled: null,
                     },
@@ -2829,19 +2829,19 @@ function enablePolicyReportFields(policyID: string, isEnabled: boolean) {
         ],
     };
 
-    const parameters: EnablePolicyReportFieldsParams = {policyID, isEnabled};
+    const parameters: EnablePolicyReportFieldsParams = {policyID, enabled};
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS, parameters, onyxData);
 }
 
-function enablePolicyTags(policyID: string, isEnabled: boolean) {
+function enablePolicyTags(policyID: string, enabled: boolean) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    areTagsEnabled: isEnabled,
+                    areTagsEnabled: enabled,
                     pendingFields: {
                         areTagsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
@@ -2864,7 +2864,7 @@ function enablePolicyTags(policyID: string, isEnabled: boolean) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    areTagsEnabled: !isEnabled,
+                    areTagsEnabled: !enabled,
                     pendingFields: {
                         areTagsEnabled: null,
                     },
@@ -2873,18 +2873,18 @@ function enablePolicyTags(policyID: string, isEnabled: boolean) {
         ],
     };
 
-    const parameters: EnablePolicyTagsParams = {policyID, isEnabled};
+    const parameters: EnablePolicyTagsParams = {policyID, enabled};
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData);
 
-    if (isEnabled) {
+    if (enabled) {
         const navigationAction = getIsNarrowLayout() ? Navigation.goBack : () => Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
 
         navigationAction();
     }
 }
 
-function enablePolicyTaxes(policyID: string, isEnabled: boolean) {
+function enablePolicyTaxes(policyID: string, enabled: boolean) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -2892,7 +2892,7 @@ function enablePolicyTaxes(policyID: string, isEnabled: boolean) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     tax: {
-                        trackingEnabled: isEnabled,
+                        trackingEnabled: enabled,
                     },
                     pendingFields: {
                         tax: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -2917,7 +2917,7 @@ function enablePolicyTaxes(policyID: string, isEnabled: boolean) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     tax: {
-                        trackingEnabled: !isEnabled,
+                        trackingEnabled: !enabled,
                     },
                     pendingFields: {
                         tax: null,
@@ -2927,19 +2927,19 @@ function enablePolicyTaxes(policyID: string, isEnabled: boolean) {
         ],
     };
 
-    const parameters: EnablePolicyTaxesParams = {policyID, isEnabled};
+    const parameters: EnablePolicyTaxesParams = {policyID, enabled};
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_TAXES, parameters, onyxData);
 }
 
-function enablePolicyWorkflows(policyID: string, isEnabled: boolean) {
+function enablePolicyWorkflows(policyID: string, enabled: boolean) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    areWorkflowsEnabled: isEnabled,
+                    areWorkflowsEnabled: enabled,
                     pendingFields: {
                         areWorkflowsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
@@ -2962,7 +2962,7 @@ function enablePolicyWorkflows(policyID: string, isEnabled: boolean) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    areWorkflowsEnabled: !isEnabled,
+                    areWorkflowsEnabled: !enabled,
                     pendingFields: {
                         areWorkflowsEnabled: null,
                     },
@@ -2971,11 +2971,11 @@ function enablePolicyWorkflows(policyID: string, isEnabled: boolean) {
         ],
     };
 
-    const parameters: EnablePolicyWorkflowsParams = {policyID, isEnabled};
+    const parameters: EnablePolicyWorkflowsParams = {policyID, enabled};
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS, parameters, onyxData);
 
-    if (isEnabled) {
+    if (enabled) {
         const navigationAction = getIsNarrowLayout() ? Navigation.goBack : () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID));
 
         navigationAction();
