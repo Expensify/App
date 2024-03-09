@@ -956,10 +956,11 @@ function getCategoryListSections(
     maxRecentReportsToShow: number,
 ): CategoryTreeSection[] {
     const sortedCategories = sortCategories(categories);
-    const enabledCategories = Object.values(sortedCategories).filter((category) => category.enabled);
+    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
+    const enabledCategories = [...selectedOptions, ...Object.values(sortedCategories).filter((category) => category.enabled && !selectedOptionNames.includes(category.name))];
+    const numberOfCategories = enabledCategories.length;
 
     const categorySections: CategoryTreeSection[] = [];
-    const numberOfCategories = enabledCategories.length;
 
     let indexOffset = 0;
 
@@ -989,17 +990,13 @@ function getCategoryListSections(
         return categorySections;
     }
 
-    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
-    const enabledAndSelectedCategories = [...selectedOptions, ...sortedCategories.filter((category) => category.enabled && !selectedOptionNames.includes(category.name))];
-    const numberOfVisibleCategories = enabledAndSelectedCategories.length;
-
-    if (numberOfVisibleCategories < CONST.CATEGORY_LIST_THRESHOLD) {
+    if (numberOfCategories < CONST.CATEGORY_LIST_THRESHOLD) {
         categorySections.push({
             // "All" section when items amount less than the threshold
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getCategoryOptionTree(enabledAndSelectedCategories),
+            data: getCategoryOptionTree(enabledCategories),
         });
 
         return categorySections;
