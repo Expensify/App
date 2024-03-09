@@ -228,7 +228,7 @@ describe('getViolationsOnyxData', () => {
                             'GL Code': '',
                         },
                     },
-                    required: false,
+                    required: true,
                     orderWeight: 1,
                 },
                 Project: {

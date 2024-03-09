@@ -2,9 +2,9 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
-import * as POLICY from '@src/libs/actions/Policy';
+import * as Policy from '@src/libs/actions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyMembers, Report, ReportActions} from '@src/types/onyx';
+import type {Policy as PolicyType, PolicyMembers, Report, ReportActions} from '@src/types/onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -36,12 +36,12 @@ describe('actions/Policy', () => {
             let adminReportID;
             let announceReportID;
             let expenseReportID;
-            const policyID = POLICY.generatePolicyID();
+            const policyID = Policy.generatePolicyID();
 
-            POLICY.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
             await waitForBatchedUpdates();
 
-            let policy: OnyxCollection<Policy> = await new Promise((resolve) => {
+            let policy: OnyxCollection<PolicyType> = await new Promise((resolve) => {
                 const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     waitForCollectionCallback: true,
