@@ -17,6 +17,8 @@ For individuals or employees: To enable Scheduled Submit on your individual work
 
 ## Scheduled Submit frequency options
 
+**Instant Submit**: Expenses are automatically added to a report in the Processing state, and all expenses will continue to accumulate on one report until it is Approved or Reimbursed. This removes the need to submit expenses, and Processing reports can either be Reimbursed right away (if Submit and Close is enabled), or Approved and then Reimbursed (if Submit and Approve is enabled) by a workspace admin.
+
 **Daily**: Each night, expenses without violations will be submitted. Expenses with violations will remain on an open report until the violations are corrected, after which they will be submitted in the evening (PDT).
 
 **Weekly**: Expenses that are free of violations will be submitted on a weekly basis. However, expenses with violations will be held in a new open report and combined with any new expenses. They will then be submitted at the end of the following weekly cycle, specifically on Sunday evening (PDT).
@@ -30,6 +32,9 @@ For individuals or employees: To enable Scheduled Submit on your individual work
 **Manually**: An open report will be created, and expenses will be added to it automatically. However, it's important to note that the report will not be submitted automatically; manual submission of reports will be required.This is a great option for automatically gathering all an employee’s expenses on a report for the employee’s convenience, but they will still need to review and submit the report.
 
 # Deep Dive
+
+## A note on Instant Submit 
+Setting Scheduled Submit frequency to Instant Submit will limit some employee actions on reports, such as the ability to retract or self-close reports, or create multiple reports. When Instant Submit is selected, expenses are automatically added  to a Processing expense report, and new expenses will continue to accumulate on a single report until the report is Closed or Reimbursed by a workspace admin.
 
 ## Schedule Submit Override
 If Scheduled Submit is disabled at the group workspace level or configured the frequency as "Manually," the individual workspace settings of a user will take precedence and be applied. This means an employee can still set up Scheduled Submit for themselves even if the admin has not enabled it. We highly recommend Scheduled Submit as it helps put your expenses on auto-pilot!
