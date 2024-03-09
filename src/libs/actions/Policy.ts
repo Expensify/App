@@ -2788,6 +2788,12 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
     const parameters: EnablePolicyDistanceRatesParams = {policyID, enabled};
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, onyxData);
+
+    if (enabled) {
+        const navigationAction = getIsNarrowLayout() ? Navigation.goBack : () => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID));
+
+        navigationAction();
+    }
 }
 
 function enablePolicyReportFields(policyID: string, enabled: boolean) {
