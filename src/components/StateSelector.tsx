@@ -36,9 +36,15 @@ type StateSelectorProps = {
 
     /** whether to use state from url, for cases when url value is passed from parent */
     shouldUseStateFromUrl?: boolean;
+
+    /** object to get route details from */
+    stateSelectorRoute?: typeof ROUTES.SETTINGS_ADDRESS_STATE | typeof ROUTES.MONEY_REQUEST_STATE_SELECTOR;
 };
 
-function StateSelector({errorText, shouldUseStateFromUrl = true, value: stateCode, label, onInputChange, wrapperStyle}: StateSelectorProps, ref: ForwardedRef<View>) {
+function StateSelector(
+    {errorText, shouldUseStateFromUrl = true, value: stateCode, label, onInputChange, wrapperStyle, stateSelectorRoute = ROUTES.SETTINGS_ADDRESS_STATE}: StateSelectorProps,
+    ref: ForwardedRef<View>,
+) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const stateFromUrl = useGeographicalStateFromRoute();
@@ -93,7 +99,7 @@ function StateSelector({errorText, shouldUseStateFromUrl = true, value: stateCod
                 description={label || translate('common.state')}
                 onPress={() => {
                     const activeRoute = Navigation.getActiveRoute();
-                    Navigation.navigate(ROUTES.SETTINGS_ADDRESS_STATE.getRoute(stateCode, activeRoute, label));
+                    Navigation.navigate(stateSelectorRoute.getRoute(stateCode, activeRoute, label));
                 }}
                 wrapperStyle={wrapperStyle}
             />

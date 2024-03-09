@@ -423,6 +423,16 @@ const ROUTES = {
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}/scan` as const,
     },
 
+    MONEY_REQUEST_STATE_SELECTOR: {
+        route: 'moneyrequest/state',
+
+        getRoute: (state?: string, backTo?: string, label?: string) =>
+            `${getUrlWithBackToParam(`moneyrequest/state${state ? `?state=${encodeURIComponent(state)}` : ''}`, backTo)}${
+                // Nullish operator ?? doesnt seem to be a replacement for || here
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                label ? `${backTo || state ? '&' : '?'}label=${encodeURIComponent(label)}` : ''
+            }` as const,
+    },
     IOU_REQUEST: 'request/new',
     IOU_SEND: 'send/new',
     IOU_SEND_ADD_BANK_ACCOUNT: 'send/new/add-bank-account',
