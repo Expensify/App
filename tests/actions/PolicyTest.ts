@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Policy from '@src/libs/actions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy as PolicyType, PolicyMembers, Report, ReportActions} from '@src/types/onyx';
+import type {PolicyMembers, Policy as PolicyType, Report, ReportActions} from '@src/types/onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
