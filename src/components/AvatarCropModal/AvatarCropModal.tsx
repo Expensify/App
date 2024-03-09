@@ -3,7 +3,7 @@ import {ActivityIndicator, Image, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import {Gesture, GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
-import {clamp, interpolate, runOnUI, useDerivedValue, useSharedValue, useWorkletCallback} from 'react-native-reanimated';
+import {clamp, interpolate, runOnUI, useDerivedValue, useSharedValue} from 'react-native-reanimated';
 import Button from '@components/Button';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
