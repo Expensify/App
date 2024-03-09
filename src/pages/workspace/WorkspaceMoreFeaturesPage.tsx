@@ -87,39 +87,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 Policy.enablePolicyTags(policy?.id ?? '', isEnabled);
             },
         },
-        {
-            icon: Illustrations.Coins,
-            titleTranslationKey: 'workspace.moreFeatures.taxes.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.taxes.subtitle',
-            isActive: policy?.tax?.trackingEnabled ?? false,
-            pendingAction: policy?.pendingFields?.tax,
-            action: (isEnabled: boolean) => {
-                Policy.enablePolicyTaxes(policy?.id ?? '', isEnabled);
-            },
-        },
-        {
-            icon: Illustrations.Pencil,
-            titleTranslationKey: 'workspace.moreFeatures.reportFields.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.reportFields.subtitle',
-            isActive: policy?.areReportFieldsEnabled ?? false,
-            pendingAction: policy?.pendingFields?.areReportFieldsEnabled,
-            action: (isEnabled: boolean) => {
-                Policy.enablePolicyReportFields(policy?.id ?? '', isEnabled);
-            },
-        },
-    ];
-
-    const integrateItems: Item[] = [
-        {
-            icon: Illustrations.Accounting,
-            titleTranslationKey: 'workspace.moreFeatures.connections.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.connections.subtitle',
-            isActive: policy?.areConnectionsEnabled ?? false,
-            pendingAction: policy?.pendingFields?.areConnectionsEnabled,
-            action: (isEnabled: boolean) => {
-                Policy.enablePolicyConnections(policy?.id ?? '', isEnabled);
-            },
-        },
     ];
 
     const sections: SectionObject[] = [
@@ -132,11 +99,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.organizeSection.title',
             subtitleTranslationKey: 'workspace.moreFeatures.organizeSection.subtitle',
             items: organizeItems,
-        },
-        {
-            titleTranslationKey: 'workspace.moreFeatures.integrateSection.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.integrateSection.subtitle',
-            items: integrateItems,
         },
     ];
 
