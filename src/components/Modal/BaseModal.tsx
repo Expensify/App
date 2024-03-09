@@ -41,6 +41,7 @@ function BaseModal(
         avoidKeyboard = false,
         children,
         shouldUseCustomBackdrop = false,
+        onBackdropPress,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -117,6 +118,9 @@ function BaseModal(
             return;
         }
 
+        if (onBackdropPress) {
+            onBackdropPress();
+        }
         onClose();
     };
 
