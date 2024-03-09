@@ -95,7 +95,6 @@ beforeAll(() =>
     Onyx.init({
         keys: ONYXKEYS,
         safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT],
-        registerStorageEventListener: () => {},
     }),
 );
 
