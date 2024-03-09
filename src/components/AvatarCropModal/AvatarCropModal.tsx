@@ -149,8 +149,10 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
     /**
      * Validates the offset to prevent overflow, and updates the image offset.
      */
-    const updateImageOffset = useWorkletCallback(
+    const updateImageOffset = useCallback(
         (offsetX: number, offsetY: number) => {
+            'worklet';
+
             const maxOffsetX = (displayedImageWidth - imageContainerSize) / 2;
             const maxOffsetY = (displayedImageHeight - imageContainerSize) / 2;
             translateX.value = clamp(offsetX, maxOffsetX * -1, maxOffsetX);
@@ -158,7 +160,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
             prevMaxOffsetX.value = maxOffsetX;
             prevMaxOffsetY.value = maxOffsetY;
         },
-        [imageContainerSize, scale],
+        [displayedImageHeight, displayedImageWidth, imageContainerSize, prevMaxOffsetX, prevMaxOffsetY, translateX, translateY],
     );
 
     const newScaleValue = useWorkletCallback((newSliderValue: number, containerSize: number) => {
