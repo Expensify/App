@@ -91,7 +91,7 @@ type TrackExpenseInformation = {
     transaction: OnyxTypes.Transaction;
     iouAction: OptimisticIOUReportAction;
     createdChatReportActionID: string;
-    createdExpenseReportActionID?: string;
+    createdIOUReportActionID?: string;
     reportPreviewAction?: OnyxTypes.ReportAction;
     transactionThreadReportID: string;
     createdReportActionIDForThread: string;
@@ -815,6 +815,9 @@ function buildOnyxDataForTrackExpense(
     iouAction: OptimisticIOUReportAction,
     transactionThreadReport: OptimisticChatReport,
     transactionThreadCreatedReportAction: OptimisticCreatedReportAction,
+    policy?: OnyxEntry<OnyxTypes.Policy>,
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
 ): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
@@ -957,6 +960,22 @@ function buildOnyxDataForTrackExpense(
             },
         },
     ];
+
+    // We don't need to compute violations unless we're on a paid policy
+    if (!policy || !PolicyUtils.isPaidGroupPolicy(policy)) {
+        return [optimisticData, successData, failureData];
+    }
+
+    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], !!policy.requiresTag, policyTagList ?? {}, !!policy.requiresCategory, policyCategories ?? {});
+
+    if (violationsOnyxData) {
+        optimisticData.push(violationsOnyxData);
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+            value: [],
+        });
+    }
 
     return [optimisticData, successData, failureData];
 }
@@ -1186,6 +1205,12 @@ function getTrackExpenseInformation(
     created: string,
     merchant: string,
     receipt: Receipt | undefined,
+    category: string | undefined,
+    tag: string | undefined,
+    billable: boolean | undefined,
+    policy: OnyxEntry<OnyxTypes.Policy> | undefined,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList> | undefined,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories> | undefined,
     payeeEmail = currentUserEmail,
 ): TrackExpenseInformation | EmptyObject {
     // STEP 1: Get existing chat report
@@ -1228,9 +1253,9 @@ function getTrackExpenseInformation(
         receiptObject,
         filename,
         null,
-        '',
-        '',
-        false,
+        category,
+        tag,
+        billable,
         isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
     );
 
@@ -1272,6 +1297,9 @@ function getTrackExpenseInformation(
         iouAction,
         optimisticTransactionThread,
         optimisticCreatedActionForTransactionThread,
+        policy,
+        policyTagList,
+        policyCategories,
     );
 
     return {
@@ -1280,7 +1308,7 @@ function getTrackExpenseInformation(
         transaction: optimisticTransaction,
         iouAction,
         createdChatReportActionID: '0',
-        createdExpenseReportActionID: undefined,
+        createdIOUReportActionID: undefined,
         reportPreviewAction: undefined,
         transactionThreadReportID: optimisticTransactionThread.reportID,
         createdReportActionIDForThread: optimisticCreatedActionForTransactionThread.reportActionID,
@@ -1924,6 +1952,14 @@ function trackExpense(
     participant: Participant,
     comment: string,
     receipt: Receipt,
+    category?: string,
+    tag?: string,
+    taxCode = '',
+    taxAmount = 0,
+    billable?: boolean,
+    policy?: OnyxEntry<OnyxTypes.Policy>,
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     gpsPoints = undefined,
 ) {
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
@@ -1933,12 +1969,28 @@ function trackExpense(
         transaction,
         iouAction,
         createdChatReportActionID,
-        createdExpenseReportActionID,
+        createdIOUReportActionID,
         reportPreviewAction,
         transactionThreadReportID,
         createdReportActionIDForThread,
         onyxData,
-    } = getTrackExpenseInformation(report, participant, comment, amount, currency, currentCreated, merchant, receipt, payeeEmail);
+    } = getTrackExpenseInformation(
+        report,
+        participant,
+        comment,
+        amount,
+        currency,
+        currentCreated,
+        merchant,
+        receipt,
+        category,
+        tag,
+        billable,
+        policy,
+        policyTagList,
+        policyCategories,
+        payeeEmail,
+    );
     const activeReportID = report.reportID;
 
     const parameters: TrackExpenseParams = {
@@ -1952,11 +2004,15 @@ function trackExpense(
         transactionID: transaction.transactionID,
         reportActionID: iouAction.reportActionID,
         createdChatReportActionID,
-        createdExpenseReportActionID,
+        createdIOUReportActionID,
         reportPreviewReportActionID: reportPreviewAction?.reportActionID,
         receipt,
         receiptState: receipt?.state,
-        tag: '',
+        category,
+        tag,
+        taxCode,
+        taxAmount,
+        billable,
         // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
         gpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
         transactionThreadReportID,
@@ -4464,11 +4520,11 @@ function replaceReceipt(transactionID: string, file: File, source: string) {
  * @param transactionID of the transaction to set the participants of
  * @param report attached to the transaction
  */
-function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxTypes.Report, iouType: ValueOf<typeof CONST.IOU.TYPE>) {
+function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxTypes.Report) {
     // If the report is iou or expense report, we should get the chat report to set participant for request money
     const chatReport = ReportUtils.isMoneyRequestReport(report) ? ReportUtils.getReport(report.chatReportID) : report;
     const currentUserAccountID = currentUserPersonalDetails.accountID;
-    const shouldAddAsReport = iouType === CONST.IOU.TYPE.TRACK_EXPENSE && !isEmptyObject(chatReport) && (ReportUtils.isSelfDM(chatReport) || ReportUtils.isAdminRoom(chatReport));
+    const shouldAddAsReport = !isEmptyObject(chatReport) && ReportUtils.isSelfDM(chatReport);
     const participants: Participant[] =
         ReportUtils.isPolicyExpenseChat(chatReport) || shouldAddAsReport
             ? [{reportID: chatReport?.reportID, isPolicyExpenseChat: ReportUtils.isPolicyExpenseChat(chatReport), selected: true}]

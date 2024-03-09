@@ -13,11 +13,15 @@ type TrackExpenseParams = {
     transactionID: string;
     reportActionID: string;
     createdChatReportActionID: string;
-    createdExpenseReportActionID?: string;
+    createdIOUReportActionID?: string;
     reportPreviewReportActionID?: string;
     receipt: Receipt;
     receiptState?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
+    category?: string;
     tag?: string;
+    taxCode: string;
+    taxAmount: number;
+    billable?: boolean;
     gpsPoints?: string;
     transactionThreadReportID: string;
     createdReportActionIDForThread: string;
