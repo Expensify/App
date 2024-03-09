@@ -29,6 +29,7 @@ function TagPicker({selectedTag, tag, tagIndex, policyTags, policyRecentlyUsedTa
         if (!selectedTag) {
             return [];
         }
+
         return [
             {
                 name: selectedTag,
