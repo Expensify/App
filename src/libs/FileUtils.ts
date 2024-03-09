@@ -1,9 +1,9 @@
 import {Alert, Linking, Platform} from 'react-native';
-import DateUtils from '@libs/DateUtils';
-import * as Localize from '@libs/Localize';
-import Log from '@libs/Log';
 import CONST from '@src/CONST';
-import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
+import DateUtils from './DateUtils';
+import type {ReadFileAsync, SplitExtensionFromFileName} from './fileDownload/types';
+import * as Localize from './Localize';
+import Log from './Log';
 
 /**
  * Show alert on successful attachment download
