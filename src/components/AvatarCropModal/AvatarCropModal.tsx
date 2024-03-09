@@ -3,7 +3,7 @@ import {ActivityIndicator, Image, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import {Gesture, GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
-import {clamp, interpolate, runOnUI, useSharedValue, useWorkletCallback} from 'react-native-reanimated';
+import {clamp, interpolate, runOnUI, useDerivedValue, useSharedValue, useWorkletCallback} from 'react-native-reanimated';
 import Button from '@components/Button';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -51,9 +51,12 @@ type AvatarCropModalProps = {
 
 // This component can't be written using class since reanimated API uses hooks.
 function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose, onSave, isVisible, maskImage}: AvatarCropModalProps) {
+    const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {isSmallScreenWidth} = useWindowDimensions();
+
     const originalImageWidth = useSharedValue<number>(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const originalImageHeight = useSharedValue<number>(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const translateY = useSharedValue(0);
@@ -62,9 +65,6 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
     const rotation = useSharedValue(0);
     const translateSlider = useSharedValue(0);
     const isPressableEnabled = useSharedValue(true);
-
-    const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
 
     // Check if image cropping, saving or uploading is in progress
     const isLoading = useSharedValue(false);
@@ -78,6 +78,20 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
     const [sliderContainerSize, setSliderContainerSize] = useState<number>(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const [isImageContainerInitialized, setIsImageContainerInitialized] = useState(false);
     const [isImageInitialized, setIsImageInitialized] = useState(false);
+
+    const {height: displayedImageHeight, width: displayedImageWidth} = useDerivedValue(() => {
+        let height = imageContainerSize * scale.value;
+        let width = imageContainerSize * scale.value;
+
+        // Since the smaller side will be always equal to the imageContainerSize multiplied by scale,
+        // another side can be calculated with aspect ratio.
+        if (originalImageWidth.value > originalImageHeight.value) {
+            width *= originalImageWidth.value / originalImageHeight.value;
+        } else {
+            height *= originalImageHeight.value / originalImageWidth.value;
+        }
+        return {height, width};
+    }, [imageContainerSize]).value;
 
     // An onLayout callback, that initializes the image container, for proper render of an image
     const initializeImageContainer = useCallback((event: LayoutChangeEvent) => {
@@ -133,31 +147,12 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
     }, [imageUri, originalImageHeight, originalImageWidth, rotation, translateSlider]);
 
     /**
-     * Returns current image size taking into account scale and rotation.
-     */
-    const getDisplayedImageSize = useWorkletCallback(() => {
-        let height = imageContainerSize * scale.value;
-        let width = imageContainerSize * scale.value;
-
-        // Since the smaller side will be always equal to the imageContainerSize multiplied by scale,
-        // another side can be calculated with aspect ratio.
-        if (originalImageWidth.value > originalImageHeight.value) {
-            width *= originalImageWidth.value / originalImageHeight.value;
-        } else {
-            height *= originalImageHeight.value / originalImageWidth.value;
-        }
-
-        return {height, width};
-    }, [imageContainerSize, scale]);
-
-    /**
      * Validates the offset to prevent overflow, and updates the image offset.
      */
     const updateImageOffset = useWorkletCallback(
         (offsetX: number, offsetY: number) => {
-            const {height, width} = getDisplayedImageSize();
-            const maxOffsetX = (width - imageContainerSize) / 2;
-            const maxOffsetY = (height - imageContainerSize) / 2;
+            const maxOffsetX = (displayedImageWidth - imageContainerSize) / 2;
+            const maxOffsetY = (displayedImageHeight - imageContainerSize) / 2;
             translateX.value = clamp(offsetX, maxOffsetX * -1, maxOffsetX);
             translateY.value = clamp(offsetY, maxOffsetY * -1, maxOffsetY);
             prevMaxOffsetX.value = maxOffsetX;
@@ -184,14 +179,13 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
 
     // This effect is needed to recalculate the maximum offset values
     // when the browser window is resized.
-    useEffect(() => {
+    useDerivedValue(() => {
         // If no panning has happened and the value is 0, do an early return.
         if (!prevMaxOffsetX.value && !prevMaxOffsetY.value) {
             return;
         }
-        const {height, width} = getDisplayedImageSize();
-        const maxOffsetX = (width - imageContainerSize) / 2;
-        const maxOffsetY = (height - imageContainerSize) / 2;
+        const maxOffsetX = (displayedImageWidth - imageContainerSize) / 2;
+        const maxOffsetY = (displayedImageHeight - imageContainerSize) / 2;
 
         // Since interpolation is expensive, we only want to do it if
         // image has been panned across X or Y axis by the user.
@@ -204,7 +198,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
         }
         prevMaxOffsetX.value = maxOffsetX;
         prevMaxOffsetY.value = maxOffsetY;
-    }, [getDisplayedImageSize, imageContainerSize, prevMaxOffsetX, prevMaxOffsetY, translateX, translateY]);
+    }, [imageContainerSize]);
 
     /**
      * Calculates new scale value and updates images offset to ensure
