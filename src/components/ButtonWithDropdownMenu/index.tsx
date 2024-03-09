@@ -32,6 +32,7 @@ function ButtonWithDropdownMenu<IValueType>({
     options,
     onOptionSelected,
     enterKeyEventListenerPriority = 0,
+    wrapperStyle,
 }: ButtonWithDropdownMenuProps<IValueType>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -66,7 +67,7 @@ function ButtonWithDropdownMenu<IValueType>({
     }, [windowWidth, windowHeight, isMenuVisible, anchorAlignment.vertical]);
 
     return (
-        <View>
+        <View style={wrapperStyle}>
             {shouldAlwaysShowDropdownMenu || options.length > 1 ? (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, style]}>
                     <Button
