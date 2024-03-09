@@ -18,14 +18,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
-import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 type MoneyRequestOptions = Record<ValueOf<typeof CONST.IOU.TYPE>, PopoverMenuItem>;
@@ -136,7 +134,7 @@ function AttachmentPickerWithMenuItems({
             [CONST.IOU.TYPE.SEND]: {
                 icon: Expensicons.Send,
                 text: translate('iou.sendMoney'),
-                onSelected: () => Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.SEND, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report?.reportID ?? '')),
+                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND, report?.reportID ?? ''),
             },
         };
 
