@@ -172,6 +172,15 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         });
     }
 
+    if (policy?.areDistanceRatesEnabled) {
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.distanceRates',
+            icon: Expensicons.Car,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.DISTANCE_RATES,
+        });
+    }
+
     protectedCollectPolicyMenuItems.push({
         translationKey: 'workspace.common.moreFeatures',
         icon: Expensicons.Gear,
