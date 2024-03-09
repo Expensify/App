@@ -192,7 +192,7 @@ function KYCWall({
                         selectPaymentMethod(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT);
                         break;
                     default:
-                        selectPaymentMethod(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
+                        break;
                 }
 
                 return;
