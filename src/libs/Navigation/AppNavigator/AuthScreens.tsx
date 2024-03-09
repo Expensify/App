@@ -63,6 +63,8 @@ const loadConciergePage = () => require('../../../pages/ConciergePage').default 
 const loadProfileAvatar = () => require('../../../pages/settings/Profile/ProfileAvatar').default as React.ComponentType;
 const loadWorkspaceAvatar = () => require('../../../pages/workspace/WorkspaceAvatar').default as React.ComponentType;
 const loadReportAvatar = () => require('../../../pages/ReportAvatar').default as React.ComponentType;
+const loadReceiptView = () => require('../../../pages/TransactionReceiptPage').default as React.ComponentType;
+const loadWorkspaceJoinUser = () => require('@pages/workspace/WorkspaceJoinUserPage').default as React.ComponentType;
 
 let timezone: Timezone | null;
 let currentAccountID = -1;
@@ -169,8 +171,9 @@ function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = f
         const shouldGetAllData = !!isUsingMemoryOnlyKeys || SessionUtils.didUserLogInDuringSession();
         // Sign out the current user if we're transitioning with a different user
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
+        const isSupportalTransition = currentUrl.includes('authTokenType=support');
         if (isLoggingInAsNewUser && isTransitioning) {
-            Session.signOutAndRedirectToSignIn();
+            Session.signOutAndRedirectToSignIn(false, isSupportalTransition);
             return;
         }
 
@@ -354,6 +357,24 @@ function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = f
                     name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
                     options={screenOptions.fullScreen}
                     component={DesktopSignInRedirectPage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.WORKSPACE_JOIN_USER}
+                    options={{
+                        headerShown: false,
+                        presentation: 'transparentModal',
+                    }}
+                    listeners={modalScreenListeners}
+                    getComponent={loadWorkspaceJoinUser}
+                />
+                <RootStack.Screen
+                    name={SCREENS.TRANSACTION_RECEIPT}
+                    options={{
+                        headerShown: false,
+                        presentation: 'transparentModal',
+                    }}
+                    getComponent={loadReceiptView}
+                    listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>
         </View>
