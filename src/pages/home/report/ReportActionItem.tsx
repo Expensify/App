@@ -211,7 +211,7 @@ function ReportActionItem({
         return transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     }, [transactionThreadReport, reportActions, transactions]);
 
-    const transactionCurrency = !lodashIsEmpty(transaction) ? transaction?.modifiedCurrency ?? transaction?.currency : report.currency;
+    const transactionCurrency = !lodashIsEmpty(transaction) ? transaction?.modifiedCurrency || transaction?.currency : report.currency;
     const reportScrollManager = useReportScrollManager();
 
     const highlightedBackgroundColorIfNeeded = useMemo(

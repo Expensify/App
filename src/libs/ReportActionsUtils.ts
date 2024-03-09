@@ -569,8 +569,8 @@ function getCombinedReportActionsForDisplay(reportActions: ReportAction[], trans
     // Sort the combined list of parent report actions and transaction thread report actions
     const sortedReportActions = getSortedReportActions([...reportActions, ...filteredTransactionThreadReportActions], true);
 
-    // Filter out IOU report actions because we don't want to show any preview actions for one transaction reports
-    return sortedReportActions.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU);
+    // Filter out "created" IOU report actions because we don't want to show any preview actions for one transaction reports
+    return sortedReportActions.filter((action) => ((action as OriginalMessageIOU).originalMessage?.type ?? '') !== CONST.IOU.REPORT_ACTION_TYPE.CREATE);
 }
 
 /**
