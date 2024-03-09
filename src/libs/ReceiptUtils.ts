@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
-import * as FileUtils from './fileDownload/FileUtils';
+import * as FileUtils from './FileUtils';
 import * as TransactionUtils from './TransactionUtils';
 
 type ThumbnailAndImageURI = {

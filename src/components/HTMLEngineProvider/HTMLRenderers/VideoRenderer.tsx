@@ -2,7 +2,7 @@ import React from 'react';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import VideoPlayerPreview from '@components/VideoPlayerPreview';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import * as FileUtils from '@libs/FileUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';

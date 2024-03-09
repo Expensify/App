@@ -1,7 +1,7 @@
 import {PermissionsAndroid, Platform} from 'react-native';
 import type {FetchBlobResponse} from 'react-native-blob-util';
 import RNFetchBlob from 'react-native-blob-util';
-import * as FileUtils from './FileUtils';
+import * as FileUtils from '@libs/FileUtils';
 import type {FileDownload} from './types';
 
 /**

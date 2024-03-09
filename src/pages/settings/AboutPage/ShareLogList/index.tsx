@@ -1,5 +1,5 @@
 import React from 'react';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import * as FileUtils from '@libs/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Report from '@userActions/Report';
 import ROUTES from '@src/ROUTES';

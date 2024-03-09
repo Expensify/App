@@ -1,6 +1,6 @@
 import {Parser as HtmlParser} from 'htmlparser2';
 import _ from 'underscore';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import * as FileUtils from '@libs/FileUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';

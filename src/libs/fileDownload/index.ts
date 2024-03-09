@@ -1,8 +1,8 @@
 import * as ApiUtils from '@libs/ApiUtils';
+import * as FileUtils from '@libs/FileUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
-import * as FileUtils from './FileUtils';
 import type {FileDownload} from './types';
 
 /**

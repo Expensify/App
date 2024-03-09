@@ -15,7 +15,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import * as FileUtils from '@libs/FileUtils';
 import CONST from '@src/CONST';
 import {defaultProps as baseDefaultProps, propTypes as basePropTypes} from './attachmentPickerPropTypes';
 import launchCamera from './launchCamera';

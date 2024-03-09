@@ -1,6 +1,6 @@
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
-import * as FileUtils from '../../src/libs/fileDownload/FileUtils';
+import * as FileUtils from '../../src/libs/FileUtils';
 
 jest.useFakeTimers();
 

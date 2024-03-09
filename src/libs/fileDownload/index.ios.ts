@@ -1,8 +1,8 @@
 import {CameraRoll} from '@react-native-camera-roll/camera-roll';
 import type {PhotoIdentifier} from '@react-native-camera-roll/camera-roll';
 import RNFetchBlob from 'react-native-blob-util';
+import * as FileUtils from '@libs/FileUtils';
 import CONST from '@src/CONST';
-import * as FileUtils from './FileUtils';
 import type {FileDownload} from './types';
 
 /**
