@@ -128,6 +128,7 @@ const SCREENS = {
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
     DESKTOP_SIGN_IN_REDIRECT: 'DesktopSignInRedirect',
     SAML_SIGN_IN: 'SAMLSignIn',
+    WORKSPACE_JOIN_USER: 'WorkspaceJoinUser',
 
     MONEY_REQUEST: {
         MANUAL_TAB: 'manual',
@@ -223,8 +224,12 @@ const SCREENS = {
         DESCRIPTION: 'Workspace_Profile_Description',
         SHARE: 'Workspace_Profile_Share',
         NAME: 'Workspace_Profile_Name',
+        CATEGORY_CREATE: 'Category_Create',
         CATEGORY_SETTINGS: 'Category_Settings',
         CATEGORIES_SETTINGS: 'Categories_Settings',
+        MEMBER_DETAILS: 'Workspace_Member_Details',
+        MEMBER_DETAILS_ROLE_SELECTION: 'Workspace_Member_Details_Role_Selection',
+        DISTANCE_RATES: 'Distance_Rates',
     },
 
     EDIT_REQUEST: {
@@ -272,6 +277,7 @@ const SCREENS = {
     GET_ASSISTANCE: 'GetAssistance',
     REFERRAL_DETAILS: 'Referral_Details',
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
+    TRANSACTION_RECEIPT: 'TransactionReceipt',
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;

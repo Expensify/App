@@ -1,24 +1,28 @@
+import type {ComponentMeta, ComponentStory} from '@storybook/react';
 import React, {useState} from 'react';
 import MagicCodeInput from '@components/MagicCodeInput';
+import type {MagicCodeInputProps} from '@components/MagicCodeInput';
+
+type MagicCodeInputStory = ComponentStory<typeof MagicCodeInput>;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story = {
+const story: ComponentMeta<typeof MagicCodeInput> = {
     title: 'Components/MagicCodeInput',
     component: MagicCodeInput,
 };
 
-function Template(args) {
+function Template(props: MagicCodeInputProps) {
     const [value, setValue] = useState('');
     return (
         <MagicCodeInput
             value={value}
             onChangeText={setValue}
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...args}
+            {...props}
         />
     );
 }
@@ -26,17 +30,15 @@ function Template(args) {
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 
-const AutoFocus = Template.bind({});
+const AutoFocus: MagicCodeInputStory = Template.bind({});
 AutoFocus.args = {
-    label: 'Auto-focused magic code input',
     name: 'AutoFocus',
     autoFocus: true,
     autoComplete: 'one-time-code',
 };
 
-const SubmitOnComplete = Template.bind({});
+const SubmitOnComplete: MagicCodeInputStory = Template.bind({});
 SubmitOnComplete.args = {
-    label: 'Submits when the magic code input is complete',
     name: 'SubmitOnComplete',
     autoComplete: 'one-time-code',
     shouldSubmitOnComplete: true,

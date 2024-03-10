@@ -1,5 +1,5 @@
 import {StyleSheet} from 'react-native';
-import type {Animated, ColorValue, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {AnimatableNumericValue, Animated, ColorValue, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
@@ -826,6 +826,12 @@ function getEmojiReactionBubbleTextStyle(isContextMenu = false): TextStyle {
     };
 }
 
+function getTransformScaleStyle(scaleValue: AnimatableNumericValue): ViewStyle {
+    return {
+        transform: [{scale: scaleValue}],
+    };
+}
+
 /**
  * Returns a style object with a rotation transformation applied based on the provided direction prop.
  *
@@ -1063,6 +1069,7 @@ const staticStyleUtils = {
     getEmojiPickerListHeight,
     getEmojiPickerStyle,
     getEmojiReactionBubbleTextStyle,
+    getTransformScaleStyle,
     getFontFamilyMonospace,
     getCodeFontSize,
     getFontSizeStyle,
