@@ -1,7 +1,7 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
+import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
@@ -83,7 +83,7 @@ function MoneyRequestAmountForm(
 
     const textInput = useRef<BaseTextInputRef | null>(null);
     const isTaxAmountForm = Navigation.getActiveRoute().includes('taxAmount');
-
+    const isEditAmountForm = Navigation.getActiveRoute().includes('amount');
     const decimals = CurrencyUtils.getCurrencyDecimals(currency);
     const selectedAmountAsString = CurrencyUtils.convertToFrontendAmountAsString(amount);
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
@@ -127,13 +127,13 @@ function MoneyRequestAmountForm(
     }, []);
 
     useEffect(() => {
-        if (!currency || typeof amount !== 'number') {
+        if (!currency || typeof amount !== 'number' || !isEditAmountForm) {
             return;
         }
         initializeAmount(amount);
-        // we want to re-initialize the state only when the selected tab
+        // we want to re-initialize the state only when the selected tab or amount changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedTab]);
+    }, [selectedTab, amount]);
 
     /**
      * Sets the selection and the amount accordingly to the value passed to the input
