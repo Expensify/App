@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import lodashDebounce from 'lodash/debounce';
 import React, {useEffect, useState} from 'react';
 import {Keyboard, View} from 'react-native';
@@ -16,6 +17,8 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -50,11 +53,20 @@ type WorkspaceInviteMessagePageOnyxProps = {
 
 type WorkspaceInviteMessagePageProps = WithPolicyAndFullscreenLoadingProps &
     WorkspaceInviteMessagePageOnyxProps &
+    WithCurrentUserPersonalDetailsProps &
     StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE_MESSAGE>;
 
-function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsToAccountIDsDraft, policy, route, allPersonalDetails}: WorkspaceInviteMessagePageProps) {
+function WorkspaceInviteMessagePage({
+    workspaceInviteMessageDraft,
+    invitedEmailsToAccountIDsDraft,
+    policy,
+    route,
+    allPersonalDetails,
+    currentUserPersonalDetails,
+}: WorkspaceInviteMessagePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const parser = new ExpensiMark();
 
     const [welcomeNote, setWelcomeNote] = useState<string>();
 
@@ -66,6 +78,10 @@ function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsT
         workspaceInviteMessageDraft ||
         translate('workspace.inviteMessage.welcomeNote', {
             workspaceName: policy?.name ?? '',
+            senderDisplayName: currentUserPersonalDetails?.displayName ?? '',
+            senderLogin: currentUserPersonalDetails?.login ?? '',
+            workspaceDescription: parser.htmlToMarkdown(policy?.description ?? ''),
+            workspaceLink: ROUTES.WORKSPACE_PROFILE.getRoute(route.params.policyID),
         });
 
     useEffect(() => {
@@ -200,15 +216,17 @@ function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsT
 WorkspaceInviteMessagePage.displayName = 'WorkspaceInviteMessagePage';
 
 export default withPolicyAndFullscreenLoading(
-    withOnyx<WorkspaceInviteMessagePageProps, WorkspaceInviteMessagePageOnyxProps>({
-        allPersonalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        invitedEmailsToAccountIDsDraft: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
-        },
-        workspaceInviteMessageDraft: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${route.params.policyID.toString()}`,
-        },
-    })(WorkspaceInviteMessagePage),
+    withCurrentUserPersonalDetails(
+        withOnyx<WorkspaceInviteMessagePageProps, WorkspaceInviteMessagePageOnyxProps>({
+            allPersonalDetails: {
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            },
+            invitedEmailsToAccountIDsDraft: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
+            },
+            workspaceInviteMessageDraft: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${route.params.policyID.toString()}`,
+            },
+        })(WorkspaceInviteMessagePage),
+    ),
 );
