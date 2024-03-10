@@ -2,7 +2,6 @@ import lodashDebounce from 'lodash/debounce';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {runOnUI, scrollTo} from 'react-native-reanimated';
-import type {PickerEmojis} from '@assets/emojis/types';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -50,13 +49,13 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps) {
         }
 
         if (normalizedSearchTerm === '') {
-            setFilteredEmojis(allEmojis as PickerEmojis);
+            setFilteredEmojis(allEmojis);
             setHeaderIndices(headerRowIndices);
 
             return;
         }
 
-        setFilteredEmojis(newFilteredEmojiList as PickerEmojis);
+        setFilteredEmojis(newFilteredEmojiList as EmojiUtils.EmojiPickerList);
         setHeaderIndices([]);
     }, 300);
 
