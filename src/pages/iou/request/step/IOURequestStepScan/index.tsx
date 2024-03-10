@@ -182,7 +182,7 @@ function IOURequestStepScan({
                             src={Hand}
                             width={CONST.RECEIPT.HAND_ICON_WIDTH}
                             height={CONST.RECEIPT.HAND_ICON_HEIGHT}
-                            style={[styles.pb5]}
+                            additionalStyles={[styles.pb5]}
                         />
                         <Text style={[styles.textReceiptUpload]}>{translate('receipt.takePhoto')}</Text>
                         <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>

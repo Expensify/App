@@ -33,6 +33,7 @@ function NavigationAwareCamera({torchOn, onTorchAvailability, cameraTabIndex, ..
         }
 
         trackRef.current.applyConstraints({
+            // @ts-expect-error there is a type mismatch in typescipt types for MediaStreamTrack https://github.com/microsoft/TypeScript/issues/39010
             advanced: [{torch: torchOn}],
         });
     }, [torchOn]);
