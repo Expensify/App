@@ -29,7 +29,7 @@ export default function useReimbursementAccountStepFormSubmit({
 }: UseReimbursementAccountStepFormSubmitParams) {
     return useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>) => {
-            if (isEditing || shouldSaveDraft) {
+            if (shouldSaveDraft) {
                 const stepValues = fieldIds.reduce(
                     (acc, key) => ({
                         ...acc,

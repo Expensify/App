@@ -47,6 +47,7 @@ function TaxIdBusiness({reimbursementAccount, onNext, isEditing}: TaxIdBusinessP
         fieldIds: STEP_FIELDS,
         isEditing,
         onNext,
+        shouldSaveDraft: true,
     });
 
     return (

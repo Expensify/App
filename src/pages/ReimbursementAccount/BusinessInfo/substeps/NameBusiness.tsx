@@ -49,6 +49,7 @@ function NameBusiness({reimbursementAccount, onNext, isEditing}: NameBusinessPro
         fieldIds: STEP_FIELDS,
         isEditing,
         onNext,
+        shouldSaveDraft: true,
     });
 
     return (

@@ -65,6 +65,7 @@ function AddressBusiness({reimbursementAccount, onNext, isEditing}: AddressBusin
         fieldIds: STEP_FIELDS,
         isEditing,
         onNext,
+        shouldSaveDraft: true,
     });
 
     return (
