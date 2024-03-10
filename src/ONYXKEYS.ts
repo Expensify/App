@@ -1,4 +1,4 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type * as FormTypes from './types/form';
@@ -128,6 +128,9 @@ const ONYXKEYS = {
     /** This NVP contains the choice that the user made on the engagement modal */
     NVP_INTRO_SELECTED: 'introSelected',
 
+    /** The NVP with the last distance rate used per policy */
+    NVP_LAST_SELECTED_DISTANCE_RATES: 'lastSelectedDistanceRates',
+
     /** Does this user have push notifications enabled for this device? */
     PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
 
@@ -238,9 +241,6 @@ const ONYXKEYS = {
     // This can be either "light", "dark" or "system"
     PREFERRED_THEME: 'preferredTheme',
 
-    // Experimental memory only Onyx mode flag
-    IS_USING_MEMORY_ONLY_KEYS: 'isUsingMemoryOnlyKeys',
-
     // Information about the onyx updates IDs that were received from the server
     ONYX_UPDATES_FROM_SERVER: 'onyxUpdatesFromServer',
 
@@ -284,6 +284,7 @@ const ONYXKEYS = {
         POLICY_MEMBERS: 'policyMembers_',
         POLICY_DRAFTS: 'policyDrafts_',
         POLICY_MEMBERS_DRAFTS: 'policyMembersDrafts_',
+        POLICY_JOIN_MEMBER: 'policyJoinMember_',
         POLICY_CATEGORIES: 'policyCategories_',
         POLICY_RECENTLY_USED_CATEGORIES: 'policyRecentlyUsedCategories_',
         POLICY_TAGS: 'policyTags_',
@@ -326,6 +327,8 @@ const ONYXKEYS = {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
         ADD_DEBIT_CARD_FORM_DRAFT: 'addDebitCardFormDraft',
         WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
+        WORKSPACE_CATEGORY_CREATE_FORM: 'workspaceCategoryCreate',
+        WORKSPACE_CATEGORY_CREATE_FORM_DRAFT: 'workspaceCategoryCreateDraft',
         WORKSPACE_SETTINGS_FORM_DRAFT: 'workspaceSettingsFormDraft',
         WORKSPACE_DESCRIPTION_FORM: 'workspaceDescriptionForm',
         WORKSPACE_DESCRIPTION_FORM_DRAFT: 'workspaceDescriptionFormDraft',
@@ -407,6 +410,7 @@ type AllOnyxKeys = DeepValueOf<typeof ONYXKEYS>;
 type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM]: FormTypes.AddDebitCardForm;
     [ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM]: FormTypes.WorkspaceSettingsForm;
+    [ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE_FORM]: FormTypes.WorkspaceCategoryCreateForm;
     [ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM]: FormTypes.WorkspaceRateAndUnitForm;
     [ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM]: FormTypes.CloseAccountForm;
     [ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM]: FormTypes.ProfileSettingsForm;
@@ -481,6 +485,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SELECTED_TAB]: string;
     [ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT]: string;
     [ONYXKEYS.COLLECTION.NEXT_STEP]: OnyxTypes.ReportNextStep;
+    [ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER]: OnyxTypes.PolicyJoinMember;
 };
 
 type OnyxValuesMapping = {
@@ -524,6 +529,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoint[];
     [ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL]: boolean;
     [ONYXKEYS.NVP_INTRO_SELECTED]: OnyxTypes.IntroSelected;
+    [ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES]: OnyxTypes.LastSelectedDistanceRates;
     [ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED]: boolean;
     [ONYXKEYS.PLAID_DATA]: OnyxTypes.PlaidData;
     [ONYXKEYS.IS_PLAID_DISABLED]: boolean;
@@ -557,7 +563,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS]: Record<string, string>;
     [ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID]: string;
     [ONYXKEYS.PREFERRED_THEME]: ValueOf<typeof CONST.THEME>;
-    [ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS]: boolean;
     [ONYXKEYS.MAPBOX_ACCESS_TOKEN]: OnyxTypes.MapboxAccessToken;
     [ONYXKEYS.ONYX_UPDATES_FROM_SERVER]: OnyxTypes.OnyxUpdatesFromServer;
     [ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT]: number;
@@ -582,7 +587,7 @@ type OnyxFormDraftKey = keyof OnyxFormDraftValuesMapping;
 type OnyxValueKey = keyof OnyxValuesMapping;
 
 type OnyxKey = OnyxValueKey | OnyxCollectionKey | OnyxFormKey | OnyxFormDraftKey;
-type OnyxValue<TOnyxKey extends OnyxKey> = OnyxEntry<OnyxValues[TOnyxKey]>;
+type OnyxValue<TOnyxKey extends OnyxKey> = TOnyxKey extends keyof OnyxCollectionValuesMapping ? OnyxCollection<OnyxValues[TOnyxKey]> : OnyxEntry<OnyxValues[TOnyxKey]>;
 
 type MissingOnyxKeysError = `Error: Types don't match, OnyxKey type is missing: ${Exclude<AllOnyxKeys, OnyxKey>}`;
 /** If this type errors, it means that the `OnyxKey` type is missing some keys. */

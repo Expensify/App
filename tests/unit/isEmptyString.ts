@@ -1,6 +1,5 @@
-import _ from 'underscore';
-import enEmojis from '../../assets/emojis/en';
-import StringUtils from '../../src/libs/StringUtils';
+import enEmojis from '@assets/emojis/en';
+import StringUtils from '@libs/StringUtils';
 
 describe('libs/StringUtils.isEmptyString', () => {
     it('basic tests', () => {
@@ -50,7 +49,7 @@ describe('libs/StringUtils.isEmptyString', () => {
         expect(StringUtils.isEmptyString('😀')).toBe(false);
     });
     it('all emojis not removed', () => {
-        _.keys(enEmojis).forEach((key) => {
+        Object.keys(enEmojis).forEach((key) => {
             expect(StringUtils.isEmptyString(key)).toBe(false);
         });
     });
