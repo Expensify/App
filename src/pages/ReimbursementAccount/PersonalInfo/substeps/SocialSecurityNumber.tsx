@@ -46,7 +46,6 @@ function SocialSecurityNumber({reimbursementAccount, onNext, isEditing}: SocialS
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
-        isEditing,
     });
 
     return (

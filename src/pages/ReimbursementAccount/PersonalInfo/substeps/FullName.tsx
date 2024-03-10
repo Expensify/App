@@ -52,7 +52,6 @@ function FullName({reimbursementAccount, onNext, isEditing}: FullNameProps) {
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
-        isEditing,
     });
 
     return (

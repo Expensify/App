@@ -59,7 +59,6 @@ function AddressUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwn
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: stepFields,
-        isEditing,
         onNext,
     });
 

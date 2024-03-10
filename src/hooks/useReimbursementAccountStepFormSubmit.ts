@@ -5,7 +5,7 @@ import type {OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SubStepProps} from './useSubStep/types';
 
-type UseReimbursementAccountStepFormSubmitParams = Pick<SubStepProps, 'isEditing' | 'onNext'> & {
+type UseReimbursementAccountStepFormSubmitParams = Pick<SubStepProps, 'onNext'> & {
     formId?: OnyxFormKey;
     fieldIds: Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>>;
     shouldSaveDraft?: boolean;
@@ -15,17 +15,15 @@ type UseReimbursementAccountStepFormSubmitParams = Pick<SubStepProps, 'isEditing
  * Hook for handling submit method in ReimbursementAccount substeps.
  * When user is in editing mode we should save values only when user confirm that
  * @param formId - ID for particular form
- * @param isEditing - if form is in editing mode
  * @param onNext - callback
  * @param fieldIds - field IDs for particular step
  * @param shouldSaveDraft - if we should save draft values
  */
 export default function useReimbursementAccountStepFormSubmit({
     formId = ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM,
-    isEditing,
     onNext,
     fieldIds,
-    shouldSaveDraft = false,
+    shouldSaveDraft = true,
 }: UseReimbursementAccountStepFormSubmitParams) {
     return useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>) => {
@@ -43,6 +41,6 @@ export default function useReimbursementAccountStepFormSubmit({
 
             onNext();
         },
-        [isEditing, onNext, formId, fieldIds, shouldSaveDraft],
+        [onNext, formId, fieldIds, shouldSaveDraft],
     );
 }

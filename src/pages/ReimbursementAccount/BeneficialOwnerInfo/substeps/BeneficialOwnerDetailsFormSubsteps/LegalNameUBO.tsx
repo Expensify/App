@@ -39,7 +39,6 @@ function LegalNameUBO({reimbursementAccountDraft, onNext, isEditing, beneficialO
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: stepFields,
-        isEditing,
         onNext,
     });
 
