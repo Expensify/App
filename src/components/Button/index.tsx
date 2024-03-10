@@ -198,7 +198,7 @@ function Button(
         accessibilityLabel = '',
         ...rest
     }: ButtonProps,
-    ref: ForwardedRef<View>,
+    ref: ForwardedRef<View | HTMLDivElement>,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -315,7 +315,7 @@ function Button(
                     large ? styles.buttonLarge : undefined,
                     success ? styles.buttonSuccess : undefined,
                     danger ? styles.buttonDanger : undefined,
-                    isDisabled && (success || danger) ? styles.buttonOpacityDisabled : undefined,
+                    isDisabled ? styles.buttonOpacityDisabled : undefined,
                     isDisabled && !danger && !success ? styles.buttonDisabled : undefined,
                     shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
                     shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
