@@ -294,7 +294,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 onDismissError={() => onDismissError?.(item)}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
-                keyForList={item.keyForList}
+                keyForList={item.keyForList ?? ''}
                 isMultilineSupported={isRowMultilineSupported}
             />
         );
@@ -457,7 +457,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                     getItemLayout={getItemLayout}
                                     onScroll={onScroll}
                                     onScrollBeginDrag={onScrollBeginDrag}
-                                    keyExtractor={(item) => item.keyForList}
+                                    keyExtractor={(item, index) => item.keyForList ?? `${index}`}
                                     extraData={focusedIndex}
                                     indicatorStyle="white"
                                     keyboardShouldPersistTaps="always"
