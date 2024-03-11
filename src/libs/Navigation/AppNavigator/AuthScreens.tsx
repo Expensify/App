@@ -61,7 +61,6 @@ const loadProfileAvatar = () => require('../../../pages/settings/Profile/Profile
 const loadWorkspaceAvatar = () => require('../../../pages/workspace/WorkspaceAvatar').default as React.ComponentType;
 const loadReportAvatar = () => require('../../../pages/ReportAvatar').default as React.ComponentType;
 const loadReceiptView = () => require('../../../pages/TransactionReceiptPage').default as React.ComponentType;
-const loadWorkspaceJoinUser = () => require('@pages/workspace/WorkspaceJoinUserPage').default as React.ComponentType;
 
 let timezone: Timezone | null;
 let currentAccountID = -1;
@@ -350,15 +349,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
                     options={screenOptions.fullScreen}
                     component={DesktopSignInRedirectPage}
-                />
-                <RootStack.Screen
-                    name={SCREENS.WORKSPACE_JOIN_USER}
-                    options={{
-                        headerShown: false,
-                        presentation: 'transparentModal',
-                    }}
-                    listeners={modalScreenListeners}
-                    getComponent={loadWorkspaceJoinUser}
                 />
                 <RootStack.Screen
                     name={SCREENS.TRANSACTION_RECEIPT}

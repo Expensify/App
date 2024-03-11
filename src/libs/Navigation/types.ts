@@ -98,6 +98,10 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.DISTANCE_RATES]: {
         policyID: string;
     };
+    [SCREENS.SETTINGS.WORKSPACE_JOIN_USER]: {
+        policyID: string;
+        email: string;
+    };
 };
 
 type WorkspaceSwitcherNavigatorParamList = {
@@ -583,10 +587,6 @@ type AuthScreensParamList = SharedScreensParamList & {
     };
     [SCREENS.WORKSPACE_AVATAR]: {
         policyID: string;
-    };
-    [SCREENS.WORKSPACE_JOIN_USER]: {
-        policyID: string;
-        email: string;
     };
     [SCREENS.REPORT_AVATAR]: {
         reportID: string;

@@ -26,6 +26,7 @@ const SCREENS = {
         ROOT: 'Settings_Root',
         SHARE_CODE: 'Settings_Share_Code',
         WORKSPACES: 'Settings_Workspaces',
+        WORKSPACE_JOIN_USER: 'WorkspaceJoinUser',
         SECURITY: 'Settings_Security',
         ABOUT: 'Settings_About',
         APP_DOWNLOAD_LINKS: 'Settings_App_Download_Links',
@@ -128,7 +129,6 @@ const SCREENS = {
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
     DESKTOP_SIGN_IN_REDIRECT: 'DesktopSignInRedirect',
     SAML_SIGN_IN: 'SAMLSignIn',
-    WORKSPACE_JOIN_USER: 'WorkspaceJoinUser',
 
     MONEY_REQUEST: {
         MANUAL_TAB: 'manual',

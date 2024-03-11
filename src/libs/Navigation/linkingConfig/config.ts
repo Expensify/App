@@ -23,7 +23,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.WORKSPACE_AVATAR]: ROUTES.WORKSPACE_AVATAR.route,
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
-        [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
 
         // Sidebar
         [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]: {
@@ -44,6 +43,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
 
                 [SCREENS.SETTINGS.WORKSPACES]: ROUTES.SETTINGS_WORKSPACES,
+                [SCREENS.SETTINGS.WORKSPACE_JOIN_USER]: {path: ROUTES.WORKSPACE_JOIN_USER.route},
                 [SCREENS.WORKSPACE.PROFILE]: ROUTES.WORKSPACE_PROFILE.route,
                 [SCREENS.WORKSPACE.CARD]: {
                     path: ROUTES.WORKSPACE_CARD.route,

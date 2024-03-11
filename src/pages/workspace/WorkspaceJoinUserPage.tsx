@@ -9,7 +9,7 @@ import navigateAfterJoinRequest from '@libs/navigateAfterJoinRequest';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
-import type {AuthScreensParamList} from '@navigation/types';
+import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import * as PolicyAction from '@userActions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -20,10 +20,8 @@ type WorkspaceJoinUserPageOnyxProps = {
     policies: OnyxCollection<Policy>;
 };
 
-type WorkspaceJoinUserPageRoute = {route: StackScreenProps<AuthScreensParamList, typeof SCREENS.WORKSPACE_JOIN_USER>['route']};
+type WorkspaceJoinUserPageRoute = {route: StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.SETTINGS.WORKSPACE_JOIN_USER>['route']};
 type WorkspaceJoinUserPageProps = WorkspaceJoinUserPageRoute & WorkspaceJoinUserPageOnyxProps;
-
-let isJoinLinkUsed = false;
 
 function WorkspaceJoinUserPage({route, policies}: WorkspaceJoinUserPageProps) {
     const styles = useThemeStyles();
@@ -33,14 +31,7 @@ function WorkspaceJoinUserPage({route, policies}: WorkspaceJoinUserPageProps) {
     const isUnmounted = useRef(false);
 
     useEffect(() => {
-        if (!isJoinLinkUsed) {
-            return;
-        }
-        navigateAfterJoinRequest();
-    }, []);
-
-    useEffect(() => {
-        if (!policy || !policies || isUnmounted.current || isJoinLinkUsed) {
+        if (!policy || !policies || isUnmounted.current) {
             return;
         }
         const isPolicyMember = PolicyUtils.isPolicyMember(policyID, policies as Record<string, Policy>);
@@ -49,11 +40,11 @@ function WorkspaceJoinUserPage({route, policies}: WorkspaceJoinUserPageProps) {
             return;
         }
         PolicyAction.inviteMemberToWorkspace(policyID, inviterEmail);
-        isJoinLinkUsed = true;
         Navigation.isNavigationReady().then(() => {
             if (isUnmounted.current) {
                 return;
             }
+            isUnmounted.current = true;
             navigateAfterJoinRequest();
         });
     }, [policy, policyID, policies, inviterEmail]);
