@@ -2662,7 +2662,11 @@ function navigateWhenEnableFeature(policyID: string, featureRoute: Route) {
         return;
     }
 
-    Navigation.navigate(featureRoute);
+    new Promise<void>((resolve) => {
+        resolve();
+    }).then(() => {
+        Navigation.navigate(featureRoute);
+    });
 }
 
 function enablePolicyCategories(policyID: string, enabled: boolean) {
