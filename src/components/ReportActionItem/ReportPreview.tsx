@@ -19,7 +19,6 @@ import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -30,7 +29,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportAction, Session, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ReportActionItemImages from './ReportActionItemImages';
 
@@ -43,9 +42,6 @@ type ReportPreviewOnyxProps = {
 
     /** Active IOU Report for current report */
     iouReport: OnyxEntry<Report>;
-
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<Session>;
 
     /** All the transactions, used to update ReportPreview label and status */
     transactions: OnyxCollection<Transaction>;
@@ -85,7 +81,6 @@ type ReportPreviewProps = ReportPreviewOnyxProps & {
 
 function ReportPreview({
     iouReport,
-    session,
     policy,
     iouReportID,
     policyID,
@@ -118,16 +113,13 @@ function ReportPreview({
     );
 
     const managerID = iouReport?.managerID ?? 0;
-    const isCurrentUserManager = managerID === session?.accountID;
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
-    const isAutoReimbursable = ReportUtils.canBeAutoReimbursed(iouReport, policy);
 
     const iouSettled = ReportUtils.isSettled(iouReportID);
-    const iouCanceled = ReportUtils.isArchivedRoom(chatReport);
     const numberOfRequests = ReportActionUtils.getNumberOfMoneyRequests(action);
     const moneyRequestComment = action?.childLastMoneyRequestComment ?? '';
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
-    const isDraftExpenseReport = isPolicyExpenseChat && ReportUtils.isDraftExpenseReport(iouReport);
+    const isOpenExpenseReport = isPolicyExpenseChat && ReportUtils.isOpenExpenseReport(iouReport);
 
     const isApproved = ReportUtils.isReportApproved(iouReport);
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport);
@@ -155,7 +147,7 @@ function ReportPreview({
             pendingReceipts: numberOfPendingRequests,
         });
 
-    const shouldShowSubmitButton = isDraftExpenseReport && reimbursableSpend !== 0;
+    const shouldShowSubmitButton = isOpenExpenseReport && reimbursableSpend !== 0;
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(
@@ -208,23 +200,10 @@ function ReportPreview({
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
 
-    const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
-    const isPayer = ReportUtils.isPayer(session, iouReport);
-    const isOnInstantSubmitPolicy = PolicyUtils.isInstantSubmitEnabled(policy);
-    const isOnSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
-    const shouldShowPayButton = useMemo(
-        () => isPayer && !isDraftExpenseReport && !iouSettled && !iouReport?.isWaitingOnBankAccount && reimbursableSpend !== 0 && !iouCanceled && !isAutoReimbursable,
-        [isPayer, isDraftExpenseReport, iouSettled, reimbursableSpend, iouCanceled, isAutoReimbursable, iouReport],
-    );
-    const shouldShowApproveButton = useMemo(() => {
-        if (!isPaidGroupPolicy) {
-            return false;
-        }
-        if (isOnInstantSubmitPolicy && isOnSubmitAndClosePolicy) {
-            return false;
-        }
-        return isCurrentUserManager && !isDraftExpenseReport && !isApproved && !iouSettled;
-    }, [isPaidGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, isOnInstantSubmitPolicy, isOnSubmitAndClosePolicy, iouSettled]);
+    const shouldShowPayButton = useMemo(() => IOU.canIOUBePaid(iouReport, chatReport, policy), [iouReport, chatReport, policy]);
+
+    const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(iouReport, chatReport, policy), [iouReport, chatReport, policy]);
+
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
 
     /*
@@ -352,9 +331,6 @@ export default withOnyx<ReportPreviewProps, ReportPreviewOnyxProps>({
     },
     iouReport: {
         key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
     },
     transactions: {
         key: ONYXKEYS.COLLECTION.TRANSACTION,

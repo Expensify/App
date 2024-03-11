@@ -1035,12 +1035,6 @@ const CONST = {
         VIDEO: 'video',
     },
 
-    IMAGE_FILE_FORMAT: {
-        PNG: 'image/png',
-        WEBP: 'image/webp',
-        JPEG: 'image/jpeg',
-    },
-
     FILE_TYPE_REGEX: {
         // Image MimeTypes allowed by iOS photos app.
         IMAGE: /\.(jpg|jpeg|png|webp|gif|tiff|bmp|heic|heif)$/,
@@ -1416,6 +1410,11 @@ const CONST = {
             REMOVE: 'remove',
             MAKE_MEMBER: 'makeMember',
             MAKE_ADMIN: 'makeAdmin',
+        },
+        DISTANCE_RATES_BULK_ACTION_TYPES: {
+            DELETE: 'delete',
+            DISABLE: 'disable',
+            ENABLE: 'enable',
         },
     },
 
