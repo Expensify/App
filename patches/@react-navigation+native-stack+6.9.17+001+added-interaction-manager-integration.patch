@@ -1,0 +1,55 @@
+diff --git a/node_modules/@react-navigation/native-stack/src/views/NativeStackView.native.tsx b/node_modules/@react-navigation/native-stack/src/views/NativeStackView.native.tsx
+index 03d8b50..a6a54ba 100644
+--- a/node_modules/@react-navigation/native-stack/src/views/NativeStackView.native.tsx
++++ b/node_modules/@react-navigation/native-stack/src/views/NativeStackView.native.tsx
+@@ -17,7 +17,7 @@ import {
+   useTheme,
+ } from '@react-navigation/native';
+ import * as React from 'react';
+-import { Platform, StyleSheet, View } from 'react-native';
++import { InteractionManager, Platform, StyleSheet, View } from 'react-native';
+ import {
+   useSafeAreaFrame,
+   useSafeAreaInsets,
+@@ -121,7 +121,7 @@ type SceneViewProps = {
+   previousDescriptor?: NativeStackDescriptor;
+   nextDescriptor?: NativeStackDescriptor;
+   onWillDisappear: () => void;
+-  onAppear: () => void;
++  onAppear: ScreenProps['onAppear'];
+   onDisappear: () => void;
+   onDismissed: ScreenProps['onDismissed'];
+   onHeaderBackButtonClicked: ScreenProps['onHeaderBackButtonClicked'];
+@@ -234,6 +234,23 @@ const SceneView = ({
+     statusBarHeight
+   );
+ 
++  const interactionHandleRef = React.useRef<number>();
++
++  // this memo acts as a synchronous useEffect
++  React.useMemo(() => {
++    if (focused && interactionHandleRef.current === undefined) {
++      interactionHandleRef.current = InteractionManager.createInteractionHandle();
++    }
++  }, [focused]);
++  const onAppearCallback: ScreenProps["onAppear"] = React.useCallback((e) => {
++    onAppear?.(e);
++
++    if (interactionHandleRef.current !== undefined) {
++      InteractionManager.clearInteractionHandle(interactionHandleRef.current);
++      interactionHandleRef.current = undefined;
++    }
++  }, []);
++
+   const [customHeaderHeight, setCustomHeaderHeight] =
+     React.useState(defaultHeaderHeight);
+ 
+@@ -279,7 +296,7 @@ const SceneView = ({
+       swipeDirection={gestureDirectionOverride}
+       transitionDuration={animationDuration}
+       onWillDisappear={onWillDisappear}
+-      onAppear={onAppear}
++      onAppear={onAppearCallback}
+       onDisappear={onDisappear}
+       onDismissed={onDismissed}
+       isNativeStack
