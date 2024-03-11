@@ -1,8 +1,11 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
-import {ScrollView, View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView} from 'react-native';
+import {View} from 'react-native';
 import SignInGradient from '@assets/images/home-fade-gradient.svg';
 import ImageSVG from '@components/ImageSVG';
+import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -38,7 +41,7 @@ function SignInPageLayout(
     const StyleUtils = useStyleUtils();
     const {preferredLocale} = useLocalize();
     const {top: topInsets, bottom: bottomInsets} = useSafeAreaInsets();
-    const scrollViewRef = useRef<ScrollView>(null);
+    const scrollViewRef = useRef<RNScrollView>(null);
     const prevPreferredLocale = usePrevious(preferredLocale);
     const {windowHeight, isMediumScreenWidth, isLargeScreenWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();

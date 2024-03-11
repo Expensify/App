@@ -106,7 +106,7 @@ type Hierarchy = Record<string, Category & {[key: string]: Hierarchy & Category}
 
 type GetOptionsConfig = {
     reportActions?: ReportActions;
-    betas?: Beta[];
+    betas?: OnyxEntry<Beta[]>;
     selectedOptions?: Option[];
     maxRecentReportsToShow?: number;
     excludeLogins?: string[];
@@ -154,7 +154,6 @@ type MemberForList = {
 type SectionForSearchTerm = {
     section: CategorySection;
 };
-
 type GetOptions = {
     recentReports: ReportUtils.OptionData[];
     personalDetails: ReportUtils.OptionData[];
@@ -531,7 +530,6 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
     const lastOriginalReportAction = lastReportActions[report?.reportID ?? ''] ?? null;
     let lastMessageTextFromReport = '';
-    const lastActionName = lastReportAction?.actionName ?? '';
 
     if (ReportUtils.isArchivedRoom(report)) {
         const archiveReason =
@@ -583,12 +581,8 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
         const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction(report?.reportID, lastReportAction);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
-    } else if (
-        lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
-        lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED ||
-        lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED
-    ) {
-        lastMessageTextFromReport = lastReportAction?.message?.[0].text ?? '';
+    } else if (ReportActionUtils.isTaskAction(lastReportAction)) {
+        lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(TaskUtils.getTaskReportActionMessage(lastReportAction).text);
     } else if (ReportActionUtils.isCreatedTaskReportAction(lastReportAction)) {
         lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
     } else if (ReportActionUtils.isApprovedOrSubmittedReportAction(lastReportAction)) {
@@ -1407,7 +1401,8 @@ function getOptions(
         const {parentReportID, parentReportActionID} = report ?? {};
         const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
         const parentReportAction = canGetParentReport ? allReportActions[parentReportID]?.[parentReportActionID] ?? null : null;
-        const doesReportHaveViolations = betas.includes(CONST.BETAS.VIOLATIONS) && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
+        const doesReportHaveViolations =
+            (betas?.includes(CONST.BETAS.VIOLATIONS) && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction)) ?? false;
 
         return ReportUtils.shouldReportBeInOptionList({
             report,
@@ -1771,7 +1766,7 @@ function getIOUConfirmationOptionsFromParticipants(participants: Participant[], 
 function getFilteredOptions(
     reports: OnyxCollection<Report>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
-    betas: Beta[] = [],
+    betas: OnyxEntry<Beta[]> = [],
     searchValue = '',
     selectedOptions: Array<Partial<ReportUtils.OptionData>> = [],
     excludeLogins: string[] = [],
@@ -1818,9 +1813,9 @@ function getFilteredOptions(
  */
 
 function getShareDestinationOptions(
-    reports: Record<string, Report>,
+    reports: Record<string, Report | null>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
-    betas: Beta[] = [],
+    betas: OnyxEntry<Beta[]> = [],
     searchValue = '',
     selectedOptions: Array<Partial<ReportUtils.OptionData>> = [],
     excludeLogins: string[] = [],
