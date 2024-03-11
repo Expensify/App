@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
+import {View, FlatList} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -195,11 +195,8 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
         displayNameForAuthorizedPayer,
     ]);
 
-    const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
-        <View
-            style={styles.mt7}
-            key={`toggleSettingOptionRow-${index}`}
-        >
+    const renderOptionItem = ({item}: {item: ToggleSettingOptionRowProps}) => (
+        <View style={styles.mt7}>
             <ToggleSettingOptionRow
                 icon={item.icon}
                 title={item.title}
@@ -235,7 +232,11 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
                 >
                     <View>
                         <Text style={[styles.mt3, styles.textSupporting]}>{translate('workflowsPage.workflowDescription')}</Text>
-                        {optionItems.map((item, index) => renderOptionItem(item, index))}
+                        <FlatList
+                            data={optionItems}
+                            renderItem={renderOptionItem}
+                            keyExtractor={(item: ToggleSettingOptionRowProps) => item.title}
+                        />
                     </View>
                 </Section>
             </View>
