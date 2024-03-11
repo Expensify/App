@@ -58,11 +58,11 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
 
     const createCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE_FORM>) => {
-            Policy.createPolicyCategory(route.params.policyID, values.categoryName.trim());
+            Policy.renamePolicyCategory(route.params.policyID, {oldName: route.params.categoryName, newName: values.categoryName});
             Keyboard.dismiss();
             Navigation.goBack();
         },
-        [route.params.policyID],
+        [route.params.categoryName, route.params.policyID],
     );
 
     return (
@@ -88,6 +88,7 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
                         <InputWrapper
                             InputComponent={TextInput}
                             maxLength={CONST.CATEGORY_NAME_LIMIT}
+                            defaultValue={route.params.categoryName}
                             label={translate('common.name')}
                             accessibilityLabel={translate('common.name')}
                             inputID={INPUT_IDS.CATEGORY_NAME}
