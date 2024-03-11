@@ -105,6 +105,9 @@ type TaxCode = {
     name: string;
 };
 
+/**
+ * Data imported from QuickBooks Online.
+ */
 type QBOConnectionData = {
     country: string;
     edition: string;
