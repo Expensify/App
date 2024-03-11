@@ -80,13 +80,13 @@ function SelectionListWrapper({canSelectMultiple}: SelectionListWrapperProps) {
 
     const onSelectRow = (item: ListItem) => {
         if (canSelectMultiple) {
-            if (selectedIds.includes(item.keyForList)) {
+            if (selectedIds.includes(item.keyForList as string)) {
                 setSelectedIds(selectedIds.filter((selectedId) => selectedId === item.keyForList));
             } else {
-                setSelectedIds([...selectedIds, item.keyForList]);
+                setSelectedIds([...selectedIds, (item.keyForList as string)]);
             }
         } else {
-            setSelectedIds([item.keyForList]);
+            setSelectedIds([(item.keyForList as string)]);
         }
     };
 
