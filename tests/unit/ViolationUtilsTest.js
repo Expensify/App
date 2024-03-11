@@ -132,11 +132,6 @@ describe('getViolationsOnyxData', () => {
                         Lunch: {name: 'Lunch', enabled: true},
                         Dinner: {name: 'Dinner', enabled: true},
                     },
-                    Tag: {
-                        name: 'Tag',
-                        required: true,
-                        tags: {Lunch: {enabled: true}, Dinner: {enabled: true}},
-                    },
                 },
             };
             transaction.tag = 'Lunch';
@@ -199,6 +194,79 @@ describe('getViolationsOnyxData', () => {
 
             expect(result.value).not.toContainEqual([tagOutOfPolicyViolation]);
             expect(result.value).not.toContainEqual([missingTagViolation]);
+        });
+    });
+    describe('policy has multi level tags', () => {
+        beforeEach(() => {
+            policyRequiresTags = true;
+            policyTags = {
+                Department: {
+                    name: 'Department',
+                    tags: {
+                        Accounting: {
+                            name: 'Accounting',
+                            enabled: true,
+                        },
+                    },
+                    required: true,
+                },
+                Region: {
+                    name: 'Region',
+                    tags: {
+                        Africa: {
+                            name: 'Africa',
+                            enabled: true,
+                        },
+                    },
+                },
+                Project: {
+                    name: 'Project',
+                    tags: {
+                        Project1: {
+                            name: 'Project1',
+                            enabled: true,
+                        },
+                    },
+                    required: true,
+                },
+            };
+        });
+        it('should return someTagLevelsRequired when a required tag is missing', () => {
+            const someTagLevelsRequiredViolation = {
+                name: 'someTagLevelsRequired',
+                type: 'violation',
+                data: {
+                    errorIndexes: [0, 1, 2],
+                },
+            };
+
+            // Test case where transaction has no tags
+            let result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
+            expect(result.value).toEqual([someTagLevelsRequiredViolation]);
+
+            // Test case where transaction has 1 tag
+            transaction.tag = 'Accounting';
+            someTagLevelsRequiredViolation.data = {errorIndexes: [1, 2]};
+            result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
+            expect(result.value).toEqual([someTagLevelsRequiredViolation]);
+
+            // Test case where transaction has 2 tags
+            transaction.tag = 'Accounting::Project1';
+            someTagLevelsRequiredViolation.data = {errorIndexes: [1]};
+            result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
+            expect(result.value).toEqual([someTagLevelsRequiredViolation]);
+
+            // Test case where transaction has all tags
+            transaction.tag = 'Accounting:Africa:Project1';
+            result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
+            expect(result.value).toEqual([]);
+        });
+        it('should return tagOutOfPolicy when a tag is not enabled in the policy but is set in the transaction', () => {
+            policyTags.Department.tags.Accounting.enabled = false;
+            transaction.tag = 'Accounting:Africa:Project1';
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
+            const violation = {...tagOutOfPolicyViolation, data: {tagName: 'Department'}};
+            expect(result.value).toEqual([violation]);
         });
     });
 });

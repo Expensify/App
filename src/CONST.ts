@@ -98,6 +98,8 @@ const CONST = {
     AVATAR_MAX_WIDTH_PX: 4096,
     AVATAR_MAX_HEIGHT_PX: 4096,
 
+    LOGO_MAX_SCALE: 1.5,
+
     BREADCRUMB_TYPE: {
         ROOT: 'root',
         STRONG: 'strong',
@@ -1036,12 +1038,6 @@ const CONST = {
         VIDEO: 'video',
     },
 
-    IMAGE_FILE_FORMAT: {
-        PNG: 'image/png',
-        WEBP: 'image/webp',
-        JPEG: 'image/jpeg',
-    },
-
     FILE_TYPE_REGEX: {
         // Image MimeTypes allowed by iOS photos app.
         IMAGE: /\.(jpg|jpeg|png|webp|gif|tiff|bmp|heic|heif)$/,
@@ -1417,6 +1413,11 @@ const CONST = {
             REMOVE: 'remove',
             MAKE_MEMBER: 'makeMember',
             MAKE_ADMIN: 'makeAdmin',
+        },
+        DISTANCE_RATES_BULK_ACTION_TYPES: {
+            DELETE: 'delete',
+            DISABLE: 'disable',
+            ENABLE: 'enable',
         },
     },
 

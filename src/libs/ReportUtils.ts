@@ -740,7 +740,7 @@ function isReportApproved(reportOrID: OnyxEntry<Report> | string | EmptyObject):
 /**
  * Checks if the supplied report is an expense report in Open state and status.
  */
-function isDraftExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean {
+function isOpenExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean {
     return isExpenseReport(report) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
 }
 
@@ -1268,7 +1268,7 @@ function isMoneyRequest(reportOrID: OnyxEntry<Report> | string): boolean {
 /**
  * Checks if a report is an IOU or expense report.
  */
-function isMoneyRequestReport(reportOrID: OnyxEntry<Report> | string): boolean {
+function isMoneyRequestReport(reportOrID: OnyxEntry<Report> | EmptyObject | string): boolean {
     const report = typeof reportOrID === 'object' ? reportOrID : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null;
     return isIOUReport(report) || isExpenseReport(report);
 }
@@ -2191,7 +2191,7 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
         return Localize.translateLocal('iou.payerSpentAmount', {payer: payerOrApproverName, amount: formattedAmount});
     }
 
-    if (isProcessingReport(report) || isDraftExpenseReport(report) || moneyRequestTotal === 0) {
+    if (isProcessingReport(report) || isOpenExpenseReport(report) || moneyRequestTotal === 0) {
         return Localize.translateLocal('iou.payerOwesAmount', {payer: payerOrApproverName, amount: formattedAmount});
     }
 
@@ -2272,7 +2272,7 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>): boolean {
     const isManager = currentUserAccountID === moneyRequestReport?.managerID;
 
     // Admin & managers can always edit coding fields such as tag, category, billable, etc. As long as the report has a state higher than OPEN.
-    if ((isAdmin || isManager) && !isDraftExpenseReport(moneyRequestReport)) {
+    if ((isAdmin || isManager) && !isOpenExpenseReport(moneyRequestReport)) {
         return true;
     }
 
@@ -2712,11 +2712,13 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         return formattedName;
     }
 
-    // Not a room or PolicyExpenseChat, generate title from participants
-    const participantAccountIDs = report?.participantAccountIDs ?? [];
+    // Not a room or PolicyExpenseChat, generate title from first 5 other participants
+    const participantAccountIDs = report?.participantAccountIDs?.slice(0, 6) ?? [];
     const participantsWithoutCurrentUser = participantAccountIDs.filter((accountID) => accountID !== currentUserAccountID);
     const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
-
+    if (participantsWithoutCurrentUser.length > 5) {
+        participantsWithoutCurrentUser.pop();
+    }
     return participantsWithoutCurrentUser.map((accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport)).join(', ');
 }
 
@@ -2850,8 +2852,8 @@ function getReportDescriptionText(report: Report): string {
     return parser.htmlToText(report.description);
 }
 
-function getPolicyDescriptionText(policy: Policy): string {
-    if (!policy.description) {
+function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
+    if (!policy?.description) {
         return '';
     }
 
@@ -4697,7 +4699,7 @@ function getAddWorkspaceRoomOrChatReportErrors(report: OnyxEntry<Report>): Error
 /**
  * Return true if the Money Request report is marked for deletion.
  */
-function isMoneyRequestReportPendingDeletion(report: OnyxEntry<Report>): boolean {
+function isMoneyRequestReportPendingDeletion(report: OnyxEntry<Report> | EmptyObject): boolean {
     if (!isMoneyRequestReport(report)) {
         return false;
     }
@@ -5267,8 +5269,8 @@ function getAllAncestorReportActionIDs(report: Report | null | undefined): Ances
     return allAncestorIDs;
 }
 
-function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = null): boolean {
-    if (!policy) {
+function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | EmptyObject): boolean {
+    if (isEmptyObject(policy)) {
         return false;
     }
     type CurrencyType = (typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES)[number];
@@ -5463,7 +5465,7 @@ export {
     getIOUReportActionDisplayMessage,
     isWaitingForAssigneeToCompleteTask,
     isGroupChat,
-    isDraftExpenseReport,
+    isOpenExpenseReport,
     shouldUseFullTitleToDisplay,
     parseReportRouteParams,
     getReimbursementQueuedActionMessage,
