@@ -25,12 +25,7 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                     cMapPacked: true,
                 }}
                 externalLinkTarget="_blank"
-                onPassword={() => {
-                    if (!onPassword) {
-                        return;
-                    }
-                    onPassword();
-                }}
+                onPassword={onPassword}
             >
                 <View pointerEvents="none">
                     <Thumbnail pageIndex={0} />
