@@ -1329,6 +1329,65 @@ function isReportSelected(reportOption: ReportUtils.OptionData, selectedOptions:
     return selectedOptions.some((option) => (option.accountID && option.accountID === reportOption.accountID) || (option.reportID && option.reportID === reportOption.reportID));
 }
 
+function createOptionList(reports: OnyxCollection<Report>, personalDetails: OnyxEntry<PersonalDetailsList>, {reportActions = {}}: Partial<GetOptionsConfig>) {
+    const reportMapForAccountIDs: Record<number, Report> = {};
+    // Sorting the reports works like this:
+    // - Order everything by the last message timestamp (descending)
+    // - All archived reports should remain at the bottom
+    const orderedReports = lodashSortBy(reports, (report) => {
+        if (ReportUtils.isArchivedRoom(report)) {
+            return CONST.DATE.UNIX_EPOCH;
+        }
+
+        return report?.lastVisibleActionCreated;
+    });
+    orderedReports.reverse();
+    const allReportOptions: ReportUtils.OptionData[] = [];
+
+    orderedReports.forEach((report) => {
+        if (!report) {
+            return;
+        }
+
+        const isSelfDM = ReportUtils.isSelfDM(report);
+        // Currently, currentUser is not included in visibleChatMemberAccountIDs, so for selfDM we need to add the currentUser as participants.
+        const accountIDs = isSelfDM ? [currentUserAccountID ?? 0] : report.visibleChatMemberAccountIDs ?? [];
+
+        if (!accountIDs || accountIDs.length === 0) {
+            return;
+        }
+
+        // Save the report in the map if this is a single participant so we can associate the reportID with the
+        // personal detail option later. Individuals should not be associated with single participant
+        // policyExpenseChats or chatRooms since those are not people.
+        if (accountIDs.length <= 1) {
+            reportMapForAccountIDs[accountIDs[0]] = report;
+        }
+
+        allReportOptions.push(
+            createOption(accountIDs, personalDetails, report, reportActions, {
+                showChatPreviewLine: true,
+                forcePolicyNamePreview: true,
+            }),
+        );
+    });
+
+    const havingLoginPersonalDetails = Object.fromEntries(
+        Object.entries(personalDetails ?? {}).filter(([, detail]) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail),
+    );
+    const allPersonalDetailsOptions = Object.values(havingLoginPersonalDetails).map((personalDetail) =>
+        createOption([personalDetail?.accountID ?? -1], personalDetails, reportMapForAccountIDs[personalDetail?.accountID ?? -1], reportActions, {
+            showChatPreviewLine: true,
+            forcePolicyNamePreview: true,
+        }),
+    );
+
+    return {
+        reportOptions: allReportOptions,
+        personalDetailsOptions: allPersonalDetailsOptions,
+    };
+}
+
 /**
  * Build the options
  */
@@ -2063,6 +2122,7 @@ export {
     formatSectionsFromSearchTerm,
     transformedTaxRates,
     getShareLogOptions,
+    createOptionList,
 };
 
 export type {MemberForList, CategorySection, GetOptions};
