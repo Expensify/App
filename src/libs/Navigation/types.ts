@@ -93,11 +93,19 @@ type CentralPaneNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.TAGS]: {
         policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.DISTANCE_RATES]: {
+        policyID: string;
     };
 };
 
 type WorkspaceSwitcherNavigatorParamList = {
     [SCREENS.WORKSPACE_SWITCHER.ROOT]: undefined;
+};
+
+type BackToParams = {
+    backTo?: Routes;
 };
 
 type SettingsNavigatorParamList = {
@@ -193,6 +201,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.CATEGORY_CREATE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
         policyID: string;
         categoryName: string;
@@ -200,10 +211,20 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
+        policyID: string;
+        accountID: string;
+        backTo: Routes;
+    };
+    [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE_SELECTION]: {
+        policyID: string;
+        accountID: string;
+        backTo: Routes;
+    };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
-    [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: undefined;
+    [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: BackToParams;
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: undefined;
     [SCREENS.KEYBOARD_SHORTCUTS]: undefined;
     [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: undefined;
@@ -235,6 +256,7 @@ type ProfileNavigatorParamList = {
     [SCREENS.PROFILE_ROOT]: {
         accountID: string;
         reportID: string;
+        backTo: Routes;
     };
 };
 
@@ -562,6 +584,10 @@ type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.WORKSPACE_AVATAR]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE_JOIN_USER]: {
+        policyID: string;
+        email: string;
+    };
     [SCREENS.REPORT_AVATAR]: {
         reportID: string;
     };
@@ -570,6 +596,10 @@ type AuthScreensParamList = SharedScreensParamList & {
     [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
     [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: NavigatorScreenParams<FullScreenNavigatorParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
+    [SCREENS.TRANSACTION_RECEIPT]: {
+        reportID: string;
+        transactionID: string;
+    };
 };
 
 type RootStackParamList = PublicScreensParamList & AuthScreensParamList;
@@ -632,4 +662,5 @@ export type {
     WorkspaceSwitcherNavigatorParamList,
     OnboardEngagementNavigatorParamList,
     SwitchPolicyIDParams,
+    BackToParams,
 };
