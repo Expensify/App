@@ -3,9 +3,9 @@ import Onyx from 'react-native-onyx';
 import intlPolyfill from '@libs/IntlPolyfill';
 import * as Metrics from '@libs/Metrics';
 import * as Device from '@userActions/Device';
-import exposeGlobalMemoryOnlyKeysMethods from '@userActions/MemoryOnlyKeys/exposeGlobalMemoryOnlyKeysMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import addUtilsToWindow from './addUtilsToWindow';
 import initializeLastVisitedPath from './initializeLastVisitedPath';
 import platformSetup from './platformSetup';
 
@@ -46,8 +46,6 @@ export default function () {
         },
     });
 
-    exposeGlobalMemoryOnlyKeysMethods();
-
     Device.setDeviceID();
 
     // Force app layout to work left to right because our design does not currently support devices using this mode
@@ -59,4 +57,6 @@ export default function () {
 
     // Perform any other platform-specific setup
     platformSetup();
+
+    addUtilsToWindow();
 }

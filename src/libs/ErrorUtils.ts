@@ -180,3 +180,5 @@ export {
     getMicroSecondOnyxErrorObject,
     isReceiptError,
 };
+
+export type {OnyxDataWithErrors};
