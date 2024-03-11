@@ -1,10 +1,11 @@
-const {execSync} = require('child_process');
-const fs = require('fs').promises;
-const path = require('path');
-const getMajorVersion = require('semver/functions/major');
-const getMinorVersion = require('semver/functions/minor');
-const getPatchVersion = require('semver/functions/patch');
-const getBuildVersion = require('semver/functions/prerelease');
+import {execSync} from 'child_process';
+import {promises as fs} from 'fs';
+import path from 'path';
+import type {SemVer} from 'semver';
+import getMajorVersion from 'semver/functions/major';
+import getMinorVersion from 'semver/functions/minor';
+import getPatchVersion from 'semver/functions/patch';
+import getBuildVersion from 'semver/functions/prerelease';
 
 // Filepath constants
 const BUILD_GRADLE_PATH = process.env.NODE_ENV === 'test' ? path.resolve(__dirname, '../../android/app/build.gradle') : './android/app/build.gradle';
@@ -12,21 +13,17 @@ const PLIST_PATH = './ios/NewExpensify/Info.plist';
 const PLIST_PATH_TEST = './ios/NewExpensifyTests/Info.plist';
 const PLIST_PATH_NSE = './ios/NotificationServiceExtension/Info.plist';
 
-exports.BUILD_GRADLE_PATH = BUILD_GRADLE_PATH;
-exports.PLIST_PATH = PLIST_PATH;
-exports.PLIST_PATH_TEST = PLIST_PATH_TEST;
-
 /**
  * Pad a number to be two digits (with leading zeros if necessary).
  *
- * @param {Number} number - Must be an integer.
- * @returns {String} - A string representation of the number with length 2.
+ * @param value - Must be an integer.
+ * @returns - A string representation of the number with length 2.
  */
-function padToTwoDigits(number) {
-    if (number >= 10) {
-        return number.toString();
+function padToTwoDigits(value: number) {
+    if (value >= 10) {
+        return value.toString();
     }
-    return `0${number.toString()}`;
+    return `0${value.toString()}`;
 }
 
 /**
@@ -34,29 +31,26 @@ function padToTwoDigits(number) {
  * This version code allocates two digits each for PREFIX, MAJOR, MINOR, PATCH, and BUILD versions.
  * As a result, our max version is 99.99.99-99.
  *
- * @param {String} npmVersion
- * @returns {String}
+ * @param npmVersion
+ * @returns
  */
-exports.generateAndroidVersionCode = function generateAndroidVersionCode(npmVersion) {
+function generateAndroidVersionCode(npmVersion: string | SemVer) {
     // All Android versions will be prefixed with '10' due to previous versioning
     const prefix = '10';
     return ''.concat(
         prefix,
-        padToTwoDigits(getMajorVersion(npmVersion) || 0),
-        padToTwoDigits(getMinorVersion(npmVersion) || 0),
-        padToTwoDigits(getPatchVersion(npmVersion) || 0),
-        padToTwoDigits(getBuildVersion(npmVersion) || 0),
+        padToTwoDigits(getMajorVersion(npmVersion) ?? 0),
+        padToTwoDigits(getMinorVersion(npmVersion) ?? 0),
+        padToTwoDigits(getPatchVersion(npmVersion) ?? 0),
+        // @ts-expect-error -- TODO: Fix this
+        padToTwoDigits(getBuildVersion(npmVersion) ?? 0),
     );
-};
+}
 
 /**
  * Update the Android app versionName and versionCode.
- *
- * @param {String} versionName
- * @param {String} versionCode
- * @returns {Promise}
  */
-exports.updateAndroidVersion = function updateAndroidVersion(versionName, versionCode) {
+function updateAndroidVersion(versionName: string, versionCode: string) {
     console.log('Updating android:', `versionName: ${versionName}`, `versionCode: ${versionCode}`);
     return fs
         .readFile(BUILD_GRADLE_PATH, {encoding: 'utf8'})
@@ -65,16 +59,13 @@ exports.updateAndroidVersion = function updateAndroidVersion(versionName, versio
             return (updatedContent = updatedContent.replace(/versionCode ([0-9]*)/, `versionCode ${versionCode}`));
         })
         .then((updatedContent) => fs.writeFile(BUILD_GRADLE_PATH, updatedContent, {encoding: 'utf8'}));
-};
+}
 
 /**
  * Update the iOS app version.
  * Updates the CFBundleShortVersionString and the CFBundleVersion.
- *
- * @param {String} version
- * @returns {String}
  */
-exports.updateiOSVersion = function updateiOSVersion(version) {
+function updateiOSVersion(version: string) {
     const shortVersion = version.split('-')[0];
     const cfVersion = version.includes('-') ? version.replace('-', '.') : `${version}.0`;
     console.log('Updating iOS', `CFBundleShortVersionString: ${shortVersion}`, `CFBundleVersion: ${cfVersion}`);
@@ -89,4 +80,6 @@ exports.updateiOSVersion = function updateiOSVersion(version) {
 
     // Return the cfVersion so we can set the NEW_IOS_VERSION in ios.yml
     return cfVersion;
-};
+}
+
+export {updateiOSVersion, updateAndroidVersion, generateAndroidVersionCode, BUILD_GRADLE_PATH, PLIST_PATH, PLIST_PATH_TEST};
