@@ -7,7 +7,7 @@ import PDFView from '@components/PDFView';
 type BaseAttachmentViewPdfProps = {
     encryptedSourceUrl: string;
     onToggleKeyboard?: (shouldFadeOut: boolean) => void;
-    onLoadComplete: () => void;
+    onLoadComplete: (path: string) => void;
 
     /** Whether this AttachmentView is shown as part of a AttachmentCarousel */
     isUsedInCarousel?: boolean;

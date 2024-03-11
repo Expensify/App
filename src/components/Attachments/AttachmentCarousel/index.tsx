@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, Keyboard, PixelRatio, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {Attachment} from '@components/Attachments/types';
+import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
@@ -38,6 +38,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     const [containerWidth, setContainerWidth] = useState(0);
     const [page, setPage] = useState(0);
     const [attachments, setAttachments] = useState<Attachment[]>([]);
+    const [activeSource, setActiveSource] = useState<AttachmentSource | undefined | null>(source);
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
 
     const compareImage = useCallback((attachment: Attachment) => attachment.source === source, [source]);
@@ -79,11 +80,13 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             // to get the index of the current page
             const entry = viewableItems?.[0];
             if (!entry) {
+                setActiveSource(null);
                 return;
             }
 
             if (entry.index) {
                 setPage(entry.index);
+                setActiveSource(entry.item.source);
             }
 
             onNavigate(entry.item);
@@ -121,6 +124,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         ({item}: ListRenderItemInfo<Attachment>) => (
             <CarouselItem
                 item={item}
+                isFocused={activeSource === item.source}
                 onPress={
                     canUseTouchScreen
                         ? () => {
@@ -128,9 +132,10 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                           }
                         : undefined
                 }
+                isModalHovered={shouldShowArrows}
             />
         ),
-        [canUseTouchScreen, setShouldShowArrows],
+        [activeSource, canUseTouchScreen, setShouldShowArrows, shouldShowArrows],
     );
 
     return (

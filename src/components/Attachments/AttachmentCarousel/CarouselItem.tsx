@@ -19,10 +19,10 @@ type CarouselItemProps = {
     /** onPress callback */
     onPress?: () => void;
 
-    isModalHovered: boolean;
+    isModalHovered?: boolean;
 
     /** Whether the attachment is currently being viewed in the carousel */
-    isFocused: boolean;
+    isFocused?: boolean;
 };
 
 function CarouselItem({item, onPress, isFocused, isModalHovered}: CarouselItemProps) {

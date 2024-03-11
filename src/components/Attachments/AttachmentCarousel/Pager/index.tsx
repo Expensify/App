@@ -26,6 +26,9 @@ type AttachmentCarouselPagerProps = {
     /** The attachments to be rendered in the pager. */
     items: Attachment[];
 
+    /** The source (URL) of the currently active attachment. */
+    activeSource: string;
+
     /** The index of the initial page to be rendered. */
     initialPage: number;
 
@@ -48,7 +51,10 @@ type AttachmentCarouselPagerProps = {
     onClose: () => void;
 };
 
-function AttachmentCarouselPager({items, initialPage, onPageSelected, onRequestToggleArrows, onClose}: AttachmentCarouselPagerProps, ref: ForwardedRef<AttachmentCarouselPagerHandle>) {
+function AttachmentCarouselPager(
+    {items, activeSource, initialPage, onPageSelected, onRequestToggleArrows, onClose}: AttachmentCarouselPagerProps,
+    ref: ForwardedRef<AttachmentCarouselPagerHandle>,
+) {
     const styles = useThemeStyles();
     const pagerRef = useRef<PagerView>(null);
 
@@ -142,12 +148,15 @@ function AttachmentCarouselPager({items, initialPage, onPageSelected, onRequestT
         [],
     );
 
-    const carouselItems = items.map((item) => (
+    const carouselItems = items.map((item, index) => (
         <View
             key={item.source as string}
             style={styles.flex1}
         >
-            <CarouselItem item={item} />
+            <CarouselItem
+                item={item}
+                isFocused={index === activePageIndex && activeSource === item.source}
+            />
         </View>
     ));
 

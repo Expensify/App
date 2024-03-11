@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 type AttachmentViewImageProps = {
-    url: string | number;
+    url: string;
 
     loadComplete: boolean;
 

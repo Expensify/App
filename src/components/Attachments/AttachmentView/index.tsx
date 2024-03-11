@@ -204,7 +204,7 @@ function AttachmentView({
     if (isImage || (file?.name && Str.isImage(file.name))) {
         return (
             <AttachmentViewImage
-                url={imageError && fallbackSource ? (fallbackSource as string | number) : (source as string | number)}
+                url={imageError && fallbackSource ? (fallbackSource as string) : (source as string)}
                 file={file}
                 isAuthTokenRequired={isAuthTokenRequired}
                 loadComplete={loadComplete}
