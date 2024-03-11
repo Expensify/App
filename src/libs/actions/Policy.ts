@@ -53,6 +53,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {
     InvitedEmailsToAccountIDs,
@@ -2652,6 +2653,18 @@ function clearCategoryErrors(policyID: string, categoryName: string) {
     });
 }
 
+function navigateWhenEnableFeature(policyID: string, featureRoute: Route) {
+    const isNarrowLayout = getIsNarrowLayout();
+
+    if (isNarrowLayout) {
+        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID), CONST.NAVIGATION.TYPE.FORCED_UP);
+
+        return;
+    }
+
+    Navigation.navigate(featureRoute);
+}
+
 function enablePolicyCategories(policyID: string, enabled: boolean) {
     const onyxData: OnyxData = {
         optimisticData: [
@@ -2696,8 +2709,7 @@ function enablePolicyCategories(policyID: string, enabled: boolean) {
     API.write(WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES, parameters, onyxData);
 
     if (enabled) {
-        const navigationAction = getIsNarrowLayout() ? Navigation.goBack : () => Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
-        navigationAction();
+        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
     }
 }
 
@@ -2789,8 +2801,7 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
     API.write(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, onyxData);
 
     if (enabled) {
-        const navigationAction = getIsNarrowLayout() ? Navigation.goBack : () => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID));
-        navigationAction();
+        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID));
     }
 }
 
@@ -2882,8 +2893,7 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
     API.write(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData);
 
     if (enabled) {
-        const navigationAction = getIsNarrowLayout() ? Navigation.goBack : () => Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
-        navigationAction();
+        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_TAGS.getRoute(policyID));
     }
 }
 
@@ -2979,8 +2989,7 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
     API.write(WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS, parameters, onyxData);
 
     if (enabled) {
-        const navigationAction = getIsNarrowLayout() ? Navigation.goBack : () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID));
-        navigationAction();
+        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID));
     }
 }
 
