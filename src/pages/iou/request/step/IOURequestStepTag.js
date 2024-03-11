@@ -48,7 +48,16 @@ const propTypes = {
     policyTags: tagPropTypes,
 
     /** The actions from the parent report */
-    parentReportActions: PropTypes.shape(reportActionPropTypes),
+    reportActions: PropTypes.shape(reportActionPropTypes),
+
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user accountID */
+        accountID: PropTypes.number,
+
+        /** Currently logged in user email */
+        email: PropTypes.string,
+    }).isRequired,
 };
 
 const defaultProps = {
@@ -57,7 +66,7 @@ const defaultProps = {
     policyTags: null,
     policyCategories: null,
     transaction: {},
-    parentReportActions: {},
+    reportActions: {},
 };
 
 function IOURequestStepTag({
@@ -66,10 +75,11 @@ function IOURequestStepTag({
     policyTags,
     report,
     route: {
-        params: {action, tagIndex: rawTagIndex, transactionID, backTo, iouType},
+        params: {action, tagIndex: rawTagIndex, transactionID, backTo, iouType, reportActionID},
     },
     transaction,
-    parentReportActions,
+    reportActions,
+    session,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -80,12 +90,14 @@ function IOURequestStepTag({
     const tag = TransactionUtils.getTag(transaction, tagIndex);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
+    const reportAction = reportActions[report.parentReportActionID || reportActionID];
+    const canEditSplitBill = isSplitBill && reportAction && session.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
-    const parentReportAction = parentReportActions[report.parentReportActionID];
+
     const shouldShowTag = ReportUtils.isGroupPolicy(report) && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists));
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = !shouldShowTag || (isEditing && !canEditMoneyRequest(parentReportAction));
+    const shouldShowNotFoundPage = !shouldShowTag || (isEditing && (isSplitBill ? !canEditSplitBill : !canEditMoneyRequest(reportAction)));
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -154,9 +166,23 @@ export default compose(
         policyTags: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
         },
-        parentReportActions: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
+        reportActions: {
+            key: ({
+                report,
+                route: {
+                    params: {action, iouType},
+                },
+            }) => {
+                let reportID = '0';
+                if (action === CONST.IOU.ACTION.EDIT) {
+                    reportID = iouType === CONST.IOU.TYPE.SPLIT ? report.reportID : report.parentReportID;
+                }
+                return `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
+            },
             canEvict: false,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(IOURequestStepTag);
