@@ -47,7 +47,7 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
              * switching between chat list and settings->workspaces tab.
              * and doing so avoids an unnecessary re-render of `useReportIDs`.
              */
-            const params = state.routes[state.index].params;
+            const params = state?.routes?.[state.index]?.params;
             if (params && 'screen' in params && params.screen === SCREENS.SETTINGS.WORKSPACES) {
                 return;
             }
