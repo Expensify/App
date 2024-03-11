@@ -31,6 +31,8 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import useCurrentUserPersonalDetails from "@hooks/useCurrentUserPersonalDetails";
+import {isOffline} from "@libs/Network/NetworkStore";
+import useNetwork from "@hooks/useNetwork";
 
 type WorkspacePolicyOnyxProps = {
     /** Personal details of all users */
@@ -41,6 +43,7 @@ type WorkspaceMemberDetailsPageProps = WithPolicyAndFullscreenLoadingProps & Wor
 
 function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, route}: WorkspaceMemberDetailsPageProps) {
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -116,6 +119,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
                                     text={translate('workspace.people.transferOwner')}
                                     onPress={startChangeOwnershipFlow}
                                     medium
+                                    isDisabled={isOffline}
                                     icon={Expensicons.Transfer}
                                     iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
                                     style={styles.mv5}
