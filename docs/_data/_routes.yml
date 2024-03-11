@@ -1,7 +1,7 @@
 home:
   href: home
   title: Welcome to ExpensifyHelp!
-  description: Find answers by using the search bar in the left-hand menu or by clicking the version of Expensify you're using to access the relevant resources.
+  description: Find answers using the search bar or click on the version of Expensify you're using to access the relevant resources.
 
 platforms:
   - href: expensify-classic
