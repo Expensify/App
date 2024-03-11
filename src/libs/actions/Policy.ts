@@ -49,7 +49,7 @@ import type {
     PersonalDetailsList,
     Policy,
     PolicyCategories,
-    PolicyMember,
+    PolicyMember, PolicyOwnershipChangeChecks,
     PolicyTagList,
     RecentlyUsedCategories,
     RecentlyUsedTags,
@@ -836,6 +836,15 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
     };
 
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData, failureData});
+}
+
+function updateWorkspaceOwnershipChecks(policyID: string, ownershipChecks: PolicyOwnershipChangeChecks) {
+    Onyx.merge(
+        ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS,
+        {
+            [policyID]: ownershipChecks
+        }
+    );
 }
 
 /**
@@ -2772,6 +2781,7 @@ function openPolicyDistanceRatesPage(policyID?: string) {
 export {
     removeMembers,
     updateWorkspaceMembersRole,
+    updateWorkspaceOwnershipChecks,
     addMembersToWorkspace,
     isAdminOfFreePolicy,
     hasActiveFreePolicy,
