@@ -144,6 +144,7 @@ const modalScreenListeners = {
         // Clear search input (WorkspaceInvitePage) when modal is closed
         SearchInputManager.searchInput = '';
         Modal.setModalVisibility(false);
+        Modal.willAlertModalBecomeVisible(false);
     },
 };
 
