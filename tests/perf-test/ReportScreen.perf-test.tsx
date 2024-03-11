@@ -21,6 +21,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {ReportAttachmentsProvider} from '@src/pages/home/report/ReportAttachmentsContext';
 import ReportScreen from '@src/pages/home/ReportScreen';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
+import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
@@ -198,17 +200,25 @@ test('[ReportScreen] should render ReportScreen with composer interactions', () 
     const navigation = {addListener};
 
     return waitForBatchedUpdates()
-        .then(() =>
-            Onyx.multiSet({
-                [ONYXKEYS.IS_SIDEBAR_LOADED]: true,
+        .then(() => {
+            const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${mockRoute.params.reportID}`]: report,
+            };
+
+            const reportActionsCollectionDataSet: ReportActionsCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockRoute.params.reportID}`]: reportActions,
+            };
+
+            return Onyx.multiSet({
+                [ONYXKEYS.IS_SIDEBAR_LOADED]: true,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
                 [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
                 [`${ONYXKEYS.COLLECTION.POLICY}`]: policies,
                 [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
-            }),
-        )
+                ...reportCollectionDataSet,
+                ...reportActionsCollectionDataSet,
+            });
+        })
         .then(() =>
             measurePerformance(
                 <ReportScreenWrapper
@@ -250,16 +260,24 @@ test('[ReportScreen] should press of the report item', () => {
     const navigation = {addListener};
 
     return waitForBatchedUpdates()
-        .then(() =>
-            Onyx.multiSet({
-                [ONYXKEYS.IS_SIDEBAR_LOADED]: true,
+        .then(() => {
+            const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${mockRoute.params.reportID}`]: report,
+            };
+
+            const reportActionsCollectionDataSet: ReportActionsCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockRoute.params.reportID}`]: reportActions,
+            };
+
+            return Onyx.multiSet({
+                [ONYXKEYS.IS_SIDEBAR_LOADED]: true,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
                 [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
                 [`${ONYXKEYS.COLLECTION.POLICY}`]: policies,
-            }),
-        )
+                ...reportCollectionDataSet,
+                ...reportActionsCollectionDataSet,
+            });
+        })
         .then(() =>
             measurePerformance(
                 <ReportScreenWrapper
