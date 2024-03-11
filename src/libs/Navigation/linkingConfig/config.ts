@@ -490,10 +490,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.CURRENCY]: ROUTES.MONEY_REQUEST_CURRENCY.route,
                         [SCREENS.MONEY_REQUEST.RECEIPT]: ROUTES.MONEY_REQUEST_RECEIPT.route,
                         [SCREENS.MONEY_REQUEST.DISTANCE]: ROUTES.MONEY_REQUEST_DISTANCE.route,
+                        [SCREENS.MONEY_REQUEST.STATE_SELECTOR]: {path: ROUTES.MONEY_REQUEST_STATE_SELECTOR.route, exact: true},
                         [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                         [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
                         [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
-                        [SCREENS.MONEY_REQUEST.STATE_SELECTOR]: {path: ROUTES.MONEY_REQUEST_STATE_SELECTOR.route, exact: true},
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SPLIT_DETAILS]: {
