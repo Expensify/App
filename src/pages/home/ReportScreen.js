@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Banner from '@components/Banner';
@@ -399,8 +399,13 @@ function ReportScreen({
         Performance.markEnd(CONST.TIMING.CHAT_RENDER);
 
         fetchReportIfNeeded();
-        ComposerActions.setShouldShowComposeInput(true);
+        const interactionTask = InteractionManager.runAfterInteractions(() => {
+            ComposerActions.setShouldShowComposeInput(true);
+        });
         return () => {
+            if (interactionTask) {
+                interactionTask.cancel();
+            }
             if (!didSubscribeToReportLeavingEvents) {
                 return;
             }
@@ -486,10 +491,20 @@ function ReportScreen({
         // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
         // Existing reports created will have empty fields for `pendingFields`.
         const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
+        let interactionTask;
         if (!didSubscribeToReportLeavingEvents.current && didCreateReportSuccessfully) {
-            Report.subscribeToReportLeavingEvents(reportID);
-            didSubscribeToReportLeavingEvents.current = true;
+            interactionTask = InteractionManager.runAfterInteractions(() => {
+                Report.subscribeToReportLeavingEvents(reportID);
+                didSubscribeToReportLeavingEvents.current = true;
+            });
         }
+
+        return () => {
+            if (!interactionTask) {
+                return;
+            }
+            interactionTask.cancel();
+        };
     }, [report, didSubscribeToReportLeavingEvents, reportID]);
 
     const onListLayout = useCallback((e) => {
@@ -583,8 +598,8 @@ function ReportScreen({
                                 )}
 
                                 {/* Note: The ReportActionsSkeletonView should be allowed to mount even if the initial report actions are not loaded.
-                     If we prevent rendering the report while they are loading then
-                     we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
+                                         If we prevent rendering the report while they are loading then
+                                         we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
                                 {(!isReportReadyForDisplay || isLoadingInitialReportActions || isLoading) && <ReportActionsSkeletonView />}
 
                                 {isReportReadyForDisplay ? (
@@ -596,9 +611,7 @@ function ReportScreen({
                                         isEmptyChat={isEmptyChat}
                                         lastReportAction={lastReportAction}
                                     />
-                                ) : (
-                                    <ReportFooter isReportReadyForDisplay={false} />
-                                )}
+                                ) : null}
                             </View>
                         </DragAndDropProvider>
                     </FullPageNotFoundView>

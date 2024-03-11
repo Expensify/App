@@ -49,8 +49,11 @@ async function run() {
 
         // Next, we generate the checklist body
         let checklistBody = '';
+        let checklistAssignees = [];
         if (shouldCreateNewDeployChecklist) {
-            checklistBody = await GithubUtils.generateStagingDeployCashBody(newVersionTag, _.map(mergedPRs, GithubUtils.getPullRequestURLFromNumber));
+            const {issueBody, issueAssignees} = await GithubUtils.generateStagingDeployCashBody(newVersionTag, _.map(mergedPRs, GithubUtils.getPullRequestURLFromNumber));
+            checklistBody = issueBody;
+            checklistAssignees = issueAssignees;
         } else {
             // Generate the updated PR list, preserving the previous state of `isVerified` for existing PRs
             const PRList = _.reduce(
@@ -103,7 +106,7 @@ async function run() {
             }
 
             const didVersionChange = newVersionTag !== currentChecklistData.tag;
-            checklistBody = await GithubUtils.generateStagingDeployCashBody(
+            const {issueBody, issueAssignees} = await GithubUtils.generateStagingDeployCashBody(
                 newVersionTag,
                 _.pluck(PRList, 'url'),
                 _.pluck(_.where(PRList, {isVerified: true}), 'url'),
@@ -114,6 +117,8 @@ async function run() {
                 didVersionChange ? false : currentChecklistData.isFirebaseChecked,
                 didVersionChange ? false : currentChecklistData.isGHStatusChecked,
             );
+            checklistBody = issueBody;
+            checklistAssignees = issueAssignees;
         }
 
         // Finally, create or update the checklist
@@ -128,7 +133,7 @@ async function run() {
                 ...defaultPayload,
                 title: `Deploy Checklist: New Expensify ${format(new Date(), CONST.DATE_FORMAT_STRING)}`,
                 labels: [CONST.LABELS.STAGING_DEPLOY],
-                assignees: [CONST.APPLAUSE_BOT],
+                assignees: [CONST.APPLAUSE_BOT].concat(checklistAssignees),
             });
             console.log(`Successfully created new StagingDeployCash! 🎉 ${newChecklist.html_url}`);
             return newChecklist;
@@ -434,14 +439,14 @@ class GithubUtils {
             .then((data) => {
                 // The format of this map is following:
                 // {
-                //    'https://github.com/Expensify/App/pull/9641': [ 'PauloGasparSv', 'kidroca' ],
-                //    'https://github.com/Expensify/App/pull/9642': [ 'mountiny', 'kidroca' ]
+                //    'https://github.com/Expensify/App/pull/9641': 'PauloGasparSv',
+                //    'https://github.com/Expensify/App/pull/9642': 'mountiny'
                 // }
                 const internalQAPRMap = _.reduce(
                     _.filter(data, (pr) => !_.isEmpty(_.findWhere(pr.labels, {name: CONST.LABELS.INTERNAL_QA}))),
                     (map, pr) => {
                         // eslint-disable-next-line no-param-reassign
-                        map[pr.html_url] = _.compact(_.pluck(pr.assignees, 'login'));
+                        map[pr.html_url] = pr.merged_by.login;
                         return map;
                     },
                     {},
@@ -476,11 +481,11 @@ class GithubUtils {
                 if (!_.isEmpty(internalQAPRMap)) {
                     console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
                     issueBody += '**Internal QA:**\r\n';
-                    _.each(internalQAPRMap, (assignees, URL) => {
-                        const assigneeMentions = _.reduce(assignees, (memo, assignee) => `${memo} @${assignee}`, '');
+                    _.each(internalQAPRMap, (merger, URL) => {
+                        const mergerMention = `@${merger}`;
                         issueBody += `${_.contains(resolvedInternalQAPRs, URL) ? '- [x]' : '- [ ]'} `;
                         issueBody += `${URL}`;
-                        issueBody += ` -${assigneeMentions}`;
+                        issueBody += ` - ${mergerMention}`;
                         issueBody += '\r\n';
                     });
                     issueBody += '\r\n\r\n';
@@ -510,7 +515,9 @@ class GithubUtils {
                 issueBody += `\r\n- [${isGHStatusChecked ? 'x' : ' '}] I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.`;
 
                 issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';
-                return issueBody;
+                const issueAssignees = _.values(internalQAPRMap);
+                const issue = {issueBody, issueAssignees};
+                return issue;
             })
             .catch((err) => console.warn('Error generating StagingDeployCash issue body! Continuing...', err));
     }

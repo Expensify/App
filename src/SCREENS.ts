@@ -128,6 +128,7 @@ const SCREENS = {
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
     DESKTOP_SIGN_IN_REDIRECT: 'DesktopSignInRedirect',
     SAML_SIGN_IN: 'SAMLSignIn',
+    WORKSPACE_JOIN_USER: 'WorkspaceJoinUser',
 
     MONEY_REQUEST: {
         MANUAL_TAB: 'manual',
@@ -214,12 +215,21 @@ const SCREENS = {
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
         CATEGORIES: 'Workspace_Categories',
+        TAGS: 'Workspace_Tags',
         CURRENCY: 'Workspace_Profile_Currency',
         WORKFLOWS: 'Workspace_Workflows',
+        WORKFLOWS_APPROVER: 'Workspace_Workflows_Approver',
+        WORKFLOWS_AUTO_REPORTING_FREQUENCY: 'Workspace_Workflows_Auto_Reporting_Frequency',
+        WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET: 'Workspace_Workflows_Auto_Reporting_Monthly_Offset',
         DESCRIPTION: 'Workspace_Profile_Description',
         SHARE: 'Workspace_Profile_Share',
         NAME: 'Workspace_Profile_Name',
+        CATEGORY_CREATE: 'Category_Create',
+        CATEGORY_SETTINGS: 'Category_Settings',
         CATEGORIES_SETTINGS: 'Categories_Settings',
+        MEMBER_DETAILS: 'Workspace_Member_Details',
+        MEMBER_DETAILS_ROLE_SELECTION: 'Workspace_Member_Details_Role_Selection',
+        DISTANCE_RATES: 'Distance_Rates',
     },
 
     EDIT_REQUEST: {
@@ -267,6 +277,7 @@ const SCREENS = {
     GET_ASSISTANCE: 'GetAssistance',
     REFERRAL_DETAILS: 'Referral_Details',
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
+    TRANSACTION_RECEIPT: 'TransactionReceipt',
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;
