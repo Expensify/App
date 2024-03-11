@@ -252,7 +252,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
  * @returns same callback if the action is allowed, otherwise a function that signs out and redirects to sign in
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function checkIfActionIsAllowed<TCallback extends (...args: any[]) => any>(callback: TCallback, isAnonymousAction = false): TCallback | (() => void) {
+function checkIfActionIsAllowed<TCallback extends ((...args: any[]) => any) | void>(callback: TCallback, isAnonymousAction = false): TCallback | (() => void) {
     if (isAnonymousUser() && !isAnonymousAction) {
         return () => signOutAndRedirectToSignIn();
     }

@@ -520,6 +520,9 @@ type WorkspacesCentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.CATEGORIES]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.MORE_FEATURES]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.TAGS]: {
         policyID: string;
         categoryName: string;
