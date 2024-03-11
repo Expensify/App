@@ -98,6 +98,8 @@ const CONST = {
     AVATAR_MAX_WIDTH_PX: 4096,
     AVATAR_MAX_HEIGHT_PX: 4096,
 
+    LOGO_MAX_SCALE: 1.5,
+
     BREADCRUMB_TYPE: {
         ROOT: 'root',
         STRONG: 'strong',
@@ -1033,12 +1035,6 @@ const CONST = {
         FILE: 'file',
         IMAGE: 'image',
         VIDEO: 'video',
-    },
-
-    IMAGE_FILE_FORMAT: {
-        PNG: 'image/png',
-        WEBP: 'image/webp',
-        JPEG: 'image/jpeg',
     },
 
     FILE_TYPE_REGEX: {

@@ -100,6 +100,7 @@ type ContextMenuActionWithIcon = {
 type ContextMenuAction = (ContextMenuActionWithContent | ContextMenuActionWithIcon) & {
     isAnonymousAction: boolean;
     shouldShow: ShouldShow;
+    shouldPreventDefaultFocusOnPress?: boolean;
 };
 
 // A list of all the context actions in this menu.
@@ -493,6 +494,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             openContextMenu();
         },
         getDescription: () => {},
+        shouldPreventDefaultFocusOnPress: false,
     },
 ];
 
