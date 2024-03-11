@@ -2718,7 +2718,7 @@ function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: stri
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
                     [newName]: {...oldPolicyTags, name: newName, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
-                    [oldName]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    [oldName]: null,
                 },
             },
         ],
@@ -2727,8 +2727,8 @@ function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: stri
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    [oldName]: null,
                     [newName]: {pendingAction: null},
+                    [oldName]: null,
                 },
             },
         ],
@@ -2752,6 +2752,7 @@ function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: stri
         oldName,
         newName,
     };
+    console.log('onyxData :>> ', onyxData);
 
     API.write(WRITE_COMMANDS.RENAME_POLICY_TAG_LIST, parameters, onyxData);
 }
