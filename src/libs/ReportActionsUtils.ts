@@ -135,7 +135,7 @@ function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction>): boolean
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
 }
 
-function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
+function isWhisperAction(reportAction: OnyxEntry<ReportAction> | EmptyObject): boolean {
     return (reportAction?.whisperedToAccountIDs ?? []).length > 0;
 }
 
@@ -205,7 +205,7 @@ function isSentMoneyReportAction(reportAction: OnyxEntry<ReportAction | Optimist
  * Returns whether the thread is a transaction thread, which is any thread with IOU parent
  * report action from requesting money (type - create) or from sending money (type - pay with IOUDetails field)
  */
-function isTransactionThread(parentReportAction: OnyxEntry<ReportAction>): boolean {
+function isTransactionThread(parentReportAction: OnyxEntry<ReportAction> | EmptyObject): boolean {
     return (
         parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
         (parentReportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||

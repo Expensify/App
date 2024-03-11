@@ -98,6 +98,8 @@ const CONST = {
     AVATAR_MAX_WIDTH_PX: 4096,
     AVATAR_MAX_HEIGHT_PX: 4096,
 
+    LOGO_MAX_SCALE: 1.5,
+
     BREADCRUMB_TYPE: {
         ROOT: 'root',
         STRONG: 'strong',
