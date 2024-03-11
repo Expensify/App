@@ -1781,7 +1781,6 @@ export default {
             mustBeOnlineToViewMembers: 'Debes estar en línea para poder ver los miembros de este espacio de trabajo.',
             requested: 'Solicitado',
             distanceRates: 'Tasas de distancia',
-            selected: ({selectedNumber}) => `${selectedNumber} seleccionados`,
         },
         type: {
             free: 'Gratis',

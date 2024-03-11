@@ -1757,7 +1757,6 @@ export default {
             mustBeOnlineToViewMembers: 'You must be online in order to view members of this workspace.',
             requested: 'Requested',
             distanceRates: 'Distance rates',
-            selected: ({selectedNumber}) => `${selectedNumber} selected`,
         },
         type: {
             free: 'Free',
