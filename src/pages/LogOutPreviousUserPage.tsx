@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useContext, useEffect} from 'react';
-import {Linking, NativeModules} from 'react-native';
+import {NativeModules} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -31,55 +31,53 @@ type LogOutPreviousUserPageProps = LogOutPreviousUserPageOnyxProps & StackScreen
 //
 // This component should not do any other navigation as that handled in App.setUpPoliciesAndNavigate
 function LogOutPreviousUserPage({session, route, isAccountLoading}: LogOutPreviousUserPageProps) {
-    const initUrlFromOldApp = useContext(InitialURLContext);
+    const initialURL = useContext(InitialURLContext);
     useEffect(() => {
-        Linking.getInitialURL().then((url) => {
-            const sessionEmail = session?.email;
-            const transitionURL = NativeModules.HybridAppModule ? `${CONST.DEEPLINK_BASE_URL}${initUrlFromOldApp}` : url;
-            const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL ?? undefined, sessionEmail);
-            const isSupportalLogin = route.params.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
+        const sessionEmail = session?.email;
+        const transitionURL = NativeModules.HybridAppModule ? `${CONST.DEEPLINK_BASE_URL}${initialURL}` : initialURL;
+        const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL ?? undefined, sessionEmail);
+        const isSupportalLogin = route.params.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 
-            if (isLoggingInAsNewUser) {
-                SessionActions.signOutAndRedirectToSignIn(false, isSupportalLogin);
-            }
+        if (isLoggingInAsNewUser) {
+            SessionActions.signOutAndRedirectToSignIn(false, isSupportalLogin);
+        }
 
-            if (isSupportalLogin) {
-                SessionActions.signInWithSupportAuthToken(route.params.shortLivedAuthToken ?? '');
-                Navigation.isNavigationReady().then(() => {
-                    // We must call goBack() to remove the /transition route from history
-                    Navigation.goBack();
-                    Navigation.navigate(ROUTES.HOME);
-                });
-                return;
-            }
+        if (isSupportalLogin) {
+            SessionActions.signInWithSupportAuthToken(route.params.shortLivedAuthToken ?? '');
+            Navigation.isNavigationReady().then(() => {
+                // We must call goBack() to remove the /transition route from history
+                Navigation.goBack();
+                Navigation.navigate(ROUTES.HOME);
+            });
+            return;
+        }
 
-            // We need to signin and fetch a new authToken, if a user was already authenticated in NewDot, and was redirected to OldDot
-            // and their authToken stored in Onyx becomes invalid.
-            // This workflow is triggered while setting up VBBA. User is redirected from NewDot to OldDot to set up 2FA, and then redirected back to NewDot
-            // On Enabling 2FA, authToken stored in Onyx becomes expired and hence we need to fetch new authToken
-            const shouldForceLogin = route.params.shouldForceLogin === 'true';
-            if (shouldForceLogin) {
-                const email = route.params.email ?? '';
-                const shortLivedAuthToken = route.params.shortLivedAuthToken ?? '';
-                SessionActions.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
-            }
-            const exitTo = route.params.exitTo as Route | null;
-            // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
-            // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
-            // which is already called when AuthScreens mounts.
-            if (exitTo && exitTo !== ROUTES.WORKSPACE_NEW && !isAccountLoading && !isLoggingInAsNewUser) {
-                Navigation.isNavigationReady().then(() => {
-                    // remove this screen and navigate to exit route
-                    const exitUrl = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
-                    Navigation.goBack();
-                    Navigation.navigate(exitUrl);
-                });
-            }
-        });
+        // We need to signin and fetch a new authToken, if a user was already authenticated in NewDot, and was redirected to OldDot
+        // and their authToken stored in Onyx becomes invalid.
+        // This workflow is triggered while setting up VBBA. User is redirected from NewDot to OldDot to set up 2FA, and then redirected back to NewDot
+        // On Enabling 2FA, authToken stored in Onyx becomes expired and hence we need to fetch new authToken
+        const shouldForceLogin = route.params.shouldForceLogin === 'true';
+        if (shouldForceLogin) {
+            const email = route.params.email ?? '';
+            const shortLivedAuthToken = route.params.shortLivedAuthToken ?? '';
+            SessionActions.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
+        }
+        const exitTo = route.params.exitTo as Route | null;
+        // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
+        // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
+        // which is already called when AuthScreens mounts.
+        if (exitTo && exitTo !== ROUTES.WORKSPACE_NEW && !isAccountLoading && !isLoggingInAsNewUser) {
+            Navigation.isNavigationReady().then(() => {
+                // remove this screen and navigate to exit route
+                const exitUrl = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
+                Navigation.goBack();
+                Navigation.navigate(exitUrl);
+            });
+        }
 
         // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [initialURL]);
 
     return <FullScreenLoadingIndicator />;
 }
