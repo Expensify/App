@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useEffect, useMemo, useState} from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -10,6 +10,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
@@ -155,14 +156,7 @@ function NewTaskPage(props) {
                         Navigation.goBack(ROUTES.NEW_TASK_DETAILS);
                     }}
                 />
-                <ScrollView
-                    contentContainerStyle={styles.flexGrow1}
-                    // on iOS, navigation animation sometimes cause the scrollbar to appear
-                    // on middle/left side of scrollview. scrollIndicatorInsets with right
-                    // to closest value to 0 fixes this issue, 0 (default) doesn't work
-                    // See: https://github.com/Expensify/App/issues/31441
-                    scrollIndicatorInsets={{right: Number.MIN_VALUE}}
-                >
+                <ScrollView contentContainerStyle={styles.flexGrow1}>
                     <View style={[styles.flex1]}>
                         <View style={styles.mb5}>
                             <MenuItemWithTopDescription
