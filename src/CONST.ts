@@ -1416,6 +1416,14 @@ const CONST = {
             DISABLE: 'disable',
             ENABLE: 'enable',
         },
+        OWNERSHIP_ERRORS: {
+            NO_BILLING_CARD: 'noBillingCard',
+            AMOUNT_OWED: 'amountOwed',
+            HAS_FAILED_SETTLEMENTS: 'hasFailedSettlements',
+            OWNER_OWES_AMOUNT: 'ownerOwesAmount',
+            SUBSCRIPTION: 'subscription',
+            DUPLICATE_SUBSCRIPTION: 'duplicateSubscription',
+        },
     },
 
     CUSTOM_UNITS: {

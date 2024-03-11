@@ -68,18 +68,18 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
     };
 
     const removeUser = useCallback(() => {
-        Policy.removeMembers([accountID], route.params.policyID);
+        Policy.removeMembers([accountID], policyID);
         setIsRemoveMemberConfirmModalVisible(false);
         Navigation.goBack(backTo);
-    }, [accountID, backTo, route.params.policyID]);
+    }, [accountID, backTo, policyID]);
 
     const navigateToProfile = useCallback(() => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
     }, [accountID]);
 
     const openRoleSelectionModal = useCallback(() => {
-        Navigation.navigate(ROUTES.WORKSPACE_MEMBER_ROLE_SELECTION.getRoute(route.params.policyID, accountID, Navigation.getActiveRoute()));
-    }, [accountID, route.params.policyID]);
+        Navigation.navigate(ROUTES.WORKSPACE_MEMBER_ROLE_SELECTION.getRoute(policyID, accountID, Navigation.getActiveRoute()));
+    }, [accountID, policyID]);
 
     const startChangeOwnershipFlow = useCallback(() => {
         const ownershipChecks: PolicyOwnershipChangeChecks = {
@@ -92,6 +92,10 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
         Policy.updateWorkspaceOwnershipChecks(policyID, ownershipChecks);
         Policy.requestWorkspaceOwnerChange(policyID);
     }, [policyID]);
+
+    const temporaryOpenCheckPage = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD));
+    };
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
@@ -124,7 +128,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
                             {isSelectedMemberOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
                                 <Button
                                     text={translate('workspace.people.transferOwner')}
-                                    onPress={startChangeOwnershipFlow}
+                                    // onPress={startChangeOwnershipFlow}
+                                    onPress={temporaryOpenCheckPage}
                                     medium
                                     isDisabled={isOffline}
                                     icon={Expensicons.Transfer}

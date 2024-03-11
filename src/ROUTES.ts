@@ -575,7 +575,7 @@ const ROUTES = {
     },
     WORKSPACE_OWNER_CHANGE_CHECK: {
         route: 'workspace/:policyID/change-owner/:error',
-        getRoute: (policyID: string, error: string) => `workspace/${policyID}/change-owner/${error}` as const,
+        getRoute: (policyID: string, error: typeof CONST.POLICY.OWNERSHIP_ERRORS[keyof typeof CONST.POLICY.OWNERSHIP_ERRORS]) => `workspace/${policyID}/change-owner/${error}` as const,
     },
     WORKSPACE_DISTANCE_RATES: {
         route: 'workspace/:policyID/distance-rates',
