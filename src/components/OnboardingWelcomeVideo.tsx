@@ -106,6 +106,7 @@ function OnboardingWelcomeVideo() {
                     <VideoPlayer
                         url={CONST.WELCOME_VIDEO_URL}
                         videoPlayerStyle={[styles.onboardingVideoPlayer, {width: videoWidth, height: videoWidth / videoAspectRatio}]}
+                        style={styles.h100}
                         onVideoLoaded={setAspectRatio}
                         onPlaybackStatusUpdate={setVideoStatus}
                         shouldShowProgressVolumeOnly
