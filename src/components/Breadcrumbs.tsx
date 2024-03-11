@@ -36,7 +36,7 @@ function Breadcrumbs({breadcrumbs, style}: BreadcrumbsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const [primaryBreadcrumb, secondaryBreadcrumb] = breadcrumbs;
-    const fontScale = PixelRatio.getFontScale() > 1.5 ? 1.5 : PixelRatio.getFontScale();
+    const fontScale = PixelRatio.getFontScale() > CONST.LOGO_MAX_SCALE ? CONST.LOGO_MAX_SCALE : PixelRatio.getFontScale();
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.w100, styles.breadcrumsContainer, style]}>
             {primaryBreadcrumb.type === CONST.BREADCRUMB_TYPE.ROOT ? (
