@@ -117,19 +117,7 @@ function ReportActionsView(props) {
     };
 
     useEffect(() => {
-<<<<<<< HEAD:src/pages/home/report/ReportActionsView.js
-        const interactionTask = InteractionManager.runAfterInteractions(() => {
-            openReportIfNecessary();
-        });
-        return () => {
-            if (!interactionTask) {
-                return;
-            }
-            interactionTask.cancel();
-        };
-=======
         openReportIfNecessary();
->>>>>>> f6b45c6 (Merge pull request #38071 from Expensify/vit-revert32336):src/pages/home/report/ReportActionsView.tsx
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -182,28 +170,12 @@ function ReportActionsView(props) {
         // Check if the optimistic `OpenReport` or `AddWorkspaceRoom` has succeeded by confirming
         // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
         // Existing reports created will have empty fields for `pendingFields`.
-<<<<<<< HEAD:src/pages/home/report/ReportActionsView.js
         const didCreateReportSuccessfully = !props.report.pendingFields || (!props.report.pendingFields.addWorkspaceRoom && !props.report.pendingFields.createChat);
-        let interactionTask;
-=======
-        const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
->>>>>>> f6b45c6 (Merge pull request #38071 from Expensify/vit-revert32336):src/pages/home/report/ReportActionsView.tsx
         if (!didSubscribeToReportTypingEvents.current && didCreateReportSuccessfully) {
             Report.subscribeToReportTypingEvents(reportID);
             didSubscribeToReportTypingEvents.current = true;
         }
-<<<<<<< HEAD:src/pages/home/report/ReportActionsView.js
-
-        return () => {
-            if (!interactionTask) {
-                return;
-            }
-            interactionTask.cancel();
-        };
     }, [props.report.pendingFields, didSubscribeToReportTypingEvents, reportID]);
-=======
-    }, [report.pendingFields, didSubscribeToReportTypingEvents, reportID]);
->>>>>>> f6b45c6 (Merge pull request #38071 from Expensify/vit-revert32336):src/pages/home/report/ReportActionsView.tsx
 
     const oldestReportAction = useMemo(() => _.last(props.reportActions), [props.reportActions]);
 
