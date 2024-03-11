@@ -4,7 +4,7 @@ import {Linking, NativeModules} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import InitialUrlContext from '@libs/InitialUrlContext';
+import {InitialURLContext} from '@components/InitialURLContextProvider';
 import * as SessionUtils from '@libs/SessionUtils';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
@@ -29,7 +29,7 @@ type LogOutPreviousUserPageProps = LogOutPreviousUserPageOnyxProps & StackScreen
 //
 // This component should not do any other navigation as that handled in App.setUpPoliciesAndNavigate
 function LogOutPreviousUserPage({session, route, account}: LogOutPreviousUserPageProps) {
-    const initUrlFromOldApp = useContext(InitialUrlContext);
+    const initUrlFromOldApp = useContext(InitialURLContext);
     useEffect(() => {
         Linking.getInitialURL().then((url) => {
             const sessionEmail = session?.email;
@@ -74,7 +74,6 @@ function LogOutPreviousUserPage({session, route, account}: LogOutPreviousUserPag
                 });
             }
         });
-
 
         // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
         // eslint-disable-next-line react-hooks/exhaustive-deps
