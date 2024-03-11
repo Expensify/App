@@ -141,7 +141,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
                 onToggle: () => {
                     const isActive = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
                     const newReimbursementChoice = isActive ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
-                    Policy.setWorkspaceReimbursement(route.params.policyID, newReimbursementChoice);
+                    Policy.setWorkspaceReimbursement(policy?.id ?? '', newReimbursementChoice);
                 },
                 subMenuItems: (
                     <>
@@ -159,7 +159,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
                             <OfflineWithFeedback
                                 pendingAction={policy?.pendingFields?.reimburserEmail}
                                 errors={ErrorUtils.getLatestErrorField(policy ?? {}, 'reimburserEmail')}
-                                onClose={() => Policy.clearWorkspacePayerError(policy?.id ?? route.params.policyID)}
+                                onClose={() => Policy.clearWorkspacePayerError(policy?.id ?? '')}
                             >
                                 <MenuItem
                                     titleStyle={styles.textLabelSupportingNormal}
