@@ -64,6 +64,7 @@ import type {Attributes, CustomUnit, Rate, Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import RequestWorkspaceOwnerChangeParams from "@libs/API/parameters/RequestWorkspaceOwnerChangeParams";
 
 type AnnounceRoomMembersOnyxData = {
     onyxOptimisticData: OnyxUpdate[];
@@ -220,6 +221,20 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (val) => (allPolicyCategories = val),
 });
+
+let policyOwnershipChecks: Record<string, PolicyOwnershipChangeChecks> = {};
+Onyx.connect({
+    key: ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS,
+    callback: (value, key) => {
+        if (!key || !value) {
+            policyOwnershipChecks = {};
+            return;
+        }
+
+        policyOwnershipChecks = value;
+    }
+});
+
 
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
@@ -845,6 +860,37 @@ function updateWorkspaceOwnershipChecks(policyID: string, ownershipChecks: Polic
             [policyID]: ownershipChecks
         }
     );
+}
+
+function requestWorkspaceOwnerChange(policyID: string) {
+    const ownershipChecks = policyOwnershipChecks[policyID] ?? {};
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                errors: null,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.genericFailureMessage'),
+            },
+        }
+    ];
+
+    const params: RequestWorkspaceOwnerChangeParams = {
+        policyID,
+        ...ownershipChecks,
+    }
+
+    API.write(WRITE_COMMANDS.REQUEST_WORKSPACE_OWNER_CHANGE, params, {successData, failureData});
 }
 
 /**
@@ -2782,6 +2828,7 @@ export {
     removeMembers,
     updateWorkspaceMembersRole,
     updateWorkspaceOwnershipChecks,
+    requestWorkspaceOwnerChange,
     addMembersToWorkspace,
     isAdminOfFreePolicy,
     hasActiveFreePolicy,
