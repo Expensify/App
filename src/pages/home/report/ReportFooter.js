@@ -67,7 +67,7 @@ function ReportFooter(props) {
     const {isOffline} = useNetwork();
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
-    const isAnonymousUser = props.session.authTokenType === CONST.AUTH_TOKEN_TYPE.ANONYMOUS;
+    const isAnonymousUser = props.session.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
 
     const isSmallSizeLayout = props.windowWidth - (props.isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
     const hideComposer = !ReportUtils.canUserPerformWriteAction(props.report);

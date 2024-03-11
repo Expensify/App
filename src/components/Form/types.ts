@@ -16,6 +16,7 @@ import type TextInput from '@components/TextInput';
 import type ValuePicker from '@components/ValuePicker';
 import type {MaybePhraseKey} from '@libs/Localize';
 import type BusinessTypePicker from '@pages/ReimbursementAccount/BusinessInfo/substeps/TypeBusiness/BusinessTypePicker';
+import type {Country} from '@src/CONST';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
 import type {BaseForm} from '@src/types/form/Form';
 
@@ -42,11 +43,12 @@ type ValidInputs =
     | typeof DatePicker
     | typeof RadioButtons;
 
-type ValueTypeKey = 'string' | 'boolean' | 'date';
+type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country';
 type ValueTypeMap = {
     string: string;
     boolean: boolean;
     date: Date;
+    country: Country | '';
 };
 type FormValue = ValueOf<ValueTypeMap>;
 

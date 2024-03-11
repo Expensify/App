@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import type {ReactNode} from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -13,6 +13,7 @@ import FixedFooter from './FixedFooter';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import type HeaderWithBackButtonProps from './HeaderWithBackButton/types';
 import ScreenWrapper from './ScreenWrapper';
+import ScrollView from './ScrollView';
 
 type HeaderPageLayoutProps = ChildrenProps &
     HeaderWithBackButtonProps & {
