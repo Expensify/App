@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import {useOptionsListContext} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
@@ -63,7 +64,7 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}) {
     const {isOffline} = useNetwork();
     const themeStyles = useThemeStyles();
     const personalDetails = usePersonalDetails();
-
+    const {initializeOptions} = useOptionsListContext();
     const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
@@ -95,6 +96,10 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}) {
         const header = OptionsListUtils.getHeaderMessage(options.recentReports.length + options.personalDetails.length !== 0, Boolean(options.userToInvite), debouncedSearchValue);
         return {...options, headerMessage: header};
     }, [debouncedSearchValue, reports, personalDetails, betas, isScreenTransitionEnd]);
+
+    useEffect(() => {
+        initializeOptions();
+    }, [initializeOptions]);
 
     const sections = useMemo(() => {
         const newSections = [];

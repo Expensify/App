@@ -1329,7 +1329,7 @@ function isReportSelected(reportOption: ReportUtils.OptionData, selectedOptions:
     return selectedOptions.some((option) => (option.accountID && option.accountID === reportOption.accountID) || (option.reportID && option.reportID === reportOption.reportID));
 }
 
-function createOptionList(reports: OnyxCollection<Report>, personalDetails: OnyxEntry<PersonalDetailsList>, {reportActions = {}}: Partial<GetOptionsConfig>) {
+function createOptionList(reports: OnyxCollection<Report>, personalDetails: OnyxEntry<PersonalDetailsList>) {
     const reportMapForAccountIDs: Record<number, Report> = {};
     // Sorting the reports works like this:
     // - Order everything by the last message timestamp (descending)
@@ -1365,10 +1365,16 @@ function createOptionList(reports: OnyxCollection<Report>, personalDetails: Onyx
         }
 
         allReportOptions.push(
-            createOption(accountIDs, personalDetails, report, reportActions, {
-                showChatPreviewLine: true,
-                forcePolicyNamePreview: true,
-            }),
+            createOption(
+                accountIDs,
+                personalDetails,
+                report,
+                {},
+                {
+                    showChatPreviewLine: true,
+                    forcePolicyNamePreview: true,
+                },
+            ),
         );
     });
 
@@ -1376,15 +1382,21 @@ function createOptionList(reports: OnyxCollection<Report>, personalDetails: Onyx
         Object.entries(personalDetails ?? {}).filter(([, detail]) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail),
     );
     const allPersonalDetailsOptions = Object.values(havingLoginPersonalDetails).map((personalDetail) =>
-        createOption([personalDetail?.accountID ?? -1], personalDetails, reportMapForAccountIDs[personalDetail?.accountID ?? -1], reportActions, {
-            showChatPreviewLine: true,
-            forcePolicyNamePreview: true,
-        }),
+        createOption(
+            [personalDetail?.accountID ?? -1],
+            personalDetails,
+            reportMapForAccountIDs[personalDetail?.accountID ?? -1],
+            {},
+            {
+                showChatPreviewLine: true,
+                forcePolicyNamePreview: true,
+            },
+        ),
     );
 
     return {
-        reportOptions: allReportOptions,
-        personalDetailsOptions: allPersonalDetailsOptions,
+        reports: allReportOptions,
+        personalDetails: allPersonalDetailsOptions,
     };
 }
 
