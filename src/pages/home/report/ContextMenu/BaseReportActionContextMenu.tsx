@@ -22,7 +22,7 @@ import type {Beta, ReportAction, ReportActions} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ContextMenuAction, ContextMenuActionPayload} from './ContextMenuActions';
 import ContextMenuActions from './ContextMenuActions';
-import type {ContextMenuType} from './ReportActionContextMenu';
+import type {ContextMenuAnchor, ContextMenuType} from './ReportActionContextMenu';
 import {hideContextMenu, showContextMenu} from './ReportActionContextMenu';
 
 type BaseReportActionContextMenuOnyxProps = {
@@ -64,7 +64,7 @@ type BaseReportActionContextMenuProps = BaseReportActionContextMenuOnyxProps & {
     type?: ContextMenuType;
 
     /** Target node which is the target of ContentMenu */
-    anchor?: MutableRefObject<HTMLElement | null>;
+    anchor?: MutableRefObject<ContextMenuAnchor>;
 
     /** Flag to check if the chat participant is Chronos */
     isChronosReport?: boolean;
@@ -86,6 +86,9 @@ type BaseReportActionContextMenuProps = BaseReportActionContextMenuOnyxProps & {
 
     /** List of disabled actions */
     disabledActions?: ContextMenuAction[];
+
+    /** Function to update emoji picker state */
+    setIsEmojiPickerActive?: (state: boolean) => void;
 };
 
 type MenuItemRefs = Record<string, ContextMenuItemHandle | null>;
@@ -108,6 +111,7 @@ function BaseReportActionContextMenu({
     reportActions,
     checkIfContextMenuActive,
     disabledActions = [],
+    setIsEmojiPickerActive,
 }: BaseReportActionContextMenuProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -202,7 +206,10 @@ function BaseReportActionContextMenu({
             originalReportID,
             draftMessage,
             checkIfContextMenuActive,
-            checkIfContextMenuActive,
+            () => {
+                checkIfContextMenuActive?.();
+                setShouldKeepOpen(false);
+            },
             ReportUtils.isArchivedRoom(originalReport),
             ReportUtils.chatIncludesChronos(originalReport),
             undefined,
@@ -229,6 +236,7 @@ function BaseReportActionContextMenu({
                         openContextMenu: () => setShouldKeepOpen(true),
                         interceptAnonymousUser,
                         openOverflowMenu,
+                        setIsEmojiPickerActive,
                     };
 
                     if ('renderContent' in contextAction) {
@@ -257,6 +265,7 @@ function BaseReportActionContextMenu({
                             description={contextAction.getDescription?.(selection) ?? ''}
                             isAnonymousAction={contextAction.isAnonymousAction}
                             isFocused={focusedIndex === index}
+                            shouldPreventDefaultFocusOnPress={contextAction.shouldPreventDefaultFocusOnPress}
                         />
                     );
                 })}
