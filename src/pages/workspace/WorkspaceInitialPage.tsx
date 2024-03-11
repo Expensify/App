@@ -145,6 +145,15 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
 
     const protectedCollectPolicyMenuItems: WorkspaceMenuItem[] = [];
 
+    if (policy?.areDistanceRatesEnabled) {
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.distanceRates',
+            icon: Expensicons.Car,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.DISTANCE_RATES,
+        });
+    }
+
     if (policy?.areWorkflowsEnabled) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.workflows',
@@ -169,15 +178,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             icon: Expensicons.Tag,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.TAGS,
-        });
-    }
-
-    if (policy?.areDistanceRatesEnabled) {
-        protectedCollectPolicyMenuItems.push({
-            translationKey: 'workspace.common.distanceRates',
-            icon: Expensicons.Car,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.DISTANCE_RATES,
         });
     }
 
