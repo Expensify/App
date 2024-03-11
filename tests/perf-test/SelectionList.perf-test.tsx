@@ -6,7 +6,7 @@ import {measurePerformance} from 'reassure';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
-import {type KeyboardStateContextValue} from '@components/withKeyboardState';
+import type {KeyboardStateContextValue} from '@components/withKeyboardState';
 import type {WithLocalizeProps} from '@components/withLocalize';
 import variables from '@styles/variables';
 
@@ -64,7 +64,8 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../src/hooks/useKeyboardState', () => ({
-    __esModule: true, // This property is crucial for mocking default exports
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
     default: jest.fn(() => ({
         isKeyboardShown: false,
         keyboardHeight: 0,

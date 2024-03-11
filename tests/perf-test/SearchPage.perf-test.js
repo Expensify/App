@@ -71,7 +71,8 @@ jest.mock('../../src/components/withNavigationFocus', () => (Component) => {
 });
 // mock of useDismissedReferralBanners
 jest.mock('../../src/hooks/useDismissedReferralBanners', () => ({
-    __esModule: true, // This property is crucial for mocking default exports
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
     default: jest.fn(() => ({
         isDismissed: false,
         setAsDismissed: () => {},
