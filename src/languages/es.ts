@@ -1952,8 +1952,16 @@ export default {
             status: 'Estado',
             enabled: 'Activada',
             disabled: 'Desactivada',
+            unit: 'Unit',
+            defaultCategory: 'Default category',
             errors: {
                 createRateGenericFailureMessage: 'An error occurred while creating the distance rate, please try again.',
+                updateRateUnitGenericFailureMessage: 'An error occurred while updating the distance rate unit, please try again.',
+                updateRateDefaultCategoryGenericFailureMessage: 'An error occurred while updating the distance rate default category, please try again.',
+            },
+            units: {
+                MI: 'Millas',
+                KM: 'Kilómetros',
             },
         },
         editor: {

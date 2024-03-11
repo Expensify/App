@@ -255,6 +255,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE_SELECTION]: () => require('../../../pages/workspace/members/WorkspaceMemberDetailsRoleSelectionPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.CATEGORY_CREATE]: () => require('../../../pages/workspace/categories/CreateCategoryPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: () => require('../../../pages/workspace/distanceRates/PolicyNewDistanceRatePage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: () => require('../../../pages/workspace/distanceRates/PolicyDistanceRatesSettingsPage').default as React.ComponentType,
     [SCREENS.REIMBURSEMENT_ACCOUNT]: () => require('../../../pages/ReimbursementAccount/ReimbursementAccountPage').default as React.ComponentType,
     [SCREENS.GET_ASSISTANCE]: () => require('../../../pages/GetAssistancePage').default as React.ComponentType,
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: () => require('../../../pages/settings/Security/TwoFactorAuth/TwoFactorAuthPage').default as React.ComponentType,

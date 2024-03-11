@@ -1416,6 +1416,10 @@ const CONST = {
             DISABLE: 'disable',
             ENABLE: 'enable',
         },
+        UNITS: {
+            MI: 'Miles',
+            KM: 'Kilometers',
+        },
     },
 
     CUSTOM_UNITS: {

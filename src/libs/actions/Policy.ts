@@ -23,6 +23,8 @@ import type {
     OpenWorkspaceMembersPageParams,
     OpenWorkspaceParams,
     OpenWorkspaceReimburseViewParams,
+    SetPolicyDistanceRatesDefaultCategoryParams,
+    SetPolicyDistanceRatesUnitParams,
     SetWorkspaceApprovalModeParams,
     SetWorkspaceAutoReportingFrequencyParams,
     SetWorkspaceAutoReportingMonthlyOffsetParams,
@@ -2858,6 +2860,124 @@ function clearCreateDistanceRateError(policyID: string, currentRates: Record<str
     });
 }
 
+function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: CustomUnit) {
+    if (!policyID || !currentCustomUnit || !newCustomUnit) {
+        return;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [newCustomUnit.customUnitID]: {
+                        ...newCustomUnit,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [newCustomUnit.customUnitID]: {
+                        errors: null,
+                        pendingAction: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [currentCustomUnit.customUnitID]: {
+                        ...currentCustomUnit,
+                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.distanceRates.errors.updateRateUnitGenericFailureMessage'),
+                        pendingAction: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const params: SetPolicyDistanceRatesUnitParams = {
+        policyID,
+        customUnit: JSON.stringify(newCustomUnit),
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_UNIT, params, {optimisticData, successData, failureData});
+}
+
+function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: CustomUnit) {
+    if (!policyID || !currentCustomUnit || !newCustomUnit) {
+        return;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [newCustomUnit.customUnitID]: {
+                        ...newCustomUnit,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [newCustomUnit.customUnitID]: {
+                        errors: null,
+                        pendingAction: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [currentCustomUnit.customUnitID]: {
+                        ...currentCustomUnit,
+                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.distanceRates.errors.updateRateDefaultCategoryGenericFailureMessage'),
+                        pendingAction: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const params: SetPolicyDistanceRatesDefaultCategoryParams = {
+        policyID,
+        customUnit: JSON.stringify(newCustomUnit),
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY, params, {optimisticData, successData, failureData});
+}
+
 export {
     removeMembers,
     updateWorkspaceMembersRole,
@@ -2916,4 +3036,6 @@ export {
     generateCustomUnitID,
     createPolicyDistanceRate,
     clearCreateDistanceRateError,
+    setPolicyDistanceRatesUnit,
+    setPolicyDistanceRatesDefaultCategory,
 };

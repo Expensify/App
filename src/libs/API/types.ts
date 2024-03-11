@@ -161,6 +161,8 @@ const WRITE_COMMANDS = {
     ACCEPT_JOIN_REQUEST: 'AcceptJoinRequest',
     DECLINE_JOIN_REQUEST: 'DeclineJoinRequest',
     CREATE_POLICY_DISTANCE_RATE: 'CreatePolicyDistanceRate',
+    SET_POLICY_DISTANCE_RATES_UNIT: 'SetPolicyDistanceRatesUnit',
+    SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY: 'SetPolicyDistanceRatesDefaultCategory',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -320,6 +322,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ACCEPT_JOIN_REQUEST]: Parameters.AcceptJoinRequestParams;
     [WRITE_COMMANDS.DECLINE_JOIN_REQUEST]: Parameters.DeclineJoinRequestParams;
     [WRITE_COMMANDS.CREATE_POLICY_DISTANCE_RATE]: Parameters.CreatePolicyDistanceRateParams;
+    [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_UNIT]: Parameters.SetPolicyDistanceRatesUnitParams;
+    [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY]: Parameters.SetPolicyDistanceRatesDefaultCategoryParams;
 };
 
 const READ_COMMANDS = {
