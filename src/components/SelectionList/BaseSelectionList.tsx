@@ -368,6 +368,16 @@ function BaseSelectionList<TItem extends ListItem>(
         updateAndScrollToFocusedIndex(newSelectedIndex);
     }, [canSelectMultiple, flattenedSections.allOptions.length, prevTextInputValue, textInputValue, updateAndScrollToFocusedIndex]);
 
+    useEffect(
+        () => () => {
+            if (!itemFocusTimeoutRef.current) {
+                return;
+            }
+            clearTimeout(itemFocusTimeoutRef.current);
+        },
+        [],
+    );
+
     const scrollAndHighlightItem = useCallback(
         (items: string[], timeout: number) => {
             const newItemsToHighlight = new Set<string>();
