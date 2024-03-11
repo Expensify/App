@@ -483,7 +483,6 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                         onPress={inviteUser}
                         text={translate('workspace.invite.member')}
                         icon={Expensicons.Plus}
-                        iconStyles={StyleUtils.getTransformScaleStyle(0.6)}
                         innerStyles={[isSmallScreenWidth && styles.alignItemsCenter]}
                         style={[isSmallScreenWidth && styles.flexGrow1]}
                     />

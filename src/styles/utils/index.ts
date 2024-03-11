@@ -475,14 +475,14 @@ function getIconWidthAndHeightStyle(small: boolean, medium: boolean, large: bool
     }
 }
 
-function getButtonStyleWithIcon(styles: ThemeStyles, small: boolean, medium: boolean, large: boolean, hasIcon?: boolean): ViewStyle | undefined {
+function getButtonStyleWithIcon(styles: ThemeStyles, small: boolean, medium: boolean, large: boolean, hasIcon?: boolean, hasText?: boolean): ViewStyle | undefined {
     switch (true) {
         case small:
-            return !hasIcon ? styles.buttonSmall : {...styles.buttonSmall, ...styles.pl1};
+            return !hasIcon ? styles.buttonSmall : {...styles.buttonSmall, ...(hasText ? styles.pl2 : styles.ph0)};
         case medium:
-            return !hasIcon ? styles.buttonMedium : {...styles.buttonMedium, ...styles.pl3};
+            return !hasIcon ? styles.buttonMedium : {...styles.buttonMedium, ...(hasText ? styles.pl3 : styles.ph0)};
         case large:
-            return !hasIcon ? styles.buttonLarge : {...styles.buttonLarge, ...styles.pl4};
+            return !hasIcon ? styles.buttonLarge : {...styles.buttonLarge, ...(hasText ? styles.pl4 : styles.ph0)};
         default: {
             return undefined;
         }
@@ -1126,7 +1126,7 @@ const staticStyleUtils = {
     getMultiGestureCanvasContainerStyle,
     getSignInBgStyles,
     getIconWidthAndHeightStyle,
-    getButtonStyleWithIcon
+    getButtonStyleWithIcon,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({

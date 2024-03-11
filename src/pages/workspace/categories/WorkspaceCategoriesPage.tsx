@@ -143,7 +143,6 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                 medium
                 onPress={navigateToCategoriesSettings}
                 icon={Expensicons.Gear}
-                iconStyles={[styles.mr2]}
                 text={translate('common.settings')}
                 style={[isSmallScreenWidth && styles.w50]}
             />
