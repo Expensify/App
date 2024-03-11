@@ -1813,7 +1813,10 @@ export default {
             },
         },
         taxes: {
-            subtitle: 'Añada nombres de impuestos, tipos impositivos y establezca valores por defecto.',
+            subtitle: 'Añade nombres, tasas y establezca valores por defecto para los impuestos.',
+            addRate: 'Añade tasa',
+            workspaceDefault: 'Moneda por defecto del espacio de trabajo',
+            foreignDefault: 'Impago de divisas',
         },
         emptyWorkspace: {
             title: 'Crea un espacio de trabajo',

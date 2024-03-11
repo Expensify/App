@@ -1790,6 +1790,9 @@ export default {
         },
         taxes: {
             subtitle: 'Add tax names, rates, and set defaults.',
+            addRate: 'Add rate',
+            workspaceDefault: 'Workspace currency default',
+            foreignDefault: 'Foreign currency default',
         },
         emptyWorkspace: {
             title: 'Create a workspace',

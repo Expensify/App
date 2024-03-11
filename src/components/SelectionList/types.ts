@@ -58,6 +58,9 @@ type ListItem = {
     /** Whether this option is selected */
     isSelected?: boolean;
 
+    /** Whether this option is selectable */
+    isSelectable?: boolean;
+
     /** Whether this option is disabled for selection */
     isDisabled?: boolean;
 

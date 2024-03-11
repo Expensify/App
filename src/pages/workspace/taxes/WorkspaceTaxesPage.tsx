@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -30,13 +30,33 @@ function WorkspaceTaxesPage({policy}: WorkspaceTaxesPageProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const [selectedTaxesIDs, setSelectedTaxesIDs] = useState<string[]>([]);
+    const defaultExternalID = policy?.taxRates?.defaultExternalID;
+    const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
+
+    const textForDefault = useCallback(
+        (taxID: string): string => {
+            if (taxID === defaultExternalID && taxID === foreignTaxDefault) {
+                return translate('common.default');
+            }
+            if (taxID === defaultExternalID) {
+                return translate('workspace.taxes.workspaceDefault');
+            }
+            if (taxID === foreignTaxDefault) {
+                return translate('workspace.taxes.foreignDefault');
+            }
+            return '';
+        },
+        [defaultExternalID, foreignTaxDefault, translate],
+    );
 
     const taxesList = useMemo<ListItem[]>(
         () =>
             Object.entries(policy?.taxRates?.taxes ?? {}).map(([key, value]) => ({
                 text: value.name,
+                alternateText: textForDefault(key),
                 keyForList: key,
                 isSelected: !!selectedTaxesIDs.includes(key),
+                isSelectable: !(key === defaultExternalID || key === foreignTaxDefault),
                 rightElement: (
                     <View style={styles.flexRow}>
                         <Text style={[styles.disabledText, styles.alignSelfCenter]}>{value.isDisabled ? translate('workspace.common.disabled') : translate('workspace.common.enabled')}</Text>
@@ -49,7 +69,7 @@ function WorkspaceTaxesPage({policy}: WorkspaceTaxesPageProps) {
                     </View>
                 ),
             })),
-        [policy?.taxRates?.taxes, selectedTaxesIDs, styles, theme.icon, translate],
+        [policy?.taxRates?.taxes, textForDefault, foreignTaxDefault, defaultExternalID, selectedTaxesIDs, styles, theme.icon, translate],
     );
 
     const toggleTax = (tax: ListItem) => {
@@ -62,12 +82,13 @@ function WorkspaceTaxesPage({policy}: WorkspaceTaxesPageProps) {
     };
 
     const toggleAllTaxes = () => {
+        const taxesToSelect = taxesList.filter((tax) => tax.keyForList !== defaultExternalID && tax.keyForList !== foreignTaxDefault);
         setSelectedTaxesIDs((prev) => {
-            if (prev.length === taxesList.length) {
+            if (prev.length === taxesToSelect.length) {
                 return [];
             }
 
-            return taxesList.map((item) => item.keyForList);
+            return taxesToSelect.map((item) => item.keyForList);
         });
     };
 
@@ -85,7 +106,7 @@ function WorkspaceTaxesPage({policy}: WorkspaceTaxesPageProps) {
                 success
                 onPress={() => {}}
                 icon={Expensicons.Plus}
-                text="Add rate"
+                text={translate('workspace.taxes.addRate')}
                 style={[styles.mr3, isSmallScreenWidth && styles.w50]}
             />
             <Button
