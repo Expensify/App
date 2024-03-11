@@ -22,7 +22,7 @@ describe('test workflow test', () => {
     const actor = 'Dummy Actor';
     const osbotifyActor = 'OSBotify';
 
-    beforeAll(async () => {
+    beforeAll(() => {
         // in case of the tests being interrupted without cleanup the mock repo directory may be left behind
         // which breaks the next test run, this removes any possible leftovers
         utils.removeMockRepoDir();
@@ -51,7 +51,7 @@ describe('test workflow test', () => {
             action: 'opened',
         };
         it('runs all tests', async () => {
-            const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') || '';
+            const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
             // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
@@ -72,7 +72,7 @@ describe('test workflow test', () => {
         });
         describe('actor is OSBotify', () => {
             it('does not run tests', async () => {
-                const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
@@ -100,7 +100,7 @@ describe('test workflow test', () => {
             action: 'synchronize',
         };
         it('runs all tests', async () => {
-            const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') || '';
+            const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
             // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
@@ -121,7 +121,7 @@ describe('test workflow test', () => {
         });
         describe('actor is OSBotify', () => {
             it('does not run tests', async () => {
-                const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
@@ -147,7 +147,7 @@ describe('test workflow test', () => {
         const event = 'workflow_call';
         const eventOptions = {};
         it('runs all tests', async () => {
-            const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') || '';
+            const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
             // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
@@ -168,7 +168,7 @@ describe('test workflow test', () => {
         });
         describe('actor is OSBotify', () => {
             it('runs all tests normally', async () => {
-                const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.

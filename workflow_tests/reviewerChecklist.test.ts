@@ -21,7 +21,7 @@ describe('test workflow reviewerChecklist', () => {
     const githubToken = 'dummy_github_token';
     const actor = 'Dummy Actor';
 
-    beforeAll(async () => {
+    beforeAll(() => {
         // in case of the tests being interrupted without cleanup the mock repo directory may be left behind
         // which breaks the next test run, this removes any possible leftovers
         utils.removeMockRepoDir();
@@ -46,7 +46,7 @@ describe('test workflow reviewerChecklist', () => {
         const event = 'pull_request_review';
         const eventOptions = {};
         it('runs the workflow', async () => {
-            const repoPath = mockGithub.repo.getPath('testReviewerChecklistWorkflowRepo') || '';
+            const repoPath = mockGithub.repo.getPath('testReviewerChecklistWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'reviewerChecklist.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
             // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
@@ -66,7 +66,7 @@ describe('test workflow reviewerChecklist', () => {
         describe('actor is OSBotify', () => {
             const osbotifyActor = 'OSBotify';
             it('does not run the workflow', async () => {
-                const repoPath = mockGithub.repo.getPath('testReviewerChecklistWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testReviewerChecklistWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'reviewerChecklist.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
