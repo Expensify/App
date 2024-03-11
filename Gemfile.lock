@@ -1,6 +1,6 @@
-GEM	
+GEM
   remote: https://rubygems.org/
-specs:
+  specs:
     CFPropertyList (3.0.6)
       rexml
     activesupport (7.0.8)
