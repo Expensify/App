@@ -175,7 +175,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
                             InputComponent={TextInput}
                             ref={inputCallbackRef}
                             inputID={INPUT_IDS.STATUS_TEXT}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                             label={translate('statusPage.message')}
                             accessibilityLabel={INPUT_IDS.STATUS_TEXT}
                             defaultValue={defaultText}
