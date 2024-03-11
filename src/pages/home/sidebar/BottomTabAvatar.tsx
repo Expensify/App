@@ -1,6 +1,7 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import React, {useCallback} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import AvatarWithOptionalStatus from './AvatarWithOptionalStatus';
@@ -24,7 +25,7 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS);
+        interceptAnonymousUser(() => Navigation.navigate(ROUTES.SETTINGS));
     }, [isCreateMenuOpen]);
 
     if (emojiStatus) {
