@@ -66,15 +66,16 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
         Object.entries(policyMembers ?? {}).forEach(([accountIDKey, policyMember]) => {
             const accountID = Number(accountIDKey);
             const details = personalDetails?.[accountID];
+            if (!details) {
+                Log.hmmm(`[WorkspaceMembersPage] no personal details found for policy member with accountID: ${accountID}`);
+                return;
+            }
+
             const isOwner = policy?.owner === details?.login;
             const isAdmin = policyMember.role === CONST.POLICY.ROLE.ADMIN;
-
-            const shouldSkipMember = isDeletedPolicyMember(policyMember) || !details || PolicyUtils.isExpensifyTeam(details?.login) || (!isOwner && !isAdmin);
+            const shouldSkipMember = isDeletedPolicyMember(policyMember) || PolicyUtils.isExpensifyTeam(details?.login) || (!isOwner && !isAdmin);
 
             if (shouldSkipMember) {
-                if (!details) {
-                    Log.hmmm(`[WorkspaceMembersPage] no personal details found for policy member with accountID: ${accountID}`);
-                }
                 return;
             }
 
