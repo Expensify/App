@@ -97,8 +97,7 @@ function getTransactionsByActionType(actionType?: IOUActionType): Array<OnyxEntr
         Object.values(allTransactions ?? {})
             .filter((transaction): transaction is Transaction => transaction != null && actionType === getTransactionActionType(transaction))
             // String based sorting of dates having format [YYYY-MM-DD HH:MM:SS.mmm]
-            .sort((transactionA, transactionB) => (transactionA?.created && transactionB?.created && transactionA?.created > transactionB?.created ? 1 : -1))
-            .reverse()
+            .sort((transactionA, transactionB) => (transactionA?.created && transactionB?.created && transactionA?.created < transactionB?.created ? 1 : -1))
     );
 }
 
