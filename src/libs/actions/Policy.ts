@@ -2752,7 +2752,6 @@ function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: stri
         oldName,
         newName,
     };
-    console.log('onyxData :>> ', onyxData);
 
     API.write(WRITE_COMMANDS.RENAME_POLICY_TAG_LIST, parameters, onyxData);
 }
