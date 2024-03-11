@@ -41,7 +41,7 @@ type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
     report: OnyxTypes.Report;
 
     /** The policy tied to the money request report */
-    policy: OnyxTypes.Policy;
+    policy: OnyxEntry<OnyxTypes.Policy>;
 };
 
 function MoneyReportHeader({session, policy, chatReport, nextStep, report: moneyRequestReport}: MoneyReportHeaderProps) {
@@ -81,8 +81,8 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(
-        () => chatReport?.isOwnPolicyExpenseChat && !policy.harvesting?.enabled,
-        [chatReport?.isOwnPolicyExpenseChat, policy.harvesting?.enabled],
+        () => chatReport?.isOwnPolicyExpenseChat && !policy?.harvesting?.enabled,
+        [chatReport?.isOwnPolicyExpenseChat, policy?.harvesting?.enabled],
     );
 
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(moneyRequestReport)];
