@@ -2710,6 +2710,11 @@ function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
 function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagList>) {
     const newName = policyTagListName.newName;
     const oldName = policyTagListName.oldName;
+
+    if (oldName === newName) {
+        return;
+    }
+
     const oldPolicyTags = policyTags?.[oldName] ?? {};
     const onyxData: OnyxData = {
         optimisticData: [
