@@ -115,6 +115,7 @@ export type {default as OpenWorkspaceReimburseViewParams} from './OpenWorkspaceR
 export type {default as OpenWorkspaceInvitePageParams} from './OpenWorkspaceInvitePageParams';
 export type {default as OpenWorkspaceMembersPageParams} from './OpenWorkspaceMembersPageParams';
 export type {default as OpenPolicyCategoriesPageParams} from './OpenPolicyCategoriesPageParams';
+export type {default as OpenPolicyTagsPageParams} from './OpenPolicyTagsPageParams';
 export type {default as OpenDraftWorkspaceRequestParams} from './OpenDraftWorkspaceRequestParams';
 export type {default as UpdateWorkspaceCustomUnitAndRateParams} from './UpdateWorkspaceCustomUnitAndRateParams';
 export type {default as CreateWorkspaceFromIOUPaymentParams} from './CreateWorkspaceFromIOUPaymentParams';
@@ -157,6 +158,8 @@ export type {default as SetWorkspaceAutoReportingMonthlyOffsetParams} from './Se
 export type {default as SetWorkspaceApprovalModeParams} from './SetWorkspaceApprovalModeParams';
 export type {default as SetWorkspacePayerParams} from './SetWorkspacePayerParams';
 export type {default as SetWorkspaceReimbursementParams} from './SetWorkspaceReimbursementParams';
+export type {default as SetPolicyRequiresTag} from './SetPolicyRequiresTag';
+export type {default as RenamePolicyTaglist} from './RenamePolicyTaglist';
 export type {default as SwitchToOldDotParams} from './SwitchToOldDotParams';
 export type {default as EnablePolicyCategoriesParams} from './EnablePolicyCategoriesParams';
 export type {default as EnablePolicyConnectionsParams} from './EnablePolicyConnectionsParams';

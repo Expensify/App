@@ -119,6 +119,8 @@ const WRITE_COMMANDS = {
     SET_WORKSPACE_CATEGORIES_ENABLED: 'SetWorkspaceCategoriesEnabled',
     CREATE_WORKSPACE_CATEGORIES: 'CreateWorkspaceCategories',
     SET_WORKSPACE_REQUIRES_CATEGORY: 'SetWorkspaceRequiresCategory',
+    SET_POLICY_REQUIRES_TAG: 'SetPolicyRequiresTag',
+    RENAME_POLICY_TAG_LIST: 'RenamePolicyTaglist',
     CREATE_TASK: 'CreateTask',
     CANCEL_TASK: 'CancelTask',
     EDIT_TASK_ASSIGNEE: 'EditTaskAssignee',
@@ -279,6 +281,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_WORKSPACE_CATEGORIES_ENABLED]: Parameters.SetWorkspaceCategoriesEnabledParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES]: Parameters.CreateWorkspaceCategoriesParams;
     [WRITE_COMMANDS.SET_WORKSPACE_REQUIRES_CATEGORY]: Parameters.SetWorkspaceRequiresCategoryParams;
+    [WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG]: Parameters.SetPolicyRequiresTag;
+    [WRITE_COMMANDS.RENAME_POLICY_TAG_LIST]: Parameters.RenamePolicyTaglist;
     [WRITE_COMMANDS.CREATE_TASK]: Parameters.CreateTaskParams;
     [WRITE_COMMANDS.CANCEL_TASK]: Parameters.CancelTaskParams;
     [WRITE_COMMANDS.EDIT_TASK_ASSIGNEE]: Parameters.EditTaskAssigneeParams;
@@ -367,6 +371,7 @@ const READ_COMMANDS = {
     OPEN_WORKSPACE: 'OpenWorkspace',
     OPEN_WORKSPACE_MEMBERS_PAGE: 'OpenWorkspaceMembersPage',
     OPEN_POLICY_CATEGORIES_PAGE: 'OpenPolicyCategoriesPage',
+    OPEN_POLICY_TAGS_PAGE: 'OpenPolicyTagsPage',
     OPEN_WORKSPACE_INVITE_PAGE: 'OpenWorkspaceInvitePage',
     OPEN_DRAFT_WORKSPACE_REQUEST: 'OpenDraftWorkspaceRequest',
     OPEN_POLICY_WORKFLOWS_PAGE: 'OpenPolicyWorkflowsPage',
@@ -404,6 +409,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_WORKSPACE]: Parameters.OpenWorkspaceParams;
     [READ_COMMANDS.OPEN_WORKSPACE_MEMBERS_PAGE]: Parameters.OpenWorkspaceMembersPageParams;
     [READ_COMMANDS.OPEN_POLICY_CATEGORIES_PAGE]: Parameters.OpenPolicyCategoriesPageParams;
+    [READ_COMMANDS.OPEN_POLICY_TAGS_PAGE]: Parameters.OpenPolicyTagsPageParams;
     [READ_COMMANDS.OPEN_WORKSPACE_INVITE_PAGE]: Parameters.OpenWorkspaceInvitePageParams;
     [READ_COMMANDS.OPEN_DRAFT_WORKSPACE_REQUEST]: Parameters.OpenDraftWorkspaceRequestParams;
     [READ_COMMANDS.OPEN_POLICY_WORKFLOWS_PAGE]: Parameters.OpenPolicyWorkflowsPageParams;

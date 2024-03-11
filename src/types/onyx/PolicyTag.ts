@@ -1,3 +1,5 @@
+import type * as OnyxCommon from './OnyxCommon';
+
 type PolicyTag = {
     /** Name of a Tag */
     name: string;
@@ -14,7 +16,7 @@ type PolicyTags = Record<string, PolicyTag>;
 
 type PolicyTagList<T extends string = string> = Record<
     T,
-    {
+    OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Name of the tag list */
         name: T;
 
@@ -26,7 +28,7 @@ type PolicyTagList<T extends string = string> = Record<
 
         /** Index by which the tag appears in the hierarchy of tags */
         orderWeight: number;
-    }
+    }>
 >;
 
 export type {PolicyTag, PolicyTags, PolicyTagList};
