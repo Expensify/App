@@ -4048,7 +4048,8 @@ function doesTransactionThreadHaveViolations(report: OnyxEntry<Report>, transact
     if (report?.stateNum !== CONST.REPORT.STATE_NUM.OPEN && report?.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED) {
         return false;
     }
-    return TransactionUtils.hasViolation(IOUTransactionID, transactionViolations);
+
+    return TransactionUtils.hasViolation(IOUTransactionID, transactionViolations) && !isSettled(IOUReportID);
 }
 
 /**
@@ -4135,10 +4136,8 @@ function shouldReportBeInOptionList({
         return true;
     }
 
-    const reportIsSettled = report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-
-    // Always show IOU reports with violations unless they are reimbursed
-    if (isExpenseRequest(report) && doesReportHaveViolations && !reportIsSettled) {
+    // Always show IOU reports with violations
+    if (isExpenseRequest(report) && doesReportHaveViolations) {
         return true;
     }
 
