@@ -1,21 +1,21 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import type {ImageStyle, StyleProp} from 'react-native';
-import {Image, ScrollView, StyleSheet, View} from 'react-native';
+import {Image, StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import WorkspaceProfileLight from '@assets/images/workspace-profile-light.png';
-import WorkspaceProfile from '@assets/images/workspace-profile.png';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useThemePreference from '@hooks/useThemePreference';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
@@ -44,8 +44,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const themePreference = useThemePreference();
-    const isDarkTheme = themePreference === CONST.THEME.DARK;
+    const illustrations = useThemeIllustrations();
 
     const outputCurrency = policy?.outputCurrency ?? '';
     const currencySymbol = currencyList?.[outputCurrency]?.symbol ?? '';
@@ -77,6 +76,19 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
         [policy?.avatar, policyName, styles.alignSelfCenter, styles.avatarXLarge],
     );
 
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+    const confirmDeleteAndHideModal = useCallback(() => {
+        if (!policy?.id || !policyName) {
+            return;
+        }
+
+        Policy.deleteWorkspace(policy?.id, policyName);
+
+        PolicyUtils.goBackFromInvalidPolicy();
+
+        setIsDeleteModalOpen(false);
+    }, [policy?.id, policyName]);
     return (
         <WorkspacePageWithSections
             headerText={translate('workspace.common.profile')}
@@ -97,7 +109,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                         >
                             <Image
                                 style={StyleSheet.flatten([styles.wAuto, styles.h68, imageStyle])}
-                                source={isDarkTheme ? WorkspaceProfile : WorkspaceProfileLight}
+                                source={illustrations.WorkspaceProfile}
                                 resizeMode="cover"
                             />
                             <AvatarWithImagePicker
@@ -175,17 +187,33 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                 </View>
                             </OfflineWithFeedback>
                             {!readOnly && (
-                                <View style={[styles.flexRow, styles.mnw120]}>
+                                <View style={[styles.flexRow, styles.mt6, styles.mnw120]}>
                                     <Button
                                         accessibilityLabel={translate('common.share')}
-                                        style={styles.mt6}
                                         text={translate('common.share')}
                                         onPress={onPressShare}
+                                        medium
+                                    />
+                                    <Button
+                                        accessibilityLabel={translate('common.delete')}
+                                        text={translate('common.delete')}
+                                        style={[styles.ml2]}
+                                        onPress={() => setIsDeleteModalOpen(true)}
                                         medium
                                     />
                                 </View>
                             )}
                         </Section>
+                        <ConfirmModal
+                            title={translate('common.delete')}
+                            isVisible={isDeleteModalOpen}
+                            onConfirm={confirmDeleteAndHideModal}
+                            onCancel={() => setIsDeleteModalOpen(false)}
+                            prompt={translate('workspace.common.deleteConfirmation')}
+                            confirmText={translate('common.delete')}
+                            cancelText={translate('common.cancel')}
+                            danger
+                        />
                     </View>
                 </ScrollView>
             )}

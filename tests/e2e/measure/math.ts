@@ -42,3 +42,5 @@ const getStats = (entries: Entries): PerformanceEntry => {
 };
 
 export default getStats;
+
+export type {Stats};
