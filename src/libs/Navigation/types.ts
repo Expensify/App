@@ -259,6 +259,7 @@ type ProfileNavigatorParamList = {
     [SCREENS.PROFILE_ROOT]: {
         accountID: string;
         reportID: string;
+        backTo: Routes;
     };
 };
 
@@ -598,6 +599,10 @@ type AuthScreensParamList = SharedScreensParamList & {
     [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
     [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: NavigatorScreenParams<FullScreenNavigatorParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
+    [SCREENS.TRANSACTION_RECEIPT]: {
+        reportID: string;
+        transactionID: string;
+    };
 };
 
 type RootStackParamList = PublicScreensParamList & AuthScreensParamList;

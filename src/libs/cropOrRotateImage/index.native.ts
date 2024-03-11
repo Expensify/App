@@ -1,6 +1,5 @@
-import {manipulateAsync} from 'expo-image-manipulator';
+import RNImageManipulator from '@oguzhnatly/react-native-image-manipulator';
 import RNFetchBlob from 'react-native-blob-util';
-import getSaveFormat from './getSaveFormat';
 import type {CropOrRotateImage} from './types';
 
 /**
@@ -8,8 +7,7 @@ import type {CropOrRotateImage} from './types';
  */
 const cropOrRotateImage: CropOrRotateImage = (uri, actions, options) =>
     new Promise((resolve) => {
-        const format = getSaveFormat(options.type);
-        manipulateAsync(uri, actions, {compress: options.compress, format}).then((result) => {
+        RNImageManipulator.manipulate(uri, actions, options).then((result) => {
             RNFetchBlob.fs.stat(result.uri.replace('file://', '')).then(({size}) => {
                 resolve({
                     ...result,
