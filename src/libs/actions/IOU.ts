@@ -1043,6 +1043,7 @@ function createDistanceRequest(
         reportPreviewAction,
         transactionThreadReportID,
         createdReportActionIDForThread,
+        payerEmail,
         onyxData,
     } = getMoneyRequestInformation(
         currentChatReport,
@@ -1081,6 +1082,7 @@ function createDistanceRequest(
         billable,
         transactionThreadReportID,
         createdReportActionIDForThread,
+        payerEmail,
     };
 
     API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
