@@ -341,20 +341,11 @@ function ReportActionsList({
         }
     };
 
-<<<<<<< HEAD:src/pages/home/report/ReportActionsList.js
-    const trackVerticalScrolling = useCallback((event) => {
+    const trackVerticalScrolling = (event) => {
         scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
         handleUnreadFloatingButton();
         onScroll(event);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-=======
-    const trackVerticalScrolling = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
-        handleUnreadFloatingButton();
-        onScroll?.(event);
     };
->>>>>>> b8f16ba (Merge pull request #38091 from Expensify/marco-fixUnreadMarkerIssue):src/pages/home/report/ReportActionsList.tsx
 
     const scrollToBottomAndMarkReportAsRead = () => {
         reportScrollManager.scrollToBottom();
