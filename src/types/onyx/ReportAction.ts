@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import type {FileObject} from '@components/AttachmentModal';
 import type {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -184,7 +185,7 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     isFirstItem?: boolean;
 
     /** Informations about attachments of report action */
-    attachmentInfo?: File | EmptyObject;
+    attachmentInfo?: FileObject | EmptyObject;
 
     /** Receipt tied to report action */
     receipt?: Receipt;
@@ -196,6 +197,9 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Server side errors keyed by microtime */
     errors?: OnyxCommon.Errors | OnyxCommon.ErrorFields;
+
+    /** Error associated with the report action */
+    error?: string;
 
     /** Whether the report action is attachment */
     isAttachment?: boolean;
