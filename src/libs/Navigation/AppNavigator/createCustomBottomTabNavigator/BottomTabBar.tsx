@@ -52,7 +52,17 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
             return;
         }
 
-        Welcome.isOnboardingFlowCompleted({onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS)});
+        // Welcome.isOnboardingFlowCompleted({onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS)});
+        Welcome.isOnboardingFlowCompleted({
+            onNotCompleted: () =>
+                Navigation.navigate(
+                    // Uncomment once Stage 1 Onboarding Flow is ready
+                    //
+                    // ROUTES.ONBOARDING_PERSONAL_DETAILS
+                    //
+                    ROUTES.ONBOARD,
+                ),
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingApp]);
 
