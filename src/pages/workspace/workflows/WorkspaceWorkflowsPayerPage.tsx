@@ -151,7 +151,6 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
         }
 
         sectionsArray.push({
-            title: translate('workflowsPayerPage.title'),
             data: formattedAuthorizedPayer,
             shouldShow: true,
             indexOffset: formattedPolicyAdmins.length,

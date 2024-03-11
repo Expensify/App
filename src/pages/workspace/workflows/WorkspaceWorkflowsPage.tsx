@@ -220,7 +220,6 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_WORKFLOWS}
             shouldShowOfflineIndicatorInWideScreen
             shouldShowNotFoundPage={!isPaidGroupPolicy || !isPolicyAdmin}
-            shouldUseScrollView
             shouldSkipVBBACall
             shouldShowLoading={false}
         >
