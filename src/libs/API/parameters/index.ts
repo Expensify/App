@@ -156,3 +156,7 @@ export type {default as SetWorkspaceAutoReportingFrequencyParams} from './SetWor
 export type {default as SetWorkspaceAutoReportingMonthlyOffsetParams} from './SetWorkspaceAutoReportingMonthlyOffsetParams';
 export type {default as SetWorkspaceApprovalModeParams} from './SetWorkspaceApprovalModeParams';
 export type {default as SwitchToOldDotParams} from './SwitchToOldDotParams';
+export type {default as AcceptJoinRequestParams} from './AcceptJoinRequest';
+export type {default as DeclineJoinRequestParams} from './DeclineJoinRequest';
+export type {default as JoinPolicyInviteLinkParams} from './JoinPolicyInviteLink';
+export type {default as OpenPolicyDistanceRatesPageParams} from './OpenPolicyDistanceRatesPageParams';

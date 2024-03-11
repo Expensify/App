@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
-import * as LoginUtils from '../../src/libs/LoginUtils';
-import ONYXKEYS from '../../src/ONYXKEYS';
+import * as LoginUtils from '@libs/LoginUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('LoginUtils', () => {
