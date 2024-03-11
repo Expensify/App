@@ -14,12 +14,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Account, Session} from '@src/types/onyx';
+import type {Session} from '@src/types/onyx';
 
 type LogOutPreviousUserPageOnyxProps = {
     /** The data about the current session which will be set once the user is authenticated and we return to this component as an AuthScreen */
     session: OnyxEntry<Session>;
-    account: OnyxEntry<Account>;
+
+    /** Is the account loading? */
+    isAccountLoading: boolean;
 };
 
 type LogOutPreviousUserPageProps = LogOutPreviousUserPageOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
@@ -28,12 +30,12 @@ type LogOutPreviousUserPageProps = LogOutPreviousUserPageOnyxProps & StackScreen
 // out if the transition is for another user.
 //
 // This component should not do any other navigation as that handled in App.setUpPoliciesAndNavigate
-function LogOutPreviousUserPage({session, route, account}: LogOutPreviousUserPageProps) {
+function LogOutPreviousUserPage({session, route, isAccountLoading}: LogOutPreviousUserPageProps) {
     const initUrlFromOldApp = useContext(InitialURLContext);
     useEffect(() => {
         Linking.getInitialURL().then((url) => {
             const sessionEmail = session?.email;
-            const transitionURL = NativeModules.HybridAppModule ? `${CONST.DEEPLINK_BASE_URL}${initUrl}` : url;
+            const transitionURL = NativeModules.HybridAppModule ? `${CONST.DEEPLINK_BASE_URL}${initUrlFromOldApp}` : url;
             const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL ?? undefined, sessionEmail);
             const isSupportalLogin = route.params.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 
@@ -65,7 +67,7 @@ function LogOutPreviousUserPage({session, route, account}: LogOutPreviousUserPag
             // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
             // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
             // which is already called when AuthScreens mounts.
-            if (exitTo && exitTo !== ROUTES.WORKSPACE_NEW && !account?.isLoading && !isLoggingInAsNewUser) {
+            if (exitTo && exitTo !== ROUTES.WORKSPACE_NEW && !isAccountLoading && !isLoggingInAsNewUser) {
                 Navigation.isNavigationReady().then(() => {
                     // remove this screen and navigate to exit route
                     const exitUrl = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
@@ -87,7 +89,7 @@ LogOutPreviousUserPage.displayName = 'LogOutPreviousUserPage';
 export default withOnyx<LogOutPreviousUserPageProps, LogOutPreviousUserPageOnyxProps>({
     isAccountLoading: {
         key: ONYXKEYS.ACCOUNT,
-        selector: (account) => account?.isLoading,
+        selector: (account) => account?.isLoading ?? false,
     },
     session: {
         key: ONYXKEYS.SESSION,
