@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import {measurePerformance} from 'reassure';
 import _ from 'underscore';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import {KeyboardStateProvider} from '@components/withKeyboardState';
 import SearchPage from '@pages/SearchPage';
 import ComposeProviders from '../../src/components/ComposeProviders';
 import OnyxProvider from '../../src/components/OnyxProvider';
@@ -68,6 +69,14 @@ jest.mock('../../src/components/withNavigationFocus', () => (Component) => {
 
     return WithNavigationFocus;
 });
+// mock of useDismissedReferralBanners
+jest.mock('../../src/hooks/useDismissedReferralBanners', () => ({
+    __esModule: true, // This property is crucial for mocking default exports
+    default: jest.fn(() => ({
+        isDismissed: false,
+        setAsDismissed: () => {},
+    })),
+}));
 
 const getMockedReports = (length = 100) =>
     createCollection(
@@ -110,7 +119,7 @@ afterEach(() => {
 
 function SearchPageWrapper(args) {
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, KeyboardStateProvider]}>
             <SearchPage
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...args}
