@@ -175,6 +175,7 @@ type OptimisticIOUReportAction = Pick<
     | 'pendingAction'
     | 'receipt'
     | 'whisperedToAccountIDs'
+    | 'childReportID'
 >;
 
 type ReportRouteParams = {
@@ -1230,7 +1231,7 @@ function isMoneyRequest(reportOrID: OnyxEntry<Report> | string): boolean {
 /**
  * Checks if a report is an IOU or expense report.
  */
-function isMoneyRequestReport(reportOrID: OnyxEntry<Report> | string): boolean {
+function isMoneyRequestReport(reportOrID: OnyxEntry<Report> | EmptyObject | string): boolean {
     const report = typeof reportOrID === 'object' ? reportOrID : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null;
     return isIOUReport(report) || isExpenseReport(report);
 }
@@ -2806,8 +2807,8 @@ function getReportDescriptionText(report: Report): string {
     return parser.htmlToText(report.description);
 }
 
-function getPolicyDescriptionText(policy: Policy): string {
-    if (!policy.description) {
+function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
+    if (!policy?.description) {
         return '';
     }
 
@@ -3160,7 +3161,6 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
  * @param [receipt]
  * @param [isOwnPolicyExpenseChat] - Whether this is an expense report create from the current user's policy expense chat
  */
-
 function buildOptimisticIOUReportAction(
     type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>,
     amount: number,
@@ -3925,16 +3925,15 @@ function buildOptimisticTaskReport(
  * A helper method to create transaction thread
  *
  * @param reportAction - the parent IOU report action from which to create the thread
- *
- * @param moneyRequestReportID - the reportID which the report action belong to
+ * @param moneyRequestReport - the report which the report action belongs to
  */
-function buildTransactionThread(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>, moneyRequestReportID: string): OptimisticChatReport {
+function buildTransactionThread(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>, moneyRequestReport: Report): OptimisticChatReport {
     const participantAccountIDs = [...new Set([currentUserAccountID, Number(reportAction?.actorAccountID)])].filter(Boolean) as number[];
     return buildOptimisticChatReport(
         participantAccountIDs,
         getTransactionReportName(reportAction),
         undefined,
-        getReport(moneyRequestReportID)?.policyID ?? CONST.POLICY.OWNER_EMAIL_FAKE,
+        moneyRequestReport.policyID,
         CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
         false,
         '',
@@ -3942,8 +3941,61 @@ function buildTransactionThread(reportAction: OnyxEntry<ReportAction | Optimisti
         undefined,
         CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         reportAction?.reportActionID,
-        moneyRequestReportID,
+        moneyRequestReport.reportID,
     );
+}
+
+/**
+ * Build optimistic money request entities:
+ *
+ * 1. CREATED action for the iouReport
+ * 2. IOU action for the iouReport linked to the transaction thread via `childReportID`
+ * 3. Transaction Thread linked to the IOU action via `parentReportActionID`
+ * 4. CREATED action for the Transaction Thread
+ */
+function buildOptimisticMoneyRequestEntities(
+    iouReport: Report,
+    type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>,
+    amount: number,
+    currency: string,
+    comment: string,
+    payeeEmail: string,
+    participants: Participant[],
+    transactionID: string,
+    paymentType?: PaymentMethodType,
+    isSettlingUp = false,
+    isSendMoneyFlow = false,
+    receipt: Receipt = {},
+    isOwnPolicyExpenseChat = false,
+): [OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport, OptimisticCreatedReportAction] {
+    const iouActionCreationTime = DateUtils.getDBTime();
+
+    // The `CREATED` action must be optimistically generated before the IOU action so that it won't appear after the IOU action in the chat.
+    const createdActionForIOUReport = buildOptimisticCreatedReportAction(payeeEmail, DateUtils.subtractMillisecondsFromDateTime(iouActionCreationTime, 1));
+    const iouAction = buildOptimisticIOUReportAction(
+        type,
+        amount,
+        currency,
+        comment,
+        participants,
+        transactionID,
+        paymentType,
+        iouReport.reportID,
+        isSettlingUp,
+        isSendMoneyFlow,
+        receipt,
+        isOwnPolicyExpenseChat,
+        iouActionCreationTime,
+    );
+
+    // Create optimistic transactionThread and the `CREATED` action for it
+    const transactionThread = buildTransactionThread(iouAction, iouReport);
+    const createdActionForTransactionThread = buildOptimisticCreatedReportAction(payeeEmail);
+
+    // The IOU action and the transactionThread are co-dependent as parent-child, so we need to link them together
+    iouAction.childReportID = transactionThread.reportID;
+
+    return [createdActionForIOUReport, iouAction, transactionThread, createdActionForTransactionThread];
 }
 
 function isUnread(report: OnyxEntry<Report>): boolean {
@@ -4603,7 +4655,7 @@ function getAddWorkspaceRoomOrChatReportErrors(report: OnyxEntry<Report>): Error
 /**
  * Return true if the Money Request report is marked for deletion.
  */
-function isMoneyRequestReportPendingDeletion(report: OnyxEntry<Report>): boolean {
+function isMoneyRequestReportPendingDeletion(report: OnyxEntry<Report> | EmptyObject): boolean {
     if (!isMoneyRequestReport(report)) {
         return false;
     }
@@ -5279,6 +5331,7 @@ export {
     buildOptimisticSubmittedReportAction,
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
+    buildOptimisticMoneyRequestEntities,
     buildOptimisticReportPreview,
     buildOptimisticModifiedExpenseReportAction,
     buildOptimisticCancelPaymentReportAction,
