@@ -86,6 +86,8 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
         return isManager && !isDraft && !isApproved && !isSettled;
     }, [isPaidGroupPolicy, isManager, isDraft, isApproved, isSettled, isOnInstantSubmitPolicy, isOnSubmitAndClosePolicy]);
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
+    const shouldDisableSettlementButton =
+        shouldShowSettlementButton && (!canAllowSettlement || (shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(moneyRequestReport)));
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
@@ -142,7 +144,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                             shouldShowApproveButton={shouldShowApproveButton}
                             style={[styles.pv2]}
                             formattedAmount={formattedAmount}
-                            isDisabled={!canAllowSettlement}
+                            isDisabled={shouldDisableSettlementButton}
                         />
                     </View>
                 )}
@@ -174,7 +176,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                             shouldHidePaymentOptions={!shouldShowPayButton}
                             shouldShowApproveButton={shouldShowApproveButton}
                             formattedAmount={formattedAmount}
-                            isDisabled={!canAllowSettlement}
+                            isDisabled={shouldDisableSettlementButton}
                         />
                     </View>
                 )}

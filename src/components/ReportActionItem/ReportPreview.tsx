@@ -227,6 +227,7 @@ function ReportPreview({
         return isCurrentUserManager && !isDraftExpenseReport && !isApproved && !iouSettled;
     }, [isPaidGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, isOnInstantSubmitPolicy, isOnSubmitAndClosePolicy, iouSettled]);
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
+    const shouldDisableSettlementButton = shouldShowSettlementButton && (!canAllowSettlement || (shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(iouReport)));
 
     /*
      Show subtitle if at least one of the money requests is not being smart scanned, and either:
@@ -322,7 +323,7 @@ function ReportPreview({
                                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                                         }}
-                                        isDisabled={!canAllowSettlement}
+                                        isDisabled={shouldDisableSettlementButton}
                                     />
                                 )}
                                 {shouldShowSubmitButton && (
