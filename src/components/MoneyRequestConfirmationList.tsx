@@ -789,16 +789,19 @@ function MoneyRequestConfirmationList({
                                 description={name}
                                 numberOfLinesTitle={2}
                                 onPress={() => {
-                                    Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
-                                            CONST.IOU.ACTION.EDIT,
-                                            CONST.IOU.TYPE.SPLIT,
-                                            index,
-                                            transaction?.transactionID ?? '',
-                                            reportID ?? '',
-                                            Navigation.getActiveRouteWithoutParams(),
-                                        ),
-                                    );
+                                    if (isEditingSplitBill) {
+                                        Navigation.navigate(
+                                            ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
+                                                CONST.IOU.ACTION.EDIT,
+                                                CONST.IOU.TYPE.SPLIT,
+                                                index,
+                                                props.transaction.transactionID,
+                                                props.reportID,
+                                                Navigation.getActiveRouteWithoutParams(),
+                                                props.reportActionID,
+                                            ),
+                                        );
+                                    }
                                 }}
                                 style={styles.moneyRequestMenuItem}
                                 disabled={didConfirm}
