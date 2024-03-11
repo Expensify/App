@@ -42,6 +42,7 @@ import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
 import Copy from '@assets/images/copy.svg';
 import CreditCard from '@assets/images/creditcard.svg';
+import DocumentSlash from '@assets/images/document-slash.svg';
 import Document from '@assets/images/document.svg';
 import DotIndicatorUnfilled from '@assets/images/dot-indicator-unfilled.svg';
 import DotIndicator from '@assets/images/dot-indicator.svg';
@@ -195,6 +196,7 @@ export {
     CreditCard,
     DeletedRoomAvatar,
     Document,
+    DocumentSlash,
     DomainRoomAvatar,
     DotIndicator,
     DotIndicatorUnfilled,
