@@ -5243,11 +5243,11 @@ function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
 
 function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAccountID?: number): boolean {
     const policy = getPolicy(report?.policyID);
-    const {isPreventSelfApprovalEnabled, preventSelfApprovalEnabled} = policy;
+    const {isPreventSelfApprovalEnabled, preventSelfApproval} = policy;
 
     const isOwner = (approverAccountID ?? currentUserAccountID) === report?.ownerAccountID;
 
-    return !((isPreventSelfApprovalEnabled ?? preventSelfApprovalEnabled) && isOwner);
+    return !((isPreventSelfApprovalEnabled ?? preventSelfApproval) && isOwner);
 }
 
 function isAllowedToSubmitDraftExpenseReport(report: OnyxEntry<Report>): boolean {
