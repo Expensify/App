@@ -1,6 +1,6 @@
 type EnablePolicyConnectionsParams = {
     policyID: string;
-    isEnabled: boolean;
+    enabled: boolean;
 };
 
 export default EnablePolicyConnectionsParams;

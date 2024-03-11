@@ -29,10 +29,6 @@ const ICON_SIZE = 48;
 function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, isActive, pendingAction}: ToggleSettingOptionRowProps) {
     const styles = useThemeStyles();
 
-    const toggleSwitch = () => {
-        onToggle(!isActive);
-    };
-
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
             <View style={styles.pRelative}>
@@ -51,6 +47,7 @@ function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, 
                                 style={{
                                     ...styles.textMicroBold,
                                     ...styles.textNormal,
+                                    ...styles.lh20,
                                 }}
                             >
                                 {title}
@@ -69,7 +66,7 @@ function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, 
                     </View>
                     <Switch
                         accessibilityLabel={subtitle}
-                        onToggle={toggleSwitch}
+                        onToggle={onToggle}
                         isOn={isActive}
                     />
                 </View>

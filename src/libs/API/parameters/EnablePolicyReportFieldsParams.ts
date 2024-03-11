@@ -1,6 +1,6 @@
 type EnablePolicyReportFieldsParams = {
     policyID: string;
-    isEnabled: boolean;
+    enabled: boolean;
 };
 
 export default EnablePolicyReportFieldsParams;

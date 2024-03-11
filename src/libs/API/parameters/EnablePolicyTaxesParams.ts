@@ -1,6 +1,6 @@
 type EnablePolicyTaxesParams = {
     policyID: string;
-    isEnabled: boolean;
+    enabled: boolean;
 };
 
 export default EnablePolicyTaxesParams;

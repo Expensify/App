@@ -1,6 +1,6 @@
 type EnablePolicyCategoriesParams = {
     policyID: string;
-    isEnabled: boolean;
+    enabled: boolean;
 };
 
 export default EnablePolicyCategoriesParams;

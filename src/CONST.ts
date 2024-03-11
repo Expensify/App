@@ -575,6 +575,7 @@ const CONST = {
             LIMIT: 50,
             TYPE: {
                 ADDCOMMENT: 'ADDCOMMENT',
+                ACTIONABLEJOINREQUEST: 'ACTIONABLEJOINREQUEST',
                 APPROVED: 'APPROVED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
                 CLOSED: 'CLOSED',
@@ -677,6 +678,10 @@ const CONST = {
         ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
             INVITE: 'invited',
             NOTHING: 'nothing',
+        },
+        ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION: {
+            ACCEPT: 'accept',
+            DECLINE: 'decline',
         },
         ARCHIVE_REASON: {
             DEFAULT: 'default',
@@ -1028,12 +1033,6 @@ const CONST = {
         FILE: 'file',
         IMAGE: 'image',
         VIDEO: 'video',
-    },
-
-    IMAGE_FILE_FORMAT: {
-        PNG: 'image/png',
-        WEBP: 'image/webp',
-        JPEG: 'image/jpeg',
     },
 
     FILE_TYPE_REGEX: {
@@ -1420,6 +1419,11 @@ const CONST = {
             ARE_REPORTFIELDS_ENABLED: 'areReportFieldsEnabled',
             ARE_CONNECTIONS_ENABLED: 'areConnectionsEnabled',
             ARE_TAXES_ENABLED: 'tax',
+        },
+        DISTANCE_RATES_BULK_ACTION_TYPES: {
+            DELETE: 'delete',
+            DISABLE: 'disable',
+            ENABLE: 'enable',
         },
     },
 

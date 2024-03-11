@@ -84,6 +84,20 @@ type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_O
 
 type PolicyFeatureName = ValueOf<typeof CONST.POLICY.MORE_FEATURES>;
 
+type PendingJoinRequestPolicy = {
+    isJoinRequestPending: boolean;
+    policyDetailsForNonMembers: Record<
+        string,
+        OnyxCommon.OnyxValueWithOfflineFeedback<{
+            name: string;
+            ownerAccountID: number;
+            ownerEmail: string;
+            type: ValueOf<typeof CONST.POLICY.TYPE>;
+            avatar?: string;
+        }>
+    >;
+};
+
 type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** The ID of the policy */
@@ -143,7 +157,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         isPreventSelfApprovalEnabled?: boolean;
 
         /** Whether the self approval or submitting is enabled */
-        preventSelfApprovalEnabled?: boolean;
+        preventSelfApproval?: boolean;
 
         /** When the monthly scheduled submit should happen */
         autoReportingOffset?: AutoReportingOffset;
@@ -246,10 +260,10 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the Connections feature is enabled */
         areConnectionsEnabled?: boolean;
-    },
+    } & Partial<PendingJoinRequestPolicy>,
     'generalSettings' | 'addWorkspaceRoom'
 >;
 
 export default Policy;
 
-export type {Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault, PolicyFeatureName};
+export type {Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault, PolicyFeatureName, PendingJoinRequestPolicy};

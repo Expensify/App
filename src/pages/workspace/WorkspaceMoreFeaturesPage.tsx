@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -21,7 +21,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscree
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import ToggleSettingOptionRow from './workflows/ToggleSettingsOptionRow';
 
-type WorkspaceMoreFeaturesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
+type WorkspaceMoreFeaturesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.MORE_FEATURES>;
 
 type Item = {
     icon: IconAsset;
@@ -49,7 +49,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.distanceRates.title',
             subtitleTranslationKey: 'workspace.moreFeatures.distanceRates.subtitle',
             isActive: policy?.areDistanceRatesEnabled ?? false,
-            pendingAction: policy?.pendingFields?.areDistanceRatesEnabled && policy.pendingAction,
+            pendingAction: policy?.pendingFields?.areDistanceRatesEnabled,
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyDistanceRates(policy?.id ?? '', isEnabled);
             },
@@ -59,7 +59,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.workflows.title',
             subtitleTranslationKey: 'workspace.moreFeatures.workflows.subtitle',
             isActive: policy?.areWorkflowsEnabled ?? false,
-            pendingAction: policy?.pendingFields?.areWorkflowsEnabled && policy.pendingAction,
+            pendingAction: policy?.pendingFields?.areWorkflowsEnabled,
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyWorkflows(policy?.id ?? '', isEnabled);
             },
@@ -72,7 +72,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.categories.title',
             subtitleTranslationKey: 'workspace.moreFeatures.categories.subtitle',
             isActive: policy?.areCategoriesEnabled ?? false,
-            pendingAction: policy?.pendingFields?.areCategoriesEnabled && policy.pendingAction,
+            pendingAction: policy?.pendingFields?.areCategoriesEnabled,
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyCategories(policy?.id ?? '', isEnabled);
             },
@@ -82,42 +82,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.tags.title',
             subtitleTranslationKey: 'workspace.moreFeatures.tags.subtitle',
             isActive: policy?.areTagsEnabled ?? false,
-            pendingAction: policy?.pendingFields?.areTagsEnabled && policy.pendingAction,
+            pendingAction: policy?.pendingFields?.areTagsEnabled,
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyTags(policy?.id ?? '', isEnabled);
-            },
-        },
-        {
-            icon: Illustrations.Coins,
-            titleTranslationKey: 'workspace.moreFeatures.taxes.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.taxes.subtitle',
-            isActive: policy?.tax?.trackingEnabled ?? false,
-            pendingAction: policy?.pendingFields?.tax && policy.pendingAction,
-            action: (isEnabled: boolean) => {
-                Policy.enablePolicyTaxes(policy?.id ?? '', isEnabled);
-            },
-        },
-        {
-            icon: Illustrations.Pencil,
-            titleTranslationKey: 'workspace.moreFeatures.reportFields.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.reportFields.subtitle',
-            isActive: policy?.areReportFieldsEnabled ?? false,
-            pendingAction: policy?.pendingFields?.areReportFieldsEnabled && policy.pendingAction,
-            action: (isEnabled: boolean) => {
-                Policy.enablePolicyReportFields(policy?.id ?? '', isEnabled);
-            },
-        },
-    ];
-
-    const integrateItems: Item[] = [
-        {
-            icon: Illustrations.Accounting,
-            titleTranslationKey: 'workspace.moreFeatures.connections.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.connections.subtitle',
-            isActive: policy?.areConnectionsEnabled ?? false,
-            pendingAction: policy?.pendingFields?.areConnectionsEnabled && policy.pendingAction,
-            action: (isEnabled: boolean) => {
-                Policy.enablePolicyConnections(policy?.id ?? '', isEnabled);
             },
         },
     ];
@@ -133,44 +100,45 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             subtitleTranslationKey: 'workspace.moreFeatures.organizeSection.subtitle',
             items: organizeItems,
         },
-        {
-            titleTranslationKey: 'workspace.moreFeatures.integrateSection.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.integrateSection.subtitle',
-            items: integrateItems,
-        },
     ];
 
-    const renderItem = (item: Item) => (
-        <View
-            key={item.titleTranslationKey}
-            style={styles.mt7}
-        >
-            <ToggleSettingOptionRow
-                icon={item.icon}
-                title={translate(item.titleTranslationKey)}
-                subtitle={translate(item.subtitleTranslationKey)}
-                isActive={item.isActive}
-                pendingAction={item.pendingAction}
-                onToggle={item.action}
-            />
-        </View>
+    const renderItem = useCallback(
+        (item: Item) => (
+            <View
+                key={item.titleTranslationKey}
+                style={styles.mt7}
+            >
+                <ToggleSettingOptionRow
+                    icon={item.icon}
+                    title={translate(item.titleTranslationKey)}
+                    subtitle={translate(item.subtitleTranslationKey)}
+                    isActive={item.isActive}
+                    pendingAction={item.pendingAction}
+                    onToggle={item.action}
+                />
+            </View>
+        ),
+        [styles, translate],
     );
 
-    const renderSection = (section: (typeof sections)[0]) => (
-        <View
-            key={section.titleTranslationKey}
-            style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}
-        >
-            <Section
-                containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
-                title={translate(section.titleTranslationKey)}
-                titleStyles={styles.textStrong}
-                subtitle={translate(section.subtitleTranslationKey)}
-                subtitleMuted
+    const renderSection = useCallback(
+        (section: SectionObject) => (
+            <View
+                key={section.titleTranslationKey}
+                style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}
             >
-                {section.items.map(renderItem)}
-            </Section>
-        </View>
+                <Section
+                    containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
+                    title={translate(section.titleTranslationKey)}
+                    titleStyles={styles.textStrong}
+                    subtitle={translate(section.subtitleTranslationKey)}
+                    subtitleMuted
+                >
+                    {section.items.map(renderItem)}
+                </Section>
+            </View>
+        ),
+        [isSmallScreenWidth, styles, renderItem, translate],
     );
 
     return (
@@ -188,7 +156,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                         shouldShowBackButton={isSmallScreenWidth}
                     />
 
-                    <ScrollView>{sections.map(renderSection)}</ScrollView>
+                    <ScrollView contentContainerStyle={styles.pb2}>{sections.map(renderSection)}</ScrollView>
                 </ScreenWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>

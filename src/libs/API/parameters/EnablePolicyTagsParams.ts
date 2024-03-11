@@ -1,6 +1,6 @@
 type EnablePolicyTagsParams = {
     policyID: string;
-    isEnabled: boolean;
+    enabled: boolean;
 };
 
 export default EnablePolicyTagsParams;

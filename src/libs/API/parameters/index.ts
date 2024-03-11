@@ -163,3 +163,7 @@ export type {default as EnablePolicyTagsParams} from './EnablePolicyTagsParams';
 export type {default as EnablePolicyTaxesParams} from './EnablePolicyTaxesParams';
 export type {default as EnablePolicyWorkflowsParams} from './EnablePolicyWorkflowsParams';
 export type {default as EnablePolicyReportFieldsParams} from './EnablePolicyReportFieldsParams';
+export type {default as AcceptJoinRequestParams} from './AcceptJoinRequest';
+export type {default as DeclineJoinRequestParams} from './DeclineJoinRequest';
+export type {default as JoinPolicyInviteLinkParams} from './JoinPolicyInviteLink';
+export type {default as OpenPolicyDistanceRatesPageParams} from './OpenPolicyDistanceRatesPageParams';
