@@ -40,6 +40,7 @@ function LogOutPreviousUserPage({session, route, isAccountLoading}: LogOutPrevio
 
         if (isLoggingInAsNewUser) {
             SessionActions.signOutAndRedirectToSignIn(false, isSupportalLogin);
+            return;
         }
 
         if (isSupportalLogin) {
