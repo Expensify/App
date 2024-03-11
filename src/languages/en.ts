@@ -1756,6 +1756,8 @@ export default {
             workspaceAvatar: 'Workspace avatar',
             mustBeOnlineToViewMembers: 'You must be online in order to view members of this workspace.',
             requested: 'Requested',
+            distanceRates: 'Distance rates',
+            selected: ({selectedNumber}) => `${selectedNumber} selected`,
         },
         type: {
             free: 'Free',
@@ -1912,6 +1914,23 @@ export default {
             inviteNoMembersError: 'Please select at least one member to invite',
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
+        },
+        distanceRates: {
+            oopsNotSoFast: 'Oops! Not so fast...',
+            workspaceNeeds: 'A workspace needs at least one enabled distance rate.',
+            distance: 'Distance',
+            centrallyManage: 'Centrally manage rates, choose to track in miles or kilometers, and set a default category.',
+            rate: 'Rate',
+            addRate: 'Add rate',
+            deleteRate: 'Delete rate',
+            deleteRates: 'Delete rates',
+            enableRate: 'Enable rate',
+            disableRate: 'Disable rate',
+            disableRates: 'Disable rates',
+            enableRates: 'Enable rates',
+            status: 'Status',
+            enabled: 'Enabled',
+            disabled: 'Disabled',
         },
         editor: {
             descriptionInputLabel: 'Description',
@@ -2416,7 +2435,7 @@ export default {
             return '';
         },
         smartscanFailed: 'Receipt scanning failed. Enter details manually.',
-        someTagLevelsRequired: 'Missing tag',
+        someTagLevelsRequired: ({tagName}: ViolationsTagOutOfPolicyParams) => `Missing ${tagName ?? 'Tag'}`,
         tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `${tagName ?? 'Tag'} no longer valid`,
         taxAmountChanged: 'Tax amount was modified',
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'Tax'} no longer valid`,
