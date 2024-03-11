@@ -31,7 +31,7 @@ type WorkspaceTagsSettingsPageProps = WorkspaceTagsSettingsPageOnyxProps & Stack
 function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyTagName = useMemo(() => PolicyUtils.getTagLists(policyTags)[0]?.name ?? '', [policyTags]);
+    const policyTagName = useMemo(() => PolicyUtils.getTagLists(policyTags)?.[0]?.name ?? '', [policyTags]);
 
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean) => {
@@ -66,6 +66,12 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
                                         />
                                     </View>
                                 </View>
+                            </OfflineWithFeedback>
+                            <OfflineWithFeedback
+                                errors={policyTags?.[policyTagName]?.errors}
+                                pendingAction={policyTags?.[policyTagName]?.pendingAction}
+                                errorRowStyles={styles.mh5}
+                            >
                                 <MenuItemWithTopDescription
                                     title={policyTagName}
                                     description={translate(`workspace.tags.customTagName`)}

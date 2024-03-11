@@ -2728,7 +2728,6 @@ function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: stri
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
                     [newName]: {pendingAction: null},
-                    [oldName]: null,
                 },
             },
         ],
@@ -2737,12 +2736,8 @@ function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: stri
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    errors: {
-                        [oldName]: oldName,
-                        [newName]: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
-                    },
                     [newName]: null,
-                    [oldName]: oldPolicyTags,
+                    [oldName]: {...oldPolicyTags, errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage')},
                 },
             },
         ],
