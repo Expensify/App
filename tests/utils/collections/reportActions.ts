@@ -80,3 +80,5 @@ export default function createRandomReportAction(index: number): ReportAction {
         isAttachment: randBoolean(),
     };
 }
+
+export {getRandomDate};
