@@ -1794,7 +1794,6 @@ export default {
             workspaceDefault: 'Workspace currency default',
             foreignDefault: 'Foreign currency default',
             value: 'Value',
-            name: 'Name',
             errors: {
                 taxRatealreadyExists: 'A tax with this name already exists',
                 valuePercentageRange: 'Please enter a valid percentage between 0 and 100',

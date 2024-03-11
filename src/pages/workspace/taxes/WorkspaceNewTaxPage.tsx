@@ -83,8 +83,8 @@ function WorkspaceNewTaxPage({
                         <InputWrapper
                             InputComponent={TextPicker}
                             inputID={INPUT_IDS.NAME}
-                            label={translate('workspace.taxes.name')}
-                            description={translate('workspace.taxes.name')}
+                            label={translate('common.name')}
+                            description={translate('common.name')}
                             rightLabel={translate('common.required')}
                             accessibilityLabel={translate('workspace.editor.nameInputLabel')}
                             maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}

@@ -1817,6 +1817,11 @@ export default {
             addRate: 'Añade tasa',
             workspaceDefault: 'Moneda por defecto del espacio de trabajo',
             foreignDefault: 'Impago de divisas',
+            value: 'Valor',
+            errors: {
+                taxRatealreadyExists: 'Ya existe un impuesto con este nombre',
+                valuePercentageRange: 'Introduzca un porcentaje válido entre 0 y 100',
+            },
         },
         emptyWorkspace: {
             title: 'Crea un espacio de trabajo',
