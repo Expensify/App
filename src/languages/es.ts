@@ -2848,6 +2848,28 @@ export default {
         },
         copyReferralLink: 'Copiar enlace de invitación',
     },
+    purposeForExpensify: {
+        [CONST.INTRO_CHOICES.TRACK]: 'Seguimiento de los gastos de empresa para fines fiscales',
+        [CONST.INTRO_CHOICES.SUBMIT]: 'Reclamar gastos a mi empleador',
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
+        [CONST.INTRO_CHOICES.CHAT_SPLIT]: 'Chatea y divide gastos con tus amigos',
+        welcomeMessage: 'Bienvenido a Expensify',
+        welcomeSubtitle: '¿Qué te gustaría hacer?',
+    },
+    manageTeams: {
+        [CONST.MANAGE_TEAMS_CHOICE.MULTI_LEVEL]: 'Aprobación multinivel',
+        [CONST.MANAGE_TEAMS_CHOICE.CUSTOM_EXPENSE]: 'Codificación personalizada de gastos',
+        [CONST.MANAGE_TEAMS_CHOICE.CARD_TRACKING]: 'Seguimiento de tarjetas corporativas',
+        [CONST.MANAGE_TEAMS_CHOICE.ACCOUNTING]: 'Integraciones de contaduría',
+        [CONST.MANAGE_TEAMS_CHOICE.RULE]: 'Aplicación de reglas',
+        title: '¿Necesitas alguna de las siguientes funciones?',
+    },
+    expensifyClassic: {
+        title: 'Expensify Classic tiene todo lo que necesitas',
+        firstDescription: 'Aunque estamos ocupados trabajando en el Nuevo Expensify, actualmente no soporta algunas de las funciones que estás buscando.',
+        secondDescription: 'No te preocupes, Expensify Classic tiene todo lo que necesitas.',
+        buttonText: 'Llévame a Expensify Classic',
+    },
     violations: {
         allTagLevelsRequired: 'Todas las etiquetas son obligatorias',
         autoReportedRejectedExpense: ({rejectedBy, rejectReason}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} rechazó la solicitud y comentó "${rejectReason}"`,

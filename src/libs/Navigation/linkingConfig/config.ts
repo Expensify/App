@@ -391,6 +391,13 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.NEW_TASK.DESCRIPTION]: ROUTES.NEW_TASK_DESCRIPTION,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.ONBOARD_ENGAGEMENT]: {
+                    screens: {
+                        [SCREENS.ONBOARD_ENGAGEMENT.ROOT]: ROUTES.ONBOARD,
+                        [SCREENS.ONBOARD_ENGAGEMENT.MANAGE_TEAMS_EXPENSES]: ROUTES.ONBOARD_MANAGE_EXPENSES,
+                        [SCREENS.ONBOARD_ENGAGEMENT.EXPENSIFY_CLASSIC]: ROUTES.ONBOARD_EXPENSIFY_CLASSIC,
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.TEACHERS_UNITE]: {
                     screens: {
                         [SCREENS.SAVE_THE_WORLD.ROOT]: ROUTES.TEACHERS_UNITE,
