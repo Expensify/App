@@ -352,9 +352,7 @@ function ReportScreen({
             ComposerActions.setShouldShowComposeInput(true);
         });
         return () => {
-            if (interactionTask) {
-                interactionTask.cancel();
-            }
+            interactionTask?.cancel();
             if (!didSubscribeToReportLeavingEvents) {
                 return;
             }
@@ -428,7 +426,7 @@ function ReportScreen({
         // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
         // Existing reports created will have empty fields for `pendingFields`.
         const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
-        let interactionTask;
+        let interactionTask: ReturnType<typeof InteractionManager.runAfterInteractions> | undefined;
         if (!didSubscribeToReportLeavingEvents.current && didCreateReportSuccessfully) {
             interactionTask = InteractionManager.runAfterInteractions(() => {
                 Report.subscribeToReportLeavingEvents(reportID);
