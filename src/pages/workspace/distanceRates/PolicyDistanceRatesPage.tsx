@@ -136,6 +136,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     const deleteRates = () => {
         if (selectedDistanceRates.length !== Object.values(customUnitRates).length) {
             // run deleteWorkspaceDistanceRates for all selected rows
+            return;
         }
 
         setIsWarningModalVisible(true);
