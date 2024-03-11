@@ -158,6 +158,13 @@ export type {default as SetWorkspaceApprovalModeParams} from './SetWorkspaceAppr
 export type {default as SetWorkspacePayerParams} from './SetWorkspacePayerParams';
 export type {default as SetWorkspaceReimbursementParams} from './SetWorkspaceReimbursementParams';
 export type {default as SwitchToOldDotParams} from './SwitchToOldDotParams';
+export type {default as EnablePolicyCategoriesParams} from './EnablePolicyCategoriesParams';
+export type {default as EnablePolicyConnectionsParams} from './EnablePolicyConnectionsParams';
+export type {default as EnablePolicyDistanceRatesParams} from './EnablePolicyDistanceRatesParams';
+export type {default as EnablePolicyTagsParams} from './EnablePolicyTagsParams';
+export type {default as EnablePolicyTaxesParams} from './EnablePolicyTaxesParams';
+export type {default as EnablePolicyWorkflowsParams} from './EnablePolicyWorkflowsParams';
+export type {default as EnablePolicyReportFieldsParams} from './EnablePolicyReportFieldsParams';
 export type {default as AcceptJoinRequestParams} from './AcceptJoinRequest';
 export type {default as DeclineJoinRequestParams} from './DeclineJoinRequest';
 export type {default as JoinPolicyInviteLinkParams} from './JoinPolicyInviteLink';

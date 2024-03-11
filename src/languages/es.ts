@@ -1784,6 +1784,7 @@ export default {
             workspaceType: 'Tipo de espacio de trabajo',
             workspaceAvatar: 'Espacio de trabajo avatar',
             mustBeOnlineToViewMembers: 'Debes estar en línea para poder ver los miembros de este espacio de trabajo.',
+            moreFeatures: 'Más características',
             requested: 'Solicitado',
             distanceRates: 'Tasas de distancia',
             selected: ({selectedNumber}) => `${selectedNumber} seleccionados`,
@@ -1807,6 +1808,48 @@ export default {
             categoryRequiredError: 'Lo nombre de la categoría es obligatorio.',
             existingCategoryError: 'Ya existe una categoría con este nombre.',
             invalidCategoryName: 'Lo nombre de la categoría es invalido.',
+        },
+        moreFeatures: {
+            spendSection: {
+                title: 'Gasto',
+                subtitle: 'Habilita otras funcionalidades que ayudan a aumentar tu equipo.',
+            },
+            organizeSection: {
+                title: 'Organizar',
+                subtitle: 'Agrupa y analiza el gasto, registra cada impuesto pagado.',
+            },
+            integrateSection: {
+                title: 'Integrar',
+                subtitle: 'Conecta Expensify a otros productos financieros populares.',
+            },
+            distanceRates: {
+                title: 'Tasas de distancia',
+                subtitle: 'Añade, actualiza y haz cumplir las tasas.',
+            },
+            workflows: {
+                title: 'Flujos de trabajo',
+                subtitle: 'Configura cómo se aprueba y paga los gastos.',
+            },
+            categories: {
+                title: 'Categorías',
+                subtitle: 'Monitoriza y organiza los gastos.',
+            },
+            tags: {
+                title: 'Etiquetas',
+                subtitle: 'Añade formas adicionales de clasificar los gastos.',
+            },
+            taxes: {
+                title: 'Impuestos',
+                subtitle: 'Documenta y reclama los impuestos aplicables.',
+            },
+            reportFields: {
+                title: 'Campos de informes',
+                subtitle: 'Configura campos personalizados para los gastos.',
+            },
+            connections: {
+                title: 'Conexión',
+                subtitle: 'Sincroniza tu plan de cuentas y otras opciones.',
+            },
         },
         tags: {
             requiresTag: 'Los miembros deben etiquetar todos los gastos',
