@@ -26,6 +26,7 @@ const propTypes = {
     /** Whether the avatar is selected */
     isSelected: PropTypes.bool,
 
+    /** Callback called when the avatar is pressed */
     onPress: PropTypes.func,
 };
 

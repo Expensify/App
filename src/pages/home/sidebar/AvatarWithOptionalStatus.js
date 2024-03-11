@@ -10,33 +10,29 @@ import CONST from '@src/CONST';
 import PressableAvatarWithIndicator from './PressableAvatarWithIndicator';
 
 const propTypes = {
-    /** Whether the create menu is open or not */
-    isCreateMenuOpen: PropTypes.bool,
-
     /** Emoji status */
     emojiStatus: PropTypes.string,
 
     /** Whether the avatar is selected */
     isSelected: PropTypes.bool,
 
+    /** Callback called when the avatar or status icon is pressed */
     onPress: PropTypes.func,
 };
 
 const defaultProps = {
-    isCreateMenuOpen: false,
     emojiStatus: '',
     isSelected: false,
     onPress: () => {},
 };
 
-function AvatarWithOptionalStatus({emojiStatus, isCreateMenuOpen, isSelected, onPress}) {
+function AvatarWithOptionalStatus({emojiStatus, isSelected, onPress}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     return (
         <View style={styles.sidebarStatusAvatarContainer}>
             <PressableAvatarWithIndicator
-                isCreateMenuOpen={isCreateMenuOpen}
                 isSelected={isSelected}
                 onPress={onPress}
             />

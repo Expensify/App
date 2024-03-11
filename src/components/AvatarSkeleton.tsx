@@ -6,7 +6,6 @@ import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
 function AvatarSkeleton() {
     const theme = useTheme();
-
     const skeletonCircleRadius = variables.componentSizeSmall / 2;
 
     return (

@@ -1,6 +1,4 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import Navigation from '@libs/Navigation/Navigation';
@@ -8,21 +6,17 @@ import ROUTES from '@src/ROUTES';
 import AvatarWithOptionalStatus from './AvatarWithOptionalStatus';
 import PressableAvatarWithIndicator from './PressableAvatarWithIndicator';
 
-const propTypes = {
+type BottomTabAvatarProps = {
     /** Whether the create menu is open or not */
-    isCreateMenuOpen: PropTypes.bool,
+    isCreateMenuOpen?: boolean;
 
-    isSelected: PropTypes.bool,
+    /** Whether the avatar is selected */
+    isSelected?: boolean;
 };
 
-const defaultProps = {
-    isCreateMenuOpen: false,
-    isSelected: false,
-};
-
-function BottomTabAvatar({isCreateMenuOpen, isSelected}) {
+function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomTabAvatarProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const emojiStatus = lodashGet(currentUserPersonalDetails, 'status.emojiCode', '');
+    const emojiStatus = currentUserPersonalDetails?.status?.emojiCode ?? '';
 
     const showSettingsPage = useCallback(() => {
         if (isCreateMenuOpen) {
@@ -37,7 +31,6 @@ function BottomTabAvatar({isCreateMenuOpen, isSelected}) {
         return (
             <AvatarWithOptionalStatus
                 emojiStatus={emojiStatus}
-                isCreateMenuOpen={isCreateMenuOpen}
                 isSelected={isSelected}
                 onPress={showSettingsPage}
             />
@@ -45,14 +38,11 @@ function BottomTabAvatar({isCreateMenuOpen, isSelected}) {
     }
     return (
         <PressableAvatarWithIndicator
-            isCreateMenuOpen={isCreateMenuOpen}
             isSelected={isSelected}
             onPress={showSettingsPage}
         />
     );
 }
 
-BottomTabAvatar.propTypes = propTypes;
-BottomTabAvatar.defaultProps = defaultProps;
 BottomTabAvatar.displayName = 'BottomTabAvatar';
 export default BottomTabAvatar;
