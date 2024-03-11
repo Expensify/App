@@ -48,8 +48,6 @@ class ErrorLaunchCamera extends Error {
     constructor(message: string, errorCode: ErrorCode) {
         super(message);
         this.errorCode = errorCode;
-
-        
     }
 }
 
