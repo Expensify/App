@@ -1,17 +1,15 @@
-const _ = require('underscore');
-const core = require('@actions/core');
-const {context} = require('@actions/github');
-const CONST = require('../../../libs/CONST');
-const ActionUtils = require('../../../libs/ActionUtils');
-const GithubUtils = require('../../../libs/GithubUtils');
+import core from '@actions/core';
+import {context} from '@actions/github';
+import * as ActionUtils from '../../../libs/ActionUtils';
+import CONST from '../../../libs/CONST';
+import * as GithubUtils from '../../../libs/GithubUtils';
+
+type PlatformResult = 'success' | 'cancelled' | 'skipped' | 'failure';
 
 /**
  * Return a nicely formatted message for the table based on the result of the GitHub action job
- *
- * @param {String} platformResult
- * @returns {String}
  */
-function getDeployTableMessage(platformResult) {
+function getDeployTableMessage(platformResult: PlatformResult) {
     switch (platformResult) {
         case 'success':
             return `${platformResult} ✅`;
@@ -27,10 +25,6 @@ function getDeployTableMessage(platformResult) {
 
 /**
  * Comment Single PR
- *
- * @param {Number} PR
- * @param {String} message
- * @returns {Promise<void>}
  */
 async function commentPR(PR, message) {
     try {
@@ -45,7 +39,7 @@ async function commentPR(PR, message) {
 const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
 
 async function run() {
-    const prList = _.map(ActionUtils.getJSONInput('PR_LIST', {required: true}), (num) => Number.parseInt(num, 10));
+    const prList = ActionUtils.getJSONInput('PR_LIST', {required: true}).map((num: string) => Number.parseInt(num, 10));
     const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true});
     const version = core.getInput('DEPLOY_VERSION', {required: true});
 
@@ -55,10 +49,10 @@ async function run() {
     const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}));
 
     /**
-     * @param {String} deployer
-     * @param {String} deployVerb
-     * @param {String} prTitle
-     * @returns {String}
+     * @param deployer
+     * @param deployVerb
+     * @param prTitle
+     * @returns
      */
     function getDeployMessage(deployer, deployVerb, prTitle) {
         let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
@@ -83,7 +77,7 @@ async function run() {
             labels: CONST.LABELS.STAGING_DEPLOY,
             state: 'closed',
         });
-        const previousChecklistID = _.first(deployChecklists).number;
+        const previousChecklistID = deployChecklists[0].number;
 
         // who closed the last deploy checklist?
         const deployer = await GithubUtils.getActorWhoClosedIssue(previousChecklistID);
@@ -102,7 +96,7 @@ async function run() {
         repo: CONST.APP_REPO,
         per_page: 100,
     });
-    const currentTag = _.find(recentTags, (tag) => tag.name === version);
+    const currentTag = recentTags.find((tag) => tag.name === version);
     if (!currentTag) {
         const err = `Could not find tag matching ${version}`;
         console.error(err);
@@ -139,4 +133,4 @@ if (require.main === module) {
     run();
 }
 
-module.exports = run;
+export default run;
