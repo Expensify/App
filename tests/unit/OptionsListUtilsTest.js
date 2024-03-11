@@ -689,6 +689,7 @@ describe('OptionsListUtils', () => {
             {
                 name: 'Medical',
                 enabled: true,
+                isSelected: true,
             },
         ];
         const smallCategoriesList = {
@@ -845,7 +846,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Medical',
                         tooltipText: 'Medical',
                         isDisabled: false,
-                        isSelected: false,
+                        isSelected: true,
                     },
                 ],
             },
