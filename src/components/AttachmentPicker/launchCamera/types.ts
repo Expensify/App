@@ -48,7 +48,12 @@ class ErrorLaunchCamera extends Error {
     constructor(message: string, errorCode: ErrorCode) {
         super(message);
         this.errorCode = errorCode;
+
+        
     }
 }
+
+type LaunchCamera = (options: CameraOptions, callback: Callback) => void;
+
 export {ErrorLaunchCamera};
-export type {CameraOptions, Callback, ErrorCode, ImagePickerResponse, Asset, ImageLibraryOptions};
+export type {CameraOptions, Callback, ErrorCode, ImagePickerResponse, Asset, ImageLibraryOptions, LaunchCamera};

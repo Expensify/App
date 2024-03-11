@@ -30,7 +30,7 @@ type AttachmentPickerProps = BaseAttachmentPickerProps & {
 
 type Item = {
     icon: IconAsset;
-    textTranslationKey: string;
+    textTranslationKey: TranslationPaths;
     pickAttachment: () => Promise<Asset[] | void | DocumentPickerResponse[]>;
 };
 
@@ -172,17 +172,17 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
         const data = lodashCompact([
             !shouldHideCameraOption && {
                 icon: Expensicons.Camera,
-                textTranslationKey: 'attachmentPicker.takePhoto',
+                textTranslationKey: 'attachmentPicker.takePhoto' as TranslationPaths,
                 pickAttachment: () => showImagePicker(launchCamera),
             },
             {
                 icon: Expensicons.Gallery,
-                textTranslationKey: 'attachmentPicker.chooseFromGallery',
+                textTranslationKey: 'attachmentPicker.chooseFromGallery' as TranslationPaths,
                 pickAttachment: () => showImagePicker(launchImageLibrary),
             },
             type !== CONST.ATTACHMENT_PICKER_TYPE.IMAGE && {
                 icon: Expensicons.Paperclip,
-                textTranslationKey: 'attachmentPicker.chooseDocument',
+                textTranslationKey: 'attachmentPicker.chooseDocument' as TranslationPaths,
                 pickAttachment: showDocumentPicker,
             },
         ]);
@@ -310,7 +310,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                         <MenuItem
                             key={item.textTranslationKey}
                             icon={item.icon}
-                            title={translate(item.textTranslationKey as TranslationPaths)}
+                            title={translate(item.textTranslationKey)}
                             onPress={() => selectItem(item)}
                             focused={focusedIndex === menuIndex}
                         />

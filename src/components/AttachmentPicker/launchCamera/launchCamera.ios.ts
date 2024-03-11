@@ -1,6 +1,6 @@
 import {launchCamera} from 'react-native-image-picker';
 import {PERMISSIONS, request, RESULTS} from 'react-native-permissions';
-import type {Callback, CameraOptions} from './types';
+import type {LaunchCamera} from './types';
 import {ErrorLaunchCamera} from './types';
 
 /**
@@ -9,7 +9,7 @@ import {ErrorLaunchCamera} from './types';
  * If the user deny permission the callback will be called with an error response
  * in the same format as the error returned by react-native-image-picker
  */
-export default function launchCameraIOS(options: CameraOptions, callback: Callback) {
+const launchCameraIOS: LaunchCamera = (options, callback) => {
     // Checks current camera permissions and prompts the user in case they aren't granted
     request(PERMISSIONS.IOS.CAMERA)
         .then((permission) => {
@@ -26,4 +26,5 @@ export default function launchCameraIOS(options: CameraOptions, callback: Callba
                 errorCode: error.errorCode || 'others',
             });
         });
-}
+};
+export default launchCameraIOS;

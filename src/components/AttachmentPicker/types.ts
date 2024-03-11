@@ -3,6 +3,8 @@ import type {ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import type CONST from '@src/CONST';
 
+type OpenPickerFunction = (options: {onPicked: (file: FileObject) => void; onCanceled?: () => void}) => void;
+
 type AttachmentPickerProps = {
     /**
      * A renderProp with the following interface
@@ -22,7 +24,7 @@ type AttachmentPickerProps = {
      * )}
      * </AttachmentPicker>
      * */
-    children: (props: {openPicker: (options: {onPicked: (file: FileObject) => void; onCanceled?: () => void}) => void}) => ReactNode;
+    children: (props: {openPicker: OpenPickerFunction}) => ReactNode;
     /** The types of files that can be selected with this picker. */
     type?: ValueOf<typeof CONST.ATTACHMENT_PICKER_TYPE>;
 };
