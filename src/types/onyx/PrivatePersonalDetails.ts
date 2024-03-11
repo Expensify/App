@@ -1,10 +1,15 @@
+import type {Country} from '@src/CONST';
+
 type Address = {
     street: string;
     street2?: string;
     city: string;
     state: string;
     zip: string;
-    country: string;
+    country: Country | '';
+    zipPostCode?: string;
+    addressLine1?: string;
+    addressLine2?: string;
 };
 
 type PrivatePersonalDetails = {
@@ -21,3 +26,5 @@ type PrivatePersonalDetails = {
 };
 
 export default PrivatePersonalDetails;
+
+export type {Address};
