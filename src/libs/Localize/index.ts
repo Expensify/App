@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import * as RNLocalize from 'react-native-localize';
 import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import Log from '@libs/Log';
 import type {MessageElementBase, MessageTextElement} from '@libs/MessageElement';
 import Config from '@src/CONFIG';
@@ -12,7 +13,6 @@ import type {Locale} from '@src/types/onyx';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import LocaleListener from './LocaleListener';
 import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
-import type BaseLocale from './LocaleListener/types';
 
 // Current user mail is needed for handling missing translations
 let userEmail = '';
@@ -101,49 +101,34 @@ function translate<TKey extends TranslationPaths>(desiredLanguage: 'en' | 'es' |
  * The data is stored in the following format:
  *
  * {
- *  "name": "Name",
+ *  "en": {
+ *   "name": "Name",
  * }
  *
  * Note: We are not storing any translated values for phrases with variables,
  * as they have higher chance of being unique, so we'll end up wasting space
  * in our cache.
  */
-const TRANSLATED_VALUES_EN = new Map<string, string>();
-const TRANSLATED_VALUES_ES = new Map<string, string>();
-const TRANSLATED_VALUES_ES_ES = new Map<string, string>();
-const TRANSLATED_VALUES_ES_ONFIDO = new Map<string, string>();
-
-/**
- * Returns the map for the given locale.
- */
-function getTranslatedValuesMap(locale: BaseLocale) {
-    switch (locale) {
-        case CONST.LOCALES.ES_ES:
-            return TRANSLATED_VALUES_ES_ES;
-        case CONST.LOCALES.ES_ES_ONFIDO:
-            return TRANSLATED_VALUES_ES_ONFIDO;
-        case CONST.LOCALES.ES:
-            return TRANSLATED_VALUES_ES;
-        case CONST.LOCALES.DEFAULT:
-        default:
-            return TRANSLATED_VALUES_EN;
-    }
-}
+const translationCache = new Map<ValueOf<typeof CONST.LOCALES>, Map<TranslationPaths, string>>(
+    Object.values(CONST.LOCALES).reduce((cache, locale) => {
+        cache.push([locale, new Map()]);
+        return cache;
+    }, [] as Array<[ValueOf<typeof CONST.LOCALES>, Map<TranslationPaths, string>]>),
+);
 
 /**
  * Uses the locale in this file updated by the Onyx subscriber.
  */
 function translateLocal<TKey extends TranslationPaths>(phrase: TKey, ...variables: PhraseParameters<Phrase<TKey>>) {
     const preferredLocale = BaseLocaleListener.getPreferredLocale();
-    const key = `${phrase}`;
     const isVariablesEmpty = variables.length === 0;
 
-    // Get the map for the preferred locale
-    const map = getTranslatedValuesMap(preferredLocale);
+    // Get the cache for the preferred locale
+    const cacheForLocale = translationCache.get(preferredLocale);
 
     // Directly access and assign the translated value from the cache, instead of
     // going through map.has() and map.get() to avoid multiple lookups.
-    const valueFromCache = map.get(key);
+    const valueFromCache = cacheForLocale?.get(phrase);
 
     // If the phrase is already translated, return the translated value
     if (valueFromCache) {
@@ -154,7 +139,7 @@ function translateLocal<TKey extends TranslationPaths>(phrase: TKey, ...variable
     // We don't want to store translated values for phrases with variables
     if (isVariablesEmpty) {
         // We set the translated value in the cache
-        map.set(key, translatedText);
+        cacheForLocale?.set(phrase, translatedText);
     }
     return translatedText;
 }
