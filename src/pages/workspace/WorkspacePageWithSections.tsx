@@ -19,7 +19,6 @@ import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimburs
 import * as BankAccounts from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
 import type {Policy, ReimbursementAccount, User} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';

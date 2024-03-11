@@ -18,6 +18,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -219,7 +220,7 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                             role={CONST.ROLE.BUTTON}
                             onPress={() => {
                                 Navigation.goBack();
-                                App.createWorkspaceWithPolicyDraftAndNavigateToIt();
+                                interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt());
                             }}
                         >
                             {({hovered}) => (
