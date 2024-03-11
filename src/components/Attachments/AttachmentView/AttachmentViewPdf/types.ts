@@ -4,7 +4,7 @@ import type {AttachmentFile} from '@components/Attachments/types';
 type AttachmentViewPdfProps = {
     encryptedSourceUrl: string;
     onToggleKeyboard?: (shouldFadeOut: boolean) => void;
-    onLoadComplete: () => void;
+    onLoadComplete: (path: string) => void;
 
     file?: AttachmentFile;
 

@@ -27,6 +27,8 @@ type AttachmentCarouselProps = AttachmentCaraouselOnyxProps & {
 
     /** The report currently being looked at */
     report: Report;
+
+    onClose: () => void;
 };
 
 export type {AttachmentCarouselProps, UpdatePageProps, AttachmentCaraouselOnyxProps};

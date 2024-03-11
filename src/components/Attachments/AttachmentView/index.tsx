@@ -1,7 +1,7 @@
 import Str from 'expensify-common/lib/str';
 import React, {memo, useEffect, useState} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import {ActivityIndicator, ScrollView, View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {FileObject} from '@components/AttachmentModal';
@@ -10,6 +10,7 @@ import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
@@ -18,6 +19,7 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CachedPDFPaths from '@libs/actions/CachedPDFPaths';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type {ColorValue} from '@styles/utils/types';
@@ -77,6 +79,9 @@ type AttachmentViewProps = AttachmentViewOnyxProps & {
     isHovered?: boolean;
 
     optionalVideoDuration?: number;
+
+    /** The id of the report action related to the attachment */
+    reportActionID?: string;
 };
 
 function AttachmentView({
@@ -95,6 +100,7 @@ function AttachmentView({
     maybeIcon,
     fallbackSource,
     transaction,
+    reportActionID,
     isHovered,
     optionalVideoDuration,
 }: AttachmentViewProps) {
@@ -158,6 +164,16 @@ function AttachmentView({
     if ((typeof source === 'string' && Str.isPDF(source)) || (file && Str.isPDF(file.name ?? translate('attachmentView.unknownFilename')))) {
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source as string) : (source as string);
 
+        const onPDFLoadComplete = (path: string) => {
+            const id = (transaction && transaction.transactionID) ?? reportActionID;
+            if (path && id) {
+                CachedPDFPaths.add(id, path);
+            }
+            if (!loadComplete) {
+                setLoadComplete(true);
+            }
+        };
+
         // We need the following View component on android native
         // So that the event will propagate properly and
         // the Password protected preview will be shown for pdf attachement we are about to send.
@@ -169,7 +185,7 @@ function AttachmentView({
                     encryptedSourceUrl={encryptedSourceUrl}
                     onPress={onPress}
                     onToggleKeyboard={onToggleKeyboard}
-                    onLoadComplete={() => !loadComplete && setLoadComplete(true)}
+                    onLoadComplete={onPDFLoadComplete}
                     errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [styles.cursorAuto]}
                     style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
                 />

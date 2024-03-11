@@ -18,9 +18,14 @@ type CarouselItemProps = {
 
     /** onPress callback */
     onPress?: () => void;
+
+    isModalHovered: boolean;
+
+    /** Whether the attachment is currently being viewed in the carousel */
+    isFocused: boolean;
 };
 
-function CarouselItem({item, onPress}: CarouselItemProps) {
+function CarouselItem({item, onPress, isFocused, isModalHovered}: CarouselItemProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isAttachmentHidden} = useContext(ReportAttachmentsContext);
@@ -72,7 +77,11 @@ function CarouselItem({item, onPress}: CarouselItemProps) {
                     isAuthTokenRequired={item.isAuthTokenRequired}
                     isUsedInCarousel
                     onPress={onPress}
-                    transactionID={item.transactionID ?? ''}
+                    transactionID={item.transactionID}
+                    reportActionID={item.reportActionID}
+                    isHovered={isModalHovered}
+                    isFocused={isFocused}
+                    optionalVideoDuration={item.duration}
                 />
             </View>
 

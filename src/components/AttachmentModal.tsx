@@ -4,6 +4,7 @@ import {Animated, Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useSharedValue} from 'react-native-reanimated';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -28,6 +29,7 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ModalType from '@src/types/utils/ModalType';
 import AttachmentCarousel from './Attachments/AttachmentCarousel';
+import AttachmentCarouselPagerContext from './Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import AttachmentView from './Attachments/AttachmentView';
 import BlockingView from './BlockingViews/BlockingView';
 import Button from './Button';
@@ -184,6 +186,7 @@ function AttachmentModal({
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const [confirmButtonFadeAnimation] = useState(() => new Animated.Value(1));
     const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = React.useState(true);
+    const nope = useSharedValue(false);
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const isOverlayModalVisible = (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && isAttachmentInvalid);
 
@@ -264,7 +267,7 @@ function AttachmentModal({
         }
 
         if (onConfirm) {
-            onConfirm(Object.assign(file ?? {}, {source: sourceState}));
+            onConfirm(Object.assign(file ?? {}, {source: sourceState} as FileObject));
         }
 
         setIsModalOpen(false);
@@ -285,7 +288,7 @@ function AttachmentModal({
     const deleteAndCloseModal = useCallback(() => {
         IOU.detachReceipt(transaction?.transactionID ?? '');
         setIsDeleteReceiptConfirmModalVisible(false);
-        Navigation.dismissModal(report?.reportID);
+        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? ''));
     }, [transaction, report]);
 
     const isValidFile = useCallback((fileObject: FileObject) => {
@@ -318,7 +321,7 @@ function AttachmentModal({
 
     const validateAndDisplayFileToUpload = useCallback(
         (data: FileObject) => {
-            if (!isDirectoryCheck(data)) {
+            if (!data || !isDirectoryCheck(data)) {
                 return;
             }
             let fileObject = data;
@@ -466,6 +469,19 @@ function AttachmentModal({
         shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !isReceiptAttachment && !isOffline;
         shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen && threeDotsMenuItems.length !== 0;
     }
+    const context = useMemo(
+        () => ({
+            pagerItems: [],
+            activePage: 0,
+            pagerRef: undefined,
+            isPagerScrolling: nope,
+            isScrollEnabled: nope,
+            onTap: () => {},
+            onScaleChanged: () => {},
+            onSwipeDown: closeModal,
+        }),
+        [closeModal, nope],
+    );
 
     return (
         <>
@@ -518,6 +534,7 @@ function AttachmentModal({
                             <AttachmentCarousel
                                 report={report}
                                 onNavigate={onNavigate}
+                                onClose={closeModal}
                                 source={source}
                                 setDownloadButtonVisibility={setDownloadButtonVisibility}
                             />
@@ -526,18 +543,20 @@ function AttachmentModal({
                             shouldLoadAttachment &&
                             !isLoading &&
                             !shouldShowNotFoundPage && (
-                                <AttachmentView
-                                    containerStyles={[styles.mh5]}
-                                    source={sourceForAttachmentView}
-                                    isAuthTokenRequired={isAuthTokenRequired}
-                                    file={file}
-                                    onToggleKeyboard={updateConfirmButtonVisibility}
-                                    isWorkspaceAvatar={isWorkspaceAvatar}
-                                    maybeIcon={maybeIcon}
-                                    fallbackSource={fallbackSource}
-                                    isUsedInAttachmentModal
-                                    transactionID={transaction?.transactionID}
-                                />
+                                <AttachmentCarouselPagerContext.Provider value={context}>
+                                    <AttachmentView
+                                        containerStyles={[styles.mh5]}
+                                        source={sourceForAttachmentView}
+                                        isAuthTokenRequired={isAuthTokenRequired}
+                                        file={file}
+                                        onToggleKeyboard={updateConfirmButtonVisibility}
+                                        isWorkspaceAvatar={isWorkspaceAvatar}
+                                        maybeIcon={maybeIcon}
+                                        fallbackSource={fallbackSource}
+                                        isUsedInAttachmentModal
+                                        transactionID={transaction?.transactionID}
+                                    />
+                                </AttachmentCarouselPagerContext.Provider>
                             )
                         )}
                     </View>
