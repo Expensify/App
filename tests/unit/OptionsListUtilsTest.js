@@ -1014,7 +1014,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Medical',
                         tooltipText: 'Medical',
                         isDisabled: false,
-                        isSelected: false,
+                        isSelected: true,
                     },
                 ],
             },

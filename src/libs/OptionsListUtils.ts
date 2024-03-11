@@ -956,21 +956,29 @@ function getCategoryListSections(
     maxRecentReportsToShow: number,
 ): CategoryTreeSection[] {
     const sortedCategories = sortCategories(categories);
+    const numberOfCategories = sortedCategories.length;
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
     const enabledCategories = [...selectedOptions, ...Object.values(sortedCategories).filter((category) => category.enabled && !selectedOptionNames.includes(category.name))];
-    const numberOfCategories = enabledCategories.length;
+    const enabledAndSelectedCategoriesLength = enabledCategories.length;
 
     const categorySections: CategoryTreeSection[] = [];
 
     let indexOffset = 0;
 
     if (numberOfCategories === 0 && selectedOptions.length > 0) {
+        const selectedTagOptions = selectedOptions.map((option) => ({
+            name: option.name,
+            // Should be marked as enabled to be able to be de-selected
+            enabled: true,
+            isSelected: true,
+        }));
+
         categorySections.push({
             // "Selected" section
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getCategoryOptionTree(selectedOptions, true),
+            data: getCategoryOptionTree(selectedTagOptions, true),
         });
 
         return categorySections;
@@ -990,7 +998,7 @@ function getCategoryListSections(
         return categorySections;
     }
 
-    if (numberOfCategories < CONST.CATEGORY_LIST_THRESHOLD) {
+    if (enabledAndSelectedCategoriesLength < CONST.CATEGORY_LIST_THRESHOLD) {
         categorySections.push({
             // "All" section when items amount less than the threshold
             title: '',
