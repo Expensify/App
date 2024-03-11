@@ -30,12 +30,9 @@ type BreadcrumbsProps = {
 
     /** Styles to apply to the container */
     style?: StyleProp<ViewStyle>;
-
-    /** Styles to apply to the secondary breadcrumb text */
-    secondaryBreadcrumbTextStyle?: StyleProp<TextStyle>;
 };
 
-function Breadcrumbs({breadcrumbs, style, secondaryBreadcrumbTextStyle}: BreadcrumbsProps) {
+function Breadcrumbs({breadcrumbs, style}: BreadcrumbsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const [primaryBreadcrumb, secondaryBreadcrumb] = breadcrumbs;
@@ -71,7 +68,7 @@ function Breadcrumbs({breadcrumbs, style, secondaryBreadcrumbTextStyle}: Breadcr
                     <Text style={[styles.breadcrumbSeparator]}>/</Text>
                     <Text
                         numberOfLines={1}
-                        style={[styles.mw75, styles.flexShrink0, styles.breadcrumb, secondaryBreadcrumbTextStyle]}
+                        style={[styles.mw75, styles.flexShrink0, styles.breadcrumb]}
                     >
                         {secondaryBreadcrumb.text}
                     </Text>

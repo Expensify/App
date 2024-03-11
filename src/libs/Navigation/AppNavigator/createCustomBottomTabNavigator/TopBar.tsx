@@ -31,7 +31,11 @@ function TopBar({policy}: TopBarProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
 
-    const title = policy?.name ?? translate('common.chats');
+    const headerBreadcrumb = policy?.name
+        ? {type: CONST.BREADCRUMB_TYPE.STRONG, text: policy.name}
+        : {
+              type: CONST.BREADCRUMB_TYPE.ROOT,
+          };
 
     return (
         <View style={styles.w100}>
@@ -44,13 +48,10 @@ function TopBar({policy}: TopBarProps) {
 
                     <View style={[styles.ml3, styles.flex1]}>
                         <Breadcrumbs
-                            secondaryBreadcrumbTextStyle={styles.flexShrink1}
                             breadcrumbs={[
+                                headerBreadcrumb,
                                 {
-                                    type: CONST.BREADCRUMB_TYPE.ROOT,
-                                },
-                                {
-                                    text: title,
+                                    text: translate('common.chats'),
                                 },
                             ]}
                         />
