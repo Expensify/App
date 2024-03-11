@@ -84,7 +84,7 @@ function BaseVideoPlayer({
         setIsPopoverVisible(false);
     };
 
-    // fix for iOS mWeb: preventing iOS native player edfault behavior from pausing the video when exiting fullscreen
+    // fix for iOS mWeb: preventing iOS native player default behavior from pausing the video when exiting fullscreen
     const preventPausingWhenExitingFullscreen = useCallback(
         (isVideoPlaying) => {
             if (videoResumeTryNumber.current === 0 || isVideoPlaying) {
@@ -123,6 +123,7 @@ function BaseVideoPlayer({
     const handleFullscreenUpdate = useCallback(
         (e) => {
             onFullscreenUpdate(e);
+
             // fix for iOS native and mWeb: when switching to fullscreen and then exiting
             // the fullscreen mode while playing, the video pauses
             if (!isPlaying || e.fullscreenUpdate !== VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
@@ -141,7 +142,8 @@ function BaseVideoPlayer({
     const bindFunctions = useCallback(() => {
         currentVideoPlayerRef.current._onPlaybackStatusUpdate = handlePlaybackStatusUpdate;
         currentVideoPlayerRef.current._onFullscreenUpdate = handleFullscreenUpdate;
-        // update states after binding
+
+        // Update states after binding
         currentVideoPlayerRef.current.getStatusAsync().then((status) => {
             handlePlaybackStatusUpdate(status);
         });
@@ -151,6 +153,7 @@ function BaseVideoPlayer({
         if (!isUploading) {
             return;
         }
+
         // If we are uploading a new video, we want to immediately set the video player ref.
         currentVideoPlayerRef.current = videoPlayerRef.current;
     }, [url, currentVideoPlayerRef, isUploading]);
@@ -164,6 +167,7 @@ function BaseVideoPlayer({
             if (shouldUseSharedVideoElementRef.current) {
                 return;
             }
+
             // If it's not a shared video player, clear the video player ref.
             currentVideoPlayerRef.current = null;
         },
