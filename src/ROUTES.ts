@@ -569,6 +569,14 @@ const ROUTES = {
         route: 'workspace/:policyID/tags',
         getRoute: (policyID: string) => `workspace/${policyID}/tags` as const,
     },
+    WORKSPACE_TAGS_SETTINGS: {
+        route: 'workspace/:policyID/tags/settings',
+        getRoute: (policyID: string) => `workspace/${policyID}/tags/settings` as const,
+    },
+    WORKSPACE_EDIT_TAGS: {
+        route: 'workspace/:policyID/tags/edit',
+        getRoute: (policyID: string) => `workspace/${policyID}/tags/edit` as const,
+    },
     WORKSPACE_MEMBER_DETAILS: {
         route: 'workspace/:policyID/members/:accountID',
         getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`workspace/${policyID}/members/${accountID}`, backTo),

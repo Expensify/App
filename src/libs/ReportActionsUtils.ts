@@ -508,8 +508,8 @@ function getLastVisibleAction(reportID: string, actionsToMerge: OnyxCollection<R
     return sortedReportActions[0];
 }
 
-function getLastVisibleMessage(reportID: string, actionsToMerge: OnyxCollection<ReportAction> = {}): LastVisibleMessage {
-    const lastVisibleAction = getLastVisibleAction(reportID, actionsToMerge);
+function getLastVisibleMessage(reportID: string, actionsToMerge: OnyxCollection<ReportAction> = {}, reportAction: OnyxEntry<ReportAction> | undefined = undefined): LastVisibleMessage {
+    const lastVisibleAction = reportAction ?? getLastVisibleAction(reportID, actionsToMerge);
     const message = lastVisibleAction?.message?.[0];
 
     if (message && isReportMessageAttachment(message)) {
