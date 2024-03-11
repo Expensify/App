@@ -20,7 +20,6 @@ import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
-import {usePersonalDetails} from './OnyxProvider';
 import SettlementButton from './SettlementButton';
 
 type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
@@ -41,11 +40,10 @@ type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
     report: OnyxTypes.Report;
 
     /** The policy tied to the money request report */
-    policy: OnyxTypes.Policy;
+    policy: OnyxEntry<OnyxTypes.Policy>;
 };
 
 function MoneyReportHeader({session, policy, chatReport, nextStep, report: moneyRequestReport}: MoneyReportHeaderProps) {
-    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
@@ -54,7 +52,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(moneyRequestReport);
     const policyType = policy?.type;
     const isPayer = ReportUtils.isPayer(session, moneyRequestReport);
-    const isDraft = ReportUtils.isDraftExpenseReport(moneyRequestReport);
+    const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
     const cancelPayment = useCallback(() => {
@@ -81,8 +79,8 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(
-        () => chatReport?.isOwnPolicyExpenseChat && !policy.harvesting?.enabled,
-        [chatReport?.isOwnPolicyExpenseChat, policy.harvesting?.enabled],
+        () => chatReport?.isOwnPolicyExpenseChat && !policy?.harvesting?.enabled,
+        [chatReport?.isOwnPolicyExpenseChat, policy?.harvesting?.enabled],
     );
 
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(moneyRequestReport)];
@@ -102,7 +100,6 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                 shouldShowPinButton={false}
                 report={moneyRequestReport}
                 policy={policy}
-                personalDetails={personalDetails}
                 shouldShowBackButton={isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack(undefined, false, true)}
                 // Shows border if no buttons or next steps are showing below the header
