@@ -29,9 +29,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, PolicyOwnershipChangeChecks} from '@src/types/onyx';
 import useCurrentUserPersonalDetails from "@hooks/useCurrentUserPersonalDetails";
-import {isOffline} from "@libs/Network/NetworkStore";
 import useNetwork from "@hooks/useNetwork";
 
 type WorkspacePolicyOnyxProps = {
@@ -83,8 +82,16 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
     }, [accountID, route.params.policyID]);
 
     const startChangeOwnershipFlow = useCallback(() => {
+        const ownershipChecks: PolicyOwnershipChangeChecks = {
+            shouldClearOutstandingBalance: false,
+            shouldTransferAmountOwed: false,
+            shouldTransferSubscription: false,
+            shouldTransferSingleSubscription: false,
+        };
 
-    }, []);
+        Policy.updateWorkspaceOwnershipChecks(policyID, ownershipChecks);
+        Policy.requestWorkspaceOwnerChange(policyID);
+    }, [policyID]);
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
