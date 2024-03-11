@@ -102,11 +102,6 @@ function isExpensifyTeam(email: string | undefined): boolean {
     return emailDomain === CONST.EXPENSIFY_PARTNER_NAME || emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
 }
 
-function isExpensifyGuideTeam(email: string): boolean {
-    const emailDomain = Str.extractEmailDomain(email ?? '');
-    return emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
-}
-
 /**
  * Checks if the current user is an admin of the policy.
  */
@@ -282,7 +277,6 @@ export {
     getPolicyBrickRoadIndicatorStatus,
     shouldShowPolicy,
     isExpensifyTeam,
-    isExpensifyGuideTeam,
     isInstantSubmitEnabled,
     isFreeGroupPolicy,
     isPolicyAdmin,
