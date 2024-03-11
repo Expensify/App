@@ -612,7 +612,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     };
 };
 
-type RootStackParamList = PublicScreensParamList & AuthScreensParamList;
+type RootStackParamList = PublicScreensParamList & AuthScreensParamList & SearchNavigatorParamList;
 
 type BottomTabName = keyof BottomTabNavigatorParamList;
 
