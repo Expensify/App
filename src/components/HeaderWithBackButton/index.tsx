@@ -128,7 +128,7 @@ function HeaderWithBackButton({
                     <Header
                         title={title}
                         subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
-                        textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, isCentralPaneSettings && styles.textHeadlineH1]}
+                        textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, isCentralPaneSettings && styles.textHeadlineH2]}
                     />
                 )}
                 <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter]}>

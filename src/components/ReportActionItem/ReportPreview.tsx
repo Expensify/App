@@ -135,6 +135,7 @@ function ReportPreview({
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(iouReport);
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
     const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
+    const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => TransactionUtils.isPending(transaction) && TransactionUtils.isCardTransaction(transaction)).length;
 
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
@@ -151,8 +152,9 @@ function ReportPreview({
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         formattedMerchant ||
         translate('iou.requestCount', {
-            count: numberOfRequests - numberOfScanningReceipts,
+            count: numberOfRequests - numberOfScanningReceipts - numberOfPendingRequests,
             scanningReceipts: numberOfScanningReceipts,
+            pendingReceipts: numberOfPendingRequests,
         });
 
     const shouldShowSubmitButton = isDraftExpenseReport && reimbursableSpend !== 0;
@@ -265,74 +267,77 @@ function ReportPreview({
                             <ReportActionItemImages
                                 images={lastThreeReceipts}
                                 total={transactionsWithReceipts.length}
-                                isHovered={isHovered || isScanning}
                                 size={CONST.RECEIPT.MAX_REPORT_PREVIEW_RECEIPTS}
                             />
                         )}
-                        <View style={styles.reportPreviewBoxBody}>
-                            <View style={styles.flexRow}>
-                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getPreviewMessage()}</Text>
+                        <View style={[styles.expenseAndReportPreviewBoxBody, hasReceipts ? styles.mtn1 : {}]}>
+                            <View style={styles.expenseAndReportPreviewTextButtonContainer}>
+                                <View style={styles.expenseAndReportPreviewTextContainer}>
+                                    <View style={styles.flexRow}>
+                                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                            <Text style={[styles.textLabelSupporting, styles.lh16]}>{getPreviewMessage()}</Text>
+                                        </View>
+                                        {!iouSettled && hasErrors && (
+                                            <Icon
+                                                src={Expensicons.DotIndicator}
+                                                fill={theme.danger}
+                                            />
+                                        )}
+                                    </View>
+                                    <View style={styles.reportPreviewAmountSubtitleContainer}>
+                                        <View style={styles.flexRow}>
+                                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                                <Text style={styles.textHeadlineH1}>{getDisplayAmount()}</Text>
+                                                {ReportUtils.isSettled(iouReportID) && (
+                                                    <View style={styles.defaultCheckmarkWrapper}>
+                                                        <Icon
+                                                            src={Expensicons.Checkmark}
+                                                            fill={theme.iconSuccessFill}
+                                                        />
+                                                    </View>
+                                                )}
+                                            </View>
+                                        </View>
+                                        {shouldShowSubtitle && (
+                                            <View style={styles.flexRow}>
+                                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                                    <Text style={[styles.textLabelSupporting, styles.textNormal, styles.lh20]}>{previewSubtitle || moneyRequestComment}</Text>
+                                                </View>
+                                            </View>
+                                        )}
+                                    </View>
                                 </View>
-                                {!iouSettled && hasErrors && (
-                                    <Icon
-                                        src={Expensicons.DotIndicator}
-                                        fill={theme.danger}
+                                {shouldShowSettlementButton && (
+                                    <SettlementButton
+                                        currency={iouReport?.currency}
+                                        policyID={policyID}
+                                        chatReportID={chatReportID}
+                                        iouReport={iouReport}
+                                        onPress={(paymentType?: PaymentMethodType) => chatReport && iouReport && paymentType && IOU.payMoneyRequest(paymentType, chatReport, iouReport)}
+                                        enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                                        addBankAccountRoute={bankAccountRoute}
+                                        shouldHidePaymentOptions={!shouldShowPayButton}
+                                        shouldShowApproveButton={shouldShowApproveButton}
+                                        kycWallAnchorAlignment={{
+                                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                        }}
+                                        paymentMethodDropdownAnchorAlignment={{
+                                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                        }}
+                                        isDisabled={!canAllowSettlement}
+                                    />
+                                )}
+                                {shouldShowSubmitButton && (
+                                    <Button
+                                        medium
+                                        success={isWaitingForSubmissionFromCurrentUser}
+                                        text={translate('common.submit')}
+                                        onPress={() => iouReport && IOU.submitReport(iouReport)}
                                     />
                                 )}
                             </View>
-                            <View style={styles.flexRow}>
-                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text style={styles.textHeadline}>{getDisplayAmount()}</Text>
-                                    {ReportUtils.isSettled(iouReportID) && (
-                                        <View style={styles.defaultCheckmarkWrapper}>
-                                            <Icon
-                                                src={Expensicons.Checkmark}
-                                                fill={theme.iconSuccessFill}
-                                            />
-                                        </View>
-                                    )}
-                                </View>
-                            </View>
-                            {shouldShowSubtitle && (
-                                <View style={styles.flexRow}>
-                                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                        <Text style={[styles.textLabelSupporting, styles.textNormal, styles.mb1, styles.lh20]}>{previewSubtitle || moneyRequestComment}</Text>
-                                    </View>
-                                </View>
-                            )}
-                            {shouldShowSettlementButton && (
-                                <SettlementButton
-                                    currency={iouReport?.currency}
-                                    policyID={policyID}
-                                    chatReportID={chatReportID}
-                                    iouReport={iouReport}
-                                    onPress={(paymentType?: PaymentMethodType) => chatReport && iouReport && paymentType && IOU.payMoneyRequest(paymentType, chatReport, iouReport)}
-                                    enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                                    addBankAccountRoute={bankAccountRoute}
-                                    shouldHidePaymentOptions={!shouldShowPayButton}
-                                    shouldShowApproveButton={shouldShowApproveButton}
-                                    style={[styles.mt3]}
-                                    kycWallAnchorAlignment={{
-                                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                                    }}
-                                    paymentMethodDropdownAnchorAlignment={{
-                                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                                    }}
-                                    isDisabled={!canAllowSettlement}
-                                />
-                            )}
-                            {shouldShowSubmitButton && (
-                                <Button
-                                    medium
-                                    success={isWaitingForSubmissionFromCurrentUser}
-                                    text={translate('common.submit')}
-                                    style={styles.mt3}
-                                    onPress={() => iouReport && IOU.submitReport(iouReport)}
-                                />
-                            )}
                         </View>
                     </View>
                 </PressableWithoutFeedback>
