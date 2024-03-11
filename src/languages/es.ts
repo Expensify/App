@@ -1952,6 +1952,10 @@ export default {
             status: 'Estado',
             enabled: 'Activada',
             disabled: 'Desactivada',
+            errors: {
+                deleteRateGenericFailureMessage: 'An error occurred while deleting the distance rate, please try again.',
+                createRateGenericFailureMessage: 'An error occurred while creating the distance rate, please try again.',
+            },
         },
         editor: {
             nameInputLabel: 'Nombre',
