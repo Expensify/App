@@ -79,15 +79,18 @@ function SelectionListWrapper({canSelectMultiple}: SelectionListWrapperProps) {
     ];
 
     const onSelectRow = (item: ListItem) => {
-        const keyForList = item.keyForList || '';
+        if (!item.keyForList) {
+            return;
+        }
+
         if (canSelectMultiple) {
-            if (selectedIds.includes(keyForList)) {
-                setSelectedIds(selectedIds.filter((selectedId) => selectedId === keyForList));
+            if (selectedIds.includes(item.keyForList)) {
+                setSelectedIds(selectedIds.filter((selectedId) => selectedId === item.keyForList));
             } else {
-                setSelectedIds([...selectedIds, keyForList]);
+                setSelectedIds([...selectedIds, item.keyForList]);
             }
         } else {
-            setSelectedIds([keyForList]);
+            setSelectedIds([item.keyForList]);
         }
     };
 
