@@ -62,7 +62,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
     const displayNameForAuthorizedPayer = useMemo(() => {
         const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([policy?.reimburserAccountID ?? 0], session?.accountID ?? 0);
         const displayNameFromReimburserEmail = PersonalDetailsUtils.getPersonalDetailByEmail(policy?.reimburserEmail ?? '')?.displayName ?? policy?.reimburserEmail;
-        return personalDetails[0]?.displayName ?? displayNameFromReimburserEmail;
+        return displayNameFromReimburserEmail ?? personalDetails?.[0]?.displayName;
     }, [policy?.reimburserAccountID, policy?.reimburserEmail, session?.accountID]);
 
     const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policy?.id ?? '')), [policy?.id]);
@@ -154,7 +154,9 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                 onToggle: () => {
                     const isActive = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
                     const newReimbursementChoice = isActive ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
-                    Policy.setWorkspaceReimbursement(policy?.id ?? '', newReimbursementChoice);
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    const newReimburserAccountID = PersonalDetailsUtils.getPersonalDetailByEmail(policy?.reimburserEmail ?? '')?.accountID || policy?.reimburserAccountID || policy?.ownerAccountID
+                    Policy.setWorkspaceReimbursement(policy?.id ?? '', newReimbursementChoice, newReimburserAccountID ?? 0);
                 },
                 subMenuItems: (
                     <>
