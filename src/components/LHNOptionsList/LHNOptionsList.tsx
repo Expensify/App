@@ -1,6 +1,6 @@
 import {FlashList} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
-import React, {memo, useCallback} from 'react';
+import React, {memo, useCallback, useMemo} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -8,7 +8,6 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import Text from '@components/Text';
-import withCurrentReportID from '@components/withCurrentReportID';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
@@ -36,7 +35,6 @@ function LHNOptionsList({
     preferredLocale = CONST.LOCALES.DEFAULT,
     personalDetails = {},
     transactions = {},
-    currentReportID = '',
     draftComments = {},
     transactionViolations = {},
     onFirstItemRendered = () => {},
@@ -132,7 +130,7 @@ function LHNOptionsList({
                     lastReportActionTransaction={lastReportActionTransaction}
                     receiptTransactions={transactions}
                     viewMode={optionMode}
-                    isFocused={!shouldDisableFocusOptions && reportID === currentReportID}
+                    isFocused={!shouldDisableFocusOptions}
                     onSelectRow={onSelectRow}
                     preferredLocale={preferredLocale}
                     comment={itemComment}
@@ -144,7 +142,6 @@ function LHNOptionsList({
             );
         },
         [
-            currentReportID,
             draftComments,
             onSelectRow,
             optionMode,
@@ -161,6 +158,8 @@ function LHNOptionsList({
             reportIDsWithErrors,
         ],
     );
+
+    const extraData = useMemo(() => [reportActions, reports, policy, personalDetails], [reportActions, reports, policy, personalDetails]);
 
     return (
         <View style={[style ?? styles.flex1, shouldShowEmptyLHN ? styles.emptyLHNWrapper : undefined]}>
@@ -183,7 +182,7 @@ function LHNOptionsList({
                     keyExtractor={keyExtractor}
                     renderItem={renderItem}
                     estimatedItemSize={optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight}
-                    extraData={[currentReportID]}
+                    extraData={extraData}
                     showsVerticalScrollIndicator={false}
                 />
             )}
@@ -193,33 +192,31 @@ function LHNOptionsList({
 
 LHNOptionsList.displayName = 'LHNOptionsList';
 
-export default withCurrentReportID(
-    withOnyx<LHNOptionsListProps, LHNOptionsListOnyxProps>({
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        reportActions: {
-            key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-        },
-        policy: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        preferredLocale: {
-            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        transactions: {
-            key: ONYXKEYS.COLLECTION.TRANSACTION,
-        },
-        draftComments: {
-            key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
-        },
-        transactionViolations: {
-            key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-        },
-    })(memo(LHNOptionsList)),
-);
+export default withOnyx<LHNOptionsListProps, LHNOptionsListOnyxProps>({
+    reports: {
+        key: ONYXKEYS.COLLECTION.REPORT,
+    },
+    reportActions: {
+        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    },
+    policy: {
+        key: ONYXKEYS.COLLECTION.POLICY,
+    },
+    preferredLocale: {
+        key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
+    transactions: {
+        key: ONYXKEYS.COLLECTION.TRANSACTION,
+    },
+    draftComments: {
+        key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
+    },
+    transactionViolations: {
+        key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    },
+})(memo(LHNOptionsList));
 
 export type {LHNOptionsListProps};
