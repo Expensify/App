@@ -241,9 +241,6 @@ const ONYXKEYS = {
     // This can be either "light", "dark" or "system"
     PREFERRED_THEME: 'preferredTheme',
 
-    // Experimental memory only Onyx mode flag
-    IS_USING_MEMORY_ONLY_KEYS: 'isUsingMemoryOnlyKeys',
-
     // Information about the onyx updates IDs that were received from the server
     ONYX_UPDATES_FROM_SERVER: 'onyxUpdatesFromServer',
 
@@ -569,7 +566,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS]: Record<string, string>;
     [ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID]: string;
     [ONYXKEYS.PREFERRED_THEME]: ValueOf<typeof CONST.THEME>;
-    [ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS]: boolean;
     [ONYXKEYS.MAPBOX_ACCESS_TOKEN]: OnyxTypes.MapboxAccessToken;
     [ONYXKEYS.ONYX_UPDATES_FROM_SERVER]: OnyxTypes.OnyxUpdatesFromServer;
     [ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT]: number;

@@ -1,66 +1,70 @@
+import type {ComponentMeta, ComponentStory} from '@storybook/react';
 import React, {useState} from 'react';
 import TextInput from '@components/TextInput';
+import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
+
+type TextInputStory = ComponentStory<typeof TextInput>;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story = {
+const story: ComponentMeta<typeof TextInput> = {
     title: 'Components/TextInput',
     component: TextInput,
 };
 
-function Template(args) {
+function Template(props: BaseTextInputProps) {
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <TextInput {...args} />;
+    return <TextInput {...props} />;
 }
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 
-const AutoFocus = Template.bind({});
+const AutoFocus: TextInputStory = Template.bind({});
 AutoFocus.args = {
     label: 'Auto-focused text input',
     name: 'AutoFocus',
     autoFocus: true,
 };
 
-const DefaultInput = Template.bind({});
+const DefaultInput: TextInputStory = Template.bind({});
 DefaultInput.args = {
     label: 'Default text input',
     name: 'Default',
 };
 
-const DefaultValueInput = Template.bind({});
+const DefaultValueInput: TextInputStory = Template.bind({});
 DefaultValueInput.args = {
     label: 'Default value input',
     name: 'DefaultValue',
     defaultValue: 'My default value',
 };
 
-const ErrorInput = Template.bind({});
+const ErrorInput: TextInputStory = Template.bind({});
 ErrorInput.args = {
     label: 'Error input',
     name: 'InputWithError',
     errorText: "Oops! Looks like there's an error",
 };
 
-const ForceActiveLabel = Template.bind({});
+const ForceActiveLabel: TextInputStory = Template.bind({});
 ForceActiveLabel.args = {
     label: 'Force active label',
     placeholder: 'My placeholder text',
     forceActiveLabel: true,
 };
 
-const PlaceholderInput = Template.bind({});
+const PlaceholderInput: TextInputStory = Template.bind({});
 PlaceholderInput.args = {
     label: 'Placeholder input',
     name: 'Placeholder',
     placeholder: 'My placeholder text',
 };
 
-const PrefixedInput = Template.bind({});
+const PrefixedInput: TextInputStory = Template.bind({});
 PrefixedInput.args = {
     label: 'Prefixed input',
     name: 'Prefixed',
@@ -68,7 +72,7 @@ PrefixedInput.args = {
     prefixCharacter: '@',
 };
 
-const MaxLengthInput = Template.bind({});
+const MaxLengthInput: TextInputStory = Template.bind({});
 MaxLengthInput.args = {
     label: 'MaxLength input',
     name: 'MaxLength',
@@ -76,12 +80,12 @@ MaxLengthInput.args = {
     maxLength: 50,
 };
 
-function HintAndErrorInput(args) {
+function HintAndErrorInput(props: BaseTextInputProps) {
     const [error, setError] = useState('');
     return (
         <TextInput
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...args}
+            {...props}
             onChangeText={(value) => {
                 if (value && value.toLowerCase() === 'oops!') {
                     setError("Oops! Looks like there's an error");
@@ -101,23 +105,23 @@ HintAndErrorInput.args = {
 };
 
 // To use autoGrow we need to control the TextInput's value
-function AutoGrowSupportInput(args) {
-    const [value, setValue] = useState(args.value || '');
+function AutoGrowSupportInput(props: BaseTextInputProps) {
+    const [value, setValue] = useState(props.value ?? '');
     React.useEffect(() => {
-        setValue(args.value || '');
-    }, [args.value]);
+        setValue(props.value ?? '');
+    }, [props.value]);
 
     return (
         <TextInput
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...args}
+            {...props}
             onChangeText={setValue}
             value={value}
         />
     );
 }
 
-const AutoGrowInput = AutoGrowSupportInput.bind({});
+const AutoGrowInput: TextInputStory = AutoGrowSupportInput.bind({});
 AutoGrowInput.args = {
     label: 'Autogrow input',
     name: 'AutoGrow',
@@ -132,7 +136,7 @@ AutoGrowInput.args = {
     value: '',
 };
 
-const AutoGrowHeightInput = AutoGrowSupportInput.bind({});
+const AutoGrowHeightInput: TextInputStory = AutoGrowSupportInput.bind({});
 AutoGrowHeightInput.args = {
     label: 'Autogrowheight input',
     name: 'AutoGrowHeight',

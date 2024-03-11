@@ -161,7 +161,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         isPreventSelfApprovalEnabled?: boolean;
 
         /** Whether the self approval or submitting is enabled */
-        preventSelfApprovalEnabled?: boolean;
+        preventSelfApproval?: boolean;
 
         /** When the monthly scheduled submit should happen */
         autoReportingOffset?: AutoReportingOffset;

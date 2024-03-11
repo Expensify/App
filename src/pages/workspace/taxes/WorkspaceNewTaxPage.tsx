@@ -40,11 +40,11 @@ function WorkspaceNewTaxPage({
 
             const value = Number(values[INPUT_IDS.VALUE]);
             if (value > 100 || value < 0) {
-                errors[INPUT_IDS.VALUE] = 'workspace.taxes.errors.value.percentageRange';
+                errors[INPUT_IDS.VALUE] = 'workspace.taxes.errors.valuePercentageRange';
             }
 
             if (Object.values(policy?.taxRates?.taxes ?? {}).find((tax) => tax.name === values[INPUT_IDS.NAME])) {
-                errors[INPUT_IDS.NAME] = 'workspace.taxes.errors.name.alreadyExists';
+                errors[INPUT_IDS.NAME] = 'workspace.taxes.errors.taxRatealreadyExists';
             }
 
             return errors;
