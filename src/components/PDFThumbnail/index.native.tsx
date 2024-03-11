@@ -22,7 +22,10 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                         singlePage
                         style={sizeStyles}
                         onError={(error) => {
-                            if (!onPassword || !('message' in error && typeof error.message === 'string' && error.message.match(/password/i))) {
+                            if (!('message' in error && typeof error.message === 'string' && error.message.match(/password/i))) {
+                                return;
+                            }
+                            if (!onPassword) {
                                 return;
                             }
                             onPassword();
