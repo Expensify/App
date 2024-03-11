@@ -1,17 +1,16 @@
-const {promisify} = require('util');
-const fs = require('fs');
-const exec = promisify(require('child_process').exec);
-const _ = require('underscore');
-const core = require('@actions/core');
-const versionUpdater = require('../../../libs/versionUpdater');
-const {updateAndroidVersion, updateiOSVersion, generateAndroidVersionCode} = require('../../../libs/nativeVersionUpdater');
+import * as core from '@actions/core';
+import {exec as originalExec} from 'child_process';
+import fs from 'fs';
+import {promisify} from 'util';
+import {generateAndroidVersionCode, updateAndroidVersion, updateiOSVersion} from '../../../libs/nativeVersionUpdater';
+import * as versionUpdater from '../../../libs/versionUpdater';
+
+const exec = promisify(originalExec);
 
 /**
  * Update the native app versions.
- *
- * @param {String} version
  */
-function updateNativeVersions(version) {
+function updateNativeVersions(version: string) {
     console.log(`Updating native versions to ${version}`);
 
     // Update Android
@@ -28,7 +27,7 @@ function updateNativeVersions(version) {
     // Update iOS
     try {
         const cfBundleVersion = updateiOSVersion(version);
-        if (_.isString(cfBundleVersion) && cfBundleVersion.split('.').length === 4) {
+        if (typeof cfBundleVersion === 'string' && cfBundleVersion.split('.').length === 4) {
             core.setOutput('NEW_IOS_VERSION', cfBundleVersion);
             console.log('Successfully updated iOS!');
         } else {
@@ -36,17 +35,17 @@ function updateNativeVersions(version) {
         }
     } catch (err) {
         console.error('Error updating iOS');
-        core.setFailed(err);
+        core.setFailed(err as string);
     }
 }
 
-let semanticVersionLevel = core.getInput('SEMVER_LEVEL', {require: true});
-if (!semanticVersionLevel || !_.contains(versionUpdater.SEMANTIC_VERSION_LEVELS, semanticVersionLevel)) {
+let semanticVersionLevel = core.getInput('SEMVER_LEVEL', {required: true});
+if (!semanticVersionLevel || !Object.keys(versionUpdater.SEMANTIC_VERSION_LEVELS).includes(semanticVersionLevel)) {
     semanticVersionLevel = versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD;
     console.log(`Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`, `Defaulting to: ${semanticVersionLevel}`);
 }
 
-const {version: previousVersion} = JSON.parse(fs.readFileSync('./package.json'));
+const {version: previousVersion} = JSON.parse(fs.readFileSync('./package.json').toString());
 const newVersion = versionUpdater.incrementVersion(previousVersion, semanticVersionLevel);
 console.log(`Previous version: ${previousVersion}`, `New version: ${newVersion}`);
 
