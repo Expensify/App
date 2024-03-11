@@ -95,6 +95,41 @@ type TaxRate = {
     data?: TaxRateData;
 };
 
+type Reservation = {
+    company: Company;
+    confirmations: ReservationConfirmation[];
+    start: ReservationTimeDetails;
+    end: ReservationTimeDetails;
+    numPassengers?: number;
+    numberOfRooms?: number;
+    route: {
+        class: string;
+        number: string;
+    };
+    type: ReservationType;
+};
+
+type ReservationTimeDetails = {
+    address: string;
+    date: string;
+    longName: string;
+    shortName: string;
+    timezoneOffset: number;
+};
+
+type Company = {
+    longName: string;
+    shortName?: string;
+    phone?: string;
+};
+
+type ReservationConfirmation = {
+    name: string;
+    value: string;
+};
+
+type ReservationType = 'flight' | 'hotel';
+
 type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** The original transaction amount */
@@ -209,6 +244,8 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Indicates transaction loading */
         isLoading?: boolean;
+
+        reservationList?: Reservation[];
     },
     keyof Comment
 >;

@@ -5187,6 +5187,10 @@ function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxEntry<Report> 
     return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddOrDeleteTransactions(existingIOUReport);
 }
 
+function getTripTransactions(expenseReportID: string) {
+    return expenseReportID;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -5394,6 +5398,7 @@ export {
     isJoinRequestInAdminRoom,
     canAddOrDeleteTransactions,
     shouldCreateNewMoneyRequestReport,
+    getTripTransactions,
 };
 
 export type {
