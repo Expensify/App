@@ -575,6 +575,7 @@ const CONST = {
                 DELEGATESUBMIT: 'DELEGATESUBMIT', // OldDot Action
                 DELETEDACCOUNT: 'DELETEDACCOUNT',  // OldDot Action
                 DONATION: 'DONATION', // OldDot Action
+                EXPORTEDTOCSV: 'EXPORTEDTOCSV', // OldDot Action
                 EXPORTEDTOINTEGRATION: 'EXPORTEDTOINTEGRATION', // OldDot Action
                 EXPORTEDTOQUICKBOOKS: 'EXPORTEDTOQUICKBOOKS', // OldDot Action
                 FORWARDED: 'FORWARDED', // OldDot Action
