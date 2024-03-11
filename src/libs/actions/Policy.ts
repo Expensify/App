@@ -2929,6 +2929,7 @@ function deletePolicyDistanceRates(policyID: string, rateIDsToDelete: string[], 
 
     const params: DeletePolicyDistanceRatesParams = {
         policyID,
+        customUnitID: customUnit.customUnitID,
         customUnitRateIDs: rateIDsToDelete,
     };
 

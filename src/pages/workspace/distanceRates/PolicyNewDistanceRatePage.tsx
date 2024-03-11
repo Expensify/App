@@ -45,7 +45,7 @@ function PolicyNewDistanceRatePage({policy, route}: PolicyDistanceRatePageProps)
             enabled: true,
         };
 
-        createPolicyDistanceRate(route.params.policyID, customUnitID, newRate);
+        createPolicyDistanceRate(newRate, customUnitID, route.params.policyID);
         Navigation.goBack();
     };
 
