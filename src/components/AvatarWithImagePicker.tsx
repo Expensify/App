@@ -283,7 +283,7 @@ function AvatarWithImagePicker({
 
     return (
         <View style={StyleSheet.flatten([styles.alignItemsCenter, style])}>
-            <View style={[styles.w100]}>
+            <View style={errors && styles.w100}>
                 <OfflineWithFeedback
                     pendingAction={pendingAction}
                     errors={errors}
