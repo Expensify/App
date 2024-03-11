@@ -183,6 +183,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                     return;
                 }
             }
+            const pendingChatMember = report?.pendingChatMembers?.find((member) => member.accountID === accountID.toString());
 
             result.push({
                 keyForList: String(accountID),
@@ -199,10 +200,11 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                         id: Number(accountID),
                     },
                 ],
+                pendingAction: pendingChatMember?.pendingAction,
             });
         });
 
-        result = result.sort((value1, value2) => localeCompare(value1.text, value2.text));
+        result = result.sort((value1, value2) => localeCompare(value1.text ?? '', value2.text ?? ''));
 
         return result;
     };

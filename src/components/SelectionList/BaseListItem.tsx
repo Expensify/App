@@ -66,23 +66,23 @@ function BaseListItem<TItem extends ListItem>({
                 {...bind}
                 onPress={() => onSelectRow(item)}
                 disabled={isDisabled}
-                accessibilityLabel={item.text}
+                accessibilityLabel={item.text ?? ''}
                 role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}
                 hoverStyle={!item.isSelected && styles.hoveredComponentBG}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
-                nativeID={keyForList}
+                nativeID={keyForList ?? ''}
                 style={pressableStyle}
             >
                 <View style={wrapperStyle}>
                     {canSelectMultiple && (
                         <PressableWithFeedback
-                            accessibilityLabel={item.text}
+                            accessibilityLabel={item.text ?? ''}
                             role={CONST.ROLE.BUTTON}
                             disabled={isDisabled}
                             onPress={handleCheckboxPress}
-                            style={StyleUtils.getCheckboxPressableStyle()}
+                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle()]}
                         >
                             <View style={selectMultipleStyle}>
                                 {item.isSelected && (
