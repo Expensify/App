@@ -89,36 +89,31 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}) {
         const options = OptionsListUtils.getSearchOptions(reports, personalDetails, '', betas);
         const header = OptionsListUtils.getHeaderMessage(options.recentReports.length + options.personalDetails.length !== 0, Boolean(options.userToInvite), debouncedSearchValue);
         return {...options, headerMessage: header};
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isScreenTransitionEnd]);
 
     const filteredOptions = useMemo(() => {
-        if(debouncedSearchValue.trim() === '') {
+        if (debouncedSearchValue.trim() === '') {
             return {
                 recentReports: [],
                 personalDetails: [],
                 userToInvite: null,
-                headerMessage: ''
-            }
+                headerMessage: '',
+            };
         }
-        
+
         const options = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue);
         const header = OptionsListUtils.getHeaderMessage(options.length, false, debouncedSearchValue);
         return {
             recentReports: options,
             personalDetails: [],
             userToInvite: null,
-            headerMessage: header
-        }
+            headerMessage: header,
+        };
     }, [searchOptions, debouncedSearchValue]);
 
-    const {
-        recentReports,
-        personalDetails: localPersonalDetails,
-        userToInvite,
-        headerMessage,
-    } = debouncedSearchValue.trim() !== '' ? filteredOptions : searchOptions;
-    
+    const {recentReports, personalDetails: localPersonalDetails, userToInvite, headerMessage} = debouncedSearchValue.trim() !== '' ? filteredOptions : searchOptions;
+
     const sections = useMemo(() => {
         const newSections = [];
         let indexOffset = 0;
@@ -170,7 +165,7 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}) {
     };
 
     const isOptionsDataReady = useMemo(() => ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails), [personalDetails]);
-    
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
