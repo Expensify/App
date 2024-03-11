@@ -36,7 +36,7 @@ function WorkspaceJoinUserPage({route, policies}: WorkspaceJoinUserPageProps) {
         if (!isJoinLinkUsed) {
             return;
         }
-        Navigation.goBack(undefined, false, true);
+        navigateAfterJoinRequest();
     }, []);
 
     useEffect(() => {
