@@ -67,6 +67,7 @@ type BlockingViewProps = RequiredIllustrationProps & {
     /** Style for the animation */
     animationStyles?: StyleProp<ViewStyle>;
 
+    /** Style for the animation on web */
     animationWebStyle?: WebStyle;
 
     /** Render custom subtitle */

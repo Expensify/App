@@ -44,7 +44,7 @@ function LHNOptionsList({
     const styles = useThemeStyles();
     const {canUseViolations} = usePermissions();
     const {translate} = useLocalize();
-    const {isExtraSmallScreenHeight, isSmallScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const shouldShowEmptyLHN = isSmallScreenWidth && data.length === 0;
 
     // When the first item renders we want to call the onFirstItemRendered callback.
@@ -167,7 +167,7 @@ function LHNOptionsList({
                 <BlockingView
                     animation={LottieAnimations.Fireworks}
                     animationStyles={styles.emptyLHNAnimation}
-                    animationWebStyle={styles.emptyLHNAnimationWeb(isExtraSmallScreenHeight)}
+                    animationWebStyle={styles.emptyLHNAnimation}
                     title={translate('common.emptyLHN.title')}
                     shouldShowLink={false}
                     renderCustomSubtitle={renderEmptyLHNSubtitle}
