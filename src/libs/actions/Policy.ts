@@ -1988,9 +1988,42 @@ function openPolicyWorkflowsPage(policyID: string) {
         return;
     }
 
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
+                key: `${ONYXKEYS.REIMBURSEMENT_ACCOUNT}${policyID}`,
+                value: {
+                    isLoading: true,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
+                key: `${ONYXKEYS.REIMBURSEMENT_ACCOUNT}${policyID}`,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
+                key: `${ONYXKEYS.REIMBURSEMENT_ACCOUNT}${policyID}`,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+    };
+
     const params: OpenPolicyWorkflowsPageParams = {policyID};
 
-    API.read(READ_COMMANDS.OPEN_POLICY_WORKFLOWS_PAGE, params);
+    API.read(READ_COMMANDS.OPEN_POLICY_WORKFLOWS_PAGE, params, onyxData);
 }
 
 function setPolicyIDForReimburseView(policyID: string) {

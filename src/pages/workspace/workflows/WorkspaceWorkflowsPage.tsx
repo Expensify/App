@@ -1,8 +1,10 @@
+import {useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {FlatList, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -47,6 +49,9 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
 
+    const firstRender = useRef(true);
+    const isFocused = useIsFocused();
+
     const policyApproverEmail = policy?.approver;
     const policyApproverName = useMemo(() => PersonalDetailsUtils.getPersonalDetailByEmail(policyApproverEmail ?? '')?.displayName ?? policyApproverEmail, [policyApproverEmail]);
     const containerStyle = useMemo(() => [styles.ph8, styles.mhn8, styles.ml11, styles.pv3, styles.pr0, styles.pl4, styles.mr0, styles.widthAuto, styles.mt4], [styles]);
@@ -66,9 +71,14 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
     useNetwork({onReconnect: fetchData});
 
     useEffect(() => {
+        // Because isLoading is false before merging in Onyx, we need firstRender ref to display loading page as well before isLoading is change to true
+        firstRender.current = false;
+    }, []);
+
+    useEffect(() => {
         fetchData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [policy?.reimbursementChoice]);
+    }, []);
 
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
         const {accountNumber, state, bankName} = reimbursementAccount?.achData ?? {};
@@ -211,6 +221,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
 
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
+    const isLoading = reimbursementAccount?.isLoading ?? true;
 
     return (
         <WorkspacePageWithSections
@@ -223,22 +234,26 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
             shouldSkipVBBACall
             shouldShowLoading={false}
         >
-            <View style={[styles.mt3, styles.textStrong, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                <Section
-                    title={translate('workflowsPage.workflowTitle')}
-                    titleStyles={styles.textStrong}
-                    containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
-                >
-                    <View>
-                        <Text style={[styles.mt3, styles.textSupporting]}>{translate('workflowsPage.workflowDescription')}</Text>
-                        <FlatList
-                            data={optionItems}
-                            renderItem={renderOptionItem}
-                            keyExtractor={(item: ToggleSettingOptionRowProps) => item.title}
-                        />
-                    </View>
-                </Section>
-            </View>
+            {(isLoading || firstRender.current) && isFocused ? (
+                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+            ) : (
+                <View style={[styles.mt3, styles.textStrong, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <Section
+                        title={translate('workflowsPage.workflowTitle')}
+                        titleStyles={styles.textStrong}
+                        containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
+                    >
+                        <View>
+                            <Text style={[styles.mt3, styles.textSupporting]}>{translate('workflowsPage.workflowDescription')}</Text>
+                            <FlatList
+                                data={optionItems}
+                                renderItem={renderOptionItem}
+                                keyExtractor={(item: ToggleSettingOptionRowProps) => item.title}
+                            />
+                        </View>
+                    </Section>
+                </View>
+            )}
         </WorkspacePageWithSections>
     );
 }
