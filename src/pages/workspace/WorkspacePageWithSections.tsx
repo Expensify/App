@@ -162,7 +162,7 @@ function WorkspacePageWithSections({
                     title={headerText}
                     guidesCallTaskID={guidesCallTaskID}
                     shouldShowBackButton={isSmallScreenWidth || shouldShowBackButton}
-                    onBackButtonPress={() => Navigation.goBack(backButtonRoute ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}
+                    onBackButtonPress={() => Navigation.goBack(backButtonRoute)}
                     icon={icon ?? undefined}
                     style={styles.headerBarDesktopHeight}
                 />
