@@ -1,116 +1,89 @@
 import {useIsFocused} from '@react-navigation/native';
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
+import lodashIsEqual from 'lodash/isEqual';
+import lodashThrottle from 'lodash/throttle';
 import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {InteractionManager} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
-import networkPropTypes from '@components/networkPropTypes';
-import {withNetwork} from '@components/OnyxProvider';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import type {OnyxEntry} from 'react-native-onyx';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useInitialValue from '@hooks/useInitialValue';
+import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
-import compose from '@libs/compose';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import Performance from '@libs/Performance';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {didUserLogInDuringSession} from '@libs/SessionUtils';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
-import reportPropTypes from '@pages/reportPropTypes';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxTypes from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
-import reportActionPropTypes from './reportActionPropTypes';
 import ReportActionsList from './ReportActionsList';
+import type {LoadNewerChats} from './ReportActionsList';
 
-const propTypes = {
+type ReportActionsViewOnyxProps = {
+    /** Session info for the currently logged in user. */
+    session: OnyxEntry<OnyxTypes.Session>;
+};
+
+type ReportActionsViewProps = ReportActionsViewOnyxProps & {
     /** The report currently being looked at */
-    report: reportPropTypes.isRequired,
+    report: OnyxTypes.Report;
 
     /** Array of report actions for this report */
-    reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
+    reportActions?: OnyxTypes.ReportAction[];
 
     /** The report's parentReportAction */
-    parentReportAction: PropTypes.shape(reportActionPropTypes),
+    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
     /** The report metadata loading states */
-    isLoadingInitialReportActions: PropTypes.bool,
+    isLoadingInitialReportActions?: boolean;
 
     /** The report actions are loading more data */
-    isLoadingOlderReportActions: PropTypes.bool,
+    isLoadingOlderReportActions?: boolean;
 
     /** The report actions are loading newer data */
-    isLoadingNewerReportActions: PropTypes.bool,
-
-    /** Whether the composer is full size */
-    /* eslint-disable-next-line react/no-unused-prop-types */
-    isComposerFullSize: PropTypes.bool.isRequired,
-
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
-
-    /** The policy object for the current route */
-    policy: PropTypes.shape({
-        /** The name of the policy */
-        name: PropTypes.string,
-
-        /** The URL for the policy avatar */
-        avatar: PropTypes.string,
-    }),
-
-    /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user authToken */
-        authToken: PropTypes.string,
-    }),
-
-    ...windowDimensionsPropTypes,
-    ...withLocalizePropTypes,
+    isLoadingNewerReportActions?: boolean;
 };
 
-const defaultProps = {
-    reportActions: [],
-    policy: null,
-    isLoadingInitialReportActions: false,
-    isLoadingOlderReportActions: false,
-    isLoadingNewerReportActions: false,
-    session: {
-        authTokenType: '',
-    },
-    parentReportAction: {},
-};
-
-function ReportActionsView(props) {
+function ReportActionsView({
+    report,
+    session,
+    parentReportAction,
+    reportActions = [],
+    isLoadingInitialReportActions = false,
+    isLoadingOlderReportActions = false,
+    isLoadingNewerReportActions = false,
+}: ReportActionsViewProps) {
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
     const isFirstRender = useRef(true);
-    const hasCachedActions = useInitialValue(() => _.size(props.reportActions) > 0);
-    const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions), [props.reportActions]);
-    const prevNetworkRef = useRef(props.network);
-    const prevAuthTokenType = usePrevious(props.session.authTokenType);
+    const hasCachedActions = useInitialValue(() => reportActions.length > 0);
+    const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActions), [reportActions]);
+    const network = useNetwork();
+    const {isSmallScreenWidth} = useWindowDimensions();
+    const prevNetworkRef = useRef(network);
+    const prevAuthTokenType = usePrevious(session?.authTokenType);
 
-    const prevIsSmallScreenWidthRef = useRef(props.isSmallScreenWidth);
+    const prevIsSmallScreenWidthRef = useRef(isSmallScreenWidth);
 
     const isFocused = useIsFocused();
-    const reportID = props.report.reportID;
-    const hasNewestReportAction = lodashGet(props.reportActions[0], 'isNewestReportAction');
+    const reportID = report.reportID;
+    const hasNewestReportAction = reportActions[0]?.isNewestReportAction;
 
-    /**
-     * @returns {Boolean}
-     */
-    const isReportFullyVisible = useMemo(() => getIsReportFullyVisible(isFocused), [isFocused]);
+    const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
 
     const openReportIfNecessary = () => {
-        const createChatError = _.get(props.report, ['errorFields', 'createChat']);
+        const createChatError = report.errorFields?.createChat;
         // If the report is optimistic (AKA not yet created) we don't need to call openReport again
-        if (props.report.isOptimisticReport || !_.isEmpty(createChatError)) {
+        if (!!report.isOptimisticReport || !isEmptyObject(createChatError)) {
             return;
         }
 
@@ -122,10 +95,7 @@ function ReportActionsView(props) {
             openReportIfNecessary();
         });
         return () => {
-            if (!interactionTask) {
-                return;
-            }
-            interactionTask.cancel();
+            interactionTask?.cancel();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -135,7 +105,7 @@ function ReportActionsView(props) {
         // When returning from offline to online state we want to trigger a request to OpenReport which
         // will fetch the reportActions data and mark the report as read. If the report is not fully visible
         // then we call ReconnectToReport which only loads the reportActions data without marking the report as read.
-        const wasNetworkChangeDetected = lodashGet(prevNetwork, 'isOffline') && !lodashGet(props.network, 'isOffline');
+        const wasNetworkChangeDetected = prevNetwork.isOffline && !network.isOffline;
         if (wasNetworkChangeDetected) {
             if (isReportFullyVisible) {
                 openReportIfNecessary();
@@ -144,13 +114,13 @@ function ReportActionsView(props) {
             }
         }
         // update ref with current network state
-        prevNetworkRef.current = props.network;
+        prevNetworkRef.current = network;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.network, isReportFullyVisible]);
+    }, [network, isReportFullyVisible]);
 
     useEffect(() => {
-        const wasLoginChangedDetected = prevAuthTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS && !props.session.authTokenType;
-        if (wasLoginChangedDetected && didUserLogInDuringSession() && isUserCreatedPolicyRoom(props.report)) {
+        const wasLoginChangedDetected = prevAuthTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS && !session?.authTokenType;
+        if (wasLoginChangedDetected && didUserLogInDuringSession() && isUserCreatedPolicyRoom(report)) {
             if (isReportFullyVisible) {
                 openReportIfNecessary();
             } else {
@@ -158,29 +128,29 @@ function ReportActionsView(props) {
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.session, props.report, isReportFullyVisible]);
+    }, [session, report, isReportFullyVisible]);
 
     useEffect(() => {
         const prevIsSmallScreenWidth = prevIsSmallScreenWidthRef.current;
         // If the view is expanded from mobile to desktop layout
         // we update the new marker position, mark the report as read, and fetch new report actions
-        const didScreenSizeIncrease = prevIsSmallScreenWidth && !props.isSmallScreenWidth;
+        const didScreenSizeIncrease = prevIsSmallScreenWidth && !isSmallScreenWidth;
         const didReportBecomeVisible = isReportFullyVisible && didScreenSizeIncrease;
         if (didReportBecomeVisible) {
             openReportIfNecessary();
         }
         // update ref with current state
-        prevIsSmallScreenWidthRef.current = props.isSmallScreenWidth;
+        prevIsSmallScreenWidthRef.current = isSmallScreenWidth;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.isSmallScreenWidth, props.reportActions, isReportFullyVisible]);
+    }, [isSmallScreenWidth, reportActions, isReportFullyVisible]);
 
     useEffect(() => {
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
         // Check if the optimistic `OpenReport` or `AddWorkspaceRoom` has succeeded by confirming
         // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
         // Existing reports created will have empty fields for `pendingFields`.
-        const didCreateReportSuccessfully = !props.report.pendingFields || (!props.report.pendingFields.addWorkspaceRoom && !props.report.pendingFields.createChat);
-        let interactionTask;
+        const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
+        let interactionTask: ReturnType<typeof InteractionManager.runAfterInteractions> | undefined;
         if (!didSubscribeToReportTypingEvents.current && didCreateReportSuccessfully) {
             interactionTask = InteractionManager.runAfterInteractions(() => {
                 Report.subscribeToReportTypingEvents(reportID);
@@ -194,9 +164,9 @@ function ReportActionsView(props) {
             }
             interactionTask.cancel();
         };
-    }, [props.report.pendingFields, didSubscribeToReportTypingEvents, reportID]);
+    }, [report.pendingFields, didSubscribeToReportTypingEvents, reportID]);
 
-    const oldestReportAction = useMemo(() => _.last(props.reportActions), [props.reportActions]);
+    const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
 
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
@@ -204,7 +174,7 @@ function ReportActionsView(props) {
      */
     const loadOlderChats = useCallback(() => {
         // Only fetch more if we are neither already fetching (so that we don't initiate duplicate requests) nor offline.
-        if (props.network.isOffline || props.isLoadingOlderReportActions) {
+        if (!!network.isOffline || isLoadingOlderReportActions) {
             return;
         }
 
@@ -214,16 +184,16 @@ function ReportActionsView(props) {
         }
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
         Report.getOlderActions(reportID);
-    }, [props.isLoadingOlderReportActions, props.network.isOffline, oldestReportAction, reportID]);
+    }, [isLoadingOlderReportActions, network.isOffline, oldestReportAction, reportID]);
 
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
      */
-    const loadNewerChats = useMemo(
+    const loadNewerChats: LoadNewerChats = useMemo(
         () =>
-            _.throttle(({distanceFromStart}) => {
-                if (props.isLoadingNewerReportActions || props.isLoadingInitialReportActions || hasNewestReportAction) {
+            lodashThrottle(({distanceFromStart}) => {
+                if (isLoadingNewerReportActions || isLoadingInitialReportActions || hasNewestReportAction) {
                     return;
                 }
 
@@ -244,7 +214,7 @@ function ReportActionsView(props) {
 
                 Report.getNewerActions(reportID);
             }, 500),
-        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, reportID, hasNewestReportAction],
+        [isLoadingNewerReportActions, isLoadingInitialReportActions, reportID, hasNewestReportAction],
     );
 
     /**
@@ -268,48 +238,42 @@ function ReportActionsView(props) {
     }, [hasCachedActions]);
 
     // Comments have not loaded at all yet do nothing
-    if (!_.size(props.reportActions)) {
+    if (!reportActions.length) {
         return null;
     }
 
     return (
         <>
             <ReportActionsList
-                report={props.report}
-                parentReportAction={props.parentReportAction}
+                report={report}
+                parentReportAction={parentReportAction}
                 onLayout={recordTimeToMeasureItemLayout}
-                sortedReportActions={props.reportActions}
+                sortedReportActions={reportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
-                isLoadingInitialReportActions={props.isLoadingInitialReportActions}
-                isLoadingOlderReportActions={props.isLoadingOlderReportActions}
-                isLoadingNewerReportActions={props.isLoadingNewerReportActions}
-                policy={props.policy}
+                isLoadingInitialReportActions={isLoadingInitialReportActions}
+                isLoadingOlderReportActions={isLoadingOlderReportActions}
+                isLoadingNewerReportActions={isLoadingNewerReportActions}
             />
             <PopoverReactionList ref={reactionListRef} />
         </>
     );
 }
 
-ReportActionsView.propTypes = propTypes;
-ReportActionsView.defaultProps = defaultProps;
 ReportActionsView.displayName = 'ReportActionsView';
+ReportActionsView.initMeasured = false;
 
-function arePropsEqual(oldProps, newProps) {
-    if (!_.isEqual(oldProps.reportActions, newProps.reportActions)) {
+function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActionsViewProps): boolean {
+    if (!lodashIsEqual(oldProps.reportActions, newProps.reportActions)) {
         return false;
     }
 
-    if (!_.isEqual(oldProps.parentReportAction, newProps.parentReportAction)) {
+    if (!lodashIsEqual(oldProps.parentReportAction, newProps.parentReportAction)) {
         return false;
     }
 
-    if (lodashGet(oldProps.network, 'isOffline') !== lodashGet(newProps.network, 'isOffline')) {
-        return false;
-    }
-
-    if (lodashGet(oldProps.session, 'authTokenType') !== lodashGet(newProps.session, 'authTokenType')) {
+    if (oldProps.session?.authTokenType !== newProps.session?.authTokenType) {
         return false;
     }
 
@@ -325,35 +289,15 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
-    if (newProps.isSmallScreenWidth !== oldProps.isSmallScreenWidth) {
-        return false;
-    }
-
-    if (newProps.isComposerFullSize !== oldProps.isComposerFullSize) {
-        return false;
-    }
-
-    if (lodashGet(newProps, 'policy.avatar') !== lodashGet(oldProps, 'policy.avatar')) {
-        return false;
-    }
-
-    if (lodashGet(newProps, 'policy.name') !== lodashGet(oldProps, 'policy.name')) {
-        return false;
-    }
-
-    return _.isEqual(oldProps.report, newProps.report);
+    return lodashIsEqual(oldProps.report, newProps.report);
 }
 
 const MemoizedReportActionsView = React.memo(ReportActionsView, arePropsEqual);
 
-export default compose(
-    Performance.withRenderTrace({id: '<ReportActionsView> rendering'}),
-    withWindowDimensions,
-    withLocalize,
-    withNetwork(),
-    withOnyx({
+export default Performance.withRenderTrace({id: '<ReportActionsView> rendering'})(
+    withOnyx<ReportActionsViewProps, ReportActionsViewOnyxProps>({
         session: {
             key: ONYXKEYS.SESSION,
         },
-    }),
-)(MemoizedReportActionsView);
+    })(MemoizedReportActionsView),
+);

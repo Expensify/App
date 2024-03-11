@@ -865,7 +865,6 @@ function ReportActionItem({
                 )}
             </Hoverable>
             <View style={styles.reportActionSystemMessageContainer}>
-                {/* @ts-expect-error TODO check if there is a field on the reportAction object */}
                 <InlineSystemMessage message={action.error} />
             </View>
         </PressableWithSecondaryInteraction>
