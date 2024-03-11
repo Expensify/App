@@ -1,6 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -244,7 +244,7 @@ function WorkspaceInvitePage({
         return isEmptyObject(errors);
     };
 
-    const inviteUser = () => {
+    const inviteUser = useCallback(() => {
         if (!validate()) {
             return;
         }
@@ -260,7 +260,7 @@ function WorkspaceInvitePage({
         });
         Policy.setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
         Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(route.params.policyID));
-    };
+    }, [route.params.policyID, selectedOptions, validate]);
 
     const [policyName, shouldShowAlertPrompt] = useMemo(() => [policy?.name ?? '', !isEmptyObject(policy?.errors) || !!policy?.alertMessage], [policy]);
 
