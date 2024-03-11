@@ -198,9 +198,7 @@ function ReportActionItem({
     const originalReport = report.reportID === originalReportID ? report : ReportUtils.getReport(originalReportID);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportActions);
-    const transactionThreadReport = useMemo(() => {
-        return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
-    }, [reports, transactionThreadReportID]);
+    const transactionThreadReport = useMemo(() => reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`], [reports, transactionThreadReportID]);
 
     // Get the transaction associated with the report
     const transaction = useMemo(() => {
@@ -211,7 +209,7 @@ function ReportActionItem({
         return transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     }, [transactionThreadReport, reportActions, transactions]);
 
-    const transactionCurrency = !lodashIsEmpty(transaction) ? transaction?.modifiedCurrency || transaction?.currency : report.currency;
+    const transactionCurrency = !lodashIsEmpty(transaction?.modifiedCurrency) ? transaction?.modifiedCurrency : transaction?.currency;
     const reportScrollManager = useReportScrollManager();
 
     const highlightedBackgroundColorIfNeeded = useMemo(
@@ -761,7 +759,7 @@ function ReportActionItem({
         if (ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report)) {
             return (
                 <OfflineWithFeedback pendingAction={action.pendingAction}>
-                    {transactionThreadReport && !lodashIsEmpty(transactionThreadReport) ? (
+                    {transactionThreadReport && !isEmptyObject(transactionThreadReport) ? (
                         <>
                             {transactionCurrency !== report.currency && (
                                 <MoneyReportView

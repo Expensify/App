@@ -236,7 +236,7 @@ function getOneTransactionThreadReportID(reportActions: OnyxEntry<ReportActions>
     }
 
     // Ensure we have a childReportID associated with the IOU report action
-    return String(iouRequestActions[0].childReportID);
+    return iouRequestActions[0].childReportID ?? '0';
 }
 
 /**
