@@ -52,6 +52,9 @@ type PopoverMenuItem = {
 
     /** Adds padding to the left of the text when there is no icon. */
     shouldPutLeftPaddingWhenNoIcon?: boolean;
+
+    /** Determines whether the menu item is disabled or not */
+    disabled?: boolean;
 };
 
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'>;
@@ -233,6 +236,7 @@ function PopoverMenu({
                         displayInDefaultIconColor={item.displayInDefaultIconColor}
                         shouldShowRightIcon={item.shouldShowRightIcon}
                         shouldPutLeftPaddingWhenNoIcon={item.shouldPutLeftPaddingWhenNoIcon}
+                        disabled={item.disabled}
                     />
                 ))}
             </View>

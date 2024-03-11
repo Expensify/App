@@ -205,8 +205,9 @@ function ReportPreview({
 
     const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(iouReport, chatReport, policy), [iouReport, chatReport, policy]);
 
+    const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(iouReport);
+
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
-    const shouldDisableSettlementButton = shouldShowSettlementButton && (!canAllowSettlement || (shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(iouReport)));
 
     /*
      Show subtitle if at least one of the money requests is not being smart scanned, and either:
@@ -294,6 +295,7 @@ function ReportPreview({
                                         addBankAccountRoute={bankAccountRoute}
                                         shouldHidePaymentOptions={!shouldShowPayButton}
                                         shouldShowApproveButton={shouldShowApproveButton}
+                                        shouldDisableApproveButton={shouldDisableApproveButton}
                                         kycWallAnchorAlignment={{
                                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -302,7 +304,7 @@ function ReportPreview({
                                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                                         }}
-                                        isDisabled={shouldDisableSettlementButton}
+                                        isDisabled={!canAllowSettlement}
                                     />
                                 )}
                                 {shouldShowSubmitButton && (

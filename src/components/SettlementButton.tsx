@@ -60,6 +60,9 @@ type SettlementButtonProps = SettlementButtonOnyxProps & {
     /** Should we show the payment options? */
     shouldShowApproveButton?: boolean;
 
+    /** Should approve button be disabled? */
+    shouldDisableApproveButton?: boolean;
+
     /** The policyID of the report we are paying */
     policyID?: string;
 
@@ -124,6 +127,7 @@ function SettlementButton({
     policyID = '',
     shouldHidePaymentOptions = false,
     shouldShowApproveButton = false,
+    shouldDisableApproveButton = false,
     style,
     shouldShowPersonalBankAccountOption = false,
     enterKeyEventListenerPriority = 0,
@@ -166,6 +170,7 @@ function SettlementButton({
             text: translate('iou.approve'),
             icon: Expensicons.ThumbsUp,
             value: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
+            disabled: !!shouldDisableApproveButton,
         };
         const canUseWallet = !isExpenseReport && currency === CONST.CURRENCY.USD;
 

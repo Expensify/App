@@ -69,9 +69,9 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
 
     const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(moneyRequestReport, chatReport, policy), [moneyRequestReport, chatReport, policy]);
 
+    const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(moneyRequestReport);
+
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
-    const shouldDisableSettlementButton =
-        shouldShowSettlementButton && (!canAllowSettlement || (shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(moneyRequestReport)));
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
@@ -126,9 +126,10 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                             addBankAccountRoute={bankAccountRoute}
                             shouldHidePaymentOptions={!shouldShowPayButton}
                             shouldShowApproveButton={shouldShowApproveButton}
+                            shouldDisableApproveButton={shouldDisableApproveButton}
                             style={[styles.pv2]}
                             formattedAmount={formattedAmount}
-                            isDisabled={shouldDisableSettlementButton}
+                            isDisabled={!canAllowSettlement}
                         />
                     </View>
                 )}
@@ -159,8 +160,9 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                             addBankAccountRoute={bankAccountRoute}
                             shouldHidePaymentOptions={!shouldShowPayButton}
                             shouldShowApproveButton={shouldShowApproveButton}
+                            shouldDisableApproveButton={shouldDisableApproveButton}
                             formattedAmount={formattedAmount}
-                            isDisabled={shouldDisableSettlementButton}
+                            isDisabled={!canAllowSettlement}
                         />
                     </View>
                 )}
