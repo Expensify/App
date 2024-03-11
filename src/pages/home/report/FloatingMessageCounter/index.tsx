@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {Animated, View} from 'react-native';
 import Button from '@components/Button';
@@ -12,23 +11,18 @@ import useNativeDriver from '@libs/useNativeDriver';
 import CONST from '@src/CONST';
 import FloatingMessageCounterContainer from './FloatingMessageCounterContainer';
 
-const propTypes = {
+type FloatingMessageCounterProps = {
     /** Whether the New Messages indicator is active */
-    isActive: PropTypes.bool,
+    isActive?: boolean;
 
     /** Callback to be called when user clicks the New Messages indicator */
-    onClick: PropTypes.func,
-};
-
-const defaultProps = {
-    isActive: false,
-    onClick: () => {},
+    onClick?: () => void;
 };
 
 const MARKER_INACTIVE_TRANSLATE_Y = -40;
 const MARKER_ACTIVE_TRANSLATE_Y = 10;
 
-function FloatingMessageCounter(props) {
+function FloatingMessageCounter({isActive = false, onClick = () => {}}: FloatingMessageCounterProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -37,7 +31,6 @@ function FloatingMessageCounter(props) {
     const show = useCallback(() => {
         Animated.spring(translateY, {
             toValue: MARKER_ACTIVE_TRANSLATE_Y,
-            duration: 80,
             useNativeDriver,
         }).start();
     }, [translateY]);
@@ -45,30 +38,29 @@ function FloatingMessageCounter(props) {
     const hide = useCallback(() => {
         Animated.spring(translateY, {
             toValue: MARKER_INACTIVE_TRANSLATE_Y,
-            duration: 80,
             useNativeDriver,
         }).start();
     }, [translateY]);
 
     useEffect(() => {
-        if (props.isActive) {
+        if (isActive) {
             show();
         } else {
             hide();
         }
-    }, [props.isActive, show, hide]);
+    }, [isActive, show, hide]);
 
     return (
         <FloatingMessageCounterContainer
             accessibilityHint={translate('accessibilityHints.scrollToNewestMessages')}
-            containerStyles={[styles.floatingMessageCounterTransformation(translateY)]}
+            containerStyles={styles.floatingMessageCounterTransformation(translateY)}
         >
             <View style={styles.floatingMessageCounter}>
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                     <Button
                         success
                         small
-                        onPress={props.onClick}
+                        onPress={onClick}
                     >
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             <Icon
@@ -91,7 +83,6 @@ function FloatingMessageCounter(props) {
     );
 }
 
-FloatingMessageCounter.propTypes = propTypes;
-FloatingMessageCounter.defaultProps = defaultProps;
 FloatingMessageCounter.displayName = 'FloatingMessageCounter';
+
 export default React.memo(FloatingMessageCounter);
