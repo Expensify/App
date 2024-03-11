@@ -160,19 +160,7 @@ function SidebarLinksData({
             reportIDsRef.current = reportIDs;
         }
         return reportIDsRef.current || [];
-    }, [
-        chatReports,
-        betas,
-        policies,
-        priorityMode,
-        allReportActions,
-        transactionViolations,
-        activeWorkspaceID,
-        policyMemberAccountIDs,
-        isLoading,
-        network.isOffline,
-        prevPriorityMode,
-    ]);
+    }, [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, isLoading, network.isOffline, prevPriorityMode]);
 
     // We need to make sure the current report is in the list of reports, but we do not want
     // to have to re-generate the list every time the currentReportID changes. To do that
@@ -194,18 +182,7 @@ function SidebarLinksData({
             );
         }
         return optionListItems;
-    }, [
-        currentReportID,
-        optionListItems,
-        chatReports,
-        betas,
-        policies,
-        priorityMode,
-        allReportActions,
-        transactionViolations,
-        activeWorkspaceID,
-        policyMemberAccountIDs,
-    ]);
+    }, [currentReportID, optionListItems, chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs]);
 
     const currentReportIDRef = useRef(currentReportID);
     currentReportIDRef.current = currentReportID;

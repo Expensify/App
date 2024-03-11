@@ -113,30 +113,12 @@ describe('SidebarUtils', () => {
     test('[SidebarUtils] getOrderedReportIDs on 15k reports for default priorityMode', async () => {
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            SidebarUtils.getOrderedReportIDs(
-                currentReportId,
-                allReports,
-                mockedBetas,
-                policies,
-                CONST.PRIORITY_MODE.DEFAULT,
-                allReportActions,
-                transactionViolations,
-            ),
+            SidebarUtils.getOrderedReportIDs(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.DEFAULT, allReportActions, transactionViolations),
         );
     });
 
     test('[SidebarUtils] getOrderedReportIDs on 15k reports for GSD priorityMode', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() =>
-            SidebarUtils.getOrderedReportIDs(
-                currentReportId,
-                allReports,
-                mockedBetas,
-                policies,
-                CONST.PRIORITY_MODE.GSD,
-                allReportActions,
-                transactionViolations,
-            ),
-        );
+        await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.GSD, allReportActions, transactionViolations));
     });
 });
