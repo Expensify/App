@@ -85,12 +85,12 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             onSuccess(data);
         },
         onError: (error) => {
-            const errorMessage = lodashGet(error, 'message', CONST.ERROR.UNKNOWN_ERROR);
             const errorType = lodashGet(error, 'type');
             if (errorType === CONST.WALLET.ERROR.ONFIDO_USER_CONSENT_DENIED) {
                 onUserExit();
                 return;
             }
+            const errorMessage = lodashGet(error, 'message', CONST.ERROR.UNKNOWN_ERROR);
             Log.hmmm('Onfido error', {errorType, errorMessage});
             onError(errorMessage);
         },
