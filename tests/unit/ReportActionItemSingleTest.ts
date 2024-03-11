@@ -1,5 +1,7 @@
 import {cleanup, screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import type {PersonalDetailsList} from '@src/types/onyx';
+import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -12,13 +14,12 @@ const ONYXKEYS = {
         POLICY: 'policy_',
     },
     NETWORK: 'network',
-};
+} as const;
 
 describe('ReportActionItemSingle', () => {
     beforeAll(() =>
         Onyx.init({
             keys: ONYXKEYS,
-            registerStorageEventListener: () => {},
             safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         }),
     );
@@ -42,9 +43,10 @@ describe('ReportActionItemSingle', () => {
             const fakeReport = LHNTestUtils.getFakeReportWithPolicy([1, 2]);
             const fakeReportAction = LHNTestUtils.getFakeAdvancedReportAction();
             const fakePolicy = LHNTestUtils.getFakePolicy(fakeReport.policyID);
-            const fakePersonalDetails = {
-                [fakeReportAction.actorAccountID]: {
-                    accountID: fakeReportAction.actorAccountID,
+            const faceAccountId = fakeReportAction.actorAccountID ?? -1;
+            const fakePersonalDetails: PersonalDetailsList = {
+                [faceAccountId]: {
+                    accountID: faceAccountId,
                     login: 'email1@test.com',
                     displayName: 'Email One',
                     avatar: 'https://example.com/avatar.png',
@@ -57,11 +59,13 @@ describe('ReportActionItemSingle', () => {
             });
 
             function setup() {
+                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [fakePolicy], (item) => item.id);
+
                 return waitForBatchedUpdates().then(() =>
                     Onyx.multiSet({
                         [ONYXKEYS.PERSONAL_DETAILS_LIST]: fakePersonalDetails,
                         [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
-                        [`${ONYXKEYS.COLLECTION.POLICY}${fakeReport.policyID}`]: fakePolicy,
+                        ...policyCollectionDataSet,
                     }),
                 );
             }
@@ -77,10 +81,10 @@ describe('ReportActionItemSingle', () => {
             });
 
             it('renders Person information', () => {
-                const [expectedPerson] = fakeReportAction.person;
+                const [expectedPerson] = fakeReportAction.person ?? [];
 
                 return setup().then(() => {
-                    expect(screen.getByText(expectedPerson.text)).toBeDefined();
+                    expect(screen.getByText(expectedPerson.text ?? '')).toBeDefined();
                 });
             });
         });

@@ -107,7 +107,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                         title={translate('workspace.common.tags')}
                         shouldShowBackButton={isSmallScreenWidth}
                     />
-                    <View style={[styles.ph5, styles.pb5]}>
+                    <View style={[styles.ph5, styles.pb5, styles.pt3]}>
                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
                     </View>
                     {tagList.length ? (
