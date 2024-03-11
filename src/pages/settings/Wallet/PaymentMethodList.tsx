@@ -1,4 +1,5 @@
 import {FlashList} from '@shopify/flash-list';
+import lodashSortBy from 'lodash/sortBy';
 import type {ReactElement, Ref} from 'react';
 import React, {useCallback, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
@@ -6,7 +7,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg/lib/typescript/ReactNativeSVG';
-import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import type {RenderSuggestionMenuItemProps} from '@components/AutoCompleteSuggestions/types';
 import Button from '@components/Button';
 import FormAlertWrapper from '@components/FormAlertWrapper';
@@ -33,10 +34,9 @@ import type {AccountData, BankAccountList, CardList, FundList} from '@src/types/
 import type {BankIcon} from '@src/types/onyx/Bank';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
+import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type IconAsset from '@src/types/utils/IconAsset';
-
-const FILTER_TYPES = [CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT, ''] as const;
+import type {FormattedSelectedPaymentMethodIcon} from './WalletPage/types';
 
 type PaymentMethodListOnyxProps = {
     /** List of bank accounts */
@@ -80,8 +80,11 @@ type PaymentMethodListProps = PaymentMethodListOnyxProps & {
     /** List container style */
     style?: StyleProp<ViewStyle>;
 
+    /** List item style */
+    listItemStyle?: StyleProp<ViewStyle>;
+
     /** Type to filter the payment Method list */
-    filterType?: TupleToUnion<typeof FILTER_TYPES>;
+    filterType?: FilterMethodPaymentType;
 
     /** Whether the add bank account button should be shown on the list */
     shouldShowAddBankAccount?: boolean;
@@ -96,10 +99,14 @@ type PaymentMethodListProps = PaymentMethodListOnyxProps & {
     shouldShowEmptyListMessage?: boolean;
 
     /** What to do when a menu item is pressed */
-    onPress: (event?: GestureResponderEvent | KeyboardEvent, accountType?: string, accountData?: AccountData, icon?: IconAsset, isDefault?: boolean, methodID?: number) => void;
-
-    /** List item style */
-    listItemStyle: StyleProp<ViewStyle>;
+    onPress: (
+        event?: GestureResponderEvent | KeyboardEvent,
+        accountType?: string,
+        accountData?: AccountData,
+        icon?: FormattedSelectedPaymentMethodIcon,
+        isDefault?: boolean,
+        methodID?: number,
+    ) => void;
 };
 
 type PaymentMethodItem = PaymentMethod & {
@@ -190,20 +197,13 @@ function PaymentMethodList({
         if (shouldShowAssignedCards) {
             const assignedCards = Object.values(cardList ?? {})
                 // Filter by physical, active cards associated with a domain
-                .filter((card) => !card.isVirtual && !!card.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0))
-                .toSorted((card1, card2) => {
-                    const isExpensifyCard1 = CardUtils.isExpensifyCard(card1.cardID);
-                    const isExpensifyCard2 = CardUtils.isExpensifyCard(card2.cardID);
-                    if (isExpensifyCard1 === isExpensifyCard2) {
-                        return 0;
-                    }
-
-                    return isExpensifyCard1 ? -1 : 1;
-                });
+                .filter((card) => !card.isVirtual && !!card.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0));
 
             const numberPhysicalExpensifyCards = assignedCards.filter((card) => CardUtils.isExpensifyCard(card.cardID)).length;
 
-            return assignedCards.map((card) => {
+            const assignedCardsSorted = lodashSortBy(assignedCards, (card) => !CardUtils.isExpensifyCard(card.cardID));
+
+            return assignedCardsSorted.map((card) => {
                 const isExpensifyCard = CardUtils.isExpensifyCard(card.cardID);
                 const icon = getBankIcon({bankName: card.bank as BankName, isCard: true, styles});
 
@@ -243,12 +243,25 @@ function PaymentMethodList({
                 (paymentMethod) => paymentMethod.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(paymentMethod.errors),
             );
         }
-
         combinedPaymentMethods = combinedPaymentMethods.map((paymentMethod) => {
             const isMethodActive = isPaymentMethodActive(actionPaymentMethodType, activePaymentMethodID, paymentMethod);
             return {
                 ...paymentMethod,
-                onPress: (e: GestureResponderEvent) => onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.icon, paymentMethod.isDefault, paymentMethod.methodID),
+                onPress: (e: GestureResponderEvent) =>
+                    onPress(
+                        e,
+                        paymentMethod.accountType,
+                        paymentMethod.accountData,
+                        {
+                            icon: paymentMethod.icon,
+                            iconHeight: paymentMethod?.iconHeight,
+                            iconWidth: paymentMethod?.iconWidth,
+                            iconStyles: paymentMethod?.iconStyles,
+                            iconSize: paymentMethod?.iconSize,
+                        },
+                        paymentMethod.isDefault,
+                        paymentMethod.methodID,
+                    ),
                 wrapperStyle: isMethodActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 isMethodActive,
@@ -309,7 +322,7 @@ function PaymentMethodList({
                     hoverAndPressStyle={styles.hoveredComponentBG}
                     shouldShowRightIcon={item.shouldShowRightIcon}
                     shouldShowSelectedState={shouldShowSelectedState}
-                    isSelected={selectedMethodID === item.methodID}
+                    isSelected={selectedMethodID.toString() === item.methodID?.toString()}
                     interactive={item.interactive}
                     brickRoadIndicator={item.brickRoadIndicator}
                     success={item.isMethodActive}

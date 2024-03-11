@@ -42,7 +42,7 @@ function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction
         descriptionKey += 'start';
         waypointIcon = Expensicons.DotIndicatorUnfilled;
     } else if (index === lastWaypointIndex) {
-        descriptionKey += 'finish';
+        descriptionKey += 'stop';
         waypointIcon = Expensicons.Location;
     } else {
         descriptionKey += 'stop';

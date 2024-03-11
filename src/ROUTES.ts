@@ -159,6 +159,17 @@ const ROUTES = {
         getRoute: (source: string) => `settings/troubleshoot/console/share-log?source=${encodeURI(source)}` as const,
     },
 
+    SETTINGS_EXIT_SURVEY_REASON: 'settings/exit-survey/reason',
+    SETTINGS_EXIT_SURVEY_RESPONSE: {
+        route: 'settings/exit-survey/response',
+        getRoute: (reason?: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>, backTo?: string) =>
+            getUrlWithBackToParam(`settings/exit-survey/response${reason ? `?reason=${encodeURIComponent(reason)}` : ''}`, backTo),
+    },
+    SETTINGS_EXIT_SURVEY_CONFIRM: {
+        route: 'settings/exit-survey/confirm',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/exit-survey/confirm', backTo),
+    },
+
     KEYBOARD_SHORTCUTS: 'keyboard-shortcuts',
 
     NEW: 'new',
@@ -287,10 +298,6 @@ const ROUTES = {
         route: ':iouType/new/currency/:reportID?',
         getRoute: (iouType: string, reportID: string, currency: string, backTo: string) => `${iouType}/new/currency/${reportID}?currency=${currency}&backTo=${backTo}` as const,
     },
-    MONEY_REQUEST_CATEGORY: {
-        route: ':iouType/new/category/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/category/${reportID}` as const,
-    },
     MONEY_REQUEST_HOLD_REASON: {
         route: ':iouType/edit/reason/:transactionID?',
         getRoute: (iouType: string, transactionID: string, reportID: string, backTo: string) => `${iouType}/edit/reason/${transactionID}?backTo=${backTo}&reportID=${reportID}` as const,
@@ -338,9 +345,9 @@ const ROUTES = {
             getUrlWithBackToParam(`create/${iouType}/taxAmount/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_CATEGORY: {
-        route: 'create/:iouType/category/:transactionID/:reportID',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/category/${transactionID}/${reportID}`, backTo),
+        route: ':action/:iouType/category/:transactionID/:reportID',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action}/${iouType}/category/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_CURRENCY: {
         route: 'create/:iouType/currency/:transactionID/:reportID/:pageIndex?',
@@ -378,9 +385,16 @@ const ROUTES = {
             getUrlWithBackToParam(`${action}/${iouType}/scan/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_TAG: {
-        route: ':action/:iouType/tag/:tagIndex/:transactionID/:reportID',
-        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, tagIndex: number, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action}/${iouType}/tag/${tagIndex}/${transactionID}/${reportID}`, backTo),
+        route: ':action/:iouType/tag/:tagIndex/:transactionID/:reportID/:reportActionID?',
+        getRoute: (
+            action: ValueOf<typeof CONST.IOU.ACTION>,
+            iouType: ValueOf<typeof CONST.IOU.TYPE>,
+            tagIndex: number,
+            transactionID: string,
+            reportID: string,
+            backTo = '',
+            reportActionID?: string,
+        ) => getUrlWithBackToParam(`${action}/${iouType}/tag/${tagIndex}/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
     },
     MONEY_REQUEST_STEP_WAYPOINT: {
         route: ':action/:iouType/waypoint/:transactionID/:reportID/:pageIndex',
@@ -463,13 +477,37 @@ const ROUTES = {
         route: 'workspace/:policyID/profile/description',
         getRoute: (policyID: string) => `workspace/${policyID}/profile/description` as const,
     },
+    WORKSPACE_PROFILE_SHARE: {
+        route: 'workspace/:policyID/profile/share',
+        getRoute: (policyID: string) => `workspace/${policyID}/profile/share` as const,
+    },
     WORKSPACE_AVATAR: {
         route: 'workspace/:policyID/avatar',
         getRoute: (policyID: string) => `workspace/${policyID}/avatar` as const,
     },
+    WORKSPACE_JOIN_USER: {
+        route: 'workspace/:policyID/join',
+        getRoute: (policyID: string, inviterEmail: string) => `workspace/${policyID}/join?email=${inviterEmail}` as const,
+    },
     WORKSPACE_SETTINGS_CURRENCY: {
         route: 'workspace/:policyID/settings/currency',
         getRoute: (policyID: string) => `workspace/${policyID}/settings/currency` as const,
+    },
+    WORKSPACE_WORKFLOWS: {
+        route: 'workspace/:policyID/workflows',
+        getRoute: (policyID: string) => `workspace/${policyID}/workflows` as const,
+    },
+    WORKSPACE_WORKFLOWS_APPROVER: {
+        route: 'workspace/:policyID/settings/workflows/approver',
+        getRoute: (policyId: string) => `workspace/${policyId}/settings/workflows/approver` as const,
+    },
+    WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY: {
+        route: 'workspace/:policyID/settings/workflows/auto-reporting-frequency',
+        getRoute: (policyID: string) => `workspace/${policyID}/settings/workflows/auto-reporting-frequency` as const,
+    },
+    WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET: {
+        route: 'workspace/:policyID/settings/workflows/auto-reporting-frequency/monthly-offset',
+        getRoute: (policyID: string) => `workspace/${policyID}/settings/workflows/auto-reporting-frequency/monthly-offset` as const,
     },
     WORKSPACE_CARD: {
         route: 'workspace/:policyID/card',
@@ -507,12 +545,53 @@ const ROUTES = {
         route: 'workspace/:policyID/members',
         getRoute: (policyID: string) => `workspace/${policyID}/members` as const,
     },
+    WORKSPACE_CATEGORIES: {
+        route: 'workspace/:policyID/categories',
+        getRoute: (policyID: string) => `workspace/${policyID}/categories` as const,
+    },
+    WORKSPACE_CATEGORY_SETTINGS: {
+        route: 'workspace/:policyID/categories/:categoryName',
+        getRoute: (policyID: string, categoryName: string) => `workspace/${policyID}/categories/${encodeURI(categoryName)}` as const,
+    },
+    WORKSPACE_CATEGORIES_SETTINGS: {
+        route: 'workspace/:policyID/categories/settings',
+        getRoute: (policyID: string) => `workspace/${policyID}/categories/settings` as const,
+    },
+    WORKSPACE_MORE_FEATURES: {
+        route: 'workspace/:policyID/more-features',
+        getRoute: (policyID: string) => `workspace/${policyID}/more-features` as const,
+    },
+    WORKSPACE_CATEGORY_CREATE: {
+        route: 'workspace/:policyID/categories/new',
+        getRoute: (policyID: string) => `workspace/${policyID}/categories/new` as const,
+    },
+    WORKSPACE_TAGS: {
+        route: 'workspace/:policyID/tags',
+        getRoute: (policyID: string) => `workspace/${policyID}/tags` as const,
+    },
+    WORKSPACE_MEMBER_DETAILS: {
+        route: 'workspace/:policyID/members/:accountID',
+        getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`workspace/${policyID}/members/${accountID}`, backTo),
+    },
+    WORKSPACE_MEMBER_ROLE_SELECTION: {
+        route: 'workspace/:policyID/members/:accountID/role-selection',
+        getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`workspace/${policyID}/members/${accountID}/role-selection`, backTo),
+    },
+    WORKSPACE_DISTANCE_RATES: {
+        route: 'workspace/:policyID/distance-rates',
+        getRoute: (policyID: string) => `workspace/${policyID}/distance-rates` as const,
+    },
+
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {
         route: 'referral/:contentType',
         getRoute: (contentType: string, backTo?: string) => getUrlWithBackToParam(`referral/${contentType}`, backTo),
     },
     PROCESS_MONEY_REQUEST_HOLD: 'hold-request-educational',
+    TRANSACTION_RECEIPT: {
+        route: 'r/:reportID/transaction/:transactionID/receipt',
+        getRoute: (reportID: string, transactionID: string) => `r/${reportID}/transaction/${transactionID}/receipt` as const,
+    },
 } as const;
 
 /**
@@ -546,4 +625,4 @@ type Route = RouteIsPlainString extends true ? never : AllRoutes;
 
 type HybridAppRoute = (typeof HYBRID_APP_ROUTES)[keyof typeof HYBRID_APP_ROUTES];
 
-export type {Route, HybridAppRoute};
+export type {Route, HybridAppRoute, AllRoutes};
