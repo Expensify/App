@@ -151,8 +151,21 @@ function SidebarLinksData({
     const isLoading = isLoadingApp;
 
     const optionItemsMemoized = useMemo(
-        () => SidebarUtils.getOrderedReportIDs(null, chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs),
-        [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs],
+        () =>
+            SidebarUtils.getOrderedReportIDs(
+                null,
+                chatReports,
+                betas,
+                policies,
+                priorityMode,
+                allReportActions,
+                transactionViolations,
+                activeWorkspaceID,
+                policyMemberAccountIDs,
+                reportIDsWithErrors,
+                canUseViolations,
+            ),
+        [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, reportIDsWithErrors, canUseViolations],
     );
 
     const optionListItems = useMemo(() => {
