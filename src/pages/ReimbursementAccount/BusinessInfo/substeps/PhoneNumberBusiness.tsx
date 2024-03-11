@@ -44,6 +44,8 @@ function PhoneNumberBusiness({reimbursementAccount, onNext, isEditing}: PhoneNum
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
+        // We want to remove sanitize user input i.e. remove leading and trailing whitespaces
+        shouldSaveDraft: true,
     });
 
     return (

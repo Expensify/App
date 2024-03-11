@@ -36,6 +36,7 @@ function TypeBusiness({reimbursementAccount, onNext, isEditing}: TypeBusinessPro
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
+        shouldSaveDraft: isEditing,
     });
 
     return (

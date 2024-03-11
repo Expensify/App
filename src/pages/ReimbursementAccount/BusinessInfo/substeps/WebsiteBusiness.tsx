@@ -57,6 +57,7 @@ function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
+        shouldSaveDraft: isEditing,
     });
 
     useEffect(() => {

@@ -50,6 +50,7 @@ function IncorporationDateBusiness({reimbursementAccount, reimbursementAccountDr
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
+        shouldSaveDraft: isEditing,
     });
 
     return (

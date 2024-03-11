@@ -48,6 +48,7 @@ function NameBusiness({reimbursementAccount, onNext, isEditing}: NameBusinessPro
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
+        shouldSaveDraft: isEditing,
     });
 
     return (
