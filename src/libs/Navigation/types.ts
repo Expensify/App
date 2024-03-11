@@ -98,6 +98,9 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.DISTANCE_RATES]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVER]: {
+        policyID: string;
+    };
 };
 
 type WorkspaceSwitcherNavigatorParamList = {
@@ -172,9 +175,6 @@ type SettingsNavigatorParamList = {
         country: string;
         /** domain passed via route /settings/wallet/card/:domain */
         domain: string;
-    };
-    [SCREENS.WORKSPACE.WORKFLOWS_APPROVER]: {
-        policyID: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: {
         policyID: string;

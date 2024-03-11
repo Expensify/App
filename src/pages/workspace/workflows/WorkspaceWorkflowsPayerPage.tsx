@@ -169,16 +169,16 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
     );
 
     const setPolicyAuthorizedPayer = (member: MemberOption) => {
-        const authorizedPayer = personalDetails?.[member.accountID]?.login ?? '';
-        if (policy?.reimburserEmail === authorizedPayer) {
+        const authorizedPayerEmail = personalDetails?.[member.accountID]?.login ?? '';
+        if (policy?.reimburserEmail === authorizedPayerEmail) {
             return;
         }
 
         if (policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
             return;
         }
-
-        Policy.setWorkspacePayer(policy?.id ?? '', authorizedPayer);
+        const authorizedPayerAccountID = member.accountID;
+        Policy.setWorkspacePayer(policy?.id ?? '', authorizedPayerEmail, authorizedPayerAccountID);
         Navigation.goBack();
     };
 

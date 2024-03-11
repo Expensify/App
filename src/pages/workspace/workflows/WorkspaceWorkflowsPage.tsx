@@ -211,7 +211,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
         canUseDelayedSubmission,
         reimbursementAccount?.achData,
         displayNameForAuthorizedPayer,
-        session?.accountID
+        session?.accountID,
     ]);
 
     const renderOptionItem = ({item}: {item: ToggleSettingOptionRowProps}) => (

@@ -25,8 +25,8 @@ import type {
     OpenDraftWorkspaceRequestParams,
     OpenPolicyCategoriesPageParams,
     OpenPolicyDistanceRatesPageParams,
-    OpenPolicyWorkflowsPageParams,
     OpenPolicyTagsPageParams,
+    OpenPolicyWorkflowsPageParams,
     OpenWorkspaceInvitePageParams,
     OpenWorkspaceMembersPageParams,
     OpenWorkspaceParams,
@@ -592,9 +592,8 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
     API.write(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, params, {optimisticData, failureData, successData});
 }
 
-function setWorkspacePayer(policyID: string, reimburserEmail: string) {
+function setWorkspacePayer(policyID: string, reimburserEmail: string, reimburserAccountID: number) {
     const policy = ReportUtils.getPolicy(policyID);
-    const currentPolicyReimburserEmail = policy.reimburserEmail;
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -602,6 +601,7 @@ function setWorkspacePayer(policyID: string, reimburserEmail: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 reimburserEmail,
+                reimburserAccountID,
                 errorFields: {reimburserEmail: null},
                 pendingFields: {reimburserEmail: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             },
@@ -624,7 +624,8 @@ function setWorkspacePayer(policyID: string, reimburserEmail: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                reimburserEmail: currentPolicyReimburserEmail,
+                reimburserEmail: policy.reimburserEmail,
+                reimburserAccountID: policy.reimburserAccountID,
                 errorFields: {reimburserEmail: ErrorUtils.getMicroSecondOnyxError('workflowsPayerPage.genericErrorMessage')},
                 pendingFields: {reimburserEmail: null},
             },
