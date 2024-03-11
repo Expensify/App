@@ -23,7 +23,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
+import FeatureEnabledAccessOrRedirectWrapper from '@pages/workspace/FeatureEnabledAccessOrRedirectWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -154,7 +154,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
+                <FeatureEnabledAccessOrRedirectWrapper
                     policyID={route.params.policyID}
                     featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
                 >
@@ -203,7 +203,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                             />
                         )}
                     </ScreenWrapper>
-                </FeatureEnabledAccessOrNotFoundWrapper>
+                </FeatureEnabledAccessOrRedirectWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>
     );

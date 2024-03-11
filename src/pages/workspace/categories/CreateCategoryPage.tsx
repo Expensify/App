@@ -16,7 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
+import FeatureEnabledAccessOrRedirectWrapper from '@pages/workspace/FeatureEnabledAccessOrRedirectWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -69,7 +69,7 @@ function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
+                <FeatureEnabledAccessOrRedirectWrapper
                     policyID={route.params.policyID}
                     featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
                 >
@@ -101,7 +101,7 @@ function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) 
                             />
                         </FormProvider>
                     </ScreenWrapper>
-                </FeatureEnabledAccessOrNotFoundWrapper>
+                </FeatureEnabledAccessOrRedirectWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>
     );

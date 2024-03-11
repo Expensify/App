@@ -16,7 +16,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
+import FeatureEnabledAccessOrRedirectWrapper from '@pages/workspace/FeatureEnabledAccessOrRedirectWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -48,7 +48,7 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
+                <FeatureEnabledAccessOrRedirectWrapper
                     policyID={route.params.policyID}
                     featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
                 >
@@ -82,7 +82,7 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
                             />
                         </View>
                     </ScreenWrapper>
-                </FeatureEnabledAccessOrNotFoundWrapper>
+                </FeatureEnabledAccessOrRedirectWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>
     );

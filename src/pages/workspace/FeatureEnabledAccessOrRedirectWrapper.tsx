@@ -5,7 +5,6 @@ import {withOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Policy from '@userActions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -13,7 +12,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type FeatureEnabledAccessOrNotFoundOnyxProps = {
+type FeatureEnabledAccessOrRedirectOnyxProps = {
     /** The report currently being looked at */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
@@ -21,9 +20,9 @@ type FeatureEnabledAccessOrNotFoundOnyxProps = {
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
-type FeatureEnabledAccessOrNotFoundComponentProps = FeatureEnabledAccessOrNotFoundOnyxProps & {
+type FeatureEnabledAccessOrRedirectComponentProps = FeatureEnabledAccessOrRedirectOnyxProps & {
     /** The children to render */
-    children: ((props: FeatureEnabledAccessOrNotFoundOnyxProps) => React.ReactNode) | React.ReactNode;
+    children: ((props: FeatureEnabledAccessOrRedirectOnyxProps) => React.ReactNode) | React.ReactNode;
 
     /** The report currently being looked at */
     policyID: string;
@@ -32,8 +31,10 @@ type FeatureEnabledAccessOrNotFoundComponentProps = FeatureEnabledAccessOrNotFou
     featureName: PolicyFeatureName;
 };
 
-function FeatureEnabledAccessOrNotFoundComponent(props: FeatureEnabledAccessOrNotFoundComponentProps) {
+function FeatureEnabledAccessOrRedirectComponent(props: FeatureEnabledAccessOrRedirectComponentProps) {
     const isPolicyIDInRoute = !!props.policyID?.length;
+    const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData !== false && (!Object.entries(props.policy ?? {}).length || !props.policy?.id);
+    const shouldRedirect = !PolicyUtils.isPolicyFeatureEnabled(props.policy, props.featureName);
 
     useEffect(() => {
         if (!isPolicyIDInRoute || !isEmptyObject(props.policy)) {
@@ -45,26 +46,27 @@ function FeatureEnabledAccessOrNotFoundComponent(props: FeatureEnabledAccessOrNo
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isPolicyIDInRoute, props.policyID]);
 
-    const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData !== false && (!Object.entries(props.policy ?? {}).length || !props.policy?.id);
+    useEffect(() => {
+        if (!shouldRedirect) {
+            return;
+        }
 
-    const shouldShowNotFoundPage = isEmptyObject(props.policy) || !props.policy?.id || !PolicyUtils.isPolicyFeatureEnabled(props.policy, props.featureName);
+        Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(props.policyID));
+    }, [props.policyID, shouldRedirect]);
 
-    if (shouldShowFullScreenLoadingIndicator) {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    if (shouldShowFullScreenLoadingIndicator || shouldRedirect) {
         return <FullscreenLoadingIndicator />;
-    }
-
-    if (shouldShowNotFoundPage) {
-        return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_PROFILE.getRoute(props.policyID))} />;
     }
 
     return typeof props.children === 'function' ? props.children(props) : props.children;
 }
 
-export default withOnyx<FeatureEnabledAccessOrNotFoundComponentProps, FeatureEnabledAccessOrNotFoundOnyxProps>({
+export default withOnyx<FeatureEnabledAccessOrRedirectComponentProps, FeatureEnabledAccessOrRedirectOnyxProps>({
     policy: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID ?? ''}`,
     },
     isLoadingReportData: {
         key: ONYXKEYS.IS_LOADING_REPORT_DATA,
     },
-})(FeatureEnabledAccessOrNotFoundComponent);
+})(FeatureEnabledAccessOrRedirectComponent);

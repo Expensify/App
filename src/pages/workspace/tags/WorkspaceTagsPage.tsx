@@ -19,7 +19,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
+import FeatureEnabledAccessOrRedirectWrapper from '@pages/workspace/FeatureEnabledAccessOrRedirectWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -98,7 +98,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
+                <FeatureEnabledAccessOrRedirectWrapper
                     policyID={route.params.policyID}
                     featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
                 >
@@ -136,7 +136,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                             />
                         )}
                     </ScreenWrapper>
-                </FeatureEnabledAccessOrNotFoundWrapper>
+                </FeatureEnabledAccessOrRedirectWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>
     );

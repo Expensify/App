@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setWorkspaceRequiresCategory} from '@libs/actions/Policy';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
+import FeatureEnabledAccessOrRedirectWrapper from '@pages/workspace/FeatureEnabledAccessOrRedirectWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
@@ -29,7 +29,7 @@ function WorkspaceCategoriesSettingsPage({route}: WorkspaceCategoriesSettingsPag
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
+                <FeatureEnabledAccessOrRedirectWrapper
                     policyID={route.params.policyID}
                     featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
                 >
@@ -60,7 +60,7 @@ function WorkspaceCategoriesSettingsPage({route}: WorkspaceCategoriesSettingsPag
                             </View>
                         </ScreenWrapper>
                     )}
-                </FeatureEnabledAccessOrNotFoundWrapper>
+                </FeatureEnabledAccessOrRedirectWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>
     );
