@@ -1376,6 +1376,7 @@ const CONST = {
             ADMIN: 'admin',
             AUDITOR: 'auditor',
             USER: 'user',
+            MEMBER: 'member',
         },
         AUTO_REPORTING_FREQUENCIES: {
             INSTANT: 'instant',

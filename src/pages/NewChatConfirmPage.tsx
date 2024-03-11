@@ -27,7 +27,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 type NewChatConfirmPageOnyxProps = {
     /** New group chat draft data */
-    newGroupDraft: OnyxEntry<OnyxTypes.NewGroupChat>;
+    newGroupDraft: OnyxEntry<OnyxTypes.NewGroupChatDraft>;
 
     /** All of the personal details for everyone */
     allPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
@@ -35,29 +35,34 @@ type NewChatConfirmPageOnyxProps = {
 
 type NewChatConfirmPageProps = NewChatConfirmPageOnyxProps;
 
+type Section = ListItem & {value: string};
+
 function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmPageProps) {
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
-    const personalData = useCurrentUserPersonalDetails() || CONST.EMPTY_OBJECT;
+    const personalData = useCurrentUserPersonalDetails();
 
-    const selectedOptions = useMemo(() => {
-        const invitedUsersPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(newGroupDraft?.selectedOptions, allPersonalDetails);
+    const selectedOptions = useMemo((): OptionData[] => {
+        const invitedUsersPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(newGroupDraft?.participantAccountIDs, allPersonalDetails);
         const members = OptionsListUtils.getMemberInviteOptions(invitedUsersPersonalDetails);
         const currentUserOptionData = members.currentUserOption;
-        const options = [...members.personalDetails, currentUserOptionData] as OptionData[];
+        if (!currentUserOptionData) {
+            return members.personalDetails;
+        }
+        const options = [...members.personalDetails, currentUserOptionData];
         return options;
     }, [newGroupDraft, allPersonalDetails]);
 
-    const groupName = GroupChatUtils.getGroupChatConfirmName(selectedOptions);
+    const groupName = GroupChatUtils.getGroupChatName(newGroupDraft?.participantAccountIDs ?? []);
 
-    const sections = useMemo(
+    const sections: Section[] = useMemo(
         () =>
             selectedOptions
-                .map((selectedOption) => {
+                .map((selectedOption: OptionData) => {
                     const accountID = selectedOption.accountID;
+                    const isAdmin = personalData.accountID === accountID;
                     let roleBadge = null;
-                    const isAdmin = personalData.accountID === selectedOption.accountID;
                     if (isAdmin) {
                         roleBadge = (
                             <Badge
@@ -67,7 +72,8 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                             />
                         );
                     }
-                    return {
+
+                    const section: Section = {
                         value: selectedOption?.text ?? '',
                         text: selectedOption?.text ?? '',
                         keyForList: selectedOption?.keyForList ?? '',
@@ -76,27 +82,21 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                         accountID,
                         icons: selectedOption?.icons,
                     };
+                    return section;
                 })
                 .sort((a, b) => a.text.toLowerCase().localeCompare(b.text.toLowerCase())),
         [selectedOptions, personalData.accountID, translate, styles.textStrong, styles.justifyContentCenter, styles.badgeBordered, styles.activeItemBadge, StyleUtils],
     );
+
     /**
      * Removes a selected option from list if already selected.
      */
     const unselectOption = (option: ListItem) => {
-        if (!selectedOptions) {
+        if (!newGroupDraft) {
             return;
         }
-        const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.accountID === option.accountID);
-
-        if (isOptionInList && personalData && option.accountID === personalData.accountID) {
-            return;
-        }
-
-        if (isOptionInList) {
-            const newSelectedAccountIDs = selectedOptions.filter((selectedOption) => selectedOption.accountID !== option.accountID).map((optionData) => optionData.accountID) as number[];
-            Report.setGroupDraft(newSelectedAccountIDs);
-        }
+        const newSelectedAccountIDs = newGroupDraft.participantAccountIDs.filter((participantAccountID) => participantAccountID !== option.accountID);
+        Report.setGroupDraft(newSelectedAccountIDs);
     };
 
     const createGroup = () => {
@@ -104,8 +104,6 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
         if (logins.length < 1) {
             return;
         }
-        const accountIDs = selectedOptions.map((selectedOption: OptionData) => selectedOption.accountID) as number[];
-        Report.setGroupDraft(accountIDs, groupName);
         Report.navigateToAndOpenReport(logins, true, '');
     };
 
@@ -134,16 +132,14 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                 shouldCheckActionAllowedOnPress={false}
                 description={translate('groupConfirmPage.groupName')}
             />
-            <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                <SelectionList
-                    sections={[{data: sections, indexOffset: 0, isDisabled: false}]}
-                    ListItem={TableListItem}
-                    onSelectRow={unselectOption}
-                    showConfirmButton
-                    confirmButtonText={translate('newChatPage.startGroup')}
-                    onConfirm={createGroup}
-                />
-            </View>
+            <SelectionList
+                sections={[{data: sections, indexOffset: 0}]}
+                ListItem={TableListItem}
+                onSelectRow={unselectOption}
+                showConfirmButton={selectedOptions.length > 1}
+                confirmButtonText={translate('newChatPage.startGroup')}
+                onConfirm={createGroup}
+            />
         </ScreenWrapper>
     );
 }
@@ -152,7 +148,7 @@ NewChatConfirmPage.displayName = 'NewChatConfirmPage';
 
 export default withOnyx<NewChatConfirmPageProps, NewChatConfirmPageOnyxProps>({
     newGroupDraft: {
-        key: ONYXKEYS.NEW_GROUP,
+        key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
     },
     allPersonalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,

@@ -32,7 +32,7 @@ type NewChatPageWithOnyxProps = {
     reports: OnyxCollection<OnyxTypes.Report>;
 
     /** New group chat draft data */
-    newGroupDraft: OnyxEntry<OnyxTypes.NewGroupChat>;
+    newGroupDraft: OnyxEntry<OnyxTypes.NewGroupChatDraft>;
 
     /** All of the personal details for everyone */
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
@@ -64,7 +64,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
     const {isSmallScreenWidth} = useWindowDimensions();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
 
-    const personalData = useCurrentUserPersonalDetails() || CONST.EMPTY_OBJECT;
+    const personalData = useCurrentUserPersonalDetails();
 
     const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
@@ -166,21 +166,21 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
      * or navigates to the existing chat if one with those participants already exists.
      */
     const createChat = (option: OptionData) => {
-        if (!option.login) {
+        if ((!option.login && selectedOptions.length !== 1) || !selectedOptions[0].login) {
             return;
         }
-        Report.navigateToAndOpenReport([option.login]);
+        const login = option.login ?? selectedOptions[0].login;
+        Report.navigateToAndOpenReport([login]);
     };
     /**
      * Navigates to create group confirm page
      */
     const navigateToConfirmPage = () => {
-        if (selectedOptions.length < 1) {
-            return;
-        }
-        const selectedAccountIDs = selectedOptions.map((option) => option.accountID) as number[];
+        const selectedAccountIDs: number[] = selectedOptions
+            .map((option: OptionData) => option.accountID)
+            .filter((accountID): accountID is number => accountID !== null && accountID !== undefined);
         if (personalData) {
-            const accountIDs = [...selectedAccountIDs, personalData.accountID] as number[];
+            const accountIDs = [...selectedAccountIDs, personalData.accountID];
             Report.setGroupDraft(accountIDs);
             Navigation.navigate(ROUTES.NEW_CHAT_CONFIRM);
         }
@@ -234,12 +234,12 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
             return;
         }
         updateOptions();
-        if (newGroupDraft?.selectedOptions) {
-            const invitedUsersPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(newGroupDraft?.selectedOptions, personalDetails);
+        if (newGroupDraft?.participantAccountIDs) {
+            const invitedUsersPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(newGroupDraft?.participantAccountIDs, personalDetails);
             const groupSelectedOptions = OptionsListUtils.getMemberInviteOptions(invitedUsersPersonalDetails).personalDetails;
             setSelectedOptions(groupSelectedOptions);
         }
-    }, [didScreenTransitionEnd, updateOptions, newGroupDraft?.selectedOptions, personalDetails]);
+    }, [didScreenTransitionEnd, updateOptions, newGroupDraft?.participantAccountIDs, personalDetails]);
 
     const {inputCallbackRef} = useAutoFocusInput();
 
@@ -281,7 +281,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
                             referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}
                             confirmButtonText={selectedOptions.length > 1 ? translate('common.next') : translate('newChatPage.createChat')}
                             textInputAlert={isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : ''}
-                            onConfirmSelection={navigateToConfirmPage}
+                            onConfirmSelection={selectedOptions.length > 1 ? navigateToConfirmPage : createChat}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             isLoadingNewOptions={isSearchingForReports}
@@ -303,7 +303,7 @@ export default withOnyx<NewChatPageProps, NewChatPageWithOnyxProps>({
         selector: (data) => data?.dismissedReferralBanners ?? {},
     },
     newGroupDraft: {
-        key: ONYXKEYS.NEW_GROUP,
+        key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
     },
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,

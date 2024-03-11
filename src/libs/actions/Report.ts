@@ -71,7 +71,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
-    NewGroupChat,
+    NewGroupChatDraft,
     PersonalDetails,
     PersonalDetailsList,
     PolicyReportField,
@@ -81,7 +81,7 @@ import type {
     ReportUserIsTyping,
 } from '@src/types/onyx';
 import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
-import type {NotificationPreference, Participant, Participants, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
+import type {NotificationPreference, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -244,14 +244,14 @@ Onyx.connect({
     callback: (val) => (allRecentlyUsedReportFields = val),
 });
 
-let newGroupDraft: OnyxEntry<NewGroupChat>;
+let newGroupDraft: OnyxEntry<NewGroupChatDraft>;
 Onyx.connect({
-    key: ONYXKEYS.NEW_GROUP,
+    key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
     callback: (value) => (newGroupDraft = value),
 });
 
 function clearGroupChat() {
-    Onyx.set(ONYXKEYS.NEW_GROUP, null);
+    Onyx.set(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, null);
 }
 
 function startNewChat() {
@@ -664,7 +664,7 @@ function openReport(
     if (newReportObject.chatType === CONST.REPORT.CHAT_TYPE.GROUP_CHAT) {
         parameters.chatType = CONST.REPORT.CHAT_TYPE.GROUP_CHAT;
         parameters.groupChatAdminLogins = currentUserEmail;
-        parameters.optimisticAccountIDList = participantAccountIDList ? participantAccountIDList.join(',') : '';
+        parameters.optimisticAccountIDList = participantAccountIDList.join(',');
         parameters.reportName = newReportObject.reportName ?? '';
     }
 
@@ -808,23 +808,15 @@ function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true
     if (!newGroupDraft) {
         chat = ReportUtils.getChatByParticipants(participantAccountIDs);
     }
-    if (!chat) {
-        if (newGroupDraft) {
-            const participants: Participants = participantAccountIDs.reduce((acc: Participants, accountID: number) => {
-                const participant: Participant = {
-                    hidden: false,
-                    role: accountID === currentUserAccountID ? 'admin' : 'member',
-                };
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-                return {...acc, [accountID]: participant};
-            }, {} as Participants);
 
-            newChat = ReportUtils.buildOptimisticGroupChatReport(participants, reportName, CONST.REPORT.CHAT_TYPE.GROUP_CHAT);
+    if (isEmptyObject(chat)) {
+        if (newGroupDraft) {
+            newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs, reportName, CONST.REPORT.CHAT_TYPE.GROUP_CHAT);
         } else {
             newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
         }
     }
-    const report = chat ?? newChat;
+    const report = isEmptyObject(chat) ? newChat : chat;
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
     openReport(report.reportID, userLogins, newChat);
@@ -3011,7 +3003,7 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
 }
 
 function setGroupDraft(invitedUsersIDs: number[], reportName = '') {
-    Onyx.set(ONYXKEYS.NEW_GROUP, {selectedOptions: invitedUsersIDs, reportName});
+    Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {participantAccountIDs: invitedUsersIDs, reportName});
 }
 
 export {
