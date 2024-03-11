@@ -56,8 +56,7 @@ function WithReportIDsContextProvider({
      * to SidebarLinksData, so this context doesn't have an
      * access to currentReportID in that case.
      *
-     * So this is a work around to have currentReportID available
-     * only in testing environment.
+     * This is a workaround to have currentReportID available in testing environment.
      */
     currentReportIDForTests,
 }: WithReportIDsContextProviderProps) {
@@ -109,7 +108,7 @@ function WithReportIDsContextProvider({
 
     // We need to make sure the current report is in the list of reports, but we do not want
     // to have to re-generate the list every time the currentReportID changes. To do that
-    // we first generate the list as if there was no current report, then here we check if
+    // we first generate the list as if there was no current report, then we check if
     // the current report is missing from the list, which should very rarely happen. In this
     // case we re-generate the list a 2nd time with the current report included.
     const orderedReportIDsWithCurrentReport = useMemo(() => {

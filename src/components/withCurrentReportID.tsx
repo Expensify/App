@@ -45,7 +45,7 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
             /**
              * This is to make sure we don't set the undefined as reportID when
              * switching between chat list and settings->workspaces tab.
-             * and doing so avoid unnecessary re-render of `useReportIDs`.
+             * and doing so avoids an unnecessary re-render of `useReportIDs`.
              */
             const params = state.routes[state.index].params;
             if (params && 'screen' in params && params.screen === SCREENS.SETTINGS.WORKSPACES) {
