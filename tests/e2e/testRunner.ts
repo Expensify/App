@@ -231,7 +231,7 @@ const run = async () => {
 
         process.exit(0);
     } catch (e) {
-        Logger.info('\n\nE2E test suite failed due to error:', e, '\nPrinting full logs:\n\n');
+        Logger.info('\n\nE2E test suite failed due to error:', e as string, '\nPrinting full logs:\n\n');
 
         // Write logcat, meminfo, emulator info to file as well:
         execSync(`adb logcat -d > ${config.OUTPUT_DIR}/logcat.txt`);
