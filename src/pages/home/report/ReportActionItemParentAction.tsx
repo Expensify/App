@@ -28,9 +28,12 @@ type ReportActionItemParentActionProps = {
 
     /** The current report is displayed */
     report: OnyxEntry<OnyxTypes.Report>;
+
+    /** All the report actions belonging to the report's parent */
+    parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
 };
 
-function ReportActionItemParentAction({report, index = 0, shouldHideThreadDividerLine = false}: ReportActionItemParentActionProps) {
+function ReportActionItemParentAction({report, parentReportActions, index = 0, shouldHideThreadDividerLine = false}: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -81,6 +84,7 @@ function ReportActionItemParentAction({report, index = 0, shouldHideThreadDivide
                 >
                     <ReportActionItem
                         onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID))}
+                        parentReportActions={parentReportActions}
                         report={ancestor.report}
                         action={ancestor.reportAction}
                         displayAsGroup={false}

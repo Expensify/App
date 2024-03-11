@@ -98,9 +98,6 @@ type ReportActionItemOnyxProps = {
     /** The user's wallet account */
     userWallet: OnyxEntry<OnyxTypes.UserWallet>;
 
-    /** All the report actions belonging to the report's parent */
-    parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
-
     /** All policy report fields */
     policyReportFields: OnyxEntry<OnyxTypes.PolicyReportFields>;
 
@@ -111,6 +108,9 @@ type ReportActionItemOnyxProps = {
 type ReportActionItemProps = {
     /** Report for this action */
     report: OnyxTypes.Report;
+
+    /** All the report actions belonging to the report's parent */
+    parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
 
     /** All the data of the action item */
     action: OnyxTypes.ReportAction;
@@ -898,10 +898,6 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
     },
     userWallet: {
         key: ONYXKEYS.USER_WALLET,
-    },
-    parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID ?? 0}`,
-        canEvict: false,
     },
 })(
     memo(ReportActionItem, (prevProps, nextProps) => {
