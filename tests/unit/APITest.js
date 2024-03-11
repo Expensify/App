@@ -167,7 +167,9 @@ describe('APITests', () => {
                     expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param2: 'value2'})})]);
 
                     // We need to advance past the request throttle back off timer because the request won't be retried until then
-                    return new Promise((resolve) => setTimeout(resolve, CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME_MS)).then(waitForBatchedUpdates);
+                    return new Promise((resolve) => {
+                        setTimeout(resolve, CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME_MS);
+                    }).then(waitForBatchedUpdates);
                 })
                 .then(() => {
                     // Finally, after it succeeds the queue should be empty
@@ -217,7 +219,9 @@ describe('APITests', () => {
                     expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param1: 'value1'})})]);
 
                     // We let the SequentialQueue process again after its wait time
-                    return new Promise((resolve) => setTimeout(resolve, RequestThrottle.getLastRequestWaitTime()));
+                    return new Promise((resolve) => {
+                        setTimeout(resolve, RequestThrottle.getLastRequestWaitTime());
+                    });
                 })
                 .then(() => {
                     // Then we have retried the failing request
@@ -228,7 +232,9 @@ describe('APITests', () => {
                     expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param1: 'value1'})})]);
 
                     // We let the SequentialQueue process again after its wait time
-                    return new Promise((resolve) => setTimeout(resolve, RequestThrottle.getLastRequestWaitTime())).then(waitForBatchedUpdates);
+                    return new Promise((resolve) => {
+                        setTimeout(resolve, RequestThrottle.getLastRequestWaitTime());
+                    }).then(waitForBatchedUpdates);
                 })
                 .then(() => {
                     // Then the request is retried again
@@ -534,7 +540,9 @@ describe('APITests', () => {
                 expect(secondRequestCommandName).toBe('MockCommandThree');
 
                 // WHEN we advance the main queue timer and wait for promises
-                return new Promise((resolve) => setTimeout(resolve, CONST.NETWORK.PROCESS_REQUEST_DELAY_MS));
+                return new Promise((resolve) => {
+                    setTimeout(resolve, CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
+                });
             })
             .then(() => {
                 // THEN we should see that our third (non-persistable) request has run last

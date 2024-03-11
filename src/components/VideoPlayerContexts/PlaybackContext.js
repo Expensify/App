@@ -56,11 +56,14 @@ function PlaybackContextProvider({children}) {
     );
 
     const shareVideoPlayerElements = useCallback(
-        (ref, parent, child) => {
+        (ref, parent, child, isUploading) => {
             currentVideoPlayerRef.current = ref;
             setOriginalParent(parent);
             setSharedElement(child);
-            playVideo();
+            // Prevents autoplay when uploading the attachment
+            if (!isUploading) {
+                playVideo();
+            }
         },
         [playVideo],
     );
@@ -79,11 +82,11 @@ function PlaybackContextProvider({children}) {
 
     const resetVideoPlayerData = useCallback(() => {
         stopVideo();
-        unloadVideo();
         setCurrentlyPlayingURL(null);
         setSharedElement(null);
         setOriginalParent(null);
         currentVideoPlayerRef.current = null;
+        unloadVideo();
     }, [stopVideo, unloadVideo]);
 
     useEffect(() => {

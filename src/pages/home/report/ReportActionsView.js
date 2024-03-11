@@ -2,6 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import {InteractionManager} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import networkPropTypes from '@components/networkPropTypes';
@@ -33,6 +34,9 @@ const propTypes = {
 
     /** Array of report actions for this report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
+
+    /** The report's parentReportAction */
+    parentReportAction: PropTypes.shape(reportActionPropTypes),
 
     /** The report metadata loading states */
     isLoadingInitialReportActions: PropTypes.bool,
@@ -78,6 +82,7 @@ const defaultProps = {
     session: {
         authTokenType: '',
     },
+    parentReportAction: {},
 };
 
 function ReportActionsView(props) {
@@ -113,7 +118,15 @@ function ReportActionsView(props) {
     };
 
     useEffect(() => {
-        openReportIfNecessary();
+        const interactionTask = InteractionManager.runAfterInteractions(() => {
+            openReportIfNecessary();
+        });
+        return () => {
+            if (!interactionTask) {
+                return;
+            }
+            interactionTask.cancel();
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -136,7 +149,7 @@ function ReportActionsView(props) {
     }, [props.network, isReportFullyVisible]);
 
     useEffect(() => {
-        const wasLoginChangedDetected = prevAuthTokenType === 'anonymousAccount' && !props.session.authTokenType;
+        const wasLoginChangedDetected = prevAuthTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS && !props.session.authTokenType;
         if (wasLoginChangedDetected && didUserLogInDuringSession() && isUserCreatedPolicyRoom(props.report)) {
             if (isReportFullyVisible) {
                 openReportIfNecessary();
@@ -167,10 +180,20 @@ function ReportActionsView(props) {
         // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
         // Existing reports created will have empty fields for `pendingFields`.
         const didCreateReportSuccessfully = !props.report.pendingFields || (!props.report.pendingFields.addWorkspaceRoom && !props.report.pendingFields.createChat);
+        let interactionTask;
         if (!didSubscribeToReportTypingEvents.current && didCreateReportSuccessfully) {
-            Report.subscribeToReportTypingEvents(reportID);
-            didSubscribeToReportTypingEvents.current = true;
+            interactionTask = InteractionManager.runAfterInteractions(() => {
+                Report.subscribeToReportTypingEvents(reportID);
+                didSubscribeToReportTypingEvents.current = true;
+            });
         }
+
+        return () => {
+            if (!interactionTask) {
+                return;
+            }
+            interactionTask.cancel();
+        };
     }, [props.report.pendingFields, didSubscribeToReportTypingEvents, reportID]);
 
     const oldestReportAction = useMemo(() => _.last(props.reportActions), [props.reportActions]);
@@ -190,7 +213,7 @@ function ReportActionsView(props) {
             return;
         }
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
-        Report.getOlderActions(reportID, oldestReportAction.reportActionID);
+        Report.getOlderActions(reportID);
     }, [props.isLoadingOlderReportActions, props.network.isOffline, oldestReportAction, reportID]);
 
     /**
@@ -219,10 +242,9 @@ function ReportActionsView(props) {
                     return;
                 }
 
-                const newestReportAction = _.first(props.reportActions);
-                Report.getNewerActions(reportID, newestReportAction.reportActionID);
+                Report.getNewerActions(reportID);
             }, 500),
-        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, props.reportActions, reportID, hasNewestReportAction],
+        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, reportID, hasNewestReportAction],
     );
 
     /**
@@ -254,6 +276,7 @@ function ReportActionsView(props) {
         <>
             <ReportActionsList
                 report={props.report}
+                parentReportAction={props.parentReportAction}
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={props.reportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
@@ -275,6 +298,10 @@ ReportActionsView.displayName = 'ReportActionsView';
 
 function arePropsEqual(oldProps, newProps) {
     if (!_.isEqual(oldProps.reportActions, newProps.reportActions)) {
+        return false;
+    }
+
+    if (!_.isEqual(oldProps.parentReportAction, newProps.parentReportAction)) {
         return false;
     }
 

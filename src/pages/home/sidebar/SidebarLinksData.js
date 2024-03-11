@@ -1,6 +1,6 @@
 import {deepEqual} from 'fast-equals';
 import lodashGet from 'lodash/get';
-import lodashMap from 'lodash/map';
+import lodashMapValues from 'lodash/mapValues';
 import PropTypes from 'prop-types';
 import React, {memo, useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
@@ -13,9 +13,11 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 import withNavigationFocus from '@components/withNavigationFocus';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -35,20 +37,11 @@ const propTypes = {
     /** All report actions for all reports */
 
     /** Object of report actions for this report */
-    allReportActions: PropTypes.objectOf(
-        PropTypes.arrayOf(
-            PropTypes.shape({
-                error: PropTypes.string,
-                message: PropTypes.arrayOf(
-                    PropTypes.shape({
-                        moderationDecision: PropTypes.shape({
-                            decision: PropTypes.string,
-                        }),
-                    }),
-                ),
-            }),
-        ),
-    ),
+    // eslint-disable-next-line react/forbid-prop-types
+    allReportActions: PropTypes.object,
+
+    // eslint-disable-next-line react/forbid-prop-types
+    allTransactions: PropTypes.object,
 
     /** Whether the reports are loading. When false it means they are ready to be used. */
     isLoadingApp: PropTypes.bool,
@@ -105,12 +98,14 @@ const defaultProps = {
     policyMembers: {},
     transactionViolations: {},
     allReportActions: {},
+    allTransactions: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 function SidebarLinksData({
     isFocused,
     allReportActions,
+    allTransactions,
     betas,
     chatReports,
     currentReportID,
@@ -128,11 +123,29 @@ function SidebarLinksData({
     const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
     const prevPriorityMode = usePrevious(priorityMode);
+    const {canUseViolations} = usePermissions();
 
     const policyMemberAccountIDs = getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, currentUserPersonalDetails.accountID);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => Policy.openWorkspace(activeWorkspaceID, policyMemberAccountIDs), [activeWorkspaceID]);
+
+    const reportIDsWithErrors = useMemo(() => {
+        const reportKeys = _.keys(chatReports);
+        return _.reduce(
+            reportKeys,
+            (errorsMap, reportKey) => {
+                const report = chatReports[reportKey];
+                const allReportsActions = allReportActions[reportKey.replace(ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.COLLECTION.REPORT_ACTIONS)];
+                const errors = OptionsListUtils.getAllReportErrors(report, allReportsActions, allTransactions) || {};
+                if (_.size(errors) === 0) {
+                    return errorsMap;
+                }
+                return {...errorsMap, [reportKey.replace(ONYXKEYS.COLLECTION.REPORT, '')]: errors};
+            },
+            {},
+        );
+    }, [allReportActions, allTransactions, chatReports]);
 
     const reportIDsRef = useRef(null);
     const isLoading = isLoadingApp;
@@ -175,10 +188,25 @@ function SidebarLinksData({
                 transactionViolations,
                 activeWorkspaceID,
                 policyMemberAccountIDs,
+                reportIDsWithErrors,
+                canUseViolations,
             );
         }
         return optionListItems;
-    }, [currentReportID, optionListItems, chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs]);
+    }, [
+        currentReportID,
+        optionListItems,
+        chatReports,
+        betas,
+        policies,
+        priorityMode,
+        allReportActions,
+        transactionViolations,
+        activeWorkspaceID,
+        policyMemberAccountIDs,
+        reportIDsWithErrors,
+        canUseViolations,
+    ]);
 
     const currentReportIDRef = useRef(currentReportID);
     currentReportIDRef.current = currentReportID;
@@ -200,6 +228,7 @@ function SidebarLinksData({
                 isLoading={isLoading}
                 optionListItems={optionListItemsWithCurrentReport}
                 activeWorkspaceID={activeWorkspaceID}
+                reportIDsWithErrors={reportIDsWithErrors}
             />
         </View>
     );
@@ -223,6 +252,7 @@ const chatReportSelector = (report) =>
         isPinned: report.isPinned,
         isHidden: report.isHidden,
         notificationPreference: report.notificationPreference,
+        errors: report.errors,
         errorFields: {
             addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
         },
@@ -244,6 +274,9 @@ const chatReportSelector = (report) =>
         reportName: report.reportName,
         policyName: report.policyName,
         oldPolicyName: report.oldPolicyName,
+        isPolicyExpenseChat: report.isPolicyExpenseChat,
+        isOwnPolicyExpenseChat: report.isOwnPolicyExpenseChat,
+        isCancelledIOU: report.isCancelledIOU,
         // Other less obvious properites considered for sorting:
         ownerAccountID: report.ownerAccountID,
         currency: report.currency,
@@ -261,7 +294,7 @@ const chatReportSelector = (report) =>
  */
 const reportActionsSelector = (reportActions) =>
     reportActions &&
-    lodashMap(reportActions, (reportAction) => {
+    lodashMapValues(reportActions, (reportAction) => {
         const {reportActionID, parentReportActionID, actionName, errors = [], originalMessage} = reportAction;
         const decision = lodashGet(reportAction, 'message[0].moderationDecision.decision');
 
@@ -290,6 +323,24 @@ const policySelector = (policy) =>
         avatar: policy.avatar,
     };
 
+/**
+ * @param {Object} [transaction]
+ * @returns {Object|undefined}
+ */
+const transactionSelector = (transaction) =>
+    transaction && {
+        reportID: transaction.reportID,
+        iouRequestType: transaction.iouRequestType,
+        comment: transaction.comment,
+        receipt: transaction.receipt,
+        merchant: transaction.merchant,
+        modifiedMerchant: transaction.modifiedMerchant,
+        amount: transaction.amount,
+        modifiedAmount: transaction.modifiedAmount,
+        created: transaction.created,
+        modifiedCreated: transaction.modifiedCreated,
+    };
+
 export default compose(
     withCurrentReportID,
     withCurrentUserPersonalDetails,
@@ -315,6 +366,11 @@ export default compose(
         allReportActions: {
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
             selector: reportActionsSelector,
+            initialValue: {},
+        },
+        allTransactions: {
+            key: ONYXKEYS.COLLECTION.TRANSACTION,
+            selector: transactionSelector,
             initialValue: {},
         },
         policies: {
