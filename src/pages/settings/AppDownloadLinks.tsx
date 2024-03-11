@@ -29,7 +29,7 @@ function AppDownloadLinksPage() {
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.android.label',
             action: () => {
-                Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.ANDROID, true);
+                Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.ANDROID);
             },
             link: CONST.APP_DOWNLOAD_LINKS.ANDROID,
             icon: Expensicons.Android,
