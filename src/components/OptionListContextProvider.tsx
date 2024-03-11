@@ -11,6 +11,7 @@ type Options = {
 type OptionsListContextProps = {
     options: Options;
     initializeOptions: () => void;
+    areOptionsInitialized: boolean;
 };
 
 type OptionsListProviderProps = {
@@ -24,6 +25,7 @@ const OptionsListContext = createContext<OptionsListContextProps>({
         personalDetails: [],
     },
     initializeOptions: () => {},
+    areOptionsInitialized: false,
 });
 
 function OptionsListContextProvider({children}: OptionsListProviderProps) {
@@ -52,7 +54,11 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         loadOptions();
     }, [loadOptions]);
 
-    return <OptionsListContext.Provider value={useMemo(() => ({options, initializeOptions}), [options, initializeOptions])}>{children}</OptionsListContext.Provider>;
+    return (
+        <OptionsListContext.Provider value={useMemo(() => ({options, initializeOptions, areOptionsInitialized: areOptionsInitialized.current}), [options, initializeOptions])}>
+            {children}
+        </OptionsListContext.Provider>
+    );
 }
 
 const useOptionsListContext = () => useContext(OptionsListContext);

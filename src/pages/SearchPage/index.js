@@ -17,7 +17,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import * as ReportUtils from '@libs/ReportUtils';
-import reportPropTypes from '@pages/reportPropTypes';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -29,9 +28,6 @@ const propTypes = {
 
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
-
-    /** All reports shared with the user */
-    reports: PropTypes.objectOf(reportPropTypes),
 
     /** Whether or not we are searching for reports on the server */
     isSearchingForReports: PropTypes.bool,
@@ -46,7 +42,6 @@ const propTypes = {
 
 const defaultProps = {
     betas: [],
-    reports: {},
     isSearchingForReports: false,
     navigation: {},
 };
@@ -58,13 +53,13 @@ const setPerformanceTimersEnd = () => {
 
 const SearchPageFooterInstance = <SearchPageFooter />;
 
-function SearchPage({betas, reports, isSearchingForReports, navigation}) {
+function SearchPage({betas, isSearchingForReports, navigation}) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const themeStyles = useThemeStyles();
     const personalDetails = usePersonalDetails();
-    const {initializeOptions} = useOptionsListContext();
+    const {options, initializeOptions, areOptionsInitialized} = useOptionsListContext();
     const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
@@ -84,7 +79,7 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}) {
         userToInvite,
         headerMessage,
     } = useMemo(() => {
-        if (!isScreenTransitionEnd) {
+        if (!areOptionsInitialized && !isScreenTransitionEnd) {
             return {
                 recentReports: {},
                 personalDetails: {},
@@ -92,10 +87,11 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}) {
                 headerMessage: '',
             };
         }
-        const options = OptionsListUtils.getSearchOptions(reports, personalDetails, debouncedSearchValue.trim(), betas);
-        const header = OptionsListUtils.getHeaderMessage(options.recentReports.length + options.personalDetails.length !== 0, Boolean(options.userToInvite), debouncedSearchValue);
-        return {...options, headerMessage: header};
-    }, [debouncedSearchValue, reports, personalDetails, betas, isScreenTransitionEnd]);
+
+        const optionList = OptionsListUtils.getSearchOptions(options, debouncedSearchValue.trim(), betas);
+        const header = OptionsListUtils.getHeaderMessage(options.reports.length + options.personalDetails.length !== 0, Boolean(options.userToInvite), debouncedSearchValue);
+        return {...optionList, headerMessage: header};
+    }, [areOptionsInitialized, isScreenTransitionEnd, options, betas, debouncedSearchValue]);
 
     useEffect(() => {
         initializeOptions();

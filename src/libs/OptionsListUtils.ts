@@ -1329,6 +1329,10 @@ function isReportSelected(reportOption: ReportUtils.OptionData, selectedOptions:
     return selectedOptions.some((option) => (option.accountID && option.accountID === reportOption.accountID) || (option.reportID && option.reportID === reportOption.reportID));
 }
 
+type ReportOption = ReportUtils.OptionData & {
+    item: Report | PersonalDetails;
+};
+
 function createOptionList(reports: OnyxCollection<Report>, personalDetails: OnyxEntry<PersonalDetailsList>) {
     const reportMapForAccountIDs: Record<number, Report> = {};
     // Sorting the reports works like this:
@@ -1342,7 +1346,7 @@ function createOptionList(reports: OnyxCollection<Report>, personalDetails: Onyx
         return report?.lastVisibleActionCreated;
     });
     orderedReports.reverse();
-    const allReportOptions: ReportUtils.OptionData[] = [];
+    const allReportOptions: ReportOption[] = [];
 
     orderedReports.forEach((report) => {
         if (!report) {
@@ -1364,8 +1368,9 @@ function createOptionList(reports: OnyxCollection<Report>, personalDetails: Onyx
             reportMapForAccountIDs[accountIDs[0]] = report;
         }
 
-        allReportOptions.push(
-            createOption(
+        allReportOptions.push({
+            item: report,
+            ...createOption(
                 accountIDs,
                 personalDetails,
                 report,
@@ -1375,14 +1380,15 @@ function createOptionList(reports: OnyxCollection<Report>, personalDetails: Onyx
                     forcePolicyNamePreview: true,
                 },
             ),
-        );
+        });
     });
 
     const havingLoginPersonalDetails = Object.fromEntries(
         Object.entries(personalDetails ?? {}).filter(([, detail]) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail),
     );
-    const allPersonalDetailsOptions = Object.values(havingLoginPersonalDetails).map((personalDetail) =>
-        createOption(
+    const allPersonalDetailsOptions = Object.values(havingLoginPersonalDetails).map((personalDetail) => ({
+        item: personalDetail,
+        ...createOption(
             [personalDetail?.accountID ?? -1],
             personalDetails,
             reportMapForAccountIDs[personalDetail?.accountID ?? -1],
@@ -1392,7 +1398,7 @@ function createOptionList(reports: OnyxCollection<Report>, personalDetails: Onyx
                 forcePolicyNamePreview: true,
             },
         ),
-    );
+    }));
 
     return {
         reports: allReportOptions,
@@ -1401,11 +1407,13 @@ function createOptionList(reports: OnyxCollection<Report>, personalDetails: Onyx
 }
 
 /**
- * Build the options
+ * filter options based on specific conditions
  */
 function getOptions(
-    reports: OnyxCollection<Report>,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
+    options: {
+        reports: ReportOption[];
+        personalDetails: ReportOption[];
+    },
     {
         reportActions = {},
         betas = [],
@@ -1483,26 +1491,13 @@ function getOptions(
         };
     }
 
-    if (!isPersonalDetailsReady(personalDetails)) {
-        return {
-            recentReports: [],
-            personalDetails: [],
-            userToInvite: null,
-            currentUserOption: null,
-            categoryOptions: [],
-            tagOptions: [],
-            taxRatesOptions: [],
-        };
-    }
-
-    let recentReportOptions = [];
-    let personalDetailsOptions: ReportUtils.OptionData[] = [];
-    const reportMapForAccountIDs: Record<number, Report> = {};
     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 : searchInputValue.toLowerCase();
+    const topmostReportId = Navigation.getTopmostReportId() ?? '';
 
     // Filter out all the reports that shouldn't be displayed
-    const filteredReports = Object.values(reports ?? {}).filter((report) => {
+    const filteredReportOptions = options.reports.filter((option) => {
+        const report = option.item as Report;
         const {parentReportID, parentReportActionID} = report ?? {};
         const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
         const parentReportAction = canGetParentReport ? allReportActions[parentReportID]?.[parentReportActionID] ?? null : null;
@@ -1511,7 +1506,7 @@ function getOptions(
 
         return ReportUtils.shouldReportBeInOptionList({
             report,
-            currentReportId: Navigation.getTopmostReportId() ?? '',
+            currentReportId: topmostReportId,
             betas,
             policies,
             doesReportHaveViolations,
@@ -1524,23 +1519,24 @@ function getOptions(
     // Sorting the reports works like this:
     // - Order everything by the last message timestamp (descending)
     // - All archived reports should remain at the bottom
-    const orderedReports = lodashSortBy(filteredReports, (report) => {
+    const orderedReportOptions = lodashSortBy(filteredReportOptions, (option) => {
+        const report = option.item as Report;
         if (ReportUtils.isArchivedRoom(report)) {
             return CONST.DATE.UNIX_EPOCH;
         }
 
         return report?.lastVisibleActionCreated;
     });
-    orderedReports.reverse();
+    orderedReportOptions.reverse();
 
-    const allReportOptions: ReportUtils.OptionData[] = [];
-    orderedReports.forEach((report) => {
+    const allReportOptions = orderedReportOptions.filter((option) => {
+        const report = option.item as Report;
+
         if (!report) {
             return;
         }
 
         const isThread = ReportUtils.isChatThread(report);
-        const isChatRoom = ReportUtils.isChatRoom(report);
         const isTaskReport = ReportUtils.isTaskReport(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
@@ -1582,33 +1578,12 @@ function getOptions(
             return;
         }
 
-        // Save the report in the map if this is a single participant so we can associate the reportID with the
-        // personal detail option later. Individuals should not be associated with single participant
-        // policyExpenseChats or chatRooms since those are not people.
-        if (accountIDs.length <= 1 && !isPolicyExpenseChat && !isChatRoom) {
-            reportMapForAccountIDs[accountIDs[0]] = report;
-        }
-
-        allReportOptions.push(
-            createOption(accountIDs, personalDetails, report, reportActions, {
-                showChatPreviewLine,
-                forcePolicyNamePreview,
-            }),
-        );
+        return option;
     });
-    // We're only picking personal details that have logins set
-    // This is a temporary fix for all the logic that's been breaking because of the new privacy changes
-    // See https://github.com/Expensify/Expensify/issues/293465 for more context
-    // Moreover, we should not override the personalDetails object, otherwise the createOption util won't work properly, it returns incorrect tooltipText
-    const havingLoginPersonalDetails = !includeP2P
-        ? {}
-        : Object.fromEntries(Object.entries(personalDetails ?? {}).filter(([, detail]) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail));
-    let allPersonalDetailsOptions = Object.values(havingLoginPersonalDetails).map((personalDetail) =>
-        createOption([personalDetail?.accountID ?? -1], personalDetails, reportMapForAccountIDs[personalDetail?.accountID ?? -1], reportActions, {
-            showChatPreviewLine,
-            forcePolicyNamePreview,
-        }),
-    );
+
+    // HERE
+
+    let allPersonalDetailsOptions = options.personalDetails;
 
     if (sortPersonalDetailsByAlphaAsc) {
         // PersonalDetails should be ordered Alphabetically by default - https://github.com/Expensify/App/issues/8220#issuecomment-1104009435
@@ -1628,6 +1603,9 @@ function getOptions(
     excludeLogins.forEach((login) => {
         optionsToExclude.push({login});
     });
+
+    let recentReportOptions = [];
+    let personalDetailsOptions: ReportUtils.OptionData[] = [];
 
     if (includeRecentReports) {
         for (const reportOption of allReportOptions) {
@@ -1794,10 +1772,17 @@ function getOptions(
 /**
  * Build the options for the Search view
  */
-function getSearchOptions(reports: Record<string, Report>, personalDetails: OnyxEntry<PersonalDetailsList>, searchValue = '', betas: Beta[] = []): GetOptions {
+function getSearchOptions(
+    options: {
+        reports: ReportOption[];
+        personalDetails: ReportOption[];
+    },
+    searchValue = '',
+    betas: Beta[] = [],
+): GetOptions {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
-    const options = getOptions(reports, personalDetails, {
+    const optionList = getOptions(options, {
         betas,
         searchInputValue: searchValue.trim(),
         includeRecentReports: true,
@@ -1816,11 +1801,18 @@ function getSearchOptions(reports: Record<string, Report>, personalDetails: Onyx
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markEnd(CONST.TIMING.LOAD_SEARCH_OPTIONS);
 
-    return options;
+    return optionList;
 }
 
-function getShareLogOptions(reports: OnyxCollection<Report>, personalDetails: OnyxEntry<PersonalDetailsList>, searchValue = '', betas: Beta[] = []): GetOptions {
-    return getOptions(reports, personalDetails, {
+function getShareLogOptions(
+    options: {
+        reports: ReportOption[];
+        personalDetails: ReportOption[];
+    },
+    searchValue = '',
+    betas: Beta[] = [],
+): GetOptions {
+    return getOptions(options, {
         betas,
         searchInputValue: searchValue.trim(),
         includeRecentReports: true,
@@ -1869,8 +1861,8 @@ function getIOUConfirmationOptionsFromParticipants(participants: Participant[], 
  * Build the options for the New Group view
  */
 function getFilteredOptions(
-    reports: OnyxCollection<Report>,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
+    reports: ReportOption[] = [],
+    personalDetails: ReportOption[] = [],
     betas: OnyxEntry<Beta[]> = [],
     searchValue = '',
     selectedOptions: Array<Partial<ReportUtils.OptionData>> = [],
@@ -1889,28 +1881,31 @@ function getFilteredOptions(
     taxRates: TaxRatesWithDefault = {} as TaxRatesWithDefault,
     includeSelfDM = false,
 ) {
-    return getOptions(reports, personalDetails, {
-        betas,
-        searchInputValue: searchValue.trim(),
-        selectedOptions,
-        includeRecentReports: true,
-        includePersonalDetails: true,
-        maxRecentReportsToShow: 5,
-        excludeLogins,
-        includeOwnedWorkspaceChats,
-        includeP2P,
-        includeCategories,
-        categories,
-        recentlyUsedCategories,
-        includeTags,
-        tags,
-        recentlyUsedTags,
-        canInviteUser,
-        includeSelectedOptions,
-        includeTaxRates,
-        taxRates,
-        includeSelfDM,
-    });
+    return getOptions(
+        {reports, personalDetails},
+        {
+            betas,
+            searchInputValue: searchValue.trim(),
+            selectedOptions,
+            includeRecentReports: true,
+            includePersonalDetails: true,
+            maxRecentReportsToShow: 5,
+            excludeLogins,
+            includeOwnedWorkspaceChats,
+            includeP2P,
+            includeCategories,
+            categories,
+            recentlyUsedCategories,
+            includeTags,
+            tags,
+            recentlyUsedTags,
+            canInviteUser,
+            includeSelectedOptions,
+            includeTaxRates,
+            taxRates,
+            includeSelfDM,
+        },
+    );
 }
 
 /**
@@ -1918,8 +1913,8 @@ function getFilteredOptions(
  */
 
 function getShareDestinationOptions(
-    reports: Record<string, Report | null>,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
+    reports: ReportOption[],
+    personalDetails: ReportOption[],
     betas: OnyxEntry<Beta[]> = [],
     searchValue = '',
     selectedOptions: Array<Partial<ReportUtils.OptionData>> = [],
@@ -1927,24 +1922,27 @@ function getShareDestinationOptions(
     includeOwnedWorkspaceChats = true,
     excludeUnknownUsers = true,
 ) {
-    return getOptions(reports, personalDetails, {
-        betas,
-        searchInputValue: searchValue.trim(),
-        selectedOptions,
-        maxRecentReportsToShow: 0, // Unlimited
-        includeRecentReports: true,
-        includeMultipleParticipantReports: true,
-        includePersonalDetails: false,
-        showChatPreviewLine: true,
-        forcePolicyNamePreview: true,
-        includeThreads: true,
-        includeMoneyRequests: true,
-        includeTasks: true,
-        excludeLogins,
-        includeOwnedWorkspaceChats,
-        excludeUnknownUsers,
-        includeSelfDM: true,
-    });
+    return getOptions(
+        {reports, personalDetails},
+        {
+            betas,
+            searchInputValue: searchValue.trim(),
+            selectedOptions,
+            maxRecentReportsToShow: 0, // Unlimited
+            includeRecentReports: true,
+            includeMultipleParticipantReports: true,
+            includePersonalDetails: false,
+            showChatPreviewLine: true,
+            forcePolicyNamePreview: true,
+            includeThreads: true,
+            includeMoneyRequests: true,
+            includeTasks: true,
+            excludeLogins,
+            includeOwnedWorkspaceChats,
+            excludeUnknownUsers,
+            includeSelfDM: true,
+        },
+    );
 }
 
 /**
@@ -1976,21 +1974,18 @@ function formatMemberForList(member: ReportUtils.OptionData): MemberForList {
 /**
  * Build the options for the Workspace Member Invite view
  */
-function getMemberInviteOptions(
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    betas: Beta[] = [],
-    searchValue = '',
-    excludeLogins: string[] = [],
-    includeSelectedOptions = false,
-): GetOptions {
-    return getOptions({}, personalDetails, {
-        betas,
-        searchInputValue: searchValue.trim(),
-        includePersonalDetails: true,
-        excludeLogins,
-        sortPersonalDetailsByAlphaAsc: true,
-        includeSelectedOptions,
-    });
+function getMemberInviteOptions(personalDetails: ReportOption[], betas: Beta[] = [], searchValue = '', excludeLogins: string[] = [], includeSelectedOptions = false): GetOptions {
+    return getOptions(
+        {reports: [], personalDetails},
+        {
+            betas,
+            searchInputValue: searchValue.trim(),
+            includePersonalDetails: true,
+            excludeLogins,
+            sortPersonalDetailsByAlphaAsc: true,
+            includeSelectedOptions,
+        },
+    );
 }
 
 /**
