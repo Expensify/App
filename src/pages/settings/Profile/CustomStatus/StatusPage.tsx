@@ -91,9 +91,8 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
                 emojiCode: !emojiCode && statusText ? initialEmoji : emojiCode,
                 clearAfter: clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER ? clearAfterTime : '',
             });
-
+            User.clearDraftCustomStatus();
             InteractionManager.runAfterInteractions(() => {
-                User.clearDraftCustomStatus();
                 navigateBackToPreviousScreen();
             });
         },
