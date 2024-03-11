@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {View, FlatList} from 'react-native';
+import {FlatList, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import * as Illustrations from '@components/Icon/Illustrations';
