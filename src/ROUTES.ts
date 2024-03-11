@@ -573,6 +573,10 @@ const ROUTES = {
         route: 'workspace/:policyID/members/:accountID/role-selection',
         getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`workspace/${policyID}/members/${accountID}/role-selection`, backTo),
     },
+    WORKSPACE_OWNER_CHANGE_CHECK: {
+        route: 'workspace/:policyID/change-owner/:error',
+        getRoute: (policyID: string, error: string) => `workspace/${policyID}/change-owner/${error}` as const,
+    },
     WORKSPACE_DISTANCE_RATES: {
         route: 'workspace/:policyID/distance-rates',
         getRoute: (policyID: string) => `workspace/${policyID}/distance-rates` as const,

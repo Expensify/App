@@ -291,6 +291,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE_SELECTION]: {
                             path: ROUTES.WORKSPACE_MEMBER_ROLE_SELECTION.route,
                         },
+                        [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK]: {
+                            path: ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.route,
+                        },
                         [SCREENS.WORKSPACE.CATEGORY_CREATE]: {
                             path: ROUTES.WORKSPACE_CATEGORY_CREATE.route,
                         },

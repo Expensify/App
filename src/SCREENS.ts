@@ -229,6 +229,7 @@ const SCREENS = {
         CATEGORIES_SETTINGS: 'Categories_Settings',
         MEMBER_DETAILS: 'Workspace_Member_Details',
         MEMBER_DETAILS_ROLE_SELECTION: 'Workspace_Member_Details_Role_Selection',
+        OWNER_CHANGE_CHECK: 'Workspace_Owner_Change_Check',
         DISTANCE_RATES: 'Distance_Rates',
     },
 

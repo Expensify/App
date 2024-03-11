@@ -13,7 +13,9 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as UserUtils from '@libs/UserUtils';
@@ -30,8 +32,6 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList, PolicyOwnershipChangeChecks} from '@src/types/onyx';
-import useCurrentUserPersonalDetails from "@hooks/useCurrentUserPersonalDetails";
-import useNetwork from "@hooks/useNetwork";
 
 type WorkspacePolicyOnyxProps = {
     /** Personal details of all users */

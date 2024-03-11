@@ -221,6 +221,10 @@ type SettingsNavigatorParamList = {
         accountID: string;
         backTo: Routes;
     };
+    [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK]: {
+        policyID: string;
+        error: string;
+    };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };

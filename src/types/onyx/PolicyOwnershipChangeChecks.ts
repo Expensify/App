@@ -3,6 +3,6 @@ type PolicyOwnershipChangeChecks = {
     shouldTransferAmountOwed: boolean;
     shouldTransferSubscription: boolean;
     shouldTransferSingleSubscription: boolean;
-}
+};
 
 export default PolicyOwnershipChangeChecks;

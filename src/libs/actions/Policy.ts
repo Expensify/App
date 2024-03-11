@@ -32,6 +32,7 @@ import type {
     UpdateWorkspaceGeneralSettingsParams,
     UpdateWorkspaceMembersRoleParams,
 } from '@libs/API/parameters';
+import type RequestWorkspaceOwnerChangeParams from '@libs/API/parameters/RequestWorkspaceOwnerChangeParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -49,7 +50,8 @@ import type {
     PersonalDetailsList,
     Policy,
     PolicyCategories,
-    PolicyMember, PolicyOwnershipChangeChecks,
+    PolicyMember,
+    PolicyOwnershipChangeChecks,
     PolicyTagList,
     RecentlyUsedCategories,
     RecentlyUsedTags,
@@ -64,7 +66,6 @@ import type {Attributes, CustomUnit, Rate, Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import RequestWorkspaceOwnerChangeParams from "@libs/API/parameters/RequestWorkspaceOwnerChangeParams";
 
 type AnnounceRoomMembersOnyxData = {
     onyxOptimisticData: OnyxUpdate[];
@@ -232,9 +233,8 @@ Onyx.connect({
         }
 
         policyOwnershipChecks = value;
-    }
+    },
 });
-
 
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
@@ -854,12 +854,9 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
 }
 
 function updateWorkspaceOwnershipChecks(policyID: string, ownershipChecks: PolicyOwnershipChangeChecks) {
-    Onyx.merge(
-        ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS,
-        {
-            [policyID]: ownershipChecks
-        }
-    );
+    Onyx.merge(ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS, {
+        [policyID]: ownershipChecks,
+    });
 }
 
 function requestWorkspaceOwnerChange(policyID: string) {
@@ -882,13 +879,13 @@ function requestWorkspaceOwnerChange(policyID: string) {
             value: {
                 errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.genericFailureMessage'),
             },
-        }
+        },
     ];
 
     const params: RequestWorkspaceOwnerChangeParams = {
         policyID,
         ...ownershipChecks,
-    }
+    };
 
     API.write(WRITE_COMMANDS.REQUEST_WORKSPACE_OWNER_CHANGE, params, {successData, failureData});
 }

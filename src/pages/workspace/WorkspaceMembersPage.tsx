@@ -342,10 +342,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 accountID,
                 isSelected,
                 isSelectable: isPolicyAdmin && accountID !== policy?.ownerAccountID && accountID !== session?.accountID,
-                isDisabled:
-                    isPolicyAdmin &&
-                    (policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-                        !isEmptyObject(policyMember.errors)),
+                isDisabled: isPolicyAdmin && (policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyMember.errors)),
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
