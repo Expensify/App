@@ -129,6 +129,12 @@ function LHNOptionsList({
                 keyExtractor={keyExtractor}
                 renderItem={renderItem}
                 estimatedItemSize={optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight}
+                // Previously, we were passing `extraData={[currentReportID]}`, which upon every render, was causing the
+                // re-render because of the new array reference. FlashList's children actually don't depend on the
+                // `currentReportID` prop but they depend on the `reportActions`, `reports`, `policy`, `personalDetails`.
+                // Previously it was working for us because of the new array reference. Even if you only pass an empty
+                // array, it will still work because of the new reference. But it's better to pass the actual dependencies
+                // to avoid unnecessary re-renders.
                 extraData={extraData}
                 showsVerticalScrollIndicator={false}
             />
