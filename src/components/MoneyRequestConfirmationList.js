@@ -217,11 +217,12 @@ function MoneyRequestConfirmationList(props) {
     const {onSendMoney, onConfirm, onSelectParticipant} = props;
     const {translate, toLocaleDigit} = useLocalize();
     const transaction = props.transaction;
-    const {canUseViolations} = usePermissions();
+    const {canUseP2PDistanceRequests, canUseViolations} = usePermissions();
 
     const isTypeRequest = props.iouType === CONST.IOU.TYPE.REQUEST;
     const isSplitBill = props.iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = props.iouType === CONST.IOU.TYPE.SEND;
+    const canEditDistance = isTypeRequest || (canUseP2PDistanceRequests && isSplitBill);
 
     const isSplitWithScan = isSplitBill && props.isScanRequest;
 
@@ -282,7 +283,7 @@ function MoneyRequestConfirmationList(props) {
     }, [props.isEditingSplitBill, props.hasSmartScanFailed, transaction, didConfirmSplit]);
 
     const isMerchantEmpty = !props.iouMerchant || props.iouMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
-    const shouldDisplayMerchantError = props.isPolicyExpenseChat && !props.isScanRequest && isMerchantEmpty;
+    const shouldDisplayMerchantError = props.isPolicyExpenseChat && shouldDisplayFieldError && isMerchantEmpty;
 
     useEffect(() => {
         if (shouldDisplayFieldError && didConfirmSplit) {
@@ -550,6 +551,7 @@ function MoneyRequestConfirmationList(props) {
             />
         ) : (
             <ButtonWithDropdownMenu
+                success
                 pressOnEnter
                 isDisabled={shouldDisableButton}
                 onPress={(_event, value) => confirm(value)}
@@ -720,13 +722,14 @@ function MoneyRequestConfirmationList(props) {
                     )}
                     {props.isDistanceRequest && (
                         <MenuItemWithTopDescription
-                            shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
+                            shouldShowRightIcon={!props.isReadOnly && canEditDistance}
                             title={props.iouMerchant}
                             description={translate('common.distance')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DISTANCE.getRoute(props.iouType, props.reportID))}
-                            disabled={didConfirm || !isTypeRequest}
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            disabled={didConfirm || !canEditDistance}
                             interactive={!props.isReadOnly}
                         />
                     )}
@@ -750,14 +753,8 @@ function MoneyRequestConfirmationList(props) {
                             }}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
-                            brickRoadIndicator={
-                                props.isPolicyExpenseChat && shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''
-                            }
-                            error={
-                                shouldDisplayMerchantError || (props.isPolicyExpenseChat && shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction))
-                                    ? translate('common.error.enterMerchant')
-                                    : ''
-                            }
+                            brickRoadIndicator={shouldDisplayMerchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            error={shouldDisplayMerchantError ? translate('common.error.enterMerchant') : ''}
                         />
                     )}
                     {shouldShowCategories && (
@@ -802,6 +799,7 @@ function MoneyRequestConfirmationList(props) {
                                                 props.transaction.transactionID,
                                                 props.reportID,
                                                 Navigation.getActiveRouteWithoutParams(),
+                                                props.reportActionID,
                                             ),
                                         );
                                         return;

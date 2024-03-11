@@ -1,3 +1,4 @@
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -12,6 +13,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -70,6 +72,7 @@ function IOURequestStartPage({
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const navigation = useNavigation();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.requestMoney'),
@@ -78,32 +81,35 @@ function IOURequestStartPage({
     };
     const transactionRequestType = useRef(TransactionUtils.getRequestType(transaction));
     const previousIOURequestType = usePrevious(transactionRequestType.current);
+    const {canUseP2PDistanceRequests} = usePermissions();
     const isFromGlobalCreate = _.isEmpty(report.reportID);
 
-    useEffect(() => {
-        const handler = (event) => {
-            if (event.code !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
-                return;
-            }
-            event.preventDefault();
-            event.stopPropagation();
-        };
-        KeyDownPressListener.addKeyDownPressListener(handler);
+    useFocusEffect(
+        useCallback(() => {
+            const handler = (event) => {
+                if (event.code !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
+                    return;
+                }
+                event.preventDefault();
+                event.stopPropagation();
+            };
+            KeyDownPressListener.addKeyDownPressListener(handler);
 
-        return () => KeyDownPressListener.removeKeyDownPressListener(handler);
-    }, []);
+            return () => KeyDownPressListener.removeKeyDownPressListener(handler);
+        }, []),
+    );
 
     // Clear out the temporary money request if the reportID in the URL has changed from the transaction's reportID
     useEffect(() => {
         if (transaction.reportID === reportID) {
             return;
         }
-        IOU.initMoneyRequest(reportID, isFromGlobalCreate, transactionRequestType.current);
-    }, [transaction, reportID, iouType, isFromGlobalCreate]);
+        IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, transactionRequestType.current);
+    }, [transaction, policy, reportID, iouType, isFromGlobalCreate]);
 
     const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isExpenseReport = ReportUtils.isExpenseReport(report);
-    const shouldDisplayDistanceRequest = isExpenseChat || isExpenseReport || isFromGlobalCreate;
+    const shouldDisplayDistanceRequest = canUseP2PDistanceRequests || isExpenseChat || isExpenseReport || isFromGlobalCreate;
 
     // Allow the user to create the request if we are creating the request in global menu or the report can create the request
     const isAllowedToCreateRequest = _.isEmpty(report.reportID) || ReportUtils.canCreateRequest(report, policy, iouType);
@@ -117,10 +123,13 @@ function IOURequestStartPage({
             if (newIouType === previousIOURequestType) {
                 return;
             }
-            IOU.initMoneyRequest(reportID, isFromGlobalCreate, newIouType);
+            if (iouType === CONST.IOU.TYPE.SPLIT && transaction.isFromGlobalCreate) {
+                IOU.updateMoneyRequestTypeParams(navigation.getState().routes, CONST.IOU.TYPE.REQUEST, newIouType);
+            }
+            IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, newIouType);
             transactionRequestType.current = newIouType;
         },
-        [previousIOURequestType, reportID, isFromGlobalCreate],
+        [policy, previousIOURequestType, reportID, isFromGlobalCreate, iouType, navigation, transaction.isFromGlobalCreate],
     );
 
     if (!transaction.transactionID) {
