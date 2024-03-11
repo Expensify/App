@@ -70,7 +70,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policy?.reimbursementChoice]);
 
-    const items: ToggleSettingOptionRowProps[] = useMemo(() => {
+    const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
         const {accountNumber, state, bankName} = reimbursementAccount?.achData ?? {};
         const hasVBA = state === BankAccount.STATE.OPEN;
         const bankDisplayName = bankName ? `${bankName} ${accountNumber ? `${accountNumber.slice(-5)}` : ''}` : '';
@@ -235,7 +235,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
                 >
                     <View>
                         <Text style={[styles.mt3, styles.textSupporting]}>{translate('workflowsPage.workflowDescription')}</Text>
-                        {items.map((item, index) => renderOptionItem(item, index))}
+                        {optionItems.map((item, index) => renderOptionItem(item, index))}
                     </View>
                 </Section>
             </View>
