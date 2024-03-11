@@ -378,6 +378,12 @@ function BaseSelectionList<TItem extends ListItem>(
         [],
     );
 
+    /**
+     * Highlights the items and scrolls to the first item present in the items list.
+     *
+     * @param items - The list of items to highlight.
+     * @param timeout - The timeout in milliseconds before removing the highlight.
+     */
     const scrollAndHighlightItem = useCallback(
         (items: string[], timeout: number) => {
             const newItemsToHighlight = new Set<string>();
