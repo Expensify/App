@@ -35,6 +35,7 @@ import type {
 import type {ThemeStyles} from '@styles/index';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
+import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import subRouteOptions from './modalStackNavigatorOptions';
 
 type Screens = Partial<Record<Screen, () => React.ComponentType>>;
@@ -54,6 +55,7 @@ function createModalStackNavigator<TStackParams extends ParamListBase>(screens: 
         const defaultSubRouteOptions = useMemo(
             (): StackNavigationOptions => ({
                 ...subRouteOptions,
+                ...hideKeyboardOnSwipe,
                 cardStyle: styles.navigationScreenCardStyle,
             }),
             [styles],
