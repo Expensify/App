@@ -790,7 +790,6 @@ const CONST = {
     TIMING: {
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
         SEARCH_RENDER: 'search_render',
-        FILTERED_OPTIONS_DATA: 'filtered_options_data',
         CHAT_RENDER: 'chat_render',
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         REPORT_INITIAL_RENDER: 'report_initial_render',

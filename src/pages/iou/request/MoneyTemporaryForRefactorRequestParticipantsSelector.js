@@ -17,7 +17,6 @@ import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Timing from '@libs/actions/Timing';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -112,7 +111,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         }
         let indexOffset = 0;
 
-        Timing.start(CONST.TIMING.FILTERED_OPTIONS_DATA);
         const chatOptions = OptionsListUtils.getFilteredOptions(
             reports,
             personalDetails,
@@ -139,7 +137,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             false,
             actionTypeForParticipants,
         );
-        Timing.end(CONST.TIMING.FILTERED_OPTIONS_DATA);
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
             searchTerm,
