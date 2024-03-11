@@ -1,6 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import lodashIsEqual from 'lodash/isEqual';
+import lodashIsEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {FlatList, ViewStyle} from 'react-native';
@@ -249,13 +250,13 @@ function ReportScreen({
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? null;
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
-    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]);
+    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {});
     const transactionThreadReportActions = useMemo(() => {
         if (transactionThreadReportID === '0') {
             return [];
         }
 
-        const actions = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? [];
+        const actions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? [];
         return ReportActionsUtils.getSortedReportActionsForDisplay(actions);
     }, [allReportActions, transactionThreadReportID]);
 
@@ -534,7 +535,7 @@ function ReportScreen({
                                 {isReportReadyForDisplay && !isLoadingInitialReportActions && !isLoading && (
                                     <ReportActionsView
                                         reportActions={
-                                            _.isEmpty(transactionThreadReportActions)
+                                            lodashIsEmpty(transactionThreadReportActions)
                                                 ? reportActions
                                                 : ReportActionsUtils.getCombinedReportActionsForDisplay(reportActions, transactionThreadReportActions)
                                         }
