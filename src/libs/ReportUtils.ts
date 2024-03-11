@@ -45,7 +45,7 @@ import type {
     ReimbursementDeQueuedMessage,
 } from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
-import type {NotificationPreference} from '@src/types/onyx/Report';
+import type {NotificationPreference, PendingChatMember} from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import type {Receipt, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -706,7 +706,7 @@ function isReportApproved(reportOrID: OnyxEntry<Report> | string | EmptyObject):
 /**
  * Checks if the supplied report is an expense report in Open state and status.
  */
-function isDraftExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean {
+function isOpenExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean {
     return isExpenseReport(report) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
 }
 
@@ -2145,7 +2145,7 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
         return Localize.translateLocal('iou.payerSpentAmount', {payer: payerOrApproverName, amount: formattedAmount});
     }
 
-    if (isProcessingReport(report) || isDraftExpenseReport(report) || moneyRequestTotal === 0) {
+    if (isProcessingReport(report) || isOpenExpenseReport(report) || moneyRequestTotal === 0) {
         return Localize.translateLocal('iou.payerOwesAmount', {payer: payerOrApproverName, amount: formattedAmount});
     }
 
@@ -2226,7 +2226,7 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>): boolean {
     const isManager = currentUserAccountID === moneyRequestReport?.managerID;
 
     // Admin & managers can always edit coding fields such as tag, category, billable, etc. As long as the report has a state higher than OPEN.
-    if ((isAdmin || isManager) && !isDraftExpenseReport(moneyRequestReport)) {
+    if ((isAdmin || isManager) && !isOpenExpenseReport(moneyRequestReport)) {
         return true;
     }
 
@@ -2666,11 +2666,13 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         return formattedName;
     }
 
-    // Not a room or PolicyExpenseChat, generate title from participants
-    const participantAccountIDs = report?.participantAccountIDs ?? [];
+    // Not a room or PolicyExpenseChat, generate title from first 5 other participants
+    const participantAccountIDs = report?.participantAccountIDs?.slice(0, 6) ?? [];
     const participantsWithoutCurrentUser = participantAccountIDs.filter((accountID) => accountID !== currentUserAccountID);
     const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
-
+    if (participantsWithoutCurrentUser.length > 5) {
+        participantsWithoutCurrentUser.pop();
+    }
     return participantsWithoutCurrentUser.map((accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport)).join(', ');
 }
 
@@ -2695,6 +2697,14 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
         return report?.oldPolicyName ?? '';
     }
     return getPolicyName(report);
+}
+
+/**
+ * Get pending members for reports
+ */
+function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers: PendingChatMember[], pendingAction: PendingAction): PendingChatMember[] {
+    const pendingChatMembers = accountIDs.map((accountID) => ({accountID: accountID.toString(), pendingAction}));
+    return [...previousPendingChatMembers, ...pendingChatMembers];
 }
 
 /**
@@ -3829,16 +3839,19 @@ function buildOptimisticWorkspaceChats(policyID: string, policyName: string): Op
     const announceReportActionData = {
         [announceCreatedAction.reportActionID]: announceCreatedAction,
     };
-
-    const adminsChatData = buildOptimisticChatReport(
-        [currentUserAccountID ?? -1],
-        CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
-        CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
-        policyID,
-        CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
-        false,
-        policyName,
-    );
+    const pendingChatMembers = getPendingChatMembers(currentUserAccountID ? [currentUserAccountID] : [], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    const adminsChatData = {
+        ...buildOptimisticChatReport(
+            [currentUserAccountID ?? -1],
+            CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
+            CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+            policyID,
+            CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
+            false,
+            policyName,
+        ),
+        pendingChatMembers,
+    };
     const adminsChatReportID = adminsChatData.reportID;
     const adminsCreatedAction = buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
     const adminsReportActionData = {
@@ -5160,8 +5173,8 @@ function getAllAncestorReportActionIDs(report: Report | null | undefined): Ances
     return allAncestorIDs;
 }
 
-function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = null): boolean {
-    if (!policy) {
+function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | EmptyObject): boolean {
+    if (isEmptyObject(policy)) {
         return false;
     }
     type CurrencyType = (typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES)[number];
@@ -5355,7 +5368,7 @@ export {
     getIOUReportActionDisplayMessage,
     isWaitingForAssigneeToCompleteTask,
     isGroupChat,
-    isDraftExpenseReport,
+    isOpenExpenseReport,
     shouldUseFullTitleToDisplay,
     parseReportRouteParams,
     getReimbursementQueuedActionMessage,
@@ -5388,6 +5401,7 @@ export {
     getAvailableReportFields,
     reportFieldsEnabled,
     getAllAncestorReportActionIDs,
+    getPendingChatMembers,
     canEditRoomVisibility,
     canEditPolicyDescription,
     getPolicyDescriptionText,
