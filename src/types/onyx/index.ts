@@ -37,6 +37,7 @@ import type {TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
 import type PolicyJoinMember from './PolicyJoinMember';
 import type {PolicyMembers} from './PolicyMember';
+import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type PolicyMember from './PolicyMember';
 import type {PolicyReportField, PolicyReportFields} from './PolicyReportField';
 import type {PolicyTag, PolicyTagList, PolicyTags} from './PolicyTag';
@@ -111,6 +112,7 @@ export type {
     PolicyCategory,
     PolicyMember,
     PolicyMembers,
+    PolicyOwnershipChangeChecks,
     PolicyTag,
     PolicyTags,
     PolicyTagList,
