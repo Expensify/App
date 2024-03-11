@@ -1,4 +1,6 @@
-  specs:
+GEM	
+  remote: https://rubygems.org/
+specs:
     CFPropertyList (3.0.6)
       rexml
     activesupport (7.0.8)
@@ -278,12 +280,14 @@ PLATFORMS
   universal-darwin-20
   x86_64-darwin-19
   x86_64-linux
+
 DEPENDENCIES
   activesupport (>= 6.1.7.3, < 7.1.0)
   cocoapods (~> 1.13)
   fastlane (~> 2)
   fastlane-plugin-aws_s3
   xcpretty (~> 0)
+
 RUBY VERSION
    ruby 2.6.10p210
 
