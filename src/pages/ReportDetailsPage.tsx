@@ -68,7 +68,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(report?.policyID ?? '', policies), [report?.policyID, policies]);
     const shouldUseFullTitle = useMemo(() => ReportUtils.shouldUseFullTitleToDisplay(report), [report]);
     const isChatRoom = useMemo(() => ReportUtils.isChatRoom(report), [report]);
-    const isThread = useMemo(() => ReportUtils.isChatThread(report), [report]);
     const isUserCreatedPolicyRoom = useMemo(() => ReportUtils.isUserCreatedPolicyRoom(report), [report]);
     const isDefaultRoom = useMemo(() => ReportUtils.isDefaultRoom(report), [report]);
     const isChatThread = useMemo(() => ReportUtils.isChatThread(report), [report]);
@@ -135,7 +134,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 subtitle: participants.length,
                 isAnonymousAction: false,
                 action: () => {
-                    if (isUserCreatedPolicyRoom || ReportUtils.isChatThread(report)) {
+                    if (isUserCreatedPolicyRoom || isChatThread) {
                         Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? ''));
                     } else {
                         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? ''));
@@ -168,7 +167,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         });
 
         // Prevent displaying private notes option for threads and task reports
-        if (!isThread && !isMoneyRequestReport && !ReportUtils.isTaskReport(report)) {
+        if (!isChatThread && !isMoneyRequestReport && !ReportUtils.isTaskReport(report)) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.PRIVATE_NOTES,
                 translationKey: 'privateNotes.title',
@@ -180,7 +179,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         }
 
         return items;
-    }, [isArchivedRoom, participants.length, isThread, isMoneyRequestReport, report, isGroupDMChat, isPolicyMember, isUserCreatedPolicyRoom, session, isSelfDM]);
+    }, [isArchivedRoom, participants.length, isChatThread, isMoneyRequestReport, report, isGroupDMChat, isPolicyMember, isUserCreatedPolicyRoom, session, isSelfDM]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
@@ -228,8 +227,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                                     fullTitle={ReportUtils.getReportName(report)}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
-                                    numberOfLines={isChatRoom && !isThread ? 0 : 1}
-                                    textStyles={[styles.textHeadline, styles.textAlignCenter, isChatRoom && !isThread ? undefined : styles.pre]}
+                                    numberOfLines={isChatRoom && !isChatThread ? 0 : 1}
+                                    textStyles={[styles.textHeadline, styles.textAlignCenter, isChatRoom && !isChatThread ? undefined : styles.pre]}
                                     shouldUseFullTitle={shouldUseFullTitle}
                                 />
                             </View>
