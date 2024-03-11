@@ -256,6 +256,7 @@ type ProfileNavigatorParamList = {
     [SCREENS.PROFILE_ROOT]: {
         accountID: string;
         reportID: string;
+        backTo: Routes;
     };
 };
 
