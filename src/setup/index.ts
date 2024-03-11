@@ -3,7 +3,6 @@ import Onyx from 'react-native-onyx';
 import intlPolyfill from '@libs/IntlPolyfill';
 import * as Metrics from '@libs/Metrics';
 import * as Device from '@userActions/Device';
-import exposeGlobalMemoryOnlyKeysMethods from '@userActions/MemoryOnlyKeys/exposeGlobalMemoryOnlyKeysMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import addUtilsToWindow from './addUtilsToWindow';
@@ -46,8 +45,6 @@ export default function () {
             [ONYXKEYS.LAST_VISITED_PATH]: initializeLastVisitedPath(),
         },
     });
-
-    exposeGlobalMemoryOnlyKeysMethods();
 
     Device.setDeviceID();
 
