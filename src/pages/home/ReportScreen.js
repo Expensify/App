@@ -409,10 +409,9 @@ function ReportScreen({
         if (!isFocused || !ReportUtils.isChatThread(report) || report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
             return;
         }
-    
+
         Report.openReport(report.reportID);
     }, [isFocused, report]);
-    
 
     useEffect(() => {
         // We don't want this effect to run on the first render.
