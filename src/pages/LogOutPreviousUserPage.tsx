@@ -34,7 +34,7 @@ function LogOutPreviousUserPage({session, route, isAccountLoading}: LogOutPrevio
     const initialURL = useContext(InitialURLContext);
     useEffect(() => {
         const sessionEmail = session?.email;
-        const transitionURL = NativeModules.HybridAppModule ? `${CONST.DEEPLINK_BASE_URL}${initialURL}` : initialURL;
+        const transitionURL = NativeModules.HybridAppModule ? `${CONST.DEEPLINK_BASE_URL}${initialURL ?? ''}` : initialURL;
         const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL ?? undefined, sessionEmail);
         const isSupportalLogin = route.params.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 
