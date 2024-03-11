@@ -14,7 +14,7 @@ import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
-import type {RootStackParamList} from '@libs/Navigation/types';
+import type {CentralPaneNavigatorParamList, RootStackParamList} from '@libs/Navigation/types';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import CustomDevMenu from './CustomDevMenu';
@@ -25,7 +25,7 @@ import SafeAreaConsumer from './SafeAreaConsumer';
 import TestToolsModal from './TestToolsModal';
 
 type ChildrenProps = {
-    insets?: EdgeInsets;
+    insets: EdgeInsets;
     safeAreaPaddingBottomStyle?: {
         paddingBottom?: DimensionValue;
     };
@@ -83,13 +83,16 @@ type ScreenWrapperProps = {
     /** Whether to avoid scroll on virtual viewport */
     shouldAvoidScrollOnVirtualViewport?: boolean;
 
+    /** Whether to use cached virtual viewport height  */
+    shouldUseCachedViewportHeight?: boolean;
+
     /**
      * The navigation prop is passed by the navigator. It is used to trigger the onEntryTransitionEnd callback
      * when the screen transition ends.
      *
      * This is required because transitionEnd event doesn't trigger in the testing environment.
      */
-    navigation?: StackNavigationProp<RootStackParamList>;
+    navigation?: StackNavigationProp<RootStackParamList> | StackNavigationProp<CentralPaneNavigatorParamList>;
 
     /** Whether to show offline indicator on wide screens */
     shouldShowOfflineIndicatorInWideScreen?: boolean;
@@ -115,6 +118,7 @@ function ScreenWrapper(
         navigation: navigationProp,
         shouldAvoidScrollOnVirtualViewport = true,
         shouldShowOfflineIndicatorInWideScreen = false,
+        shouldUseCachedViewportHeight = false,
     }: ScreenWrapperProps,
     ref: ForwardedRef<View>,
 ) {
@@ -127,7 +131,7 @@ function ScreenWrapper(
      */
     const navigationFallback = useNavigation<StackNavigationProp<RootStackParamList>>();
     const navigation = navigationProp ?? navigationFallback;
-    const {windowHeight, isSmallScreenWidth} = useWindowDimensions(shouldEnableMaxHeight);
+    const {windowHeight, isSmallScreenWidth} = useWindowDimensions(shouldUseCachedViewportHeight);
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
     const keyboardState = useKeyboardState();
@@ -201,7 +205,17 @@ function ScreenWrapper(
 
     return (
         <SafeAreaConsumer>
-            {({insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle}) => {
+            {({
+                insets = {
+                    top: 0,
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                },
+                paddingTop,
+                paddingBottom,
+                safeAreaPaddingBottomStyle,
+            }) => {
                 const paddingStyle: StyleProp<ViewStyle> = {};
 
                 if (includePaddingTop) {
@@ -218,7 +232,7 @@ function ScreenWrapper(
                         ref={ref}
                         style={[styles.flex1, {minHeight}]}
                         // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...(isDevelopment ? panResponder.panHandlers : {})}
+                        {...panResponder.panHandlers}
                         testID={testID}
                     >
                         <View
@@ -236,7 +250,7 @@ function ScreenWrapper(
                                     enabled={shouldEnablePickerAvoiding}
                                 >
                                     <HeaderGap styles={headerGapStyles} />
-                                    {isDevelopment && <TestToolsModal />}
+                                    <TestToolsModal />
                                     {isDevelopment && <CustomDevMenu />}
                                     {
                                         // If props.children is a function, call it to provide the insets to the children.

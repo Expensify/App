@@ -1,9 +1,9 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import CONST from '../../src/CONST';
-import * as App from '../../src/libs/actions/App';
 import OnyxUpdateManager from '../../src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
+import * as PersonalDetails from '../../src/libs/actions/PersonalDetails';
 import * as Session from '../../src/libs/actions/Session';
 import HttpUtils from '../../src/libs/HttpUtils';
 import Log from '../../src/libs/Log';
@@ -101,8 +101,7 @@ describe('NetworkTests', () => {
                 );
 
             // This should first trigger re-authentication and then a Failed to fetch
-            App.confirmReadyToOpenApp();
-            App.openApp();
+            PersonalDetails.openPersonalDetails();
             return waitForBatchedUpdates()
                 .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
                 .then(() => {
@@ -113,11 +112,11 @@ describe('NetworkTests', () => {
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
-                    // Then we will eventually have 3 calls to chatList and 2 calls to Authenticate
-                    const callsToOpenApp = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'OpenApp');
+                    // Then we will eventually have 1 call to OpenPersonalDetailsPage and 1 calls to Authenticate
+                    const callsToOpenPersonalDetails = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'OpenPersonalDetailsPage');
                     const callsToAuthenticate = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'Authenticate');
 
-                    expect(callsToOpenApp.length).toBe(1);
+                    expect(callsToOpenPersonalDetails.length).toBe(1);
                     expect(callsToAuthenticate.length).toBe(1);
                 });
         });
@@ -137,7 +136,7 @@ describe('NetworkTests', () => {
                 HttpUtils.xhr = jest.fn();
                 HttpUtils.xhr
 
-                    // And mock the first call to OpenApp return with an expired session code
+                    // And mock the first call to openPersonalDetails return with an expired session code
                     .mockImplementationOnce(() =>
                         Promise.resolve({
                             jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
@@ -165,20 +164,20 @@ describe('NetworkTests', () => {
                         }),
                     );
 
-                // And then make 3 API requests in quick succession with an expired authToken and handle the response
+                // And then make 3 API READ requests in quick succession with an expired authToken and handle the response
                 // It doesn't matter which requests these are really as all the response is mocked we just want to see
                 // that we get re-authenticated
-                App.openApp();
-                App.openApp();
-                App.openApp();
+                PersonalDetails.openPersonalDetails();
+                PersonalDetails.openPersonalDetails();
+                PersonalDetails.openPersonalDetails();
                 return waitForBatchedUpdates();
             })
             .then(() => {
                 // We should expect to see the three calls to OpenApp, but only one call to Authenticate.
                 // And we should also see the reconnection callbacks triggered.
-                const callsToOpenApp = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'OpenApp');
+                const callsToOpenPersonalDetails = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'OpenPersonalDetailsPage');
                 const callsToAuthenticate = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'Authenticate');
-                expect(callsToOpenApp.length).toBe(3);
+                expect(callsToOpenPersonalDetails.length).toBe(3);
                 expect(callsToAuthenticate.length).toBe(1);
                 expect(reconnectionCallbacksSpy.mock.calls.length).toBe(3);
             });

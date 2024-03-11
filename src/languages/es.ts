@@ -25,6 +25,7 @@ import type {
     FormattedMaxLengthParams,
     GoBackMessageParams,
     GoToRoomParams,
+    HeldRequestParams,
     InstantSummaryParams,
     LocalTimeParams,
     LoggedInAsParams,
@@ -110,6 +111,7 @@ export default {
         no: 'No',
         ok: 'OK',
         buttonConfirm: 'Ok, entendido',
+        name: 'Nombre',
         attachment: 'Archivo adjunto',
         to: 'A',
         optional: 'Opcional',
@@ -194,6 +196,7 @@ export default {
         iAcceptThe: 'Acepto los ',
         remove: 'Eliminar',
         admin: 'Administrador',
+        owner: 'Dueño',
         dateFormat: 'AAAA-MM-DD',
         send: 'Enviar',
         notifications: 'Notificaciones',
@@ -212,6 +215,7 @@ export default {
             acceptTerms: 'Debes aceptar los Términos de Servicio para continuar',
             phoneNumber: `Introduce un teléfono válido, incluyendo el código del país (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Este campo es obligatorio.',
+            requestModified: 'Esta solicitud está siendo modificada por otro miembro.',
             characterLimit: ({limit}: CharacterLimitParams) => `Supera el límite de ${limit} caracteres`,
             characterLimitExceedCounter: ({length, limit}) => `Se superó el límite de caracteres (${length}/${limit})`,
             dateInvalid: 'Por favor, selecciona una fecha válida',
@@ -297,6 +301,8 @@ export default {
         of: 'de',
         default: 'Predeterminado',
         update: 'Actualizar',
+        member: 'Miembro',
+        role: 'Role',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -322,9 +328,10 @@ export default {
         sizeExceeded: 'El archivo adjunto supera el límite de 24 MB.',
         attachmentTooSmall: 'Archivo adjunto demasiado pequeño',
         sizeNotMet: 'El archivo adjunto debe ser más grande que 240 bytes.',
-        wrongFileType: 'El tipo de archivo adjunto es incorrecto',
-        notAllowedExtension: 'Este tipo de archivo no está permitido',
+        wrongFileType: 'Tipo de archivo inválido',
+        notAllowedExtension: 'Este tipo de archivo no es compatible',
         folderNotAllowedMessage: 'Subir una carpeta no está permitido. Prueba con otro archivo.',
+        protectedPDFNotSupported: 'Los PDFs con contraseña no son compatibles',
     },
     avatarCropModal: {
         title: 'Editar foto',
@@ -480,8 +487,10 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartOne: '¡La colaboración entre ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' y ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! 🎉 Este es el lugar donde chatear, pedir dinero y pagar.',
+        beginningOfChatHistorySelfDM: 'Este es tu espacio personal. Úsalo para notas, tareas, borradores y recordatorios.',
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
         sayHello: '¡Saluda!',
+        yourSpace: 'Tu espacio',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `¡Bienvenido a ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `\n¡También puedes usar el botón + de abajo para ${additionalText}, o asignar una tarea!`,
         iouTypes: {
@@ -592,8 +601,10 @@ export default {
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
         receiptScanningFailed: 'El escaneo de recibo ha fallado. Introduce los detalles manualmente.',
         transactionPendingText: 'La transacción tarda unos días en contabilizarse desde la fecha en que se utilizó la tarjeta.',
-        requestCount: ({count, scanningReceipts = 0}: RequestCountParams) =>
-            `${count} ${Str.pluralize('solicitude', 'solicitudes', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}`,
+        requestCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) =>
+            `${count} ${Str.pluralize('solicitude', 'solicitudes', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${
+                pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''
+            }`,
         deleteRequest: 'Eliminar solicitud',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar esta solicitud?',
         settledExpensify: 'Pagado',
@@ -620,7 +631,7 @@ export default {
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
         adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager} canceló el pago de ${amount}.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
-            `Canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó su billetera Expensify en un plazo de 30 días.`,
+            `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó su billetera Expensify en un plazo de 30 días.`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
         paidElsewhereWithAmount: ({payer, amount}: PaidElsewhereWithAmountParams) => `${payer ? `${payer} ` : ''}pagó ${amount} de otra forma`,
@@ -660,14 +671,28 @@ export default {
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Inició el pago, pero no se procesará hasta que ${submitterDisplayName} active su Billetera`,
         enableWallet: 'Habilitar Billetera',
-        hold: 'Hold',
-        holdEducationalTitle: 'Esta solicitud está en',
-        whatIsHoldTitle: '¿Qué es Hold?',
-        whatIsHoldExplain: 'Hold es nuestra forma de agilizar la colaboración financiera. ¡"Rechazar" es tan duro!',
-        holdIsTemporaryTitle: 'Hold suele ser temporal',
-        holdIsTemporaryExplain: 'Debido a que hold se utiliza para aclarar confusión o aclarar un detalle importante antes del pago, no es permanente.',
+        holdRequest: 'Bloquear solicitud',
+        unholdRequest: 'Desbloquear solicitud',
+        heldRequest: ({comment}: HeldRequestParams) => `bloqueó esta solicitud con el comentario: ${comment}`,
+        unheldRequest: 'desbloqueó esta solicitud',
+        explainHold: 'Explica la razón para bloquear esta solicitud.',
+        reason: 'Razón',
+        holdReasonRequired: 'Se requiere una razón para bloquear.',
+        requestOnHold: 'Este solicitud está bloqueada. Revisa los comentarios para saber como proceder.',
+        confirmApprove: 'Confirma que quieres aprobar',
+        confirmApprovalAmount: 'Aprobar el total o solo la parte no bloqueada.',
+        confirmPay: 'Confirma que quieres pagar',
+        confirmPayAmount: 'Pagar todos los gastos por cuenta propia o solo el monto no bloqueado.',
+        payOnly: 'Solo pagar',
+        approveOnly: 'Solo aprobar',
+        hold: 'Bloqueada',
+        holdEducationalTitle: 'Esta solicitud está',
+        whatIsHoldTitle: '¿Qué es Bloquear?',
+        whatIsHoldExplain: 'Bloquear es nuestra forma de agilizar la colaboración financiera. ¡"Rechazar" es tan duro!',
+        holdIsTemporaryTitle: 'Bloquear suele ser temporal',
+        holdIsTemporaryExplain: 'Se utiliza bloquear para aclarar confusión o aclarar un detalle importante antes del pago, no es permanente.',
         deleteHoldTitle: 'Eliminar lo que no se pagará',
-        deleteHoldExplain: 'En el raro caso de que algo se ponga en hold y no se pague, la persona que solicita el pago debe eliminarlo.',
+        deleteHoldExplain: 'En el raro caso de que algo se bloquear y no se pague, la persona que solicita el pago debe eliminarlo.',
         set: 'estableció',
         changed: 'cambió',
         removed: 'eliminó',
@@ -728,11 +753,6 @@ export default {
     shareCodePage: {
         title: 'Tu código',
         subtitle: 'Invita a miembros a Expensify compartiendo tu código QR personal o enlace de invitación.',
-    },
-    loungeAccessPage: {
-        loungeAccess: 'Acceso a la sala vip',
-        headline: 'La sala vip de Expensify está cerrada.',
-        description: 'La sala vip de Expensify está actualmente cerrada, pero actualizaremos esta página cuando vuelva a abrir.',
     },
     pronounsPage: {
         pronouns: 'Pronombres',
@@ -842,10 +862,10 @@ export default {
             logSizeTooLarge: ({size}: LogSizeParams) => `El tamaño del registro excede el límite de ${size} MB. Utilice "Guardar registro" para descargar el archivo de registro.`,
         },
         security: 'Seguridad',
+        restoreStashed: 'Restablecer login guardado',
         signOut: 'Desconectar',
         signOutConfirmationText: 'Si cierras sesión perderás los cambios hechos mientras estabas desconectado',
         versionLetter: 'v',
-        goToExpensifyClassic: 'Ir a Expensify Classic',
         readTheTermsAndPrivacy: {
             phrase1: 'Leer los',
             phrase2: 'Términos de Servicio',
@@ -1011,6 +1031,39 @@ export default {
             updateAddress: 'Actualizar dirección',
         },
         cardDetailsLoadingFailure: 'Se ha producido un error al cargar los datos de la tarjeta. Comprueba tu conexión a Internet e inténtalo de nuevo.',
+    },
+    workflowsPage: {
+        workflowTitle: 'Gasto',
+        workflowDescription: 'Configure un flujo de trabajo desde el momento en que se produce el gasto, incluida la aprobación y el pago',
+        delaySubmissionTitle: 'Retrasar envíos',
+        delaySubmissionDescription: 'Los gastos se comparten de inmediato para una mejor visibilidad del gasto. Establece una cadencia más lenta si es necesario.',
+        submissionFrequency: 'Frecuencia de envíos',
+        submissionFrequencyDateOfMonth: 'Fecha del mes',
+        addApprovalsTitle: 'Requerir aprobaciones',
+        approver: 'Aprobador',
+        connectBankAccount: 'Conectar cuenta bancaria',
+        addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
+        makeOrTrackPaymentsTitle: 'Realizar o seguir pagos',
+        makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify, o simplemente realiza un seguimiento de los pagos realizados en otro lugar.',
+        editor: {
+            submissionFrequency: 'Elige cuánto tiempo Expensify debe esperar antes de compartir los gastos sin errores.',
+        },
+        frequencies: {
+            weekly: 'Semanal',
+            monthly: 'Mensual',
+            twiceAMonth: 'Dos veces al mes',
+            byTrip: 'Por viaje',
+            manually: 'Manualmente',
+            daily: 'Diaria',
+            lastDayOfMonth: 'Último día del mes',
+            lastBusinessDayOfMonth: 'Último día hábil del mes',
+            ordinals: {
+                one: '.º',
+                two: '.º',
+                few: '.º',
+                other: '.º',
+            },
+        },
     },
     reportFraudPage: {
         title: 'Reportar fraude con la tarjeta virtual',
@@ -1259,7 +1312,8 @@ export default {
     },
     focusModeUpdateModal: {
         title: '¡Bienvenido al modo #concentración!',
-        prompt: 'Los mensajes leídos se ocultarán, a menos que tengan un punto verde, lo que significa que tienes que tomar una acción en ellos. Puedes cambiar esto en la configuración de tu cuenta ',
+        prompt: 'Mantente al tanto de todo viendo sólo los chats no leídos o los que necesitan tu atención. No te preocupes, puedes cambiar el ajuste en cualquier momento desde la ',
+        settings: 'configuración',
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'El chat que estás buscando no se pudo encontrar.',
@@ -1693,11 +1747,16 @@ export default {
     workspace: {
         common: {
             card: 'Tarjetas',
+            workflows: 'Flujos de trabajo',
             workspace: 'Espacio de trabajo',
             edit: 'Editar espacio de trabajo',
+            enabled: 'Activada',
+            disabled: 'Desactivada',
             delete: 'Eliminar espacio de trabajo',
             settings: 'Configuración',
             reimburse: 'Reembolsos',
+            categories: 'Categorías',
+            tags: 'Etiquetas',
             bills: 'Pagar facturas',
             invoices: 'Enviar facturas',
             travel: 'Viajes',
@@ -1720,11 +1779,81 @@ export default {
             workspaceType: 'Tipo de espacio de trabajo',
             workspaceAvatar: 'Espacio de trabajo avatar',
             mustBeOnlineToViewMembers: 'Debes estar en línea para poder ver los miembros de este espacio de trabajo.',
+            moreFeatures: 'Más características',
+            requested: 'Solicitado',
+            distanceRates: 'Tasas de distancia',
+            selected: ({selectedNumber}) => `${selectedNumber} seleccionados`,
         },
         type: {
             free: 'Gratis',
             control: 'Control',
             collect: 'Recolectar',
+        },
+        categories: {
+            categoryName: 'Nombre de la categoría',
+            requiresCategory: 'Los miembros deben categorizar todos los gastos',
+            enableCategory: 'Activar categoría',
+            subtitle: 'Obtén una visión general de dónde te gastas el dinero. Utiliza las categorías predeterminadas o añade las tuyas propias.',
+            emptyCategories: {
+                title: 'No has creado ninguna categoría',
+                subtitle: 'Añade una categoría para organizar tu gasto.',
+            },
+            genericFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
+            addCategory: 'Añadir categoría',
+            categoryRequiredError: 'Lo nombre de la categoría es obligatorio.',
+            existingCategoryError: 'Ya existe una categoría con este nombre.',
+            invalidCategoryName: 'Lo nombre de la categoría es invalido.',
+        },
+        moreFeatures: {
+            spendSection: {
+                title: 'Gasto',
+                subtitle: 'Habilita otras funcionalidades que ayudan a aumentar tu equipo.',
+            },
+            organizeSection: {
+                title: 'Organizar',
+                subtitle: 'Agrupa y analiza el gasto, registra cada impuesto pagado.',
+            },
+            integrateSection: {
+                title: 'Integrar',
+                subtitle: 'Conecta Expensify a otros productos financieros populares.',
+            },
+            distanceRates: {
+                title: 'Tasas de distancia',
+                subtitle: 'Añade, actualiza y haz cumplir las tasas.',
+            },
+            workflows: {
+                title: 'Flujos de trabajo',
+                subtitle: 'Configura cómo se aprueba y paga los gastos.',
+            },
+            categories: {
+                title: 'Categorías',
+                subtitle: 'Monitoriza y organiza los gastos.',
+            },
+            tags: {
+                title: 'Etiquetas',
+                subtitle: 'Añade formas adicionales de clasificar los gastos.',
+            },
+            taxes: {
+                title: 'Impuestos',
+                subtitle: 'Documenta y reclama los impuestos aplicables.',
+            },
+            reportFields: {
+                title: 'Campos de informes',
+                subtitle: 'Configura campos personalizados para los gastos.',
+            },
+            connections: {
+                title: 'Conexión',
+                subtitle: 'Sincroniza tu plan de cuentas y otras opciones.',
+            },
+        },
+        tags: {
+            requiresTag: 'Los miembros deben etiquetar todos los gastos',
+            enableTag: 'Habilitar etiqueta',
+            subtitle: 'Las etiquetas añaden formas más detalladas de clasificar los costos.',
+            emptyTags: {
+                title: 'No has creado ninguna etiqueta',
+                subtitle: 'Añade una etiqueta para realizar el seguimiento de proyectos, ubicaciones, departamentos y otros.',
+            },
         },
         emptyWorkspace: {
             title: 'Crea un espacio de trabajo',
@@ -1749,8 +1878,13 @@ export default {
         },
         people: {
             genericFailureMessage: 'Se ha producido un error al intentar eliminar a un usuario del espacio de trabajo. Por favor, inténtalo más tarde.',
-            removeMembersPrompt: '¿Estás seguro que quieres eliminar a los miembros seleccionados de tu espacio de trabajo?',
+            removeMembersPrompt: '¿Estás seguro de que deseas eliminar a estos miembros?',
             removeMembersTitle: 'Eliminar miembros',
+            removeMemberButtonTitle: 'Quitar del espacio de trabajo',
+            removeMemberPrompt: ({memberName}) => `¿Estás seguro de que deseas eliminar a ${memberName}`,
+            removeMemberTitle: 'Eliminar miembro',
+            makeMember: 'Hacer miembro',
+            makeAdmin: 'Hacer administrador',
             selectAll: 'Seleccionar todo',
             error: {
                 genericAdd: 'Ha ocurrido un problema al añadir el miembro al espacio de trabajo.',
@@ -1759,6 +1893,7 @@ export default {
             },
             addedWithPrimary: 'Se agregaron algunos usuarios con sus nombres de usuario principales.',
             invitedBySecondaryLogin: ({secondaryLogin}) => `Agregado por nombre de usuario secundario ${secondaryLogin}.`,
+            membersListTitle: 'Directorio de todos los miembros del espacio de trabajo.',
         },
         card: {
             header: 'Desbloquea Tarjetas Expensify gratis',
@@ -1843,6 +1978,23 @@ export default {
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
+        },
+        distanceRates: {
+            oopsNotSoFast: 'Ups! No tan rápido...',
+            workspaceNeeds: 'Un espacio de trabajo necesita al menos una tasa de distancia activa.',
+            distance: 'Distancia',
+            centrallyManage: 'Gestiona centralizadamente las tasas, elige si contabilizar en millas o kilómetros, y define una categoría por defecto',
+            rate: 'Tasa',
+            addRate: 'Agregar tasa',
+            deleteRate: 'Eliminar tasa',
+            deleteRates: 'Eliminar tasas',
+            enableRate: 'Activar tasa',
+            disableRate: 'Desactivar tasa',
+            disableRates: 'Desactivar tasas',
+            enableRates: 'Activar tasas',
+            status: 'Estado',
+            enabled: 'Activada',
+            disabled: 'Desactivada',
         },
         editor: {
             nameInputLabel: 'Nombre',
@@ -2602,6 +2754,7 @@ export default {
         viewAttachment: 'Ver archivo adjunto',
     },
     parentReportAction: {
+        deletedReport: '[Informe eliminado]',
         deletedMessage: '[Mensaje eliminado]',
         deletedRequest: '[Solicitud eliminada]',
         reversedTransaction: '[Transacción anulada]',
@@ -2613,7 +2766,7 @@ export default {
         reply: 'Respuesta',
         from: 'De',
         in: 'en',
-        parentNavigationSummary: ({rootReportName, workspaceName}: ParentNavigationSummaryParams) => `De ${rootReportName}${workspaceName ? ` en ${workspaceName}` : ''}`,
+        parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `De ${reportName}${workspaceName ? ` en ${workspaceName}` : ''}`,
     },
     qrCodes: {
         copy: 'Copiar URL',
@@ -2622,6 +2775,10 @@ export default {
     actionableMentionWhisperOptions: {
         invite: 'Invitar',
         nothing: 'No hacer nada',
+    },
+    actionableMentionJoinWorkspaceOptions: {
+        accept: 'Aceptar',
+        decline: 'Rechazar',
     },
     moderation: {
         flagDescription: 'Todos los mensajes marcados se enviarán a un moderador para su revisión.',
@@ -2681,7 +2838,6 @@ export default {
         address: 'Dirección',
         waypointDescription: {
             start: 'Comienzo',
-            finish: 'Final',
             stop: 'Parada',
         },
         mapPending: {
@@ -2782,7 +2938,7 @@ export default {
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Fecha de más de ${maxAge} días`,
         missingCategory: 'Falta categoría',
         missingComment: 'Descripción obligatoria para la categoría seleccionada',
-        missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Falta ${tagName ?? 'etiqueta'}`,
+        missingTag: ({tagName}: ViolationsMissingTagParams) => `Falta ${tagName ?? 'etiqueta'}`,
         modifiedAmount: 'Importe superior al del recibo escaneado',
         modifiedDate: 'Fecha difiere del recibo escaneado',
         nonExpensiworksExpense: 'Gasto no proviene de Expensiworks',
@@ -2793,8 +2949,9 @@ export default {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Importe supera el límite diario de la categoría${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         receiptNotSmartScanned: 'Recibo no verificado. Por favor, confirma su exactitud',
-        receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams = {}) =>
-            `Recibo obligatorio${formattedLimit ? ` para importes sobre ${category ? 'el limite de la categoría de ' : ''}${formattedLimit}` : ''}`,
+        receiptRequired: (params: ViolationsReceiptRequiredParams) =>
+            `Recibo obligatorio${params ? ` para importes sobre${params.formattedLimit ? ` ${params.formattedLimit}` : ''}${params.category ? ' el límite de la categoría' : ''}` : ''}`,
+        reviewRequired: 'Revisión requerida',
         rter: ({brokenBankConnection, isAdmin, email, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {
             if (brokenBankConnection) {
                 return isAdmin
@@ -2809,7 +2966,7 @@ export default {
             return '';
         },
         smartscanFailed: 'No se pudo escanear el recibo. Introduce los datos manualmente',
-        someTagLevelsRequired: 'Falta etiqueta',
+        someTagLevelsRequired: ({tagName}: ViolationsTagOutOfPolicyParams) => `Falta ${tagName ?? 'Tag'}`,
         tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `La etiqueta ${tagName ? `${tagName} ` : ''}ya no es válida`,
         taxAmountChanged: 'El importe del impuesto fue modificado',
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'El impuesto'} ya no es válido`,
@@ -2824,5 +2981,29 @@ export default {
         expand: 'Expandir',
         mute: 'Silenciar',
         unmute: 'Activar sonido',
+    },
+    exitSurvey: {
+        header: 'Antes de irte',
+        reasonPage: {
+            title: 'Dinos por qué te vas',
+            subtitle: 'Antes de irte, por favor dinos por qué te gustaría cambiarte a Expensify Classic.',
+        },
+        reasons: {
+            [CONST.EXIT_SURVEY.REASONS.FEATURE_NOT_AVAILABLE]: 'Necesito una función que sólo está disponible en Expensify Classic.',
+            [CONST.EXIT_SURVEY.REASONS.DONT_UNDERSTAND]: 'No entiendo cómo usar New Expensify.',
+            [CONST.EXIT_SURVEY.REASONS.PREFER_CLASSIC]: 'Entiendo cómo usar New Expensify, pero prefiero Expensify Classic.',
+        },
+        prompts: {
+            [CONST.EXIT_SURVEY.REASONS.FEATURE_NOT_AVAILABLE]: '¿Qué función necesitas que no esté disponible en New Expensify?',
+            [CONST.EXIT_SURVEY.REASONS.DONT_UNDERSTAND]: '¿Qué estás tratando de hacer?',
+            [CONST.EXIT_SURVEY.REASONS.PREFER_CLASSIC]: '¿Por qué prefieres Expensify Classic?',
+        },
+        responsePlaceholder: 'Su respuesta',
+        thankYou: '¡Gracias por tus comentarios!',
+        thankYouSubtitle: 'Sus respuestas nos ayudarán a crear un mejor producto para hacer las cosas bien. ¡Muchas gracias!',
+        goToExpensifyClassic: 'Cambiar a Expensify Classic',
+        offlineTitle: 'Parece que estás atrapado aquí...',
+        offline:
+            'Parece que estás desconectado. Desafortunadamente, Expensify Classic no funciona sin conexión, pero New Expensify sí. Si prefieres utilizar Expensify Classic, inténtalo de nuevo cuando tengas conexión a internet.',
     },
 } satisfies EnglishTranslation;

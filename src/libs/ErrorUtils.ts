@@ -3,6 +3,7 @@ import CONST from '@src/CONST';
 import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type Response from '@src/types/onyx/Response';
+import type {ReceiptError} from '@src/types/onyx/Transaction';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 
@@ -150,15 +151,34 @@ function addErrorMessage<TKey extends TranslationPaths>(errors: Errors, inputID?
     }
 }
 
+/**
+ * Check if the error includes a receipt.
+ */
+function isReceiptError(message: unknown): message is ReceiptError {
+    if (typeof message === 'string') {
+        return false;
+    }
+    if (Array.isArray(message)) {
+        return false;
+    }
+    if (Object.keys(message as Record<string, unknown>).length === 0) {
+        return false;
+    }
+    return ((message as Record<string, unknown>)?.error ?? '') === CONST.IOU.RECEIPT_ERROR;
+}
+
 export {
+    addErrorMessage,
     getAuthenticateErrorMessage,
-    getMicroSecondOnyxError,
-    getMicroSecondOnyxErrorObject,
-    getLatestErrorMessage,
-    getLatestErrorField,
     getEarliestErrorField,
     getErrorMessageWithTranslationData,
     getErrorsWithTranslationData,
-    addErrorMessage,
+    getLatestErrorField,
+    getLatestErrorMessage,
     getLatestErrorMessageField,
+    getMicroSecondOnyxError,
+    getMicroSecondOnyxErrorObject,
+    isReceiptError,
 };
+
+export type {OnyxDataWithErrors};

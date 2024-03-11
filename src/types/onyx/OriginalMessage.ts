@@ -11,6 +11,8 @@ type OriginalMessageActionName =
     | 'CHRONOSOOOLIST'
     | 'CLOSED'
     | 'CREATED'
+    | 'HOLD'
+    | 'UNHOLD'
     | 'IOU'
     | 'MODIFIEDEXPENSE'
     | 'REIMBURSEMENTQUEUED'
@@ -21,6 +23,7 @@ type OriginalMessageActionName =
     | 'TASKCOMPLETED'
     | 'TASKEDITED'
     | 'TASKREOPENED'
+    | 'ACTIONABLEJOINREQUEST'
     | 'ACTIONABLEMENTIONWHISPER'
     | ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
 type OriginalMessageApproved = {
@@ -28,6 +31,16 @@ type OriginalMessageApproved = {
     originalMessage: unknown;
 };
 type OriginalMessageSource = 'Chronos' | 'email' | 'ios' | 'android' | 'web' | '';
+
+type OriginalMessageHold = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.HOLD;
+    originalMessage: unknown;
+};
+
+type OriginalMessageUnHold = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.UNHOLD;
+    originalMessage: unknown;
+};
 
 type IOUDetails = {
     amount: number;
@@ -207,6 +220,17 @@ type OriginalMessagePolicyChangeLog = {
     originalMessage: ChangeLog;
 };
 
+type OriginalMessageJoinPolicyChangeLog = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLEJOINREQUEST;
+    originalMessage: {
+        choice: string;
+        email: string;
+        inviterEmail: string;
+        lastModified: string;
+        policyID: string;
+    };
+};
+
 type OriginalMessageRoomChangeLog = {
     actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG>;
     originalMessage: ChangeLog;
@@ -246,7 +270,9 @@ type OriginalMessageModifiedExpense = {
 
 type OriginalMessageReimbursementQueued = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED;
-    originalMessage: unknown;
+    originalMessage: {
+        paymentType: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+    };
 };
 
 type OriginalMessageReimbursementDequeued = {
@@ -274,12 +300,15 @@ type OriginalMessage =
     | OriginalMessageSubmitted
     | OriginalMessageClosed
     | OriginalMessageCreated
+    | OriginalMessageHold
+    | OriginalMessageUnHold
     | OriginalMessageRenamed
     | OriginalMessageChronosOOOList
     | OriginalMessageReportPreview
     | OriginalMessageRoomChangeLog
     | OriginalMessagePolicyChangeLog
     | OriginalMessagePolicyTask
+    | OriginalMessageJoinPolicyChangeLog
     | OriginalMessageModifiedExpense
     | OriginalMessageReimbursementQueued
     | OriginalMessageReimbursementDequeued
@@ -301,6 +330,7 @@ export type {
     OriginalMessageCreated,
     OriginalMessageRenamed,
     OriginalMessageAddComment,
+    OriginalMessageJoinPolicyChangeLog,
     OriginalMessageActionableMentionWhisper,
     OriginalMessageChronosOOOList,
     OriginalMessageSource,

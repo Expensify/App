@@ -22,6 +22,8 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.PROFILE_AVATAR]: ROUTES.PROFILE_AVATAR.route,
         [SCREENS.WORKSPACE_AVATAR]: ROUTES.WORKSPACE_AVATAR.route,
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
+        [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
+        [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
 
         // Sidebar
         [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]: {
@@ -46,6 +48,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.WORKSPACE.CARD]: {
                     path: ROUTES.WORKSPACE_CARD.route,
                 },
+                [SCREENS.WORKSPACE.WORKFLOWS]: {
+                    path: ROUTES.WORKSPACE_WORKFLOWS.route,
+                },
                 [SCREENS.WORKSPACE.REIMBURSE]: {
                     path: ROUTES.WORKSPACE_REIMBURSE.route,
                 },
@@ -60,6 +65,18 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
                 [SCREENS.WORKSPACE.MEMBERS]: {
                     path: ROUTES.WORKSPACE_MEMBERS.route,
+                },
+                [SCREENS.WORKSPACE.CATEGORIES]: {
+                    path: ROUTES.WORKSPACE_CATEGORIES.route,
+                },
+                [SCREENS.WORKSPACE.MORE_FEATURES]: {
+                    path: ROUTES.WORKSPACE_MORE_FEATURES.route,
+                },
+                [SCREENS.WORKSPACE.TAGS]: {
+                    path: ROUTES.WORKSPACE_TAGS.route,
+                },
+                [SCREENS.WORKSPACE.DISTANCE_RATES]: {
+                    path: ROUTES.WORKSPACE_DISTANCE_RATES.route,
                 },
             },
         },
@@ -192,9 +209,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: {
                             path: ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.route,
                         },
-                        [SCREENS.SETTINGS.LOUNGE_ACCESS]: {
-                            path: ROUTES.SETTINGS_LOUNGE_ACCESS,
-                        },
                         [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: {
                             path: ROUTES.SETTINGS_NEW_CONTACT_METHOD.route,
                             exact: true,
@@ -238,6 +252,15 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.DESCRIPTION]: {
                             path: ROUTES.WORKSPACE_PROFILE_DESCRIPTION.route,
                         },
+                        [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.route,
+                        },
+                        [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET.route,
+                        },
+                        [SCREENS.WORKSPACE.SHARE]: {
+                            path: ROUTES.WORKSPACE_PROFILE_SHARE.route,
+                        },
                         [SCREENS.WORKSPACE.RATE_AND_UNIT]: {
                             path: ROUTES.WORKSPACE_RATE_AND_UNIT.route,
                         },
@@ -250,8 +273,29 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.INVITE]: {
                             path: ROUTES.WORKSPACE_INVITE.route,
                         },
+                        [SCREENS.WORKSPACE.WORKFLOWS_APPROVER]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_APPROVER.route,
+                        },
                         [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
                             path: ROUTES.WORKSPACE_INVITE_MESSAGE.route,
+                        },
+                        [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_CATEGORY_SETTINGS.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURI(categoryName),
+                            },
+                        },
+                        [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_CATEGORIES_SETTINGS.route,
+                        },
+                        [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
+                            path: ROUTES.WORKSPACE_MEMBER_DETAILS.route,
+                        },
+                        [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE_SELECTION]: {
+                            path: ROUTES.WORKSPACE_MEMBER_ROLE_SELECTION.route,
+                        },
+                        [SCREENS.WORKSPACE.CATEGORY_CREATE]: {
+                            path: ROUTES.WORKSPACE_CATEGORY_CREATE.route,
                         },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
@@ -264,6 +308,18 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.KEYBOARD_SHORTCUTS,
                         },
                         [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_PROFILE_NAME.route,
+                        [SCREENS.SETTINGS.SHARE_CODE]: {
+                            path: ROUTES.SETTINGS_SHARE_CODE,
+                        },
+                        [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: {
+                            path: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
+                        },
+                        [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
+                            path: ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.route,
+                        },
+                        [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: {
+                            path: ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: {
@@ -291,6 +347,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: {
                             path: ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.route,
+                        },
+                        [SCREENS.REPORT_SETTINGS.VISIBILITY]: {
+                            path: ROUTES.REPORT_SETTINGS_VISIBILITY.route,
                         },
                     },
                 },
@@ -395,6 +454,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STEP_DATE]: ROUTES.MONEY_REQUEST_STEP_DATE.route,
                         [SCREENS.MONEY_REQUEST.STEP_DESCRIPTION]: ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.route,
                         [SCREENS.MONEY_REQUEST.STEP_DISTANCE]: ROUTES.MONEY_REQUEST_STEP_DISTANCE.route,
+                        [SCREENS.MONEY_REQUEST.HOLD]: ROUTES.MONEY_REQUEST_HOLD_REASON.route,
                         [SCREENS.MONEY_REQUEST.STEP_MERCHANT]: ROUTES.MONEY_REQUEST_STEP_MERCHANT.route,
                         [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.route,
                         [SCREENS.MONEY_REQUEST.STEP_SCAN]: ROUTES.MONEY_REQUEST_STEP_SCAN.route,
@@ -424,7 +484,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.PARTICIPANTS]: ROUTES.MONEY_REQUEST_PARTICIPANTS.route,
                         [SCREENS.MONEY_REQUEST.CONFIRMATION]: ROUTES.MONEY_REQUEST_CONFIRMATION.route,
                         [SCREENS.MONEY_REQUEST.CURRENCY]: ROUTES.MONEY_REQUEST_CURRENCY.route,
-                        [SCREENS.MONEY_REQUEST.CATEGORY]: ROUTES.MONEY_REQUEST_CATEGORY.route,
                         [SCREENS.MONEY_REQUEST.RECEIPT]: ROUTES.MONEY_REQUEST_RECEIPT.route,
                         [SCREENS.MONEY_REQUEST.DISTANCE]: ROUTES.MONEY_REQUEST_DISTANCE.route,
                         [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
@@ -497,10 +556,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
                 [SCREENS.SETTINGS_CENTRAL_PANE]: {
                     screens: {
-                        [SCREENS.SETTINGS.SHARE_CODE]: {
-                            path: ROUTES.SETTINGS_SHARE_CODE,
-                            exact: true,
-                        },
                         [SCREENS.SETTINGS.PROFILE.ROOT]: {
                             path: ROUTES.SETTINGS_PROFILE,
                             exact: true,

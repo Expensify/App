@@ -1,12 +1,10 @@
 import '@shopify/flash-list/jestSetup';
 import 'react-native-gesture-handler/jestSetup';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
-import * as reanimatedJestUtils from 'react-native-reanimated/src/reanimated2/jestUtils';
 import 'setimmediate';
 import setupMockImages from './setupMockImages';
 
 setupMockImages();
-reanimatedJestUtils.setUpTests();
 
 // This mock is required as per setup instructions for react-navigation testing
 // https://reactnavigation.org/docs/testing/#mocking-native-modules
@@ -33,7 +31,12 @@ jest.spyOn(console, 'debug').mockImplementation((...params) => {
 
 // This mock is required for mocking file systems when running tests
 jest.mock('react-native-fs', () => ({
-    unlink: jest.fn(() => new Promise<void>((res) => res())),
+    unlink: jest.fn(
+        () =>
+            new Promise<void>((res) => {
+                res();
+            }),
+    ),
     CachesDirectoryPath: jest.fn(),
 }));
 
@@ -44,3 +47,7 @@ jest.mock('react-native-sound', () => {
 
     return SoundMock;
 });
+
+jest.mock('react-native-share', () => ({
+    default: jest.fn(),
+}));
