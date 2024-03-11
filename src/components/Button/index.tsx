@@ -16,6 +16,7 @@ import HapticFeedback from '@libs/HapticFeedback';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
+import useStyleUtils from "@hooks/useStyleUtils";
 import validateSubmitShortcut from './validateSubmitShortcut';
 
 type ButtonWithText = {
@@ -24,9 +25,6 @@ type ButtonWithText = {
 
     /** Boolean whether to display the right icon */
     shouldShowRightIcon?: boolean;
-
-    /** The icon asset to display to the left of the text */
-    icon?: IconAsset | null;
 };
 
 type ButtonProps = (ButtonWithText | ChildrenProps) & {
@@ -116,6 +114,9 @@ type ButtonProps = (ButtonWithText | ChildrenProps) & {
 
     /** Accessibility label for the component */
     accessibilityLabel?: string;
+
+    /** The icon asset to display to the left of the text */
+    icon?: IconAsset | null;
 };
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority'>;
@@ -162,6 +163,7 @@ function Button(
 
         iconRight = Expensicons.ArrowRight,
         iconFill,
+        icon = null,
         iconStyles = [],
         iconRightStyles = [],
 
@@ -202,13 +204,14 @@ function Button(
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
 
     const renderContent = () => {
         if ('children' in rest) {
             return rest.children;
         }
 
-        const {text = '', icon = null, shouldShowRightIcon = false} = rest;
+        const {text = '', shouldShowRightIcon = false} = rest;
 
         const textComponent = (
             <Text
@@ -312,9 +315,7 @@ function Button(
                 ]}
                 style={[
                     styles.button,
-                    small ? styles.buttonSmall : undefined,
-                    medium ? styles.buttonMedium : undefined,
-                    large ? styles.buttonLarge : undefined,
+                    StyleUtils.getButtonStyleWithIcon(styles, small, medium, large, Boolean(icon)),
                     success ? styles.buttonSuccess : undefined,
                     danger ? styles.buttonDanger : undefined,
                     isDisabled ? styles.buttonOpacityDisabled : undefined,

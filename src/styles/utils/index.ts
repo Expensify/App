@@ -475,6 +475,20 @@ function getIconWidthAndHeightStyle(small: boolean, medium: boolean, large: bool
     }
 }
 
+function getButtonStyleWithIcon(styles: ThemeStyles, small: boolean, medium: boolean, large: boolean, hasIcon?: boolean): ViewStyle | undefined {
+    switch (true) {
+        case small:
+            return !hasIcon ? styles.buttonSmall : {...styles.buttonSmall, ...styles.pl1};
+        case medium:
+            return !hasIcon ? styles.buttonMedium : {...styles.buttonMedium, ...styles.pl3};
+        case large:
+            return !hasIcon ? styles.buttonLarge : {...styles.buttonLarge, ...styles.pl4};
+        default: {
+            return undefined;
+        }
+    }
+}
+
 /**
  * Combine margin/padding with safe area inset
  *
@@ -1112,6 +1126,7 @@ const staticStyleUtils = {
     getMultiGestureCanvasContainerStyle,
     getSignInBgStyles,
     getIconWidthAndHeightStyle,
+    getButtonStyleWithIcon
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
