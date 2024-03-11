@@ -956,36 +956,30 @@ function getCategoryListSections(
     maxRecentReportsToShow: number,
 ): CategoryTreeSection[] {
     const sortedCategories = sortCategories(categories);
-    const numberOfCategories = sortedCategories.length;
+    const enabledCategoriesLength = Object.values(sortedCategories).filter((category) => category.enabled).length;
+
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
-    const enabledCategories = [...selectedOptions, ...Object.values(sortedCategories).filter((category) => category.enabled && !selectedOptionNames.includes(category.name))];
-    const enabledAndSelectedCategoriesLength = enabledCategories.length;
+    const enabledAndSelectedCategories = [...selectedOptions, ...Object.values(sortedCategories).filter((category) => category.enabled && !selectedOptionNames.includes(category.name))];
+    const enabledAndSelectedCategoriesLength = enabledAndSelectedCategories.length;
 
     const categorySections: CategoryTreeSection[] = [];
 
     let indexOffset = 0;
 
-    if (numberOfCategories === 0 && selectedOptions.length > 0) {
-        const selectedTagOptions = selectedOptions.map((option) => ({
-            name: option.name,
-            // Should be marked as enabled to be able to be de-selected
-            enabled: true,
-            isSelected: true,
-        }));
-
+    if (enabledCategoriesLength === 0 && selectedOptions.length > 0) {
         categorySections.push({
             // "Selected" section
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getCategoryOptionTree(selectedTagOptions, true),
+            data: getCategoryOptionTree(enabledAndSelectedCategories, true),
         });
 
         return categorySections;
     }
 
     if (searchInputValue) {
-        const searchCategories = enabledCategories.filter((category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
+        const searchCategories = enabledAndSelectedCategories.filter((category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
 
         categorySections.push({
             // "Search" section
@@ -1004,7 +998,7 @@ function getCategoryListSections(
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getCategoryOptionTree(enabledCategories),
+            data: getCategoryOptionTree(enabledAndSelectedCategories),
         });
 
         return categorySections;
@@ -1043,7 +1037,7 @@ function getCategoryListSections(
         indexOffset += filteredRecentlyUsedCategories.length;
     }
 
-    const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
+    const filteredCategories = enabledAndSelectedCategories.filter((category) => !selectedOptionNames.includes(category.name));
 
     categorySections.push({
         // "All" section when items amount more than the threshold
