@@ -125,7 +125,7 @@ function IOURequestStepWaypoint({
         if (isOffline && waypointValue) {
             const waypoint = {
                 address: waypointValue,
-                name: values.name,
+                name: values.name ?? '',
             };
             saveWaypoint(waypoint);
         }
