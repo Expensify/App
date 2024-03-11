@@ -1,22 +1,46 @@
-// Product Color Spectrum
-$color-product-dark-100: #061B09;
-$color-product-dark-200: #072419;
-$color-product-dark-300: #0A2E25;
-$color-product-dark-400: #1A3D32;
-$color-product-dark-500: #224F41;
-$color-product-dark-600: #2A604F;
-$color-product-dark-700: #8B9C8F;
-$color-product-dark-800: #AFBBB0;
-$color-product-dark-900: #E7ECE9;
+@media (prefers-color-scheme: dark) {
+    // Product Color Spectrum
+    $color-product-dark-100: #061B09;
+    $color-product-dark-200: #072419;
+    $color-product-dark-300: #0A2E25;
+    $color-product-dark-400: #1A3D32;
+    $color-product-dark-500: #224F41;
+    $color-product-dark-600: #2A604F;
+    $color-product-dark-700: #8B9C8F;
+    $color-product-dark-800: #AFBBB0;
+    $color-product-dark-900: #E7ECE9;
 
-// Colors for Links and Success
-$color-blue200: #B0D9FF;
-$color-blue300: #5AB0FF;
-$color-green400: #03D47C;
-$color-green500: #00a862;
+    // Colors for Links and Success
+    $color-blue200: #B0D9FF;
+    $color-blue300: #5AB0FF;
+    $color-green400: #03D47C;
+    $color-green500: #00a862;
 
-// Overlay BG color
-$color-overlay-background: rgba(26, 61, 50, 0.72);
+    // Overlay BG color
+    $color-overlay-background: rgba(26, 61, 50, 0.72);
+}
+
+@media (prefers-color-scheme: light) {
+    // Product Color Spectrum
+    $color-product-dark-100: #061B09;
+    $color-product-dark-200: #072419;
+    $color-product-dark-300: #0A2E25;
+    $color-product-dark-400: #1A3D32;
+    $color-product-dark-500: #224F41;
+    $color-product-dark-600: #2A604F;
+    $color-product-dark-700: #8B9C8F;
+    $color-product-dark-800: #AFBBB0;
+    $color-product-dark-900: #E7ECE9;
+
+    // Colors for Links and Success
+    $color-blue200: #B0D9FF;
+    $color-blue300: #5AB0FF;
+    $color-green400: #03D47C;
+    $color-green500: #00a862;
+
+    // Overlay BG color
+    $color-overlay-background: rgba(26, 61, 50, 0.72);
+}
 
 // UI Colors
 $color-text: $color-product-dark-900;
