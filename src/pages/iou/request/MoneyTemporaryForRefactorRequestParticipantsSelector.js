@@ -14,6 +14,7 @@ import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Timing from '@libs/actions/Timing';
@@ -91,6 +92,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const referralContentType = iouType === CONST.IOU.TYPE.SEND ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
+    const {canUseP2PDistanceRequests} = usePermissions();
 
     const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
@@ -123,18 +125,14 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             // sees the option to request money from their admin on their own Workspace Chat.
             iouType === CONST.IOU.TYPE.REQUEST,
 
-            // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
-            iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
+            canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
             false,
             {},
             [],
             false,
             {},
             [],
-
-            // We don't want the user to be able to invite individuals when they are in the "Distance request" flow for now.
-            // This functionality is being built here: https://github.com/Expensify/App/issues/23291
-            iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
+            canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
             false,
             false,
             {},
@@ -190,7 +188,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         }
 
         return [newSections, chatOptions];
-    }, [didScreenTransitionEnd, reports, personalDetails, betas, searchTerm, participants, iouType, iouRequestType, maxParticipantsReached, translate, actionTypeForParticipants]);
+    }, [didScreenTransitionEnd, reports, personalDetails, betas, searchTerm, participants, iouType, iouRequestType, maxParticipantsReached, canUseP2PDistanceRequests, translate, actionTypeForParticipants]);
 
     /**
      * Adds a single participant to the request
@@ -265,7 +263,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     // the app from crashing on native when you try to do this, we'll going to hide the button if you have a workspace and other participants
     const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
-    const isAllowedToSplit = iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE;
+    const isAllowedToSplit = canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE;
 
     const handleConfirmSelection = useCallback(() => {
         if (shouldShowSplitBillErrorMessage) {
