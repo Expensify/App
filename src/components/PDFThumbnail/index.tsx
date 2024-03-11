@@ -12,7 +12,7 @@ if (!pdfjs.GlobalWorkerOptions.workerSrc) {
     pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
 }
 
-function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword = () => {}}: PDFThumbnailProps) {
+function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword = undefined}: PDFThumbnailProps) {
     const styles = useThemeStyles();
 
     const thumbnail = useMemo(
@@ -26,6 +26,9 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                 }}
                 externalLinkTarget="_blank"
                 onPassword={() => {
+                    if (!onPassword) {
+                        return;
+                    }
                     onPassword();
                 }}
             >
