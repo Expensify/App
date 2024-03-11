@@ -1,5 +1,9 @@
+import type {ComponentStory} from '@storybook/react';
 import React from 'react';
+import type {BannerProps} from '@components/Banner';
 import Banner from '@components/Banner';
+
+type BannerStory = ComponentStory<typeof Banner>;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -11,25 +15,25 @@ const story = {
     component: Banner,
 };
 
-function Template(args) {
+function Template(args: BannerProps) {
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <Banner {...args} />;
 }
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
-const InfoBanner = Template.bind({});
+const InfoBanner: BannerStory = Template.bind({});
 InfoBanner.args = {
     text: 'This is an informational banner',
 };
 
-const HTMLBanner = Template.bind({});
+const HTMLBanner: BannerStory = Template.bind({});
 HTMLBanner.args = {
     text: 'This is a informational banner containing <strong><em>HTML</em></strong>',
     shouldRenderHTML: true,
 };
 
-const BannerWithLink = Template.bind({});
+const BannerWithLink: BannerStory = Template.bind({});
 BannerWithLink.args = {
     text: 'This is a informational banner containing <a href="https://new.expensify.com/settings">internal Link</a> and <a href=" https://google.com">public link</a>',
     shouldRenderHTML: true,

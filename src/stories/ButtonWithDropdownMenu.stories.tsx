@@ -1,5 +1,9 @@
+import type {ComponentStory} from '@storybook/react';
 import React from 'react';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {ButtonWithDropdownMenuProps} from '@components/ButtonWithDropdownMenu/types';
+
+type ButtonWithDropdownMenuStory = ComponentStory<typeof ButtonWithDropdownMenu>;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -11,23 +15,23 @@ const story = {
     component: ButtonWithDropdownMenu,
 };
 
-function Template(args) {
+function Template(args: ButtonWithDropdownMenuProps<unknown>) {
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <ButtonWithDropdownMenu {...args} />;
 }
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
-const Default = Template.bind({});
+const Default: ButtonWithDropdownMenuStory = Template.bind({});
 Default.args = {
-    buttonText: 'Pay using Expensify',
+    customText: 'Pay using Expensify',
     onPress: (e, item) => {
-        alert(`Button ${item} is pressed.`);
+        alert(`Button ${item as string} is pressed.`);
     },
     pressOnEnter: true,
     options: [
-        {value: 'One', text: 'One'},
-        {value: 'Two', text: 'Two'},
+        {value: 'One', text: 'One', icon: Expensicons.Wallet},
+        {value: 'Two', text: 'Two', icon: Expensicons.Wallet},
     ],
 };
 

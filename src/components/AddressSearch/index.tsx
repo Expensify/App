@@ -455,3 +455,4 @@ function AddressSearch(
 AddressSearch.displayName = 'AddressSearchWithRef';
 
 export default forwardRef(AddressSearch);
+export type {AddressSearchProps};

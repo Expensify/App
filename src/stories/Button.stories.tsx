@@ -1,29 +1,33 @@
 /* eslint-disable react/jsx-props-no-spreading */
+import type {ComponentMeta, ComponentStory} from '@storybook/react';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
+import type {ButtonProps} from '@components/Button';
 import Button from '@components/Button';
 import Text from '@components/Text';
+
+type ButtonStory = ComponentStory<typeof Button>;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story = {
+const story: ComponentMeta<typeof Button> = {
     title: 'Components/Button',
     component: Button,
 };
 
-function Template(args) {
+function Template(args: ButtonProps) {
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <Button {...args} />;
 }
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
-const Default = Template.bind({});
-const Loading = Template.bind({});
-function PressOnEnter(props) {
+const Default: ButtonStory = Template.bind({});
+const Loading: ButtonStory = Template.bind({});
+function PressOnEnter(props: ButtonProps) {
     const [text, setText] = useState('');
     const onPress = useCallback(() => {
         setText('Button Pressed!');
@@ -33,13 +37,13 @@ function PressOnEnter(props) {
         <Button
             {...props}
             // eslint-disable-next-line react/prop-types
-            text={text || props.text}
+            text={text}
             onPress={onPress}
         />
     );
 }
 
-function PressOnEnterWithBubbling(props) {
+function PressOnEnterWithBubbling(props: ButtonProps) {
     return (
         <>
             <Text>Both buttons will trigger on press of Enter as the Enter event will bubble across all instances of button.</Text>
