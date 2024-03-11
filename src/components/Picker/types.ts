@@ -70,8 +70,14 @@ type BasePickerProps<TPickerValue> = {
     /** The ID used to uniquely identify the input in a Form */
     inputID?: string;
 
+    /** Show disabled style when disabled */
+    shouldAllowDisabledStyle?: boolean;
+
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft?: boolean;
+
+    /** Show only picker's label and value when disabled */
+    shouldShowOnlyTextWhenDisabled?: boolean;
 
     /** A callback method that is called when the value changes and it receives the selected value as an argument */
     onInputChange: (value: TPickerValue, index?: number) => void;
