@@ -72,7 +72,9 @@ function OnboardingPurpose() {
             Report.navigateToConciergeChat();
         }
 
-        Navigation.navigate(ROUTES.WELCOME_VIDEO_ROOT);
+        setTimeout(() => {
+            Navigation.navigate(ROUTES.WELCOME_VIDEO_ROOT);
+        }, variables.welcomeVideoDelay);
     }, [isSmallScreenWidth, selectedPurpose]);
 
     const menuItems: MenuItemProps[] = Object.values(CONST.ONBOARDING_CHOICES).map((choice) => {
