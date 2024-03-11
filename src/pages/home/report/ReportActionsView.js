@@ -2,7 +2,6 @@ import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
-import {InteractionManager} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import networkPropTypes from '@components/networkPropTypes';
@@ -118,6 +117,7 @@ function ReportActionsView(props) {
     };
 
     useEffect(() => {
+<<<<<<< HEAD:src/pages/home/report/ReportActionsView.js
         const interactionTask = InteractionManager.runAfterInteractions(() => {
             openReportIfNecessary();
         });
@@ -127,6 +127,9 @@ function ReportActionsView(props) {
             }
             interactionTask.cancel();
         };
+=======
+        openReportIfNecessary();
+>>>>>>> f6b45c6 (Merge pull request #38071 from Expensify/vit-revert32336):src/pages/home/report/ReportActionsView.tsx
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -179,14 +182,17 @@ function ReportActionsView(props) {
         // Check if the optimistic `OpenReport` or `AddWorkspaceRoom` has succeeded by confirming
         // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
         // Existing reports created will have empty fields for `pendingFields`.
+<<<<<<< HEAD:src/pages/home/report/ReportActionsView.js
         const didCreateReportSuccessfully = !props.report.pendingFields || (!props.report.pendingFields.addWorkspaceRoom && !props.report.pendingFields.createChat);
         let interactionTask;
+=======
+        const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
+>>>>>>> f6b45c6 (Merge pull request #38071 from Expensify/vit-revert32336):src/pages/home/report/ReportActionsView.tsx
         if (!didSubscribeToReportTypingEvents.current && didCreateReportSuccessfully) {
-            interactionTask = InteractionManager.runAfterInteractions(() => {
-                Report.subscribeToReportTypingEvents(reportID);
-                didSubscribeToReportTypingEvents.current = true;
-            });
+            Report.subscribeToReportTypingEvents(reportID);
+            didSubscribeToReportTypingEvents.current = true;
         }
+<<<<<<< HEAD:src/pages/home/report/ReportActionsView.js
 
         return () => {
             if (!interactionTask) {
@@ -195,6 +201,9 @@ function ReportActionsView(props) {
             interactionTask.cancel();
         };
     }, [props.report.pendingFields, didSubscribeToReportTypingEvents, reportID]);
+=======
+    }, [report.pendingFields, didSubscribeToReportTypingEvents, reportID]);
+>>>>>>> f6b45c6 (Merge pull request #38071 from Expensify/vit-revert32336):src/pages/home/report/ReportActionsView.tsx
 
     const oldestReportAction = useMemo(() => _.last(props.reportActions), [props.reportActions]);
 

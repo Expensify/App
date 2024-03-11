@@ -2,7 +2,12 @@ import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+<<<<<<< HEAD:src/pages/home/ReportScreen.js
 import {InteractionManager, View} from 'react-native';
+=======
+import {View} from 'react-native';
+import type {FlatList, ViewStyle} from 'react-native';
+>>>>>>> f6b45c6 (Merge pull request #38071 from Expensify/vit-revert32336):src/pages/home/ReportScreen.tsx
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Banner from '@components/Banner';
@@ -387,13 +392,14 @@ function ReportScreen({
         Performance.markEnd(CONST.TIMING.CHAT_RENDER);
 
         fetchReportIfNeeded();
-        const interactionTask = InteractionManager.runAfterInteractions(() => {
-            ComposerActions.setShouldShowComposeInput(true);
-        });
+        ComposerActions.setShouldShowComposeInput(true);
         return () => {
+<<<<<<< HEAD:src/pages/home/ReportScreen.js
             if (interactionTask) {
                 interactionTask.cancel();
             }
+=======
+>>>>>>> f6b45c6 (Merge pull request #38071 from Expensify/vit-revert32336):src/pages/home/ReportScreen.tsx
             if (!didSubscribeToReportLeavingEvents) {
                 return;
             }
@@ -479,20 +485,14 @@ function ReportScreen({
         // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
         // Existing reports created will have empty fields for `pendingFields`.
         const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
+<<<<<<< HEAD:src/pages/home/ReportScreen.js
         let interactionTask;
+=======
+>>>>>>> f6b45c6 (Merge pull request #38071 from Expensify/vit-revert32336):src/pages/home/ReportScreen.tsx
         if (!didSubscribeToReportLeavingEvents.current && didCreateReportSuccessfully) {
-            interactionTask = InteractionManager.runAfterInteractions(() => {
-                Report.subscribeToReportLeavingEvents(reportID);
-                didSubscribeToReportLeavingEvents.current = true;
-            });
+            Report.subscribeToReportLeavingEvents(reportID);
+            didSubscribeToReportLeavingEvents.current = true;
         }
-
-        return () => {
-            if (!interactionTask) {
-                return;
-            }
-            interactionTask.cancel();
-        };
     }, [report, didSubscribeToReportLeavingEvents, reportID]);
 
     const onListLayout = useCallback((e) => {
@@ -586,8 +586,8 @@ function ReportScreen({
                                 )}
 
                                 {/* Note: The ReportActionsSkeletonView should be allowed to mount even if the initial report actions are not loaded.
-                                         If we prevent rendering the report while they are loading then
-                                         we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
+                     If we prevent rendering the report while they are loading then
+                     we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
                                 {(!isReportReadyForDisplay || isLoadingInitialReportActions || isLoading) && <ReportActionsSkeletonView />}
 
                                 {isReportReadyForDisplay ? (
@@ -599,7 +599,9 @@ function ReportScreen({
                                         isEmptyChat={isEmptyChat}
                                         lastReportAction={lastReportAction}
                                     />
-                                ) : null}
+                                ) : (
+                                    <ReportFooter isReportReadyForDisplay={false} />
+                                )}
                             </View>
                         </DragAndDropProvider>
                     </FullPageNotFoundView>
