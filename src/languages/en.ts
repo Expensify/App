@@ -520,14 +520,15 @@ export default {
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'This chat room has been archived.',
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}: ReportArchiveReasonsClosedParams) =>
-            `This workspace chat is no longer active because ${displayName} closed their account.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}: ReportArchiveReasonsClosedParams) => `This chat is no longer active because ${displayName} closed their account.`,
         [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}: ReportArchiveReasonsMergedParams) =>
-            `This workspace chat is no longer active because ${oldDisplayName} has merged their account with ${displayName}.`,
-        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName}: ReportArchiveReasonsRemovedFromPolicyParams) =>
-            `This workspace chat is no longer active because ${displayName} is no longer a member of the ${policyName} workspace.`,
+            `This chat is no longer active because ${oldDisplayName} has merged their account with ${displayName}.`,
+        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName, shouldUseYou = false}: ReportArchiveReasonsRemovedFromPolicyParams) =>
+            shouldUseYou
+                ? `This chat is no longer active because <strong>you</strong> are no longer a member of the ${policyName} workspace.`
+                : `This chat is no longer active because ${displayName} is no longer a member of the ${policyName} workspace.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: ReportArchiveReasonsPolicyDeletedParams) =>
-            `This workspace chat is no longer active because ${policyName} is no longer an active workspace.`,
+            `This chat is no longer active because ${policyName} is no longer an active workspace.`,
     },
     writeCapabilityPage: {
         label: 'Who can post',
