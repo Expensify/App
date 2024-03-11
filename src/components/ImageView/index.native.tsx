@@ -6,7 +6,7 @@ import type ImageViewProps from './types';
 function ImageView({isAuthTokenRequired = false, url, style, zoomRange = DEFAULT_ZOOM_RANGE, onError}: ImageViewProps) {
     return (
         <Lightbox
-            uri={url as string}
+            uri={url}
             zoomRange={zoomRange}
             isAuthTokenRequired={isAuthTokenRequired}
             onError={onError}

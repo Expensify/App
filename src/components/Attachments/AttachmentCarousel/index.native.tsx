@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {Attachment} from '@components/Attachments/types';
+import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -32,6 +32,7 @@ function AttachmentCarousel({
     const [page, setPage] = useState<number>();
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
+    const [activeSource, setActiveSource] = useState<AttachmentSource | undefined | null>(source);
 
     const compareImage = useCallback((attachment: Attachment) => attachment.source === source, [source]);
 
@@ -72,6 +73,7 @@ function AttachmentCarousel({
             const item = attachments[newPageIndex];
 
             setPage(newPageIndex);
+            setActiveSource(item.source);
 
             onNavigate(item);
         },
@@ -146,6 +148,7 @@ function AttachmentCarousel({
                     <AttachmentCarouselPager
                         items={attachments}
                         initialPage={page}
+                        activeSource={activeSource as string}
                         onRequestToggleArrows={toggleArrows}
                         onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
                         onClose={onClose}
