@@ -639,10 +639,8 @@ function clearWorkspacePayerError(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {reimburserEmail: null}});
 }
 
-function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>, reimburserAccountID: number) {
+function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>, reimburserAccountID: number, reimburserEmail: string) {
     const policy = ReportUtils.getPolicy(policyID);
-
-    const currentPolicyReimbursementChoice = policy.reimbursementChoice;
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -651,6 +649,7 @@ function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueO
             value: {
                 reimbursementChoice,
                 reimburserAccountID,
+                reimburserEmail,
                 errorFields: {reimbursementChoice: null},
                 pendingFields: {reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             },
@@ -673,7 +672,9 @@ function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueO
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                reimbursementChoice: currentPolicyReimbursementChoice,
+                reimbursementChoice: policy.reimbursementChoice,
+                reimburserAccountID: policy.reimburserAccountID,
+                reimburserEmail: policy.reimburserEmail,
                 errorFields: {reimbursementChoice: ErrorUtils.getMicroSecondOnyxError('workflowsPage.genericErrorMessage.reimbursementChoice')},
                 pendingFields: {reimbursementChoice: null},
             },

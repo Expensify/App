@@ -1,9 +1,9 @@
-import { useIsFocused } from '@react-navigation/native';
-import type { StackScreenProps } from '@react-navigation/stack';
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { FlatList, View } from 'react-native';
-import type { OnyxEntry } from 'react-native-onyx';
-import { withOnyx } from 'react-native-onyx';
+import {useIsFocused} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import {FlatList, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
@@ -20,21 +20,21 @@ import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import type { CentralPaneNavigatorParamList } from '@navigation/types';
-import type { WithPolicyProps } from '@pages/workspace/withPolicy';
+import type {CentralPaneNavigatorParamList} from '@navigation/types';
+import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import * as Policy from '@userActions/Policy';
-import { navigateToBankAccountRoute } from '@userActions/ReimbursementAccount';
+import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type { Beta, ReimbursementAccount, Session } from '@src/types/onyx';
+import type {Beta, ReimbursementAccount, Session} from '@src/types/onyx';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
-import type { ToggleSettingOptionRowProps } from './ToggleSettingsOptionRow';
-import { getAutoReportingFrequencyDisplayNames } from './WorkspaceAutoReportingFrequencyPage';
-import type { AutoReportingFrequencyKey } from './WorkspaceAutoReportingFrequencyPage';
+import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
+import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
+import type {AutoReportingFrequencyKey} from './WorkspaceAutoReportingFrequencyPage';
 
 type WorkspaceWorkflowsPageOnyxProps = {
     /** Beta features list */
@@ -46,10 +46,10 @@ type WorkspaceWorkflowsPageOnyxProps = {
 };
 type WorkspaceWorkflowsPageProps = WithPolicyProps & WorkspaceWorkflowsPageOnyxProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
-function WorkspaceWorkflowsPage({ policy, betas, route, reimbursementAccount, session }: WorkspaceWorkflowsPageProps) {
-    const { translate, preferredLocale } = useLocalize();
+function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, session}: WorkspaceWorkflowsPageProps) {
+    const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
-    const { isSmallScreenWidth } = useWindowDimensions();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     const firstRender = useRef(true);
     const isFocused = useIsFocused();
@@ -71,7 +71,7 @@ function WorkspaceWorkflowsPage({ policy, betas, route, reimbursementAccount, se
         Policy.openPolicyWorkflowsPage(policy?.id ?? route.params.policyID);
     };
 
-    useNetwork({ onReconnect: fetchData });
+    useNetwork({onReconnect: fetchData});
 
     useEffect(() => {
         // Because isLoading is false before merging in Onyx, we need firstRender ref to display loading page as well before isLoading is change to true
@@ -84,7 +84,7 @@ function WorkspaceWorkflowsPage({ policy, betas, route, reimbursementAccount, se
     }, []);
 
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
-        const { accountNumber, state, bankName } = reimbursementAccount?.achData ?? {};
+        const {accountNumber, state, bankName} = reimbursementAccount?.achData ?? {};
         const hasVBA = state === BankAccount.STATE.OPEN;
         const bankDisplayName = bankName ? `${bankName} ${accountNumber ? `${accountNumber.slice(-5)}` : ''}` : '';
         const hasReimburserEmailError = !!policy?.errorFields?.reimburserEmail;
@@ -92,38 +92,38 @@ function WorkspaceWorkflowsPage({ policy, betas, route, reimbursementAccount, se
         return [
             ...(canUseDelayedSubmission
                 ? [
-                    {
-                        icon: Illustrations.ReceiptEnvelope,
-                        title: translate('workflowsPage.delaySubmissionTitle'),
-                        subtitle: translate('workflowsPage.delaySubmissionDescription'),
-                        onToggle: (isEnabled: boolean) => {
-                            const frequency =
-                                policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT || !policy?.autoReportingFrequency
-                                    ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY
-                                    : policy.autoReportingFrequency;
-                            Policy.setWorkspaceAutoReporting(route.params.policyID, isEnabled, frequency);
-                        },
-                        subMenuItems: (
-                            <MenuItem
-                                title={translate('workflowsPage.submissionFrequency')}
-                                titleStyle={styles.textLabelSupportingNormal}
-                                descriptionTextStyle={styles.textNormalThemeText}
-                                onPress={onPressAutoReportingFrequency}
-                                // Instant submit is the equivalent of delayed submissions being turned off, so we show the feature as disabled if the frequency is instant
-                                description={
-                                    getAutoReportingFrequencyDisplayNames(preferredLocale)[
-                                    (policy?.autoReportingFrequency as AutoReportingFrequencyKey) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY
-                                    ]
-                                }
-                                shouldShowRightIcon
-                                wrapperStyle={containerStyle}
-                                hoverAndPressStyle={[styles.mr0, styles.br2]}
-                            />
-                        ),
-                        isActive: (policy?.harvesting?.enabled && policy.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT) ?? false,
-                        pendingAction: policy?.pendingFields?.isAutoApprovalEnabled,
-                    },
-                ]
+                      {
+                          icon: Illustrations.ReceiptEnvelope,
+                          title: translate('workflowsPage.delaySubmissionTitle'),
+                          subtitle: translate('workflowsPage.delaySubmissionDescription'),
+                          onToggle: (isEnabled: boolean) => {
+                              const frequency =
+                                  policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT || !policy?.autoReportingFrequency
+                                      ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY
+                                      : policy.autoReportingFrequency;
+                              Policy.setWorkspaceAutoReporting(route.params.policyID, isEnabled, frequency);
+                          },
+                          subMenuItems: (
+                              <MenuItem
+                                  title={translate('workflowsPage.submissionFrequency')}
+                                  titleStyle={styles.textLabelSupportingNormal}
+                                  descriptionTextStyle={styles.textNormalThemeText}
+                                  onPress={onPressAutoReportingFrequency}
+                                  // Instant submit is the equivalent of delayed submissions being turned off, so we show the feature as disabled if the frequency is instant
+                                  description={
+                                      getAutoReportingFrequencyDisplayNames(preferredLocale)[
+                                          (policy?.autoReportingFrequency as AutoReportingFrequencyKey) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY
+                                      ]
+                                  }
+                                  shouldShowRightIcon
+                                  wrapperStyle={containerStyle}
+                                  hoverAndPressStyle={[styles.mr0, styles.br2]}
+                              />
+                          ),
+                          isActive: (policy?.harvesting?.enabled && policy.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT) ?? false,
+                          pendingAction: policy?.pendingFields?.isAutoApprovalEnabled,
+                      },
+                  ]
                 : []),
             {
                 icon: Illustrations.Approval,
@@ -157,7 +157,8 @@ function WorkspaceWorkflowsPage({ policy, betas, route, reimbursementAccount, se
                     const newReimburserAccountID =
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         PersonalDetailsUtils.getPersonalDetailByEmail(policy?.reimburserEmail ?? '')?.accountID || policy?.reimburserAccountID || policy?.ownerAccountID;
-                    Policy.setWorkspaceReimbursement(policy?.id ?? '', newReimbursementChoice, newReimburserAccountID ?? 0);
+                    const newReimburserEmail = PersonalDetailsUtils.getPersonalDetailsByIDs([newReimburserAccountID ?? 0], session?.accountID ?? 0)?.[0]?.login;
+                    Policy.setWorkspaceReimbursement(policy?.id ?? '', newReimbursementChoice, newReimburserAccountID ?? 0, newReimburserEmail ?? '');
                 },
                 subMenuItems: (
                     <>
@@ -212,7 +213,7 @@ function WorkspaceWorkflowsPage({ policy, betas, route, reimbursementAccount, se
         displayNameForAuthorizedPayer,
     ]);
 
-    const renderOptionItem = ({ item }: { item: ToggleSettingOptionRowProps }) => (
+    const renderOptionItem = ({item}: {item: ToggleSettingOptionRowProps}) => (
         <View style={styles.mt7}>
             <ToggleSettingOptionRow
                 icon={item.icon}
@@ -274,7 +275,7 @@ export default withPolicy(
         },
         reimbursementAccount: {
             // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-            key: ({ route }) => `${ONYXKEYS.REIMBURSEMENT_ACCOUNT}${route.params.policyID}`,
+            key: ({route}) => `${ONYXKEYS.REIMBURSEMENT_ACCOUNT}${route.params.policyID}`,
         },
         session: {
             key: ONYXKEYS.SESSION,
