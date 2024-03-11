@@ -865,7 +865,6 @@ function ReportActionItem({
                 )}
             </Hoverable>
             <View style={styles.reportActionSystemMessageContainer}>
-                {/* @ts-expect-error TODO check if there is a field on the reportAction object */}
                 <InlineSystemMessage message={action.error} />
             </View>
         </PressableWithSecondaryInteraction>
@@ -880,16 +879,16 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
     iouReport: {
         key: ({action}) => {
             const iouReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(action);
-            return `${ONYXKEYS.COLLECTION.REPORT}${iouReportID ?? ''}`;
+            return `${ONYXKEYS.COLLECTION.REPORT}${iouReportID ?? 0}`;
         },
         initialValue: {} as OnyxTypes.Report,
     },
     policyReportFields: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS}${report.policyID ?? ''}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS}${report.policyID ?? 0}`,
         initialValue: {},
     },
     policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID ?? ''}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID ?? 0}`,
         initialValue: {} as OnyxTypes.Policy,
     },
     emojiReactions: {

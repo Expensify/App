@@ -225,6 +225,7 @@ export default {
             acceptTerms: 'You must accept the Terms of Service to continue',
             phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'This field is required.',
+            requestModified: 'This request is being modified by another member.',
             characterLimit: ({limit}: CharacterLimitParams) => `Exceeds the maximum length of ${limit} characters`,
             characterLimitExceedCounter: ({length, limit}) => `Character limit exceeded (${length}/${limit})`,
             dateInvalid: 'Please select a valid date',
@@ -1754,7 +1755,10 @@ export default {
             workspaceType: 'Workspace type',
             workspaceAvatar: 'Workspace avatar',
             mustBeOnlineToViewMembers: 'You must be online in order to view members of this workspace.',
+            moreFeatures: 'More features',
             requested: 'Requested',
+            distanceRates: 'Distance rates',
+            selected: ({selectedNumber}) => `${selectedNumber} selected`,
         },
         type: {
             free: 'Free',
@@ -1775,6 +1779,48 @@ export default {
             categoryRequiredError: 'Category name is required.',
             existingCategoryError: 'A category with this name already exists.',
             invalidCategoryName: 'Invalid category name.',
+        },
+        moreFeatures: {
+            spendSection: {
+                title: 'Spend',
+                subtitle: 'Enable optional functionality that helps you scale your team.',
+            },
+            organizeSection: {
+                title: 'Organize',
+                subtitle: 'Group and analyze spend, record every tax paid.',
+            },
+            integrateSection: {
+                title: 'Integrate',
+                subtitle: 'Connect Expensify to popular financial products.',
+            },
+            distanceRates: {
+                title: 'Distance rates',
+                subtitle: 'Add, update and enforce rates.',
+            },
+            workflows: {
+                title: 'Workflows',
+                subtitle: 'Configure how spend is approved and paid.',
+            },
+            categories: {
+                title: 'Categories',
+                subtitle: 'Track and organize spend.',
+            },
+            tags: {
+                title: 'Tags',
+                subtitle: 'Add additional ways to classify spend.',
+            },
+            taxes: {
+                title: 'Taxes',
+                subtitle: 'Document and reclaim eligible taxes.',
+            },
+            reportFields: {
+                title: 'Report fields',
+                subtitle: 'Set up custom fields for spend.',
+            },
+            connections: {
+                title: 'Connections',
+                subtitle: 'Sync your chart of accounts and more.',
+            },
         },
         tags: {
             requiresTag: 'Members must tag all spend',
@@ -1816,7 +1862,6 @@ export default {
             makeMember: 'Make member',
             makeAdmin: 'Make admin',
             selectAll: 'Select all',
-            selected: ({selectedNumber}) => `${selectedNumber} selected`,
             error: {
                 genericAdd: 'There was a problem adding this workspace member.',
                 cannotRemove: 'You cannot remove yourself or the workspace owner.',
@@ -1908,6 +1953,23 @@ export default {
             inviteNoMembersError: 'Please select at least one member to invite',
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
+        },
+        distanceRates: {
+            oopsNotSoFast: 'Oops! Not so fast...',
+            workspaceNeeds: 'A workspace needs at least one enabled distance rate.',
+            distance: 'Distance',
+            centrallyManage: 'Centrally manage rates, choose to track in miles or kilometers, and set a default category.',
+            rate: 'Rate',
+            addRate: 'Add rate',
+            deleteRate: 'Delete rate',
+            deleteRates: 'Delete rates',
+            enableRate: 'Enable rate',
+            disableRate: 'Disable rate',
+            disableRates: 'Disable rates',
+            enableRates: 'Enable rates',
+            status: 'Status',
+            enabled: 'Enabled',
+            disabled: 'Disabled',
         },
         editor: {
             descriptionInputLabel: 'Description',
@@ -2412,7 +2474,7 @@ export default {
             return '';
         },
         smartscanFailed: 'Receipt scanning failed. Enter details manually.',
-        someTagLevelsRequired: 'Missing tag',
+        someTagLevelsRequired: ({tagName}: ViolationsTagOutOfPolicyParams) => `Missing ${tagName ?? 'Tag'}`,
         tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `${tagName ?? 'Tag'} no longer valid`,
         taxAmountChanged: 'Tax amount was modified',
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'Tax'} no longer valid`,
