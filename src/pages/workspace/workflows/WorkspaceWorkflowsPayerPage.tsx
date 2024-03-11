@@ -6,7 +6,6 @@ import {withOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem, Section} from '@components/SelectionList/types';
@@ -139,7 +138,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
         }
 
         sectionsArray.push({
-            title: undefined,
+            title: 'Authorized Payer',
             data: formattedAuthorizedPayer,
             shouldShow: true,
             indexOffset: formattedPolicyAdmins.length,
@@ -202,18 +201,16 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
                             subtitle={policyName}
                             onBackButtonPress={Navigation.goBack}
                         />
-                        <OfflineWithFeedback pendingAction={policy?.pendingFields?.reimburserEmail}>
-                            <SelectionList
-                                sections={sections}
-                                textInputLabel={translate('optionsSelector.findMember')}
-                                textInputValue={searchTerm}
-                                onChangeText={setSearchTerm}
-                                headerMessage={headerMessage}
-                                ListItem={UserListItem}
-                                onSelectRow={setPolicyAuthorizedPayer}
-                                showScrollIndicator
-                            />
-                        </OfflineWithFeedback>
+                        <SelectionList
+                            sections={sections}
+                            textInputLabel={translate('optionsSelector.findMember')}
+                            textInputValue={searchTerm}
+                            onChangeText={setSearchTerm}
+                            headerMessage={headerMessage}
+                            ListItem={UserListItem}
+                            onSelectRow={setPolicyAuthorizedPayer}
+                            showScrollIndicator
+                        />
                     </ScreenWrapper>
                 </FullPageNotFoundView>
             </PaidPolicyAccessOrNotFoundWrapper>
