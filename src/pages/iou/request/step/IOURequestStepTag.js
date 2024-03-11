@@ -93,12 +93,13 @@ function IOURequestStepTag({
 
     const tagIndex = Number(rawTagIndex);
     const policyTagListName = PolicyUtils.getTagListName(policyTags, tagIndex);
-    const transactionTag = TransactionUtils.getTag(transaction);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isEditingSplitBill = isEditing && isSplitBill;
-    const tag = TransactionUtils.getTag(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction, tagIndex);
+    const currentTransaction = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
+    const transactionTag = TransactionUtils.getTag(currentTransaction);
+    const tag = TransactionUtils.getTag(currentTransaction, tagIndex);
     const reportAction = reportActions[report.parentReportActionID || reportActionID];
     const canEditSplitBill = isSplitBill && reportAction && session.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
