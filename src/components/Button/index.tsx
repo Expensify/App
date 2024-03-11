@@ -348,4 +348,5 @@ function Button(
 Button.displayName = 'Button';
 
 export default withNavigationFallback(React.forwardRef(Button));
+
 export type {ButtonProps};

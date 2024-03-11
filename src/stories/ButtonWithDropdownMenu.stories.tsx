@@ -15,9 +15,9 @@ const story = {
     component: ButtonWithDropdownMenu,
 };
 
-function Template(args: ButtonWithDropdownMenuProps<unknown>) {
+function Template(props: ButtonWithDropdownMenuProps<unknown>) {
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <ButtonWithDropdownMenu {...args} />;
+    return <ButtonWithDropdownMenu {...props} />;
 }
 
 // Arguments can be passed to the component by binding

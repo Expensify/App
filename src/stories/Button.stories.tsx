@@ -18,9 +18,9 @@ const story: ComponentMeta<typeof Button> = {
     component: Button,
 };
 
-function Template(args: ButtonProps) {
+function Template(props: ButtonProps) {
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <Button {...args} />;
+    return <Button {...props} />;
 }
 
 // Arguments can be passed to the component by binding

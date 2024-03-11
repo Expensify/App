@@ -20,14 +20,14 @@ const story: ComponentMeta<typeof AddressSearch> = {
     },
 };
 
-function Template(args: AddressSearchProps) {
+function Template(props: AddressSearchProps) {
     const [value, setValue] = useState<string | number | RenamedInputKeysProps | StreetValue>('');
     return (
         <AddressSearch
             value={value as string}
             onInputChange={(inputValue) => setValue(inputValue)}
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...args}
+            {...props}
         />
     );
 }

@@ -15,9 +15,9 @@ const story = {
     component: Banner,
 };
 
-function Template(args: BannerProps) {
+function Template(props: BannerProps) {
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <Banner {...args} />;
+    return <Banner {...props} />;
 }
 
 // Arguments can be passed to the component by binding
