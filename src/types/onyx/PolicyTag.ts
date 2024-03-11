@@ -28,6 +28,9 @@ type PolicyTagList<T extends string = string> = Record<
 
         /** Index by which the tag appears in the hierarchy of tags */
         orderWeight: number;
+
+        /** A list of errors keyed by microtime */
+        errors?: OnyxCommon.Errors;
     }>
 >;
 
