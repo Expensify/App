@@ -64,9 +64,6 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
         const authorizedPayerDetails: MemberOption[] = [];
 
         Object.entries(policyMembers ?? {}).forEach(([accountIDKey, policyMember]) => {
-            if (isDeletedPolicyMember(policyMember)) {
-                return;
-            }
             const accountID = Number(accountIDKey);
             if (isDeletedPolicyMember(policyMember)) {
                 return;
@@ -79,7 +76,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
             const isOwner = policy?.owner === details?.login;
             const isAdmin = policyMember.role === CONST.POLICY.ROLE.ADMIN;
 
-            if (!isOwner && !isAdmin) {
+            if (PolicyUtils.isExpensifyTeam(details?.login) || (!isOwner && !isAdmin)) {
                 return;
             }
 
