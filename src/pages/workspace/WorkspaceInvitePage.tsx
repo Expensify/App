@@ -234,18 +234,16 @@ function WorkspaceInvitePage({
         setSelectedOptions(newSelectedOptions);
     };
 
-    const validate = (): boolean => {
+    const inviteUser = useCallback(() => {
         const errors: Errors = {};
         if (selectedOptions.length <= 0) {
             errors.noUserSelected = 'true';
         }
 
         Policy.setWorkspaceErrors(route.params.policyID, errors);
-        return isEmptyObject(errors);
-    };
+        const isValid = isEmptyObject(errors);
 
-    const inviteUser = useCallback(() => {
-        if (!validate()) {
+        if (!isValid) {
             return;
         }
 
@@ -260,7 +258,7 @@ function WorkspaceInvitePage({
         });
         Policy.setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
         Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(route.params.policyID));
-    }, [route.params.policyID, selectedOptions, validate]);
+    }, [route.params.policyID, selectedOptions]);
 
     const [policyName, shouldShowAlertPrompt] = useMemo(() => [policy?.name ?? '', !isEmptyObject(policy?.errors) || !!policy?.alertMessage], [policy]);
 
