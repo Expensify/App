@@ -26,15 +26,14 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SettingsStatusSetForm';
-import type {Status} from '@src/types/onyx/PersonalDetails';
+import type {CustomStatusDraft} from '@src/types/onyx';
 
 type StatusPageOnyxProps = {
-    draftStatus: OnyxEntry<Status>;
+    draftStatus: OnyxEntry<CustomStatusDraft>;
 };
 
 type StatusPageProps = StatusPageOnyxProps & WithCurrentUserPersonalDetailsProps;
@@ -47,7 +46,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const formRef = useRef<FormRef>(null);
-    const [brickRoadIndicator, setBrickRoadIndicator] = useState<ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | '' | null>('');
+    const [brickRoadIndicator, setBrickRoadIndicator] = useState<ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>>();
     const currentUserEmojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const currentUserStatusText = currentUserPersonalDetails?.status?.text ?? '';
     const currentUserClearAfter = currentUserPersonalDetails?.status?.clearAfter ?? '';
@@ -55,17 +54,22 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
     const draftText = draftStatus?.text;
     const draftClearAfter = draftStatus?.clearAfter;
 
-    const defaultEmoji = draftEmojiCode ?? currentUserEmojiCode;
-    const defaultText = draftText ?? currentUserStatusText;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const defaultEmoji = draftEmojiCode || currentUserEmojiCode;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const defaultText = draftText || currentUserStatusText;
 
     const customClearAfter = useMemo(() => {
-        const dataToShow = draftClearAfter ?? currentUserClearAfter;
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const dataToShow = draftClearAfter || currentUserClearAfter;
         return DateUtils.getLocalizedTimePeriodDescription(dataToShow);
     }, [draftClearAfter, currentUserClearAfter]);
 
     const isValidClearAfterDate = useCallback(() => {
-        const clearAfterTime = draftClearAfter ?? currentUserClearAfter;
-        if (clearAfterTime === CONST.CUSTOM_STATUS_TYPES.NEVER ?? clearAfterTime === '') {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const clearAfterTime = draftClearAfter || currentUserClearAfter;
+        if (clearAfterTime === CONST.CUSTOM_STATUS_TYPES.NEVER || clearAfterTime === '') {
             return true;
         }
 
@@ -75,10 +79,11 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
     const navigateBackToPreviousScreen = useCallback(() => Navigation.goBack(), []);
     const updateStatus = useCallback(
         ({emojiCode, statusText}: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM>) => {
-            const clearAfterTime = draftClearAfter ?? currentUserClearAfter ?? CONST.CUSTOM_STATUS_TYPES.NEVER;
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const clearAfterTime = draftClearAfter || currentUserClearAfter || CONST.CUSTOM_STATUS_TYPES.NEVER;
             const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
             if (!isValid && clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER) {
-                setBrickRoadIndicator(isValidClearAfterDate() ? null : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+                setBrickRoadIndicator(isValidClearAfterDate() ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
                 return;
             }
             User.updateCustomStatus({
@@ -102,19 +107,20 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
             emojiCode: '',
             clearAfter: DateUtils.getEndOfToday(),
         });
-        formRef.current?.resetForm?.({[INPUT_IDS.EMOJI_CODE]: ''});
+        formRef.current?.resetForm({[INPUT_IDS.EMOJI_CODE]: ''});
+
         InteractionManager.runAfterInteractions(() => {
             navigateBackToPreviousScreen();
         });
     };
 
-    useEffect(() => setBrickRoadIndicator(isValidClearAfterDate() ? null : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR), [isValidClearAfterDate]);
+    useEffect(() => setBrickRoadIndicator(isValidClearAfterDate() ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR), [isValidClearAfterDate]);
 
     useEffect(() => {
         if (!currentUserEmojiCode && !currentUserClearAfter && !draftClearAfter) {
-            User.updateDraftCustomStatus({clearAfter: DateUtils.getEndOfToday()} as Status);
+            User.updateDraftCustomStatus({clearAfter: DateUtils.getEndOfToday()});
         } else {
-            User.updateDraftCustomStatus({clearAfter: currentUserClearAfter} as Status);
+            User.updateDraftCustomStatus({clearAfter: currentUserClearAfter});
         }
 
         return () => User.clearDraftCustomStatus();
@@ -123,7 +129,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
 
     const validateForm = useCallback((): FormInputErrors<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM> => {
         if (brickRoadIndicator) {
-            return {clearAfter: '' as TranslationPaths};
+            return {clearAfter: ''};
         }
         return {};
     }, [brickRoadIndicator]);
@@ -161,7 +167,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
                             inputID={INPUT_IDS.EMOJI_CODE}
                             // @ts-expect-error TODO: Remove ts-expect-error when EmojiPickerButtonDropdown migration is done
                             accessibilityLabel={INPUT_IDS.EMOJI_CODE}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                             defaultValue={defaultEmoji}
                             style={styles.mb3}
                         />
@@ -184,7 +190,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
                         containerStyle={styles.pr2}
                         brickRoadIndicator={brickRoadIndicator}
                     />
-                    {(!!currentUserEmojiCode ?? !!currentUserStatusText) && (
+                    {(!!currentUserEmojiCode || !!currentUserStatusText) && (
                         <MenuItem
                             title={translate('statusPage.clearStatus')}
                             titleStyle={styles.ml0}

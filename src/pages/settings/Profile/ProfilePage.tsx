@@ -66,7 +66,7 @@ function ProfilePage({
         return pronounsKey ? translate(`pronouns.${pronounsKey}` as TranslationPaths) : translate('profilePage.selectYourPronouns');
     };
 
-    const contactMethodBrickRoadIndicator = loginList ? UserUtils.getLoginListBrickRoadIndicator(loginList) : undefined;
+    const contactMethodBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(loginList);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     usePrivatePersonalDetails();
     const privateDetails = privatePersonalDetails ?? {};

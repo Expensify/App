@@ -6,6 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -16,13 +17,8 @@ import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type PronounsListType = (typeof CONST.PRONOUNS_LIST)[number];
-
-type PronounEntry = {
-    text: string;
+type PronounEntry = ListItem & {
     value: string;
-    keyForList: PronounsListType;
-    isSelected: boolean;
 };
 
 type PronounsPageOnyxProps = {
@@ -81,7 +77,7 @@ function PronounsPage({currentUserPersonalDetails, isLoadingApp = true}: Pronoun
             includeSafeAreaPaddingBottom={false}
             testID={PronounsPage.displayName}
         >
-            {isLoadingApp && currentUserPersonalDetails.pronouns ? (
+            {isLoadingApp && !currentUserPersonalDetails.pronouns ? (
                 <FullScreenLoadingIndicator />
             ) : (
                 <>

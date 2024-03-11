@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -21,12 +22,12 @@ type TimezoneSelectPageProps = Pick<WithCurrentUserPersonalDetailsProps, 'curren
  */
 const getKey = (text: string): string => `${text}-${new Date().getTime()}`;
 
-const getUserTimezone = ({currentUserPersonalDetails}: Pick<WithCurrentUserPersonalDetailsProps, 'currentUserPersonalDetails'>) =>
+const getUserTimezone = (currentUserPersonalDetails: ValueOf<WithCurrentUserPersonalDetailsProps, 'currentUserPersonalDetails'>) =>
     currentUserPersonalDetails?.timezone ?? CONST.DEFAULT_TIME_ZONE;
 
 function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProps) {
     const {translate} = useLocalize();
-    const timezone = getUserTimezone({currentUserPersonalDetails});
+    const timezone = getUserTimezone(currentUserPersonalDetails);
     const allTimezones = useInitialValue(() =>
         TIMEZONES.filter((tz: string) => !tz.startsWith('Etc/GMT')).map((text: string) => ({
             text,

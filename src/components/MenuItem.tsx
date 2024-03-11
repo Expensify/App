@@ -194,7 +194,7 @@ type MenuItemBaseProps = {
     isSmallAvatarSubscriptMenu?: boolean;
 
     /** The type of brick road indicator to show. */
-    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | '' | null;
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 
     /** Should render the content in HTML format */
     shouldRenderAsHTML?: boolean;

@@ -1,4 +1,4 @@
-import type {GestureResponderEvent, Role, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {MaybePhraseKey} from '@libs/Localize';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -104,9 +104,6 @@ type CustomBaseTextInputProps = {
 
     /** Type of autocomplete */
     autoCompleteType?: string;
-
-    /** Keyboard type */
-    role?: Role;
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;

@@ -17,7 +17,7 @@ type Status = {
     emojiCode: string;
 
     /** The text of the draft status */
-    text: string;
+    text?: string;
 
     /** The timestamp of when the status should be cleared */
     clearAfter: string; // ISO 8601 format;
