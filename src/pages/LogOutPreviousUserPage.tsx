@@ -35,9 +35,20 @@ function LogOutPreviousUserPage({session, route, account}: LogOutPreviousUserPag
             const sessionEmail = session?.email;
             const transitionURL = NativeModules.HybridAppModule ? `${CONST.DEEPLINK_BASE_URL}${initUrl}` : url;
             const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL ?? undefined, sessionEmail);
+            const isSupportalLogin = route.params.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 
             if (isLoggingInAsNewUser) {
-                SessionActions.signOutAndRedirectToSignIn();
+                SessionActions.signOutAndRedirectToSignIn(false, isSupportalLogin);
+            }
+
+            if (isSupportalLogin) {
+                SessionActions.signInWithSupportAuthToken(route.params.shortLivedAuthToken ?? '');
+                Navigation.isNavigationReady().then(() => {
+                    // We must call goBack() to remove the /transition route from history
+                    Navigation.goBack();
+                    Navigation.navigate(ROUTES.HOME);
+                });
+                return;
             }
 
             // We need to signin and fetch a new authToken, if a user was already authenticated in NewDot, and was redirected to OldDot
@@ -63,7 +74,11 @@ function LogOutPreviousUserPage({session, route, account}: LogOutPreviousUserPag
                 });
             }
         });
-    }, [initUrl, account, route, session]);
+
+
+        // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return <FullScreenLoadingIndicator />;
 }
