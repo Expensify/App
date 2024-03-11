@@ -64,6 +64,9 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVER]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
         policyID: string;
     };
@@ -96,9 +99,6 @@ type CentralPaneNavigatorParamList = {
         categoryName: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.WORKFLOWS_APPROVER]: {
         policyID: string;
     };
 };
