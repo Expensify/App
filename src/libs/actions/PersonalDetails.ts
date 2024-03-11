@@ -43,12 +43,6 @@ Onyx.connect({
     callback: (val) => (allPersonalDetails = val),
 });
 
-let privatePersonalDetails: OnyxEntry<PrivatePersonalDetails> = null;
-Onyx.connect({
-    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-    callback: (val) => (privatePersonalDetails = val),
-});
-
 function updatePronouns(pronouns: string) {
     if (currentUserAccountID) {
         const parameters: UpdatePronounsParams = {pronouns};
