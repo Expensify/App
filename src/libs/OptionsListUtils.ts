@@ -902,7 +902,7 @@ function sortTags(tags: Record<string, Tag> | Tag[]) {
  * @param options[].name - a name of an option
  * @param [isOneLine] - a flag to determine if text should be one line
  */
-function getCategoryOptionTree(options: Record<string, Category> | Category[], isOneLine = false): OptionTree[] {
+function getCategoryOptionTree(options: Record<string, Category> | Category[], isOneLine = false, selectedOptionsName: string[] = []): OptionTree[] {
     const optionCollection = new Map<string, OptionTree>();
     Object.values(options).forEach((option) => {
         if (isOneLine) {
@@ -937,7 +937,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 searchText,
                 tooltipText: optionName,
                 isDisabled: isChild ? !option.enabled : true,
-                isSelected: !!option.isSelected,
+                isSelected: isChild ? !!option.isSelected : selectedOptionsName.includes(searchText),
             });
         });
     });
@@ -1045,7 +1045,7 @@ function getCategoryListSections(
         title: Localize.translateLocal('common.all'),
         shouldShow: true,
         indexOffset,
-        data: getCategoryOptionTree(filteredCategories),
+        data: getCategoryOptionTree(filteredCategories, false, selectedOptionNames),
     });
 
     return categorySections;
