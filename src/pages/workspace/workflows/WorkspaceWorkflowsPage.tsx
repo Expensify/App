@@ -30,7 +30,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Beta, ReimbursementAccount} from '@src/types/onyx';
+import type {Beta, ReimbursementAccount, Session} from '@src/types/onyx';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
@@ -41,10 +41,12 @@ type WorkspaceWorkflowsPageOnyxProps = {
     betas: OnyxEntry<Beta[]>;
     /** Reimbursement account details */
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
+    /** Policy details */
+    session: OnyxEntry<Session>;
 };
 type WorkspaceWorkflowsPageProps = WithPolicyProps & WorkspaceWorkflowsPageOnyxProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
-function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: WorkspaceWorkflowsPageProps) {
+function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, session}: WorkspaceWorkflowsPageProps) {
     const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -57,12 +59,13 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
     const containerStyle = useMemo(() => [styles.ph8, styles.mhn8, styles.ml11, styles.pv3, styles.pr0, styles.pl4, styles.mr0, styles.widthAuto, styles.mt4], [styles]);
     const canUseDelayedSubmission = Permissions.canUseWorkflowsDelayedSubmission(betas);
 
-    const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policy?.id ?? '')), [policy?.id]);
-
     const displayNameForAuthorizedPayer = useMemo(() => {
-        const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([policy?.reimburserAccountID ?? 0], 0);
-        return personalDetails[policy?.reimburserAccountID ?? 0]?.displayName ?? policy?.reimburserEmail;
-    }, [policy?.reimburserAccountID, policy?.reimburserEmail]);
+        const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([policy?.reimburserAccountID ?? 0], session?.accountID ?? 0);
+        const displayNameFromReimburserEmail = PersonalDetailsUtils.getPersonalDetailByEmail(policy?.reimburserEmail ?? '')?.displayName ?? policy?.reimburserEmail;
+        return personalDetails[0]?.displayName ?? displayNameFromReimburserEmail;
+    }, [policy?.reimburserAccountID, policy?.reimburserEmail, session?.accountID]);
+
+    const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policy?.id ?? '')), [policy?.id]);
 
     const fetchData = () => {
         Policy.openPolicyWorkflowsPage(policy?.id ?? route.params.policyID);
@@ -170,6 +173,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount}: Wo
                                 pendingAction={policy?.pendingFields?.reimburserEmail}
                                 errors={ErrorUtils.getLatestErrorField(policy ?? {}, 'reimburserEmail')}
                                 onClose={() => Policy.clearWorkspacePayerError(policy?.id ?? '')}
+                                errorRowStyles={styles.ml11}
                             >
                                 <MenuItem
                                     titleStyle={styles.textLabelSupportingNormal}
@@ -268,6 +272,9 @@ export default withPolicy(
         reimbursementAccount: {
             // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
             key: ({route}) => `${ONYXKEYS.REIMBURSEMENT_ACCOUNT}${route.params.policyID}`,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     })(WorkspaceWorkflowsPage),
 );
