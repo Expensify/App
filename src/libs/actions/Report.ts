@@ -113,15 +113,31 @@ Onyx.connect({
     },
 });
 
+// map of reportID to all reportActions for that report
 const allReportActions: OnyxCollection<ReportActions> = {};
+
+// map of reportID to the ID of the oldest reportAction for that report
+const oldestReportActions: Record<string, string> = {};
+
+// map of report to the ID of the newest action for that report
+const newestReportActions: Record<string, string> = {};
+
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (action, key) => {
-        if (!key || !action) {
+    callback: (actions, key) => {
+        if (!key || !actions) {
             return;
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
-        allReportActions[reportID] = action;
+        allReportActions[reportID] = actions;
+        const sortedActions = ReportActionsUtils.getSortedReportActions(Object.values(actions));
+
+        if (sortedActions.length === 0) {
+            return;
+        }
+
+        oldestReportActions[reportID] = sortedActions[0].reportActionID;
+        newestReportActions[reportID] = sortedActions[sortedActions.length - 1].reportActionID;
     },
 });
 
@@ -879,7 +895,7 @@ function reconnect(reportID: string) {
  * Gets the older actions that have not been read yet.
  * Normally happens when you scroll up on a chat, and the actions have not been read yet.
  */
-function getOlderActions(reportID: string, reportActionID: string) {
+function getOlderActions(reportID: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -912,7 +928,7 @@ function getOlderActions(reportID: string, reportActionID: string) {
 
     const parameters: GetOlderActionsParams = {
         reportID,
-        reportActionID,
+        reportActionID: oldestReportActions[reportID],
     };
 
     API.read(READ_COMMANDS.GET_OLDER_ACTIONS, parameters, {optimisticData, successData, failureData});
@@ -922,7 +938,7 @@ function getOlderActions(reportID: string, reportActionID: string) {
  * Gets the newer actions that have not been read yet.
  * Normally happens when you are not located at the bottom of the list and scroll down on a chat.
  */
-function getNewerActions(reportID: string, reportActionID: string) {
+function getNewerActions(reportID: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -955,7 +971,7 @@ function getNewerActions(reportID: string, reportActionID: string) {
 
     const parameters: GetNewerActionsParams = {
         reportID,
-        reportActionID,
+        reportActionID: newestReportActions[reportID],
     };
 
     API.read(READ_COMMANDS.GET_NEWER_ACTIONS, parameters, {optimisticData, successData, failureData});
@@ -2236,7 +2252,7 @@ function openReportFromDeepLink(url: string, isAuthenticated: boolean) {
             Navigation.waitForProtectedRoutes().then(() => {
                 const route = ReportUtils.getRouteFromLink(url);
 
-                if (route && Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(route)) {
+                if (route && Session.isAnonymousUser() && !Session.canAnonymousUserAccessRoute(route)) {
                     Session.signOutAndRedirectToSignIn(true);
                     return;
                 }
@@ -2400,6 +2416,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
 
     const logins = inviteeEmails.map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, inviteeAccountIDs);
+    const pendingChatMembers = ReportUtils.getPendingChatMembers(inviteeAccountIDs, report?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2408,13 +2425,22 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
             value: {
                 participantAccountIDs: participantAccountIDsAfterInvitation,
                 visibleChatMemberAccountIDs: visibleMemberAccountIDsAfterInvitation,
+                pendingChatMembers,
             },
         },
         ...newPersonalDetailsOnyxData.optimisticData,
     ];
 
-    const successData: OnyxUpdate[] = newPersonalDetailsOnyxData.finallyData;
-
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingChatMembers: report?.pendingChatMembers ?? null,
+            },
+        },
+        ...newPersonalDetailsOnyxData.finallyData,
+    ];
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2422,6 +2448,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
             value: {
                 participantAccountIDs: report.participantAccountIDs,
                 visibleChatMemberAccountIDs: report.visibleChatMemberAccountIDs,
+                pendingChatMembers: report?.pendingChatMembers ?? null,
             },
         },
         ...newPersonalDetailsOnyxData.finallyData,
@@ -2443,6 +2470,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
 
     const participantAccountIDsAfterRemoval = report?.participantAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
     const visibleChatMemberAccountIDsAfterRemoval = report?.visibleChatMemberAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
+    const pendingChatMembers = ReportUtils.getPendingChatMembers(targetAccountIDs, report?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2451,6 +2479,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             value: {
                 participantAccountIDs: participantAccountIDsAfterRemoval,
                 visibleChatMemberAccountIDs: visibleChatMemberAccountIDsAfterRemoval,
+                pendingChatMembers,
             },
         },
     ];
@@ -2462,6 +2491,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             value: {
                 participantAccountIDs: report?.participantAccountIDs,
                 visibleChatMemberAccountIDs: report?.visibleChatMemberAccountIDs,
+                pendingChatMembers: report?.pendingChatMembers ?? null,
             },
         },
     ];
@@ -2475,6 +2505,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             value: {
                 participantAccountIDs: participantAccountIDsAfterRemoval,
                 visibleChatMemberAccountIDs: visibleChatMemberAccountIDsAfterRemoval,
+                pendingChatMembers: report?.pendingChatMembers ?? null,
             },
         },
     ];
@@ -2873,6 +2904,17 @@ function clearNewRoomFormError() {
     });
 }
 
+function getReportDraftStatus(reportID: string) {
+    if (!allReports) {
+        return false;
+    }
+
+    if (!allReports[reportID]) {
+        return false;
+    }
+    return allReports[reportID]?.hasDraft;
+}
+
 function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEntry<ReportAction>, resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>) {
     const message = reportAction?.message?.[0];
     if (!message) {
@@ -2923,6 +2965,7 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
 }
 
 export {
+    getReportDraftStatus,
     searchInServer,
     addComment,
     addAttachment,

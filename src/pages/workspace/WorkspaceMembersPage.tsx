@@ -87,6 +87,10 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     const {isSmallScreenWidth} = useWindowDimensions();
     const dropdownButtonRef = useRef(null);
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
+    const isLoading = useMemo(
+        () => !isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) || isEmptyObject(policyMembers)),
+        [isOfflineAndNoMemberDataAvailable, personalDetails, policyMembers],
+    );
 
     /**
      * Get filtered personalDetails list with current policyMembers
@@ -254,6 +258,19 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
         [selectedEmployees, addUser, removeUser],
     );
 
+    /** Opens the member details page */
+    const openMemberDetails = useCallback(
+        (item: MemberOption) => {
+            if (!isPolicyAdmin || !PolicyUtils.isPaidGroupPolicy(policy)) {
+                Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
+                return;
+            }
+
+            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID, Navigation.getActiveRoute()));
+        },
+        [isPolicyAdmin, policy, route.params.policyID],
+    );
+
     /**
      * Dismisses the errors on one item
      */
@@ -359,7 +376,8 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
         if (isOfflineAndNoMemberDataAvailable) {
             return translate('workspace.common.mustBeOnlineToViewMembers');
         }
-        return !data.length ? translate('workspace.common.memberNotFound') : '';
+
+        return !isLoading && isEmptyObject(policyMembers) ? translate('workspace.common.memberNotFound') : '';
     };
 
     const getHeaderContent = () => (
@@ -417,22 +435,24 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
             },
         ];
 
-        if (selectedEmployees.find((employee) => policyMembers?.[employee]?.role === CONST.POLICY.ROLE.ADMIN)) {
-            options.push({
-                text: translate('workspace.people.makeMember'),
-                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
-                icon: Expensicons.User,
-                onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
-            });
-        }
+        if (PolicyUtils.isPaidGroupPolicy(policy)) {
+            if (selectedEmployees.find((employee) => policyMembers?.[employee]?.role === CONST.POLICY.ROLE.ADMIN)) {
+                options.push({
+                    text: translate('workspace.people.makeMember'),
+                    value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
+                    icon: Expensicons.User,
+                    onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
+                });
+            }
 
-        if (selectedEmployees.find((employee) => policyMembers?.[employee]?.role === CONST.POLICY.ROLE.USER)) {
-            options.push({
-                text: translate('workspace.people.makeAdmin'),
-                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
-                icon: Expensicons.MakeAdmin,
-                onSelected: () => changeUserRole(CONST.POLICY.ROLE.ADMIN),
-            });
+            if (selectedEmployees.find((employee) => policyMembers?.[employee]?.role === CONST.POLICY.ROLE.USER)) {
+                options.push({
+                    text: translate('workspace.people.makeAdmin'),
+                    value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
+                    icon: Expensicons.MakeAdmin,
+                    onSelected: () => changeUserRole(CONST.POLICY.ROLE.ADMIN),
+                });
+            }
         }
 
         return options;
@@ -449,7 +469,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                     <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                         shouldAlwaysShowDropdownMenu
                         pressOnEnter
-                        customText={translate('workspace.people.selected', {selectedNumber: selectedEmployees.length})}
+                        customText={translate('workspace.common.selected', {selectedNumber: selectedEmployees.length})}
                         buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                         onPress={() => null}
                         options={getBulkActionsButtonOptions()}
@@ -463,7 +483,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                         onPress={inviteUser}
                         text={translate('workspace.invite.member')}
                         icon={Expensicons.Plus}
-                        iconStyles={{transform: [{scale: 0.6}]}}
+                        iconStyles={StyleUtils.getTransformScaleStyle(0.6)}
                         innerStyles={[isSmallScreenWidth && styles.alignItemsCenter]}
                         style={[isSmallScreenWidth && styles.flexGrow1]}
                     />
@@ -523,16 +543,11 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                         disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                         headerMessage={getHeaderMessage()}
                         headerContent={getHeaderContent()}
-                        onSelectRow={(item) => {
-                            if (!isPolicyAdmin) {
-                                Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
-                                return;
-                            }
-                            toggleUser(item.accountID);
-                        }}
+                        onSelectRow={openMemberDetails}
+                        onCheckboxPress={(item) => toggleUser(item.accountID)}
                         onSelectAll={() => toggleAllUsers(data)}
                         onDismissError={dismissError}
-                        showLoadingPlaceholder={!isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) || isEmptyObject(policyMembers))}
+                        showLoadingPlaceholder={isLoading}
                         showScrollIndicator
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         ref={textInputRef}

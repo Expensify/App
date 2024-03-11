@@ -6,6 +6,7 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {findNodeHandle, Keyboard, NativeModules, View} from 'react-native';
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
@@ -63,7 +64,7 @@ type ReportActionItemMessageEditProps = {
     shouldDisableEmojiPicker?: boolean;
 
     /** Stores user's preferred skin tone */
-    preferredSkinTone?: number;
+    preferredSkinTone?: OnyxEntry<string | number>;
 };
 
 // native ids
@@ -73,7 +74,7 @@ const messageEditInput = 'messageEditInput';
 const isMobileSafari = Browser.isMobileSafari();
 function ReportActionItemMessageEdit(
     {action, draftMessage, reportID, index, shouldDisableEmojiPicker = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE}: ReportActionItemMessageEditProps,
-    forwardedRef: ForwardedRef<TextInput & HTMLTextAreaElement>,
+    forwardedRef: ForwardedRef<(TextInput & HTMLTextAreaElement) | undefined>,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
