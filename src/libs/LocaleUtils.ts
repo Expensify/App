@@ -1,7 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 
-const getLanguageFromLocale = (locale: ValueOf<typeof CONST.LOCALES>): (typeof CONST.LANGUAGES)[number] => {
+function getLanguageFromLocale(locale: ValueOf<typeof CONST.LOCALES>): (typeof CONST.LANGUAGES)[number] {
     switch (locale) {
         case CONST.LOCALES.ES_ES:
         case CONST.LOCALES.ES_ES_ONFIDO:
@@ -12,6 +12,6 @@ const getLanguageFromLocale = (locale: ValueOf<typeof CONST.LOCALES>): (typeof C
         default:
             return CONST.LOCALES.DEFAULT;
     }
-};
+}
 
 export default {getLanguageFromLocale};
