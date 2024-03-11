@@ -1,6 +1,6 @@
 import Navigation from '@navigation/Navigation';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import CONST from "@src/CONST";
 
 const navigateAfterJoinRequest = () => {
     Navigation.navigate(ROUTES.ALL_SETTINGS, CONST.NAVIGATION.TYPE.FORCED_UP);
