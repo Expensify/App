@@ -91,10 +91,12 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
                 />
             );
 
+            const isAuthorizedPayer = policy?.reimburserEmail === details?.login ?? policy?.reimburserAccountID === accountID;
+
             const formattedMember = {
                 keyForList: accountIDKey,
                 accountID,
-                isSelected: policy?.reimburserEmail === details?.login ?? policy?.reimburserAccountID === accountID,
+                isSelected: isAuthorizedPayer,
                 isDisabled: policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyMember.errors),
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
@@ -108,7 +110,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
                     },
                 ],
                 errors: policyMember.errors,
-                pendingAction: policyMember.pendingAction,
+                pendingAction: policyMember.pendingAction ?? isAuthorizedPayer ? policy?.pendingFields?.reimburserEmail : null,
             };
 
             if (policy?.reimburserEmail === details?.login ?? policy?.reimburserAccountID === accountID) {
@@ -118,7 +120,18 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
             }
         });
         return [policyAdminDetails, authorizedPayerDetails];
-    }, [personalDetails, policyMembers, translate, policy?.reimburserEmail, isDeletedPolicyMember, policy?.owner, styles, StyleUtils, policy?.reimburserAccountID]);
+    }, [
+        personalDetails,
+        policyMembers,
+        translate,
+        policy?.reimburserEmail,
+        isDeletedPolicyMember,
+        policy?.owner,
+        styles,
+        StyleUtils,
+        policy?.reimburserAccountID,
+        policy?.pendingFields?.reimburserEmail,
+    ]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArray: MembersSection[] = [];
