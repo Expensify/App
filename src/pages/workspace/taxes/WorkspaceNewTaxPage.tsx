@@ -68,7 +68,7 @@ function WorkspaceNewTaxPage({
     return (
         <ScreenWrapper testID={WorkspaceNewTaxPage.displayName}>
             <View style={[styles.h100, styles.flex1, styles.justifyContentBetween]}>
-                <HeaderWithBackButton title={translate('workspace.taxes.newRate')} />
+                <HeaderWithBackButton title={translate('workspace.taxes.addRate')} />
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM}
