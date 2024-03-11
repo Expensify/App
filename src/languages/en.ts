@@ -225,6 +225,7 @@ export default {
             acceptTerms: 'You must accept the Terms of Service to continue',
             phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'This field is required.',
+            requestModified: 'This request is being modified by another member.',
             characterLimit: ({limit}: CharacterLimitParams) => `Exceeds the maximum length of ${limit} characters`,
             characterLimitExceedCounter: ({length, limit}) => `Character limit exceeded (${length}/${limit})`,
             dateInvalid: 'Please select a valid date',
@@ -1754,6 +1755,7 @@ export default {
             workspaceType: 'Workspace type',
             workspaceAvatar: 'Workspace avatar',
             mustBeOnlineToViewMembers: 'You must be online in order to view members of this workspace.',
+            moreFeatures: 'More features',
             requested: 'Requested',
             distanceRates: 'Distance rates',
             selected: ({selectedNumber}) => `${selectedNumber} selected`,
@@ -1777,6 +1779,48 @@ export default {
             categoryRequiredError: 'Category name is required.',
             existingCategoryError: 'A category with this name already exists.',
             invalidCategoryName: 'Invalid category name.',
+        },
+        moreFeatures: {
+            spendSection: {
+                title: 'Spend',
+                subtitle: 'Enable optional functionality that helps you scale your team.',
+            },
+            organizeSection: {
+                title: 'Organize',
+                subtitle: 'Group and analyze spend, record every tax paid.',
+            },
+            integrateSection: {
+                title: 'Integrate',
+                subtitle: 'Connect Expensify to popular financial products.',
+            },
+            distanceRates: {
+                title: 'Distance rates',
+                subtitle: 'Add, update and enforce rates.',
+            },
+            workflows: {
+                title: 'Workflows',
+                subtitle: 'Configure how spend is approved and paid.',
+            },
+            categories: {
+                title: 'Categories',
+                subtitle: 'Track and organize spend.',
+            },
+            tags: {
+                title: 'Tags',
+                subtitle: 'Add additional ways to classify spend.',
+            },
+            taxes: {
+                title: 'Taxes',
+                subtitle: 'Document and reclaim eligible taxes.',
+            },
+            reportFields: {
+                title: 'Report fields',
+                subtitle: 'Set up custom fields for spend.',
+            },
+            connections: {
+                title: 'Connections',
+                subtitle: 'Sync your chart of accounts and more.',
+            },
         },
         tags: {
             requiresTag: 'Members must tag all spend',

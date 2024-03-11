@@ -447,7 +447,6 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
         file,
-        shouldAllowActionableMentionWhispers: true,
         clientCreatedTime: file ? attachmentAction?.created : reportCommentAction?.created,
     };
 

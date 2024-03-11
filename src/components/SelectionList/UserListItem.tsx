@@ -58,7 +58,7 @@ function UserListItem({
             }
             keyForList={item.keyForList}
         >
-            {(hovered) => (
+            {(hovered?: boolean) => (
                 <>
                     {!!item.icons &&
                         (item.shouldShowSubscript ? (
