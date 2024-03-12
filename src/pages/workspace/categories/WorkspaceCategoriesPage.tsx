@@ -36,7 +36,10 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-type PolicyOption = ListItem;
+type PolicyOption = ListItem & {
+    /** Category name is used as a key for the selectedCategories state */
+    keyForList: string;
+};
 
 type WorkspaceCategoriesOnyxProps = {
     /** The policy the user is accessing. */
@@ -134,7 +137,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
     );
 
     const navigateToCategorySettings = (category: PolicyOption) => {
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, category.text));
+        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, category.keyForList));
     };
 
     const navigateToCategoriesSettings = () => {
