@@ -1,58 +1,50 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
-import * as Task from '@userActions/Task';
+import * as TaskActions from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewTaskForm';
+import type {Task} from '@src/types/onyx';
 
-const propTypes = {
-    /** Grab the Share description of the Task */
-    task: PropTypes.shape({
-        /** Description of the Task */
-        description: PropTypes.string,
-    }),
-
-    ...withLocalizePropTypes,
+type NewTaskDescriptionPageOnyxProps = {
+    /** Task Creation Data */
+    task: OnyxEntry<Task>;
 };
 
-const defaultProps = {
-    task: {
-        description: '',
-    },
-};
+type NewTaskDescriptionPageProps = NewTaskDescriptionPageOnyxProps & StackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DESCRIPTION>;
 
 const parser = new ExpensiMark();
 
-function NewTaskDescriptionPage(props) {
+function NewTaskDescriptionPage({task}: NewTaskDescriptionPageProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const onSubmit = (values) => {
-        Task.setDescriptionValue(values.taskDescription);
+    const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>) => {
+        TaskActions.setDescriptionValue(values.taskDescription);
         Navigation.goBack(ROUTES.NEW_TASK);
     };
 
-    /**
-     * @param {Object} values - form input values passed by the Form component
-     * @returns {Boolean}
-     */
-    function validate(values) {
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NEW_TASK_FORM> => {
         const errors = {};
 
         if (values.taskDescription.length > CONST.DESCRIPTION_LIMIT) {
@@ -60,7 +52,7 @@ function NewTaskDescriptionPage(props) {
         }
 
         return errors;
-    }
+    };
 
     return (
         <ScreenWrapper
@@ -70,25 +62,25 @@ function NewTaskDescriptionPage(props) {
         >
             <>
                 <HeaderWithBackButton
-                    title={props.translate('task.description')}
-                    onCloseButtonPress={() => Task.dismissModalAndClearOutTaskInfo()}
+                    title={translate('task.description')}
+                    onCloseButtonPress={() => TaskActions.dismissModalAndClearOutTaskInfo()}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
-                    submitButtonText={props.translate('common.next')}
+                    submitButtonText={translate('common.next')}
                     style={[styles.mh5, styles.flexGrow1]}
-                    validate={(values) => validate(values)}
-                    onSubmit={(values) => onSubmit(values)}
+                    validate={validate}
+                    onSubmit={onSubmit}
                     enabledWhenOffline
                 >
                     <View style={styles.mb5}>
                         <InputWrapperWithRef
                             InputComponent={TextInput}
-                            defaultValue={parser.htmlToMarkdown(parser.replace(props.task.description))}
+                            defaultValue={parser.htmlToMarkdown(parser.replace(task?.description ?? ''))}
                             inputID={INPUT_IDS.TASK_DESCRIPTION}
-                            label={props.translate('newTaskPage.descriptionOptional')}
-                            accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
+                            label={translate('newTaskPage.descriptionOptional')}
+                            accessibilityLabel={translate('newTaskPage.descriptionOptional')}
                             role={CONST.ROLE.PRESENTATION}
                             ref={(el) => {
                                 inputCallbackRef(el);
@@ -96,7 +88,7 @@ function NewTaskDescriptionPage(props) {
                             }}
                             autoGrowHeight
                             shouldSubmitForm
-                            containerStyles={[styles.autoGrowHeightMultilineInput]}
+                            containerStyles={styles.autoGrowHeightMultilineInput}
                         />
                     </View>
                 </FormProvider>
@@ -106,14 +98,9 @@ function NewTaskDescriptionPage(props) {
 }
 
 NewTaskDescriptionPage.displayName = 'NewTaskDescriptionPage';
-NewTaskDescriptionPage.propTypes = propTypes;
-NewTaskDescriptionPage.defaultProps = defaultProps;
 
-export default compose(
-    withOnyx({
-        task: {
-            key: ONYXKEYS.TASK,
-        },
-    }),
-    withLocalize,
-)(NewTaskDescriptionPage);
+export default withOnyx<NewTaskDescriptionPageProps, NewTaskDescriptionPageOnyxProps>({
+    task: {
+        key: ONYXKEYS.TASK,
+    },
+})(NewTaskDescriptionPage);
