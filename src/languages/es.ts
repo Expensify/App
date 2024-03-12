@@ -1865,7 +1865,7 @@ export default {
                 subtitle: 'Añade una etiqueta para realizar el seguimiento de proyectos, ubicaciones, departamentos y otros.',
             },
             tagRequiredError: 'Tag name is required.',
-            existingTagError: 'A tag with this name already exists.',
+            existingTagError: 'Ya existe una etiqueta con este nombre.',
             genericFailureMessage: 'Se produjo un error al actualizar la etiqueta, inténtelo nuevamente.',
         },
         emptyWorkspace: {
