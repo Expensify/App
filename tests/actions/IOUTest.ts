@@ -1,11 +1,11 @@
 import isEqual from 'lodash/isEqual';
 import Onyx from 'react-native-onyx';
-import type { OnyxCollection, OnyxEntry } from 'react-native-onyx';
-import type { OptimisticChatReport } from '@libs/ReportUtils';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OptimisticChatReport} from '@libs/ReportUtils';
 import type * as OnyxTypes from '@src/types/onyx';
-import type { IOUMessage } from '@src/types/onyx/OriginalMessage';
-import { toCollectionDataSet } from '@src/types/utils/CollectionDataSet';
-import { isEmptyObject } from '@src/types/utils/EmptyObject';
+import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
+import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import CONST from '../../src/CONST';
 import * as IOU from '../../src/libs/actions/IOU';
 import OnyxUpdateManager from '../../src/libs/actions/OnyxUpdateManager';
@@ -25,7 +25,6 @@ import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
-
 
 jest.mock('../../src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -998,10 +997,12 @@ describe('actions/IOU', () => {
 
             const julesActionsCollectionDataSet = toCollectionDataSet(
                 `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}`,
-            [{
-                    [julesCreatedAction.reportActionID]: julesCreatedAction,
-                    [julesExistingIOUAction.reportActionID]: julesExistingIOUAction,
-                }],
+                [
+                    {
+                        [julesCreatedAction.reportActionID]: julesCreatedAction,
+                        [julesExistingIOUAction.reportActionID]: julesExistingIOUAction,
+                    },
+                ],
                 (item) => item[julesCreatedAction.reportActionID].reportID ?? '',
             );
 
@@ -1012,7 +1013,7 @@ describe('actions/IOU', () => {
                         [julesChatCreatedAction.reportActionID]: julesChatCreatedAction,
                     },
                 ],
-                (item) => item[julesCreatedAction.reportActionID].reportID ?? '',
+                (item) => item[julesChatCreatedAction.reportActionID].reportID ?? '',
             );
 
             return (
