@@ -112,7 +112,7 @@ function BaseSelectionList<TItem extends ListItem>(
 
                 // If disabled, add to the disabled indexes array
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                if (!!section.isDisabled || item.isDisabled || (item.isSelectable !== undefined && !item.isSelectable)) {
+                if (!!section.isDisabled || item.isDisabled || item.isSelectable === false) {
                     disabledOptionsIndexes.push(disabledIndex);
                 }
                 disabledIndex += 1;

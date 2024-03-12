@@ -3060,6 +3060,10 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
     const parameters: EnablePolicyTaxesParams = {policyID, enabled};
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_TAXES, parameters, onyxData);
+
+    if (enabled) {
+        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_TAXES.getRoute(policyID));
+    }
 }
 
 function enablePolicyWorkflows(policyID: string, enabled: boolean) {

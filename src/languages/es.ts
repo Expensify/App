@@ -1861,9 +1861,9 @@ export default {
         },
         taxes: {
             subtitle: 'Añade nombres, tasas y establezca valores por defecto para los impuestos.',
-            addRate: 'Añade tasa',
+            addRate: 'Añadir tasa',
             workspaceDefault: 'Moneda por defecto del espacio de trabajo',
-            foreignDefault: 'Impago de divisas',
+            foreignDefault: 'Moneda extranjera por defecto',
         },
         emptyWorkspace: {
             title: 'Crea un espacio de trabajo',
