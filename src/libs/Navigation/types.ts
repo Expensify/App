@@ -176,6 +176,9 @@ type SettingsNavigatorParamList = {
         /** domain passed via route /settings/wallet/card/:domain */
         domain: string;
     };
+    [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: {
+        policyID: string;
+    };
     [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: undefined;
     [SCREENS.SETTINGS.WALLET.CHOOSE_TRANSFER_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: undefined;
@@ -213,6 +216,13 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
         policyID: string;
+    };
+    [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.TAGS_EDIT]: {
+        policyID: string;
+        tagName: string;
     };
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
         policyID: string;

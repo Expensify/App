@@ -517,6 +517,10 @@ const ROUTES = {
         route: 'workspace/:policyID/workflows',
         getRoute: (policyID: string) => `workspace/${policyID}/workflows` as const,
     },
+    WORKSPACE_WORKFLOWS_PAYER: {
+        route: 'workspace/:policyID/settings/workflows/payer',
+        getRoute: (policyId: string) => `workspace/${policyId}/settings/workflows/payer` as const,
+    },
     WORKSPACE_WORKFLOWS_APPROVER: {
         route: 'workspace/:policyID/settings/workflows/approver',
         getRoute: (policyId: string) => `workspace/${policyId}/settings/workflows/approver` as const,
@@ -588,6 +592,14 @@ const ROUTES = {
     WORKSPACE_TAGS: {
         route: 'workspace/:policyID/tags',
         getRoute: (policyID: string) => `workspace/${policyID}/tags` as const,
+    },
+    WORKSPACE_TAGS_SETTINGS: {
+        route: 'workspace/:policyID/tags/settings',
+        getRoute: (policyID: string) => `workspace/${policyID}/tags/settings` as const,
+    },
+    WORKSPACE_EDIT_TAGS: {
+        route: 'workspace/:policyID/tags/edit',
+        getRoute: (policyID: string) => `workspace/${policyID}/tags/edit` as const,
     },
     WORKSPACE_MEMBER_DETAILS: {
         route: 'workspace/:policyID/members/:accountID',
