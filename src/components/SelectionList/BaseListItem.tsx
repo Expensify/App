@@ -82,6 +82,7 @@ function BaseListItem<TItem extends ListItem>({
                         <PressableWithFeedback
                             accessibilityLabel={item.text ?? ''}
                             role={CONST.ROLE.BUTTON}
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             disabled={isDisabled || !isSelectable}
                             onPress={handleCheckboxPress}
                             style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), !isSelectable && styles.cursorDisabled]}
