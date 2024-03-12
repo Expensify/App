@@ -10,11 +10,8 @@ import waitForBatchedUpdates from './waitForBatchedUpdates';
 
 type MockFetch = ReturnType<typeof jest.fn> & {
     pause?: () => void;
-
     fail?: () => void;
-
     succeed?: () => void;
-
     resume?: () => Promise<void>;
 };
 
@@ -49,7 +46,6 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
     const originalXhr = HttpUtils.xhr;
 
     HttpUtils.xhr = jest.fn().mockImplementation(() => {
-        // Your mocked response object
         const mockedResponse: OnyxResponse = {
             onyxData: [
                 {
@@ -85,9 +81,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
     Session.beginSignIn(login);
     return waitForBatchedUpdates()
         .then(() => {
-            // Response is the same for calls to Authenticate and BeginSignIn
             HttpUtils.xhr = jest.fn().mockImplementation(() => {
-                // Your mocked response object
                 const mockedResponse = {
                     onyxData: [
                         {
@@ -143,7 +137,6 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
 function signOutTestUser() {
     const originalXhr = HttpUtils.xhr;
     HttpUtils.xhr = jest.fn().mockImplementation(() => {
-        // Your mocked response object
         const mockedResponse = {
             jsonCode: 200,
         };

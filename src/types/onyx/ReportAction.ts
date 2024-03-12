@@ -200,6 +200,9 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Server side errors keyed by microtime */
     errors?: OnyxCommon.Errors | OnyxCommon.ErrorFields;
 
+    /** Error associated with the report action */
+    error?: string;
+
     /** Whether the report action is attachment */
     isAttachment?: boolean;
 
