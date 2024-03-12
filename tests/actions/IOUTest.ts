@@ -721,11 +721,11 @@ describe('actions/IOU', () => {
                                 });
                             }),
                     )
-                    .then(() => {
+                    .then((): Promise<unknown> => {
                         // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
                         fetch.fail();
                         // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-                        fetch.resume();
+                        return fetch.resume() as Promise<unknown>;
                     })
                     .then(
                         () =>
