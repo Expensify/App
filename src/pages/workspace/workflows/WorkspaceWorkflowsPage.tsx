@@ -17,6 +17,7 @@ import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
+import FeatureEnabledAccessOrRedirectWrapper from '@pages/workspace/FeatureEnabledAccessOrRedirectWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
@@ -167,31 +168,36 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
 
     return (
-        <WorkspacePageWithSections
-            headerText={translate('workspace.common.workflows')}
-            icon={Illustrations.Workflows}
-            route={route}
-            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_WORKFLOWS}
-            shouldShowOfflineIndicatorInWideScreen
-            shouldShowNotFoundPage={!isPaidGroupPolicy || !isPolicyAdmin}
+        <FeatureEnabledAccessOrRedirectWrapper
+            policyID={route.params.policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
-            <View style={[styles.mt3, styles.textStrong, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                <Section
-                    title={translate('workflowsPage.workflowTitle')}
-                    titleStyles={styles.textStrong}
-                    containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
-                >
-                    <View>
-                        <Text style={[styles.mt3, styles.textSupporting]}>{translate('workflowsPage.workflowDescription')}</Text>
-                        <FlatList
-                            data={items}
-                            renderItem={renderItem}
-                            keyExtractor={(item: ToggleSettingOptionRowProps) => item.title}
-                        />
-                    </View>
-                </Section>
-            </View>
-        </WorkspacePageWithSections>
+            <WorkspacePageWithSections
+                headerText={translate('workspace.common.workflows')}
+                icon={Illustrations.Workflows}
+                route={route}
+                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_WORKFLOWS}
+                shouldShowOfflineIndicatorInWideScreen
+                shouldShowNotFoundPage={!isPaidGroupPolicy || !isPolicyAdmin}
+            >
+                <View style={[styles.mt3, styles.textStrong, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <Section
+                        title={translate('workflowsPage.workflowTitle')}
+                        titleStyles={styles.textStrong}
+                        containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
+                    >
+                        <View>
+                            <Text style={[styles.mt3, styles.textSupporting]}>{translate('workflowsPage.workflowDescription')}</Text>
+                            <FlatList
+                                data={items}
+                                renderItem={renderItem}
+                                keyExtractor={(item: ToggleSettingOptionRowProps) => item.title}
+                            />
+                        </View>
+                    </Section>
+                </View>
+            </WorkspacePageWithSections>
+        </FeatureEnabledAccessOrRedirectWrapper>
     );
 }
 

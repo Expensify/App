@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useState} from 'react';
 import {FlatList} from 'react-native-gesture-handler';
 import type {ValueOf} from 'type-fest';
@@ -11,18 +12,21 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
+import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import FeatureEnabledAccessOrRedirectWrapper from '@pages/workspace/FeatureEnabledAccessOrRedirectWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type AutoReportingFrequencyKey = Exclude<ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, 'instant'>;
 type Locale = ValueOf<typeof CONST.LOCALES>;
 
-type WorkspaceAutoReportingFrequencyPageProps = WithPolicyOnyxProps;
+type WorkspaceAutoReportingFrequencyPageProps = WithPolicyOnyxProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY>;
 
 type WorkspaceAutoReportingFrequencyPageItem = {
     text: string;
@@ -41,7 +45,7 @@ const getAutoReportingFrequencyDisplayNames = (locale: Locale): AutoReportingFre
     [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: Localize.translate(locale, 'workflowsPage.frequencies.manually'),
 });
 
-function WorkspaceAutoReportingFrequencyPage({policy}: WorkspaceAutoReportingFrequencyPageProps) {
+function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoReportingFrequencyPageProps) {
     const {translate, preferredLocale, toLocaleOrdinal} = useLocalize();
     const styles = useThemeStyles();
     const [isMonthlyFrequency, setIsMonthlyFrequency] = useState(policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY);
@@ -105,28 +109,33 @@ function WorkspaceAutoReportingFrequencyPage({policy}: WorkspaceAutoReportingFre
     );
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={WorkspaceAutoReportingFrequencyPage.displayName}
+        <FeatureEnabledAccessOrRedirectWrapper
+            policyID={route.params.policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
-            <FullPageNotFoundView
-                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
-                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
-                shouldShow={isEmptyObject(policy) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy) || !PolicyUtils.isPaidGroupPolicy(policy)}
-                subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                testID={WorkspaceAutoReportingFrequencyPage.displayName}
             >
-                <HeaderWithBackButton
-                    title={translate('workflowsPage.submissionFrequency')}
-                    onBackButtonPress={Navigation.goBack}
-                />
+                <FullPageNotFoundView
+                    onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
+                    onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
+                    shouldShow={isEmptyObject(policy) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy) || !PolicyUtils.isPaidGroupPolicy(policy)}
+                    subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
+                >
+                    <HeaderWithBackButton
+                        title={translate('workflowsPage.submissionFrequency')}
+                        onBackButtonPress={Navigation.goBack}
+                    />
 
-                <FlatList
-                    data={autoReportingFrequencyItems}
-                    renderItem={renderItem}
-                    keyExtractor={(item: WorkspaceAutoReportingFrequencyPageItem) => item.text}
-                />
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+                    <FlatList
+                        data={autoReportingFrequencyItems}
+                        renderItem={renderItem}
+                        keyExtractor={(item: WorkspaceAutoReportingFrequencyPageItem) => item.text}
+                    />
+                </FullPageNotFoundView>
+            </ScreenWrapper>
+        </FeatureEnabledAccessOrRedirectWrapper>
     );
 }
 
