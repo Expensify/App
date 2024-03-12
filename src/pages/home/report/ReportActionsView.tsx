@@ -2,7 +2,6 @@ import {useIsFocused} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import lodashThrottle from 'lodash/throttle';
 import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
-import {InteractionManager} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
@@ -91,12 +90,7 @@ function ReportActionsView({
     };
 
     useEffect(() => {
-        const interactionTask = InteractionManager.runAfterInteractions(() => {
-            openReportIfNecessary();
-        });
-        return () => {
-            interactionTask?.cancel();
-        };
+        openReportIfNecessary();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -150,20 +144,10 @@ function ReportActionsView({
         // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
         // Existing reports created will have empty fields for `pendingFields`.
         const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
-        let interactionTask: ReturnType<typeof InteractionManager.runAfterInteractions> | undefined;
         if (!didSubscribeToReportTypingEvents.current && didCreateReportSuccessfully) {
-            interactionTask = InteractionManager.runAfterInteractions(() => {
-                Report.subscribeToReportTypingEvents(reportID);
-                didSubscribeToReportTypingEvents.current = true;
-            });
+            Report.subscribeToReportTypingEvents(reportID);
+            didSubscribeToReportTypingEvents.current = true;
         }
-
-        return () => {
-            if (!interactionTask) {
-                return;
-            }
-            interactionTask.cancel();
-        };
     }, [report.pendingFields, didSubscribeToReportTypingEvents, reportID]);
 
     const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
