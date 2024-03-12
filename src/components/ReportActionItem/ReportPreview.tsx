@@ -106,7 +106,12 @@ function ReportPreview({
     const {translate} = useLocalize();
     const {canUseViolations} = usePermissions();
 
-    return <TripRoomPreview action={action} />;
+    // return (
+    //     <TripRoomPreview
+    //         action={action}
+    //         iouReportID={iouReportID}
+    //     />
+    // );
 
     const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyTransactionsWithPendingRoutes, hasNonReimbursableTransactions} = useMemo(
         () => ({

@@ -612,6 +612,10 @@ function getEnabledTaxRateCount(options: TaxRates) {
     return Object.values(options).filter((option: TaxRate) => !option.isDisabled).length;
 }
 
+function hasReservationList(transaction: Transaction | undefined | null): boolean {
+    return !!transaction?.reservationList && transaction?.reservationList?.length > 0;
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -663,6 +667,7 @@ export {
     waypointHasValidAddress,
     getRecentTransactions,
     hasViolation,
+    hasReservationList,
 };
 
 export type {TransactionChanges};

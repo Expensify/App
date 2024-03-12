@@ -2455,6 +2455,7 @@ export default {
     travel: {
         flight: 'Flight',
         hotel: 'Hotel',
+        car: 'Car',
         viewTrip: 'View trip',
     },
 } satisfies TranslationBase;

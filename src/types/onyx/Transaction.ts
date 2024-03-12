@@ -128,7 +128,7 @@ type ReservationConfirmation = {
     value: string;
 };
 
-type ReservationType = 'flight' | 'hotel';
+type ReservationType = 'flight' | 'hotel' | 'car';
 
 type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
@@ -262,4 +262,17 @@ type AdditionalTransactionChanges = {
 type TransactionChanges = Partial<Transaction> & AdditionalTransactionChanges;
 
 export default Transaction;
-export type {WaypointCollection, Comment, Receipt, Waypoint, ReceiptError, ReceiptErrors, TransactionPendingFieldsKey, TransactionChanges, TaxRate, ReceiptSource, Reservation};
+export type {
+    WaypointCollection,
+    Comment,
+    Receipt,
+    Waypoint,
+    ReceiptError,
+    ReceiptErrors,
+    TransactionPendingFieldsKey,
+    TransactionChanges,
+    TaxRate,
+    ReceiptSource,
+    Reservation,
+    ReservationType,
+};
