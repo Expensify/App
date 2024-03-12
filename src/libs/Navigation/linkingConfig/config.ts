@@ -297,6 +297,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK]: {
                             path: ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.route,
                         },
+                        [SCREENS.WORKSPACE.OWNER_PAYMENT_CARD_FORM]: {
+                            path: ROUTES.WORKSPACE_OWNER_PAYMENT_CARD_FORM.route,
+                        },
                         [SCREENS.WORKSPACE.CATEGORY_CREATE]: {
                             path: ROUTES.WORKSPACE_CATEGORY_CREATE.route,
                         },

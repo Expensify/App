@@ -82,7 +82,7 @@ function BaseListItem<TItem extends ListItem>({
                         <PressableWithFeedback
                             accessibilityLabel={item.text ?? ''}
                             role={CONST.ROLE.BUTTON}
-                            disabled={isDisabled || !isItemSelectable}
+                            disabled={isDisabled ?? !isItemSelectable}
                             onPress={handleCheckboxPress}
                             style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), !isItemSelectable && styles.cursorDisabled]}
                         >

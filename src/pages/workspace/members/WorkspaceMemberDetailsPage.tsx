@@ -111,7 +111,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
         const keys = Object.keys(policy.errorFields.changeOwner);
 
         if (keys && keys.length > 0) {
-            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, keys[0] as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
+            if (keys[0] !== CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD) {
+                Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, keys[0] as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
+            } else {
+                Navigation.navigate(ROUTES.WORKSPACE_OWNER_PAYMENT_CARD_FORM.getRoute(policyID));
+            }
         }
     }, [policy?.errorFields?.changeOwner, policyID]);
 

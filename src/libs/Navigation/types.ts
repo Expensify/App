@@ -235,6 +235,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
         error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>;
     };
+    [SCREENS.WORKSPACE.OWNER_PAYMENT_CARD_FORM]: {
+        policyID: string;
+    };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };

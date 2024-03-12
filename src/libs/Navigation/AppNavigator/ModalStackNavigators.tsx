@@ -254,6 +254,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: () => require('../../../pages/workspace/members/WorkspaceMemberDetailsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE_SELECTION]: () => require('../../../pages/workspace/members/WorkspaceMemberDetailsRoleSelectionPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK]: () => require('../../../pages/workspace/members/WorkspaceOwnerChangeCheckPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.OWNER_PAYMENT_CARD_FORM]: () => require('@pages/workspace/members/WorkspaceOwnerPaymentCardFormPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.CATEGORY_CREATE]: () => require('../../../pages/workspace/categories/CreateCategoryPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAGS_SETTINGS]: () => require('../../../pages/workspace/tags/WorkspaceTagsSettingsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAGS_EDIT]: () => require('../../../pages/workspace/tags/WorkspaceEditTagsPage').default as React.ComponentType,

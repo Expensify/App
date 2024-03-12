@@ -589,6 +589,10 @@ const ROUTES = {
         route: 'workspace/:policyID/change-owner/:error',
         getRoute: (policyID: string, error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>) => `workspace/${policyID}/change-owner/${error}` as const,
     },
+    WORKSPACE_OWNER_PAYMENT_CARD_FORM: {
+        route: 'workspace/:policyID/add-payment-card',
+        getRoute: (policyID: string) => `workspace/${policyID}/add-payment-card` as const,
+    },
     WORKSPACE_DISTANCE_RATES: {
         route: 'workspace/:policyID/distance-rates',
         getRoute: (policyID: string) => `workspace/${policyID}/distance-rates` as const,
