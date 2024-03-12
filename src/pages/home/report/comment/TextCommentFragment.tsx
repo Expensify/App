@@ -57,7 +57,11 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
         const htmlWithDeletedTag = styleAsDeleted ? `<del>${html}</del>` : html;
 
         const htmlContent = containsOnlyEmojis ? Str.replaceAll(htmlWithDeletedTag, '<emoji>', '<emoji islarge>') : htmlWithDeletedTag;
-        const htmlWithTag = editedTag ? `${htmlContent}${editedTag}` : htmlContent;
+        let htmlWithTag = editedTag ? `${htmlContent}${editedTag}` : htmlContent;
+
+        if (styleAsMuted) {
+            htmlWithTag = `<muted-text>${htmlWithTag}<muted-text>`;
+        }
 
         return (
             <RenderCommentHTML
