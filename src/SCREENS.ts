@@ -22,6 +22,7 @@ const SCREENS = {
     VALIDATE_LOGIN: 'ValidateLogin',
     UNLINK_LOGIN: 'UnlinkLogin',
     SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
+    WORKSPACES_CENTRAL_PANE: 'WorkspacesCentralPane',
     SETTINGS: {
         ROOT: 'Settings_Root',
         SHARE_CODE: 'Settings_Share_Code',
