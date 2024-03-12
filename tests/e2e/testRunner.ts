@@ -16,7 +16,7 @@
 /* eslint-disable @lwc/lwc/no-async-await,no-restricted-syntax,no-await-in-loop */
 import {execSync} from 'child_process';
 import fs from 'fs';
-import _ from 'underscore';
+import type {TestConfig} from '@libs/E2E/types';
 import compare from './compare/compare';
 import defaultConfig from './config';
 import createServerInstance from './server';
@@ -28,9 +28,11 @@ import * as Logger from './utils/logger';
 import sleep from './utils/sleep';
 import withFailTimeout from './utils/withFailTimeout';
 
+type Result = Record<string, number[]>;
+
 // VARIABLE CONFIGURATION
 const args = process.argv.slice(2);
-const getArg = (argName) => {
+const getArg = (argName: string): string | undefined => {
     const argIndex = args.indexOf(argName);
     if (argIndex === -1) {
         return undefined;
@@ -39,13 +41,13 @@ const getArg = (argName) => {
 };
 
 let config = defaultConfig;
-const setConfigPath = (configPathParam) => {
+const setConfigPath = (configPathParam: string | undefined) => {
     let configPath = configPathParam;
-    if (!configPath.startsWith('.')) {
+    if (!configPath?.startsWith('.')) {
         configPath = `./${configPath}`;
     }
     const customConfig = require(configPath).default;
-    config = _.extend(defaultConfig, customConfig);
+    config = Object.assign(defaultConfig, customConfig);
 };
 
 if (args.includes('--config')) {
@@ -54,8 +56,8 @@ if (args.includes('--config')) {
 }
 
 // Important: set app path only after correct config file has been loaded
-const mainAppPath = getArg('--mainAppPath') || config.MAIN_APP_PATH;
-const deltaAppPath = getArg('--deltaAppPath') || config.DELTA_APP_PATH;
+const mainAppPath = getArg('--mainAppPath') ?? config.MAIN_APP_PATH;
+const deltaAppPath = getArg('--deltaAppPath') ?? config.DELTA_APP_PATH;
 // Check if files exists:
 if (!fs.existsSync(mainAppPath)) {
     throw new Error(`Main app path does not exist: ${mainAppPath}`);
@@ -76,8 +78,7 @@ try {
 }
 
 // START OF TEST CODE
-
-const runTests = async () => {
+const runTests = async (): Promise<void> => {
     Logger.info('Installing apps and reversing port');
     await installApp(config.MAIN_APP_PACKAGE, mainAppPath);
     await installApp(config.DELTA_APP_PACKAGE, deltaAppPath);
@@ -88,36 +89,38 @@ const runTests = async () => {
     await server.start();
 
     // Create a dict in which we will store the run durations for all tests
-    const results = {};
+    const results: Record<string, Result> = {};
 
     // Collect results while tests are being executed
     server.addTestResultListener((testResult) => {
-        if (testResult.error != null) {
+        if (testResult?.error != null) {
             throw new Error(`Test '${testResult.name}' failed with error: ${testResult.error}`);
         }
         let result = 0;
 
-        if ('duration' in testResult) {
+        if (testResult?.duration !== undefined) {
             if (testResult.duration < 0) {
                 return;
             }
             result = testResult.duration;
         }
-        if ('renderCount' in testResult) {
+        if (testResult?.renderCount !== undefined) {
             result = testResult.renderCount;
         }
 
-        Logger.log(`[LISTENER] Test '${testResult.name}' on '${testResult.branch}' measured ${result}`);
+        Logger.log(`[LISTENER] Test '${testResult?.name}' on '${testResult?.branch}' measured ${result}`);
 
-        if (!results[testResult.branch]) {
+        if (testResult?.branch && !results[testResult.branch]) {
             results[testResult.branch] = {};
         }
 
-        results[testResult.branch][testResult.name] = (results[testResult.branch][testResult.name] || []).concat(result);
+        if (testResult?.branch && testResult?.name) {
+            results[testResult.branch][testResult.name] = (results[testResult.branch][testResult.name] ?? []).concat(result);
+        }
     });
 
     // Function to run a single test iteration
-    async function runTestIteration(appPackage, iterationText, launchArgs) {
+    async function runTestIteration(appPackage: string, iterationText: string, launchArgs: Record<string, boolean> = {}): Promise<void> {
         Logger.info(iterationText);
 
         // Making sure the app is really killed (e.g. if a prior test run crashed)
@@ -128,10 +131,9 @@ const runTests = async () => {
         await launchApp('android', appPackage, config.ACTIVITY_PATH, launchArgs);
 
         await withFailTimeout(
-            new Promise((resolve) => {
-                const cleanup = server.addTestDoneListener(() => {
+            new Promise<void>((resolve) => {
+                server.addTestDoneListener(() => {
                     Logger.success(iterationText);
-                    cleanup();
                     resolve();
                 });
             }),
@@ -143,9 +145,9 @@ const runTests = async () => {
     }
 
     // Run the tests
-    const tests = _.values(config.TESTS_CONFIG);
+    const tests = Object.keys(config.TESTS_CONFIG);
     for (let testIndex = 0; testIndex < tests.length; testIndex++) {
-        const test = _.values(config.TESTS_CONFIG)[testIndex];
+        const test = Object.values(config.TESTS_CONFIG)[testIndex];
 
         // check if we want to skip the test
         if (args.includes('--includes')) {
@@ -164,7 +166,7 @@ const runTests = async () => {
         Logger.info(`Cooling down for ${config.BOOT_COOL_DOWN / 1000}s`);
         await sleep(config.BOOT_COOL_DOWN);
 
-        server.setTestConfig(test);
+        server.setTestConfig(test as TestConfig);
 
         const warmupText = `Warmup for test '${test.name}' [${testIndex + 1}/${tests.length}]`;
 
@@ -182,7 +184,7 @@ const runTests = async () => {
 
         // We run each test multiple time to average out the results
         for (let testIteration = 0; testIteration < config.RUNS; testIteration++) {
-            const onError = (e) => {
+            const onError = (e: Error) => {
                 errorCountRef.errorCount += 1;
                 if (testIteration === 0 || errorCountRef.errorCount === errorCountRef.allowedExceptions) {
                     Logger.error("There was an error running the test and we've reached the maximum number of allowed exceptions. Stopping the test run.");
@@ -191,6 +193,7 @@ const runTests = async () => {
                     // maximum number of allowed exceptions, we should stop the test run.
                     throw e;
                 }
+                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                 Logger.warn(`There was an error running the test. Continuing the test run. Error: ${e}`);
             };
 
@@ -208,7 +211,7 @@ const runTests = async () => {
                 // Run the test on the delta app:
                 await runTestIteration(config.DELTA_APP_PACKAGE, deltaIterationText, launchArgs);
             } catch (e) {
-                onError(e);
+                onError(e as Error);
             }
         }
     }
@@ -228,7 +231,7 @@ const run = async () => {
 
         process.exit(0);
     } catch (e) {
-        Logger.info('\n\nE2E test suite failed due to error:', e, '\nPrinting full logs:\n\n');
+        Logger.info('\n\nE2E test suite failed due to error:', e as string, '\nPrinting full logs:\n\n');
 
         // Write logcat, meminfo, emulator info to file as well:
         execSync(`adb logcat -d > ${config.OUTPUT_DIR}/logcat.txt`);
@@ -237,7 +240,7 @@ const run = async () => {
 
         execSync(`cat ${config.LOG_FILE}`);
         try {
-            execSync(`cat ~/.android/avd/${process.env.AVD_NAME || 'test'}.avd/config.ini > ${config.OUTPUT_DIR}/emulator-config.ini`);
+            execSync(`cat ~/.android/avd/${process.env.AVD_NAME ?? 'test'}.avd/config.ini > ${config.OUTPUT_DIR}/emulator-config.ini`);
         } catch (ignoredError) {
             // the error is ignored, as the file might not exist if the test
             // run wasn't started with an emulator
