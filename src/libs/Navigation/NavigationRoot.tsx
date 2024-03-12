@@ -1,6 +1,7 @@
 import type {NavigationState} from '@react-navigation/native';
 import {DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useContext, useEffect, useMemo, useRef} from 'react';
+import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useFlipper from '@hooks/useFlipper';
@@ -63,6 +64,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     useFlipper(navigationRef);
     const firstRenderRef = useRef(true);
     const theme = useTheme();
+    const {cleanStaleScrollOffsets} = useContext(ScrollOffsetContext);
 
     const currentReportIDValue = useCurrentReportID();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -125,6 +127,9 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             setActiveWorkspaceID(activeWorkspaceID);
         }, 0);
         parseAndLogRoute(state);
+
+        // We want to clean saved scroll offsets for screens that aren't anymore in the state.
+        cleanStaleScrollOffsets(state);
     };
 
     return (

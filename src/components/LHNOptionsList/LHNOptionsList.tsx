@@ -1,8 +1,11 @@
+import {useRoute} from '@react-navigation/native';
+import type {FlashListProps} from '@shopify/flash-list';
 import {FlashList} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
-import React, {memo, useCallback} from 'react';
+import React, {memo, useCallback, useContext, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import withCurrentReportID from '@components/withCurrentReportID';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,6 +37,10 @@ function LHNOptionsList({
     onFirstItemRendered = () => {},
     reportIDsWithErrors = {},
 }: LHNOptionsListProps) {
+    const {saveScrollOffset, scrollToOffset} = useContext(ScrollOffsetContext);
+    const flashListRef = useRef<FlashList<string>>(null);
+    const route = useRoute();
+
     const styles = useThemeStyles();
     const {canUseViolations} = usePermissions();
 
@@ -116,9 +123,26 @@ function LHNOptionsList({
         ],
     );
 
+    const onScroll = useCallback<NonNullable<FlashListProps<string>['onScroll']>>(
+        (e) => {
+            // If the layout measurement is 0, it means the flashlist is not displayed but the onScroll may be triggered with offset value 0.
+            // We should ignore this case.
+            if (e.nativeEvent.layoutMeasurement.height === 0) {
+                return;
+            }
+            saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+        },
+        [route, saveScrollOffset],
+    );
+
+    const onLayout = useCallback(() => {
+        scrollToOffset(route, flashListRef);
+    }, [route, flashListRef, scrollToOffset]);
+
     return (
         <View style={style ?? styles.flex1}>
             <FlashList
+                ref={flashListRef}
                 indicatorStyle="white"
                 keyboardShouldPersistTaps="always"
                 contentContainerStyle={StyleSheet.flatten(contentContainerStyles)}
@@ -129,6 +153,8 @@ function LHNOptionsList({
                 estimatedItemSize={optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight}
                 extraData={[currentReportID]}
                 showsVerticalScrollIndicator={false}
+                onLayout={onLayout}
+                onScroll={onScroll}
             />
         </View>
     );
