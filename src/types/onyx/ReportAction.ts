@@ -2,8 +2,6 @@ import type {ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import type {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
-import type ONYXKEYS from '@src/ONYXKEYS';
-import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import type * as OnyxCommon from './OnyxCommon';
 import type {Decision, Reaction} from './OriginalMessage';
@@ -229,7 +227,5 @@ type ReportAction = ReportActionBase & OriginalMessage;
 
 type ReportActions = Record<string, ReportAction>;
 
-type ReportActionCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>;
-
 export default ReportAction;
-export type {ReportActions, ReportActionBase, Message, LinkMetadata, OriginalMessage, ReportActionCollectionDataSet};
+export type {ReportActions, ReportActionBase, Message, LinkMetadata, OriginalMessage};

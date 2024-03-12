@@ -5,9 +5,10 @@ import Log from '@src/libs/Log';
 import CheckForPreviousReportActionID from '@src/libs/migrations/CheckForPreviousReportActionID';
 import KeyReportActionsDraftByReportActionID from '@src/libs/migrations/KeyReportActionsDraftByReportActionID';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportActionCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type {ReportActionsDraftCollectionDataSet} from '@src/types/onyx/ReportActionsDrafts';
+import { toCollectionDataSet } from '@src/types/utils/CollectionDataSet';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
 
 jest.mock('@src/libs/getPlatform');
 
@@ -34,22 +35,23 @@ describe('Migrations', () => {
             ));
 
         it('Should remove all report actions given that a previousReportActionID does not exist', () => {
-            const setQueries: ReportActionCollectionDataSet = {};
+            const reportActionsCollectionDataSet = toCollectionDataSet(
+                ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                [
+                    {
+                        1: {
+                            reportActionID: '1',
+                            created: '',
+                            actionName: CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED,
+                            reportID: '1',
+                        },
+                        2: {reportActionID: '2', created: '', actionName: CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED, reportID: '1'},
+                    },
+                ],
+                (item) => item[1].reportID ?? '',
+            );
 
-            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`] = {
-                1: {
-                    reportActionID: '1',
-                    created: '',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED,
-                },
-                2: {
-                    reportActionID: '2',
-                    created: '',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED,
-                },
-            };
-
-            return Onyx.multiSet(setQueries)
+            return Onyx.multiSet(reportActionsCollectionDataSet)
                 .then(CheckForPreviousReportActionID)
                 .then(() => {
                     expect(LogSpy).toHaveBeenCalledWith(
@@ -68,24 +70,30 @@ describe('Migrations', () => {
         });
 
         it('Should not remove any report action given that previousReportActionID exists in first valid report action', () => {
-            const setQueries: ReportActionCollectionDataSet = {};
+            const reportActionsCollectionDataSet = toCollectionDataSet(
+                ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                [
+                    {
+                        1: {
+                            reportActionID: '1',
+                            previousReportActionID: '0',
+                            created: '',
+                            actionName: CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED,
+                            reportID: '1',
+                        },
+                        2: {
+                            reportActionID: '2',
+                            previousReportActionID: '1',
+                            created: '',
+                            actionName: CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED,
+                            reportID: '1',
+                        },
+                    },
+                ],
+                (item) => item[1].reportID ?? '',
+            );
 
-            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`] = {
-                1: {
-                    reportActionID: '1',
-                    previousReportActionID: '0',
-                    created: '',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED,
-                },
-                2: {
-                    reportActionID: '2',
-                    previousReportActionID: '1',
-                    created: '',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED,
-                },
-            };
-
-            return Onyx.multiSet(setQueries)
+            return Onyx.multiSet(reportActionsCollectionDataSet)
                 .then(CheckForPreviousReportActionID)
                 .then(() => {
                     expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] CheckForPreviousReportActionID Migration: previousReportActionID found. Migration complete');
@@ -111,29 +119,33 @@ describe('Migrations', () => {
         });
 
         it('Should skip zombie report actions and proceed to remove all reportActions given that a previousReportActionID does not exist', () => {
-            const setQueries: ReportActionCollectionDataSet = {};
+            const reportActionsCollectionDataSet = toCollectionDataSet(
+                ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                [
+                    {
+                        1: {
+                            reportActionID: '1',
+                            created: '',
+                            actionName: CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED,
+                            reportID: '4',
+                        },
+                        2: {
+                            reportActionID: '2',
+                            created: '',
+                            actionName: CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED,
+                            reportID: '4',
+                        },
+                    },
+                ],
+                (item) => item[1].reportID ?? '',
+            );
 
-            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`] = {};
-
-            // @ts-expect-error preset null value
-            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`] = null;
-            // @ts-expect-error preset null value
-            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`] = null;
-
-            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4`] = {
-                1: {
-                    reportActionID: '1',
-                    created: '',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED,
-                },
-                2: {
-                    reportActionID: '2',
-                    created: '',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED,
-                },
-            };
-
-            return Onyx.multiSet(setQueries)
+            return Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: null,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]: null,
+                ...reportActionsCollectionDataSet,
+            })
                 .then(CheckForPreviousReportActionID)
                 .then(() => {
                     expect(LogSpy).toHaveBeenCalledWith(
@@ -155,30 +167,35 @@ describe('Migrations', () => {
         });
 
         it('Should skip zombie report actions and should not remove any report action given that previousReportActionID exists in first valid report action', () => {
-            const setQueries: ReportActionCollectionDataSet = {};
+            const reportActionsCollectionDataSet = toCollectionDataSet(
+                ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                [
+                    {
+                        1: {
+                            reportActionID: '1',
+                            previousReportActionID: '10',
+                            created: '',
+                            actionName: CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED,
+                            reportID: '4',
+                        },
+                        2: {
+                            reportActionID: '2',
+                            previousReportActionID: '23',
+                            created: '',
+                            actionName: CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED,
+                            reportID: '4',
+                        },
+                    },
+                ],
+                (item) => item[1].reportID ?? '',
+            );
 
-            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`] = {};
-            // @ts-expect-error preset null value
-            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`] = null;
-            // @ts-expect-error preset null value
-            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`] = null;
-
-            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4`] = {
-                1: {
-                    reportActionID: '1',
-                    previousReportActionID: '10',
-                    created: '',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED,
-                },
-                2: {
-                    reportActionID: '2',
-                    previousReportActionID: '23',
-                    created: '',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED,
-                },
-            };
-
-            return Onyx.multiSet(setQueries)
+            return Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: null,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]: null,
+                ...reportActionsCollectionDataSet,
+            })
                 .then(CheckForPreviousReportActionID)
                 .then(() => {
                     expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] CheckForPreviousReportActionID Migration: previousReportActionID found. Migration complete');
@@ -208,15 +225,14 @@ describe('Migrations', () => {
         });
 
         it('Should skip if no valid reportActions', () => {
-            const setQueries: ReportActionCollectionDataSet = {};
+            const setQueries = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: null,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: {},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]: {},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4`]: null,
+            };
 
-            // @ts-expect-error preset null value
-            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`] = null;
-            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`] = {};
-            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`] = {};
-            // @ts-expect-error preset null value
-            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4`] = null;
-
+            // @ts-expect-error preset null values
             return Onyx.multiSet(setQueries)
                 .then(CheckForPreviousReportActionID)
                 .then(() => {
