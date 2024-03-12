@@ -143,7 +143,7 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
         (transactionChanges) => {
             const newTaxCode = transactionChanges.data.code;
 
-            if (!newTaxCode) {
+            if (newTaxCode === undefined || newTaxCode === TransactionUtils.getTaxCode(transaction)) {
                 Navigation.dismissModal();
                 return;
             }
