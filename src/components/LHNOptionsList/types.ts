@@ -3,6 +3,7 @@ import type {RefObject} from 'react';
 import type {LayoutChangeEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {CurrentReportIDContextValue} from '@components/withCurrentReportID';
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
 import type {Locale, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -63,7 +64,7 @@ type CustomLHNOptionsListProps = {
     reportIDsWithErrors: Record<string, OnyxCommon.Errors>;
 };
 
-type LHNOptionsListProps = CustomLHNOptionsListProps & LHNOptionsListOnyxProps;
+type LHNOptionsListProps = CustomLHNOptionsListProps & CurrentReportIDContextValue & LHNOptionsListOnyxProps;
 
 type OptionRowLHNDataProps = {
     /** Whether row should be focused */
