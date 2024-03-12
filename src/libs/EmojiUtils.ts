@@ -38,9 +38,6 @@ const findEmojiByName = (name: string): Emoji => Emojis.emojiNameTable[name];
 const findEmojiByCode = (code: string): Emoji => Emojis.emojiCodeTableWithSkinTones[code];
 
 const getEmojiName = (emoji: Emoji, lang: 'en' | 'es' = CONST.LOCALES.DEFAULT): string => {
-    if (!emoji) {
-        return '';
-    }
     if (lang === CONST.LOCALES.DEFAULT) {
         return emoji.name;
     }
@@ -245,9 +242,13 @@ function getFrequentlyUsedEmojis(newEmoji: Emoji | Emoji[]): FrequentlyUsedEmoji
 /**
  * Given an emoji item object, return an emoji code based on its type.
  */
-const getEmojiCodeWithSkinColor = (item: Emoji, preferredSkinToneIndex: number): string => {
+const getEmojiCodeWithSkinColor = (item: Emoji, preferredSkinToneIndex: OnyxEntry<string | number>): string | undefined => {
     const {code, types} = item;
-    if (types?.[preferredSkinToneIndex]) {
+    if (!preferredSkinToneIndex) {
+        return;
+    }
+
+    if (typeof preferredSkinToneIndex === 'number' && types?.[preferredSkinToneIndex]) {
         return types[preferredSkinToneIndex];
     }
 
@@ -308,7 +309,7 @@ function getAddedEmojis(currentEmojis: Emoji[], formerEmojis: Emoji[]): Emoji[] 
  * Replace any emoji name in a text with the emoji icon.
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  */
-function replaceEmojis(text: string, preferredSkinTone: number = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
+function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | string> = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
     // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
     const emojisTrie = require('./EmojiTrie').default;
 
@@ -348,9 +349,9 @@ function replaceEmojis(text: string, preferredSkinTone: number = CONST.EMOJI_DEF
 
             // Set the cursor to the end of the last replaced Emoji. Note that we position after
             // the extra space, if we added one.
-            cursorPosition = newText.indexOf(emoji) + emojiReplacement.length;
+            cursorPosition = newText.indexOf(emoji) + (emojiReplacement?.length ?? 0);
 
-            newText = newText.replace(emoji, emojiReplacement);
+            newText = newText.replace(emoji, emojiReplacement ?? '');
         }
     }
 
@@ -372,7 +373,7 @@ function replaceEmojis(text: string, preferredSkinTone: number = CONST.EMOJI_DEF
 /**
  * Find all emojis in a text and replace them with their code.
  */
-function replaceAndExtractEmojis(text: string, preferredSkinTone: number = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
+function replaceAndExtractEmojis(text: string, preferredSkinTone: OnyxEntry<number | string> = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
     const {text: convertedText = '', emojis = [], cursorPosition} = replaceEmojis(text, preferredSkinTone, lang);
 
     return {
