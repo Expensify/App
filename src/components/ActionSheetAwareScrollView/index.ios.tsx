@@ -1,6 +1,7 @@
 import type {PropsWithChildren} from 'react';
 import React, {forwardRef} from 'react';
 import type {ScrollViewProps} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
 import {ScrollView} from 'react-native';
 import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
 import ActionSheetKeyboardSpace from './ActionSheetKeyboardSpace';
