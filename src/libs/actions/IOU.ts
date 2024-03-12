@@ -4119,8 +4119,8 @@ function setMoneyRequestTaxRate(transactionID: string, taxRate: TaxRate) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxRate});
 }
 
-function setMoneyRequestTaxAmount(transactionID: string, taxAmount: number) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxAmount});
+function setMoneyRequestTaxAmount(transactionID: string, taxAmount: number, isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {taxAmount});
 }
 
 function setMoneyRequestBillable(billable: boolean) {
