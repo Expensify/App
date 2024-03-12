@@ -1,9 +1,23 @@
-const yaml = require('yaml');
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import yaml from 'yaml';
+import type {ExtendedAct} from './ExtendedAct';
+import type {MockJobStep} from './JobMocker';
 
-function setUpActParams(act, event = null, eventOptions = null, secrets = null, githubToken = null, envVars = null, inputs = null) {
-    let updated_act = act;
+type EventOptions = {
+    action: string;
+};
+
+function setUpActParams(
+    act: ExtendedAct,
+    event = null,
+    eventOptions: EventOptions | null = null,
+    secrets: Record<string, string> | null = null,
+    githubToken: string | null = null,
+    envVars: Record<string, string> | null = null,
+    inputs: Record<string, string> | null = null,
+) {
+    let updatedAct = act;
 
     if (event && eventOptions) {
         // according to `Act` docs event data should be under the key with the event name (`[event]: eventOptions`), but
@@ -13,39 +27,49 @@ function setUpActParams(act, event = null, eventOptions = null, secrets = null, 
             [event]: eventOptions,
             ...eventOptions,
         };
-        updated_act = updated_act.setEvent(eventData);
+        updatedAct = updatedAct.setEvent(eventData);
     }
 
     if (secrets) {
         Object.entries(secrets).forEach(([key, value]) => {
-            updated_act = updated_act.setSecret(key, value);
+            updatedAct = updatedAct.setSecret(key, value);
         });
     }
 
     if (githubToken) {
-        updated_act = updated_act.setGithubToken(githubToken);
+        updatedAct = updatedAct.setGithubToken(githubToken);
     }
 
     if (envVars) {
         Object.entries(envVars).forEach(([key, value]) => {
-            updated_act = updated_act.setEnv(key, value);
+            updatedAct = updatedAct.setEnv(key, value);
         });
     }
 
     if (inputs) {
         Object.entries(inputs).forEach(([key, value]) => {
-            updated_act = updated_act.setInput(key, value);
+            updatedAct = updatedAct.setInput(key, value);
         });
     }
 
-    return updated_act;
+    return updatedAct;
 }
 
-function createMockStep(name, message, job_id = null, inputs = null, in_envs = null, outputs = null, out_envs = null, isSuccessful = true, id = null) {
+function createMockStep(
+    name: string,
+    message: string,
+    jobId: string | null = null,
+    inputs: string[] | null = null,
+    inEnvs: string[] | null = null,
+    outputs: Record<string, string> | null = null,
+    outEnvs: Record<string, string> | null = null,
+    isSuccessful = true,
+    id = null,
+) {
     const mockStepName = name;
     let mockWithCommand = 'echo [MOCK]';
-    if (job_id) {
-        mockWithCommand += ` [${job_id}]`;
+    if (jobId) {
+        mockWithCommand += ` [${jobId}]`;
     }
     mockWithCommand += ` ${message}`;
     if (inputs) {
@@ -53,8 +77,8 @@ function createMockStep(name, message, job_id = null, inputs = null, in_envs = n
             mockWithCommand += `, ${input}="\${{ inputs.${input} && inputs.${input} || github.event.inputs.${input} }}"`;
         });
     }
-    if (in_envs) {
-        in_envs.forEach((env) => {
+    if (inEnvs) {
+        inEnvs.forEach((env) => {
             mockWithCommand += `, ${env}="\${{ env.${env} }}"`;
         });
     }
@@ -63,15 +87,15 @@ function createMockStep(name, message, job_id = null, inputs = null, in_envs = n
             mockWithCommand += `\necho "${key}=${value}" >> "$GITHUB_OUTPUT"`;
         });
     }
-    if (out_envs) {
-        Object.entries(out_envs).forEach(([key, value]) => {
+    if (outEnvs) {
+        Object.entries(outEnvs).forEach(([key, value]) => {
             mockWithCommand += `\necho "${key}=${value}" >> "$GITHUB_ENV"`;
         });
     }
     if (!isSuccessful) {
         mockWithCommand += '\nexit 1';
     }
-    const mockStep = {
+    const mockStep: MockJobStep = {
         name: mockStepName,
         mockWith: mockWithCommand,
     };
@@ -81,10 +105,19 @@ function createMockStep(name, message, job_id = null, inputs = null, in_envs = n
     return mockStep;
 }
 
-function createStepAssertion(name, isSuccessful = true, expectedOutput = null, jobId = null, message = null, inputs = null, envs = null) {
+function createStepAssertion(
+    name: string,
+    isSuccessful = true,
+    expectedOutput = null,
+    jobId: string | null = null,
+    message: string | null = null,
+    // Replace arrays with records
+    inputs: Array<{key: string; value: string}> | null = null,
+    envs: Array<{key: string; value: string}> | null = null,
+) {
     const stepName = `Main ${name}`;
     const stepStatus = isSuccessful ? 0 : 1;
-    let stepOutput;
+    let stepOutput: string;
     if (expectedOutput !== undefined && expectedOutput !== null) {
         stepOutput = expectedOutput;
     } else {
@@ -113,7 +146,7 @@ function createStepAssertion(name, isSuccessful = true, expectedOutput = null, j
     };
 }
 
-function setJobRunners(act, jobs, workflowPath) {
+function setJobRunners(act: ExtendedAct, jobs: Record<string, string>, workflowPath: string) {
     if (!act || !jobs || !workflowPath) {
         return act;
     }
@@ -127,11 +160,12 @@ function setJobRunners(act, jobs, workflowPath) {
     return act;
 }
 
-function deepCopy(originalObject) {
+function deepCopy<T>(originalObject: T): T {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return JSON.parse(JSON.stringify(originalObject));
 }
 
-function getLogFilePath(workflowName, testName) {
+function getLogFilePath(workflowName: string, testName: string) {
     const logsDir = path.resolve(__dirname, '..', 'logs');
     if (!fs.existsSync(logsDir)) {
         fs.mkdirSync(logsDir);

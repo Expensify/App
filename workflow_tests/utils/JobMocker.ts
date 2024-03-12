@@ -1,17 +1,48 @@
-const fs = require('fs');
-const path = require('path');
-const yaml = require('yaml');
-const _ = require('underscore');
+import type {PathOrFileDescriptor} from 'fs';
+import fs from 'fs';
+import path from 'path';
+import yaml from 'yaml';
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
+type YamlMockJob = Omit<MockJob, 'runsOn'> & {'runs-on'?: string};
+
+type YamlWorkflow = {
+    jobs: Record<string, YamlMockJob>;
+};
+
+type MockJob = {
+    steps: MockJobStep[];
+    uses?: string; // ?
+    secrets?: string[]; // ?
+    with?: string; // ?
+    outputs?: string[]; // ?
+    runsOn: string; // ?
+};
+
+type MockJobStep = {
+    id?: string; // ?
+    name: string;
+    run?: string; // ?
+    mockWith?: string;
+    with?: string; // ?
+    envs?: string[]; // ?
+    inputs?: string[];
+};
 
 class JobMocker {
-    constructor(workflowFile, cwd) {
+    workflowFile: string;
+
+    cwd: string;
+
+    constructor(workflowFile: string, cwd: string) {
         this.workflowFile = workflowFile;
         this.cwd = cwd;
     }
 
-    async mock(mockJobs) {
+    mock(mockJobs: Record<string, MockJob> = {}) {
         const filePath = this.getWorkflowPath();
-        const workflow = await this.readWorkflowFile(filePath);
+        const workflow = this.readWorkflowFile(filePath);
+
         Object.entries(mockJobs).forEach(([jobId, mockJob]) => {
             const job = this.locateJob(workflow, jobId);
             if (job) {
@@ -21,13 +52,13 @@ class JobMocker {
                 if (job.secrets) {
                     delete job.secrets;
                 }
-                let jobWith;
+                let jobWith: string | undefined;
                 if (job.with) {
                     jobWith = job.with;
                     delete job.with;
                 }
-                job.steps = _(mockJob.steps).map((step) => {
-                    const mockStep = {
+                job.steps = mockJob.steps.map((step) => {
+                    const mockStep: MockJobStep = {
                         name: step.name,
                         run: step.mockWith,
                     };
@@ -52,7 +83,7 @@ class JobMocker {
         return this.writeWorkflowFile(filePath, workflow);
     }
 
-    locateJob(workflow, jobId) {
+    locateJob(workflow: YamlWorkflow, jobId: string) {
         return workflow.jobs[jobId];
     }
 
@@ -69,15 +100,17 @@ class JobMocker {
         throw new Error(`Could not locate ${this.workflowFile}`);
     }
 
-    async readWorkflowFile(location) {
-        return yaml.parse(fs.readFileSync(location, 'utf8'));
+    readWorkflowFile(location: PathOrFileDescriptor) {
+        const test: YamlWorkflow = yaml.parse(fs.readFileSync(location, 'utf8'));
+
+        return test;
     }
 
-    async writeWorkflowFile(location, data) {
+    writeWorkflowFile(location: PathOrFileDescriptor, data: YamlWorkflow) {
         return fs.writeFileSync(location, yaml.stringify(data), 'utf8');
     }
 }
 
-module.exports = {
-    JobMocker,
-};
+// eslint-disable-next-line import/prefer-default-export
+export {JobMocker};
+export type {MockJob, YamlWorkflow, YamlMockJob, MockJobStep};
