@@ -224,7 +224,7 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
     getPolicyParamsForOpenOrReconnect().then((policyParams) => {
         const params: ReconnectAppParams = {
             ...policyParams,
-            idempotencyKey:`${WRITE_COMMANDS.RECONNECT_APP}`,
+            idempotencyKey: `${WRITE_COMMANDS.RECONNECT_APP}`,
         };
 
         // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID.
