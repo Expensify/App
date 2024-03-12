@@ -14,7 +14,7 @@ import type {Options} from './electronDownloadManagerType';
 /**
 Error thrown if `item.cancel()` was called.
 */
-declare class CancelError extends Error {}
+class CancelError extends Error {}
 
 /**
  * Returns the filename with extension based on the given name and MIME type.
@@ -69,9 +69,12 @@ const registerListener = (session: Session, options: Options, callback: (error: 
             }
 
             if (state === 'cancelled') {
+                console.log('[wildebug] if (state === cancelled) {')
                 if (typeof options.onCancel === 'function') {
                     options.onCancel(item);
                 }
+
+                // console.log('[wildebug] new CancelError()', new CancelError())
                 callback(new CancelError());
             } else if (state === 'interrupted') {
                 const errorMessage = `The download of ${path.basename(filePath)} was interrupted`;
