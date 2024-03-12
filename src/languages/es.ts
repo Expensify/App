@@ -2056,9 +2056,9 @@ export default {
             duplicateSubscriptionTitle: 'Duplicate subscription title',
             duplicateSubscriptionButtonText: 'Duplicate subscription button text',
             duplicateSubscriptionText: 'Duplicate subscription paragraph text.',
-            hasFailedSettlementTitle: 'Has failed settlement title',
-            hasFailedSettlementButtonText: 'Has failed settlement button text',
-            hasFailedSettlementText: 'Has failed settlement paragraph text.',
+            hasFailedSettlementsTitle: 'Has failed settlements title',
+            hasFailedSettlementsButtonText: 'Has failed settlements button text',
+            hasFailedSettlementsText: 'Has failed settlements paragraph text.',
         },
     },
     getAssistancePage: {
