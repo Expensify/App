@@ -15,7 +15,14 @@ import MenuItem from './MenuItem';
 import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
 import Text from './Text';
 
+<<<<<<< HEAD
 type PopoverMenuItem = MenuItemProps & {
+=======
+type PopoverMenuItem = {
+    /** An icon element displayed on the left side */
+    icon?: IconAsset;
+
+>>>>>>> main
     /** Text label */
     text: string;
 
