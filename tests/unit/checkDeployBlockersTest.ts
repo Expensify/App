@@ -7,9 +7,8 @@ import run from '../../.github/actions/javascript/checkDeployBlockers/checkDeplo
 import GithubUtils from '../../.github/libs/GithubUtils';
 
 type CommentData = {body: string};
-type Comment = {
-    data?: CommentData[];
-};
+
+type Comment = {data?: CommentData[]};
 
 type PullRequest = {url: string; isQASuccess: boolean};
 
@@ -101,7 +100,7 @@ ${
 
 **Deploy Blockers:**`
         : ''
-}  
+}
 ${deployBlockerList
     ?.map(
         ({url, isQASuccess}) => `
