@@ -393,6 +393,8 @@ function BaseSelectionList<TItem extends ListItem>(
         }
         // Remove the focus if the search input is empty else focus on the first non disabled item
         const newSelectedIndex = textInputValue === '' ? -1 : 0;
+        // reseting the currrent page to 1 when the user types something
+        setCurrentPage(1);
 
         updateAndScrollToFocusedIndex(newSelectedIndex);
     }, [canSelectMultiple, flattenedSections.allOptions.length, prevTextInputValue, textInputValue, updateAndScrollToFocusedIndex]);
