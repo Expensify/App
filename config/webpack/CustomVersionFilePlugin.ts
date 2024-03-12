@@ -1,9 +1,7 @@
-import type * as FS from 'fs';
+import fs from 'fs';
+import path from 'path';
 import type {Compiler} from 'webpack';
-
-const fs = require('fs') as typeof FS;
-const path = require('path');
-const APP_VERSION = require('../../package.json').version;
+import {version as APP_VERSION} from '../../package.json';
 
 /**
  * Simple webpack plugin that writes the app version (from package.json) and the webpack hash to './version.json'
