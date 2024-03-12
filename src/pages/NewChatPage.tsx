@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -48,6 +49,7 @@ const excludedGroupEmails = CONST.EXPENSIFY_EMAILS.filter((value) => value !== C
 
 function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingForReports, dismissedReferralBanners}: NewChatPageProps) {
     const {translate} = useLocalize();
+    const {options} = useOptionsList();
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState<ReportUtils.OptionData[]>([]);
@@ -131,8 +133,8 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
             personalDetails: newChatPersonalDetails,
             userToInvite,
         } = OptionsListUtils.getFilteredOptions(
-            reports,
-            personalDetails,
+            options.reports ?? [],
+            options.personalDetails ?? [],
             betas ?? [],
             searchTerm,
             newSelectedOptions,
@@ -185,8 +187,8 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
             personalDetails: newChatPersonalDetails,
             userToInvite,
         } = OptionsListUtils.getFilteredOptions(
-            reports,
-            personalDetails,
+            options.reports ?? [],
+            options.personalDetails ?? [],
             betas ?? [],
             searchTerm,
             selectedOptions,
