@@ -59,13 +59,13 @@ describe('Sidebar', () => {
                 waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() => {
-                        const reportCollection: ReportActionCollectionDataSet = {
+                        const reportCollection: ReportCollectionDataSet = {
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
-                        } as ReportCollectionDataSet;
+                        }
 
                         const reportAction: ReportActionCollectionDataSet = {
                             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionID]: action},
-                        } as ReportActionCollectionDataSet;
+                        } as ReportActionCollectionDataSet
 
                         return Onyx.multiSet({
                             [ONYXKEYS.BETAS]: betas,
@@ -113,11 +113,11 @@ describe('Sidebar', () => {
                     .then(() => {
                         const reportCollection: ReportCollectionDataSet = {
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
-                        } as ReportCollectionDataSet;
+                        }
 
                         const reportAction: ReportActionCollectionDataSet = {
                             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionID]: action},
-                        } as ReportActionCollectionDataSet;
+                        } as ReportActionCollectionDataSet
 
                         return Onyx.multiSet({
                             [ONYXKEYS.BETAS]: betas,
