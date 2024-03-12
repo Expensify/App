@@ -1,5 +1,5 @@
 diff --git a/node_modules/@react-navigation/native-stack/src/views/NativeStackView.native.tsx b/node_modules/@react-navigation/native-stack/src/views/NativeStackView.native.tsx
-index 03d8b50..a6a54ba 100644
+index 03d8b50..8404566 100644
 --- a/node_modules/@react-navigation/native-stack/src/views/NativeStackView.native.tsx
 +++ b/node_modules/@react-navigation/native-stack/src/views/NativeStackView.native.tsx
 @@ -17,7 +17,7 @@ import {
@@ -20,10 +20,11 @@ index 03d8b50..a6a54ba 100644
    onDisappear: () => void;
    onDismissed: ScreenProps['onDismissed'];
    onHeaderBackButtonClicked: ScreenProps['onHeaderBackButtonClicked'];
-@@ -234,6 +234,23 @@ const SceneView = ({
+@@ -234,6 +234,24 @@ const SceneView = ({
      statusBarHeight
    );
  
++  // https://github.com/react-navigation/react-navigation/pull/11887
 +  const interactionHandleRef = React.useRef<number>();
 +
 +  // this memo acts as a synchronous useEffect
@@ -44,7 +45,7 @@ index 03d8b50..a6a54ba 100644
    const [customHeaderHeight, setCustomHeaderHeight] =
      React.useState(defaultHeaderHeight);
  
-@@ -279,7 +296,7 @@ const SceneView = ({
+@@ -279,7 +297,7 @@ const SceneView = ({
        swipeDirection={gestureDirectionOverride}
        transitionDuration={animationDuration}
        onWillDisappear={onWillDisappear}

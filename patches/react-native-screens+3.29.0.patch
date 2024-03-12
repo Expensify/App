@@ -1,11 +1,12 @@
 diff --git a/node_modules/react-native-screens/ios/RNSEnums.h b/node_modules/react-native-screens/ios/RNSEnums.h
-index 1895f44..d207517 100644
+index 1895f44..66195ca 100644
 --- a/node_modules/react-native-screens/ios/RNSEnums.h
 +++ b/node_modules/react-native-screens/ios/RNSEnums.h
-@@ -16,6 +16,7 @@ typedef NS_ENUM(NSInteger, RNSScreenStackAnimation) {
+@@ -16,6 +16,8 @@ typedef NS_ENUM(NSInteger, RNSScreenStackAnimation) {
    RNSScreenStackAnimationFlip,
    RNSScreenStackAnimationSlideFromBottom,
    RNSScreenStackAnimationSimplePush,
++  // https://github.com/software-mansion/react-native-screens/pull/2057
 +  RNSScreenStackAnimationSlideFromLeft
  };
  
