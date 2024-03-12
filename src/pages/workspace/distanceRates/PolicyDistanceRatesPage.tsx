@@ -22,6 +22,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import FeatureEnabledAccessOrRedirectWrapper from '@pages/workspace/FeatureEnabledAccessOrRedirectWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import ButtonWithDropdownMenu from '@src/components/ButtonWithDropdownMenu';
@@ -232,52 +233,57 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    style={[styles.defaultModalContainer]}
-                    testID={PolicyDistanceRatesPage.displayName}
-                    shouldShowOfflineIndicatorInWideScreen
+                <FeatureEnabledAccessOrRedirectWrapper
+                    policyID={route.params.policyID}
+                    featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
                 >
-                    <HeaderWithBackButton
-                        icon={Illustrations.CarIce}
-                        title={translate('workspace.common.distanceRates')}
-                        shouldShowBackButton={isSmallScreenWidth}
+                    <ScreenWrapper
+                        includeSafeAreaPaddingBottom={false}
+                        style={[styles.defaultModalContainer]}
+                        testID={PolicyDistanceRatesPage.displayName}
+                        shouldShowOfflineIndicatorInWideScreen
                     >
-                        {!isSmallScreenWidth && headerButtons}
-                    </HeaderWithBackButton>
-                    {isSmallScreenWidth && <View style={[styles.ph5]}>{headerButtons}</View>}
-                    <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
-                    </View>
-                    {isLoading && (
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            style={[styles.flex1]}
-                            color={theme.spinner}
+                        <HeaderWithBackButton
+                            icon={Illustrations.CarIce}
+                            title={translate('workspace.common.distanceRates')}
+                            shouldShowBackButton={isSmallScreenWidth}
+                        >
+                            {!isSmallScreenWidth && headerButtons}
+                        </HeaderWithBackButton>
+                        {isSmallScreenWidth && <View style={[styles.ph5]}>{headerButtons}</View>}
+                        <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+                            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
+                        </View>
+                        {isLoading && (
+                            <ActivityIndicator
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                style={[styles.flex1]}
+                                color={theme.spinner}
+                            />
+                        )}
+                        {Object.values(customUnitRates).length > 0 && (
+                            <SelectionList
+                                canSelectMultiple
+                                ListItem={TableListItem}
+                                onSelectAll={toggleAllRates}
+                                onCheckboxPress={toggleRate}
+                                sections={[{data: distanceRatesList, indexOffset: 0, isDisabled: false}]}
+                                onSelectRow={editRate}
+                                showScrollIndicator
+                                customListHeader={getCustomListHeader()}
+                                listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                            />
+                        )}
+                        <ConfirmModal
+                            onConfirm={() => setIsWarningModalVisible(false)}
+                            isVisible={isWarningModalVisible}
+                            title={translate('workspace.distanceRates.oopsNotSoFast')}
+                            prompt={translate('workspace.distanceRates.workspaceNeeds')}
+                            confirmText={translate('common.buttonConfirm')}
+                            shouldShowCancelButton={false}
                         />
-                    )}
-                    {Object.values(customUnitRates).length > 0 && (
-                        <SelectionList
-                            canSelectMultiple
-                            ListItem={TableListItem}
-                            onSelectAll={toggleAllRates}
-                            onCheckboxPress={toggleRate}
-                            sections={[{data: distanceRatesList, indexOffset: 0, isDisabled: false}]}
-                            onSelectRow={editRate}
-                            showScrollIndicator
-                            customListHeader={getCustomListHeader()}
-                            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        />
-                    )}
-                    <ConfirmModal
-                        onConfirm={() => setIsWarningModalVisible(false)}
-                        isVisible={isWarningModalVisible}
-                        title={translate('workspace.distanceRates.oopsNotSoFast')}
-                        prompt={translate('workspace.distanceRates.workspaceNeeds')}
-                        confirmText={translate('common.buttonConfirm')}
-                        shouldShowCancelButton={false}
-                    />
-                </ScreenWrapper>
+                    </ScreenWrapper>
+                </FeatureEnabledAccessOrRedirectWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>
     );
