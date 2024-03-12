@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -140,6 +140,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         ),
         [isSmallScreenWidth, styles, renderItem, translate],
     );
+
+    useEffect(() => {
+        Policy.openPolicyMoreFeaturesPage(route.params.policyID);
+    }, [route.params.policyID]);
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
