@@ -1,4 +1,5 @@
 import React, {useCallback} from 'react';
+import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -7,6 +8,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -49,10 +51,19 @@ function CategoryForm({onSubmit, policyCategories, categoryName}: EditCategoryFo
         [policyCategories],
     );
 
+    const handleOnSubmit = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
+            onSubmit(values);
+            Keyboard.dismiss();
+            Navigation.goBack();
+        },
+        [onSubmit],
+    );
+
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM}
-            onSubmit={onSubmit}
+            onSubmit={handleOnSubmit}
             submitButtonText={translate('common.save')}
             validate={validate}
             style={[styles.mh5, styles.flex1]}

@@ -32,8 +32,6 @@ function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) 
     const createCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             Policy.createPolicyCategory(route.params.policyID, values.categoryName.trim());
-            Keyboard.dismiss();
-            Navigation.goBack();
         },
         [route.params.policyID],
     );
