@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -17,7 +18,7 @@ import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {BaseShareLogListOnyxProps, BaseShareLogListProps} from './types';
 
-function BaseShareLogList({betas, reports, onAttachLogToReport}: BaseShareLogListProps) {
+function BaseShareLogList({betas, onAttachLogToReport}: BaseShareLogListProps) {
     const [searchValue, setSearchValue] = useState('');
     const [searchOptions, setSearchOptions] = useState<Pick<OptionsListUtils.GetOptions, 'recentReports' | 'personalDetails' | 'userToInvite'>>({
         recentReports: [],
@@ -30,20 +31,21 @@ function BaseShareLogList({betas, reports, onAttachLogToReport}: BaseShareLogLis
     const styles = useThemeStyles();
     const isMounted = useRef(false);
     const personalDetails = usePersonalDetails();
+    const {options} = useOptionsList();
 
     const updateOptions = useCallback(() => {
         const {
             recentReports: localRecentReports,
             personalDetails: localPersonalDetails,
             userToInvite: localUserToInvite,
-        } = OptionsListUtils.getShareLogOptions(reports, personalDetails, searchValue.trim(), betas ?? []);
+        } = OptionsListUtils.getShareLogOptions(options, searchValue.trim(), betas ?? []);
 
         setSearchOptions({
             recentReports: localRecentReports,
             personalDetails: localPersonalDetails,
             userToInvite: localUserToInvite,
         });
-    }, [betas, personalDetails, reports, searchValue]);
+    }, [betas, options, searchValue]);
 
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
 

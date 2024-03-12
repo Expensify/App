@@ -9,6 +9,7 @@ import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {Section} from '@components/SelectionList/types';
@@ -51,6 +52,7 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
     const [userToInvite, setUserToInvite] = useState<ReportUtils.OptionData | null>(null);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const navigation: StackNavigationProp<RootStackParamList> = useNavigation();
+    const {options} = useOptionsList();
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers = useMemo(
@@ -62,7 +64,7 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
     );
 
     useEffect(() => {
-        const inviteOptions = OptionsListUtils.getMemberInviteOptions(personalDetails, betas ?? [], searchTerm, excludedUsers);
+        const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], searchTerm, excludedUsers);
 
         // Update selectedOptions with the latest personalDetails information
         const detailsMap: Record<string, OptionsListUtils.MemberForList> = {};

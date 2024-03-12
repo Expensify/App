@@ -8,6 +8,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {Section} from '@components/SelectionList/types';
@@ -72,6 +73,7 @@ function WorkspaceInvitePage({
         const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policyMembers, personalDetailsProp);
         Policy.openWorkspaceInvitePage(route.params.policyID, Object.keys(policyMemberEmailsToAccountIDs));
     };
+    const {options} = useOptionsList();
 
     useEffect(() => {
         setSearchTerm(SearchInputManager.searchInput);
@@ -107,7 +109,7 @@ function WorkspaceInvitePage({
         const newPersonalDetailsDict: Record<number, OptionData> = {};
         const newSelectedOptionsDict: Record<number, MemberForList> = {};
 
-        const inviteOptions = OptionsListUtils.getMemberInviteOptions(personalDetailsProp, betas ?? [], searchTerm, excludedUsers, true);
+        const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], searchTerm, excludedUsers, true);
 
         // Update selectedOptions with the latest personalDetails and policyMembers information
         const detailsMap: Record<string, MemberForList> = {};

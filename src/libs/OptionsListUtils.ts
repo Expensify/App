@@ -2124,4 +2124,4 @@ export {
     createOptionList,
 };
 
-export type {MemberForList, CategorySection, GetOptions, OptionList};
+export type {MemberForList, CategorySection, GetOptions, OptionList, ReportOption};

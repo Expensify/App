@@ -52,7 +52,7 @@ function TaxPicker({selectedTaxRate = '', taxRates, insets, onSubmit}: TaxPicker
     }, [selectedTaxRate]);
 
     const sections = useMemo(() => {
-        const {taxRatesOptions} = OptionsListUtils.getFilteredOptions({}, {}, [], searchValue, selectedOptions, [], false, false, false, {}, [], false, {}, [], false, false, true, taxRates);
+        const {taxRatesOptions} = OptionsListUtils.getFilteredOptions([], [], [], searchValue, selectedOptions, [], false, false, false, {}, [], false, {}, [], false, false, true, taxRates);
         return taxRatesOptions;
     }, [taxRates, searchValue, selectedOptions]);
 

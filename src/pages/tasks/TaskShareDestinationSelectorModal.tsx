@@ -1,9 +1,9 @@
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
@@ -22,8 +22,6 @@ import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 
 type TaskShareDestinationSelectorModalOnyxProps = {
-    reports: OnyxCollection<Report>;
-
     isSearchingForReports: OnyxEntry<boolean>;
 };
 
@@ -40,28 +38,28 @@ const selectReportHandler = (option: unknown) => {
     Navigation.goBack(ROUTES.NEW_TASK);
 };
 
-const reportFilter = (reports: OnyxCollection<Report>) =>
-    Object.keys(reports ?? {}).reduce((filtered, reportKey) => {
-        const report: OnyxEntry<Report> = reports?.[reportKey] ?? null;
+const reportFilter = (reportOptions: OptionsListUtils.ReportOption[]) =>
+    (reportOptions ?? []).reduce((filtered: OptionsListUtils.ReportOption[], option) => {
+        const report = option.item as Report;
         if (ReportUtils.canUserPerformWriteAction(report) && ReportUtils.canCreateTaskInReport(report) && !ReportUtils.isCanceledTaskReport(report)) {
-            return {...filtered, [reportKey]: report};
+            filtered.push(option);
         }
         return filtered;
-    }, {});
+    }, []);
 
-function TaskShareDestinationSelectorModal({reports, isSearchingForReports}: TaskShareDestinationSelectorModalProps) {
+function TaskShareDestinationSelectorModal({isSearchingForReports}: TaskShareDestinationSelectorModalProps) {
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {translate} = useLocalize();
-    const personalDetails = usePersonalDetails();
     const {isOffline} = useNetwork();
+    const {options: optionList} = useOptionsList();
 
     const textInputHint = useMemo(() => (isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''), [isOffline, translate]);
 
     const options = useMemo(() => {
-        const filteredReports = reportFilter(reports);
+        const filteredReports = reportFilter(optionList.reports);
 
-        const {recentReports} = OptionsListUtils.getShareDestinationOptions(filteredReports, personalDetails, [], debouncedSearchValue.trim(), [], CONST.EXPENSIFY_EMAILS, true);
+        const {recentReports} = OptionsListUtils.getShareDestinationOptions(filteredReports, optionList.personalDetails, [], debouncedSearchValue.trim(), [], CONST.EXPENSIFY_EMAILS, true);
 
         const headerMessage = OptionsListUtils.getHeaderMessage(recentReports && recentReports.length !== 0, false, debouncedSearchValue);
 
@@ -84,7 +82,7 @@ function TaskShareDestinationSelectorModal({reports, isSearchingForReports}: Tas
                 : [];
 
         return {sections, headerMessage};
-    }, [personalDetails, reports, debouncedSearchValue]);
+    }, [optionList.reports, optionList.personalDetails, debouncedSearchValue]);
 
     useEffect(() => {
         ReportActions.searchInServer(debouncedSearchValue);
@@ -124,9 +122,6 @@ function TaskShareDestinationSelectorModal({reports, isSearchingForReports}: Tas
 TaskShareDestinationSelectorModal.displayName = 'TaskShareDestinationSelectorModal';
 
 export default withOnyx<TaskShareDestinationSelectorModalProps, TaskShareDestinationSelectorModalOnyxProps>({
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
     isSearchingForReports: {
         key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
         initWithStoredValues: false,

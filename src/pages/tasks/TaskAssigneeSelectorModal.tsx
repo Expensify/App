@@ -7,7 +7,8 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {useBetas, usePersonalDetails, useSession} from '@components/OnyxProvider';
+import {useBetas, useSession} from '@components/OnyxProvider';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
@@ -37,22 +38,18 @@ type TaskAssigneeSelectorModalOnyxProps = {
     task: OnyxEntry<Task>;
 };
 
-type UseOptions = {
-    reports: OnyxCollection<Report>;
-};
-
 type TaskAssigneeSelectorModalProps = TaskAssigneeSelectorModalOnyxProps & WithCurrentUserPersonalDetailsProps;
 
-function useOptions({reports}: UseOptions) {
-    const allPersonalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+function useOptions() {
     const betas = useBetas();
     const [isLoading, setIsLoading] = useState(true);
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const {options: optionsList} = useOptionsList();
 
     const options = useMemo(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getFilteredOptions(
-            reports,
-            allPersonalDetails,
+            optionsList.reports,
+            optionsList.personalDetails,
             betas,
             debouncedSearchValue.trim(),
             [],
@@ -85,7 +82,7 @@ function useOptions({reports}: UseOptions) {
             currentUserOption,
             headerMessage,
         };
-    }, [debouncedSearchValue, allPersonalDetails, isLoading, betas, reports]);
+    }, [optionsList.reports, optionsList.personalDetails, betas, debouncedSearchValue, isLoading]);
 
     return {...options, isLoading, searchValue, debouncedSearchValue, setSearchValue};
 }
@@ -96,7 +93,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
     const {translate} = useLocalize();
     const session = useSession();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {userToInvite, recentReports, personalDetails, currentUserOption, isLoading, searchValue, setSearchValue, headerMessage} = useOptions({reports});
+    const {userToInvite, recentReports, personalDetails, currentUserOption, isLoading, searchValue, setSearchValue, headerMessage} = useOptions();
 
     const onChangeText = (newSearchTerm = '') => {
         setSearchValue(newSearchTerm);
