@@ -51,6 +51,28 @@ type PhraseParameters<T> = T extends (...args: infer A) => string ? A : never[];
 type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends (...args: infer A) => unknown ? (...args: A) => string : string;
 
 /**
+ * Map to store translated values for each locale.
+ * This is used to avoid translating the same phrase multiple times.
+ *
+ * The data is stored in the following format:
+ *
+ * {
+ *  "en": {
+ *   "name": "Name",
+ * }
+ *
+ * Note: We are not storing any translated values for phrases with variables,
+ * as they have higher chance of being unique, so we'll end up wasting space
+ * in our cache.
+ */
+const translationCache = new Map<ValueOf<typeof CONST.LOCALES>, Map<TranslationPaths, string>>(
+    Object.values(CONST.LOCALES).reduce((cache, locale) => {
+        cache.push([locale, new Map()]);
+        return cache;
+    }, [] as Array<[ValueOf<typeof CONST.LOCALES>, Map<TranslationPaths, string>]>),
+);
+
+/**
  * Return translated string for given locale and phrase
  *
  * @param [desiredLanguage] eg 'en', 'es-ES'
@@ -59,16 +81,43 @@ type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends
 function translate<TKey extends TranslationPaths>(desiredLanguage: 'en' | 'es' | 'es-ES' | 'es_ES', phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>): string {
     // Search phrase in full locale e.g. es-ES
     const language = desiredLanguage === CONST.LOCALES.ES_ES_ONFIDO ? CONST.LOCALES.ES_ES : desiredLanguage;
+
+    // Get the cache for the above locale
+    let cacheForLocale = translationCache.get(language);
+
+    // Directly access and assign the translated value from the cache, instead of
+    // going through map.has() and map.get() to avoid multiple lookups.
+    const valueFromCache = cacheForLocale?.get(phraseKey);
+
+    // If the phrase is already translated, return the translated value
+    if (valueFromCache) {
+        return valueFromCache;
+    }
+
     let translatedPhrase = translations?.[language]?.[phraseKey] as Phrase<TKey>;
     if (translatedPhrase) {
-        return typeof translatedPhrase === 'function' ? translatedPhrase(...phraseParameters) : translatedPhrase;
+        if (typeof translatedPhrase === 'function') {
+            return translatedPhrase(...phraseParameters);
+        }
+
+        // We set the translated value in the cache only for the phrases without parameters.
+        cacheForLocale?.set(phraseKey, translatedPhrase);
+        return translatedPhrase;
     }
 
     // Phrase is not found in full locale, search it in fallback language e.g. es
     const languageAbbreviation = desiredLanguage.substring(0, 2) as 'en' | 'es';
+    // Get the cache for the above locale
+    cacheForLocale = translationCache.get(languageAbbreviation);
     translatedPhrase = translations?.[languageAbbreviation]?.[phraseKey] as Phrase<TKey>;
     if (translatedPhrase) {
-        return typeof translatedPhrase === 'function' ? translatedPhrase(...phraseParameters) : translatedPhrase;
+        if (typeof translatedPhrase === 'function') {
+            return translatedPhrase(...phraseParameters);
+        }
+
+        // We set the translated value in the cache only for the phrases without parameters.
+        cacheForLocale?.set(phraseKey, translatedPhrase);
+        return translatedPhrase;
     }
 
     if (languageAbbreviation !== CONST.LOCALES.DEFAULT) {
@@ -95,53 +144,10 @@ function translate<TKey extends TranslationPaths>(desiredLanguage: 'en' | 'es' |
 }
 
 /**
- * Map to store translated values for each locale.
- * This is used to avoid translating the same phrase multiple times.
- *
- * The data is stored in the following format:
- *
- * {
- *  "en": {
- *   "name": "Name",
- * }
- *
- * Note: We are not storing any translated values for phrases with variables,
- * as they have higher chance of being unique, so we'll end up wasting space
- * in our cache.
- */
-const translationCache = new Map<ValueOf<typeof CONST.LOCALES>, Map<TranslationPaths, string>>(
-    Object.values(CONST.LOCALES).reduce((cache, locale) => {
-        cache.push([locale, new Map()]);
-        return cache;
-    }, [] as Array<[ValueOf<typeof CONST.LOCALES>, Map<TranslationPaths, string>]>),
-);
-
-/**
  * Uses the locale in this file updated by the Onyx subscriber.
  */
 function translateLocal<TKey extends TranslationPaths>(phrase: TKey, ...variables: PhraseParameters<Phrase<TKey>>) {
-    const preferredLocale = BaseLocaleListener.getPreferredLocale();
-    const isVariablesEmpty = variables.length === 0;
-
-    // Get the cache for the preferred locale
-    const cacheForLocale = translationCache.get(preferredLocale);
-
-    // Directly access and assign the translated value from the cache, instead of
-    // going through map.has() and map.get() to avoid multiple lookups.
-    const valueFromCache = cacheForLocale?.get(phrase);
-
-    // If the phrase is already translated, return the translated value
-    if (valueFromCache) {
-        return valueFromCache;
-    }
-    const translatedText = translate(preferredLocale, phrase, ...variables);
-
-    // We don't want to store translated values for phrases with variables
-    if (isVariablesEmpty) {
-        // We set the translated value in the cache
-        cacheForLocale?.set(phrase, translatedText);
-    }
-    return translatedText;
+    return translate(BaseLocaleListener.getPreferredLocale(), phrase, ...variables);
 }
 
 /**
