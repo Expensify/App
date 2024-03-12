@@ -98,12 +98,12 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
             return;
         }
 
-        if (!task?.title) {
+        if (!task.title) {
             setErrorMessage('newTaskPage.pleaseEnterTaskName');
             return;
         }
 
-        if (!task?.shareDestination) {
+        if (!task.shareDestination) {
             setErrorMessage('newTaskPage.pleaseEnterTaskDestination');
             return;
         }
