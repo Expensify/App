@@ -111,7 +111,7 @@ function WithTextInput(props: BaseSelectionListProps<ListItem>) {
 
     const sections = props.sections.map((section) => {
         const data = section.data.reduce<ListItem[]>((memo, item, index) => {
-            if (!item.text.toLowerCase().includes(searchText.trim().toLowerCase())) {
+            if (!item.text?.toLowerCase().includes(searchText.trim().toLowerCase())) {
                 return memo;
             }
 
@@ -221,8 +221,10 @@ function MultipleSelection(props: BaseSelectionListProps<ListItem>) {
 
         const sections = props.sections.map((section) => {
             const data = section.data.map((item, index) => {
-                allIds.push(item.keyForList);
-                const isSelected = selectedIds.includes(item.keyForList);
+                if (item.keyForList) {
+                    allIds.push(item.keyForList);
+                }
+                const isSelected = item.keyForList ? selectedIds.includes(item.keyForList) : false;
                 const isAdmin = index + (section?.indexOffset ?? 0) === 0;
 
                 return {
@@ -248,6 +250,9 @@ function MultipleSelection(props: BaseSelectionListProps<ListItem>) {
     }, [props.sections, selectedIds]);
 
     const onSelectRow = (item: ListItem) => {
+        if (!item.keyForList) {
+            return;
+        }
         const newSelectedIds = selectedIds.includes(item.keyForList) ? selectedIds.filter((id) => id !== item.keyForList) : [...selectedIds, item.keyForList];
         setSelectedIds(newSelectedIds);
     };
@@ -286,8 +291,10 @@ function WithSectionHeader(props: BaseSelectionListProps<ListItem>) {
 
         const sections = props.sections.map((section, sectionIndex) => {
             const data = section.data.map((item, itemIndex) => {
-                allIds.push(item.keyForList);
-                const isSelected = selectedIds.includes(item.keyForList);
+                if (item.keyForList) {
+                    allIds.push(item.keyForList);
+                }
+                const isSelected = item.keyForList ? selectedIds.includes(item.keyForList) : false;
                 const isAdmin = itemIndex + (section?.indexOffset ?? 0) === 0;
 
                 return {
@@ -313,6 +320,9 @@ function WithSectionHeader(props: BaseSelectionListProps<ListItem>) {
     }, [props.sections, selectedIds]);
 
     const onSelectRow = (item: ListItem) => {
+        if (!item.keyForList) {
+            return;
+        }
         const newSelectedIds = selectedIds.includes(item.keyForList) ? selectedIds.filter((id) => id !== item.keyForList) : [...selectedIds, item.keyForList];
         setSelectedIds(newSelectedIds);
     };
@@ -349,8 +359,10 @@ function WithConfirmButton(props: BaseSelectionListProps<ListItem>) {
 
         const sections = props.sections.map((section, sectionIndex) => {
             const data = section.data.map((item, itemIndex) => {
-                allIds.push(item.keyForList);
-                const isSelected = selectedIds.includes(item.keyForList);
+                if (item.keyForList) {
+                    allIds.push(item.keyForList);
+                }
+                const isSelected = item.keyForList ? selectedIds.includes(item.keyForList) : false;
                 const isAdmin = itemIndex + (section.indexOffset ?? 0) === 0;
 
                 return {
@@ -376,6 +388,9 @@ function WithConfirmButton(props: BaseSelectionListProps<ListItem>) {
     }, [props.sections, selectedIds]);
 
     const onSelectRow = (item: ListItem) => {
+        if (!item.keyForList) {
+            return;
+        }
         const newSelectedIds = selectedIds.includes(item.keyForList) ? selectedIds.filter((id) => id !== item.keyForList) : [...selectedIds, item.keyForList];
         setSelectedIds(newSelectedIds);
     };
