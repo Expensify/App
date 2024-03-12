@@ -98,9 +98,6 @@ type ReportActionItemOnyxProps = {
     /** The user's wallet account */
     userWallet: OnyxEntry<OnyxTypes.UserWallet>;
 
-    /** All the report actions belonging to the report's parent */
-    parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
-
     /** The policy which the user has access to and which the report is tied to */
     policy: OnyxEntry<OnyxTypes.Policy>;
 };
@@ -108,6 +105,9 @@ type ReportActionItemOnyxProps = {
 type ReportActionItemProps = {
     /** Report for this action */
     report: OnyxTypes.Report;
+
+    /** Report action belonging to the report's parent */
+    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
     /** All the data of the action item */
     action: OnyxTypes.ReportAction;
@@ -148,7 +148,7 @@ function ReportActionItem({
     index,
     iouReport,
     isMostRecentIOUReportAction,
-    parentReportActions,
+    parentReportAction,
     preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
     shouldDisplayNewMarker,
     userWallet,
@@ -431,7 +431,9 @@ function ReportActionItem({
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
-            children = (
+            children = ReportUtils.isClosedExpenseReportWithNoExpenses(iouReport) ? (
+                <RenderHTML html={`<comment>${translate('parentReportAction.deletedReport')}</comment>`} />
+            ) : (
                 <ReportPreview
                     iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(action)}
                     chatReportID={report.reportID}
@@ -659,7 +661,6 @@ function ReportActionItem({
     };
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-        const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''] ?? null;
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);
             if (ReportActionsUtils.isDeletedParentAction(parentReportAction) || isReversedTransaction) {
@@ -858,7 +859,6 @@ function ReportActionItem({
                 )}
             </Hoverable>
             <View style={styles.reportActionSystemMessageContainer}>
-                {/* @ts-expect-error TODO check if there is a field on the reportAction object */}
                 <InlineSystemMessage message={action.error} />
             </View>
         </PressableWithSecondaryInteraction>
@@ -873,12 +873,12 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
     iouReport: {
         key: ({action}) => {
             const iouReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(action);
-            return `${ONYXKEYS.COLLECTION.REPORT}${iouReportID ?? ''}`;
+            return `${ONYXKEYS.COLLECTION.REPORT}${iouReportID ?? 0}`;
         },
         initialValue: {} as OnyxTypes.Report,
     },
     policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID ?? ''}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID ?? 0}`,
         initialValue: {} as OnyxTypes.Policy,
     },
     emojiReactions: {
@@ -888,14 +888,10 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
     userWallet: {
         key: ONYXKEYS.USER_WALLET,
     },
-    parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID ?? 0}`,
-        canEvict: false,
-    },
 })(
     memo(ReportActionItem, (prevProps, nextProps) => {
-        const prevParentReportAction = prevProps.parentReportActions?.[prevProps.report.parentReportActionID ?? ''];
-        const nextParentReportAction = nextProps.parentReportActions?.[nextProps.report.parentReportActionID ?? ''];
+        const prevParentReportAction = prevProps.parentReportAction;
+        const nextParentReportAction = nextProps.parentReportAction;
         return (
             prevProps.displayAsGroup === nextProps.displayAsGroup &&
             prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction &&
