@@ -597,7 +597,7 @@ export default {
         receiptAudit: 'Auditoría de recibos',
         receiptVerified: 'Recibo verificado',
         receiptNoIssuesFound: 'No se encontraron problemas',
-        receiptIssuesFound: (count: number) => `Se encontró ${count} problema(s)`,
+        receiptIssuesFound: (count: number) => `Se encontró ${count} ${count === 1 ? 'problema' : 'problemas'}`,
         receiptScanning: 'Escaneo en curso…',
         receiptMissingDetails: 'Recibo con campos vacíos',
         receiptStatusTitle: 'Escaneando…',

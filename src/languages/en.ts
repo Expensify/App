@@ -604,7 +604,7 @@ export default {
         receiptAudit: 'Receipt Audit',
         receiptVerified: 'Receipt Verified',
         receiptNoIssuesFound: 'No issues Found',
-        receiptIssuesFound: (count: number) => `${count} Issue(s) Found`,
+        receiptIssuesFound: (count: number) => `${count} ${count === 1 ? 'Issue' : 'Issues'} Found`,
         receiptScanning: 'Scan in progress…',
         receiptMissingDetails: 'Receipt missing details',
         receiptStatusTitle: 'Scanning…',
