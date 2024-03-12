@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
@@ -22,45 +23,44 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import INPUT_IDS from '@src/types/form/WorkspaceCategoryCreateForm';
-import type {PolicyCategories} from '@src/types/onyx';
+import INPUT_IDS from '@src/types/form/WorkspaceTagCreateForm';
+import type {PolicyTagList} from '@src/types/onyx';
 
-type WorkspaceCreateCategoryPageOnyxProps = {
-    /** All policy categories */
-    policyCategories: OnyxEntry<PolicyCategories>;
+type WorkspaceCreateTagPageOnyxProps = {
+    /** All policy tags */
+    policyTags: OnyxEntry<PolicyTagList>;
 };
 
-type CreateCategoryPageProps = WorkspaceCreateCategoryPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_CREATE>;
+type CreateTagPageProps = WorkspaceCreateTagPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_CREATE>;
 
-function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) {
+function CreateTagPage({route, policyTags}: CreateTagPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
     const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE_FORM> = {};
-            const categoryName = values.categoryName.trim();
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_CREATE_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_CREATE_FORM> = {};
+            const tagName = values.tagName.trim();
+            const {tags} = PolicyUtils.getTagList(policyTags, 0);
 
-            if (!ValidationUtils.isRequiredFulfilled(categoryName)) {
-                errors.categoryName = 'workspace.categories.categoryRequiredError';
-            } else if (policyCategories?.[categoryName]) {
-                errors.categoryName = 'workspace.categories.existingCategoryError';
-            } else if (categoryName === CONST.INVALID_CATEGORY_NAME) {
-                errors.categoryName = 'workspace.categories.invalidCategoryName';
-            } else if ([...categoryName].length > CONST.CATEGORY_NAME_LIMIT) {
+            if (!ValidationUtils.isRequiredFulfilled(tagName)) {
+                errors.tagName = 'workspace.tags.tagRequiredError';
+            } else if (tags?.[tagName]) {
+                errors.tagName = 'workspace.tags.existingTagError';
+            } else if ([...tagName].length > CONST.TAG_NAME_LIMIT) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                ErrorUtils.addErrorMessage(errors, 'categoryName', ['common.error.characterLimitExceedCounter', {length: [...categoryName].length, limit: CONST.CATEGORY_NAME_LIMIT}]);
+                ErrorUtils.addErrorMessage(errors, 'tagName', ['common.error.characterLimitExceedCounter', {length: [...tagName].length, limit: CONST.TAG_NAME_LIMIT}]);
             }
 
             return errors;
         },
-        [policyCategories],
+        [policyTags],
     );
 
-    const createCategory = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE_FORM>) => {
-            Policy.createPolicyCategory(route.params.policyID, values.categoryName.trim());
+    const createTag = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_CREATE_FORM>) => {
+            Policy.createPolicyTag(route.params.policyID, values.tagName.trim());
             Keyboard.dismiss();
             Navigation.goBack();
         },
@@ -73,16 +73,16 @@ function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) 
                 <ScreenWrapper
                     includeSafeAreaPaddingBottom={false}
                     style={[styles.defaultModalContainer]}
-                    testID={CreateCategoryPage.displayName}
+                    testID={CreateTagPage.displayName}
                     shouldEnableMaxHeight
                 >
                     <HeaderWithBackButton
-                        title={translate('workspace.categories.addCategory')}
+                        title={translate('workspace.tags.addTag')}
                         onBackButtonPress={Navigation.goBack}
                     />
                     <FormProvider
-                        formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE_FORM}
-                        onSubmit={createCategory}
+                        formID={ONYXKEYS.FORMS.WORKSPACE_TAG_CREATE_FORM}
+                        onSubmit={createTag}
                         submitButtonText={translate('common.save')}
                         validate={validate}
                         style={[styles.mh5, styles.flex1]}
@@ -90,10 +90,10 @@ function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) 
                     >
                         <InputWrapper
                             InputComponent={TextInput}
-                            maxLength={CONST.CATEGORY_NAME_LIMIT}
+                            maxLength={CONST.TAG_NAME_LIMIT}
                             label={translate('common.name')}
                             accessibilityLabel={translate('common.name')}
-                            inputID={INPUT_IDS.CATEGORY_NAME}
+                            inputID={INPUT_IDS.TAG_NAME}
                             role={CONST.ROLE.PRESENTATION}
                             ref={inputCallbackRef}
                         />
@@ -104,10 +104,10 @@ function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) 
     );
 }
 
-CreateCategoryPage.displayName = 'CreateCategoryPage';
+CreateTagPage.displayName = 'CreateTagPage';
 
-export default withOnyx<CreateCategoryPageProps, WorkspaceCreateCategoryPageOnyxProps>({
-    policyCategories: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route?.params?.policyID}`,
+export default withOnyx<CreateTagPageProps, WorkspaceCreateTagPageOnyxProps>({
+    policyTags: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`,
     },
-})(CreateCategoryPage);
+})(CreateTagPage);

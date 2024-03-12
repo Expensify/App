@@ -573,13 +573,17 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/tags',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags` as const,
     },
+    WORKSPACE_TAG_CREATE: {
+        route: 'settings/workspaces/:policyID/tags/new',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/new` as const,
+    },
     WORKSPACE_TAGS_SETTINGS: {
-        route: 'workspace/:policyID/tags/settings',
-        getRoute: (policyID: string) => `workspace/${policyID}/tags/settings` as const,
+        route: 'settings/workspaces/:policyID/tags/settings',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/settings` as const,
     },
     WORKSPACE_EDIT_TAGS: {
-        route: 'workspace/:policyID/tags/edit',
-        getRoute: (policyID: string) => `workspace/${policyID}/tags/edit` as const,
+        route: 'settings/workspaces/:policyID/tags/edit',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/edit` as const,
     },
     WORKSPACE_MEMBER_DETAILS: {
         route: 'settings/workspaces/:policyID/members/:accountID',
