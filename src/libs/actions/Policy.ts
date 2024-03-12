@@ -2710,6 +2710,11 @@ function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
 function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagList>) {
     const newName = policyTagListName.newName;
     const oldName = policyTagListName.oldName;
+
+    if (oldName === newName) {
+        return;
+    }
+
     const oldPolicyTags = policyTags?.[oldName] ?? {};
     const onyxData: OnyxData = {
         optimisticData: [
@@ -2728,7 +2733,6 @@ function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: stri
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
                     [newName]: {pendingAction: null},
-                    [oldName]: null,
                 },
             },
         ],
@@ -2737,12 +2741,8 @@ function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: stri
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    errors: {
-                        [oldName]: oldName,
-                        [newName]: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
-                    },
                     [newName]: null,
-                    [oldName]: oldPolicyTags,
+                    [oldName]: {...oldPolicyTags, errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage')},
                 },
             },
         ],
