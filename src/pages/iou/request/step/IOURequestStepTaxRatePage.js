@@ -71,7 +71,7 @@ function IOURequestStepTaxRatePage({
         const taxAmount = getTaxAmount(taxRates, taxes.text, transaction.amount);
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
         IOU.setMoneyRequestTaxRate(transaction.transactionID, taxes);
-        IOU.setMoneyRequestTaxAmount(transaction.transactionID, amountInSmallestCurrencyUnits);
+        IOU.setMoneyRequestTaxAmount(transaction.transactionID, amountInSmallestCurrencyUnits, true);
 
         Navigation.goBack(backTo);
     };

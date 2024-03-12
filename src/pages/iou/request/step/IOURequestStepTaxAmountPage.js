@@ -112,7 +112,7 @@ function IOURequestStepTaxAmountPage({
     const updateTaxAmount = (currentAmount) => {
         isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount.amount));
-        IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits);
+        IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits, true);
 
         IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, currency || CONST.CURRENCY.USD, true);
 
