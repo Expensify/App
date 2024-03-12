@@ -420,6 +420,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                     style={[styles.m5]}
                     onPress={cropAndSaveImage}
                     pressOnEnter
+                    large
                     text={translate('common.save')}
                 />
             </ScreenWrapper>

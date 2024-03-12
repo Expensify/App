@@ -260,6 +260,7 @@ function NewChatPage({isGroupChat, reports, isSearchingForReports}: NewChatPageP
                         text={selectedOptions.length > 1 ? translate('newChatPage.createGroup') : translate('newChatPage.createChat')}
                         onPress={createGroup}
                         pressOnEnter
+                        large
                     />
                 )}
             </>

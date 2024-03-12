@@ -487,6 +487,7 @@ function ReportActionItem({
                                 text={translate('bankAccount.addBankAccount')}
                                 onPress={() => BankAccounts.openPersonalBankAccountSetupView(report.reportID)}
                                 pressOnEnter
+                                large
                             />
                         )}
 
@@ -503,6 +504,7 @@ function ReportActionItem({
                                     <Button
                                         ref={buttonRef}
                                         success
+                                        large
                                         style={[styles.w100, styles.requestPreviewBox]}
                                         text={translate('iou.enableWallet')}
                                         onPress={triggerKYCFlow}

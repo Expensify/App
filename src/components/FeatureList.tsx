@@ -95,6 +95,7 @@ function FeatureList({
                     accessibilityLabel={ctaAccessibilityLabel}
                     style={styles.w100}
                     success
+                    large
                 />
             </View>
         </Section>
