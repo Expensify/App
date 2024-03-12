@@ -3238,11 +3238,7 @@ function openPolicyDistanceRatesPage(policyID?: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE, params);
 }
 
-function openPolicyMoreFeaturesPage(policyID?: string) {
-    if (!policyID) {
-        return;
-    }
-
+function openPolicyMoreFeaturesPage(policyID: string) {
     const params: OpenPolicyMoreFeaturesPageParams = {policyID};
 
     API.read(READ_COMMANDS.OPEN_POLICY_MORE_FEATURES_PAGE, params);
