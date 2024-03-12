@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import path from 'path';
 import type webpack from 'webpack';
+import {DefinePlugin} from 'webpack';
+import {merge} from 'webpack-merge';
 
 import portfinder = require('portfinder');
 import TimeAnalyticsWebpackPlugin = require('time-analytics-webpack-plugin');
 import getCommonConfig from './webpack.common';
 
 const {TimeAnalyticsPlugin} = TimeAnalyticsWebpackPlugin;
-const path = require('path');
-const {DefinePlugin} = require('webpack');
-const {merge} = require('webpack-merge');
 
 const BASE_PORT = 8082;
 
@@ -82,7 +82,7 @@ const getConfig = (env: EnvFile = {}): Promise<webpack.Configuration> =>
                     /([\\/]node_modules[\\/](?!react-native-onyx))/,
                 ],
             },
-        });
+        } as webpack.Configuration);
 
         return TimeAnalyticsPlugin.wrap(config);
     });
