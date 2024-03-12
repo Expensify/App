@@ -12,7 +12,7 @@ type PolicyTag = {
     'GL Code': string;
 
     /** A list of errors keyed by microtime */
-    errors?: OnyxCommon.Errors;
+    errors?: OnyxCommon.Errors | null;
 };
 
 type PolicyTags = Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyTag>>;
