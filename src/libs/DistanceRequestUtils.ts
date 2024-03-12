@@ -9,11 +9,11 @@ import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
 
 type DefaultMileageRate = {
+    customUnitRateID?: string;
     rate?: number;
     currency?: string;
     unit: Unit;
     name?: string;
-    customUnitRateID?: string;
 };
 
 const policies: OnyxCollection<Policy> = {};
@@ -54,11 +54,11 @@ function getDefaultMileageRate(policy: OnyxEntry<Policy>): DefaultMileageRate | 
     }
 
     return {
+        customUnitRateID: distanceRate.customUnitRateID,
         rate: distanceRate.rate,
         currency: distanceRate.currency,
         unit: distanceUnit.attributes.unit,
         name: distanceRate.name,
-        customUnitRateID: distanceRate.customUnitRateID,
     };
 }
 

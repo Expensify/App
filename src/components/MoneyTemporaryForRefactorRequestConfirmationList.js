@@ -1,5 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import {format} from 'date-fns';
+import Str from 'expensify-common/lib/str';
+import {isUndefined} from 'lodash';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useReducer, useRef, useState} from 'react';
@@ -32,12 +34,14 @@ import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import categoryPropTypes from './categoryPropTypes';
 import ConfirmedRoute from './ConfirmedRoute';
+import ConfirmModal from './ConfirmModal';
 import FormHelpMessage from './FormHelpMessage';
 import * as Expensicons from './Icon/Expensicons';
 import Image from './Image';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import optionPropTypes from './optionPropTypes';
 import OptionsSelector from './OptionsSelector';
+import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import SettlementButton from './SettlementButton';
 import Switch from './Switch';
@@ -243,11 +247,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
-    const {canUseViolations} = usePermissions();
+    const {canUseP2PDistanceRequests, canUseViolations} = usePermissions();
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.REQUEST;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
+    const canEditDistance = isTypeRequest || (canUseP2PDistanceRequests && isTypeSplit);
 
     // TODO: uncomment after Splits and P2P are enabled https://github.com/Expensify/App/pull/37185, mileageRate prop should be be removed
     // const mileageRate = transaction.comment.customUnit.customUnitRateID === '_FAKE_P2P_ID_' ? DistanceRequestUtils.getRateForP2P(policy.outputCurrency) : mileageRates[transaction.comment.customUnit.customUnitRateID];
@@ -303,6 +308,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
 
     const [merchantError, setMerchantError] = useState(false);
+
+    const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
+
+    const navigateBack = () => {
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(iouType, transaction.transactionID, reportID));
+    };
 
     const shouldDisplayFieldError = useMemo(() => {
         if (!isEditingSplitBill) {
@@ -487,6 +498,31 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         IOU.setMoneyRequestMerchant(transaction.transactionID, distanceMerchant, true);
     }, [isDistanceRequestWithPendingRoute, hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transaction]);
 
+    // Auto select the category if there is only one enabled category and it is required
+    useEffect(() => {
+        const enabledCategories = _.filter(policyCategories, (category) => category.enabled);
+        if (iouCategory || !shouldShowCategories || enabledCategories.length !== 1 || !isCategoryRequired) {
+            return;
+        }
+        IOU.setMoneyRequestCategory(transaction.transactionID, enabledCategories[0].name);
+    }, [iouCategory, shouldShowCategories, policyCategories, transaction, isCategoryRequired]);
+
+    // Auto select the tag if there is only one enabled tag and it is required
+    useEffect(() => {
+        let updatedTagsString = TransactionUtils.getTag(transaction);
+        policyTagLists.forEach((tagList, index) => {
+            const enabledTags = _.filter(tagList.tags, (tag) => tag.enabled);
+            const isTagListRequired = isUndefined(tagList.required) ? false : tagList.required && canUseViolations;
+            if (!isTagListRequired || enabledTags.length !== 1 || TransactionUtils.getTag(transaction, index)) {
+                return;
+            }
+            updatedTagsString = IOUUtils.insertTagIntoTransactionTagsString(updatedTagsString, enabledTags[0] ? enabledTags[0].name : '', index);
+        });
+        if (updatedTagsString !== TransactionUtils.getTag(transaction) && updatedTagsString) {
+            IOU.setMoneyRequestTag(transaction.transactionID, updatedTagsString);
+        }
+    }, [policyTagLists, transaction, policyTags, isTagRequired, canUseViolations]);
+
     /**
      * @param {Object} option
      */
@@ -604,6 +640,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             />
         ) : (
             <ButtonWithDropdownMenu
+                success
                 pressOnEnter
                 isDisabled={shouldDisableButton}
                 onPress={(_event, value) => confirm(value)}
@@ -689,13 +726,14 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.distance')}
-                    shouldShowRightIcon={!isReadOnly && isTypeRequest}
+                    shouldShowRightIcon={!isReadOnly && canEditDistance}
                     title={iouMerchant}
                     description={translate('common.distance')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
-                    disabled={didConfirm || !isTypeRequest}
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    disabled={didConfirm || !canEditDistance}
                     interactive={!isReadOnly}
                 />
             ),
@@ -893,7 +931,35 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         (supplementaryField) => supplementaryField.item,
     );
 
-    const {image: receiptImage, thumbnail: receiptThumbnail} = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : {};
+    const {
+        image: receiptImage,
+        thumbnail: receiptThumbnail,
+        isLocalFile,
+    } = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : {};
+
+    const receiptThumbnailContent = useMemo(
+        () =>
+            isLocalFile && Str.isPDF(receiptFilename) ? (
+                <PDFThumbnail
+                    previewSourceURL={receiptImage}
+                    style={styles.moneyRequestImage}
+                    // We don't support scaning password protected PDF receipt
+                    enabled={!isAttachmentInvalid}
+                    onPassword={() => setIsAttachmentInvalid(true)}
+                />
+            ) : (
+                <Image
+                    style={styles.moneyRequestImage}
+                    source={{uri: receiptThumbnail || receiptImage}}
+                    // AuthToken is required when retrieving the image from the server
+                    // but we don't need it to load the blob:// or file:// image when starting a money request / split bill
+                    // So if we have a thumbnail, it means we're retrieving the image from the server
+                    isAuthTokenRequired={!_.isEmpty(receiptThumbnail)}
+                />
+            ),
+        [receiptFilename, receiptImage, styles, receiptThumbnail, isLocalFile, isAttachmentInvalid],
+    );
+
     return (
         <OptionsSelector
             sections={optionSelectorSections}
@@ -918,29 +984,20 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     <ConfirmedRoute transaction={transaction} />
                 </View>
             )}
-            {receiptImage || receiptThumbnail ? (
-                <Image
-                    style={styles.moneyRequestImage}
-                    source={{uri: receiptThumbnail || receiptImage}}
-                    // AuthToken is required when retrieving the image from the server
-                    // but we don't need it to load the blob:// or file:// image when starting a money request / split bill
-                    // So if we have a thumbnail, it means we're retrieving the image from the server
-                    isAuthTokenRequired={!_.isEmpty(receiptThumbnail)}
-                />
-            ) : (
-                // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
-                PolicyUtils.isPaidGroupPolicy(policy) &&
-                !isDistanceRequest &&
-                iouType === CONST.IOU.TYPE.REQUEST && (
-                    <ReceiptEmptyState
-                        onPress={() =>
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
-                            )
-                        }
-                    />
-                )
-            )}
+            {receiptImage || receiptThumbnail
+                ? receiptThumbnailContent
+                : // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
+                  PolicyUtils.isPaidGroupPolicy(policy) &&
+                  !isDistanceRequest &&
+                  iouType === CONST.IOU.TYPE.REQUEST && (
+                      <ReceiptEmptyState
+                          onPress={() =>
+                              Navigation.navigate(
+                                  ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                              )
+                          }
+                      />
+                  )}
             {primaryFields}
             {!shouldShowAllFields && (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2, styles.mt1]}>
@@ -958,6 +1015,15 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 </View>
             )}
             {shouldShowAllFields && supplementaryFields}
+            <ConfirmModal
+                title={translate('attachmentPicker.wrongFileType')}
+                onConfirm={navigateBack}
+                onCancel={navigateBack}
+                isVisible={isAttachmentInvalid}
+                prompt={translate('attachmentPicker.protectedPDFNotSupported')}
+                confirmText={translate('common.close')}
+                shouldShowCancelButton={false}
+            />
         </OptionsSelector>
     );
 }
