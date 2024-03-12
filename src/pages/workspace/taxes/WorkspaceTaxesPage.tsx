@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -12,9 +12,11 @@ import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {openPolicyTaxesPage} from '@libs/actions/Policy';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
@@ -33,6 +35,17 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
     const [selectedTaxesIDs, setSelectedTaxesIDs] = useState<string[]>([]);
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
+
+    const fetchTaxes = () => {
+        openPolicyTaxesPage(route.params.policyID);
+    };
+
+    const {isOffline} = useNetwork({onReconnect: fetchTaxes});
+
+    useEffect(() => {
+        fetchTaxes();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const textForDefault = useCallback(
         (taxID: string): string => {
@@ -77,7 +90,7 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
         [policy?.taxRates?.taxes, textForDefault, defaultExternalID, selectedTaxesIDs, styles, theme.icon, translate],
     );
 
-    const isLoading = taxesList === undefined;
+    const isLoading = !isOffline && taxesList === undefined;
 
     const toggleTax = (tax: ListItem) => {
         const key = tax.keyForList;
