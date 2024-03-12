@@ -235,7 +235,7 @@ function ReportActionsView({
             return reportActions;
         }
 
-        let actions = [...reportActions];
+        const actions = [...reportActions];
         const lastAction = reportActions[reportActions.length - 1];
 
         if (!ReportActionsUtils.isCreatedAction(lastAction)) {
@@ -271,7 +271,7 @@ function ReportActionsView({
 
         // Update pending action of created action if we have some requests that are pending
         const createdAction = actions.pop() as OnyxTypes.ReportAction;
-        if (moneyRequestActions.filter((action) => !!action.pendingAction).length > 0) {
+        if (moneyRequestActions.filter((action) => Boolean(action.pendingAction)).length > 0) {
             createdAction.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
         }
 
