@@ -56,9 +56,6 @@ function StateSelectionPage() {
         (option: CountryData) => {
             const backTo = params?.backTo ?? '';
 
-            // Add hash to param for rare cases, such as in ReimbursementAccountPage (currentStep = CONST.BANK_ACCOUNT.STEP.COMPANY), when the URL on the form page (which has the StateSelector component) already includes a state param. If the form then updates the StateInput with state data from another source and the user attempts to use StateSelector to select the same state present in the URL, it will cause the StateSelector not to detect the state change, as the URL remains the same.
-            const withHash = (arg: string): string => `${arg}-hash-${Math.random().toString(36).substring(2, 8)}`;
-
             // Determine navigation action based on "backTo" presence and route stack length.
             if (navigation.getState()?.routes.length === 1) {
                 // If this is the only page in the navigation stack (examples include direct navigation to this page via URL or page reload).
@@ -67,11 +64,11 @@ function StateSelectionPage() {
                     Navigation.goBack();
                 } else {
                     // "backTo" provided: navigate back to "backTo" with state parameter.
-                    Navigation.goBack(appendParam(backTo, 'state', withHash(option.value)) as Route);
+                    Navigation.goBack(appendParam(backTo, 'state', option.value) as Route);
                 }
             } else if (!_.isEmpty(backTo)) {
                 // Most common case: Navigation stack has multiple routes and "backTo" is defined: navigate to "backTo" with state parameter.
-                Navigation.navigate(appendParam(backTo, 'state', withHash(option.value)) as Route);
+                Navigation.navigate(appendParam(backTo, 'state', option.value) as Route);
             } else {
                 // This is a fallback block and should never execute if StateSelector is correctly appending the "backTo" route.
                 // Navigation stack has multiple routes but no "backTo" defined: default back navigation.

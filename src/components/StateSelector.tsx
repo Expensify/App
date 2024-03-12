@@ -1,5 +1,3 @@
-import {useRoute} from '@react-navigation/native';
-import type {ParamListBase, RouteProp} from '@react-navigation/native';
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import React, {useEffect, useState} from 'react';
 import type {ForwardedRef} from 'react';
@@ -13,8 +11,6 @@ import ROUTES from '@src/ROUTES';
 import FormHelpMessage from './FormHelpMessage';
 import type {MenuItemProps} from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
-
-type CustomParamList = ParamListBase & Record<string, Record<string, string>>;
 
 type State = keyof typeof COMMON_CONST.STATES;
 
@@ -50,12 +46,6 @@ function StateSelector(
     const stateFromUrl = useGeographicalStateFromRoute();
     const [stateToDisplay, setStateToDisplay] = useState<State | ''>('');
 
-    /**
-     *  See {@link module:src/pages/settings/Profile/PersonalDetails/StateSelectionPage.tsx#withHash} for more information.
-     */
-    const route = useRoute<RouteProp<CustomParamList, string>>();
-    const rawStateFromUrl = route.params?.state as string | undefined;
-
     useEffect(() => {
         if (!shouldUseStateFromUrl || !stateFromUrl) {
             return;
@@ -68,7 +58,7 @@ function StateSelector(
         setStateToDisplay(stateFromUrl);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [rawStateFromUrl, shouldUseStateFromUrl]);
+    }, [stateFromUrl, shouldUseStateFromUrl]);
 
     useEffect(() => {
         if (!stateCode) {
