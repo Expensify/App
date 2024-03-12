@@ -52,6 +52,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -2747,13 +2748,15 @@ function createPolicyCategory(policyID: string, categoryName: string) {
 }
 
 function createPolicyTag(policyID: string, tagName: string) {
+    const tagListName = Object.keys(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})[0];
+
     const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    Tag: {
+                    [tagListName]: {
                         tags: {
                             [tagName]: {
                                 name: tagName,
@@ -2771,7 +2774,7 @@ function createPolicyTag(policyID: string, tagName: string) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    Tag: {
+                    [tagListName]: {
                         tags: {
                             [tagName]: {
                                 errors: null,
@@ -2787,7 +2790,7 @@ function createPolicyTag(policyID: string, tagName: string) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    Tag: {
+                    [tagListName]: {
                         tags: {
                             [tagName]: {
                                 errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),

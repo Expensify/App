@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
@@ -41,10 +42,11 @@ function CreateTagPage({route, policyTags}: CreateTagPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_CREATE_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_CREATE_FORM> = {};
             const tagName = values.tagName.trim();
+            const {tags} = PolicyUtils.getTagList(policyTags, 0);
 
             if (!ValidationUtils.isRequiredFulfilled(tagName)) {
                 errors.tagName = 'workspace.tags.tagRequiredError';
-            } else if (policyTags?.Tag?.tags?.[tagName]) {
+            } else if (tags?.[tagName]) {
                 errors.tagName = 'workspace.tags.existingTagError';
             } else if ([...tagName].length > CONST.TAG_NAME_LIMIT) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
