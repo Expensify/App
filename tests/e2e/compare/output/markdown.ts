@@ -1,16 +1,17 @@
 // From: https://raw.githubusercontent.com/callstack/reassure/main/packages/reassure-compare/src/output/markdown.ts
 import fs from 'node:fs/promises';
 import path from 'path';
+import type {Stats} from 'tests/e2e/measure/math';
 import * as Logger from '../../utils/logger';
-import type {AddedEntry, CompareEntry, CompareResult, PerformanceEntry, RemovedEntry} from '../types';
+import type {Data, Entry} from './console';
 import * as format from './format';
 import markdownTable from './markdownTable';
 
 const tableHeader = ['Name', 'Duration'];
 
-const collapsibleSection = (title: string, content: string): string => `<details>\n<summary>${title}</summary>\n\n${content}\n</details>\n\n`;
+const collapsibleSection = (title: string, content: string) => `<details>\n<summary>${title}</summary>\n\n${content}\n</details>\n\n`;
 
-const buildDurationDetails = (title: string, entry: PerformanceEntry): string => {
+const buildDurationDetails = (title: string, entry: Stats) => {
     const relativeStdev = entry.stdev / entry.mean;
 
     return [
@@ -23,25 +24,25 @@ const buildDurationDetails = (title: string, entry: PerformanceEntry): string =>
         .join('<br/>');
 };
 
-const buildDurationDetailsEntry = (entry: CompareEntry | AddedEntry | RemovedEntry): string =>
+const buildDurationDetailsEntry = (entry: Entry) =>
     ['baseline' in entry ? buildDurationDetails('Baseline', entry.baseline) : '', 'current' in entry ? buildDurationDetails('Current', entry.current) : '']
         .filter(Boolean)
         .join('<br/><br/>');
 
-const formatEntryDuration = (entry: CompareEntry | AddedEntry | RemovedEntry): string => {
-    if ('baseline' in entry && 'current' in entry) {
+const formatEntryDuration = (entry: Entry) => {
+    if (entry.baseline && entry.current) {
         return format.formatDurationDiffChange(entry);
     }
-    if ('baseline' in entry) {
+    if (entry.baseline) {
         return format.formatDuration(entry.baseline.mean);
     }
-    if ('current' in entry) {
+    if (entry.current) {
         return format.formatDuration(entry.current.mean);
     }
     return '';
 };
 
-const buildDetailsTable = (entries: Array<CompareEntry | AddedEntry | RemovedEntry>): string => {
+const buildDetailsTable = (entries: Entry[]) => {
     if (!entries.length) {
         return '';
     }
@@ -52,7 +53,7 @@ const buildDetailsTable = (entries: Array<CompareEntry | AddedEntry | RemovedEnt
     return collapsibleSection('Show details', content);
 };
 
-const buildSummaryTable = (entries: Array<CompareEntry | AddedEntry | RemovedEntry>, collapse = false): string => {
+const buildSummaryTable = (entries: Entry[], collapse = false) => {
     if (!entries.length) {
         return '_There are no entries_';
     }
@@ -63,7 +64,7 @@ const buildSummaryTable = (entries: Array<CompareEntry | AddedEntry | RemovedEnt
     return collapse ? collapsibleSection('Show entries', content) : content;
 };
 
-const buildMarkdown = (data: CompareResult): string => {
+const buildMarkdown = (data: Data) => {
     let result = '## Performance Comparison Report 📊';
 
     if (data.errors?.length) {
@@ -91,7 +92,7 @@ const buildMarkdown = (data: CompareResult): string => {
     return result;
 };
 
-const writeToFile = (filePath: string, content: string): Promise<void> =>
+const writeToFile = (filePath: string, content: string) =>
     fs
         .writeFile(filePath, content)
         .then(() => {
@@ -105,7 +106,7 @@ const writeToFile = (filePath: string, content: string): Promise<void> =>
             throw error;
         });
 
-const writeToMarkdown = (filePath: string, data: CompareResult): Promise<void> => {
+const writeToMarkdown = (filePath: string, data: Data) => {
     const markdown = buildMarkdown(data);
     return writeToFile(filePath, markdown).catch((error) => {
         console.error(error);
