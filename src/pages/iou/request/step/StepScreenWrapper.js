@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,6 +24,9 @@ const propTypes = {
     /** Whether or not the wrapper should be shown (sometimes screens can be embedded inside another screen that already is using a wrapper) */
     shouldShowWrapper: PropTypes.bool.isRequired,
 
+    /** Whether or not to display not found page */
+    shouldShowNotFoundPage: PropTypes.bool,
+
     /** An ID used for unit testing */
     testID: PropTypes.string.isRequired,
 
@@ -33,13 +37,14 @@ const propTypes = {
 const defaultProps = {
     onEntryTransitionEnd: () => {},
     includeSafeAreaPaddingBottom: false,
+    shouldShowNotFoundPage: false,
 };
 
-function StepScreenWrapper({testID, headerTitle, onBackButtonPress, onEntryTransitionEnd, children, shouldShowWrapper, includeSafeAreaPaddingBottom}) {
+function StepScreenWrapper({testID, headerTitle, onBackButtonPress, onEntryTransitionEnd, children, shouldShowWrapper, shouldShowNotFoundPage, includeSafeAreaPaddingBottom}) {
     const styles = useThemeStyles();
 
     if (!shouldShowWrapper) {
-        return children;
+        return <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>{children}</FullPageNotFoundView>;
     }
 
     return (
@@ -50,22 +55,24 @@ function StepScreenWrapper({testID, headerTitle, onBackButtonPress, onEntryTrans
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
         >
             {({insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd}) => (
-                <View style={[styles.flex1]}>
-                    <HeaderWithBackButton
-                        title={headerTitle}
-                        onBackButtonPress={onBackButtonPress}
-                    />
-                    {
-                        // If props.children is a function, call it to provide the insets to the children.
-                        _.isFunction(children)
-                            ? children({
-                                  insets,
-                                  safeAreaPaddingBottomStyle,
-                                  didScreenTransitionEnd,
-                              })
-                            : children
-                    }
-                </View>
+                <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>
+                    <View style={[styles.flex1]}>
+                        <HeaderWithBackButton
+                            title={headerTitle}
+                            onBackButtonPress={onBackButtonPress}
+                        />
+                        {
+                            // If props.children is a function, call it to provide the insets to the children.
+                            _.isFunction(children)
+                                ? children({
+                                      insets,
+                                      safeAreaPaddingBottomStyle,
+                                      didScreenTransitionEnd,
+                                  })
+                                : children
+                        }
+                    </View>
+                </FullPageNotFoundView>
             )}
         </ScreenWrapper>
     );

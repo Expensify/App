@@ -1,11 +1,11 @@
 import React, {useMemo} from 'react';
-import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -88,7 +88,12 @@ function PrivateNotesListPage({report, personalDetailsList, session}: PrivateNot
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
             <Text style={[styles.mb5, styles.ph5]}>{translate('privateNotes.personalNoteMessage')}</Text>
-            <ScrollView contentContainerStyle={styles.flexGrow1}>{privateNotes.map((item) => getMenuItem(item))}</ScrollView>
+            <ScrollView
+                contentContainerStyle={styles.flexGrow1}
+                bounces={false}
+            >
+                {privateNotes.map((item) => getMenuItem(item))}
+            </ScrollView>
         </ScreenWrapper>
     );
 }

@@ -30,6 +30,7 @@ import CardsAndDomains from '@assets/images/cards-and-domains.svg';
 import Cash from '@assets/images/cash.svg';
 import Chair from '@assets/images/chair.svg';
 import ChatBubbleAdd from '@assets/images/chatbubble-add.svg';
+import ChatBubbleReply from '@assets/images/chatbubble-reply.svg';
 import ChatBubbleUnread from '@assets/images/chatbubble-unread.svg';
 import ChatBubble from '@assets/images/chatbubble.svg';
 import ChatBubbles from '@assets/images/chatbubbles.svg';
@@ -41,6 +42,7 @@ import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
 import Copy from '@assets/images/copy.svg';
 import CreditCard from '@assets/images/creditcard.svg';
+import DocumentSlash from '@assets/images/document-slash.svg';
 import Document from '@assets/images/document.svg';
 import DotIndicatorUnfilled from '@assets/images/dot-indicator-unfilled.svg';
 import DotIndicator from '@assets/images/dot-indicator.svg';
@@ -68,6 +70,7 @@ import Flag from '@assets/images/flag.svg';
 import FlagLevelOne from '@assets/images/flag_level_01.svg';
 import FlagLevelTwo from '@assets/images/flag_level_02.svg';
 import FlagLevelThree from '@assets/images/flag_level_03.svg';
+import Folder from '@assets/images/folder.svg';
 import Fullscreen from '@assets/images/fullscreen.svg';
 import Gallery from '@assets/images/gallery.svg';
 import Gear from '@assets/images/gear.svg';
@@ -90,6 +93,7 @@ import Lock from '@assets/images/lock.svg';
 import Luggage from '@assets/images/luggage.svg';
 import MagnifyingGlass from '@assets/images/magnifying-glass.svg';
 import Mail from '@assets/images/mail.svg';
+import MakeAdmin from '@assets/images/make-admin.svg';
 import Megaphone from '@assets/images/megaphone.svg';
 import Menu from '@assets/images/menu.svg';
 import Meter from '@assets/images/meter.svg';
@@ -116,6 +120,7 @@ import QrCode from '@assets/images/qrcode.svg';
 import QuestionMark from '@assets/images/question-mark-circle.svg';
 import ReceiptSearch from '@assets/images/receipt-search.svg';
 import Receipt from '@assets/images/receipt.svg';
+import RemoveMembers from '@assets/images/remove-members.svg';
 import Rotate from '@assets/images/rotate-image.svg';
 import RotateLeft from '@assets/images/rotate-left.svg';
 import Scan from '@assets/images/scan.svg';
@@ -131,6 +136,7 @@ import Twitter from '@assets/images/social-twitter.svg';
 import Youtube from '@assets/images/social-youtube.svg';
 import Stopwatch from '@assets/images/stopwatch.svg';
 import Sync from '@assets/images/sync.svg';
+import Tag from '@assets/images/tag.svg';
 import Task from '@assets/images/task.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
@@ -144,6 +150,7 @@ import Users from '@assets/images/users.svg';
 import VolumeHigh from '@assets/images/volume-high.svg';
 import VolumeLow from '@assets/images/volume-low.svg';
 import Wallet from '@assets/images/wallet.svg';
+import Workflows from '@assets/images/workflows.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Wrench from '@assets/images/wrench.svg';
 import Zoom from '@assets/images/zoom.svg';
@@ -188,6 +195,7 @@ export {
     CreditCard,
     DeletedRoomAvatar,
     Document,
+    DocumentSlash,
     DomainRoomAvatar,
     DotIndicator,
     DotIndicatorUnfilled,
@@ -216,6 +224,8 @@ export {
     FlagLevelTwo,
     FlagLevelThree,
     Fullscreen,
+    Folder,
+    Tag,
     Gallery,
     Gear,
     Globe,
@@ -238,6 +248,7 @@ export {
     Luggage,
     MagnifyingGlass,
     Mail,
+    MakeAdmin,
     Menu,
     Meter,
     Megaphone,
@@ -265,6 +276,7 @@ export {
     QrCode,
     QuestionMark,
     Receipt,
+    RemoveMembers,
     ReceiptSearch,
     Rotate,
     RotateLeft,
@@ -287,6 +299,7 @@ export {
     VolumeHigh,
     VolumeLow,
     Wallet,
+    Workflows,
     Workspace,
     Zoom,
     Twitter,
@@ -297,5 +310,6 @@ export {
     Instagram,
     ChatBubbleAdd,
     ChatBubbleUnread,
+    ChatBubbleReply,
     Lightbulb,
 };

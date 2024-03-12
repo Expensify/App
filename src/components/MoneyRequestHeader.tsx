@@ -7,7 +7,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -48,10 +47,10 @@ type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
     report: Report;
 
     /** The policy which the report is tied to */
-    policy: Policy;
+    policy: OnyxEntry<Policy>;
 
     /** The report action the transaction is tied to from the parent report */
-    parentReportAction: ReportAction & OriginalMessageIOU;
+    parentReportAction: OnyxEntry<ReportAction>;
 };
 
 function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, shownHoldUseExplanation = false, policy}: MoneyRequestHeaderProps) {
@@ -72,28 +71,31 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && (session?.accountID ?? null) === moneyRequestReport?.managerID;
 
     const deleteTransaction = useCallback(() => {
-        IOU.deleteMoneyRequest(parentReportAction?.originalMessage?.IOUTransactionID ?? '', parentReportAction, true);
+        if (parentReportAction) {
+            const iouTransactionID = parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
+            IOU.deleteMoneyRequest(iouTransactionID, parentReportAction, true);
+        }
+
         setIsDeleteModalVisible(false);
     }, [parentReportAction, setIsDeleteModalVisible]);
 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
     const isPending = TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction);
 
-    const isRequestModifiable = !isSettled && !isApproved && !ReportActionsUtils.isDeletedAction(parentReportAction);
-    const canModifyRequest = isActionOwner && !isSettled && !isApproved && !ReportActionsUtils.isDeletedAction(parentReportAction);
-    let canDeleteRequest = canModifyRequest;
+    const isDeletedParentAction = ReportActionsUtils.isDeletedAction(parentReportAction);
+    const canHoldOrUnholdRequest = !isSettled && !isApproved && !isDeletedParentAction;
 
-    if (ReportUtils.isPaidGroupPolicyExpenseReport(moneyRequestReport)) {
-        // If it's a paid policy expense report, only allow deleting the request if it's not submitted or the user is the policy admin
-        canDeleteRequest = canDeleteRequest && (ReportUtils.isDraftExpenseReport(moneyRequestReport) || PolicyUtils.isPolicyAdmin(policy));
-    }
+    // If the report supports adding transactions to it, then it also supports deleting transactions from it.
+    const canDeleteRequest = isActionOwner && ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) && !isDeletedParentAction;
 
     const changeMoneyRequestStatus = () => {
+        const iouTransactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
+
         if (isOnHold) {
-            IOU.unholdRequest(parentReportAction?.originalMessage?.IOUTransactionID ?? '', report?.reportID);
+            IOU.unholdRequest(iouTransactionID, report?.reportID);
         } else {
             const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-            Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type, parentReportAction?.originalMessage?.IOUTransactionID ?? '', report?.reportID, activeRoute));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? '', iouTransactionID, report?.reportID, activeRoute));
         }
     };
 
@@ -106,7 +108,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     }, [canDeleteRequest]);
 
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(report)];
-    if (isRequestModifiable) {
+    if (canHoldOrUnholdRequest) {
         const isRequestIOU = parentReport?.type === 'iou';
         const isHoldCreator = ReportUtils.isHoldCreator(transaction, report?.reportID) && isRequestIOU;
         const canModifyStatus = isPolicyAdmin || isActionOwner || isApprover;
@@ -148,30 +150,12 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
         IOU.setShownHoldUseExplanation();
     };
 
-    if (canModifyRequest) {
-        if (!TransactionUtils.hasReceipt(transaction)) {
-            threeDotsMenuItems.push({
-                icon: Expensicons.Receipt,
-                text: translate('receipt.addReceipt'),
-                onSelected: () =>
-                    Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                            CONST.IOU.ACTION.EDIT,
-                            CONST.IOU.TYPE.REQUEST,
-                            transaction?.transactionID ?? '',
-                            report.reportID,
-                            Navigation.getActiveRouteWithoutParams(),
-                        ),
-                    ),
-            });
-        }
-        if (canDeleteRequest) {
-            threeDotsMenuItems.push({
-                icon: Expensicons.Trashcan,
-                text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
-                onSelected: () => setIsDeleteModalVisible(true),
-            });
-        }
+    if (canDeleteRequest) {
+        threeDotsMenuItems.push({
+            icon: Expensicons.Trashcan,
+            text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
+            onSelected: () => setIsDeleteModalVisible(true),
+        });
     }
 
     return (
