@@ -41,6 +41,7 @@ import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import LeftModalNavigator from './Navigators/LeftModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
+import Log from '@libs/Log';
 
 type AuthScreensProps = {
     /** Session of currently logged in user */
@@ -126,6 +127,7 @@ function handleNetworkReconnect() {
     if (isLoadingApp) {
         App.openApp();
     } else {
+        Log.info("[handleNetworkReconnect] Sending ReconnectApp");
         App.reconnectApp(lastUpdateIDAppliedToClient);
     }
 }
@@ -189,6 +191,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         if (SessionUtils.didUserLogInDuringSession()) {
             App.openApp();
         } else {
+            Log.info("[AuthScreens] Sending ReconnectApp");
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
