@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import path from 'path';
+import webpack from 'webpack';
+// eslint-disable-next-line @dword-design/import-alias/prefer-alias, import/no-relative-packages
+import {dependencies as desktopDependencies} from '../../desktop/package.json';
 import getCommonConfig from './webpack.common';
 import type {EnvFile} from './webpack.dev';
-
-const path = require('path');
-const webpack = require('webpack');
-
-const desktopDependencies = require('../../desktop/package.json').dependencies;
 
 /**
  * Desktop creates 2 configurations in parallel
