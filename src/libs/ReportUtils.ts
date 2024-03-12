@@ -917,7 +917,7 @@ function isChatThread(report: OnyxEntry<Report>): boolean {
 }
 
 function isDM(report: OnyxEntry<Report>): boolean {
-    return isChatReport(report) && !getChatType(report);
+    return isChatReport(report) && !getChatType(report) && !isThread(report);
 }
 
 function isSelfDM(report: OnyxEntry<Report>): boolean {
@@ -1243,7 +1243,6 @@ function isMoneyRequestReport(reportOrID: OnyxEntry<Report> | EmptyObject | stri
 function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
     const participantAccountIDs = report?.participantAccountIDs ?? [];
     return (
-        !isThread(report) &&
         !isChatRoom(report) &&
         !isExpenseRequest(report) &&
         !isMoneyRequestReport(report) &&
@@ -2606,7 +2605,11 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     if (isChatThread(report)) {
         if (!isEmptyObject(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction)) {
-            return getTransactionReportName(parentReportAction);
+            formattedName = getTransactionReportName(parentReportAction);
+            if (isArchivedRoom(report)) {
+                formattedName += ` (${Localize.translateLocal('common.archived')})`;
+            }
+            return formattedName;
         }
 
         if (parentReportAction?.message?.[0]?.isDeletedParentAction) {
@@ -2631,6 +2634,9 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         }
         if (isAdminRoom(report) || isUserCreatedPolicyRoom(report)) {
             return getAdminRoomInvitedParticipants(parentReportAction, parentReportActionMessage);
+        }
+        if (parentReportActionMessage && isArchivedRoom(report)) {
+            return `${parentReportActionMessage} (${Localize.translateLocal('common.archived')})`;
         }
         return parentReportActionMessage;
     }
