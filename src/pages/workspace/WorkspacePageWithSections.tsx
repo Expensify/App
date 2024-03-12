@@ -80,6 +80,9 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
          * taller header on desktop and different font of the title.
          * */
         icon?: IconAsset;
+
+        /** Whether the page is loading, example any other API call in progres */
+        isLoading?: boolean;
     };
 
 function fetchData(policyID: string, skipVBBACal?: boolean) {
@@ -109,12 +112,14 @@ function WorkspacePageWithSections({
     shouldShowOfflineIndicatorInWideScreen = false,
     shouldShowNonAdmin = false,
     shouldShowNotFoundPage = false,
+    isLoading: isPageLoading = false,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID ?? '';
     useNetwork({onReconnect: () => fetchData(policyID, shouldSkipVBBACall)});
 
-    const isLoading = reimbursementAccount?.isLoading ?? true;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const isLoading = (reimbursementAccount?.isLoading || isPageLoading) ?? true;
     const achState = reimbursementAccount?.achData?.state ?? '';
     const isUsingECard = user?.isUsingExpensifyCard ?? false;
     const hasVBA = achState === BankAccount.STATE.OPEN;

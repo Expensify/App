@@ -271,6 +271,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
                             path: ROUTES.WORKSPACE_CATEGORIES_SETTINGS.route,
                         },
+                        [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_PAYER.route,
+                        },
                         [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
                             path: ROUTES.WORKSPACE_MEMBER_DETAILS.route,
                         },
