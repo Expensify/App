@@ -16,8 +16,7 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
     const report = ReportUtils.getReport(reportID);
 
     // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
-    const decodedSource = decodeURI(route.params.source);
-    const source = Number(decodedSource) || decodedSource;
+    const source = Number(route.params.source) || route.params.source;
 
     const onCarouselAttachmentChange = useCallback(
         (attachment: Attachment) => {
