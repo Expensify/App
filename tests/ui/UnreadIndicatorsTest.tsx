@@ -1,26 +1,30 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+import type * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
 import {utcToZonedTime} from 'date-fns-tz';
-import lodashGet from 'lodash/get';
 import React from 'react';
 import {AppState, DeviceEventEmitter, Linking} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type Animated from 'react-native-reanimated';
+import * as CollectionUtils from '@libs/CollectionUtils';
+import DateUtils from '@libs/DateUtils';
+import * as Localize from '@libs/Localize';
+import LocalNotification from '@libs/Notification/LocalNotification';
+import * as NumberUtils from '@libs/NumberUtils';
+import * as Pusher from '@libs/Pusher/pusher';
+import PusherConnectionManager from '@libs/PusherConnectionManager';
 import FontUtils from '@styles/utils/FontUtils';
-import App from '../../src/App';
-import CONFIG from '../../src/CONFIG';
-import CONST from '../../src/CONST';
-import * as AppActions from '../../src/libs/actions/App';
-import * as Report from '../../src/libs/actions/Report';
-import * as User from '../../src/libs/actions/User';
-import * as CollectionUtils from '../../src/libs/CollectionUtils';
-import DateUtils from '../../src/libs/DateUtils';
-import * as Localize from '../../src/libs/Localize';
-import LocalNotification from '../../src/libs/Notification/LocalNotification';
-import * as NumberUtils from '../../src/libs/NumberUtils';
-import * as Pusher from '../../src/libs/Pusher/pusher';
-import PusherConnectionManager from '../../src/libs/PusherConnectionManager';
-import ONYXKEYS from '../../src/ONYXKEYS';
-import appSetup from '../../src/setup';
+import * as AppActions from '@userActions/App';
+import * as Report from '@userActions/Report';
+import * as User from '@userActions/User';
+import App from '@src/App';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import appSetup from '@src/setup';
+import type {ReportAction, ReportActions} from '@src/types/onyx';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -43,7 +47,7 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
 }));
 
 jest.mock('react-native-reanimated', () => ({
-    ...jest.requireActual('react-native-reanimated/mock'),
+    ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
     createAnimatedPropAdapter: jest.fn,
     useReducedMotion: jest.fn,
 }));
@@ -51,7 +55,12 @@ jest.mock('react-native-reanimated', () => ({
 /**
  * We need to keep track of the transitionEnd callback so we can trigger it in our tests
  */
-let transitionEndCB;
+let transitionEndCB: () => void;
+
+type ListenerMock = {
+    triggerTransitionEnd: () => void;
+    addListener: jest.Mock;
+};
 
 /**
  * This is a helper function to create a mock for the addListener function of the react-navigation library.
@@ -60,15 +69,15 @@ let transitionEndCB;
  *
  * P.S: This can't be moved to a utils file because Jest wants any external function to stay in the scope.
  *
- * @returns {Object} An object with two functions: triggerTransitionEnd and addListener
+ * @returns An object with two functions: triggerTransitionEnd and addListener
  */
-const createAddListenerMock = () => {
-    const transitionEndListeners = [];
+const createAddListenerMock = (): ListenerMock => {
+    const transitionEndListeners: Array<() => void> = [];
     const triggerTransitionEnd = () => {
         transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
     };
 
-    const addListener = jest.fn().mockImplementation((listener, callback) => {
+    const addListener: jest.Mock = jest.fn().mockImplementation((listener, callback) => {
         if (listener === 'transitionEnd') {
             transitionEndListeners.push(callback);
         }
@@ -85,14 +94,16 @@ jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual('@react-navigation/native');
     const {triggerTransitionEnd, addListener} = createAddListenerMock();
     transitionEndCB = triggerTransitionEnd;
-    const useNavigation = () => ({
-        navigate: jest.fn(),
-        ...actualNav.useNavigation,
-        getState: () => ({
-            routes: [],
-        }),
-        addListener,
-    });
+
+    const useNavigation = () =>
+        ({
+            navigate: jest.fn(),
+            ...actualNav.useNavigation,
+            getState: () => ({
+                routes: [],
+            }),
+            addListener,
+        } as typeof NativeNavigation.useNavigation);
 
     return {
         ...actualNav,
@@ -100,7 +111,7 @@ jest.mock('@react-navigation/native', () => {
         getState: () => ({
             routes: [],
         }),
-    };
+    } as typeof NativeNavigation;
 });
 
 beforeAll(() => {
@@ -109,6 +120,7 @@ beforeAll(() => {
     // fetch() never gets called so it does not need mocking) or we might have fetch throw an error to test error handling
     // behavior. But here we just want to treat all API requests as a generic "success" and in the cases where we need to
     // simulate data arriving we will just set it into Onyx directly with Onyx.merge() or Onyx.set() etc.
+    // @ts-expect-error -- TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated
     global.fetch = TestHelper.getGlobalFetchMock();
 
     Linking.setInitialURL('https://new.expensify.com/');
@@ -125,7 +137,7 @@ beforeAll(() => {
 
 function scrollUpToRevealNewMessagesBadge() {
     const hintText = Localize.translateLocal('sidebarScreen.listOfChatMessages');
-    fireEvent.scroll(screen.queryByLabelText(hintText), {
+    fireEvent.scroll(screen.getByLabelText(hintText), {
         nativeEvent: {
             contentOffset: {
                 y: 250,
@@ -144,43 +156,33 @@ function scrollUpToRevealNewMessagesBadge() {
     });
 }
 
-/**
- * @return {Boolean}
- */
-function isNewMessagesBadgeVisible() {
+function isNewMessagesBadgeVisible(): boolean {
     const hintText = Localize.translateLocal('accessibilityHints.scrollToNewestMessages');
     const badge = screen.queryByAccessibilityHint(hintText);
-    return Math.round(badge.props.style.transform[0].translateY) === -40;
+    return Math.round(badge?.props.style.transform[0].translateY) === -40;
 }
 
-/**
- * @return {Promise}
- */
-function navigateToSidebar() {
+function navigateToSidebar(): Promise<void> {
     const hintText = Localize.translateLocal('accessibilityHints.navigateToChatsList');
     const reportHeaderBackButton = screen.queryByAccessibilityHint(hintText);
-    fireEvent(reportHeaderBackButton, 'press');
+    if (reportHeaderBackButton) {
+        fireEvent(reportHeaderBackButton, 'press');
+    }
     return waitForBatchedUpdates();
 }
 
-/**
- * @param {Number} index
- * @return {Promise}
- */
-async function navigateToSidebarOption(index) {
+async function navigateToSidebarOption(index: number): Promise<void> {
     const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
     const optionRows = screen.queryAllByAccessibilityHint(hintText);
     fireEvent(optionRows[index], 'press');
     await waitForBatchedUpdatesWithAct();
 }
 
-/**
- * @return {Boolean}
- */
-function areYouOnChatListScreen() {
+function areYouOnChatListScreen(): boolean {
     const hintText = Localize.translateLocal('sidebarScreen.listOfChats');
     const sidebarLinks = screen.queryAllByLabelText(hintText);
-    return !lodashGet(sidebarLinks, [0, 'props', 'accessibilityElementsHidden']);
+
+    return !sidebarLinks?.[0]?.props?.accessibilityElementsHidden;
 }
 
 const REPORT_ID = '1';
@@ -190,15 +192,13 @@ const USER_B_ACCOUNT_ID = 2;
 const USER_B_EMAIL = 'user_b@test.com';
 const USER_C_ACCOUNT_ID = 3;
 const USER_C_EMAIL = 'user_c@test.com';
-let reportAction3CreatedDate;
-let reportAction9CreatedDate;
+let reportAction3CreatedDate: string;
+let reportAction9CreatedDate: string;
 
 /**
  * Sets up a test with a logged in user that has one unread chat from another user. Returns the <App/> test instance.
- *
- * @returns {Promise}
  */
-function signInAndGetAppWithUnreadChat() {
+function signInAndGetAppWithUnreadChat(): Promise<void> {
     // Render the App and sign in as a test user.
     render(<App />);
     return waitForBatchedUpdatesWithAct()
@@ -268,7 +268,7 @@ function signInAndGetAppWithUnreadChat() {
             });
 
             // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
-            AppActions.setSidebarLoaded(true);
+            AppActions.setSidebarLoaded();
             return waitForBatchedUpdatesWithAct();
         });
 }
@@ -286,7 +286,7 @@ describe('Unread Indicators', () => {
         signInAndGetAppWithUnreadChat()
             .then(() => {
                 // Verify no notifications are created for these older messages
-                expect(LocalNotification.showCommentNotification.mock.calls).toHaveLength(0);
+                expect((LocalNotification.showCommentNotification as jest.Mock).mock.calls).toHaveLength(0);
 
                 // Verify the sidebar links are rendered
                 const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
@@ -301,12 +301,12 @@ describe('Unread Indicators', () => {
                 // And that the text is bold
                 const displayNameHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameText = screen.queryByLabelText(displayNameHintText);
-                expect(lodashGet(displayNameText, ['props', 'style', 'fontWeight'])).toBe(FontUtils.fontWeight.bold);
+                expect(displayNameText?.props?.style?.fontWeight).toBe(FontUtils.fontWeight.bold);
 
                 return navigateToSidebarOption(0);
             })
             .then(async () => {
-                await act(() => transitionEndCB && transitionEndCB());
+                await act(() => transitionEndCB?.());
 
                 // That the report actions are visible along with the created action
                 const welcomeMessageHintText = Localize.translateLocal('accessibilityHints.chatWelcomeMessage');
@@ -320,7 +320,7 @@ describe('Unread Indicators', () => {
                 const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
-                const reportActionID = lodashGet(unreadIndicator, [0, 'props', 'data-action-id']);
+                const reportActionID = unreadIndicator[0]?.props?.['data-action-id'];
                 expect(reportActionID).toBe('4');
                 // Scroll up and verify that the "New messages" badge appears
                 scrollUpToRevealNewMessagesBadge();
@@ -331,7 +331,7 @@ describe('Unread Indicators', () => {
             // Navigate to the unread chat from the sidebar
             .then(() => navigateToSidebarOption(0))
             .then(async () => {
-                await act(() => transitionEndCB && transitionEndCB());
+                await act(() => transitionEndCB?.());
                 // Verify the unread indicator is present
                 const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
@@ -413,6 +413,7 @@ describe('Unread Indicators', () => {
                                 reportActionID: commentReportActionID,
                             },
                         },
+                        // @ts-expect-error -- it's necessary for the test
                         shouldNotify: true,
                     },
                     {
@@ -439,27 +440,27 @@ describe('Unread Indicators', () => {
                 const displayNameTexts = screen.queryAllByLabelText(displayNameHintTexts);
                 expect(displayNameTexts).toHaveLength(2);
                 const firstReportOption = displayNameTexts[0];
-                expect(lodashGet(firstReportOption, ['props', 'style', 'fontWeight'])).toBe(FontUtils.fontWeight.bold);
-                expect(lodashGet(firstReportOption, ['props', 'children', 0])).toBe('C User');
+                expect(firstReportOption?.props?.style?.fontWeight).toBe(FontUtils.fontWeight.bold);
+                expect(firstReportOption?.props?.children?.[0]).toBe('C User');
 
                 const secondReportOption = displayNameTexts[1];
-                expect(lodashGet(secondReportOption, ['props', 'style', 'fontWeight'])).toBe(FontUtils.fontWeight.bold);
-                expect(lodashGet(secondReportOption, ['props', 'children', 0])).toBe('B User');
+                expect(secondReportOption?.props?.style?.fontWeight).toBe(FontUtils.fontWeight.bold);
+                expect(secondReportOption?.props?.children?.[0]).toBe('B User');
 
                 // Tap the new report option and navigate back to the sidebar again via the back button
                 return navigateToSidebarOption(0);
             })
             .then(waitForBatchedUpdates)
             .then(async () => {
-                await act(() => transitionEndCB && transitionEndCB());
+                await act(() => transitionEndCB?.());
                 // Verify that report we navigated to appears in a "read" state while the original unread report still shows as unread
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(2);
-                expect(lodashGet(displayNameTexts[0], ['props', 'style', 'fontWeight'])).toBe(undefined);
-                expect(lodashGet(displayNameTexts[0], ['props', 'children', 0])).toBe('C User');
-                expect(lodashGet(displayNameTexts[1], ['props', 'style', 'fontWeight'])).toBe(FontUtils.fontWeight.bold);
-                expect(lodashGet(displayNameTexts[1], ['props', 'children', 0])).toBe('B User');
+                expect(displayNameTexts[0]?.props?.style?.fontWeight).toBe(undefined);
+                expect(displayNameTexts[0]?.props?.children?.[0]).toBe('C User');
+                expect(displayNameTexts[1]?.props?.style?.fontWeight).toBe(FontUtils.fontWeight.bold);
+                expect(displayNameTexts[1]?.props?.children?.[0]).toBe('B User');
             }));
 
     xit('Manually marking a chat message as unread shows the new line indicator and updates the LHN', () =>
@@ -477,7 +478,7 @@ describe('Unread Indicators', () => {
                 const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
-                const reportActionID = lodashGet(unreadIndicator, [0, 'props', 'data-action-id']);
+                const reportActionID = unreadIndicator[0]?.props?.['data-action-id'];
                 expect(reportActionID).toBe('3');
                 // Scroll up and verify the new messages badge appears
                 scrollUpToRevealNewMessagesBadge();
@@ -490,8 +491,8 @@ describe('Unread Indicators', () => {
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
-                expect(lodashGet(displayNameTexts[0], ['props', 'style', 'fontWeight'])).toBe(FontUtils.fontWeight.bold);
-                expect(lodashGet(displayNameTexts[0], ['props', 'children', 0])).toBe('B User');
+                expect(displayNameTexts[0]?.props?.style?.fontWeight).toBe(FontUtils.fontWeight.bold);
+                expect(displayNameTexts[0]?.props?.children?.[0]).toBe('B User');
 
                 // Navigate to the report again and back to the sidebar
                 return navigateToSidebarOption(0);
@@ -502,8 +503,8 @@ describe('Unread Indicators', () => {
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
-                expect(lodashGet(displayNameTexts[0], ['props', 'style', 'fontWeight'])).toBe(undefined);
-                expect(lodashGet(displayNameTexts[0], ['props', 'children', 0])).toBe('B User');
+                expect(displayNameTexts[0]?.props?.style?.fontWeight).toBe(undefined);
+                expect(displayNameTexts[0]?.props?.children?.[0]).toBe('B User');
 
                 // Navigate to the report again and verify the new line indicator is missing
                 return navigateToSidebarOption(0);
@@ -528,7 +529,7 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(async () => {
-                await act(() => transitionEndCB && transitionEndCB());
+                await act(() => transitionEndCB?.());
                 const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
@@ -585,8 +586,8 @@ describe('Unread Indicators', () => {
             }));
 
     it('Displays the correct chat message preview in the LHN when a comment is added then deleted', () => {
-        let reportActions;
-        let lastReportAction;
+        let reportActions: OnyxEntry<ReportActions>;
+        let lastReportAction: ReportAction | undefined;
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
             callback: (val) => (reportActions = val),
@@ -602,11 +603,11 @@ describe('Unread Indicators', () => {
                 })
                 .then(() => {
                     // Simulate the response from the server so that the comment can be deleted in this test
-                    lastReportAction = {...CollectionUtils.lastItem(reportActions)};
+                    lastReportAction = reportActions ? CollectionUtils.lastItem(reportActions) : undefined;
                     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
-                        lastMessageText: lastReportAction.message[0].text,
-                        lastVisibleActionCreated: DateUtils.getDBTime(lastReportAction.timestamp),
-                        lastActorAccountID: lastReportAction.actorAccountID,
+                        lastMessageText: lastReportAction?.message?.[0].text,
+                        lastVisibleActionCreated: DateUtils.getDBTime(lastReportAction?.timestamp),
+                        lastActorAccountID: lastReportAction?.actorAccountID,
                         reportID: REPORT_ID,
                     });
                     return waitForBatchedUpdates();
@@ -618,7 +619,9 @@ describe('Unread Indicators', () => {
                     expect(alternateText).toHaveLength(1);
                     expect(alternateText[0].props.children).toBe('Current User Comment 1');
 
-                    Report.deleteReportComment(REPORT_ID, lastReportAction);
+                    if (lastReportAction) {
+                        Report.deleteReportComment(REPORT_ID, lastReportAction);
+                    }
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
