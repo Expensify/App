@@ -18,7 +18,7 @@ const propTypes = {
     /** The tag list name to which the default tag belongs to */
     tagListName: PropTypes.string,
 
-    /** The index of a tag list */
+    /** Indicates which tag list index was selected */
     tagIndex: PropTypes.number.isRequired,
 
     /** Callback to fire when the Save button is pressed  */

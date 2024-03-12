@@ -38,7 +38,7 @@ const propTypes = {
             /** reportID for the "transaction thread" */
             threadReportID: PropTypes.string,
 
-            /** The index of a tag list */
+            /** Indicates which tag list index was selected */
             tagIndex: PropTypes.string,
         }),
     }).isRequired,

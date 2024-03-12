@@ -50,7 +50,7 @@ type TagPickerProps = TagPickerOnyxProps & {
     /** Should show the selected option that is disabled? */
     shouldShowDisabledAndSelectedOption?: boolean;
 
-    /** The index of a tag list */
+    /** Indicates which tag list index was selected */
     tagIndex: number;
 };
 
