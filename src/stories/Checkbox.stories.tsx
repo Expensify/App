@@ -1,28 +1,33 @@
+import type {ComponentMeta, ComponentStory} from '@storybook/react';
 import React from 'react';
 import Checkbox from '@components/Checkbox';
+import type {CheckboxProps} from '@components/Checkbox';
+
+type CheckboxStory = ComponentStory<typeof Checkbox>;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-export default {
+const story: ComponentMeta<typeof Checkbox> = {
     title: 'Components/Checkbox',
     component: Checkbox,
 };
 
-function Template(args) {
+function Template(props: CheckboxProps) {
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <Checkbox {...args} />;
+    return <Checkbox {...props} />;
 }
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
-const Default = Template.bind({});
+const Default: CheckboxStory = Template.bind({});
 Default.args = {
     onPress: () => {},
     isChecked: true,
     accessibilityLabel: '',
 };
 
+export default story;
 export {Default};

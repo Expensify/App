@@ -407,6 +407,8 @@ const ONYXKEYS = {
         EXIT_SURVEY_RESPONSE_FORM_DRAFT: 'exitSurveyResponseFormDraft',
         WALLET_ADDITIONAL_DETAILS: 'walletAdditionalDetails',
         WALLET_ADDITIONAL_DETAILS_DRAFT: 'walletAdditionalDetailsDraft',
+        POLICY_TAG_NAME_FORM: 'policyTagNameForm',
+        POLICY_TAG_NAME_FORM_DRAFT: 'policyTagNameFormDraft',
     },
 } as const;
 
@@ -453,6 +455,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT]: FormTypes.PersonalBankAccountForm;
     [ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM]: FormTypes.WorkspaceDescriptionForm;
     [ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS]: FormTypes.AdditionalDetailStepForm;
+    [ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM]: FormTypes.PolicyTagNameForm;
 };
 
 type OnyxFormDraftValuesMapping = {
