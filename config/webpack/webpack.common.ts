@@ -1,16 +1,15 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import PreloadWebpackPlugin from '@vue/preload-webpack-plugin';
+import {CleanWebpackPlugin} from 'clean-webpack-plugin';
+import CopyPlugin from 'copy-webpack-plugin';
+import dotenv from 'dotenv';
+import fs from 'fs';
+import HtmlWebpackPlugin from 'html-webpack-plugin';
+import path from 'path';
 import type {Configuration} from 'webpack';
+import {DefinePlugin, EnvironmentPlugin, IgnorePlugin, ProvidePlugin} from 'webpack';
+import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
 import CustomVersionFilePlugin from './CustomVersionFilePlugin';
-
-const {CleanWebpackPlugin} = require('clean-webpack-plugin');
-const CopyPlugin = require('copy-webpack-plugin');
-const dotenv = require('dotenv');
-const fs = require('fs');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const path = require('path');
-const {DefinePlugin, EnvironmentPlugin, IgnorePlugin, ProvidePlugin} = require('webpack');
-const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
-const PreloadWebpackPlugin = require('@vue/preload-webpack-plugin');
 
 const includeModules = [
     'react-native-animatable',
