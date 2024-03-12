@@ -46,6 +46,7 @@ function TextSelectorModal({value, description = '', onValueSelected, isVisible,
                     </View>
                     <Button
                         success
+                        pressOnEnter
                         text={translate('common.save')}
                         onPress={() => onValueSelected?.(currentValue ?? '')}
                     />

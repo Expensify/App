@@ -40,12 +40,14 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
                         <AmountForm
                             // eslint-disable-next-line react/jsx-props-no-spreading
                             {...rest}
+                            autoFocus
                             value={currentValue}
                             onInputChange={setValue}
                         />
                     </View>
                     <Button
                         success
+                        pressOnEnter
                         text={translate('common.save')}
                         onPress={() => onValueSelected?.(currentValue ?? '')}
                     />

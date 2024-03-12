@@ -22,6 +22,7 @@ function BaseTextInputWithCurrencySymbol(
         isCurrencyPressable = true,
         hideCurrencySymbol = false,
         extraSymbol,
+        ...rest
     }: TextInputWithCurrencySymbolProps,
     ref: React.ForwardedRef<BaseTextInputRef>,
 ) {
@@ -60,6 +61,8 @@ function BaseTextInputWithCurrencySymbol(
             }}
             onKeyPress={onKeyPress}
             style={styles.pr1}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...rest}
         />
     );
 
