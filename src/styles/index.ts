@@ -1442,7 +1442,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarAvatar: {
-            borderRadius: 20,
+            borderRadius: 28,
             height: variables.componentSizeSmall,
             width: variables.componentSizeSmall,
         },
