@@ -15,7 +15,7 @@ const propTypes = {
     /** The policyID we are getting tags for */
     policyID: PropTypes.string.isRequired,
 
-    /** The tag name to which the default tag belongs to */
+    /** The tag list name to which the default tag belongs to */
     tagListName: PropTypes.string,
 
     /** The index of a tag list */

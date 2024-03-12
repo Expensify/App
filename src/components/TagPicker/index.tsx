@@ -19,7 +19,7 @@ type SelectedTagOption = {
 };
 
 type TagPickerOnyxProps = {
-    /** Collection of tags attached to a policy */
+    /** Collection of tag list on a policy */
     policyTags: OnyxEntry<PolicyTagList>;
 
     /** List of recently used tags */
