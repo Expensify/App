@@ -1069,6 +1069,11 @@ export default {
             },
         },
     },
+    workflowsPayerPage: {
+        title: 'Pagador autorizado',
+        genericErrorMessage: 'El pagador autorizado no se pudo cambiar. Por favor, inténtalo mas tarde.',
+        admins: 'Administradores',
+    },
     reportFraudPage: {
         title: 'Reportar fraude con la tarjeta virtual',
         description:

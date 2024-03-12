@@ -1073,6 +1073,11 @@ export default {
             },
         },
     },
+    workflowsPayerPage: {
+        title: 'Authorized payer',
+        genericErrorMessage: 'The authorized payer could not be changed. Please try again.',
+        admins: 'Admins',
+    },
     reportFraudPage: {
         title: 'Report virtual card fraud',
         description: 'If your virtual card details have been stolen or compromised, we’ll permanently deactivate your existing card and provide you with a new virtual card and number.',
