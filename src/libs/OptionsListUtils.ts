@@ -31,6 +31,7 @@ import type {
 import type {Participant} from '@src/types/onyx/IOU';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
 import Timing from './actions/Timing';
@@ -1764,7 +1765,7 @@ function getShareLogOptions(reports: OnyxCollection<Report>, personalDetails: On
 /**
  * Build the IOUConfirmation options for showing the payee personalDetail
  */
-function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: PersonalDetails, amountText: string): PayeePersonalDetails {
+function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: PersonalDetails | EmptyObject, amountText?: string): PayeePersonalDetails {
     const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail.login ?? '');
     return {
         text: PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, formattedLogin),
@@ -1777,7 +1778,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: Person
                 id: personalDetail.accountID,
             },
         ],
-        descriptiveText: amountText,
+        descriptiveText: amountText ?? '',
         login: personalDetail.login ?? '',
         accountID: personalDetail.accountID,
         keyForList: String(personalDetail.accountID),
@@ -2065,4 +2066,4 @@ export {
     getShareLogOptions,
 };
 
-export type {MemberForList, CategorySection, GetOptions};
+export type {MemberForList, CategorySection, GetOptions, PayeePersonalDetails};
