@@ -34,7 +34,7 @@ function BaseListItem<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const {hovered, bind} = useHover();
 
-    const isSelectable = item.isSelectable === undefined || item.isSelectable;
+    const isDisabledCheckbox = item.isDisabledCheckbox === undefined || item.isDisabledCheckbox;
 
     const rightHandSideComponentRender = () => {
         if (canSelectMultiple || !rightHandSideComponent) {
@@ -83,9 +83,9 @@ function BaseListItem<TItem extends ListItem>({
                             accessibilityLabel={item.text ?? ''}
                             role={CONST.ROLE.BUTTON}
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                            disabled={isDisabled || !isSelectable}
+                            disabled={isDisabled || !isDisabledCheckbox}
                             onPress={handleCheckboxPress}
-                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), !isSelectable && styles.cursorDisabled]}
+                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), !isDisabledCheckbox && styles.cursorDisabled]}
                         >
                             <View style={selectMultipleStyle}>
                                 {item.isSelected && (
