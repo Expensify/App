@@ -6,6 +6,11 @@ import {paginateRest} from '@octokit/plugin-paginate-rest';
 import {throttling} from '@octokit/plugin-throttling';
 import _ from 'underscore';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {Constructor} from '@octokit/core/dist-types/types'
+import type {Api} from '@octokit/plugin-rest-endpoint-methods/dist-types/types'
+import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types'
+import type {graphql} from '@octokit/graphql/dist-types/types'
+import type {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/parameters-and-response-types'
 import CONST from './CONST';
 
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
@@ -21,8 +26,18 @@ const POLL_RATE = 10000;
 
 type OctokitOptions = {method: string; url: string; request: {retryCount: number}};
 
+// (params?: RestEndpointMethodTypes["issues"]["listForRepo"]["parameters"]): Promise<RestEndpointMethodTypes["issues"]["listForRepo"]["response"]>;
+type ListForRepoResult = RestEndpointMethodTypes["issues"]["listForRepo"]["response"]
+type Unpacked<T> = T extends Array<infer U> ? U : T;
+type ListForRepoDataItem = Unpacked<Pick<ListForRepoResult, 'data'>>
+
 class GithubUtils {
-    static internalOctokit: OctokitCore & {paginate: PaginateInterface};
+    // static internalOctokit: OctokitCore & {paginate: PaginateInterface};
+    // static internalOctokit: OctokitCore & {paginate: PaginateInterface} & import("@octokit/core/dist-types/types").Constructor<import("@octokit/plugin-rest-endpoint-methods/dist-types/types").Api & {
+    //     paginate: import("@octokit/plugin-paginate-rest").PaginateInterface;
+    // }>;
+    // static internalOctokit: OctokitCore & Constructor<Api & {paginate: PaginateInterface}>
+    static internalOctokit: OctokitCore & Api & {paginate: PaginateInterface}
 
     /**
      * Initialize internal octokit
@@ -63,12 +78,13 @@ class GithubUtils {
      * @static
      * @memberof GithubUtils
      */
-    static get octokit() {
+    static get octokit(): RestEndpointMethods {
         if (this.internalOctokit) {
             return this.internalOctokit.rest;
         }
         this.initOctokit();
-        return this.internalOctokit.rest;
+        // @ts-expect-error -- TODO: Fix this
+        return this.internalOctokit.rest as RestEndpointMethods;
     }
 
     /**
@@ -82,7 +98,8 @@ class GithubUtils {
             return this.internalOctokit.graphql;
         }
         this.initOctokit();
-        return this.internalOctokit.graphql;
+        // @ts-expect-error -- TODO: Fix this
+        return this.internalOctokit.graphql as graphql;
     }
 
     /**
@@ -97,7 +114,8 @@ class GithubUtils {
             return this.internalOctokit.paginate;
         }
         this.initOctokit();
-        return this.internalOctokit.paginate;
+        // @ts-expect-error -- TODO: Fix this
+        return this.internalOctokit.paginate as PaginateInterface;
     }
 
     /**
@@ -113,7 +131,7 @@ class GithubUtils {
                 labels: CONST.LABELS.STAGING_DEPLOY,
                 state: 'open',
             })
-            .then(({data}) => {
+            .then(({data}: ListForRepoResult) => {
                 if (!data.length) {
                     const error = new Error(`Unable to find ${CONST.LABELS.STAGING_DEPLOY} issue.`);
                     error.code = 404;
@@ -179,7 +197,8 @@ class GithubUtils {
             number: Number.parseInt(match[3], 10),
             isVerified: match[1] === 'x',
         }));
-        return _.sortBy(PRList, 'number');
+        // eslint-disable-next-line no-nested-ternary
+        return PRList.sort((a, b) => (a.number > b.number) ? 1 : ((b.number > a.number) ? -1 : 0))
     }
 
     /**
@@ -201,7 +220,8 @@ class GithubUtils {
             number: Number.parseInt(match[3], 10),
             isResolved: match[1] === 'x',
         }));
-        return _.sortBy(deployBlockers, 'number');
+        // eslint-disable-next-line no-nested-ternary
+        return deployBlockers.sort((a, b) => (a.number > b.number) ? 1 : ((b.number > a.number) ? -1 : 0));
     }
 
     /**
@@ -223,7 +243,8 @@ class GithubUtils {
             number: Number.parseInt(match[3], 10),
             isResolved: match[1] === 'x',
         }));
-        return _.sortBy(internalQAPRs, 'number');
+        // eslint-disable-next-line no-nested-ternary
+        return internalQAPRs.sort((a, b) => (a.number > b.number) ? 1 : ((b.number > a.number) ? -1 : 0));
     }
 
     /**
@@ -275,7 +296,7 @@ class GithubUtils {
                 const verifiedOrNoQAPRs = _.union(verifiedPRList, noQAPRs);
 
                 const sortedPRList = _.chain(PRList).difference(Object.keys(internalQAPRMap)).unique().sortBy(GithubUtils.getPullRequestNumberFromURL).value();
-                const sortedDeployBlockers = _.sortBy(_.unique(deployBlockers), GithubUtils.getIssueOrPullRequestNumberFromURL);
+                const sortedDeployBlockers = [...new Set(deployBlockers)].sort(GithubUtils.getIssueOrPullRequestNumberFromURL);
 
                 // Tag version and comparison URL
                 // eslint-disable-next-line max-len
@@ -340,7 +361,7 @@ class GithubUtils {
      * Fetch all pull requests given a list of PR numbers.
      */
     static fetchAllPullRequests(pullRequestNumbers: number[]) {
-        const oldestPR = _.sortBy(pullRequestNumbers)[0];
+        const oldestPR = pullRequestNumbers.sort()[0];
         return this.paginate(
             this.octokit.pulls.list,
             {
