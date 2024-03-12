@@ -147,33 +147,51 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         },
     ];
 
-    const protectedCollectPolicyMenuItems: WorkspaceMenuItem[] = [
-        {
+    const protectedCollectPolicyMenuItems: WorkspaceMenuItem[] = [];
+
+    if (policy?.areDistanceRatesEnabled) {
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.distanceRates',
+            icon: Expensicons.Car,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.DISTANCE_RATES,
+        });
+    }
+
+    if (policy?.areWorkflowsEnabled) {
+        protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.workflows',
             icon: Expensicons.Workflows,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.WORKFLOWS,
-        },
-        {
+        });
+    }
+
+    if (policy?.areCategoriesEnabled) {
+        protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.categories',
             icon: Expensicons.Folder,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID)))),
             brickRoadIndicator: hasPolicyCategoryError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             routeName: SCREENS.WORKSPACE.CATEGORIES,
-        },
-        {
+        });
+    }
+
+    if (policy?.areTagsEnabled) {
+        protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.tags',
             icon: Expensicons.Tag,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.TAGS,
-        },
-        {
-            translationKey: 'workspace.common.distanceRates',
-            icon: Expensicons.Car,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.DISTANCE_RATES,
-        },
-    ];
+        });
+    }
+
+    protectedCollectPolicyMenuItems.push({
+        translationKey: 'workspace.common.moreFeatures',
+        icon: Expensicons.Gear,
+        action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)))),
+        routeName: SCREENS.WORKSPACE.MORE_FEATURES,
+    });
 
     const menuItems: WorkspaceMenuItem[] = [
         {

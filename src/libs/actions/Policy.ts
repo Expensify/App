@@ -15,9 +15,17 @@ import type {
     DeleteMembersFromWorkspaceParams,
     DeleteWorkspaceAvatarParams,
     DeleteWorkspaceParams,
+    EnablePolicyCategoriesParams,
+    EnablePolicyConnectionsParams,
+    EnablePolicyDistanceRatesParams,
+    EnablePolicyReportFieldsParams,
+    EnablePolicyTagsParams,
+    EnablePolicyTaxesParams,
+    EnablePolicyWorkflowsParams,
     OpenDraftWorkspaceRequestParams,
     OpenPolicyCategoriesPageParams,
     OpenPolicyDistanceRatesPageParams,
+    OpenPolicyTagsPageParams,
     OpenWorkspaceInvitePageParams,
     OpenWorkspaceMembersPageParams,
     OpenWorkspaceParams,
@@ -35,7 +43,9 @@ import type {
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
@@ -44,6 +54,8 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type {
     InvitedEmailsToAccountIDs,
     PersonalDetailsList,
@@ -1936,6 +1948,19 @@ function openPolicyCategoriesPage(policyID: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_CATEGORIES_PAGE, params);
 }
 
+function openPolicyTagsPage(policyID: string) {
+    if (!policyID) {
+        Log.warn('openPolicyTasgPage invalid params', {policyID});
+        return;
+    }
+
+    const params: OpenPolicyTagsPageParams = {
+        policyID,
+    };
+
+    API.read(READ_COMMANDS.OPEN_POLICY_TAGS_PAGE, params);
+}
+
 function openWorkspaceInvitePage(policyID: string, clientMemberEmails: string[]) {
     if (!policyID || !clientMemberEmails) {
         Log.warn('openWorkspaceInvitePage invalid params', {policyID, clientMemberEmails});
@@ -2815,6 +2840,346 @@ function openPolicyDistanceRatesPage(policyID?: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE, params);
 }
 
+function navigateWhenEnableFeature(policyID: string, featureRoute: Route) {
+    const isNarrowLayout = getIsNarrowLayout();
+
+    if (isNarrowLayout) {
+        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID), CONST.NAVIGATION.TYPE.FORCED_UP);
+
+        return;
+    }
+
+    Navigation.navigate(featureRoute);
+}
+
+function enablePolicyCategories(policyID: string, enabled: boolean) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areCategoriesEnabled: enabled,
+                    pendingFields: {
+                        areCategoriesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        areCategoriesEnabled: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areCategoriesEnabled: !enabled,
+                    pendingFields: {
+                        areCategoriesEnabled: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: EnablePolicyCategoriesParams = {policyID, enabled};
+
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES, parameters, onyxData);
+
+    if (enabled) {
+        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+    }
+}
+
+function enablePolicyConnections(policyID: string, enabled: boolean) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areConnectionsEnabled: enabled,
+                    pendingFields: {
+                        areConnectionsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        areConnectionsEnabled: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areConnectionsEnabled: !enabled,
+                    pendingFields: {
+                        areConnectionsEnabled: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: EnablePolicyConnectionsParams = {policyID, enabled};
+
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS, parameters, onyxData);
+}
+
+function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areDistanceRatesEnabled: enabled,
+                    pendingFields: {
+                        areDistanceRatesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        areDistanceRatesEnabled: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areDistanceRatesEnabled: !enabled,
+                    pendingFields: {
+                        areDistanceRatesEnabled: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: EnablePolicyDistanceRatesParams = {policyID, enabled};
+
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, onyxData);
+
+    if (enabled) {
+        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID));
+    }
+}
+
+function enablePolicyReportFields(policyID: string, enabled: boolean) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areReportFieldsEnabled: enabled,
+                    pendingFields: {
+                        areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        areReportFieldsEnabled: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areReportFieldsEnabled: !enabled,
+                    pendingFields: {
+                        areReportFieldsEnabled: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: EnablePolicyReportFieldsParams = {policyID, enabled};
+
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS, parameters, onyxData);
+}
+
+function enablePolicyTags(policyID: string, enabled: boolean) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areTagsEnabled: enabled,
+                    pendingFields: {
+                        areTagsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        areTagsEnabled: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areTagsEnabled: !enabled,
+                    pendingFields: {
+                        areTagsEnabled: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: EnablePolicyTagsParams = {policyID, enabled};
+
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData);
+
+    if (enabled) {
+        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_TAGS.getRoute(policyID));
+    }
+}
+
+function enablePolicyTaxes(policyID: string, enabled: boolean) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    tax: {
+                        trackingEnabled: enabled,
+                    },
+                    pendingFields: {
+                        tax: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        tax: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    tax: {
+                        trackingEnabled: !enabled,
+                    },
+                    pendingFields: {
+                        tax: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: EnablePolicyTaxesParams = {policyID, enabled};
+
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_TAXES, parameters, onyxData);
+}
+
+function enablePolicyWorkflows(policyID: string, enabled: boolean) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areWorkflowsEnabled: enabled,
+                    pendingFields: {
+                        areWorkflowsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        areWorkflowsEnabled: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areWorkflowsEnabled: !enabled,
+                    pendingFields: {
+                        areWorkflowsEnabled: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: EnablePolicyWorkflowsParams = {policyID, enabled};
+
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS, parameters, onyxData);
+
+    if (enabled) {
+        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID));
+    }
+}
+
 export {
     removeMembers,
     updateWorkspaceMembersRole,
@@ -2845,6 +3210,7 @@ export {
     createWorkspace,
     openWorkspaceMembersPage,
     openPolicyCategoriesPage,
+    openPolicyTagsPage,
     openWorkspaceInvitePage,
     openWorkspace,
     removeWorkspace,
@@ -2870,5 +3236,12 @@ export {
     createPolicyCategory,
     clearCategoryErrors,
     deleteWorkspaceCategories,
+    enablePolicyCategories,
+    enablePolicyConnections,
+    enablePolicyDistanceRates,
+    enablePolicyReportFields,
+    enablePolicyTags,
+    enablePolicyTaxes,
+    enablePolicyWorkflows,
     openPolicyDistanceRatesPage,
 };

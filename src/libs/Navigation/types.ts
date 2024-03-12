@@ -91,6 +91,9 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.CATEGORIES]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.MORE_FEATURES]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.TAGS]: {
         policyID: string;
         categoryName: string;
@@ -210,6 +213,13 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
         policyID: string;
+    };
+    [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.TAGS_EDIT]: {
+        policyID: string;
+        tagName: string;
     };
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
         policyID: string;
@@ -604,7 +614,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     };
 };
 
-type RootStackParamList = PublicScreensParamList & AuthScreensParamList;
+type RootStackParamList = PublicScreensParamList & AuthScreensParamList & SearchNavigatorParamList;
 
 type BottomTabName = keyof BottomTabNavigatorParamList;
 

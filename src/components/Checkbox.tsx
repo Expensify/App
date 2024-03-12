@@ -127,3 +127,5 @@ function Checkbox(
 Checkbox.displayName = 'Checkbox';
 
 export default forwardRef(Checkbox);
+
+export type {CheckboxProps};
