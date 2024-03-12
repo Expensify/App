@@ -1829,11 +1829,15 @@ export default {
             requiresTag: 'Members must tag all spend',
             customTagName: 'Custom tag name',
             enableTag: 'Enable tag',
+            addTag: 'Add tag',
             subtitle: 'Tags add more detailed ways to classify costs.',
             emptyTags: {
                 title: "You haven't created any tags",
                 subtitle: 'Add a tag to track projects, locations, departments, and more.',
             },
+            tagRequiredError: 'Tag name is required.',
+            existingTagError: 'A tag with this name already exists.',
+            invalidTagName: 'Invalid tag name.',
             genericFailureMessage: 'An error occurred while updating the tag, please try again.',
         },
         emptyWorkspace: {

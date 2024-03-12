@@ -1853,11 +1853,15 @@ export default {
             requiresTag: 'Los miembros deben etiquetar todos los gastos',
             customTagName: 'Nombre de etiqueta personalizada',
             enableTag: 'Habilitar etiqueta',
+            addTag: 'Añadir etiqueta',
             subtitle: 'Las etiquetas añaden formas más detalladas de clasificar los costos.',
             emptyTags: {
                 title: 'No has creado ninguna etiqueta',
                 subtitle: 'Añade una etiqueta para realizar el seguimiento de proyectos, ubicaciones, departamentos y otros.',
             },
+            tagRequiredError: 'Tag name is required.',
+            existingTagError: 'A tag with this name already exists.',
+            invalidTagName: 'Invalid tag name.',
             genericFailureMessage: 'Se produjo un error al actualizar la etiqueta, inténtelo nuevamente.',
         },
         emptyWorkspace: {

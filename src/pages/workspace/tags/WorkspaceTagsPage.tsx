@@ -115,18 +115,32 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
         Navigation.navigate(ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route.params.policyID));
     };
 
+    const navigateToCreateTagPage = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_TAG_CREATE.getRoute(route.params.policyID));
+    };
+
     const isLoading = !isOffline && policyTags === undefined;
 
-    const settingsButton = (
+    const headerButtons = (
         <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
             <Button
                 medium
-                onPress={navigateToTagsSettings}
-                icon={Expensicons.Gear}
-                iconStyles={[styles.mr2]}
-                text={translate('common.settings')}
-                style={[isSmallScreenWidth && styles.w50]}
+                success
+                onPress={navigateToCreateTagPage}
+                icon={Expensicons.Plus}
+                text={translate('workspace.tags.addTag')}
+                style={[styles.pr2, isSmallScreenWidth && styles.w50]}
             />
+            {policyTags && (
+                <Button
+                    medium
+                    onPress={navigateToTagsSettings}
+                    icon={Expensicons.Gear}
+                    iconStyles={[styles.mr2]}
+                    text={translate('common.settings')}
+                    style={[isSmallScreenWidth && styles.w50]}
+                />
+            )}
         </View>
     );
 
@@ -144,9 +158,9 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                         title={translate('workspace.common.tags')}
                         shouldShowBackButton={isSmallScreenWidth}
                     >
-                        {!isSmallScreenWidth && policyTags && settingsButton}
+                        {!isSmallScreenWidth && headerButtons}
                     </HeaderWithBackButton>
-                    {isSmallScreenWidth && policyTags && <View style={[styles.pl5, styles.pr5]}>{settingsButton}</View>}
+                    {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
                     </View>
