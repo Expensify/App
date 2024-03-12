@@ -1516,25 +1516,23 @@ const styles = (theme: ThemeColors) =>
         },
 
         breadcrumsContainer: {
-            height: 24,
+            minHeight: 24,
         },
 
         breadcrumb: {
             color: theme.textSupporting,
-            fontSize: variables.fontSizeh1,
-            lineHeight: variables.lineHeightSizeh1,
+            fontSize: variables.breadcrumbsFontSize,
             ...headlineFont,
         },
 
         breadcrumbStrong: {
             color: theme.text,
-            fontSize: variables.fontSizeXLarge,
+            fontSize: variables.breadcrumbsFontSize,
         },
 
         breadcrumbSeparator: {
             color: theme.icon,
-            fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightSizeh1,
+            fontSize: variables.breadcrumbsFontSize,
             ...headlineFont,
         },
 
