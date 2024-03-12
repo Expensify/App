@@ -85,10 +85,9 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchP
             };
         }
         const options = OptionsListUtils.getSearchOptions(reports, personalDetails, '', betas ?? []);
-        const header = OptionsListUtils.getHeaderMessage(options.recentReports.length + options.personalDetails.length !== 0, Boolean(options.userToInvite), debouncedSearchValue);
+        const header = OptionsListUtils.getHeaderMessage(options.recentReports.length + options.personalDetails.length !== 0, Boolean(options.userToInvite), '');
         return {...options, headerMessage: header};
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isScreenTransitionEnd]);
+    }, [betas, isScreenTransitionEnd, personalDetails, reports]);
 
     const filteredOptions = useMemo(() => {
         if (debouncedSearchValue.trim() === '') {
