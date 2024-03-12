@@ -57,7 +57,7 @@ function UserListItem({
             }
             keyForList={item.keyForList}
         >
-            {(hovered) => (
+            {(hovered?: boolean) => (
                 <>
                     {!!item.icons &&
                         (item.shouldShowSubscript ? (
@@ -81,7 +81,7 @@ function UserListItem({
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
-                            text={item.text}
+                            text={item.text ?? ''}
                             style={[
                                 styles.optionDisplayName,
                                 isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
