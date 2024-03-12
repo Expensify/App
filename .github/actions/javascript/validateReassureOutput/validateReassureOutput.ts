@@ -1,8 +1,9 @@
-const core = require('@actions/core');
-const fs = require('fs');
+import * as core from '@actions/core';
+import type {CompareResult, PerformanceEntry} from '@callstack/reassure-compare/src/types';
+import fs from 'fs';
 
 const run = () => {
-    const regressionOutput = JSON.parse(fs.readFileSync('.reassure/output.json', 'utf8'));
+    const regressionOutput: CompareResult = JSON.parse(fs.readFileSync('.reassure/output.json', 'utf8'));
     const countDeviation = core.getInput('COUNT_DEVIATION', {required: true});
     const durationDeviation = core.getInput('DURATION_DEVIATION_PERCENTAGE', {required: true});
 
@@ -15,13 +16,13 @@ const run = () => {
 
     for (let i = 0; i < regressionOutput.countChanged.length; i++) {
         const measurement = regressionOutput.countChanged[i];
-        const baseline = measurement.baseline;
-        const current = measurement.current;
+        const baseline: PerformanceEntry = measurement.baseline;
+        const current: PerformanceEntry = measurement.current;
 
         console.log(`Processing measurement ${i + 1}: ${measurement.name}`);
 
         const renderCountDiff = current.meanCount - baseline.meanCount;
-        if (renderCountDiff > countDeviation) {
+        if (renderCountDiff > Number(countDeviation)) {
             core.setFailed(`Render count difference exceeded the allowed deviation of ${countDeviation}. Current difference: ${renderCountDiff}`);
             break;
         } else {
@@ -29,7 +30,7 @@ const run = () => {
         }
 
         const increasePercentage = ((current.meanDuration - baseline.meanDuration) / baseline.meanDuration) * 100;
-        if (increasePercentage > durationDeviation) {
+        if (increasePercentage > Number(durationDeviation)) {
             core.setFailed(`Duration increase percentage exceeded the allowed deviation of ${durationDeviation}%. Current percentage: ${increasePercentage}%`);
             break;
         } else {
@@ -44,4 +45,4 @@ if (require.main === module) {
     run();
 }
 
-module.exports = run;
+export default run;
