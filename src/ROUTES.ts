@@ -557,6 +557,10 @@ const ROUTES = {
         route: 'workspace/:policyID/categories/settings',
         getRoute: (policyID: string) => `workspace/${policyID}/categories/settings` as const,
     },
+    WORKSPACE_MORE_FEATURES: {
+        route: 'workspace/:policyID/more-features',
+        getRoute: (policyID: string) => `workspace/${policyID}/more-features` as const,
+    },
     WORKSPACE_CATEGORY_CREATE: {
         route: 'workspace/:policyID/categories/new',
         getRoute: (policyID: string) => `workspace/${policyID}/categories/new` as const,
@@ -564,6 +568,14 @@ const ROUTES = {
     WORKSPACE_TAGS: {
         route: 'workspace/:policyID/tags',
         getRoute: (policyID: string) => `workspace/${policyID}/tags` as const,
+    },
+    WORKSPACE_TAGS_SETTINGS: {
+        route: 'workspace/:policyID/tags/settings',
+        getRoute: (policyID: string) => `workspace/${policyID}/tags/settings` as const,
+    },
+    WORKSPACE_EDIT_TAGS: {
+        route: 'workspace/:policyID/tags/edit',
+        getRoute: (policyID: string) => `workspace/${policyID}/tags/edit` as const,
     },
     WORKSPACE_TAXES: {
         route: 'workspace/:policyID/taxes',

@@ -68,20 +68,21 @@ function BaseListItem<TItem extends ListItem>({
                 {...bind}
                 onPress={() => onSelectRow(item)}
                 disabled={isDisabled}
-                accessibilityLabel={item.text}
+                accessibilityLabel={item.text ?? ''}
                 role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}
                 hoverStyle={!item.isSelected && styles.hoveredComponentBG}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
-                nativeID={keyForList}
+                nativeID={keyForList ?? ''}
                 style={pressableStyle}
             >
                 <View style={wrapperStyle}>
                     {canSelectMultiple && (
                         <PressableWithFeedback
-                            accessibilityLabel={item.text}
+                            accessibilityLabel={item.text ?? ''}
                             role={CONST.ROLE.BUTTON}
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             disabled={isDisabled || !isSelectable}
                             onPress={handleCheckboxPress}
                             style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), !isSelectable && styles.cursorDisabled]}

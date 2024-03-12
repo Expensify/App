@@ -112,7 +112,7 @@ function BaseSelectionList<TItem extends ListItem>(
 
                 // If disabled, add to the disabled indexes array
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                if (!!section.isDisabled || item.isDisabled || (item.isSelectable !== undefined && !item.isSelectable)) {
+                if (!!section.isDisabled || item.isDisabled || item.isSelectable === false) {
                     disabledOptionsIndexes.push(disabledIndex);
                 }
                 disabledIndex += 1;
@@ -295,7 +295,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 onDismissError={() => onDismissError?.(item)}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
-                keyForList={item.keyForList}
+                keyForList={item.keyForList ?? ''}
                 isMultilineSupported={isRowMultilineSupported}
             />
         );
@@ -458,7 +458,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                     getItemLayout={getItemLayout}
                                     onScroll={onScroll}
                                     onScrollBeginDrag={onScrollBeginDrag}
-                                    keyExtractor={(item) => item.keyForList}
+                                    keyExtractor={(item, index) => item.keyForList ?? `${index}`}
                                     extraData={focusedIndex}
                                     indicatorStyle="white"
                                     keyboardShouldPersistTaps="always"

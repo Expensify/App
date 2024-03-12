@@ -29,11 +29,13 @@ import TadaYellow from '@assets/images/product-illustrations/tada--yellow.svg';
 import TeleScope from '@assets/images/product-illustrations/telescope.svg';
 import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_legged_laptop_woman.svg';
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
+import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
 import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
 import BankArrow from '@assets/images/simple-illustrations/simple-illustration__bank-arrow.svg';
 import BigRocket from '@assets/images/simple-illustrations/simple-illustration__bigrocket.svg';
 import PinkBill from '@assets/images/simple-illustrations/simple-illustration__bill.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
+import Car from '@assets/images/simple-illustrations/simple-illustration__car.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
 import CoffeeMug from '@assets/images/simple-illustrations/simple-illustration__coffeemug.svg';
 import Coins from '@assets/images/simple-illustrations/simple-illustration__coins.svg';
@@ -60,6 +62,7 @@ import MoneyIntoWallet from '@assets/images/simple-illustrations/simple-illustra
 import MoneyWings from '@assets/images/simple-illustrations/simple-illustration__moneywings.svg';
 import OpenSafe from '@assets/images/simple-illustrations/simple-illustration__opensafe.svg';
 import PalmTree from '@assets/images/simple-illustrations/simple-illustration__palmtree.svg';
+import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
 import Profile from '@assets/images/simple-illustrations/simple-illustration__profile.svg';
 import QRCode from '@assets/images/simple-illustrations/simple-illustration__qr-code.svg';
 import ReceiptEnvelope from '@assets/images/simple-illustrations/simple-illustration__receipt-envelope.svg';
@@ -149,7 +152,10 @@ export {
     Workflows,
     ThreeLeggedLaptopWoman,
     House,
-    Tag,
+    Accounting,
+    Car,
     Coins,
+    Pencil,
+    Tag,
     CarIce,
 };
