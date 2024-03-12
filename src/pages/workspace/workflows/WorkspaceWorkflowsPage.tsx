@@ -187,6 +187,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                 isEndOptionRow: true,
                 isActive: policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 pendingAction: policy?.pendingFields?.reimbursementChoice,
+                errors: ErrorUtils.getLatestErrorField(policy ?? {}, 'reimbursementChoice'),
             },
         ];
     }, [
@@ -214,6 +215,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                 subMenuItems={item.subMenuItems}
                 isActive={item.isActive}
                 pendingAction={item.pendingAction}
+                errors={item.errors}
             />
         </View>
     );

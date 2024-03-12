@@ -677,7 +677,7 @@ function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueO
                 reimbursementChoice: policy.reimbursementChoice,
                 reimburserAccountID: policy.reimburserAccountID,
                 reimburserEmail: policy.reimburserEmail,
-                errorFields: {reimbursementChoice: ErrorUtils.getMicroSecondOnyxError('workflowsPage.genericErrorMessage.reimbursementChoice')},
+                errorFields: {reimbursementChoice: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
                 pendingFields: {reimbursementChoice: null},
             },
         },
