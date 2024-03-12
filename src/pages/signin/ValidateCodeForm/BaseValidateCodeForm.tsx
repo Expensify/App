@@ -17,6 +17,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import AccountUtils from '@libs/AccountUtils';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -76,8 +77,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
     const hasError = !!account && !isEmptyObject(account?.errors) && !needToClearError;
     const isLoadingResendValidationForm = account?.loadingForm === CONST.FORMS.RESEND_VALIDATE_CODE_FORM;
     const shouldDisableResendValidateCode = isOffline ?? account?.isLoading;
-    const isValidateCodeFormSubmitting =
-        account?.isLoading && account?.loadingForm === (account?.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM);
+    const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
 
     useEffect(() => {
         if (!(inputValidateCodeRef.current && hasError && (session?.autoAuthState === CONST.AUTO_AUTH_STATE.FAILED || account?.isLoading))) {
