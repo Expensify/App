@@ -77,7 +77,7 @@ const defaultProps = {
 
 const getTaxAmount = (transactionAmount, transactionTaxCode, taxRates) => {
     const percentage = (transactionTaxCode ? taxRates.taxes[transactionTaxCode].value : taxRates.defaultValue) || '';
-    return CurrencyUtils.convertToBackendAmount(Number.parseFloat(TransactionUtils.calculateTaxAmount(percentage, Math.abs(transactionAmount))));
+    return CurrencyUtils.convertToBackendAmount(Number.parseFloat(TransactionUtils.calculateTaxAmount(percentage, transactionAmount)));
 };
 
 function EditRequestPage({report, route, policy, policyCategories, policyTags, parentReportActions, transaction}) {
@@ -163,7 +163,8 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
                 Navigation.dismissModal();
                 return;
             }
-
+            // optimisticall set tax amount.
+            IOU.setMoneyRequestTaxAmount(transaction.transactionID, getTaxAmount(-newAmount, transactionTaxCode, taxRates));
             IOU.updateMoneyRequestAmountAndCurrency(transaction.transactionID, report.reportID, newCurrency, newAmount, policy, policyTags, policyCategories);
             Navigation.dismissModal();
         },
