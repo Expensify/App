@@ -2046,8 +2046,10 @@ function formatSectionsFromSearchTerm(
     };
 }
 
-function filterOptions(options: Partial<GetOptions>, searchValue: string): ReportUtils.OptionData[] {
-    const searchTerms = searchValue.split(' ');
+function filterOptions(options: Partial<GetOptions>, searchInputValue: string): ReportUtils.OptionData[] {
+    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
+    const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 : searchInputValue.toLowerCase();
+    const searchTerms = searchValue ? searchValue.split(' ') : [];
 
     const reportsByType = (options.recentReports ?? []).reduce<ReportTypesOptionData>(
         (acc, option) => {
