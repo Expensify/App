@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {Component} from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import _ from 'underscore';
 import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
 import Button from '@components/Button';
@@ -9,6 +9,7 @@ import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import OptionsList from '@components/OptionsList';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
+import ScrollView from '@components/ScrollView';
 import ShowMoreButton from '@components/ShowMoreButton';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
@@ -654,9 +655,10 @@ class BaseOptionsSelector extends Component {
                     )}
                 </View>
                 {this.props.shouldShowReferralCTA && (
-                    <View style={[this.props.themeStyles.ph5, this.props.themeStyles.pb5, this.props.themeStyles.flexShrink0]}>
-                        <ReferralProgramCTA referralContentType={this.props.referralContentType} />
-                    </View>
+                    <ReferralProgramCTA
+                        referralContentType={this.props.referralContentType}
+                        style={[this.props.themeStyles.mh5, this.props.themeStyles.mb5, this.props.themeStyles.flexShrink0]}
+                    />
                 )}
 
                 {shouldShowFooter && (
