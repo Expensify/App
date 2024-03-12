@@ -2043,6 +2043,13 @@ export default {
         },
         changeOwner: {
             changeOwnerPageTitle: 'Cambio de propietario',
+            addPaymentCardTitle: 'Ingrese su tarjeta de pago para transferir la propiedad',
+            addPaymentCardButtonText: 'Aceptar términos y agregar tarjeta de pago',
+            addPaymentCardReadAndAcceptTextPart1: 'Lea y acepte',
+            addPaymentCardReadAndAcceptTextPart2: 'para agregar su tarjeta',
+            addPaymentCardTerms: 'los términos',
+            addPaymentCardPrivacy: 'la política de privacidad',
+            addPaymentCardAnd: 'y',
             // TODO: add spanish translations below
             amountOwedTitle: 'Amount owed title',
             amountOwedButtonText: 'Amount owed button text',

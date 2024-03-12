@@ -2017,6 +2017,13 @@ export default {
         },
         changeOwner: {
             changeOwnerPageTitle: 'Change owner',
+            addPaymentCardTitle: 'Enter your payment card to transfer ownership',
+            addPaymentCardButtonText: 'Accept terms & add payment card',
+            addPaymentCardReadAndAcceptTextPart1: 'Read and accept',
+            addPaymentCardReadAndAcceptTextPart2: 'policy to add your card',
+            addPaymentCardTerms: 'terms',
+            addPaymentCardPrivacy: 'privacy',
+            addPaymentCardAnd: '&',
             amountOwedTitle: 'Amount owed title',
             amountOwedButtonText: 'Amount owed button text',
             amountOwedText: 'Amount owed paragraph text.',
