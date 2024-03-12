@@ -1,5 +1,5 @@
 diff --git a/node_modules/@react-navigation/native-stack/src/views/NativeStackView.native.tsx b/node_modules/@react-navigation/native-stack/src/views/NativeStackView.native.tsx
-index 03d8b50..8404566 100644
+index 03d8b50..acc0c34 100644
 --- a/node_modules/@react-navigation/native-stack/src/views/NativeStackView.native.tsx
 +++ b/node_modules/@react-navigation/native-stack/src/views/NativeStackView.native.tsx
 @@ -17,7 +17,7 @@ import {
@@ -20,32 +20,39 @@ index 03d8b50..8404566 100644
    onDisappear: () => void;
    onDismissed: ScreenProps['onDismissed'];
    onHeaderBackButtonClicked: ScreenProps['onHeaderBackButtonClicked'];
-@@ -234,6 +234,24 @@ const SceneView = ({
+@@ -234,6 +234,31 @@ const SceneView = ({
      statusBarHeight
    );
  
 +  // https://github.com/react-navigation/react-navigation/pull/11887
 +  const interactionHandleRef = React.useRef<number>();
 +
-+  // this memo acts as a synchronous useEffect
++  // this memo acts as a synchronous `useEffect`
 +  React.useMemo(() => {
 +    if (focused && interactionHandleRef.current === undefined) {
 +      interactionHandleRef.current = InteractionManager.createInteractionHandle();
 +    }
 +  }, [focused]);
-+  const onAppearCallback: ScreenProps["onAppear"] = React.useCallback((e) => {
-+    onAppear?.(e);
-+
++  const finishInteraction = React.useCallback(() => {
 +    if (interactionHandleRef.current !== undefined) {
 +      InteractionManager.clearInteractionHandle(interactionHandleRef.current);
 +      interactionHandleRef.current = undefined;
 +    }
 +  }, []);
++  // in case if screen is unmounted faster than transition finishes, then `onAppear` will not be fired
++  // so we clean up an interaction here
++  React.useEffect(() => finishInteraction, [finishInteraction])
++  
++  const onAppearCallback: ScreenProps["onAppear"] = React.useCallback((e) => {
++    onAppear?.(e);
++
++    finishInteraction();
++  }, [onAppear, finishInteraction]);
 +
    const [customHeaderHeight, setCustomHeaderHeight] =
      React.useState(defaultHeaderHeight);
  
-@@ -279,7 +297,7 @@ const SceneView = ({
+@@ -279,7 +304,7 @@ const SceneView = ({
        swipeDirection={gestureDirectionOverride}
        transitionDuration={animationDuration}
        onWillDisappear={onWillDisappear}
