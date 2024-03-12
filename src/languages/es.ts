@@ -1993,6 +1993,12 @@ export default {
                 'Parece que tu espacio de trabajo está configurado actualmente en una moneda diferente a USD. Por favor, haz clic en el botón de abajo para actualizar tu moneda a USD ahora.',
             updateToUSD: 'Actualizar a USD',
         },
+        changeOwner: {
+            changeOwnerPageTitle: 'Cambio de propietario',
+            outstandingBalance: 'Saldo pendiente',
+            transferBalance: 'Transfer balance',
+            transferBalanceFirstParagraph: ({email, amount}) => `La cuenta que debe este espacio de trabajo (${email}) tiene un saldo pendiente.\n\n¿Desea transferir este monto ${amount} para hacerse cargo de la facturación de este espacio de trabajo? El cargo en su tarjeta de pago se realizará inmediatamente.`,
+        }
     },
     getAssistancePage: {
         title: 'Obtener ayuda',

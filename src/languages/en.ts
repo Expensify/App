@@ -1967,6 +1967,12 @@ export default {
             updateCurrencyPrompt: 'It looks like your Workspace is currently set to a different currency than USD. Please click the button below to update your currency to USD now.',
             updateToUSD: 'Update to USD',
         },
+        changeOwner: {
+            changeOwnerPageTitle: 'Change owner',
+            outstandingBalance: 'Outstanding balance',
+            transferBalance: 'Transfer balance',
+            transferBalanceFirstParagraph: ({email, amount}) => `The account owing this workspace (${email}) has an outstanding balance.\n\nDo you want to transfer this amount ${amount} in order to take over billing for this workspace? Your payment card will be charged immediately.`,
+        }
     },
     getAssistancePage: {
         title: 'Get assistance',

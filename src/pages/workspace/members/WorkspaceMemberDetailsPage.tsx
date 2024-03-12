@@ -94,7 +94,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
     }, [policyID]);
 
     const temporaryOpenCheckPage = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD));
+        Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED));
     };
 
     return (

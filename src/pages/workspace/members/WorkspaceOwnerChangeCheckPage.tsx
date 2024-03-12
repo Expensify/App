@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Text from '@components/Text';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -9,9 +9,10 @@ import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAcce
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import type SCREENS from '@src/SCREENS';
 import CONST from "@src/CONST";
-import Button from "@components/Button";
+import Button from '@components/Button';
 import {View} from "react-native";
 import useThemeStyles from "@hooks/useThemeStyles";
+import useLocalize from "@hooks/useLocalize";
 
 type WorkspaceMemberDetailsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.OWNER_CHANGE_CHECK>;
 
@@ -24,6 +25,7 @@ const CONFIRMABLE_ERRORS: string[] = [
 
 function WorkspaceOwnerChangeCheckPage({route}: WorkspaceMemberDetailsPageProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
 
     const policyID = route.params.policyID;
     const error = route.params.error;
@@ -35,29 +37,61 @@ function WorkspaceOwnerChangeCheckPage({route}: WorkspaceMemberDetailsPageProps)
     }, []);
 
     const cancel = useCallback(() => {
-        
+
     }, []);
+
+    const confirmationTitle = useMemo(() => {
+        switch (error) {
+            case CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED:
+                return translate('workspace.changeOwner.outstandingBalance');
+            default:
+                return null;
+        }
+    }, [error, translate]);
+
+    const confirmationButtonText = useMemo(() => {
+        switch (error) {
+            case CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED:
+                return translate('workspace.changeOwner.transferBalance');
+            default:
+                return '';
+        }
+    }, [error, translate]);
+
+    const confirmationText = useMemo(() => {
+        switch (error) {
+            case CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED:
+                return translate('workspace.changeOwner.transferBalanceFirstParagraph', {email: 'test@test.com', amount: '$50.00'});
+            default:
+                return null;
+        }
+    }, [error, translate]);
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
                 <ScreenWrapper testID={WorkspaceOwnerChangeCheckPage.displayName}>
                     <HeaderWithBackButton
-                        title="Change owner"
+                        title={translate('workspace.changeOwner.changeOwnerPageTitle')}
                         onBackButtonPress={() => Navigation.goBack()}
                     />
                     <View style={[styles.containerWithSpaceBetween, styles.pb5, styles.ph5]}>
-                        <Text>Current error: {error}</Text>
+                        <Text style={[styles.textHeadline, styles.mt3, styles.mb5]}>{confirmationTitle}</Text>
+                        <Text style={styles.flex1}>{confirmationText}</Text>
                         {shouldAskForConfirmation ? (
                             <Button
                                 success
+                                large
                                 onPress={confirm}
-                            >Transfer subscription</Button>
+                                text={confirmationButtonText}
+                            />
                         ) : (
                             <Button
                                 success
+                                large
                                 onPress={cancel}
-                            >Got it</Button>
+                                text={translate('common.buttonConfirm')}
+                            />
                         )}
                     </View>
                 </ScreenWrapper>
