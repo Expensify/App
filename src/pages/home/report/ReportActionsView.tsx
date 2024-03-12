@@ -1,8 +1,8 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
+import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
-import lodashIsEqual from 'lodash/isEqual';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
@@ -56,21 +56,28 @@ const SPACER = 16;
 
 let listIDCount = Math.round(Math.random() * 100);
 
-// /**
-//  * usePaginatedReportActionList manages the logic for handling a list of messages with pagination and dynamic loading.
-//  * It determines the part of the message array to display ('visibleReportActions') based on the current linked message,
-//  * and manages pagination through 'handleReportActionPagination' function.
-//  *
-//  * @param {string} linkedID - ID of the linked message used for initial focus.
-//  * @param {array} allReportActions - Array of messages.
-//  * @param {function} fetchNewerReportActions - Function to fetch more messages.
-//  * @param {string} route - Current route, used to reset states on route change.
-//  * @param {boolean} isLoading - Loading state indicator.
-//  * @param {boolean} triggerListID - Used to trigger a listID change.
-//  * @returns {object} An object containing the sliced message array, the pagination function,
-//  *                   index of the linked message, and a unique list ID.
-//  */
-const usePaginatedReportActionList = (linkedID:string, allReportActions:  OnyxTypes.ReportAction[], fetchNewerReportActions: (newestReportAction: OnyxTypes.ReportAction) => void, route: string, isLoading: boolean, triggerListID: boolean) => {
+/**
+ * usePaginatedReportActionList manages the logic for handling a list of messages with pagination and dynamic loading.
+ * It determines the part of the message array to display ('visibleReportActions') based on the current linked message,
+ * and manages pagination through 'handleReportActionPagination' function.
+ *
+ * linkedID - ID of the linked message used for initial focus.
+ * allReportActions - Array of messages.
+ * fetchNewerReportActions - Function to fetch more messages.
+ * route - Current route, used to reset states on route change.
+ * isLoading - Loading state indicator.
+ * triggerListID - Used to trigger a listID change.
+ * returns {object} An object containing the sliced message array, the pagination function,
+ *                   index of the linked message, and a unique list ID.
+ */
+const usePaginatedReportActionList = (
+    linkedID: string,
+    allReportActions: OnyxTypes.ReportAction[],
+    fetchNewerReportActions: (newestReportAction: OnyxTypes.ReportAction) => void,
+    route: string,
+    isLoading: boolean,
+    triggerListID: boolean,
+) => {
     // triggerListID is used when navigating to a chat with messages loaded from LHN. Typically, these include thread actions, task actions, etc. Since these messages aren't the latest, we don't maintain their position and instead trigger a recalculation of their positioning in the list.
     // we don't set currentReportActionID on initial render as linkedID as it should trigger visibleReportActions after linked message was positioned
     const [currentReportActionID, setCurrentReportActionID] = useState('');
@@ -139,7 +146,6 @@ const usePaginatedReportActionList = (linkedID:string, allReportActions:  OnyxTy
     };
 };
 
-
 function ReportActionsView({
     report,
     session,
@@ -150,16 +156,15 @@ function ReportActionsView({
     isLoadingNewerReportActions = false,
     isReadyForCommentLinking = false,
 }: ReportActionsViewProps) {
-
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
     const route = useRoute();
-    const reportActionID = lodashGet(route, 'params.reportActionID', null);
+    const reportActionID = route?.params?.reportActionID ?? null;
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
 
-const network = useNetwork();
-const {isSmallScreenWidth} = useWindowDimensions();
+    const network = useNetwork();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const contentListHeight = useRef(0);
     const layoutListHeight = useRef(0);
     const {windowHeight} = useWindowDimensions();
@@ -317,12 +322,7 @@ const {isSmallScreenWidth} = useWindowDimensions();
     const loadNewerChats = useCallback(
         // eslint-disable-next-line rulesdir/prefer-early-return
         () => {
-            if (
-                isLoadingInitialReportActions ||
-                isLoadingOlderReportActions ||
-                network.isOffline ||
-                newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-            ) {
+            if (isLoadingInitialReportActions || isLoadingOlderReportActions || network.isOffline || newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 return;
             }
             // Determines if loading older reports is necessary when the content is smaller than the list
@@ -464,7 +464,7 @@ const {isSmallScreenWidth} = useWindowDimensions();
 ReportActionsView.displayName = 'ReportActionsView';
 ReportActionsView.initMeasured = false;
 
-    function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActionsViewProps): boolean {
+function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActionsViewProps): boolean {
     if (!lodashIsEqual(oldProps.isReadyForCommentLinking, newProps.isReadyForCommentLinking)) {
         return false;
     }

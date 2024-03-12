@@ -232,7 +232,7 @@ function ReportScreen({
         }
         const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, true);
         const currentRangeOfReportActions = ReportActionsUtils.getContinuousReportActionChain(sortedReportActions, reportActionIDFromRoute);
-        return currentRangeOfReportActions.filter((reportAction) => ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID));
+        return currentRangeOfReportActions;
     }, [reportActionIDFromRoute, allReportActions]);
 
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger. If we have cached reportActions, they will be shown immediately. We aim to display a loader first, then fetch relevant reportActions, and finally show them.

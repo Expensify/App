@@ -261,7 +261,6 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
 function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?: string): ReportAction[] {
     let index;
 
-    console.log('get.sortedReportActions.0', sortedReportActions);
     if (id) {
         index = sortedReportActions.findIndex((obj) => obj.reportActionID === id);
     } else {
