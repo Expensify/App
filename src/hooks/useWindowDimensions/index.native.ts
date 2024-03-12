@@ -1,6 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
 import {useWindowDimensions} from 'react-native';
-import getIsPad from '@libs/getIsPad';
 import variables from '@styles/variables';
 import type WindowDimensions from './types';
 
@@ -9,15 +8,14 @@ import type WindowDimensions from './types';
  */
 export default function (): WindowDimensions {
     const {width: windowWidth, height: windowHeight} = useWindowDimensions();
-    const isPad = getIsPad();
 
     const isExtraSmallScreenHeight = windowHeight <= variables.extraSmallMobileResponsiveHeightBreakpoint;
-    const isSmallScreenWidth = isPad ? windowWidth <= variables.mobileResponsiveWidthBreakpoint : true;
-    const isMediumScreenWidth = isPad ? windowWidth > variables.mobileResponsiveWidthBreakpoint && windowWidth <= variables.tabletResponsiveWidthBreakpoint : false;
-    const isLargeScreenWidth = isPad ? windowWidth > variables.tabletResponsiveWidthBreakpoint : false;
+    const isSmallScreenWidth = windowWidth <= variables.mobileResponsiveWidthBreakpoint;
+    const isMediumScreenWidth = windowWidth > variables.mobileResponsiveWidthBreakpoint && windowWidth <= variables.tabletResponsiveWidthBreakpoint;
+    const isLargeScreenWidth = windowWidth > variables.tabletResponsiveWidthBreakpoint;
     const lowerScreenDimmension = Math.min(windowWidth, windowHeight);
     const isExtraSmallScreenWidth = windowWidth <= variables.extraSmallMobileResponsiveWidthBreakpoint;
-    const isSmallScreen = isPad ? lowerScreenDimmension <= variables.mobileResponsiveWidthBreakpoint : true;
+    const isSmallScreen = lowerScreenDimmension <= variables.mobileResponsiveWidthBreakpoint;
 
     return {
         windowWidth,
