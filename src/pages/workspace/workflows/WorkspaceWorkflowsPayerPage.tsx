@@ -178,7 +178,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
             return;
         }
         const authorizedPayerAccountID = member.accountID;
-        Policy.setWorkspacePayer(policy?.id ?? '', authorizedPayerEmail, authorizedPayerAccountID);
+        Policy.setWorkspacePayer(policy?.id ?? '', 'authorizedPayerEmail', authorizedPayerAccountID);
         Navigation.goBack();
     };
 
