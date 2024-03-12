@@ -69,10 +69,19 @@ type ReportActionsListProps = WithCurrentUserPersonalDetailsProps & {
     loadOlderChats: () => void;
 
     /** Function to load newer chats */
-    loadNewerChats: LoadNewerChats;
+    loadNewerChats: () => void;
 
     /** Whether the composer is in full size */
     isComposerFullSize?: boolean;
+
+    /** ID of the list */
+    listID: number;
+
+    /** Callback executed on content size change */
+    onContentSizeChange: (w: number, h: number) => void;
+
+    /** Should enable auto scroll to top threshold */
+    shouldEnableAutoScrollToTopThreshold: boolean;
 };
 
 const VERTICAL_OFFSET_THRESHOLD = 200;
@@ -580,7 +589,6 @@ function ReportActionsList({
                     ref={reportScrollManager.ref}
                     testID="report-actions-list"
                     style={styles.overscrollBehaviorContain}
-                    // data={sortedReportActions}
                     data={sortedVisibleReportActions}
                     renderItem={renderItem}
                     contentContainerStyle={contentContainerStyle}

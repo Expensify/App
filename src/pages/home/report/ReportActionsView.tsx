@@ -1,8 +1,9 @@
+import type {RouteProp} from '@react-navigation/native';
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import lodashGet from 'lodash/get';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
@@ -11,6 +12,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
+import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import Performance from '@libs/Performance';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
@@ -20,6 +22,7 @@ import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getInitialPaginationSize from './getInitialPaginationSize';
@@ -49,6 +52,9 @@ type ReportActionsViewProps = ReportActionsViewOnyxProps & {
 
     /** The report actions are loading newer data */
     isLoadingNewerReportActions?: boolean;
+
+    /** Whether the report is ready for comment linking */
+    isReadyForCommentLinking?: boolean;
 };
 
 const DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST = 120;
@@ -74,7 +80,7 @@ const usePaginatedReportActionList = (
     linkedID: string,
     allReportActions: OnyxTypes.ReportAction[],
     fetchNewerReportActions: (newestReportAction: OnyxTypes.ReportAction) => void,
-    route: string,
+    route: RouteProp<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>,
     isLoading: boolean,
     triggerListID: boolean,
 ) => {
@@ -124,7 +130,7 @@ const usePaginatedReportActionList = (
     const newestReportAction = visibleReportActions?.[0];
 
     const handleReportActionPagination = useCallback(
-        ({firstReportActionID}) => {
+        ({firstReportActionID}: {firstReportActionID: string}) => {
             // This function is a placeholder as the actual pagination is handled by visibleReportActions
             if (!hasMoreCached) {
                 isFirstLinkedActionRender.current = false;
@@ -158,8 +164,8 @@ function ReportActionsView({
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
-    const route = useRoute();
-    const reportActionID = route?.params?.reportActionID ?? null;
+    const route = useRoute<RouteProp<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>>();
+    const reportActionID = route?.params?.reportActionID;
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
 
@@ -169,7 +175,6 @@ function ReportActionsView({
     const layoutListHeight = useRef(0);
     const {windowHeight} = useWindowDimensions();
     const isFocused = useIsFocused();
-    const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActions), [reportActions]);
     const prevNetworkRef = useRef(network);
     const prevAuthTokenType = usePrevious(session?.authTokenType);
     const [isInitialLinkedView, setIsInitialLinkedView] = useState(!!reportActionID);
@@ -182,7 +187,7 @@ function ReportActionsView({
      * displaying.
      */
     const fetchNewerAction = useCallback(
-        (newestReportAction) => {
+        (newestReportAction: OnyxTypes.ReportAction) => {
             if (isLoadingNewerReportActions || isLoadingInitialReportActions) {
                 return;
             }
@@ -198,12 +203,13 @@ function ReportActionsView({
         linkedIdIndex,
         listID,
     } = usePaginatedReportActionList(reportActionID, allReportActions, fetchNewerAction, route, isLoading, isLoadingInitialReportActions);
+    const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActions), [reportActions]);
     const hasCachedActions = useInitialValue(() => reportActions.length > 0);
     const hasNewestReportAction = reportActions[0]?.created === report.lastVisibleActionCreated;
-    const newestReportAction = lodashGet(reportActions, ['0']);
+    const newestReportAction = reportActions?.[0];
     const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
-    const hasCreatedAction = lodashGet(oldestReportAction, 'actionName') === CONST.REPORT.ACTIONS.TYPE.CREATED;
-    const firstReportActionName = lodashGet(reportActions, ['0', 'actionName']);
+    const hasCreatedAction = oldestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
+    const firstReportActionName = reportActions?.[0]?.actionName;
 
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
 
@@ -293,7 +299,7 @@ function ReportActionsView({
         }
     }, [report.pendingFields, didSubscribeToReportTypingEvents, reportID]);
 
-    const onContentSizeChange = useCallback((w, h) => {
+    const onContentSizeChange = useCallback((w: number, h: number) => {
         contentListHeight.current = h;
     }, []);
 
@@ -355,7 +361,7 @@ function ReportActionsView({
      * Runs when the FlatList finishes laying out
      */
     const recordTimeToMeasureItemLayout = useCallback(
-        (e) => {
+        (e: LayoutChangeEvent) => {
             layoutListHeight.current = e.nativeEvent.layout.height;
 
             if (didLayout.current) {
@@ -409,7 +415,7 @@ function ReportActionsView({
     const isTheFirstReportActionIsLinked = firstReportActionID === reportActionID;
 
     useEffect(() => {
-        let timerId;
+        let timerId: NodeJS.Timeout;
 
         if (isTheFirstReportActionIsLinked) {
             setIsInitialLinkedView(true);
@@ -447,11 +453,10 @@ function ReportActionsView({
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
-                isLinkingLoader={!!reportActionID && isLoadingInitialReportActions}
+                // isLinkingLoader={!!reportActionID && isLoadingInitialReportActions}
                 isLoadingInitialReportActions={isLoadingInitialReportActions}
                 isLoadingOlderReportActions={isLoadingOlderReportActions}
                 isLoadingNewerReportActions={isLoadingNewerReportActions}
-                // policy={policy}
                 listID={listID}
                 onContentSizeChange={onContentSizeChange}
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}

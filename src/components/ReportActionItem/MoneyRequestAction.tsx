@@ -89,19 +89,7 @@ function MoneyRequestAction({
             return;
         }
 
-// <<<<<<< HEAD
-//         // If the childReportID is not present, we need to create a new thread
-//         const childReportID = action?.childReportID;
-//         if (!childReportID) {
-//             const thread = ReportUtils.buildTransactionThread(action, requestReportID);
-//             const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs ?? []);
-//             Report.openReport(thread.reportID, '', userLogins, thread, action.reportActionID);
-//             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(thread.reportID));
-//             return;
-//         }
-// =======
         const childReportID = action?.childReportID ?? '0';
-// >>>>>>> da7697734c1f759786eba0a643a062b4e39a47ad
         Report.openReport(childReportID);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
     };

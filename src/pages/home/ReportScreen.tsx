@@ -1,8 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import lodashGet from 'lodash/get';
 import lodashIsEqual from 'lodash/isEqual';
-import PropTypes from 'prop-types';
 import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {FlatList, ViewStyle} from 'react-native';
@@ -55,9 +53,11 @@ import ReportFooter from './report/ReportFooter';
 import {ActionListContext, ReactionListContext} from './ReportScreenContext';
 import type {ActionListContextType, ReactionListRef, ScrollPosition} from './ReportScreenContext';
 
+type ReportActionMap = Record<string, OnyxTypes.ReportAction>;
+
 type ReportScreenOnyxProps = {
     /** All the report actions for this report */
-    allReportActions: OnyxTypes.ReportAction[];
+    allReportActions: ReportActionMap;
 
     /** Tells us if the sidebar has rendered */
     isSidebarLoaded: OnyxEntry<boolean>;
@@ -126,13 +126,12 @@ function ReportScreen({
     userLeavingStatus = false,
     currentReportID = '',
     navigation,
-    errors,
 }: ReportScreenProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const reportIDFromRoute = getReportID(route);
-    const reportActionIDFromRoute = lodashGet(route, 'params.reportActionID', null);
+    const reportActionIDFromRoute = route?.params?.reportActionID ?? '';
     const isFocused = useIsFocused();
 
     const firstRenderRef = useRef(true);
@@ -227,7 +226,7 @@ function ReportScreen({
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
     const [isLinkingToMessage, setLinkingToMessage] = useState(!!reportActionIDFromRoute);
     const reportActions = useMemo(() => {
-        if (_.isEmpty(allReportActions)) {
+        if (!allReportActions) {
             return [];
         }
         const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, true);
@@ -315,11 +314,11 @@ function ReportScreen({
     const isReportReadyForDisplay = useMemo((): boolean => {
         // This is necessary so that when we are retrieving the next report data from Onyx the ReportActionsView will remount completely
         const isTransitioning = report && report.reportID !== reportIDFromRoute;
-        return reportIDFromRoute !== '' && report.reportID && !isTransitioning;
+        return reportIDFromRoute !== '' && !!report.reportID && !isTransitioning;
     }, [report, reportIDFromRoute]);
 
     const shouldShowSkeleton =
-        isLinkingToMessage || !isReportReadyForDisplay || isLoadingInitialReportActions || isLoading || (!!reportActionIDFromRoute && reportMetadata.isLoadingInitialReportActions);
+        isLinkingToMessage || !isReportReadyForDisplay || isLoadingInitialReportActions || isLoading || (!!reportActionIDFromRoute && reportMetadata?.isLoadingInitialReportActions);
 
     const shouldShowReportActionList = isReportReadyForDisplay && !isLoading;
 
@@ -503,7 +502,7 @@ function ReportScreen({
         InteractionManager.runAfterInteractions(() => {
             setLinkingToMessage(false);
         });
-    }, [reportMetadata.isLoadingInitialReportActions]);
+    }, [reportMetadata?.isLoadingInitialReportActions]);
 
     const onLinkPress = () => {
         Navigation.setParams({reportActionID: ''});
@@ -511,13 +510,14 @@ function ReportScreen({
     };
 
     const isLinkedReportActionDeleted = useMemo(() => {
-        if (!reportActionIDFromRoute) {
+        if (!reportActionIDFromRoute || !allReportActions) {
             return false;
         }
-        return !_.isEmpty(allReportActions[reportActionIDFromRoute]) && ReportActionsUtils.isDeletedAction(allReportActions[reportActionIDFromRoute]);
+        const action = allReportActions[reportActionIDFromRoute];
+        return action && ReportActionsUtils.isDeletedAction(action);
     }, [reportActionIDFromRoute, allReportActions]);
 
-    if (isLinkedReportActionDeleted || (!shouldShowSkeleton && reportActionIDFromRoute && _.isEmpty(reportActions) && !isLinkingToMessage)) {
+    if (isLinkedReportActionDeleted || (!shouldShowSkeleton && reportActionIDFromRoute && reportActions?.length === 0 && !isLinkingToMessage)) {
         return (
             <BlockingView
                 icon={Illustrations.ToddBehindCloud}
@@ -587,9 +587,7 @@ function ReportScreen({
                                         isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
                                         isLoadingNewerReportActions={reportMetadata?.isLoadingNewerReportActions}
                                         isLoadingOlderReportActions={reportMetadata?.isLoadingOlderReportActions}
-                                        isComposerFullSize={isComposerFullSize}
-                                        policy={policy} // TODO:
-                                        isReadyForCommentLinking={!shouldShowSkeleton} // TODO:
+                                        isReadyForCommentLinking={!shouldShowSkeleton}
                                     />
                                 )}
 
@@ -692,6 +690,7 @@ export default withViewportOffsetTop(
                     prevProps.currentReportID === nextProps.currentReportID &&
                     prevProps.viewportOffsetTop === nextProps.viewportOffsetTop &&
                     lodashIsEqual(prevProps.parentReportAction, nextProps.parentReportAction) &&
+                    lodashIsEqual(prevProps.route, nextProps.route) &&
                     lodashIsEqual(prevProps.report, nextProps.report),
             ),
         ),
