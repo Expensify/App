@@ -100,7 +100,7 @@ function createTaskAndNavigate(
     assigneeEmail: string,
     assigneeAccountID = 0,
     assigneeChatReport: OnyxEntry<OnyxTypes.Report> = null,
-    policyID = CONST.POLICY.OWNER_EMAIL_FAKE,
+    policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
 ) {
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, assigneeAccountID, parentReportID, title, description, policyID);
 
@@ -262,6 +262,7 @@ function createTaskAndNavigate(
     API.write(WRITE_COMMANDS.CREATE_TASK, parameters, {optimisticData, successData, failureData});
 
     Navigation.dismissModal(parentReportID);
+    Report.notifyNewAction(parentReportID, currentUserAccountID);
 }
 
 /**
