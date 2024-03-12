@@ -69,6 +69,7 @@ function StateSelector(
             // This will cause the form to revalidate and remove any error related to state name
             onInputChange(stateCode);
         }
+        Navigation.setParams({state: stateCode});
         setStateToDisplay(stateCode);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
