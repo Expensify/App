@@ -605,6 +605,8 @@ export default {
         routePending: 'Route pending...',
         receiptScanning: 'Scan in progress…',
         receiptMissingDetails: 'Receipt missing details',
+        missingAmount: 'Missing amount',
+        missingMerchant: 'Missing merchant',
         receiptStatusTitle: 'Scanning…',
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
         receiptScanningFailed: 'Receipt scanning failed. Enter the details manually.',
@@ -1072,6 +1074,11 @@ export default {
                 other: 'th',
             },
         },
+    },
+    workflowsPayerPage: {
+        title: 'Authorized payer',
+        genericErrorMessage: 'The authorized payer could not be changed. Please try again.',
+        admins: 'Admins',
     },
     reportFraudPage: {
         title: 'Report virtual card fraud',

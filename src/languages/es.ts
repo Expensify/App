@@ -598,6 +598,8 @@ export default {
         routePending: 'Ruta pendiente...',
         receiptScanning: 'Escaneo en curso…',
         receiptMissingDetails: 'Recibo con campos vacíos',
+        missingAmount: 'Falta importe',
+        missingMerchant: 'Falta comerciante',
         receiptStatusTitle: 'Escaneando…',
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
         receiptScanningFailed: 'El escaneo de recibo ha fallado. Introduce los detalles manualmente.',
@@ -1065,6 +1067,11 @@ export default {
                 other: '.º',
             },
         },
+    },
+    workflowsPayerPage: {
+        title: 'Pagador autorizado',
+        genericErrorMessage: 'El pagador autorizado no se pudo cambiar. Por favor, inténtalo mas tarde.',
+        admins: 'Administradores',
     },
     reportFraudPage: {
         title: 'Reportar fraude con la tarjeta virtual',
