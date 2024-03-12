@@ -52,9 +52,6 @@ const policyChangeActionsSet = new Set<string>(Object.values(CONST.REPORT.ACTION
 
 const allReports: OnyxCollection<Report> = {};
 
-type ActionableMentionWhisperResolution = {
-    resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>;
-};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: (report, key) => {
@@ -578,7 +575,9 @@ function getSortedReportActionsForDisplay(reportActions: ReportActions | null | 
     }
 
     if (shouldIncludeInvisibleActions) {
-        filteredReportActions = Object.values(reportActions).filter((action): action is ReportAction => !action?.resolution);
+        filteredReportActions = Object.values(reportActions).filter(
+            (action): action is ReportAction => !(action?.originalMessage as OriginalMessageActionableMentionWhisper['originalMessage'])?.resolution,
+        );
     } else {
         filteredReportActions = Object.entries(reportActions)
             .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key))

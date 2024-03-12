@@ -81,7 +81,7 @@ type ReportActionsListProps = WithCurrentUserPersonalDetailsProps & {
     onContentSizeChange: (w: number, h: number) => void;
 
     /** Should enable auto scroll to top threshold */
-    shouldEnableAutoScrollToTopThreshold: boolean;
+    shouldEnableAutoScrollToTopThreshold?: boolean;
 };
 
 const VERTICAL_OFFSET_THRESHOLD = 200;
@@ -300,7 +300,7 @@ function ReportActionsList({
     }, []);
 
     const scrollToBottomForCurrentUserAction = useCallback(
-        (isFromCurrentUser) => {
+        (isFromCurrentUser: boolean) => {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
             // they are now in the list.
             if (!isFromCurrentUser || !hasNewestReportAction) {
@@ -554,7 +554,7 @@ function ReportActionsList({
         [onLayout],
     );
     const onContentSizeChangeInner = useCallback(
-        (w, h) => {
+        (w: number, h: number) => {
             onContentSizeChange(w, h);
         },
         [onContentSizeChange],
@@ -618,4 +618,4 @@ ReportActionsList.displayName = 'ReportActionsList';
 
 export default withCurrentUserPersonalDetails(memo(ReportActionsList));
 
-export type {LoadNewerChats};
+export type {LoadNewerChats, ReportActionsListProps};
