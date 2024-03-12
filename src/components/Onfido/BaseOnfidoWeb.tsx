@@ -103,7 +103,7 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
         },
         language: {
             // We need to use ES_ES as locale key because the key `ES` is not a valid config key for Onfido
-            locale: preferredLocale === CONST.LOCALES.ES ? CONST.LOCALES.ES_ES_ONFIDO : (preferredLocale as OnfidoSDK.SupportedLanguages),
+            locale: preferredLocale === CONST.LOCALES.ES ? CONST.LOCALES.ES_ES_ONFIDO : preferredLocale,
 
             // Provide a custom phrase for the back button so that the first letter is capitalized,
             // and translate the phrase while we're at it. See the issue and documentation for more context.
