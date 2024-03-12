@@ -236,8 +236,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             style={[styles.pb0]}
         >
             <FullPageNotFoundView
-                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
-                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
+                onBackButtonPress={Navigation.dismissModal}
+                onLinkPress={Navigation.resetToHome}
                 shouldShow={shouldShowNotFoundPage}
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
             >
