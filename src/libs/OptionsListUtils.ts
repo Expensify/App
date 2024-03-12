@@ -1500,6 +1500,7 @@ function getOptions(
     // Filter out all the reports that shouldn't be displayed
     const filteredReportOptions = options.reports.filter((option) => {
         const report = option.item as Report;
+
         const {parentReportID, parentReportActionID} = report ?? {};
         const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
         const parentReportAction = canGetParentReport ? allReportActions[parentReportID]?.[parentReportActionID] ?? null : null;
@@ -1583,8 +1584,6 @@ function getOptions(
         return option;
     });
 
-    // HERE
-
     let allPersonalDetailsOptions = options.personalDetails;
 
     if (sortPersonalDetailsByAlphaAsc) {
@@ -1611,6 +1610,11 @@ function getOptions(
 
     if (includeRecentReports) {
         for (const reportOption of allReportOptions) {
+            // update the alternate text if needed
+            if ((!!reportOption.isChatRoom || reportOption.isPolicyExpenseChat) && forcePolicyNamePreview) {
+                reportOption.alternateText = ReportUtils.getChatRoomSubtitle(reportOption.item as Report);
+            }
+
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
             if (recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
                 break;
