@@ -156,12 +156,10 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
                 titleKey="notFound.pageNotFound"
                 subtitleKey="transferAmountPage.notHereSubTitle"
                 linkKey="transferAmountPage.goToWallet"
-                onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
             >
                 <HeaderWithBackButton
                     title={translate('common.transferBalance')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
                 />
                 <View style={[styles.flexGrow1, styles.flexShrink1, styles.flexBasisAuto, styles.justifyContentCenter]}>
                     <CurrentWalletBalance balanceStyles={[styles.transferBalanceBalance]} />

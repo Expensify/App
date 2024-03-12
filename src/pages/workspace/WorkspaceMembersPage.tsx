@@ -366,7 +366,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
             });
         });
 
-        result = result.sort((a, b) => a.text.toLowerCase().localeCompare(b.text.toLowerCase()));
+        result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
 
         return result;
     };
