@@ -1,18 +1,22 @@
+import type {ComponentMeta, ComponentStory} from '@storybook/react';
 import React from 'react';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import type {ReportActionItemImagesProps} from '@components/ReportActionItem/ReportActionItemImages';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
+
+type ReportActionItemImagesStory = ComponentStory<typeof ReportActionItemImages>;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story = {
+const story: ComponentMeta<typeof ReportActionItemImages> = {
     title: 'Components/ReportActionItemImages',
     component: ReportActionItemImages,
 };
 
-function Template(args) {
+function Template(props: ReportActionItemImagesProps) {
     return (
         <PressableWithoutFeedback
             accessibilityLabel="ReportActionItemImages Story"
@@ -21,7 +25,7 @@ function Template(args) {
             {({hovered}) => (
                 <ReportActionItemImages
                     // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...args}
+                    {...props}
                     isHovered={hovered}
                 />
             )}
@@ -31,14 +35,14 @@ function Template(args) {
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
-const Default = Template.bind({});
+const Default: ReportActionItemImagesStory = Template.bind({});
 Default.args = {
     images: [{image: 'https://c02.purpledshub.com/uploads/sites/41/2021/05/sleeping-cat-27126ee.jpg', thumbnail: ''}],
     size: 1,
     total: 1,
 };
 
-const DisplayEReceipt = Template.bind({});
+const DisplayEReceipt: ReportActionItemImagesStory = Template.bind({});
 DisplayEReceipt.args = {
     images: [
         {
@@ -53,6 +57,8 @@ DisplayEReceipt.args = {
                 mccGroup: 'Commuter',
                 created: '2023-07-24 13:46:20',
                 hasEReceipt: true,
+                comment: {},
+                reportID: 'REPORT_1',
             },
         },
     ],
@@ -60,7 +66,7 @@ DisplayEReceipt.args = {
     total: 1,
 };
 
-const DisplayMultipleEReceipts = Template.bind({});
+const DisplayMultipleEReceipts: ReportActionItemImagesStory = Template.bind({});
 DisplayMultipleEReceipts.args = {
     images: [
         {
@@ -75,6 +81,8 @@ DisplayMultipleEReceipts.args = {
                 mccGroup: 'Commuter',
                 created: '2023-07-24 13:46:20',
                 hasEReceipt: true,
+                comment: {},
+                reportID: 'REPORT_1',
             },
         },
         {
@@ -89,6 +97,8 @@ DisplayMultipleEReceipts.args = {
                 mccGroup: 'Goods',
                 created: '2022-03-21 13:46:20',
                 hasEReceipt: true,
+                comment: {},
+                reportID: 'REPORT_2',
             },
         },
         {
@@ -103,6 +113,8 @@ DisplayMultipleEReceipts.args = {
                 mccGroup: 'Airlines',
                 created: '2023-07-24 13:46:20',
                 hasEReceipt: true,
+                comment: {},
+                reportID: 'REPORT_3',
             },
         },
     ],
@@ -110,7 +122,7 @@ DisplayMultipleEReceipts.args = {
     total: 3,
 };
 
-const TwoImages = Template.bind({});
+const TwoImages: ReportActionItemImagesStory = Template.bind({});
 TwoImages.args = {
     images: [
         {
@@ -126,7 +138,7 @@ TwoImages.args = {
     total: 2,
 };
 
-const ThreeImages = Template.bind({});
+const ThreeImages: ReportActionItemImagesStory = Template.bind({});
 ThreeImages.args = {
     images: [
         {
@@ -146,7 +158,7 @@ ThreeImages.args = {
     total: 3,
 };
 
-const FourImages = Template.bind({});
+const FourImages: ReportActionItemImagesStory = Template.bind({});
 FourImages.args = {
     images: [
         {
@@ -170,7 +182,7 @@ FourImages.args = {
     total: 4,
 };
 
-const ThreePlusTwoImages = Template.bind({});
+const ThreePlusTwoImages: ReportActionItemImagesStory = Template.bind({});
 ThreePlusTwoImages.args = {
     images: [
         {
@@ -190,7 +202,7 @@ ThreePlusTwoImages.args = {
     total: 5,
 };
 
-const ThreePlusTenImages = Template.bind({});
+const ThreePlusTenImages: ReportActionItemImagesStory = Template.bind({});
 ThreePlusTenImages.args = {
     images: [
         {
