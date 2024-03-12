@@ -187,7 +187,7 @@ function hasStashedSession(): boolean {
 /**
  * Checks if the user is authenticated
  */
-function isAuthenticated(): boolean {
+function hasAuthToken(): boolean {
     return !!session.authToken;
 }
 
@@ -994,7 +994,7 @@ export {
     validateTwoFactorAuth,
     waitForUserSignIn,
     canAccessRouteByAnonymousUser,
-    isAuthenticated,
+    hasAuthToken,
     signInWithSupportAuthToken,
     isSupportAuthToken,
     hasStashedSession,
