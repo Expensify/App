@@ -123,7 +123,6 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                 medium
                 onPress={navigateToTagsSettings}
                 icon={Expensicons.Gear}
-                iconStyles={[styles.mr2]}
                 text={translate('common.settings')}
                 style={[isSmallScreenWidth && styles.w50]}
             />
