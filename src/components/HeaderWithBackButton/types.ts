@@ -1,9 +1,9 @@
 import type {ReactNode} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {Action} from '@hooks/useSingleExecution';
 import type {StepCounterParams} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
-import type {Policy, Report} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -100,6 +100,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** The report's policy, if we're showing the details for a report and need info about it for AvatarWithDisplay */
     policy?: OnyxEntry<Policy>;
+
+    /** Policies, if we're showing the details for a report and need participant details for AvatarWithDisplay */
+    personalDetails?: OnyxCollection<PersonalDetails>;
 
     /** Single execution function to prevent concurrent navigation actions */
     singleExecution?: <T extends unknown[]>(action: Action<T>) => Action<T>;
