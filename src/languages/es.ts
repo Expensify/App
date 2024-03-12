@@ -1995,9 +1995,22 @@ export default {
         },
         changeOwner: {
             changeOwnerPageTitle: 'Cambio de propietario',
-            outstandingBalance: 'Saldo pendiente',
-            transferBalance: 'Transfer balance',
-            transferBalanceFirstParagraph: ({email, amount}) => `La cuenta que debe este espacio de trabajo (${email}) tiene un saldo pendiente.\n\n¿Desea transferir este monto ${amount} para hacerse cargo de la facturación de este espacio de trabajo? El cargo en su tarjeta de pago se realizará inmediatamente.`,
+            // TODO: add spanish translations below
+            amountOwedTitle: 'Amount owed title',
+            amountOwedButtonText: 'Amount owed button text',
+            amountOwedText: 'Amount owed paragraph text.',
+            ownerOwesAmountTitle: 'Owner owes amount title',
+            ownerOwesAmountButtonText: 'Owner owes amount button text',
+            ownerOwesAmountText: 'Owner owes amount paragraph text.',
+            subscriptionTitle: 'Subscription title',
+            subscriptionButtonText: 'Subscription button text',
+            subscriptionText: 'Subscription paragraph text.',
+            duplicateSubscriptionTitle: 'Duplicate subscription title',
+            duplicateSubscriptionButtonText: 'Duplicate subscription button text',
+            duplicateSubscriptionText: 'Duplicate subscription paragraph text.',
+            hasFailedSettlementTitle: 'Has failed settlement title',
+            hasFailedSettlementButtonText: 'Has failed settlement button text',
+            hasFailedSettlementText: 'Has failed settlement paragraph text.',
         }
     },
     getAssistancePage: {

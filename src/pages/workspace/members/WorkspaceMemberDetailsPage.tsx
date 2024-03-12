@@ -93,10 +93,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
         Policy.requestWorkspaceOwnerChange(policyID);
     }, [policyID]);
 
-    const temporaryOpenCheckPage = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED));
-    };
-
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
@@ -128,8 +124,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
                             {isSelectedMemberOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
                                 <Button
                                     text={translate('workspace.people.transferOwner')}
-                                    // onPress={startChangeOwnershipFlow}
-                                    onPress={temporaryOpenCheckPage}
+                                    onPress={startChangeOwnershipFlow}
                                     medium
                                     isDisabled={isOffline}
                                     icon={Expensicons.Transfer}

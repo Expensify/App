@@ -37,13 +37,22 @@ function WorkspaceOwnerChangeCheckPage({route}: WorkspaceMemberDetailsPageProps)
     }, []);
 
     const cancel = useCallback(() => {
-
+        // TODO: some ONYX cleanup should be done here
+        Navigation.goBack();
     }, []);
 
     const confirmationTitle = useMemo(() => {
         switch (error) {
             case CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED:
-                return translate('workspace.changeOwner.outstandingBalance');
+                return translate('workspace.changeOwner.amountOwedTitle');
+            case CONST.POLICY.OWNERSHIP_ERRORS.OWNER_OWES_AMOUNT:
+                return translate('workspace.changeOwner.ownerOwesAmountTitle');
+            case CONST.POLICY.OWNERSHIP_ERRORS.SUBSCRIPTION:
+                return translate('workspace.changeOwner.subscriptionTitle');
+            case CONST.POLICY.OWNERSHIP_ERRORS.DUPLICATE_SUBSCRIPTION:
+                return translate('workspace.changeOwner.duplicateSubscriptionTitle');
+            case CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS:
+                return translate('workspace.changeOwner.hasFailedSettlementsTitle');
             default:
                 return null;
         }
@@ -52,7 +61,15 @@ function WorkspaceOwnerChangeCheckPage({route}: WorkspaceMemberDetailsPageProps)
     const confirmationButtonText = useMemo(() => {
         switch (error) {
             case CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED:
-                return translate('workspace.changeOwner.transferBalance');
+                return translate('workspace.changeOwner.amountOwedButtonText');
+            case CONST.POLICY.OWNERSHIP_ERRORS.OWNER_OWES_AMOUNT:
+                return translate('workspace.changeOwner.ownerOwesAmountButtonText');
+            case CONST.POLICY.OWNERSHIP_ERRORS.SUBSCRIPTION:
+                return translate('workspace.changeOwner.subscriptionButtonText');
+            case CONST.POLICY.OWNERSHIP_ERRORS.DUPLICATE_SUBSCRIPTION:
+                return translate('workspace.changeOwner.duplicateSubscriptionButtonText');
+            case CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS:
+                return translate('workspace.changeOwner.hasFailedSettlementsButtonText');
             default:
                 return '';
         }
@@ -61,7 +78,15 @@ function WorkspaceOwnerChangeCheckPage({route}: WorkspaceMemberDetailsPageProps)
     const confirmationText = useMemo(() => {
         switch (error) {
             case CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED:
-                return translate('workspace.changeOwner.transferBalanceFirstParagraph', {email: 'test@test.com', amount: '$50.00'});
+                return translate('workspace.changeOwner.amountOwedText');
+            case CONST.POLICY.OWNERSHIP_ERRORS.OWNER_OWES_AMOUNT:
+                return translate('workspace.changeOwner.ownerOwesAmountText');
+            case CONST.POLICY.OWNERSHIP_ERRORS.SUBSCRIPTION:
+                return translate('workspace.changeOwner.subscriptionText');
+            case CONST.POLICY.OWNERSHIP_ERRORS.DUPLICATE_SUBSCRIPTION:
+                return translate('workspace.changeOwner.duplicateSubscriptionText');
+            case CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS:
+                return translate('workspace.changeOwner.hasFailedSettlementsText');
             default:
                 return null;
         }
