@@ -124,6 +124,7 @@ function NewChatPage({isGroupChat, reports, isSearchingForReports}: NewChatPageP
         reports,
         isGroupChat,
     });
+
     const sections = useMemo(() => {
         const sectionsList = [];
         let indexOffset = 0;
@@ -168,12 +169,11 @@ function NewChatPage({isGroupChat, reports, isSearchingForReports}: NewChatPageP
      * Creates a new 1:1 chat with the option and the current user,
      * or navigates to the existing chat if one with those participants already exists.
      */
-    const createChat = (option: OptionData) => {
-        if ((!option.login && selectedOptions.length !== 1) || !selectedOptions[0].login) {
+    const createChat = (option: ListItem) => {
+        if (!option.login) {
             return;
         }
-        const login = option.login ?? selectedOptions[0].login;
-        Report.navigateToAndOpenReport([login]);
+        Report.navigateToAndOpenReport([option.login]);
     };
 
     /**
@@ -251,6 +251,14 @@ function NewChatPage({isGroupChat, reports, isSearchingForReports}: NewChatPageP
                 Navigation.navigate(ROUTES.NEW_CHAT_CONFIRM);
             }
         };
+
+        const createChatDM = () => {
+            if (selectedOptions.length !== 1 || !selectedOptions[0].login) {
+                return;
+            }
+            const login = selectedOptions[0].login;
+            Report.navigateToAndOpenReport([login]);
+        };
         return (
             <>
                 <ReferralProgramCTA
@@ -262,7 +270,7 @@ function NewChatPage({isGroupChat, reports, isSearchingForReports}: NewChatPageP
                     <Button
                         success
                         text={selectedOptions.length > 1 ? translate('common.next') : translate('newChatPage.createChat')}
-                        onPress={navigateToConfirmPage}
+                        onPress={selectedOptions.length > 1 ? navigateToConfirmPage : createChatDM}
                         pressOnEnter
                     />
                 )}

@@ -84,7 +84,8 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                     };
                     return section;
                 })
-                .sort((a, b) => a.text.toLowerCase().localeCompare(b.text.toLowerCase())),
+                .filter((selectedOption) => selectedOption.text !== undefined)
+                .sort((a, b) => a.text?.toLowerCase().localeCompare(b.text?.toLowerCase() ?? '') ?? -1),
         [selectedOptions, personalData.accountID, translate, styles.textStrong, styles.justifyContentCenter, styles.badgeBordered, styles.activeItemBadge, StyleUtils],
     );
 
