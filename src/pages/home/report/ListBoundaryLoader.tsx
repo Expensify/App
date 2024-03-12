@@ -1,37 +1,36 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {ActivityIndicator, View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
-const propTypes = {
+type ListBoundaryLoaderProps = {
     /** type of rendered loader. Can be 'header' or 'footer' */
-    type: PropTypes.oneOf([CONST.LIST_COMPONENTS.HEADER, CONST.LIST_COMPONENTS.FOOTER]).isRequired,
+    type: ValueOf<typeof CONST.LIST_COMPONENTS>;
 
     /** Shows if we call fetching older report action */
-    isLoadingOlderReportActions: PropTypes.bool,
+    isLoadingOlderReportActions?: boolean;
 
-    /* Shows if we call initial loading of report action */
-    isLoadingInitialReportActions: PropTypes.bool,
+    /** Shows if we call initial loading of report action */
+    isLoadingInitialReportActions?: boolean;
 
     /** Shows if we call fetching newer report action */
-    isLoadingNewerReportActions: PropTypes.bool,
+    isLoadingNewerReportActions?: boolean;
 
     /** Name of the last report action */
-    lastReportActionName: PropTypes.string,
+    lastReportActionName?: string;
 };
 
-const defaultProps = {
-    isLoadingOlderReportActions: false,
-    isLoadingInitialReportActions: false,
-    isLoadingNewerReportActions: false,
-    lastReportActionName: '',
-};
-
-function ListBoundaryLoader({type, isLoadingOlderReportActions, isLoadingInitialReportActions, lastReportActionName, isLoadingNewerReportActions}) {
+function ListBoundaryLoader({
+    type,
+    isLoadingOlderReportActions = false,
+    isLoadingInitialReportActions = false,
+    lastReportActionName = '',
+    isLoadingNewerReportActions = false,
+}: ListBoundaryLoaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -66,8 +65,6 @@ function ListBoundaryLoader({type, isLoadingOlderReportActions, isLoadingInitial
     }
 }
 
-ListBoundaryLoader.propTypes = propTypes;
-ListBoundaryLoader.defaultProps = defaultProps;
 ListBoundaryLoader.displayName = 'ListBoundaryLoader';
 
 export default ListBoundaryLoader;
