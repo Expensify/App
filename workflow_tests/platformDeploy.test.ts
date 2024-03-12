@@ -1,13 +1,15 @@
-const path = require('path');
-const kieMockGithub = require('@kie/mock-github');
-const utils = require('./utils/utils');
-const assertions = require('./assertions/platformDeployAssertions');
-const mocks = require('./mocks/platformDeployMocks');
-const eAct = require('./utils/ExtendedAct');
+import type {MockStep} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
+import * as kieMockGithub from '@kie/mock-github';
+import type {CreateRepositoryFile, MockGithub} from '@kie/mock-github';
+import path from 'path';
+import assertions from './assertions/platformDeployAssertions';
+import mocks from './mocks/platformDeployMocks';
+import eAct from './utils/ExtendedAct';
+import utils from './utils/utils';
 
 jest.setTimeout(90 * 1000);
-let mockGithub;
-const FILES_TO_COPY_INTO_TEST_REPO = [
+let mockGithub: MockGithub;
+const FILES_TO_COPY_INTO_TEST_REPO: CreateRepositoryFile[] = [
     ...utils.deepCopy(utils.FILES_TO_COPY_INTO_TEST_REPO),
     {
         src: path.resolve(__dirname, '..', '.github', 'workflows', 'platformDeploy.yml'),
@@ -16,7 +18,7 @@ const FILES_TO_COPY_INTO_TEST_REPO = [
 ];
 
 describe('test workflow platformDeploy', () => {
-    beforeAll(async () => {
+    beforeAll(() => {
         // in case of the tests being interrupted without cleanup the mock repo directory may be left behind
         // which breaks the next test run, this removes any possible leftovers
         utils.removeMockRepoDir();
@@ -42,15 +44,18 @@ describe('test workflow platformDeploy', () => {
     describe('push', () => {
         describe('tag', () => {
             it('as team member - platform deploy executes on staging', async () => {
-                const repoPath = mockGithub.repo.getPath('testPlatformDeployWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testPlatformDeployWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(
                     act,
+                    // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                     'push',
                     {
                         ref: 'refs/tags/1.2.3',
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
                         ref_type: 'tag',
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
                         ref_name: '1.2.3',
                     },
                     {
@@ -88,7 +93,7 @@ describe('test workflow platformDeploy', () => {
                     },
                     workflowPath,
                 );
-                const testMockSteps = {
+                const testMockSteps: MockStep = {
                     validateActor: mocks.PLATFORM_DEPLOY__VALIDATE_ACTOR__TEAM_MEMBER__STEP_MOCKS,
                     android: mocks.PLATFORM_DEPLOY__ANDROID__STEP_MOCKS,
                     desktop: mocks.PLATFORM_DEPLOY__DESKTOP__STEP_MOCKS,
@@ -124,15 +129,18 @@ describe('test workflow platformDeploy', () => {
             });
 
             it('as OSBotify - platform deploy executes on staging', async () => {
-                const repoPath = mockGithub.repo.getPath('testPlatformDeployWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testPlatformDeployWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(
                     act,
+                    // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                     'push',
                     {
                         ref: 'refs/tags/1.2.3',
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
                         ref_type: 'tag',
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
                         ref_name: '1.2.3',
                     },
                     {
@@ -206,15 +214,18 @@ describe('test workflow platformDeploy', () => {
             });
 
             it('as outsider - platform deploy does not execute', async () => {
-                const repoPath = mockGithub.repo.getPath('testPlatformDeployWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testPlatformDeployWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(
                     act,
+                    // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                     'push',
                     {
                         ref: 'refs/tags/1.2.3',
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
                         ref_type: 'tag',
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
                         ref_name: '1.2.3',
                     },
                     {

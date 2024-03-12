@@ -1,13 +1,15 @@
-const path = require('path');
-const kieMockGithub = require('@kie/mock-github');
-const utils = require('./utils/utils');
-const assertions = require('./assertions/preDeployAssertions');
-const mocks = require('./mocks/preDeployMocks');
-const eAct = require('./utils/ExtendedAct');
+import type {MockStep} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
+import * as kieMockGithub from '@kie/mock-github';
+import type {CreateRepositoryFile, MockGithub} from '@kie/mock-github';
+import path from 'path';
+import assertions from './assertions/preDeployAssertions';
+import mocks from './mocks/preDeployMocks';
+import eAct from './utils/ExtendedAct';
+import utils from './utils/utils';
 
 jest.setTimeout(90 * 1000);
-let mockGithub;
-const FILES_TO_COPY_INTO_TEST_REPO = [
+let mockGithub: MockGithub;
+const FILES_TO_COPY_INTO_TEST_REPO: CreateRepositoryFile[] = [
     ...utils.deepCopy(utils.FILES_TO_COPY_INTO_TEST_REPO),
     {
         src: path.resolve(__dirname, '..', '.github', 'workflows', 'preDeploy.yml'),
@@ -16,7 +18,7 @@ const FILES_TO_COPY_INTO_TEST_REPO = [
 ];
 
 describe('test workflow preDeploy', () => {
-    beforeAll(async () => {
+    beforeAll(() => {
         // in case of the tests being interrupted without cleanup the mock repo directory may be left behind
         // which breaks the next test run, this removes any possible leftovers
         utils.removeMockRepoDir();
@@ -41,7 +43,7 @@ describe('test workflow preDeploy', () => {
     });
     it('push to main - workflow executes', async () => {
         // get path to the local test repo
-        const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
+        const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') ?? '';
 
         // get path to the workflow file under test
         const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
@@ -52,6 +54,7 @@ describe('test workflow preDeploy', () => {
         // set run parameters
         act = utils.setUpActParams(
             act,
+            // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
             'push',
             {ref: 'refs/heads/main'},
             {
@@ -63,7 +66,7 @@ describe('test workflow preDeploy', () => {
         );
 
         // set up mocks
-        const testMockSteps = {
+        const testMockSteps: MockStep = {
             confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
             chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
             skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
@@ -117,10 +120,10 @@ describe('test workflow preDeploy', () => {
     });
 
     it('different event than push - workflow does not execute', async () => {
-        const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
+        const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') ?? '';
         const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
         let act = new eAct.ExtendedAct(repoPath, workflowPath);
-        const testMockSteps = {
+        const testMockSteps: MockStep = {
             confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
             chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
             skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
@@ -156,6 +159,7 @@ describe('test workflow preDeploy', () => {
         // pull_request
         act = utils.setUpActParams(
             act,
+            // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
             'pull_request',
             {head: {ref: 'main'}},
             {
@@ -183,6 +187,7 @@ describe('test workflow preDeploy', () => {
         // workflow_dispatch
         act = utils.setUpActParams(
             act,
+            // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
             'workflow_dispatch',
             {},
             {
@@ -210,11 +215,12 @@ describe('test workflow preDeploy', () => {
 
     describe('confirm passing build', () => {
         it('typecheck job failed - workflow exits', async () => {
-            const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
+            const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
+                // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 'push',
                 {ref: 'refs/heads/main'},
                 {
@@ -224,7 +230,7 @@ describe('test workflow preDeploy', () => {
                 },
                 'dummy_github_token',
             );
-            const testMockSteps = {
+            const testMockSteps: MockStep = {
                 confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
                 chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
                 skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
@@ -232,6 +238,7 @@ describe('test workflow preDeploy', () => {
             };
             const testMockJobs = {
                 typecheck: {
+                    // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                     steps: [utils.createMockStep('Run typecheck workflow', 'Running typecheck workflow - Typecheck workflow failed', 'TYPECHECK', null, null, null, null, false)],
                     runsOn: 'ubuntu-latest',
                 },
@@ -264,15 +271,18 @@ describe('test workflow preDeploy', () => {
                 mockJobs: testMockJobs,
             });
             expect(result).toEqual(
+                // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 expect.arrayContaining([utils.createStepAssertion('Run typecheck workflow', false, null, 'TYPECHECK', 'Running typecheck workflow - Typecheck workflow failed')]),
             );
             assertions.assertLintJobExecuted(result);
             assertions.assertTestJobExecuted(result);
             expect(result).toEqual(
                 expect.arrayContaining([
+                    // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                     utils.createStepAssertion('Announce failed workflow in Slack', true, null, 'CONFIRM_PASSING_BUILD', 'Announcing failed workflow in slack', [
                         {key: 'SLACK_WEBHOOK', value: '***'},
                     ]),
+                    // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                     utils.createStepAssertion('Exit failed workflow', false, ''),
                 ]),
             );
@@ -283,11 +293,12 @@ describe('test workflow preDeploy', () => {
         });
 
         it('lint job failed - workflow exits', async () => {
-            const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
+            const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
+                // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 'push',
                 {ref: 'refs/heads/main'},
                 {
@@ -297,7 +308,7 @@ describe('test workflow preDeploy', () => {
                 },
                 'dummy_github_token',
             );
-            const testMockSteps = {
+            const testMockSteps: MockStep = {
                 confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
                 chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
                 skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
@@ -309,6 +320,7 @@ describe('test workflow preDeploy', () => {
                     runsOn: 'ubuntu-latest',
                 },
                 lint: {
+                    // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                     steps: [utils.createMockStep('Run lint workflow', 'Running lint workflow - Lint workflow failed', 'LINT', null, null, null, null, false)],
                     runsOn: 'ubuntu-latest',
                 },
@@ -337,13 +349,16 @@ describe('test workflow preDeploy', () => {
                 mockJobs: testMockJobs,
             });
             assertions.assertTypecheckJobExecuted(result);
+            // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
             expect(result).toEqual(expect.arrayContaining([utils.createStepAssertion('Run lint workflow', false, null, 'LINT', 'Running lint workflow - Lint workflow failed')]));
             assertions.assertTestJobExecuted(result);
             expect(result).toEqual(
                 expect.arrayContaining([
+                    // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                     utils.createStepAssertion('Announce failed workflow in Slack', true, null, 'CONFIRM_PASSING_BUILD', 'Announcing failed workflow in slack', [
                         {key: 'SLACK_WEBHOOK', value: '***'},
                     ]),
+                    // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                     utils.createStepAssertion('Exit failed workflow', false, ''),
                 ]),
             );
@@ -354,11 +369,12 @@ describe('test workflow preDeploy', () => {
         });
 
         it('test job failed - workflow exits', async () => {
-            const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
+            const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
+                // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 'push',
                 {ref: 'refs/heads/main'},
                 {
@@ -368,7 +384,7 @@ describe('test workflow preDeploy', () => {
                 },
                 'dummy_github_token',
             );
-            const testMockSteps = {
+            const testMockSteps: MockStep = {
                 confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
                 chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
                 skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
@@ -384,6 +400,7 @@ describe('test workflow preDeploy', () => {
                     runsOn: 'ubuntu-latest',
                 },
                 test: {
+                    // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                     steps: [utils.createMockStep('Run test workflow', 'Running test workflow - Test workflow failed', 'TEST', null, null, null, null, false)],
                     runsOn: 'ubuntu-latest',
                 },
@@ -409,12 +426,15 @@ describe('test workflow preDeploy', () => {
             });
             assertions.assertTypecheckJobExecuted(result);
             assertions.assertLintJobExecuted(result);
+            // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
             expect(result).toEqual(expect.arrayContaining([utils.createStepAssertion('Run test workflow', false, null, 'TEST', 'Running test workflow - Test workflow failed')]));
             expect(result).toEqual(
                 expect.arrayContaining([
+                    // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                     utils.createStepAssertion('Announce failed workflow in Slack', true, null, 'CONFIRM_PASSING_BUILD', 'Announcing failed workflow in slack', [
                         {key: 'SLACK_WEBHOOK', value: '***'},
                     ]),
+                    // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                     utils.createStepAssertion('Exit failed workflow', false, ''),
                 ]),
             );
@@ -425,11 +445,12 @@ describe('test workflow preDeploy', () => {
         });
 
         it('lint and test job succeed - workflow continues', async () => {
-            const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
+            const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
+                // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 'push',
                 {ref: 'refs/heads/main'},
                 {
@@ -439,7 +460,7 @@ describe('test workflow preDeploy', () => {
                 },
                 'dummy_github_token',
             );
-            const testMockSteps = {
+            const testMockSteps: MockStep = {
                 confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
                 chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
                 skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
@@ -491,11 +512,12 @@ describe('test workflow preDeploy', () => {
     describe('choose deploy actions', () => {
         describe('staging locked', () => {
             it('not automated PR - deploy skipped and comment left', async () => {
-                const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 act = utils.setUpActParams(act, 'push', {ref: 'refs/heads/main'}, {OS_BOTIFY_TOKEN: 'dummy_token', SLACK_WEBHOOK: 'dummy_slack_webhook'}, 'dummy_github_token');
-                const testMockSteps = {
+                const testMockSteps: MockStep = {
                     confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
                     chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_LOCKED,
                     skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
@@ -545,11 +567,12 @@ describe('test workflow preDeploy', () => {
             });
 
             it('automated PR - deploy skipped, but no comment left', async () => {
-                const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 act = utils.setUpActParams(act, 'push', {ref: 'refs/heads/main'}, {OS_BOTIFY_TOKEN: 'dummy_token', SLACK_WEBHOOK: 'dummy_slack_webhook'}, 'dummy_github_token');
-                const testMockSteps = {
+                const testMockSteps: MockStep = {
                     confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
                     chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_LOCKED,
                     skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
@@ -601,11 +624,12 @@ describe('test workflow preDeploy', () => {
 
         describe('staging not locked', () => {
             it('not automated PR - proceed with deploy', async () => {
-                const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(
                     act,
+                    // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                     'push',
                     {ref: 'refs/heads/main'},
                     {
@@ -615,7 +639,7 @@ describe('test workflow preDeploy', () => {
                     },
                     'dummy_github_token',
                 );
-                const testMockSteps = {
+                const testMockSteps: MockStep = {
                     confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
                     chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
                     skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
@@ -665,11 +689,12 @@ describe('test workflow preDeploy', () => {
             });
 
             it('automated PR - deploy skipped, but no comment left', async () => {
-                const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(
                     act,
+                    // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                     'push',
                     {ref: 'refs/heads/main'},
                     {
@@ -678,7 +703,7 @@ describe('test workflow preDeploy', () => {
                     },
                     'dummy_github_token',
                 );
-                const testMockSteps = {
+                const testMockSteps: MockStep = {
                     confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
                     chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
                     skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
@@ -729,11 +754,12 @@ describe('test workflow preDeploy', () => {
         });
 
         it('one of updateStaging steps failed - failure announced in Slack', async () => {
-            const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
+            const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
+                // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 'push',
                 {ref: 'refs/heads/main'},
                 {
@@ -743,7 +769,7 @@ describe('test workflow preDeploy', () => {
                 },
                 'dummy_github_token',
             );
-            const testMockSteps = {
+            const testMockSteps: MockStep = {
                 confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
                 chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
                 skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
