@@ -188,7 +188,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                 isActive: policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 pendingAction: policy?.pendingFields?.reimbursementChoice,
                 errors: ErrorUtils.getLatestErrorField(policy ?? {}, 'reimbursementChoice'),
-                onCloseError: () => Policy.clearWorkspaceReimbursementErrors(policy?.id ?? ''),
+                onCloseError: () => Policy.clearWorkspaceReimbursementErrors(policy?.id ?? '')
             },
         ];
     }, [
@@ -236,7 +236,6 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
             shouldShowNotFoundPage={!isPaidGroupPolicy || !isPolicyAdmin}
             shouldSkipVBBACall
             isLoading={isLoading}
-            shouldUseScrollView
         >
             <View style={[styles.mt3, styles.textStrong, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                 <Section
