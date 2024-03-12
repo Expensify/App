@@ -73,11 +73,16 @@ function WorkspaceTaxesPage({policy}: WorkspaceTaxesPageProps) {
     );
 
     const toggleTax = (tax: ListItem) => {
+        const key = tax.keyForList;
+        if (typeof key !== 'string') {
+            return;
+        }
+
         setSelectedTaxesIDs((prev) => {
-            if (prev.includes(tax.keyForList)) {
-                return prev.filter((item) => item !== tax.keyForList);
+            if (prev?.includes(key)) {
+                return prev.filter((item) => item !== key);
             }
-            return [...prev, tax.keyForList];
+            return [...prev, key];
         });
     };
 
@@ -88,7 +93,7 @@ function WorkspaceTaxesPage({policy}: WorkspaceTaxesPageProps) {
                 return [];
             }
 
-            return taxesToSelect.map((item) => item.keyForList);
+            return taxesToSelect.map((item) => (item.keyForList ? item.keyForList : ''));
         });
     };
 
