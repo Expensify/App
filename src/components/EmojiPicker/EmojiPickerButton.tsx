@@ -3,16 +3,15 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
-import withNavigationFocus from '@components/withNavigationFocus';
-import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {useIsFocused} from '@react-navigation/native';
 import getButtonState from '@libs/getButtonState';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
 
-type EmojiPickerButtonProps = WithNavigationFocusProps & {
+type EmojiPickerButtonProps = {
     /** Flag to disable the emoji picker button */
     isDisabled?: boolean;
 
@@ -30,11 +29,12 @@ type EmojiPickerButtonProps = WithNavigationFocusProps & {
     onEmojiSelected: EmojiPickerAction.OnEmojiSelected;
 };
 
-function EmojiPickerButton({isDisabled = false, id = '', emojiPickerID = '', shiftVertical = 0, isFocused, onModalHide, onEmojiSelected}: EmojiPickerButtonProps) {
+function EmojiPickerButton({isDisabled = false, id = '', emojiPickerID = '', shiftVertical = 0, onModalHide, onEmojiSelected}: EmojiPickerButtonProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
     const {translate} = useLocalize();
+    const isFocused = useIsFocused();
 
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
 
@@ -80,4 +80,4 @@ function EmojiPickerButton({isDisabled = false, id = '', emojiPickerID = '', shi
 }
 
 EmojiPickerButton.displayName = 'EmojiPickerButton';
-export default withNavigationFocus(memo(EmojiPickerButton));
+export default memo(EmojiPickerButton);

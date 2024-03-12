@@ -33,7 +33,7 @@ type EmojiPickerButtonDropdownProps = {
 function EmojiPickerButtonDropdown(
     {isDisabled = false, onModalHide, onInputChange, value, disabled, style}: EmojiPickerButtonDropdownProps,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    forwardedRef: ForwardedRef<AnimatedTextInputRef>,
+    ref: ForwardedRef<AnimatedTextInputRef>,
 ) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -79,7 +79,8 @@ function EmojiPickerButtonDropdown(
                             style={styles.emojiPickerButtonDropdownIcon}
                             numberOfLines={1}
                         >
-                            {value ?? (
+                            {// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            value || (
                                 <Icon
                                     src={Expensicons.Emoji}
                                     fill={StyleUtils.getIconFillColor(CONST.BUTTON_STATES.DISABLED)}

@@ -1,7 +1,7 @@
 import {FlashList} from '@shopify/flash-list';
 import type {ListRenderItem} from '@shopify/flash-list';
 import React, {useMemo} from 'react';
-import type {LegacyRef} from 'react';
+import type {ForwardedRef} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {Emoji, HeaderEmoji} from '@assets/emojis/types';
@@ -84,7 +84,7 @@ function ListEmptyComponent() {
 
 function BaseEmojiPickerMenu(
     {headerEmojis, scrollToHeader, isFiltered, listWrapperStyle = [], data, renderItem, stickyHeaderIndices = [], extraData = [], alwaysBounceVertical = false}: BaseEmojiPickerMenuProps,
-    forwardedRef: LegacyRef<FlashList<Emoji | HeaderEmoji | EmojiSpacer>>,
+    ref: ForwardedRef<FlashList<Emoji | HeaderEmoji | EmojiSpacer>>,
 ) {
     const styles = useThemeStyles();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
@@ -105,7 +105,7 @@ function BaseEmojiPickerMenu(
             )}
             <View style={listWrapperStyle}>
                 <FlashList
-                    ref={forwardedRef}
+                    ref={ref}
                     keyboardShouldPersistTaps="handled"
                     data={data}
                     drawDistance={CONST.EMOJI_DRAW_AMOUNT}
