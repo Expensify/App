@@ -2083,8 +2083,8 @@ function getReportFieldsByPolicyID(policyID: string): Record<string, PolicyRepor
     if (!policyReportFields || !fieldList) {
         return {};
     }
-    
-    return fieldList as Record<string, PolicyReportField>;
+
+    return fieldList;
 }
 
 /**
@@ -2106,10 +2106,10 @@ function getAvailableReportFields(report: Report, policyReportFields: PolicyRepo
     const mergedFieldIds = Array.from(new Set([...policyReportFields.map(({fieldID}) => fieldID), ...reportFields.map(({fieldID}) => fieldID)]));
 
     const fields = mergedFieldIds.map((id) => {
-        const field = report?.fieldList?.[`expensify_${id as string}`];
+        const field = report?.fieldList?.[`expensify_${id}`];
 
         if (field) {
-            return field as PolicyReportField;
+            return field;
         }
 
         const policyReportField = policyReportFields.find(({fieldID}) => fieldID === id);
