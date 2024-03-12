@@ -19,15 +19,18 @@ const INACTIVE_POSITION_Y = -255;
 
 const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
 
-function GrowlNotification(_: unknown, ref: ForwardedRef<GrowlRef>) {
+function GrowlNotification(_: never, ref: ForwardedRef<GrowlRef>) {
     const translateY = useRef(new Animated.Value(INACTIVE_POSITION_Y)).current;
     const [bodyText, setBodyText] = useState('');
     const [type, setType] = useState('success');
-    const [duration, setDuration] = useState<number | undefined>();
+    const [duration, setDuration] = useState<number>();
     const theme = useTheme();
     const styles = useThemeStyles();
 
     type GrowlIconTypes = Record<
+        /** String representing the growl type, all type strings
+         *  for growl notifications are stored in CONST.GROWL
+         */
         string,
         {
             /** Expensicon for the page */
@@ -38,6 +41,7 @@ function GrowlNotification(_: unknown, ref: ForwardedRef<GrowlRef>) {
         }
     >;
 
+    // 
     const types: GrowlIconTypes = {
         [CONST.GROWL.SUCCESS]: {
             icon: Expensicons.Checkmark,
