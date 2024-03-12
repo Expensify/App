@@ -2608,8 +2608,10 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
-                    [policyCategory.oldName]: {
+                    [policyCategory.oldName]: null,
+                    [policyCategory.newName]: {
                         name: policyCategory.newName,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                 },
             },
@@ -2634,6 +2636,7 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
+                    [policyCategory.newName]: null,
                     [policyCategory.oldName]: {
                         name: policyCategory.oldName,
                         errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.genericFailureMessage'),
