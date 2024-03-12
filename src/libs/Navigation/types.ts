@@ -223,7 +223,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK]: {
         policyID: string;
-        error: typeof CONST.POLICY.OWNERSHIP_ERRORS[keyof typeof CONST.POLICY.OWNERSHIP_ERRORS];
+        error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>;
     };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;

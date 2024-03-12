@@ -2011,7 +2011,7 @@ export default {
             hasFailedSettlementTitle: 'Has failed settlement title',
             hasFailedSettlementButtonText: 'Has failed settlement button text',
             hasFailedSettlementText: 'Has failed settlement paragraph text.',
-        }
+        },
     },
     getAssistancePage: {
         title: 'Obtener ayuda',

@@ -1,18 +1,19 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Text from '@components/Text';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import * as Policy from '@userActions/Policy';
+import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
-import CONST from "@src/CONST";
-import Button from '@components/Button';
-import {View} from "react-native";
-import useThemeStyles from "@hooks/useThemeStyles";
-import useLocalize from "@hooks/useLocalize";
 
 type WorkspaceMemberDetailsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.OWNER_CHANGE_CHECK>;
 
@@ -32,14 +33,12 @@ function WorkspaceOwnerChangeCheckPage({route}: WorkspaceMemberDetailsPageProps)
 
     const shouldAskForConfirmation = CONFIRMABLE_ERRORS.includes(error);
 
-    const confirm = useCallback(() => {
-
-    }, []);
+    const confirm = useCallback(() => {}, []);
 
     const cancel = useCallback(() => {
-        // TODO: some ONYX cleanup should be done here
+        Policy.clearWorkspaceOwnerChangeFlow(policyID);
         Navigation.goBack();
-    }, []);
+    }, [policyID]);
 
     const confirmationTitle = useMemo(() => {
         switch (error) {

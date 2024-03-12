@@ -862,12 +862,24 @@ function updateWorkspaceOwnershipChecks(policyID: string, ownershipChecks: Polic
 function requestWorkspaceOwnerChange(policyID: string) {
     const ownershipChecks = policyOwnershipChecks[policyID] ?? {};
 
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                errorFields: null,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+        },
+    ];
+
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                errors: null,
+                errorFields: null,
+                pendingAction: null,
             },
         },
     ];
@@ -877,7 +889,7 @@ function requestWorkspaceOwnerChange(policyID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.genericFailureMessage'),
+                pendingAction: null,
             },
         },
     ];
@@ -887,7 +899,17 @@ function requestWorkspaceOwnerChange(policyID: string) {
         ...ownershipChecks,
     };
 
-    API.write(WRITE_COMMANDS.REQUEST_WORKSPACE_OWNER_CHANGE, params, {successData, failureData});
+    API.write(WRITE_COMMANDS.REQUEST_WORKSPACE_OWNER_CHANGE, params, {optimisticData, successData, failureData});
+}
+
+function clearWorkspaceOwnerChangeFlow(policyID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        errorFields: null,
+        pendingAction: null,
+    });
+    Onyx.merge(ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS, {
+        [policyID]: null,
+    });
 }
 
 /**
@@ -2826,6 +2848,7 @@ export {
     updateWorkspaceMembersRole,
     updateWorkspaceOwnershipChecks,
     requestWorkspaceOwnerChange,
+    clearWorkspaceOwnerChangeFlow,
     addMembersToWorkspace,
     isAdminOfFreePolicy,
     hasActiveFreePolicy,

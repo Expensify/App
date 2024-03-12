@@ -1984,7 +1984,7 @@ export default {
             hasFailedSettlementsTitle: 'Has failed settlements title',
             hasFailedSettlementsButtonText: 'Has failed settlements button text',
             hasFailedSettlementsText: 'Has failed settlements paragraph text.',
-        }
+        },
     },
     getAssistancePage: {
         title: 'Get assistance',

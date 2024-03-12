@@ -1,8 +1,9 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -92,6 +93,27 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
         Policy.updateWorkspaceOwnershipChecks(policyID, ownershipChecks);
         Policy.requestWorkspaceOwnerChange(policyID);
     }, [policyID]);
+
+    useEffect(() => {
+        Policy.clearWorkspaceOwnerChangeFlow(policyID);
+
+        return () => {
+            Policy.clearWorkspaceOwnerChangeFlow(policyID);
+        };
+        // eslint-disable-next-line
+    }, []);
+
+    useEffect(() => {
+        if (!policy?.errorFields?.changeOwner) {
+            return;
+        }
+
+        const keys = Object.keys(policy.errorFields.changeOwner);
+
+        if (keys && keys.length > 0) {
+            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, keys[0] as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
+        }
+    }, [policy?.errorFields?.changeOwner, policyID]);
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
