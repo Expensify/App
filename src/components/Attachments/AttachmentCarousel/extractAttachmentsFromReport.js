@@ -15,10 +15,17 @@ import CONST from '@src/CONST';
 function extractAttachmentsFromReport(parentReportAction, reportActions) {
     const actions = [parentReportAction, ...ReportActionsUtils.getSortedReportActions(_.values(reportActions))];
     const attachments = [];
+    const uniqueSources = new Set();
 
     const htmlParser = new HtmlParser({
         onopentag: (name, attribs) => {
             if (name === 'video') {
+                const source = tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]);
+                if (uniqueSources.has(source)) {
+                    return;
+                }
+
+                uniqueSources.add(source);
                 const splittedUrl = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE].split('/');
                 attachments.unshift({
                     reportActionID: null,
@@ -35,7 +42,17 @@ function extractAttachmentsFromReport(parentReportAction, reportActions) {
             if (name === 'img' && attribs.src) {
                 const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
                 const source = tryResolveUrlFromApiRoot(expensifySource || attribs.src);
-                const fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${source}`);
+                if (uniqueSources.has(source)) {
+                    return;
+                }
+
+                uniqueSources.add(source);
+                let fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${source}`);
+
+                // image.jpg helps render the attachment as image if we didn't obtain an extension from the source
+                if (!/\.\w+$/.test(fileName)) {
+                    fileName = 'image.jpg';
+                }
 
                 // By iterating actions in chronological order and prepending each attachment
                 // we ensure correct order of attachments even across actions with multiple attachments.
