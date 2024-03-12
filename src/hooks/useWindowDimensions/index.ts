@@ -26,8 +26,8 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
     const isLargeScreenWidth = windowWidth > variables.tabletResponsiveWidthBreakpoint;
     const isExtraSmallScreenWidth = windowWidth <= variables.extraSmallMobileResponsiveWidthBreakpoint;
 
-    const lowerScreenDimmension = Math.min(windowWidth, windowHeight);
-    const isSmallScreen = lowerScreenDimmension <= variables.mobileResponsiveWidthBreakpoint;
+    const lowerScreenDimension = Math.min(windowWidth, windowHeight);
+    const isSmallScreen = lowerScreenDimension <= variables.mobileResponsiveWidthBreakpoint;
 
     const [, cachedViewportHeight, setCachedViewportHeight] = useDebouncedState(windowHeight, CONST.TIMING.RESIZE_DEBOUNCE_TIME);
 
