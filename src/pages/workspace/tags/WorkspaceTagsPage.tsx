@@ -68,7 +68,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
         () =>
             policyTagLists
                 .map((policyTagList) =>
-                    Object.values(policyTagList.tags).map((value) => ({
+                    Object.values(policyTagList.tags || []).map((value) => ({
                         value: value.name,
                         text: value.name,
                         keyForList: value.name,

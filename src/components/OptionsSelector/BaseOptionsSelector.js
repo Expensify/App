@@ -655,9 +655,10 @@ class BaseOptionsSelector extends Component {
                     )}
                 </View>
                 {this.props.shouldShowReferralCTA && (
-                    <View style={[this.props.themeStyles.ph5, this.props.themeStyles.pb5, this.props.themeStyles.flexShrink0]}>
-                        <ReferralProgramCTA referralContentType={this.props.referralContentType} />
-                    </View>
+                    <ReferralProgramCTA
+                        referralContentType={this.props.referralContentType}
+                        style={[this.props.themeStyles.mh5, this.props.themeStyles.mb5, this.props.themeStyles.flexShrink0]}
+                    />
                 )}
 
                 {shouldShowFooter && (

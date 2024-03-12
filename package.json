@@ -52,13 +52,13 @@
     "symbolicate:ios": "npx metro-symbolicate main.jsbundle.map",
     "symbolicate-release:ios": "scripts/release-profile.js --platform=ios",
     "symbolicate-release:android": "scripts/release-profile.js --platform=android",
-    "test:e2e": "ts-node tests/e2e/testRunner.js --config ./config.local.ts",
-    "test:e2e:dev": "ts-node tests/e2e/testRunner.js --config ./config.dev.js",
+    "test:e2e": "ts-node tests/e2e/testRunner.ts --config ./config.local.ts",
+    "test:e2e:dev": "ts-node tests/e2e/testRunner.ts --config ./config.dev.ts",
     "gh-actions-unused-styles": "./.github/scripts/findUnusedKeys.sh",
     "workflow-test": "./workflow_tests/scripts/runWorkflowTests.sh",
     "workflow-test:generate": "ts-node workflow_tests/utils/preGenerateTest.js",
     "setup-https": "mkcert -install && mkcert -cert-file config/webpack/certificate.pem -key-file config/webpack/key.pem dev.new.expensify.com localhost 127.0.0.1",
-    "e2e-test-runner-build": "ncc build tests/e2e/testRunner.js -o tests/e2e/dist/"
+    "e2e-test-runner-build": "ncc build tests/e2e/testRunner.ts -o tests/e2e/dist/"
   },
   "dependencies": {
     "@dotlottie/react-player": "^1.6.3",
@@ -103,7 +103,7 @@
     "date-fns-tz": "^2.0.0",
     "dom-serializer": "^0.2.2",
     "domhandler": "^4.3.0",
-    "expensify-common": "git+ssh://git@github.com/Expensify/expensify-common.git#a8ed0f8e1be3a1e09016e07a74cfd13c85bbc167",
+    "expensify-common": "git+ssh://git@github.com/Expensify/expensify-common.git#ee0f33865e3a27245e5cf01ed0c62cf88d44bb10",
     "expo": "^50.0.3",
     "expo-av": "~13.10.4",
     "expo-image": "1.10.1",

@@ -917,7 +917,7 @@ function isChatThread(report: OnyxEntry<Report>): boolean {
 }
 
 function isDM(report: OnyxEntry<Report>): boolean {
-    return isChatReport(report) && !getChatType(report);
+    return isChatReport(report) && !getChatType(report) && !isThread(report);
 }
 
 function isSelfDM(report: OnyxEntry<Report>): boolean {
@@ -1243,7 +1243,6 @@ function isMoneyRequestReport(reportOrID: OnyxEntry<Report> | EmptyObject | stri
 function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
     const participantAccountIDs = report?.participantAccountIDs ?? [];
     return (
-        !isThread(report) &&
         !isChatRoom(report) &&
         !isExpenseRequest(report) &&
         !isMoneyRequestReport(report) &&
