@@ -3180,6 +3180,107 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
     }
 }
 
+function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagList>) {
+    const newName = policyTagListName.newName;
+    const oldName = policyTagListName.oldName;
+    const oldPolicyTags = policyTags?.[oldName] ?? {};
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [newName]: {...oldPolicyTags, name: newName, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                    [oldName]: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [newName]: {pendingAction: null},
+                    [oldName]: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    errors: {
+                        [oldName]: oldName,
+                        [newName]: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                    },
+                    [newName]: null,
+                    [oldName]: oldPolicyTags,
+                },
+            },
+        ],
+    };
+    const parameters = {
+        policyID,
+        oldName,
+        newName,
+    };
+
+    API.write(WRITE_COMMANDS.RENAME_POLICY_TAG_LIST, parameters, onyxData);
+}
+
+function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    requiresTag,
+                    errors: {requiresTag: null},
+                    pendingFields: {
+                        requiresTag: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    errors: {
+                        requiresTag: null,
+                    },
+                    pendingFields: {
+                        requiresTag: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    requiresTag: !requiresTag,
+                    errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                    pendingFields: {
+                        requiresTag: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        requiresTag,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG, parameters, onyxData);
+}
+
 export {
     removeMembers,
     updateWorkspaceMembersRole,
@@ -3244,4 +3345,6 @@ export {
     enablePolicyTaxes,
     enablePolicyWorkflows,
     openPolicyDistanceRatesPage,
+    renamePolicyTaglist,
+    setPolicyRequiresTag,
 };
