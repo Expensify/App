@@ -19,7 +19,7 @@ const INACTIVE_POSITION_Y = -255;
 
 const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
 
-function GrowlNotification(_: undefined, ref: ForwardedRef<GrowlRef>) {
+function GrowlNotification(_: unknown, ref: ForwardedRef<GrowlRef>) {
     const translateY = useRef(new Animated.Value(INACTIVE_POSITION_Y)).current;
     const [bodyText, setBodyText] = useState('');
     const [type, setType] = useState('success');
