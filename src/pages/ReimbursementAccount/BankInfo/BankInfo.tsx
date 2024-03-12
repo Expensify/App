@@ -124,6 +124,7 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
                     [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: '',
                 };
                 ReimbursementAccountUtils.updateReimbursementAccountDraft(bankAccountData);
+                ReimbursementAccountUtils.hideBankAccountErrors();
                 BankAccounts.setBankAccountSubStep(null);
             }
         } else {
