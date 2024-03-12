@@ -168,7 +168,7 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
             IOU.updateMoneyRequestAmountAndCurrency(transaction.transactionID, report.reportID, newCurrency, newAmount, policy, policyTags, policyCategories);
             Navigation.dismissModal();
         },
-        [transaction, report, policy, policyTags, policyCategories],
+        [transaction, report, policy, policyTags, policyCategories, taxRates, transactionTaxCode],
     );
 
     const saveTag = useCallback(
