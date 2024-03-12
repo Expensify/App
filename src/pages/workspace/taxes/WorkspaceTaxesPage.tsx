@@ -58,7 +58,7 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
                     alternateText: textForDefault(key),
                     keyForList: key,
                     isSelected: !!selectedTaxesIDs.includes(key),
-                    isSelectable: key !== defaultExternalID && key !== foreignTaxDefault,
+                    isSelectable: key !== defaultExternalID,
                     rightElement: (
                         <View style={styles.flexRow}>
                             <Text style={[styles.disabledText, styles.alignSelfCenter]}>
@@ -74,7 +74,7 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
                     ),
                 }))
                 .sort((a, b) => a.text.localeCompare(b.text)),
-        [policy?.taxRates?.taxes, textForDefault, foreignTaxDefault, defaultExternalID, selectedTaxesIDs, styles, theme.icon, translate],
+        [policy?.taxRates?.taxes, textForDefault, defaultExternalID, selectedTaxesIDs, styles, theme.icon, translate],
     );
 
     const isLoading = taxesList === undefined;
@@ -94,7 +94,7 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
     };
 
     const toggleAllTaxes = () => {
-        const taxesToSelect = taxesList.filter((tax) => tax.keyForList !== defaultExternalID && tax.keyForList !== foreignTaxDefault);
+        const taxesToSelect = taxesList.filter((tax) => tax.keyForList !== defaultExternalID);
         setSelectedTaxesIDs((prev) => {
             if (prev.length === taxesToSelect.length) {
                 return [];
