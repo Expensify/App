@@ -2646,7 +2646,7 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
 
     const parameters = {
         policyID,
-        categories: JSON.stringify([{[policyCategory.oldName]: policyCategory.newName}]),
+        categories: JSON.stringify({[policyCategory.oldName]: policyCategory.newName}),
     };
 
     API.write(WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY, parameters, onyxData);
