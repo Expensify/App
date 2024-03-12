@@ -25,6 +25,7 @@ import type {
     OpenDraftWorkspaceRequestParams,
     OpenPolicyCategoriesPageParams,
     OpenPolicyDistanceRatesPageParams,
+    OpenPolicyMoreFeaturesPageParams,
     OpenPolicyTagsPageParams,
     OpenWorkspaceInvitePageParams,
     OpenWorkspaceMembersPageParams,
@@ -3237,6 +3238,16 @@ function openPolicyDistanceRatesPage(policyID?: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE, params);
 }
 
+function openPolicyMoreFeaturesPage(policyID?: string) {
+    if (!policyID) {
+        return;
+    }
+
+    const params: OpenPolicyMoreFeaturesPageParams = {policyID};
+
+    API.read(READ_COMMANDS.OPEN_POLICY_MORE_FEATURES_PAGE, params);
+}
+
 export {
     removeMembers,
     updateWorkspaceMembersRole,
@@ -3302,4 +3313,5 @@ export {
     enablePolicyTaxes,
     enablePolicyWorkflows,
     openPolicyDistanceRatesPage,
+    openPolicyMoreFeaturesPage,
 };
