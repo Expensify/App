@@ -53,8 +53,6 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
     const draftEmojiCode = draftStatus?.emojiCode;
     const draftText = draftStatus?.text;
     const draftClearAfter = draftStatus?.clearAfter;
-
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const defaultEmoji = draftEmojiCode || currentUserEmojiCode;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

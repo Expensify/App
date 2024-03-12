@@ -45,12 +45,11 @@ function ProfilePage({
         dob: '',
         address: {
             street: '',
+            street2: '',
             city: '',
             state: '',
             zip: '',
             country: '',
-            zipPostCode: '',
-            addressLine1: '',
         },
     },
     currentUserPersonalDetails,
