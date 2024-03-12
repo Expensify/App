@@ -40,7 +40,8 @@ type EditReportFieldPageProps = EditReportFieldPageOnyxProps & {
 };
 
 function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) {
-    const reportField = report?.fieldList?.[route.params.fieldID] ?? policy?.fieldList?.[route.params.fieldID];
+    const fieldId = `expensify_${route.params.fieldID}`;
+    const reportField = report?.fieldList?.[fieldId] ?? policy?.fieldList?.[fieldId];
     const isDisabled = ReportUtils.isReportFieldDisabled(report, reportField ?? null, policy);
 
     if (!reportField || !report || isDisabled) {

@@ -2076,8 +2076,15 @@ function getTitleReportField(reportFields: Record<string, PolicyReportField>) {
 /**
  * Get the report fields attached to the policy given policyID
  */
-function getReportFieldsByPolicyID(policyID: string) {
-    return Object.entries(allPolicies ?? {}).find(([key]) => key.replace(ONYXKEYS.COLLECTION.POLICY, '') === policyID)?.[1]?.fieldList;
+function getReportFieldsByPolicyID(policyID: string): Record<string, PolicyReportField> {
+    const policyReportFields = Object.entries(allPolicies ?? {}).find(([key]) => key.replace(ONYXKEYS.COLLECTION.POLICY, '') === policyID);
+    const fieldList = policyReportFields?.[1]?.fieldList;
+
+    if (!policyReportFields || !fieldList) {
+        return {};
+    }
+    
+    return fieldList as Record<string, PolicyReportField>;
 }
 
 /**
@@ -2097,7 +2104,24 @@ function getAvailableReportFields(report: Report, policyReportFields: PolicyRepo
     // If the report is unsettled, we want to merge the new fields that get added to the policy with the fields that
     // are attached to the report.
     const mergedFieldIds = Array.from(new Set([...policyReportFields.map(({fieldID}) => fieldID), ...reportFields.map(({fieldID}) => fieldID)]));
-    return mergedFieldIds.map((id) => report?.fieldList?.[id] ?? policyReportFields.find(({fieldID}) => fieldID === id)) as PolicyReportField[];
+
+    const fields = mergedFieldIds.map((id) => {
+        const field = report?.fieldList?.[`expensify_${id as string}`];
+
+        if (field) {
+            return field as PolicyReportField;
+        }
+
+        const policyReportField = policyReportFields.find(({fieldID}) => fieldID === id);
+
+        if (policyReportField) {
+            return policyReportField;
+        }
+
+        return null;
+    });
+
+    return fields.filter(Boolean) as PolicyReportField[];
 }
 
 /**
