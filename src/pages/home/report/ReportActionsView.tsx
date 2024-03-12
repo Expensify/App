@@ -231,7 +231,7 @@ function ReportActionsView({
     // to display at least one money request action to match the total data.
     // For more details: https://github.com/Expensify/App/issues/26424#issuecomment-1869154198
     const reportActionsToDisplay = useMemo(() => {
-        if (!ReportUtils.isMoneyRequestReport(report) || !_.size(reportActions)) {
+        if (!ReportUtils.isMoneyRequestReport(report) || !reportActions.length) {
             return reportActions;
         }
 
