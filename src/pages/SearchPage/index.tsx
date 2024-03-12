@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxProvider';
@@ -31,9 +31,6 @@ type SearchPageOnyxProps = {
     /** Beta features list */
     betas: OnyxEntry<OnyxTypes.Beta[]>;
 
-    /** All reports shared with the user */
-    reports: OnyxCollection<OnyxTypes.Report>;
-
     /** Whether or not we are searching for reports on the server */
     isSearchingForReports: OnyxEntry<boolean>;
 };
@@ -55,7 +52,7 @@ const setPerformanceTimersEnd = () => {
 
 const SearchPageFooterInstance = <SearchPageFooter />;
 
-function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchPageProps) {
+function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -89,8 +86,8 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchP
                 headerMessage: '',
             };
         }
-        const optionList = OptionsListUtils.getSearchOptions(options, debouncedSearchValue.trim(), betas);
-        const header = OptionsListUtils.getHeaderMessage(options.reports.length + options.personalDetails.length !== 0, Boolean(options.userToInvite), debouncedSearchValue);
+        const optionList = OptionsListUtils.getSearchOptions(options, debouncedSearchValue.trim(), betas ?? []);
+        const header = OptionsListUtils.getHeaderMessage(optionList.recentReports.length + optionList.personalDetails.length !== 0, Boolean(optionList.userToInvite), debouncedSearchValue);
         return {...optionList, headerMessage: header};
     }, [areOptionsInitialized, isScreenTransitionEnd, options, debouncedSearchValue, betas]);
 
@@ -166,7 +163,7 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchP
                     />
                     <View style={[themeStyles.flex1, themeStyles.w100, safeAreaPaddingBottomStyle]}>
                         <SelectionList<ReportUtils.OptionData>
-                            sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
+                            sections={(areOptionsInitialized || didScreenTransitionEnd) && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
                             ListItem={UserListItem}
                             textInputValue={searchValue}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
@@ -176,7 +173,7 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchP
                             onLayout={setPerformanceTimersEnd}
                             autoFocus
                             onSelectRow={selectReport}
-                            showLoadingPlaceholder={!didScreenTransitionEnd || !isOptionsDataReady}
+                            showLoadingPlaceholder={(!areOptionsInitialized && !didScreenTransitionEnd) || !isOptionsDataReady} // showLoadingPlaceholder={(!areOptionsInitialized && !didScreenTransitionEnd) || !isOptionsDataReady}
                             footerContent={SearchPageFooterInstance}
                             isLoadingNewOptions={isSearchingForReports ?? undefined}
                         />
@@ -190,9 +187,6 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchP
 SearchPage.displayName = 'SearchPage';
 
 export default withOnyx<SearchPageProps, SearchPageOnyxProps>({
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
     betas: {
         key: ONYXKEYS.BETAS,
     },

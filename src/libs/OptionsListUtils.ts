@@ -53,6 +53,15 @@ import * as TaskUtils from './TaskUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
 
+type ReportOption = ReportUtils.OptionData & {
+    item: Report | PersonalDetails;
+};
+
+type OptionList = {
+    reports: ReportOption[];
+    personalDetails: ReportOption[];
+};
+
 type Tag = {
     enabled: boolean;
     name: string;
@@ -1329,10 +1338,6 @@ function isReportSelected(reportOption: ReportUtils.OptionData, selectedOptions:
     return selectedOptions.some((option) => (option.accountID && option.accountID === reportOption.accountID) || (option.reportID && option.reportID === reportOption.reportID));
 }
 
-type ReportOption = ReportUtils.OptionData & {
-    item: Report | PersonalDetails;
-};
-
 function createOptionList(reports: OnyxCollection<Report>, personalDetails: OnyxEntry<PersonalDetailsList>) {
     const reportMapForAccountIDs: Record<number, Report> = {};
     // Sorting the reports works like this:
@@ -1402,7 +1407,7 @@ function createOptionList(reports: OnyxCollection<Report>, personalDetails: Onyx
 
     return {
         reports: allReportOptions,
-        personalDetails: allPersonalDetailsOptions,
+        personalDetails: allPersonalDetailsOptions as ReportOption[],
     };
 }
 
@@ -1410,10 +1415,7 @@ function createOptionList(reports: OnyxCollection<Report>, personalDetails: Onyx
  * filter options based on specific conditions
  */
 function getOptions(
-    options: {
-        reports: ReportOption[];
-        personalDetails: ReportOption[];
-    },
+    options: OptionList,
     {
         reportActions = {},
         betas = [],
@@ -1704,7 +1706,7 @@ function getOptions(
         // Generates an optimistic account ID for new users not yet saved in Onyx
         const optimisticAccountID = UserUtils.generateAccountID(searchValue);
         const personalDetailsExtended = {
-            ...personalDetails,
+            ...allPersonalDetails,
             [optimisticAccountID]: {
                 accountID: optimisticAccountID,
                 login: searchValue,
@@ -1772,14 +1774,7 @@ function getOptions(
 /**
  * Build the options for the Search view
  */
-function getSearchOptions(
-    options: {
-        reports: ReportOption[];
-        personalDetails: ReportOption[];
-    },
-    searchValue = '',
-    betas: Beta[] = [],
-): GetOptions {
+function getSearchOptions(options: OptionList, searchValue = '', betas: Beta[] = []): GetOptions {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     const optionList = getOptions(options, {
@@ -1804,14 +1799,7 @@ function getSearchOptions(
     return optionList;
 }
 
-function getShareLogOptions(
-    options: {
-        reports: ReportOption[];
-        personalDetails: ReportOption[];
-    },
-    searchValue = '',
-    betas: Beta[] = [],
-): GetOptions {
+function getShareLogOptions(options: OptionList, searchValue = '', betas: Beta[] = []): GetOptions {
     return getOptions(options, {
         betas,
         searchInputValue: searchValue.trim(),
@@ -2132,4 +2120,4 @@ export {
     createOptionList,
 };
 
-export type {MemberForList, CategorySection, GetOptions};
+export type {MemberForList, CategorySection, GetOptions, OptionList};

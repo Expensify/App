@@ -1,15 +1,10 @@
 import React, {createContext, useCallback, useContext, useMemo, useRef, useState} from 'react';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import type {OptionData} from '@libs/ReportUtils';
+import type {OptionList} from '@libs/OptionsListUtils';
 import {usePersonalDetails, useReports} from './OnyxProvider';
 
-type Options = {
-    reports: OptionData[];
-    personalDetails: OptionData[];
-};
-
 type OptionsListContextProps = {
-    options: Options;
+    options: OptionList;
     initializeOptions: () => void;
     areOptionsInitialized: boolean;
 };
@@ -30,7 +25,7 @@ const OptionsListContext = createContext<OptionsListContextProps>({
 
 function OptionsListContextProvider({children}: OptionsListProviderProps) {
     const areOptionsInitialized = useRef(false);
-    const [options, setOptions] = useState<Options>({
+    const [options, setOptions] = useState<OptionList>({
         reports: [],
         personalDetails: [],
     });
