@@ -12,10 +12,8 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -23,15 +21,12 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {Message} from '@src/types/onyx/ReportAction';
 import SidebarLinks from './SidebarLinks';
 
 type ChatReportSelector = OnyxTypes.Report & {isUnreadWithMention: boolean};
 type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatar'>;
-type TransactionSelector = Pick<
-    OnyxTypes.Transaction,
-    'reportID' | 'iouRequestType' | 'comment' | 'receipt' | 'merchant' | 'modifiedMerchant' | 'created' | 'modifiedCreated' | 'amount' | 'modifiedAmount'
->;
-type ReportActionsSelector = Record<string, Pick<OnyxTypes.ReportAction, 'reportActionID' | 'actionName' | 'errors' | 'message' | 'originalMessage'>>;
+type ReportActionsSelector = Array<Pick<OnyxTypes.ReportAction, 'reportActionID' | 'actionName' | 'errors' | 'message' | 'originalMessage'>>;
 
 type SidebarLinksDataOnyxProps = {
     /** List of reports */
@@ -45,9 +40,6 @@ type SidebarLinksDataOnyxProps = {
 
     /** Beta features list */
     betas: OnyxEntry<OnyxTypes.Beta[]>;
-
-    /** All transactions f */
-    allTransactions: OnyxCollection<TransactionSelector>;
 
     /** All report actions for all reports */
     allReportActions: OnyxCollection<ReportActionsSelector>;
@@ -73,7 +65,6 @@ type SidebarLinksDataProps = CurrentReportIDContextValue &
 
 function SidebarLinksData({
     allReportActions,
-    allTransactions,
     betas,
     chatReports,
     insets,
@@ -92,43 +83,22 @@ function SidebarLinksData({
     const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
     const prevPriorityMode = usePrevious(priorityMode);
-    const {canUseViolations} = usePermissions();
-
     const policyMemberAccountIDs = getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, accountID);
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => Policy.openWorkspace(activeWorkspaceID ?? '', policyMemberAccountIDs), [activeWorkspaceID]);
-
-    const reportIDsWithErrors = useMemo(() => {
-        const reportKeys = Object.keys(chatReports ?? {});
-        return reportKeys.reduce((errorsMap, reportKey) => {
-            const report = chatReports?.[reportKey] ?? null;
-            const allReportsActions = allReportActions?.[reportKey.replace(ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.COLLECTION.REPORT_ACTIONS) ?? ''];
-
-            const errors =
-                OptionsListUtils.getAllReportErrors(report, allReportsActions as OnyxEntry<OnyxTypes.ReportActions>, allTransactions as OnyxCollection<OnyxTypes.Transaction>) || {};
-            if (Object.keys(errors).length === 0) {
-                return errorsMap;
-            }
-            return {...errorsMap, [reportKey.replace(ONYXKEYS.COLLECTION.REPORT, '')]: errors};
-        }, {});
-    }, [allReportActions, allTransactions, chatReports]);
-
     const reportIDsRef = useRef<string[] | null>(null);
     const isLoading = isLoadingApp;
     const optionListItems: string[] = useMemo(() => {
         const reportIDs = SidebarUtils.getOrderedReportIDs(
             null,
-            chatReports,
+            chatReports as OnyxCollection<OnyxTypes.Report>,
             betas,
             policies as OnyxCollection<OnyxTypes.Policy>,
             priorityMode,
-            allReportActions as OnyxCollection<OnyxTypes.ReportActions>,
+            allReportActions as OnyxCollection<OnyxTypes.ReportAction[]>,
             transactionViolations,
             activeWorkspaceID,
             policyMemberAccountIDs,
-            reportIDsWithErrors,
-            canUseViolations,
         );
 
         if (reportIDsRef.current && deepEqual(reportIDsRef.current, reportIDs)) {
@@ -142,21 +112,7 @@ function SidebarLinksData({
             reportIDsRef.current = reportIDs;
         }
         return reportIDsRef.current || [];
-    }, [
-        chatReports,
-        betas,
-        policies,
-        priorityMode,
-        allReportActions,
-        transactionViolations,
-        activeWorkspaceID,
-        policyMemberAccountIDs,
-        reportIDsWithErrors,
-        canUseViolations,
-        isLoading,
-        network.isOffline,
-        prevPriorityMode,
-    ]);
+    }, [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, isLoading, network.isOffline, prevPriorityMode]);
 
     // We need to make sure the current report is in the list of reports, but we do not want
     // to have to re-generate the list every time the currentReportID changes. To do that
@@ -167,33 +123,18 @@ function SidebarLinksData({
         if (currentReportID && !optionListItems?.includes(currentReportID)) {
             return SidebarUtils.getOrderedReportIDs(
                 currentReportID,
-                chatReports as OnyxCollection<OnyxTypes.Report>,
+                chatReports,
                 betas,
                 policies as OnyxCollection<OnyxTypes.Policy>,
                 priorityMode,
-                allReportActions as OnyxCollection<OnyxTypes.ReportActions>,
+                allReportActions as OnyxCollection<OnyxTypes.ReportAction[]>,
                 transactionViolations,
                 activeWorkspaceID,
                 policyMemberAccountIDs,
-                reportIDsWithErrors,
-                canUseViolations,
             );
         }
         return optionListItems;
-    }, [
-        currentReportID,
-        optionListItems,
-        chatReports,
-        betas,
-        policies,
-        priorityMode,
-        allReportActions,
-        transactionViolations,
-        activeWorkspaceID,
-        policyMemberAccountIDs,
-        reportIDsWithErrors,
-        canUseViolations,
-    ]);
+    }, [currentReportID, optionListItems, chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs]);
 
     const currentReportIDRef = useRef(currentReportID);
     currentReportIDRef.current = currentReportID;
@@ -215,7 +156,6 @@ function SidebarLinksData({
                 isLoading={isLoading}
                 optionListItems={optionListItemsWithCurrentReport}
                 activeWorkspaceID={activeWorkspaceID}
-                reportIDsWithErrors={reportIDsWithErrors}
             />
         </View>
     );
@@ -256,9 +196,6 @@ const chatReportSelector = (report: OnyxEntry<OnyxTypes.Report>): ChatReportSele
         reportName: report.reportName,
         policyName: report.policyName,
         oldPolicyName: report.oldPolicyName,
-        isPolicyExpenseChat: report.isPolicyExpenseChat,
-        isOwnPolicyExpenseChat: report.isOwnPolicyExpenseChat,
-        isCancelledIOU: report.isCancelledIOU,
         // Other less obvious properites considered for sorting:
         ownerAccountID: report.ownerAccountID,
         currency: report.currency,
@@ -272,27 +209,22 @@ const chatReportSelector = (report: OnyxEntry<OnyxTypes.Report>): ChatReportSele
 
 const reportActionsSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>): ReportActionsSelector =>
     (reportActions &&
-        Object.fromEntries(
-            Object.entries(reportActions).map(([key, reportAction]) => {
-                const {reportActionID, actionName, errors, originalMessage} = reportAction;
-                const decision = reportAction.message?.[0].moderationDecision?.decision;
+        Object.values(reportActions).map((reportAction) => {
+            const {reportActionID, actionName, errors = [], originalMessage} = reportAction;
+            const decision = reportAction.message?.[0].moderationDecision?.decision;
 
-                return [
-                    key,
+            return {
+                reportActionID,
+                actionName,
+                errors,
+                message: [
                     {
-                        reportActionID,
-                        actionName,
-                        errors,
-                        message: [
-                            {
-                                moderationDecision: {decision},
-                            },
-                        ],
-                        originalMessage,
+                        moderationDecision: {decision},
                     },
-                ];
-            }),
-        )) as ReportActionsSelector;
+                ] as Message[],
+                originalMessage,
+            };
+        })) as ReportActionsSelector;
 
 const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
     (policy && {
@@ -300,20 +232,6 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
         name: policy.name,
         avatar: policy.avatar,
     }) as PolicySelector;
-
-const transactionSelector = (transaction: OnyxEntry<OnyxTypes.Transaction>): TransactionSelector =>
-    (transaction && {
-        reportID: transaction.reportID,
-        iouRequestType: transaction.iouRequestType,
-        comment: transaction.comment,
-        receipt: transaction.receipt,
-        merchant: transaction.merchant,
-        modifiedMerchant: transaction.modifiedMerchant,
-        amount: transaction.amount,
-        modifiedAmount: transaction.modifiedAmount,
-        created: transaction.created,
-        modifiedCreated: transaction.modifiedCreated,
-    }) as TransactionSelector;
 
 export default withCurrentReportID(
     withOnyx<SidebarLinksDataProps, SidebarLinksDataOnyxProps>({
@@ -336,11 +254,6 @@ export default withCurrentReportID(
         allReportActions: {
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
             selector: reportActionsSelector,
-            initialValue: {},
-        },
-        allTransactions: {
-            key: ONYXKEYS.COLLECTION.TRANSACTION,
-            selector: transactionSelector,
             initialValue: {},
         },
         policies: {

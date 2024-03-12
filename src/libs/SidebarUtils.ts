@@ -7,7 +7,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, TransactionViolation} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
@@ -58,13 +57,6 @@ function compareStringDates(a: string, b: string): 0 | 1 | -1 {
     return 0;
 }
 
-function filterDisplayName(displayName: string): string {
-    if (CONST.REGEX.INVALID_DISPLAY_NAME_ONLY_LHN.test(displayName)) {
-        return displayName;
-    }
-    return displayName.replace(CONST.REGEX.INVALID_DISPLAY_NAME_LHN, '').trim();
-}
-
 /**
  * @returns An array of reportIDs sorted in the proper order
  */
@@ -74,27 +66,21 @@ function getOrderedReportIDs(
     betas: OnyxEntry<Beta[]>,
     policies: OnyxCollection<Policy>,
     priorityMode: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>,
-    allReportActions: OnyxCollection<ReportActions>,
+    allReportActions: OnyxCollection<ReportAction[]>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentPolicyID = '',
     policyMemberAccountIDs: number[] = [],
-    reportIDsWithErrors: Record<string, OnyxCommon.Errors> = {},
-    canUseViolations = false,
 ): string[] {
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInGSDMode;
     const allReportsDictValues = Object.values(allReports ?? {});
-
-    const reportIDsWithViolations = new Set<string>();
-
     // Filter out all the reports that shouldn't be displayed
     let reportsToDisplay = allReportsDictValues.filter((report) => {
         const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`;
-        const parentReportAction = allReportActions?.[parentReportActionsKey]?.[report?.parentReportActionID ?? ''];
-        const doesReportHaveViolations = canUseViolations && !!parentReportAction && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
-        if (doesReportHaveViolations) {
-            reportIDsWithViolations.add(report?.reportID ?? '');
-        }
+        const parentReportActions = allReportActions?.[parentReportActionsKey];
+        const parentReportAction = parentReportActions?.find((action) => action && report && action?.reportActionID === report?.parentReportActionID);
+        const doesReportHaveViolations =
+            !!betas?.includes(CONST.BETAS.VIOLATIONS) && !!parentReportAction && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
         return ReportUtils.shouldReportBeInOptionList({
             report,
             currentReportId: currentReportId ?? '',
@@ -116,7 +102,7 @@ function getOrderedReportIDs(
     }
 
     // The LHN is split into four distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
-    // 1. Pinned/GBR/RBR - Always sorted by reportDisplayName
+    // 1. Pinned/GBR - Always sorted by reportDisplayName
     // 2. Drafts - Always sorted by reportDisplayName
     // 3. Non-archived reports and settled IOUs
     //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
@@ -124,7 +110,7 @@ function getOrderedReportIDs(
     // 4. Archived reports
     //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
-    const pinnedAndBrickRoadReports: Array<OnyxEntry<Report>> = [];
+    const pinnedAndGBRReports: Array<OnyxEntry<Report>> = [];
     const draftReports: Array<OnyxEntry<Report>> = [];
     const nonArchivedReports: Array<OnyxEntry<Report>> = [];
     const archivedReports: Array<OnyxEntry<Report>> = [];
@@ -142,15 +128,13 @@ function getOrderedReportIDs(
         // eslint-disable-next-line no-param-reassign
         if (report) {
             // eslint-disable-next-line no-param-reassign
-            report.displayName = filterDisplayName(ReportUtils.getReportName(report));
+            report.displayName = ReportUtils.getReportName(report);
         }
-
-        const hasRBR = (!!report && report?.reportID in reportIDsWithErrors) || reportIDsWithViolations.has(report?.reportID ?? '');
 
         const isPinned = report?.isPinned ?? false;
         const reportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
-        if (isPinned || hasRBR || ReportUtils.requiresAttentionFromCurrentUser(report, reportAction)) {
-            pinnedAndBrickRoadReports.push(report);
+        if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report, reportAction)) {
+            pinnedAndGBRReports.push(report);
         } else if (report?.hasDraft) {
             draftReports.push(report);
         } else if (ReportUtils.isArchivedRoom(report)) {
@@ -161,7 +145,7 @@ function getOrderedReportIDs(
     });
 
     // Sort each group of reports accordingly
-    pinnedAndBrickRoadReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
+    pinnedAndGBRReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
     draftReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
 
     if (isInDefaultMode) {
@@ -182,7 +166,7 @@ function getOrderedReportIDs(
 
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
-    const LHNReports = [...pinnedAndBrickRoadReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID ?? '');
+    const LHNReports = [...pinnedAndGBRReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID ?? '');
     return LHNReports;
 }
 
@@ -191,19 +175,19 @@ function getOrderedReportIDs(
  */
 function getOptionData({
     report,
+    reportActions,
     personalDetails,
     preferredLocale,
     policy,
     parentReportAction,
-    reportErrors,
     hasViolations,
 }: {
     report: OnyxEntry<Report>;
+    reportActions: OnyxEntry<ReportActions>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     preferredLocale: DeepValueOf<typeof CONST.LOCALES>;
     policy: OnyxEntry<Policy> | undefined;
     parentReportAction: OnyxEntry<ReportAction> | undefined;
-    reportErrors: OnyxCommon.Errors | undefined;
     hasViolations: boolean;
 }): ReportUtils.OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
@@ -216,7 +200,7 @@ function getOptionData({
     const result: ReportUtils.OptionData = {
         text: '',
         alternateText: null,
-        allReportErrors: reportErrors,
+        allReportErrors: OptionsListUtils.getAllReportErrors(report, reportActions),
         brickRoadIndicator: null,
         tooltipText: null,
         subtitle: null,
