@@ -113,7 +113,7 @@ function AddPlaidBankAccount({
      * I'm using useCallback so the useEffect which uses this function doesn't run on every render.
      */
     const isAuthenticatedWithPlaid = useCallback(
-        () => (!!receivedRedirectURI && !!plaidLinkOAuthToken) || !plaidData?.bankAccounts?.length || !isEmptyObject(plaidData?.errors),
+        () => (!!receivedRedirectURI && !!plaidLinkOAuthToken) || plaidData?.bankAccounts?.length || !isEmptyObject(plaidData?.errors),
         [plaidData, plaidLinkOAuthToken, receivedRedirectURI],
     );
 
