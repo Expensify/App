@@ -186,13 +186,20 @@ const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigat
     [SCREENS.I_AM_A_TEACHER]: () => require('../../../pages/TeachersUnite/ImTeacherPage').default as React.ComponentType,
 });
 
-const AccountSettingsModalStackNavigator = createModalStackNavigator(
+const WorkspaceSettingsModalStackNavigator = createModalStackNavigator(
     {
-        [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require('../../../pages/settings/Preferences/PreferencesPage').default as React.ComponentType,
-        [SCREENS.SETTINGS.SECURITY]: () => require('../../../pages/settings/Security/SecuritySettingsPage').default as React.ComponentType,
-        [SCREENS.SETTINGS.PROFILE.ROOT]: () => require('../../../pages/settings/Profile/ProfilePage').default as React.ComponentType,
-        [SCREENS.SETTINGS.WALLET.ROOT]: () => require('../../../pages/settings/Wallet/WalletPage').default as React.ComponentType,
-        [SCREENS.SETTINGS.ABOUT]: () => require('../../../pages/settings/AboutPage/AboutPage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.PROFILE]: () => require('../../../pages/workspace/WorkspaceProfilePage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.CARD]: () => require('../../../pages/workspace/card/WorkspaceCardPage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.WORKFLOWS]: () => require('../../../pages/workspace/workflows/WorkspaceWorkflowsPage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.REIMBURSE]: () => require('../../../pages/workspace/reimburse/WorkspaceReimbursePage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.BILLS]: () => require('../../../pages/workspace/bills/WorkspaceBillsPage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.INVOICES]: () => require('../../../pages/workspace/invoices/WorkspaceInvoicesPage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.TRAVEL]: () => require('../../../pages/workspace/travel/WorkspaceTravelPage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.MEMBERS]: () => require('../../../pages/workspace/WorkspaceMembersPage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.CATEGORIES]: () => require('../../../pages/workspace/categories/WorkspaceCategoriesPage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.MORE_FEATURES]: () => require('../../../pages/workspace/WorkspaceMoreFeaturesPage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.TAGS]: () => require('../../../pages/workspace/tags/WorkspaceTagsPage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.DISTANCE_RATES]: () => require('../../../pages/workspace/distanceRates/PolicyDistanceRatesPage').default as React.ComponentType,
     },
     (styles) => ({cardStyle: styles.navigationScreenCardStyle, headerShown: false}),
 );
@@ -313,7 +320,6 @@ const ProcessMoneyRequestHoldStackNavigator = createModalStackNavigator({
 });
 
 export {
-    AccountSettingsModalStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
     DetailsModalStackNavigator,
     OnboardEngagementModalStackNavigator,
@@ -342,4 +348,5 @@ export {
     TaskModalStackNavigator,
     WalletStatementStackNavigator,
     ProcessMoneyRequestHoldStackNavigator,
+    WorkspaceSettingsModalStackNavigator,
 };

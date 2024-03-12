@@ -53,54 +53,12 @@ type CentralPaneNavigatorParamList = {
         reportID: string;
         openOnAdminRoom?: boolean;
     };
-
+    [SCREENS.SETTINGS.PROFILE.ROOT]: undefined;
+    [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
+    [SCREENS.SETTINGS.SECURITY]: undefined;
+    [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
+    [SCREENS.SETTINGS.ABOUT]: undefined;
     [SCREENS.SETTINGS.WORKSPACES]: undefined;
-    [SCREENS.WORKSPACE.PROFILE]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.CARD]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.WORKFLOWS]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.WORKFLOWS_APPROVER]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.REIMBURSE]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.BILLS]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.INVOICES]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.TRAVEL]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.MEMBERS]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.CATEGORIES]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.MORE_FEATURES]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.TAGS]: {
-        policyID: string;
-        categoryName: string;
-    };
-    [SCREENS.WORKSPACE.DISTANCE_RATES]: {
-        policyID: string;
-    };
 };
 
 type WorkspaceSwitcherNavigatorParamList = {
@@ -535,23 +493,65 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: NavigatorScreenParams<PrivateNotesNavigatorParamList>;
 };
 
-type SettingsCentralPaneNavigatorParamList = {
-    [SCREENS.SETTINGS.PROFILE.ROOT]: undefined;
-    [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
-    [SCREENS.SETTINGS.SECURITY]: undefined;
-    [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
-    [SCREENS.SETTINGS.ABOUT]: undefined;
+type WorkspacesCentralPaneNavigatorParamList = {
+    [SCREENS.WORKSPACE.PROFILE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.CARD]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVER]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.REIMBURSE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.BILLS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.INVOICES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.TRAVEL]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.MEMBERS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.CATEGORIES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.MORE_FEATURES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.TAGS]: {
+        policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.DISTANCE_RATES]: {
+        policyID: string;
+    };
 };
 
 type FullScreenNavigatorParamList = {
-    [SCREENS.SETTINGS.ROOT]: undefined;
-    [SCREENS.SETTINGS_CENTRAL_PANE]: NavigatorScreenParams<SettingsCentralPaneNavigatorParamList>;
+    [SCREENS.WORKSPACE.INITIAL]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACES_CENTRAL_PANE]: NavigatorScreenParams<WorkspacesCentralPaneNavigatorParamList>;
 };
 
 type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: undefined;
-    [SCREENS.ALL_SETTINGS]: undefined;
-    [SCREENS.WORKSPACE.INITIAL]: undefined;
+    [SCREENS.SETTINGS.ROOT]: undefined;
 };
 
 type SharedScreensParamList = {
@@ -621,7 +621,7 @@ type BottomTabName = keyof BottomTabNavigatorParamList;
 
 type CentralPaneName = keyof CentralPaneNavigatorParamList;
 
-type FullScreenName = keyof SettingsCentralPaneNavigatorParamList;
+type FullScreenName = keyof WorkspacesCentralPaneNavigatorParamList;
 
 type SwitchPolicyIDParams = {
     policyID?: string;
@@ -675,5 +675,7 @@ export type {
     WorkspaceSwitcherNavigatorParamList,
     OnboardEngagementNavigatorParamList,
     SwitchPolicyIDParams,
+    FullScreenNavigatorParamList,
+    WorkspacesCentralPaneNavigatorParamList,
     BackToParams,
 };
