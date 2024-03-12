@@ -574,8 +574,8 @@ const ROUTES = {
         getRoute: (policyID: string) => `workspace/${policyID}/tags` as const,
     },
     WORKSPACE_TAG_CREATE: {
-        route: 'workspace/:policyID/tag/new',
-        getRoute: (policyID: string) => `workspace/${policyID}/tag/new` as const,
+        route: 'workspace/:policyID/tags/new',
+        getRoute: (policyID: string) => `workspace/${policyID}/tags/new` as const,
     },
     WORKSPACE_TAGS_SETTINGS: {
         route: 'workspace/:policyID/tags/settings',

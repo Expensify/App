@@ -1,4 +1,4 @@
-type CreateWorkspaceTagsParams = {
+type CreatePolicyTagsParams = {
     policyID: string;
     /**
      * Stringified JSON object with type of following structure:
@@ -7,4 +7,4 @@ type CreateWorkspaceTagsParams = {
     tags: string;
 };
 
-export default CreateWorkspaceTagsParams;
+export default CreatePolicyTagsParams;

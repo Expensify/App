@@ -2758,10 +2758,10 @@ function createPolicyTag(policyID: string, tagName: string) {
                             [tagName]: {
                                 name: tagName,
                                 enabled: false,
+                                errors: null,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                             },
                         },
-                        errors: null,
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
                 },
             },
@@ -2772,8 +2772,12 @@ function createPolicyTag(policyID: string, tagName: string) {
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
                     Tag: {
-                        errors: null,
-                        pendingAction: null,
+                        tags: {
+                            [tagName]: {
+                                errors: null,
+                                pendingAction: null,
+                            },
+                        },
                     },
                 },
             },
@@ -2784,7 +2788,12 @@ function createPolicyTag(policyID: string, tagName: string) {
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
                     Tag: {
-                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                        tags: {
+                            [tagName]: {
+                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                                pendingAction: null,
+                            },
+                        },
                     },
                 },
             },
@@ -2796,7 +2805,7 @@ function createPolicyTag(policyID: string, tagName: string) {
         tags: JSON.stringify([{name: tagName}]),
     };
 
-    API.write(WRITE_COMMANDS.CREATE_WORKSPACE_TAG, parameters, onyxData);
+    API.write(WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, onyxData);
 }
 
 function setWorkspaceRequiresCategory(policyID: string, requiresCategory: boolean) {

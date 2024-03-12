@@ -1743,7 +1743,6 @@ const CONST = {
     MAX_64BIT_MIDDLE_PART: 7203685,
     MAX_64BIT_RIGHT_PART: 4775807,
     INVALID_CATEGORY_NAME: '###',
-    INVALID_TAG_NAME: '###',
 
     // When generating a random value to fit in 7 digits (for the `middle` or `right` parts above), this is the maximum value to multiply by Math.random().
     MAX_INT_FOR_RANDOM_7_DIGIT_VALUE: 10000000,

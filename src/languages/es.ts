@@ -1866,7 +1866,6 @@ export default {
             },
             tagRequiredError: 'Tag name is required.',
             existingTagError: 'A tag with this name already exists.',
-            invalidTagName: 'Invalid tag name.',
             genericFailureMessage: 'Se produjo un error al actualizar la etiqueta, inténtelo nuevamente.',
         },
         emptyWorkspace: {
