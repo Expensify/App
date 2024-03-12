@@ -2606,7 +2606,11 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     if (isChatThread(report)) {
         if (!isEmptyObject(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction)) {
-            return getTransactionReportName(parentReportAction);
+            formattedName = getTransactionReportName(parentReportAction);
+            if (isArchivedRoom(report)) {
+                formattedName += ` (${Localize.translateLocal('common.archived')})`;
+            }
+            return formattedName;
         }
 
         if (parentReportAction?.message?.[0]?.isDeletedParentAction) {
@@ -2631,6 +2635,9 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         }
         if (isAdminRoom(report) || isUserCreatedPolicyRoom(report)) {
             return getAdminRoomInvitedParticipants(parentReportAction, parentReportActionMessage);
+        }
+        if (parentReportActionMessage && isArchivedRoom(report)) {
+            return `${parentReportActionMessage} (${Localize.translateLocal('common.archived')})`;
         }
         return parentReportActionMessage;
     }
