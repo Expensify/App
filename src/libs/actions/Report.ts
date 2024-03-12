@@ -805,6 +805,7 @@ function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true
     let chat: OnyxEntry<Report> | EmptyObject = {};
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
 
+    // If we are not creating a new Group Chat then we are creating a 1:1 DM and will look for an existing chat
     if (!newGroupDraft) {
         chat = ReportUtils.getChatByParticipants(participantAccountIDs);
     }
@@ -2991,8 +2992,8 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
     API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER, parameters, {optimisticData, failureData});
 }
 
-function setGroupDraft(invitedUsersIDs: number[], reportName = '') {
-    Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {participantAccountIDs: invitedUsersIDs, reportName});
+function setGroupDraft(invitedLogins: string[], reportName = '') {
+    Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {participantLogins: invitedLogins, reportName});
 }
 
 export {

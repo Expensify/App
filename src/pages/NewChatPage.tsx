@@ -242,12 +242,11 @@ function NewChatPage({isGroupChat, reports, isSearchingForReports}: NewChatPageP
          * Navigates to create group confirm page
          */
         const navigateToConfirmPage = () => {
-            const selectedAccountIDs: number[] = selectedOptions
-                .map((option: OptionData) => option.accountID)
-                .filter((accountID): accountID is number => accountID !== null && accountID !== undefined);
-            if (personalData) {
-                const accountIDs = [...selectedAccountIDs, personalData.accountID];
-                Report.setGroupDraft(accountIDs);
+            const selectedLogins: string[] = selectedOptions.map((option: OptionData) => option.login).filter((login): login is string => login !== null && login !== undefined);
+            if (personalData && personalData.login) {
+                const logins = [...selectedLogins, personalData.login];
+
+                Report.setGroupDraft(logins);
                 Navigation.navigate(ROUTES.NEW_CHAT_CONFIRM);
             }
         };

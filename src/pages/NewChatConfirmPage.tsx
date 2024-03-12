@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as GroupChatUtils from '@libs/GroupChatUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
@@ -42,9 +43,9 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
-
+    const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(newGroupDraft?.participantLogins ?? []);
     const selectedOptions = useMemo((): OptionData[] => {
-        const invitedUsersPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(newGroupDraft?.participantAccountIDs, allPersonalDetails);
+        const invitedUsersPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, allPersonalDetails);
         const members = OptionsListUtils.getMemberInviteOptions(invitedUsersPersonalDetails);
         const currentUserOptionData = members.currentUserOption;
         if (!currentUserOptionData) {
@@ -52,9 +53,9 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
         }
         const options = [...members.personalDetails, currentUserOptionData];
         return options;
-    }, [newGroupDraft, allPersonalDetails]);
+    }, [participantAccountIDs, allPersonalDetails]);
 
-    const groupName = GroupChatUtils.getGroupChatName(newGroupDraft?.participantAccountIDs ?? []);
+    const groupName = GroupChatUtils.getGroupChatName(participantAccountIDs ?? []);
 
     const sections: Section[] = useMemo(
         () =>
@@ -74,7 +75,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                     }
 
                     const section: Section = {
-                        value: selectedOption?.text ?? '',
+                        value: selectedOption?.login ?? '',
                         text: selectedOption?.text ?? '',
                         keyForList: selectedOption?.keyForList ?? '',
                         isSelected: !isAdmin,
@@ -92,20 +93,19 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
     /**
      * Removes a selected option from list if already selected.
      */
-    const unselectOption = (option: ListItem) => {
+    const unselectOption = (option: Section) => {
         if (!newGroupDraft) {
             return;
         }
-        const newSelectedAccountIDs = newGroupDraft.participantAccountIDs.filter((participantAccountID) => participantAccountID !== option.accountID);
-        Report.setGroupDraft(newSelectedAccountIDs);
+        const newSelectedLogins = newGroupDraft.participantLogins.filter((participantLogin) => participantLogin !== option.value);
+        Report.setGroupDraft(newSelectedLogins);
     };
 
     const createGroup = () => {
-        const logins = selectedOptions.map((option: OptionData) => option.login) as string[];
-        if (logins.length < 1) {
+        if (!newGroupDraft) {
             return;
         }
-        Report.navigateToAndOpenReport(logins, true, '');
+        Report.navigateToAndOpenReport(newGroupDraft.participantLogins, true, '');
     };
 
     const navigateBack = () => {

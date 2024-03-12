@@ -1,5 +1,5 @@
 type NewGroupChatDraft = {
-    participantAccountIDs: number[];
+    participantLogins: string[];
     reportName: string;
 };
 

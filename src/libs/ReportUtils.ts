@@ -4190,7 +4190,8 @@ function shouldReportBeInOptionList({
             !isArchivedRoom(report) &&
             !isMoneyRequestReport(report) &&
             !isTaskReport(report) &&
-            !isSelfDM(report))
+            !isSelfDM(report) &&
+            !isGroupChat(report))
     ) {
         return false;
     }
