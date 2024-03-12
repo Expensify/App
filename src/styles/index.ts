@@ -534,7 +534,7 @@ const styles = (theme: ThemeColors) =>
         button: {
             backgroundColor: theme.buttonDefaultBG,
             borderRadius: variables.buttonBorderRadius,
-            minHeight: variables.componentSizeNormal,
+            minHeight: variables.componentSizeLarge,
             justifyContent: 'center',
             alignItems: 'center',
             ...spacing.ph3,
