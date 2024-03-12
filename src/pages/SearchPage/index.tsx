@@ -5,7 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxProvider';
-import {useOptionsListContext} from '@components/OptionListContextProvider';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
@@ -58,7 +58,7 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
     const {isOffline} = useNetwork();
     const themeStyles = useThemeStyles();
     const personalDetails = usePersonalDetails();
-    const {options, initializeOptions, areOptionsInitialized} = useOptionsListContext();
+    const {options, areOptionsInitialized} = useOptionsList();
     const offlineMessage: MaybePhraseKey = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
@@ -90,10 +90,6 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
         const header = OptionsListUtils.getHeaderMessage(optionList.recentReports.length + optionList.personalDetails.length !== 0, Boolean(optionList.userToInvite), debouncedSearchValue);
         return {...optionList, headerMessage: header};
     }, [areOptionsInitialized, isScreenTransitionEnd, options, debouncedSearchValue, betas]);
-
-    useEffect(() => {
-        initializeOptions();
-    }, [initializeOptions]);
 
     const sections = useMemo((): SearchPageSectionList => {
         const newSections: SearchPageSectionList = [];

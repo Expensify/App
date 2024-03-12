@@ -1,4 +1,4 @@
-import React, {createContext, useCallback, useContext, useMemo, useRef, useState} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {OptionList} from '@libs/OptionsListUtils';
 import {usePersonalDetails, useReports} from './OnyxProvider';
@@ -58,4 +58,18 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
 
 const useOptionsListContext = () => useContext(OptionsListContext);
 
-export {OptionsListContextProvider, useOptionsListContext};
+// Hook to use the OptionsListContext with an initializer to load the options
+const useOptionsList = () => {
+    const {initializeOptions, ...optionsListContext} = useOptionsListContext();
+
+    useEffect(() => {
+        initializeOptions();
+    }, [initializeOptions, optionsListContext]);
+
+    return {
+        initializeOptions,
+        ...optionsListContext,
+    };
+};
+
+export {OptionsListContextProvider, useOptionsListContext, useOptionsList};
