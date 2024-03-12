@@ -688,6 +688,10 @@ function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueO
     API.write(WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT, params, {optimisticData, failureData, successData});
 }
 
+function clearWorkspaceReimbursementErrors(policyID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {reimbursementChoice: null}});
+}
+
 /**
  * Build optimistic data for removing users from the announcement room
  */
@@ -3449,4 +3453,5 @@ export {
     enablePolicyTaxes,
     enablePolicyWorkflows,
     openPolicyDistanceRatesPage,
+    clearWorkspaceReimbursementErrors,
 };

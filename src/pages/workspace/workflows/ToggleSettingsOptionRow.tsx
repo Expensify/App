@@ -25,10 +25,12 @@ type ToggleSettingOptionRowProps = {
     pendingAction?: PendingAction;
     /** Any error message to show */
     errors?: Errors;
+    /** Callback to close the error messages */
+    onCloseError?: () => void;
 };
 const ICON_SIZE = 48;
 
-function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, isActive, pendingAction, errors}: ToggleSettingOptionRowProps) {
+function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, isActive, pendingAction, errors, onCloseError}: ToggleSettingOptionRowProps) {
     const styles = useThemeStyles();
 
     return (
@@ -36,6 +38,7 @@ function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, 
             pendingAction={pendingAction}
             errors={errors}
             errorRowStyles={[styles.mt2]}
+            onClose={onCloseError}
         >
             <View style={styles.pRelative}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>

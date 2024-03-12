@@ -188,6 +188,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                 isActive: policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 pendingAction: policy?.pendingFields?.reimbursementChoice,
                 errors: ErrorUtils.getLatestErrorField(policy ?? {}, 'reimbursementChoice'),
+                onCloseError: () => Policy.clearWorkspaceReimbursementErrors(policy?.id ?? '')
             },
         ];
     }, [
@@ -216,6 +217,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                 isActive={item.isActive}
                 pendingAction={item.pendingAction}
                 errors={item.errors}
+                onCloseError={item.onCloseError}
             />
         </View>
     );
