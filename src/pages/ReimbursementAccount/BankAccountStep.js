@@ -20,6 +20,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
+import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import variables from '@styles/variables';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Link from '@userActions/Link';
@@ -35,9 +36,6 @@ import StepPropTypes from './StepPropTypes';
 
 const propTypes = {
     ...StepPropTypes,
-
-    /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
-    receivedRedirectURI: PropTypes.string,
 
     /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
     plaidLinkOAuthToken: PropTypes.string,
@@ -59,7 +57,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    receivedRedirectURI: null,
     plaidLinkOAuthToken: '',
     user: {},
     isPlaidDisabled: false,
@@ -68,12 +65,13 @@ const defaultProps = {
 };
 
 const bankInfoStepKeys = INPUT_IDS.BANK_INFO_STEP;
+const receivedRedirectURI = getPlaidOAuthReceivedRedirectURI();
 
 function BankAccountStep(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
     let subStep = lodashGet(props.reimbursementAccount, 'achData.subStep', '');
-    const shouldReinitializePlaidLink = props.plaidLinkOAuthToken && props.receivedRedirectURI && subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
+    const shouldReinitializePlaidLink = props.plaidLinkOAuthToken && receivedRedirectURI && subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
     if (shouldReinitializePlaidLink) {
         subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
     }

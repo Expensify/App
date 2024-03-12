@@ -15,7 +15,6 @@ import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
-import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -497,7 +496,6 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 reimbursementAccount={reimbursementAccount}
                 reimbursementAccountDraft={reimbursementAccountDraft}
                 onBackButtonPress={goBack}
-                receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                 plaidLinkOAuthToken={plaidLinkToken}
                 getDefaultStateForField={getDefaultStateForField}
                 policyName={policyName}
