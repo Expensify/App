@@ -1,12 +1,11 @@
 import Str from 'expensify-common/lib/str';
-import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import * as Session from '@src/libs/actions/Session';
 import HttpUtils from '@src/libs/HttpUtils';
 import * as NumberUtils from '@src/libs/NumberUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Report} from '@src/types/onyx';
+import type {Response as OnyxResponse, PersonalDetails, Report} from '@src/types/onyx';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 
 type MockFetch = ReturnType<typeof jest.fn> & {
@@ -19,14 +18,7 @@ type MockFetch = ReturnType<typeof jest.fn> & {
     resume?: () => Promise<void>;
 };
 
-type Response = {
-    ok?: boolean;
-    json?: () => Promise<{jsonCode: number}>;
-    jsonCode?: number;
-    onyxData?: OnyxUpdate[];
-};
-
-type QueueItem = (value: Response | PromiseLike<Response>) => void;
+type QueueItem = (value: Partial<Response> | PromiseLike<Partial<Response>>) => void;
 
 type FormData = {
     entries: () => Array<[string, string | Blob]>;
@@ -58,7 +50,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
 
     HttpUtils.xhr = jest.fn().mockImplementation(() => {
         // Your mocked response object
-        const mockedResponse: Response = {
+        const mockedResponse: OnyxResponse = {
             onyxData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -176,7 +168,7 @@ function getGlobalFetchMock() {
     let isPaused = false;
     let shouldFail = false;
 
-    const getResponse = () =>
+    const getResponse = (): Partial<Response> =>
         shouldFail
             ? {
                   ok: true,
@@ -256,4 +248,4 @@ const createAddListenerMock = () => {
     return {triggerTransitionEnd, addListener};
 };
 
-export {getGlobalFetchMock, signInWithTestUser, signOutTestUser, setPersonalDetails, buildPersonalDetails, buildTestReportComment, assertFormDataMatchesObject, createAddListenerMock};
+export {assertFormDataMatchesObject, buildPersonalDetails, buildTestReportComment, createAddListenerMock, getGlobalFetchMock, setPersonalDetails, signInWithTestUser, signOutTestUser};
