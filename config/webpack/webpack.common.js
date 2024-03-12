@@ -18,7 +18,6 @@ const includeModules = [
     '@react-native-picker',
     'react-native-modal',
     'react-native-gesture-handler',
-    'react-native-flipper',
     'react-native-google-places-autocomplete',
     'react-native-qrcode-svg',
     'react-native-view-shot',

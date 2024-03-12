@@ -4,10 +4,13 @@ import {Linking} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import Navigation from '@libs/Navigation/Navigation';
 import * as SessionUtils from '@libs/SessionUtils';
 import type {AuthScreensParamList} from '@navigation/types';
 import * as SessionActions from '@userActions/Session';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Session} from '@src/types/onyx';
 
@@ -27,9 +30,20 @@ function LogOutPreviousUserPage({session, route}: LogOutPreviousUserPageProps) {
         Linking.getInitialURL().then((transitionURL) => {
             const sessionEmail = session?.email;
             const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL ?? undefined, sessionEmail);
+            const isSupportalLogin = route.params.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 
             if (isLoggingInAsNewUser) {
-                SessionActions.signOutAndRedirectToSignIn();
+                SessionActions.signOutAndRedirectToSignIn(false, isSupportalLogin);
+            }
+
+            if (isSupportalLogin) {
+                SessionActions.signInWithSupportAuthToken(route.params.shortLivedAuthToken ?? '');
+                Navigation.isNavigationReady().then(() => {
+                    // We must call goBack() to remove the /transition route from history
+                    Navigation.goBack();
+                    Navigation.navigate(ROUTES.HOME);
+                });
+                return;
             }
 
             // We need to signin and fetch a new authToken, if a user was already authenticated in NewDot, and was redirected to OldDot
