@@ -41,7 +41,6 @@ function GrowlNotification(_: never, ref: ForwardedRef<GrowlRef>) {
         }
     >;
 
-    // 
     const types: GrowlIconTypes = {
         [CONST.GROWL.SUCCESS]: {
             icon: Expensicons.Checkmark,
