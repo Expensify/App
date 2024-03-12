@@ -382,7 +382,14 @@ function updateAvatar(file: File | CustomRNImageManipulatorResult) {
         },
     ];
 
-    const parameters: UpdateUserAvatarParams = {file};
+    let parameters: UpdateUserAvatarParams = {file};
+
+    // We need to remove the base64 value from the file object, as it is causing crashes on Release builds.
+    // More info: https://github.com/Expensify/App/issues/37963#issuecomment-1989260033
+    if ('base64' in file) {
+        const {base64, ...fileWithoutBase64} = file;
+        parameters = {file: fileWithoutBase64};
+    }
 
     API.write(WRITE_COMMANDS.UPDATE_USER_AVATAR, parameters, {optimisticData, successData, failureData});
 }
