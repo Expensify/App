@@ -79,7 +79,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const isFocused = useIsFocused();
     const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
     const [isInitialSectionListRender, setIsInitialSectionListRender] = useState(true);
-    const [itemToHighlight, setItemToHighlight] = useState<Set<string> | null>(null);
+    const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     /**
@@ -281,7 +281,7 @@ function BaseSelectionList<TItem extends ListItem>(
         const indexOffset = section.indexOffset ? section.indexOffset : 0;
         const normalizedIndex = index + indexOffset;
         const isDisabled = !!section.isDisabled || item.isDisabled;
-        const isItemFocused = !isDisabled && (focusedIndex === normalizedIndex || itemToHighlight?.has(item.keyForList));
+        const isItemFocused = !isDisabled && (focusedIndex === normalizedIndex || itemsToHighlight?.has(item.keyForList ?? ''));
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
         const showTooltip = shouldShowTooltips && normalizedIndex < 10;
 
@@ -390,9 +390,9 @@ function BaseSelectionList<TItem extends ListItem>(
             items.forEach((item) => {
                 newItemsToHighlight.add(item);
             });
-            const index = flattenedSections.allOptions.findIndex((option) => newItemsToHighlight.has(option.keyForList));
+            const index = flattenedSections.allOptions.findIndex((option) => newItemsToHighlight.has(option.keyForList ?? ''));
             updateAndScrollToFocusedIndex(index);
-            setItemToHighlight(newItemsToHighlight);
+            setItemsToHighlight(newItemsToHighlight);
 
             if (itemFocusTimeoutRef.current) {
                 clearTimeout(itemFocusTimeoutRef.current);
@@ -400,7 +400,7 @@ function BaseSelectionList<TItem extends ListItem>(
 
             itemFocusTimeoutRef.current = setTimeout(() => {
                 setFocusedIndex(-1);
-                setItemToHighlight(null);
+                setItemsToHighlight(null);
             }, timeout);
         },
         [flattenedSections.allOptions, updateAndScrollToFocusedIndex],
