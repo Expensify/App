@@ -1,12 +1,7 @@
 import React from 'react';
 import type {AppStateStatus} from 'react-native';
 import {AppState} from 'react-native';
-
-type AppStateType = {
-    isForeground: boolean;
-    isInactive: boolean;
-    isBackground: boolean;
-};
+import type AppStateType from './types';
 
 function useAppState() {
     const [appState, setAppState] = React.useState<AppStateType>({
