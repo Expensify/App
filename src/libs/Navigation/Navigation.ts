@@ -347,6 +347,14 @@ function navigateWithSwitchPolicyID(params: SwitchPolicyIDParams) {
     return switchPolicyID(navigationRef.current, params);
 }
 
+/**
+ * The `popToTop` action takes you back to the first screen in the stack, dismissing all the others.
+ * @note we used to call `Navigation.navigate()` before the new navigation was introduced.
+ */
+function popToTop() {
+    navigationRef.current?.dispatch(StackActions.popToTop());
+}
+
 export default {
     setShouldPopAllStateOnUP,
     navigate,
@@ -366,6 +374,7 @@ export default {
     parseHybridAppUrl,
     closeFullScreen,
     navigateWithSwitchPolicyID,
+    popToTop,
 };
 
 export {navigationRef};
