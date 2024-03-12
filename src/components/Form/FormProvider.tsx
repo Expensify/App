@@ -102,6 +102,7 @@ function FormProvider(
 
     const onValidate = useCallback(
         (values: FormOnyxValues, shouldClearServerError = true) => {
+            console.log('onValidate', values);
             const trimmedStringValues = ValidationUtils.prepareValues(values);
 
             if (shouldClearServerError) {

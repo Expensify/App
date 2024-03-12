@@ -67,7 +67,7 @@ function createWorkspaceTax(policyID: string, taxRate: TaxRate) {
                         taxes: {
                             [taxRate.code]: {
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.genericFailureMessage'),
+                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.errors.genericFailureMessage'),
                             },
                         },
                     },

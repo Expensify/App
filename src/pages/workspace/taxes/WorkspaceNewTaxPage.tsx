@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearDraftValues} from '@libs/actions/FormActions';
 import {createWorkspaceTax, getNextTaxID, getTaxValueWithPercentage} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -60,6 +61,7 @@ function WorkspaceNewTaxPage({
                 code: getNextTaxID(values[INPUT_IDS.NAME]),
             } satisfies TaxRate;
             createWorkspaceTax(policyID, taxRate);
+            clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM);
             Navigation.goBack();
         },
         [policyID],
@@ -78,6 +80,7 @@ function WorkspaceNewTaxPage({
                     enabledWhenOffline
                     shouldValidateOnBlur={false}
                     shouldValidateOnChange
+                    disablePressOnEnter={false}
                 >
                     <View style={styles.mhn5}>
                         <InputWrapper
