@@ -145,7 +145,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
 
     const protectedCollectPolicyMenuItems: WorkspaceMenuItem[] = [];
 
-    if (policy?.areDistancesEnabled) {
+    if (policy?.areDistanceRatesEnabled) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.distanceRates',
             icon: Expensicons.Car,

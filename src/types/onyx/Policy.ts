@@ -337,7 +337,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         areTagsEnabled?: boolean;
 
         /** Whether the Distance Rates feature is enabled */
-        areDistancesEnabled?: boolean;
+        areDistanceRatesEnabled?: boolean;
 
         /** Whether the workflows feature is enabled */
         areWorkflowsEnabled?: boolean;

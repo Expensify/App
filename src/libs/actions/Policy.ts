@@ -1659,7 +1659,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                 customUnits,
                 areCategoriesEnabled: true,
                 areTagsEnabled: false,
-                areDistancesEnabled: false,
+                areDistanceRatesEnabled: false,
                 areWorkflowsEnabled: false,
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
@@ -2093,7 +2093,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
         customUnits,
         areCategoriesEnabled: true,
         areTagsEnabled: false,
-        areDistancesEnabled: false,
+        areDistanceRatesEnabled: false,
         areWorkflowsEnabled: false,
         areReportFieldsEnabled: false,
         areConnectionsEnabled: false,
@@ -2882,9 +2882,9 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    areDistancesEnabled: enabled,
+                    areDistanceRatesEnabled: enabled,
                     pendingFields: {
-                        areDistancesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        areDistanceRatesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                 },
             },
@@ -2895,7 +2895,7 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     pendingFields: {
-                        areDistancesEnabled: null,
+                        areDistanceRatesEnabled: null,
                     },
                 },
             },
@@ -2905,9 +2905,9 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    areDistancesEnabled: !enabled,
+                    areDistanceRatesEnabled: !enabled,
                     pendingFields: {
-                        areDistancesEnabled: null,
+                        areDistanceRatesEnabled: null,
                     },
                 },
             },

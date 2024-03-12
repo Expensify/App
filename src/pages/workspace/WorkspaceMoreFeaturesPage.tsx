@@ -48,8 +48,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             icon: Illustrations.Car,
             titleTranslationKey: 'workspace.moreFeatures.distanceRates.title',
             subtitleTranslationKey: 'workspace.moreFeatures.distanceRates.subtitle',
-            isActive: policy?.areDistancesEnabled ?? false,
-            pendingAction: policy?.pendingFields?.areDistancesEnabled,
+            isActive: policy?.areDistanceRatesEnabled ?? false,
+            pendingAction: policy?.pendingFields?.areDistanceRatesEnabled,
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyDistanceRates(policy?.id ?? '', isEnabled);
             },
