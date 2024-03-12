@@ -82,7 +82,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
     return waitForBatchedUpdates()
         .then(() => {
             HttpUtils.xhr = jest.fn().mockImplementation(() => {
-                const mockedResponse = {
+                const mockedResponse: OnyxResponse = {
                     onyxData: [
                         {
                             onyxMethod: Onyx.METHOD.MERGE,
@@ -137,7 +137,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
 function signOutTestUser() {
     const originalXhr = HttpUtils.xhr;
     HttpUtils.xhr = jest.fn().mockImplementation(() => {
-        const mockedResponse = {
+        const mockedResponse: OnyxResponse = {
             jsonCode: 200,
         };
 
