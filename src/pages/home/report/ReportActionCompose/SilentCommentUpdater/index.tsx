@@ -2,6 +2,7 @@ import {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import Visibility from '@libs/Visibility';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SilentCommentUpdaterOnyxProps, SilentCommentUpdaterProps} from './types';
 
@@ -24,7 +25,8 @@ function SilentCommentUpdater({comment, commentRef, reportID, value, updateComme
     useEffect(() => {
         // Value state does not have the same value as comment props when the comment gets changed from another tab.
         // In this case, we should synchronize the value between tabs.
-        const shouldSyncComment = prevCommentProp !== comment && value !== comment;
+
+        const shouldSyncComment = prevCommentProp !== comment && value !== comment && !Visibility.hasFocus();
 
         // As the report IDs change, make sure to update the composer comment as we need to make sure
         // we do not show incorrect data in there (ie. draft of message from other report).
