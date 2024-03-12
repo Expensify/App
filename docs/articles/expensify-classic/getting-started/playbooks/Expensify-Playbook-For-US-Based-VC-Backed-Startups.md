@@ -22,7 +22,7 @@ If you don't already have one, go to *[new.expensify.com](https://new.expensify.
 There are three paid policies; Individual, Collect, and Control, but for your needs we recommend the Control Policy for the following reasons:
 
 - You can cap spend on certain expense types, and set compliance controls so Expensify’s built-in Concierge Audit Tracking can detect violations on your behalf
-- As a growing business with VC-funding, the Control plan will scale with you as your team grows and you start to introduce more sophisticated [approval workflows](https://help.expensify.com/articles/expensify-classic/manage-employees-and-report-approvals/Approval-Workflows) (see Step 8 below). 
+- As a growing business with VC-funding, the Control plan will scale with you as your team grows and you start to introduce more sophisticated [approval workflows](https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Approval-Workflows) (see Step 8 below). 
 
 To create your Control Policy:
 
