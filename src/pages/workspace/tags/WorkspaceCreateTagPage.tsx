@@ -74,6 +74,7 @@ function CreateTagPage({route, policyTags}: CreateTagPageProps) {
                     includeSafeAreaPaddingBottom={false}
                     style={[styles.defaultModalContainer]}
                     testID={CreateTagPage.displayName}
+                    shouldEnableMaxHeight
                 >
                     <HeaderWithBackButton
                         title={translate('workspace.tags.addTag')}

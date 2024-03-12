@@ -74,6 +74,7 @@ function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) 
                     includeSafeAreaPaddingBottom={false}
                     style={[styles.defaultModalContainer]}
                     testID={CreateCategoryPage.displayName}
+                    shouldEnableMaxHeight
                 >
                     <HeaderWithBackButton
                         title={translate('workspace.categories.addCategory')}
