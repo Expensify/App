@@ -1,4 +1,4 @@
-import * as OnfidoSDK from 'onfido-sdk-ui';
+import {Onfido as OnfidoSDK} from 'onfido-sdk-ui';
 import React, {forwardRef, useEffect} from 'react';
 import type {ForwardedRef} from 'react';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -26,7 +26,6 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
     OnfidoSDK.init({
         token: sdkToken,
         containerId: CONST.ONFIDO.CONTAINER_ID,
-        useMemoryHistory: true,
         customUI: {
             fontFamilyTitle: `${FontUtils.fontFamily.platform.EXP_NEUE}, -apple-system, serif`,
             fontFamilySubtitle: `${FontUtils.fontFamily.platform.EXP_NEUE}, -apple-system, serif`,
@@ -93,17 +92,14 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             onSuccess(data);
         },
         onError: (error) => {
-            const errorMessage = error.message ?? CONST.ERROR.UNKNOWN_ERROR;
             const errorType = error.type;
+            const errorMessage = error.message ?? CONST.ERROR.UNKNOWN_ERROR;
             Log.hmmm('Onfido error', {errorType, errorMessage});
+            if (errorType === CONST.WALLET.ERROR.ONFIDO_USER_CONSENT_DENIED) {
+                onUserExit();
+                return;
+            }
             onError(errorMessage);
-        },
-        onUserExit: (userExitCode) => {
-            Log.hmmm('Onfido user exits the flow', {userExitCode});
-            onUserExit(userExitCode);
-        },
-        onModalRequestClose: () => {
-            Log.hmmm('Onfido user closed the modal');
         },
         language: {
             // We need to use ES_ES as locale key because the key `ES` is not a valid config key for Onfido
