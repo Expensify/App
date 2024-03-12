@@ -1,8 +1,13 @@
-/* eslint-disable rulesdir/prefer-actions-set-data */
+/* eslint-disable @typescript-eslint/naming-convention, rulesdir/prefer-actions-set-data */
+import type {ComponentMeta, ComponentStory} from '@storybook/react';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import type {EReceiptOnyxProps, EReceiptProps} from '@components/EReceipt';
 import EReceipt from '@components/EReceipt';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
+
+type EReceiptStory = ComponentStory<typeof EReceipt>;
 
 const transactionData = {
     [`${ONYXKEYS.COLLECTION.TRANSACTION}FAKE_1`]: {
@@ -146,7 +151,7 @@ const transactionData = {
         created: '2023-01-11 13:46:20',
         hasEReceipt: true,
     },
-};
+} as CollectionDataSet<typeof ONYXKEYS.COLLECTION.TRANSACTION>;
 
 Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, transactionData);
 Onyx.merge('cardList', {
@@ -159,92 +164,92 @@ Onyx.merge('cardList', {
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story = {
+const story: ComponentMeta<typeof EReceipt> = {
     title: 'Components/EReceipt',
     component: EReceipt,
 };
 
-function Template(args) {
+function Template(props: Omit<EReceiptProps, keyof EReceiptOnyxProps>) {
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <EReceipt {...args} />;
+    return <EReceipt {...props} />;
 }
 
-const Default = Template.bind({});
+const Default: EReceiptStory = Template.bind({});
 Default.args = {
     transactionID: 'FAKE_1',
 };
 
-const Airlines = Template.bind({});
+const Airlines: EReceiptStory = Template.bind({});
 Airlines.args = {
     transactionID: 'FAKE_2',
 };
 
-const Commuter = Template.bind({});
+const Commuter: EReceiptStory = Template.bind({});
 Commuter.args = {
     transactionID: 'FAKE_3',
 };
 
-const Gas = Template.bind({});
+const Gas: EReceiptStory = Template.bind({});
 Gas.args = {
     transactionID: 'FAKE_4',
 };
 
-const Goods = Template.bind({});
+const Goods: EReceiptStory = Template.bind({});
 Goods.args = {
     transactionID: 'FAKE_5',
 };
 
-const Groceries = Template.bind({});
+const Groceries: EReceiptStory = Template.bind({});
 Groceries.args = {
     transactionID: 'FAKE_6',
 };
 
-const Hotel = Template.bind({});
+const Hotel: EReceiptStory = Template.bind({});
 Hotel.args = {
     transactionID: 'FAKE_7',
 };
 
-const Mail = Template.bind({});
+const Mail: EReceiptStory = Template.bind({});
 Mail.args = {
     transactionID: 'FAKE_8',
 };
 
-const Meals = Template.bind({});
+const Meals: EReceiptStory = Template.bind({});
 Meals.args = {
     transactionID: 'FAKE_9',
 };
 
-const Rental = Template.bind({});
+const Rental: EReceiptStory = Template.bind({});
 Rental.args = {
     transactionID: 'FAKE_10',
 };
 
-const Services = Template.bind({});
+const Services: EReceiptStory = Template.bind({});
 Services.args = {
     transactionID: 'FAKE_11',
 };
 
-const Taxi = Template.bind({});
+const Taxi: EReceiptStory = Template.bind({});
 Taxi.args = {
     transactionID: 'FAKE_12',
 };
 
-const Miscellaneous = Template.bind({});
+const Miscellaneous: EReceiptStory = Template.bind({});
 Miscellaneous.args = {
     transactionID: 'FAKE_13',
 };
 
-const Utilities = Template.bind({});
+const Utilities: EReceiptStory = Template.bind({});
 Utilities.args = {
     transactionID: 'FAKE_14',
 };
 
-const invalidMCC = Template.bind({});
+const invalidMCC: EReceiptStory = Template.bind({});
 invalidMCC.args = {
     transactionID: 'FAKE_15',
 };
 
-const veryLong = Template.bind({});
+const veryLong: EReceiptStory = Template.bind({});
 veryLong.args = {
     transactionID: 'FAKE_16',
 };

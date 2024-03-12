@@ -214,6 +214,13 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.TAGS_EDIT]: {
+        policyID: string;
+        tagName: string;
+    };
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
         policyID: string;
         accountID: string;
