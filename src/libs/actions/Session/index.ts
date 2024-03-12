@@ -185,7 +185,7 @@ function hasStashedSession(): boolean {
 }
 
 /**
- * Checks if the user is authenticated
+ * Checks if the user has authToken
  */
 function hasAuthToken(): boolean {
     return !!session.authToken;
