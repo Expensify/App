@@ -17,7 +17,7 @@ import extractAttachmentsFromReport from './extractAttachmentsFromReport';
 import AttachmentCarouselPager from './Pager';
 import useCarouselArrows from './useCarouselArrows';
 
-function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate}) {
+function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate, onClose}) {
     const styles = useThemeStyles();
     const pagerRef = useRef(null);
     const [page, setPage] = useState();
@@ -102,51 +102,52 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         [setShouldShowArrows],
     );
 
-    const goBack = useCallback(() => {
-        Navigation.goBack();
-    }, []);
+    const containerStyles = [styles.flex1, styles.attachmentCarouselContainer];
+
+    if (page == null) {
+        return (
+            <View style={containerStyles}>
+                <FullScreenLoadingIndicator />
+            </View>
+        );
+    }
 
     return (
-        <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
-            {page == null ? (
-                <FullScreenLoadingIndicator />
+        <View style={containerStyles}>
+            {page === -1 ? (
+                <BlockingView
+                    icon={Illustrations.ToddBehindCloud}
+                    iconWidth={variables.modalTopIconWidth}
+                    iconHeight={variables.modalTopIconHeight}
+                    title={translate('notFound.notHere')}
+                />
             ) : (
                 <>
-                    {page === -1 ? (
-                        <BlockingView
-                            icon={Illustrations.ToddBehindCloud}
-                            iconWidth={variables.modalTopIconWidth}
-                            iconHeight={variables.modalTopIconHeight}
-                            title={translate('notFound.notHere')}
-                        />
-                    ) : (
-                        <>
-                            <CarouselButtons
-                                shouldShowArrows={shouldShowArrows}
-                                page={page}
-                                attachments={attachments}
-                                onBack={() => cycleThroughAttachments(-1)}
-                                onForward={() => cycleThroughAttachments(1)}
-                                autoHideArrow={autoHideArrows}
-                                cancelAutoHideArrow={cancelAutoHideArrows}
-                            />
+                    <CarouselButtons
+                        shouldShowArrows={shouldShowArrows}
+                        page={page}
+                        attachments={attachments}
+                        onBack={() => cycleThroughAttachments(-1)}
+                        onForward={() => cycleThroughAttachments(1)}
+                        autoHideArrow={autoHideArrows}
+                        cancelAutoHideArrow={cancelAutoHideArrows}
+                    />
 
-                            <AttachmentCarouselPager
-                                items={attachments}
-                                initialPage={page}
-                                activeSource={activeSource}
-                                onRequestToggleArrows={toggleArrows}
-                                onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
-                                onClose={goBack}
-                                ref={pagerRef}
-                            />
-                        </>
-                    )}
+                    <AttachmentCarouselPager
+                        items={attachments}
+                        initialPage={page}
+                        activeSource={activeSource}
+                        onRequestToggleArrows={toggleArrows}
+                        onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
+                        onClose={onClose}
+                        ref={pagerRef}
+                    />
                 </>
             )}
         </View>
     );
 }
+
 AttachmentCarousel.propTypes = propTypes;
 AttachmentCarousel.defaultProps = defaultProps;
 AttachmentCarousel.displayName = 'AttachmentCarousel';

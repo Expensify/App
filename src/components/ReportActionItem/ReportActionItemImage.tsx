@@ -1,22 +1,24 @@
 import Str from 'expensify-common/lib/str';
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {ReactElement} from 'react';
 import type {ImageSourcePropType, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import AttachmentModal from '@components/AttachmentModal';
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Image from '@components/Image';
+import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import ThumbnailImage from '@components/ThumbnailImage';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 
 type ReportActionItemImageProps = {
@@ -35,9 +37,6 @@ type ReportActionItemImageProps = {
     /** whether thumbnail is refer the local file or not */
     isLocalFile?: boolean;
 
-    /** whether the receipt can be replaced */
-    canEditReceipt?: boolean;
-
     /** Filename of attachment */
     filename?: string;
 
@@ -51,23 +50,22 @@ type ReportActionItemImageProps = {
  * and optional preview modal as well.
  */
 
-function ReportActionItemImage({
-    thumbnail,
-    image,
-    enablePreviewModal = false,
-    transaction,
-    canEditReceipt = false,
-    isLocalFile = false,
-    filename,
-    isSingleImage = true,
-}: ReportActionItemImageProps) {
+function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, transaction, isLocalFile = false, filename, isSingleImage = true}: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const imageSource = tryResolveUrlFromApiRoot(image ?? '');
+    const attachmentModalSource = tryResolveUrlFromApiRoot(image ?? '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
     const isEReceipt = transaction && TransactionUtils.hasEReceipt(transaction);
 
     let receiptImageComponent: ReactElement;
+
+    const imageSource = useMemo(() => {
+        if (thumbnail) {
+            return typeof thumbnail === 'string' ? {uri: thumbnail} : thumbnail;
+        }
+
+        return typeof image === 'string' ? {uri: image} : image;
+    }, [image, thumbnail]);
 
     if (isEReceipt) {
         receiptImageComponent = (
@@ -78,7 +76,7 @@ function ReportActionItemImage({
                 />
             </View>
         );
-    } else if (thumbnail && !isLocalFile && !Str.isPDF(imageSource as string)) {
+    } else if (thumbnail && !isLocalFile) {
         receiptImageComponent = (
             <ThumbnailImage
                 previewSourceURL={thumbnailSource}
@@ -89,10 +87,17 @@ function ReportActionItemImage({
                 shouldDynamicallyResize={false}
             />
         );
+    } else if (isLocalFile && filename && Str.isPDF(filename) && typeof attachmentModalSource === 'string') {
+        receiptImageComponent = (
+            <PDFThumbnail
+                previewSourceURL={attachmentModalSource}
+                style={[styles.w100, styles.h100]}
+            />
+        );
     } else {
         receiptImageComponent = (
             <Image
-                source={{uri: thumbnail ?? image}}
+                source={imageSource}
                 style={[styles.w100, styles.h100]}
             />
         );
@@ -102,26 +107,14 @@ function ReportActionItemImage({
         return (
             <ShowContextMenuContext.Consumer>
                 {({report}) => (
-                    <AttachmentModal
-                        source={imageSource}
-                        isAuthTokenRequired={!isLocalFile}
-                        report={report}
-                        isReceiptAttachment
-                        canEditReceipt={canEditReceipt}
-                        allowDownload={!isEReceipt}
-                        originalFileName={filename}
+                    <PressableWithoutFocus
+                        style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
+                        onPress={() => Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(report?.reportID ?? '', transaction?.transactionID ?? ''))}
+                        accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                        accessibilityRole={CONST.ROLE.BUTTON}
                     >
-                        {({show}) => (
-                            <PressableWithoutFocus
-                                style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
-                                onPress={show}
-                                accessibilityRole={CONST.ROLE.BUTTON}
-                                accessibilityLabel={translate('accessibilityHints.viewAttachment')}
-                            >
-                                {receiptImageComponent}
-                            </PressableWithoutFocus>
-                        )}
-                    </AttachmentModal>
+                        {receiptImageComponent}
+                    </PressableWithoutFocus>
                 )}
             </ShowContextMenuContext.Consumer>
         );

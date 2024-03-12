@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import type {ReactNode} from 'react';
 import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
@@ -80,6 +81,9 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
          * taller header on desktop and different font of the title.
          * */
         icon?: IconAsset;
+
+        /** Whether the page is loading, example any other API call in progres */
+        isLoading?: boolean;
     };
 
 function fetchData(policyID: string, skipVBBACal?: boolean) {
@@ -109,18 +113,21 @@ function WorkspacePageWithSections({
     shouldShowOfflineIndicatorInWideScreen = false,
     shouldShowNonAdmin = false,
     shouldShowNotFoundPage = false,
+    isLoading: isPageLoading = false,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID ?? '';
     useNetwork({onReconnect: () => fetchData(policyID, shouldSkipVBBACall)});
 
-    const isLoading = reimbursementAccount?.isLoading ?? true;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const isLoading = (reimbursementAccount?.isLoading || isPageLoading) ?? true;
     const achState = reimbursementAccount?.achData?.state ?? '';
     const isUsingECard = user?.isUsingExpensifyCard ?? false;
     const hasVBA = achState === BankAccount.STATE.OPEN;
     const content = typeof children === 'function' ? children(hasVBA, policyID, isUsingECard) : children;
     const {isSmallScreenWidth} = useWindowDimensions();
     const firstRender = useRef(true);
+    const isFocused = useIsFocused();
 
     useEffect(() => {
         // Because isLoading is false before merging in Onyx, we need firstRender ref to display loading page as well before isLoading is change to true
@@ -163,7 +170,7 @@ function WorkspacePageWithSections({
                     onBackButtonPress={() => Navigation.goBack(backButtonRoute ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}
                     icon={icon ?? undefined}
                 />
-                {(isLoading || firstRender.current) && shouldShowLoading ? (
+                {(isLoading || firstRender.current) && shouldShowLoading && isFocused ? (
                     <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                 ) : (
                     <>
