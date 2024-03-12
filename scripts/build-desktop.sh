@@ -25,4 +25,5 @@ npx webpack --config config/webpack/webpack.desktop.ts --env envFile=$ENV_FILE
 title "Building Desktop App Archive Using Electron"
 info ""
 shift 1
-npx electron-builder --config config/electronBuilder.config.ts --publish always "$@"
+# npx electron-builder --config config/electronBuilder.config.js --publish always "$@"
+npx electron-builder --config config/electronBuilder.config.js "$@"

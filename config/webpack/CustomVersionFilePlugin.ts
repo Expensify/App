@@ -22,4 +22,4 @@ class CustomVersionFilePlugin {
     }
 }
 
-export = CustomVersionFilePlugin;
+export default CustomVersionFilePlugin;
