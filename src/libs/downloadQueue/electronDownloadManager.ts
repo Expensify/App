@@ -69,12 +69,10 @@ const registerListener = (session: Session, options: Options, callback: (error: 
             }
 
             if (state === 'cancelled') {
-                console.log('[wildebug] if (state === cancelled) {')
                 if (typeof options.onCancel === 'function') {
                     options.onCancel(item);
                 }
 
-                // console.log('[wildebug] new CancelError()', new CancelError())
                 callback(new CancelError());
             } else if (state === 'interrupted') {
                 const errorMessage = `The download of ${path.basename(filePath)} was interrupted`;
