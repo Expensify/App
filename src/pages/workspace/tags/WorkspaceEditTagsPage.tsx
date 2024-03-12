@@ -16,6 +16,7 @@ import * as Policy from '@libs/actions/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import FeatureEnabledAccessOrRedirectWrapper from '@pages/workspace/FeatureEnabledAccessOrRedirectWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -52,33 +53,38 @@ function WorkspaceEditTagsPage({route, policyTags}: WorkspaceEditTagsPageProps) 
     );
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
-            testID={WorkspaceEditTagsPage.displayName}
+        <FeatureEnabledAccessOrRedirectWrapper
+            policyID={route.params.policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
         >
-            <HeaderWithBackButton title={translate(`workspace.tags.customTagName`)} />
-            <FormProvider
-                style={[styles.flexGrow1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM}
-                onSubmit={updateTaglistName}
-                validate={validateTagName}
-                submitButtonText={translate('common.save')}
-                enabledWhenOffline
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableMaxHeight
+                testID={WorkspaceEditTagsPage.displayName}
             >
-                <View style={styles.mb4}>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.POLICY_TAGS_NAME}
-                        label={translate(`workspace.tags.customTagName`)}
-                        accessibilityLabel={translate(`workspace.tags.customTagName`)}
-                        defaultValue={taglistName}
-                        role={CONST.ROLE.PRESENTATION}
-                        ref={inputCallbackRef}
-                    />
-                </View>
-            </FormProvider>
-        </ScreenWrapper>
+                <HeaderWithBackButton title={translate(`workspace.tags.customTagName`)} />
+                <FormProvider
+                    style={[styles.flexGrow1, styles.ph5]}
+                    formID={ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM}
+                    onSubmit={updateTaglistName}
+                    validate={validateTagName}
+                    submitButtonText={translate('common.save')}
+                    enabledWhenOffline
+                >
+                    <View style={styles.mb4}>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.POLICY_TAGS_NAME}
+                            label={translate(`workspace.tags.customTagName`)}
+                            accessibilityLabel={translate(`workspace.tags.customTagName`)}
+                            defaultValue={taglistName}
+                            role={CONST.ROLE.PRESENTATION}
+                            ref={inputCallbackRef}
+                        />
+                    </View>
+                </FormProvider>
+            </ScreenWrapper>
+        </FeatureEnabledAccessOrRedirectWrapper>
     );
 }
 
