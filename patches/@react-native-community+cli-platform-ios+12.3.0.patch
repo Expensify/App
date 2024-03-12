@@ -1,5 +1,5 @@
 diff --git a/node_modules/@react-native-community/cli-platform-ios/native_modules.rb b/node_modules/@react-native-community/cli-platform-ios/native_modules.rb
-index 82f537c..f5e2cda 100644
+index 82f537c..df441e2 100644
 --- a/node_modules/@react-native-community/cli-platform-ios/native_modules.rb
 +++ b/node_modules/@react-native-community/cli-platform-ios/native_modules.rb
 @@ -12,7 +12,7 @@
@@ -19,7 +19,7 @@ index 82f537c..f5e2cda 100644
    if (!config)
      json = []
  
-@@ -36,10 +35,30 @@ def use_native_modules!(config = nil)
+@@ -36,9 +35,24 @@ def use_native_modules!(config = nil)
  
      config = JSON.parse(json.join("\n"))
    end
@@ -42,11 +42,5 @@ index 82f537c..f5e2cda 100644
 +  end
 +
    packages = config["dependencies"]
-+  
-+  if (ENV["NO_FLIPPER"])
-+    packages = {**packages, "react-native-flipper" => {"platforms" => {"ios" => nil}}}
-+  end
-+
    found_pods = []
  
-   packages.each do |package_name, package|
