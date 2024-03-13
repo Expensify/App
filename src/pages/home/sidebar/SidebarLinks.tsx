@@ -43,7 +43,7 @@ type SidebarLinksProps = {
     activeWorkspaceID: string | undefined;
 };
 
-function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport, isCreateMenuOpen}: SidebarLinksProps) {
+function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport}: SidebarLinksProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const modal = useRef<Modal>({});

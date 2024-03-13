@@ -22,7 +22,7 @@ type PressableAvatarWithIndicatorProps = PressableAvatarWithIndicatorOnyxProps &
     isSelected: boolean;
 
     /** Callback called when the avatar is pressed */
-    onPress: () => void;
+    onPress?: () => void;
 };
 
 function PressableAvatarWithIndicator({isLoading = true, isSelected = false, onPress}: PressableAvatarWithIndicatorProps) {

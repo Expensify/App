@@ -28,7 +28,7 @@ type FloatingActionButtonAndPopoverOnyxProps = {
     /** The list of policies the user has access to. */
     allPolicies: OnyxCollection<PolicySelector>;
 
-    /** Wheater app is in loading state */
+    /** Whether app is in loading state */
     isLoading: OnyxEntry<boolean>;
 };
 
