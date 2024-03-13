@@ -3249,6 +3249,7 @@ function getSendMoneyParams(
             true,
         );
 
+    const optimisticCreatedActionForChatReport = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
     const reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticIOUReport);
 
     // Change the method to set for new reports because it doesn't exist yet, is faster,
@@ -3295,6 +3296,9 @@ function getSendMoneyParams(
             [optimisticIOUReportAction.reportActionID]: {
                 ...(optimisticIOUReportAction as OnyxTypes.ReportAction),
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+            [optimisticCreatedActionForIOUReport.reportActionID]: {
+                ...(optimisticCreatedActionForIOUReport as OnyxTypes.ReportAction),
             },
         },
     };
@@ -3424,7 +3428,7 @@ function getSendMoneyParams(
 
         if (optimisticChatReportActionsData.value) {
             // Add an optimistic created action to the optimistic chat reportActions data
-            optimisticChatReportActionsData.value[optimisticCreatedActionForIOUReport.reportActionID] = optimisticCreatedActionForIOUReport;
+            optimisticChatReportActionsData.value[optimisticCreatedActionForChatReport.reportActionID] = optimisticCreatedActionForChatReport;
         }
     } else {
         failureData.push({
@@ -3460,7 +3464,7 @@ function getSendMoneyParams(
             paymentMethodType,
             transactionID: optimisticTransaction.transactionID,
             newIOUReportDetails,
-            createdReportActionID: isNewChat ? optimisticCreatedActionForIOUReport.reportActionID : '0',
+            createdReportActionID: isNewChat ? optimisticCreatedActionForChatReport.reportActionID : '0',
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
             transactionThreadReportID: optimisticTransactionThread.reportID,
             createdReportActionIDForThread: optimisticCreatedActionForTransactionThread.reportActionID,
