@@ -1,5 +1,6 @@
+import Str from 'expensify-common/lib/str';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {Alert, View} from 'react-native';
+import {Alert, Image as RNImage, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import RNDocumentPicker from 'react-native-document-picker';
 import type {DocumentPickerResponse} from 'react-native-document-picker';
@@ -234,12 +235,30 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
         setIsVisible(false);
     };
 
+    const validateAndCompleteAttachmentSelection = useCallback(
+        (fileData: Asset & DocumentPickerResponse) => {
+            if (fileData.width === -1 || fileData.height === -1) {
+                showImageCorruptionAlert();
+                return Promise.resolve();
+            }
+            return getDataForUpload(fileData)
+                .then((result) => {
+                    completeAttachmentSelection.current(result);
+                })
+                .catch((error) => {
+                    showGeneralAlert(error.message);
+                    throw error;
+                });
+        },
+        [showGeneralAlert, showImageCorruptionAlert],
+    );
+
     /**
      * Handles the image/document picker result and
      * sends the selected attachment to the caller (parent component)
      */
     const pickAttachment = useCallback(
-        (attachments: Array<(Asset & DocumentPickerResponse) | void> = []): Promise<Asset[] | void | DocumentPickerResponse[]> => {
+        (attachments: Array<(Asset & DocumentPickerResponse) | void> = []): Promise<void> | undefined => {
             if (attachments.length === 0) {
                 onCanceled.current();
                 return Promise.resolve();
@@ -251,22 +270,17 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                 onCanceled.current();
                 return Promise.resolve();
             }
-
-            if (fileData.width === -1 || fileData.height === -1) {
-                showImageCorruptionAlert();
-                return Promise.resolve();
-            }
-
-            return getDataForUpload(fileData)
-                .then((result) => {
-                    completeAttachmentSelection.current(result);
-                })
-                .catch((error) => {
-                    showGeneralAlert(error.message);
-                    throw error;
+            if (fileData.fileName && Str.isImage(fileData.fileName ?? fileData.name)) {
+                RNImage.getSize(fileData.fileCopyUri ?? fileData.uri, (width, height) => {
+                    fileData.width = width;
+                    fileData.height = height;
+                    validateAndCompleteAttachmentSelection(fileData);
                 });
+            } else {
+                return validateAndCompleteAttachmentSelection(fileData);
+            }
         },
-        [showGeneralAlert, showImageCorruptionAlert],
+        [validateAndCompleteAttachmentSelection],
     );
 
     /**
