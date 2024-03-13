@@ -183,7 +183,7 @@ jobs:
         run: npm run e2e-test-runner-build
 
       - name: Copy e2e code into zip folder
-        run: cp tests/e2e/dist/index.js zip/testRunner.js
+        run: cp tests/e2e/dist/index.js zip/testRunner.ts
 
       - name: Zip everything in the zip directory up
         run: zip -qr App.zip ./zip
