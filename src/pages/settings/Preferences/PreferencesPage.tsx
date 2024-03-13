@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
@@ -21,14 +20,14 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {User as UserType} from '@src/types/onyx';
+import type {PreferredTheme, PriorityMode, User as UserType} from '@src/types/onyx';
 
 type PreferencesPageOnyxProps = {
     /** The chat priority mode */
-    priorityMode: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>;
+    priorityMode: PriorityMode;
 
     /** The app's color theme */
-    preferredTheme: OnyxEntry<ValueOf<typeof CONST.THEME>>;
+    preferredTheme: PreferredTheme;
 
     /** The details about the user that is signed in */
     user: OnyxEntry<UserType>;

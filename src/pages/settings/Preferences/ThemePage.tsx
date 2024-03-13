@@ -1,7 +1,5 @@
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -13,10 +11,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PreferredTheme} from '@src/types/onyx';
 
 type ThemePageOnyxProps = {
     /** The theme of the app */
-    preferredTheme: OnyxEntry<ValueOf<typeof CONST.THEME>>;
+    preferredTheme: PreferredTheme;
 };
 
 type ThemePageProps = ThemePageOnyxProps;

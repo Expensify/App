@@ -1,5 +1,4 @@
 import React, {useCallback} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -13,6 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PriorityMode} from '@src/types/onyx';
 
 type PriorityModeItem = {
     value: ValueOf<typeof CONST.PRIORITY_MODE>;
@@ -24,7 +24,7 @@ type PriorityModeItem = {
 
 type PriorityModePageOnyxProps = {
     /** The chat priority mode */
-    priorityMode: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>;
+    priorityMode: PriorityMode;
 };
 
 type PriorityModePageProps = PriorityModePageOnyxProps;
