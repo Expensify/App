@@ -3,7 +3,6 @@ import {DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-naviga
 import React, {useEffect, useMemo, useRef} from 'react';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentReportID from '@hooks/useCurrentReportID';
-import useFlipper from '@hooks/useFlipper';
 import useTheme from '@hooks/useTheme';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Log from '@libs/Log';
@@ -60,7 +59,6 @@ function parseAndLogRoute(state: NavigationState) {
 }
 
 function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: NavigationRootProps) {
-    useFlipper(navigationRef);
     const firstRenderRef = useRef(true);
     const theme = useTheme();
 

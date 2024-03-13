@@ -1,6 +1,5 @@
 import {deepEqual} from 'fast-equals';
 import React, {useEffect, useMemo, useRef} from 'react';
-import useCurrentReportID from '@hooks/useCurrentReportID';
 import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import * as Report from '@userActions/Report';
@@ -29,12 +28,9 @@ function OptionRowLHNData({
     lastReportActionTransaction = {},
     transactionViolations,
     canUseViolations,
-    reportErrors,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
-    const currentReportIDValue = useCurrentReportID();
-    const isReportFocused = isFocused && currentReportIDValue?.currentReportID === reportID;
 
     const optionItemRef = useRef<OptionData>();
 
@@ -44,11 +40,11 @@ function OptionRowLHNData({
         // Note: ideally we'd have this as a dependent selector in onyx!
         const item = SidebarUtils.getOptionData({
             report: fullReport,
+            reportActions,
             personalDetails,
             preferredLocale: preferredLocale ?? CONST.LOCALES.DEFAULT,
             policy,
             parentReportAction,
-            reportErrors,
             hasViolations: !!hasViolations,
         });
         if (deepEqual(item, optionItemRef.current)) {
@@ -73,7 +69,6 @@ function OptionRowLHNData({
         transactionViolations,
         canUseViolations,
         receiptTransactions,
-        reportErrors,
     ]);
 
     useEffect(() => {
@@ -88,7 +83,7 @@ function OptionRowLHNData({
         <OptionRowLHN
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsToForward}
-            isFocused={isReportFocused}
+            isFocused={isFocused}
             optionItem={optionItem}
         />
     );
