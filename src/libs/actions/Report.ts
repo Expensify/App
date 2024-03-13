@@ -2229,10 +2229,10 @@ function toggleEmojiReaction(
     addEmojiReaction(originalReportID, reportAction.reportActionID, emoji, skinTone);
 }
 
-function openReportFromDeepLink(url: string, isAuthenticated: boolean) {
+function openReportFromDeepLink(url: string) {
     const reportID = ReportUtils.getReportIDFromLink(url);
 
-    if (reportID && !isAuthenticated) {
+    if (reportID && !Session.hasAuthToken()) {
         // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
         openReport(reportID, [], {}, '0', true);
 
@@ -2903,17 +2903,6 @@ function clearNewRoomFormError() {
     });
 }
 
-function getReportDraftStatus(reportID: string) {
-    if (!allReports) {
-        return false;
-    }
-
-    if (!allReports[reportID]) {
-        return false;
-    }
-    return allReports[reportID]?.hasDraft;
-}
-
 function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEntry<ReportAction>, resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>) {
     const message = reportAction?.message?.[0];
     if (!message) {
@@ -2964,7 +2953,6 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
 }
 
 export {
-    getReportDraftStatus,
     searchInServer,
     addComment,
     addAttachment,

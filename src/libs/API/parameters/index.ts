@@ -115,6 +115,7 @@ export type {default as OpenWorkspaceReimburseViewParams} from './OpenWorkspaceR
 export type {default as OpenWorkspaceInvitePageParams} from './OpenWorkspaceInvitePageParams';
 export type {default as OpenWorkspaceMembersPageParams} from './OpenWorkspaceMembersPageParams';
 export type {default as OpenPolicyCategoriesPageParams} from './OpenPolicyCategoriesPageParams';
+export type {default as OpenPolicyTagsPageParams} from './OpenPolicyTagsPageParams';
 export type {default as OpenDraftWorkspaceRequestParams} from './OpenDraftWorkspaceRequestParams';
 export type {default as UpdateWorkspaceCustomUnitAndRateParams} from './UpdateWorkspaceCustomUnitAndRateParams';
 export type {default as CreateWorkspaceFromIOUPaymentParams} from './CreateWorkspaceFromIOUPaymentParams';
@@ -155,6 +156,10 @@ export type {default as SetWorkspaceAutoReportingParams} from './SetWorkspaceAut
 export type {default as SetWorkspaceAutoReportingFrequencyParams} from './SetWorkspaceAutoReportingFrequencyParams';
 export type {default as SetWorkspaceAutoReportingMonthlyOffsetParams} from './SetWorkspaceAutoReportingMonthlyOffsetParams';
 export type {default as SetWorkspaceApprovalModeParams} from './SetWorkspaceApprovalModeParams';
+export type {default as SetWorkspacePayerParams} from './SetWorkspacePayerParams';
+export type {default as SetWorkspaceReimbursementParams} from './SetWorkspaceReimbursementParams';
+export type {default as SetPolicyRequiresTag} from './SetPolicyRequiresTag';
+export type {default as RenamePolicyTaglist} from './RenamePolicyTaglist';
 export type {default as SwitchToOldDotParams} from './SwitchToOldDotParams';
 export type {default as EnablePolicyCategoriesParams} from './EnablePolicyCategoriesParams';
 export type {default as EnablePolicyConnectionsParams} from './EnablePolicyConnectionsParams';
@@ -166,4 +171,6 @@ export type {default as EnablePolicyReportFieldsParams} from './EnablePolicyRepo
 export type {default as AcceptJoinRequestParams} from './AcceptJoinRequest';
 export type {default as DeclineJoinRequestParams} from './DeclineJoinRequest';
 export type {default as JoinPolicyInviteLinkParams} from './JoinPolicyInviteLink';
+export type {default as OpenPolicyWorkflowsPageParams} from './OpenPolicyWorkflowsPageParams';
 export type {default as OpenPolicyDistanceRatesPageParams} from './OpenPolicyDistanceRatesPageParams';
+export type {default as CreatePolicyTagsParams} from './CreatePolicyTagsParams';

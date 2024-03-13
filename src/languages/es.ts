@@ -513,14 +513,15 @@ export default {
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'Esta sala de chat ha sido eliminada.',
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}: ReportArchiveReasonsClosedParams) =>
-            `Este chat de espacio de trabajo esta desactivado porque ${displayName} ha cerrado su cuenta.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}: ReportArchiveReasonsClosedParams) => `Este chat está desactivado porque ${displayName} ha cerrado su cuenta.`,
         [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}: ReportArchiveReasonsMergedParams) =>
-            `Este chat de espacio de trabajo esta desactivado porque ${oldDisplayName} ha combinado su cuenta con ${displayName}.`,
-        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName}: ReportArchiveReasonsRemovedFromPolicyParams) =>
-            `Este chat de espacio de trabajo esta desactivado porque ${displayName} ha dejado de ser miembro del espacio de trabajo ${policyName}.`,
+            `Este chat está desactivado porque ${oldDisplayName} ha combinado su cuenta con ${displayName}`,
+        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName, shouldUseYou = false}: ReportArchiveReasonsRemovedFromPolicyParams) =>
+            shouldUseYou
+                ? `Este chat ya no está activo porque <strong>tu</strong> ya no eres miembro del espacio de trabajo ${policyName}.`
+                : `Este chat está desactivado porque ${displayName} ha dejado de ser miembro del espacio de trabajo ${policyName}.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: ReportArchiveReasonsPolicyDeletedParams) =>
-            `Este chat de espacio de trabajo esta desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
+            `Este chat está desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
     },
     writeCapabilityPage: {
         label: 'Quién puede postear',
@@ -597,6 +598,8 @@ export default {
         routePending: 'Ruta pendiente...',
         receiptScanning: 'Escaneo en curso…',
         receiptMissingDetails: 'Recibo con campos vacíos',
+        missingAmount: 'Falta importe',
+        missingMerchant: 'Falta comerciante',
         receiptStatusTitle: 'Escaneando…',
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
         receiptScanningFailed: 'El escaneo de recibo ha fallado. Introduce los detalles manualmente.',
@@ -1064,6 +1067,11 @@ export default {
                 other: '.º',
             },
         },
+    },
+    workflowsPayerPage: {
+        title: 'Pagador autorizado',
+        genericErrorMessage: 'El pagador autorizado no se pudo cambiar. Por favor, inténtalo mas tarde.',
+        admins: 'Administradores',
     },
     reportFraudPage: {
         title: 'Reportar fraude con la tarjeta virtual',
@@ -1848,12 +1856,17 @@ export default {
         },
         tags: {
             requiresTag: 'Los miembros deben etiquetar todos los gastos',
+            customTagName: 'Nombre de etiqueta personalizada',
             enableTag: 'Habilitar etiqueta',
+            addTag: 'Añadir etiqueta',
             subtitle: 'Las etiquetas añaden formas más detalladas de clasificar los costos.',
             emptyTags: {
                 title: 'No has creado ninguna etiqueta',
                 subtitle: 'Añade una etiqueta para realizar el seguimiento de proyectos, ubicaciones, departamentos y otros.',
             },
+            tagRequiredError: 'Lo nombre de la etiqueta es obligatorio.',
+            existingTagError: 'Ya existe una etiqueta con este nombre.',
+            genericFailureMessage: 'Se produjo un error al actualizar la etiqueta, inténtelo nuevamente.',
         },
         emptyWorkspace: {
             title: 'Crea un espacio de trabajo',
