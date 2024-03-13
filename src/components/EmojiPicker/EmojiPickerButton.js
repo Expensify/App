@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
-import React, {memo, useEffect, useRef} from 'react';
+import React, {memo, useContext, useEffect, useRef} from 'react';
+import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -37,9 +38,47 @@ const defaultProps = {
 };
 
 function EmojiPickerButton(props) {
+    const actionSheetContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
+
+    const onPress = () => {
+        if (!props.isFocused) {
+            return;
+        }
+
+        actionSheetContext.transitionActionSheetState({
+            type: ActionSheetAwareScrollView.Actions.OPEN_EMOJI_PICKER_POPOVER_STANDALONE,
+        });
+
+        const onHide = () => {
+            actionSheetContext.transitionActionSheetState({
+                type: ActionSheetAwareScrollView.Actions.CLOSE_EMOJI_PICKER_POPOVER_STANDALONE,
+            });
+
+            if (props.onModalHide) {
+                props.onModalHide();
+            }
+        };
+
+        if (!EmojiPickerAction.emojiPickerRef.current.isEmojiPickerVisible) {
+            EmojiPickerAction.showEmojiPicker(
+                onHide,
+                props.onEmojiSelected,
+                emojiPopoverAnchor,
+                {
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    shiftVertical: props.shiftVertical,
+                },
+                () => {},
+                props.emojiPickerID,
+            );
+        } else {
+            EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
+        }
+    };
 
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
 
@@ -49,27 +88,7 @@ function EmojiPickerButton(props) {
                 ref={emojiPopoverAnchor}
                 style={({hovered, pressed}) => [styles.chatItemEmojiButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
                 disabled={props.isDisabled}
-                onPress={() => {
-                    if (!props.isFocused) {
-                        return;
-                    }
-                    if (!EmojiPickerAction.emojiPickerRef.current.isEmojiPickerVisible) {
-                        EmojiPickerAction.showEmojiPicker(
-                            props.onModalHide,
-                            props.onEmojiSelected,
-                            emojiPopoverAnchor,
-                            {
-                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                                shiftVertical: props.shiftVertical,
-                            },
-                            () => {},
-                            props.emojiPickerID,
-                        );
-                    } else {
-                        EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
-                    }
-                }}
+                onPress={onPress}
                 id={props.id}
                 accessibilityLabel={props.translate('reportActionCompose.emoji')}
             >
@@ -87,4 +106,5 @@ function EmojiPickerButton(props) {
 EmojiPickerButton.propTypes = propTypes;
 EmojiPickerButton.defaultProps = defaultProps;
 EmojiPickerButton.displayName = 'EmojiPickerButton';
+
 export default compose(withLocalize, withNavigationFocus)(memo(EmojiPickerButton));

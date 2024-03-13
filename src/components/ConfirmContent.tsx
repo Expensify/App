@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react';
-import React from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import React, {useCallback, useContext} from 'react';
+import type {LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -11,6 +11,7 @@ import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {Actions, ActionSheetAwareScrollViewContext} from './ActionSheetAwareScrollView';
 import Button from './Button';
 import Header from './Header';
 import Icon from './Icon';
@@ -93,11 +94,26 @@ function ConfirmContent({
     iconAdditionalStyles,
     image,
 }: ConfirmContentProps) {
+    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollViewContext);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const StyleUtils = useStyleUtils();
+
+    const onLayout = useCallback(
+        (event: LayoutChangeEvent) => {
+            const {height} = event.nativeEvent.layout;
+
+            actionSheetAwareScrollViewContext.transitionActionSheetState({
+                type: Actions.MEASURE_CONFIRM_MODAL,
+                payload: {
+                    popoverHeight: height,
+                },
+            });
+        },
+        [actionSheetAwareScrollViewContext],
+    );
 
     const isCentered = shouldCenterContent;
 
@@ -115,7 +131,10 @@ function ConfirmContent({
                 </View>
             )}
 
-            <View style={[styles.m5, contentStyles]}>
+            <View
+                onLayout={onLayout}
+                style={[styles.m5, contentStyles]}
+            >
                 <View style={isCentered ? [styles.alignItemsCenter, styles.mb6] : []}>
                     {typeof iconSource === 'function' && (
                         <View style={[styles.flexRow, styles.mb3]}>

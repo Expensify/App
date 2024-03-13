@@ -1,9 +1,11 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Icon from '@components/Icon';
@@ -111,12 +113,13 @@ function AttachmentPickerWithMenuItems({
     actionButtonRef,
     raiseIsScrollLikelyLayoutTriggered,
 }: AttachmentPickerWithMenuItemsProps) {
+    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const isFocused = useIsFocused();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {windowHeight} = useWindowDimensions();
     const {canUseTrackExpense} = usePermissions();
+    const {windowWidth} = useWindowDimensions();
 
     /**
      * Returns the list of IOU Options
@@ -166,6 +169,18 @@ function AttachmentPickerWithMenuItems({
             },
         ];
     }, [report, reportID, translate]);
+
+    const measurePopover = useCallback(
+        ({nativeEvent}: LayoutChangeEvent) => {
+            actionSheetAwareScrollViewContext.transitionActionSheetState({
+                type: ActionSheetAwareScrollView.Actions.MEASURE_POPOVER,
+                payload: {
+                    popoverHeight: nativeEvent.layout.height,
+                },
+            });
+        },
+        [actionSheetAwareScrollViewContext],
+    );
 
     const onPopoverMenuClose = () => {
         setMenuVisibility(false);
@@ -288,6 +303,7 @@ function AttachmentPickerWithMenuItems({
                             </Tooltip>
                         </View>
                         <PopoverMenu
+                            onLayout={measurePopover}
                             animationInTiming={CONST.ANIMATION_IN_TIMING}
                             isVisible={isMenuVisible && isFocused}
                             onClose={onPopoverMenuClose}
@@ -302,7 +318,7 @@ function AttachmentPickerWithMenuItems({
                                     triggerAttachmentPicker();
                                 }
                             }}
-                            anchorPosition={styles.createMenuPositionReportActionCompose(windowHeight)}
+                            anchorPosition={styles.createMenuPositionReportActionCompose(windowWidth)}
                             anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
                             menuItems={menuItems}
                             withoutOverlay
