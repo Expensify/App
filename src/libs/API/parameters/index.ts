@@ -175,3 +175,4 @@ export type {default as OpenPolicyWorkflowsPageParams} from './OpenPolicyWorkflo
 export type {default as OpenPolicyDistanceRatesPageParams} from './OpenPolicyDistanceRatesPageParams';
 export type {default as CreatePolicyTagsParams} from './CreatePolicyTagsParams';
 export type {default as RequestWorkspaceOwnerChangeParams} from './RequestWorkspaceOwnerChangeParams';
+export type {default as AddBillingCardAndRequestWorkspaceOwnerChangeParams} from './AddBillingCardAndRequestWorkspaceOwnerChangeParams';

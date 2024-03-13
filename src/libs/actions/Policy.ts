@@ -1027,6 +1027,86 @@ function clearWorkspaceOwnerChangeFlow(policyID: string) {
     });
 }
 
+function addBillingCardAndRequestPolicyOwnerChange(
+    policyID: string,
+    cardData: {
+        cardNumber: string,
+        cardYear: string,
+        cardMonth: string,
+        cardCVV: string,
+        addressName: string,
+        addressZip: string,
+    }
+) {
+    const {
+        cardNumber,
+        cardYear,
+        cardMonth,
+        cardCVV,
+        addressName,
+        addressZip,
+    } = cardData;
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.WORKSPACE_CHANGE_OWNER_PAYMENT_CARD_FORM,
+            value: {isLoading: true},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                errorFields: null,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.WORKSPACE_CHANGE_OWNER_PAYMENT_CARD_FORM,
+            value: {isLoading: false},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                errorFields: null,
+                pendingAction: null,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.WORKSPACE_CHANGE_OWNER_PAYMENT_CARD_FORM,
+            value: {isLoading: false},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingAction: null,
+            },
+        },
+    ];
+
+    const params = {
+        policyID,
+        cardNumber,
+        cardYear,
+        cardMonth,
+        cardCVV,
+        addressName,
+        addressZip,
+    }
+
+    API.write(WRITE_COMMANDS.ADD_BILLING_CARD_AND_REQUEST_WORKSPACE_OWNER_CHANGE, params, {optimisticData, successData, failureData});
+}
+
+
 /**
  * Optimistically create a chat for each member of the workspace, creates both optimistic and success data for onyx.
  *
@@ -3528,6 +3608,7 @@ export {
     updateWorkspaceOwnershipChecks,
     requestWorkspaceOwnerChange,
     clearWorkspaceOwnerChangeFlow,
+    addBillingCardAndRequestPolicyOwnerChange,
     addMembersToWorkspace,
     isAdminOfFreePolicy,
     hasActiveFreePolicy,
