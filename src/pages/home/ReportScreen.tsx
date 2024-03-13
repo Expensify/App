@@ -507,7 +507,7 @@ function ReportScreen({
         if (!reportActionIDFromRoute || !sortedAllReportActions) {
             return false;
         }
-        const action = sortedAllReportActions.find(item => item.reportActionID === reportActionIDFromRoute);
+        const action = sortedAllReportActions.find((item) => item.reportActionID === reportActionIDFromRoute);
         return action && ReportActionsUtils.isDeletedAction(action);
     }, [reportActionIDFromRoute, sortedAllReportActions]);
 
