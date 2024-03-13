@@ -3,10 +3,16 @@ import {AppRegistry} from 'react-native';
 import 'shim-keyboard-event-key';
 import checkForUpdates from '@libs/checkForUpdates';
 import DateUtils from '@libs/DateUtils';
+import markAllPolicyReportsAsRead from '@libs/markAllPolicyReportsAsRead';
 import Visibility from '@libs/Visibility';
 import Config from '@src/CONFIG';
 import pkg from '../../../package.json';
 import type PlatformSpecificUpdater from './types';
+
+
+// Temporary workaround to give employees the ability to mark reports as read via the JS console
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(window as any).markAllPolicyReportsAsRead = markAllPolicyReportsAsRead;
 
 /**
  * Download the latest app version from the server, and if it is different than the current one,
