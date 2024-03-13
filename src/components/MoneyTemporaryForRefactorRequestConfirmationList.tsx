@@ -161,7 +161,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 };
 
 function MoneyTemporaryForRefactorRequestConfirmationList({
-    transaction=null,
+    transaction = null,
     onSendMoney,
     onConfirm,
     onSelectParticipant,
@@ -430,16 +430,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         if (!hasMultipleParticipants) {
             return [];
         }
-
-        const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', true);
-        return [
-            ...selectedParticipants,
-            OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
-                personalDetailsOfPayee,
-                iouAmount > 0 ? CurrencyUtils.convertToDisplayString(myIOUAmount, iouCurrencyCode) : '',
-            ),
-        ];
-    }, [selectedParticipants, hasMultipleParticipants, personalDetailsOfPayee, iouAmount, iouCurrencyCode]);
+        return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetailsOfPayee)];
+    }, [selectedParticipants, hasMultipleParticipants, personalDetailsOfPayee]);
 
     useEffect(() => {
         if (!isDistanceRequest) {
@@ -459,19 +451,19 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     // Auto select the category if there is only one enabled category and it is required
     useEffect(() => {
-        const enabledCategories = policyCategories.filter((category: policyCategory) => category.enabled);
+        const enabledCategories = Object.values(policyCategories ?? {}).filter((category) => category.enabled);
         if (iouCategory || !shouldShowCategories || enabledCategories.length !== 1 || !isCategoryRequired) {
             return;
         }
-        IOU.setMoneyRequestCategory(transaction.transactionID, enabledCategories[0].name);
+        IOU.setMoneyRequestCategory(transaction?.transactionID ?? '', enabledCategories[0].name);
     }, [iouCategory, shouldShowCategories, policyCategories, transaction, isCategoryRequired]);
 
     // Auto select the tag if there is only one enabled tag and it is required
     useEffect(() => {
         let updatedTagsString = TransactionUtils.getTag(transaction);
         policyTagLists.forEach((tagList, index) => {
-            const enabledTags = _.filter(tagList.tags, (tag) => tag.enabled);
-            const isTagListRequired = isUndefined(tagList.required) ? false : tagList.required && canUseViolations;
+            const enabledTags = Object.values(tagList.tags).filter((tag) => tag.enabled);
+            const isTagListRequired = tagList.required === undefined ? false : tagList.required && canUseViolations;
             if (!isTagListRequired || enabledTags.length !== 1 || TransactionUtils.getTag(transaction, index)) {
                 return;
             }
@@ -609,7 +601,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
         return (
             <>
-                {formError && (
+                {!!formError && (
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
@@ -789,7 +781,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 <MenuItemWithTopDescription
                     key={name}
                     shouldShowRightIcon={!isReadOnly}
-                    title={TransactionUtils.getTagForDisplay(transaction ?? null, index)}
+                    title={TransactionUtils.getTagForDisplay(transaction, index)}
                     description={name}
                     numberOfLinesTitle={2}
                     onPress={() =>
