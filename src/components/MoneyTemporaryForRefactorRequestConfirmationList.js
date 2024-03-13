@@ -664,10 +664,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         );
     }, [isReadOnly, iouType, selectedParticipants.length, confirm, bankAccountRoute, iouCurrencyCode, policyID, splitOrRequestOptions, formError, styles.ph1, styles.mb2]);
 
-    // TODO: change for a value from usePermissions [will be added in this PR https://github.com/Expensify/App/pull/37185]
-    // change for true for development
-    const canUseP2PDistanceRequests = false;
-
     // An intermediate structure that helps us classify the fields as "primary" and "supplementary".
     // The primary fields are always shown to the user, while an extra action is needed to reveal the supplementary ones.
     const classifiedFields = [
