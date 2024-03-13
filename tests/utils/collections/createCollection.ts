@@ -31,6 +31,4 @@ function createNestedCollection<T>(
     return map;
 }
 
-export {
-    createNestedCollection,
-};
+export {createNestedCollection};
