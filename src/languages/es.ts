@@ -2058,6 +2058,11 @@ export default {
             addPaymentCardTerms: 'los términos',
             addPaymentCardPrivacy: 'la política de privacidad',
             addPaymentCardAnd: 'y',
+            addPaymentCardPciCompliant: 'PCI-DSS obediente',
+            addPaymentCardBankLevelEncrypt: 'Cifrado a nivel bancario',
+            addPaymentCardRedundant: 'Infraestructura redundante',
+            addPaymentCardLearnMore: 'Conozca más sobre nuestra',
+            addPaymentCardSecurity: 'seguridad',
             // TODO: add spanish translations below
             amountOwedTitle: 'Amount owed title',
             amountOwedButtonText: 'Amount owed button text',

@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -39,6 +39,13 @@ function WorkspaceOwnerChangeCheckPage({route}: WorkspaceMemberDetailsPageProps)
         Policy.clearWorkspaceOwnerChangeFlow(policyID);
         Navigation.goBack();
     }, [policyID]);
+
+    useEffect(() =>
+        () => {
+            Policy.clearWorkspaceOwnerChangeFlow(policyID);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    , []);
 
     const confirmationTitle = useMemo(() => {
         switch (error) {

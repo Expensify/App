@@ -412,6 +412,8 @@ const ONYXKEYS = {
         EXIT_SURVEY_RESPONSE_FORM_DRAFT: 'exitSurveyResponseFormDraft',
         POLICY_TAG_NAME_FORM: 'policyTagNameForm',
         POLICY_TAG_NAME_FORM_DRAFT: 'policyTagNameFormDraft',
+        WORKSPACE_CHANGE_OWNER_PAYMENT_CARD_FORM: 'workspaceChangeOwnerPaymentCardForm',
+        WORKSPACE_CHANGE_OWNER_PAYMENT_CARD_FORM_DRAFT: 'workspaceChangeOwnerPaymentCardFormDraft',
     },
 } as const;
 
@@ -459,6 +461,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT]: FormTypes.PersonalBankAccountForm;
     [ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM]: FormTypes.WorkspaceDescriptionForm;
     [ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM]: FormTypes.PolicyTagNameForm;
+    [ONYXKEYS.FORMS.WORKSPACE_CHANGE_OWNER_PAYMENT_CARD_FORM]: FormTypes.WorkspaceChangeOwnerPaymentCardForm;
 };
 
 type OnyxFormDraftValuesMapping = {

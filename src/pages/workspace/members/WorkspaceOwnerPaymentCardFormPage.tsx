@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -15,13 +15,18 @@ import FormProvider from '@components/Form/FormProvider';
 import ONYXKEYS from "@src/ONYXKEYS";
 import type {FormInputErrors, FormOnyxValues} from "@components/Form/types";
 import * as ValidationUtils from "@libs/ValidationUtils";
-import INPUT_IDS from "@src/types/form/AddDebitCardForm";
+import INPUT_IDS from "@src/types/form/WorkspaceChangeOwnerPaymentCardForm";
 import InputWrapper from "@components/Form/InputWrapper";
 import TextInput from "@components/TextInput";
 import CONST from "@src/CONST";
-import AddressSearch from "@components/AddressSearch";
 import type {AnimatedTextInputRef} from "@components/RNTextInput";
 import TextLink from "@components/TextLink";
+import * as Policy from '@userActions/Policy';
+import Section, {CARD_LAYOUT} from "@components/Section";
+import * as Illustrations from '@components/Icon/Illustrations';
+import * as Expensicons from '@components/Icon/Expensicons';
+import Icon from "@components/Icon";
+import useTheme from "@hooks/useTheme";
 
 type WorkspaceOwnerPaymentCardFormPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.OWNER_PAYMENT_CARD_FORM>;
 
@@ -29,21 +34,28 @@ const REQUIRED_FIELDS = [
     INPUT_IDS.NAME_ON_CARD,
     INPUT_IDS.CARD_NUMBER,
     INPUT_IDS.EXPIRATION_DATE,
+    INPUT_IDS.ADDRESS_NAME,
     INPUT_IDS.SECURITY_CODE,
-    INPUT_IDS.ADDRESS_STREET,
     INPUT_IDS.ADDRESS_ZIP_CODE,
-    INPUT_IDS.ADDRESS_STATE,
 ];
 
 function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFormPageProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
 
-    const nameOnCardRef = useRef<AnimatedTextInputRef>(null);
+    const cardNumberRef = useRef<AnimatedTextInputRef>(null);
 
     const policyID = route.params.policyID;
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM> => {
+    useEffect(() =>
+        () => {
+            Policy.clearWorkspaceOwnerChangeFlow(policyID);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    , []);
+
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CHANGE_OWNER_PAYMENT_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CHANGE_OWNER_PAYMENT_CARD_FORM> => {
         const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
 
         // TODO Implement validation for the form
@@ -59,7 +71,7 @@ function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFor
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
                 <ScreenWrapper
-                    onEntryTransitionEnd={() => nameOnCardRef.current?.focus()}
+                    onEntryTransitionEnd={() => cardNumberRef.current?.focus()}
                     testID={WorkspaceOwnerPaymentCardFormPage.displayName}
                 >
                     <HeaderWithBackButton
@@ -67,9 +79,9 @@ function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFor
                         onBackButtonPress={() => Navigation.goBack()}
                     />
                     <View style={[styles.containerWithSpaceBetween, styles.ph5, styles.pb0]}>
-                        <Text style={[styles.textHeadline, styles.mt3, styles.mb5]}>{translate('workspace.changeOwner.addPaymentCardTitle')}</Text>
+                        <Text style={[styles.textHeadline, styles.mt3]}>{translate('workspace.changeOwner.addPaymentCardTitle')}</Text>
                         <FormProvider
-                            formID={ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM}
+                            formID={ONYXKEYS.FORMS.WORKSPACE_CHANGE_OWNER_PAYMENT_CARD_FORM}
                             validate={validate}
                             onSubmit={addPaymentCard}
                             submitButtonText={translate('workspace.changeOwner.addPaymentCardButtonText')}
@@ -82,7 +94,8 @@ function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFor
                                 label={translate('addDebitCardPage.debitCardNumber')}
                                 aria-label={translate('addDebitCardPage.debitCardNumber')}
                                 role={CONST.ROLE.PRESENTATION}
-                                containerStyles={[styles.mt4]}
+                                containerStyles={[styles.mt5]}
+                                ref={cardNumberRef}
                                 inputMode={CONST.INPUT_MODE.NUMERIC}
                             />
                             <InputWrapper
@@ -91,10 +104,10 @@ function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFor
                                 label={translate('addDebitCardPage.nameOnCard')}
                                 aria-label={translate('addDebitCardPage.nameOnCard')}
                                 role={CONST.ROLE.PRESENTATION}
-                                ref={nameOnCardRef}
+                                containerStyles={[styles.mt5]}
                                 spellCheck={false}
                             />
-                            <View style={[styles.flexRow, styles.mt4]}>
+                            <View style={[styles.flexRow, styles.mt5]}>
                                 <View style={[styles.flex1, styles.mr2]}>
                                     <InputWrapper
                                         InputComponent={TextInput}
@@ -119,8 +132,18 @@ function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFor
                                     />
                                 </View>
                             </View>
-                            <View style={[styles.flexRow, styles.mt4]}>
+                            <View style={[styles.flexRow, styles.mt5]}>
                                 <View style={[styles.flex1, styles.mr2]}>
+                                    <InputWrapper
+                                        InputComponent={TextInput}
+                                        inputID={INPUT_IDS.ADDRESS_NAME}
+                                        label={translate('cardPage.cardDetails.address')}
+                                        aria-label={translate('cardPage.cardDetails.address')}
+                                        role={CONST.ROLE.PRESENTATION}
+                                        spellCheck={false}
+                                    />
+                                </View>
+                                <View style={[styles.flex1]}>
                                     <InputWrapper
                                         InputComponent={TextInput}
                                         inputID={INPUT_IDS.ADDRESS_ZIP_CODE}
@@ -129,29 +152,43 @@ function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFor
                                         role={CONST.ROLE.PRESENTATION}
                                         inputMode={CONST.INPUT_MODE.NUMERIC}
                                         maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
-                                        hint={['common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}]}
-                                        containerStyles={[styles.mt4]}
-                                    />
-                                </View>
-                                <View style={[styles.flex1]}>
-                                    <InputWrapper
-                                        InputComponent={AddressSearch}
-                                        inputID={INPUT_IDS.ADDRESS_STREET}
-                                        label={translate('addDebitCardPage.billingAddress')}
-                                        containerStyles={[styles.mt4]}
-                                        maxInputLength={CONST.FORM_CHARACTER_LIMIT}
-                                        // Limit the address search only to the USA until we fully can support international debit cards
-                                        isLimitedToUSA
                                     />
                                 </View>
                             </View>
-                            <Text style={styles.textMicroSupporting}>
+                            <Text style={[styles.textMicroSupporting, styles.mt5]}>
                                 {translate('workspace.changeOwner.addPaymentCardReadAndAcceptTextPart1')}{' '}
                                 <TextLink style={[styles.textMicroSupporting, styles.link]} href={CONST.TERMS_URL}>{translate('workspace.changeOwner.addPaymentCardTerms')}</TextLink>{' '}
                                 {translate('workspace.changeOwner.addPaymentCardAnd')}{' '}
                                 <TextLink style={[styles.textMicroSupporting, styles.link]} href={CONST.PRIVACY_URL}>{translate('workspace.changeOwner.addPaymentCardPrivacy')}</TextLink>{' '}
                                 {translate('workspace.changeOwner.addPaymentCardReadAndAcceptTextPart2')}
                             </Text>
+                            <Section
+                                icon={Illustrations.ShieldYellow}
+                                cardLayout={CARD_LAYOUT.ICON_ON_LEFT}
+                                title={translate('requestorStep.isMyDataSafe')}
+                                containerStyles={[styles.mh0, styles.mt5]}
+                            >
+                                <View style={[styles.mt4, styles.ph2, styles.pb2]}>
+                                    <Text style={[styles.searchInputStyle, styles.dFlex, styles.alignItemsCenter]}>
+                                        <Icon src={Expensicons.Checkmark} additionalStyles={[styles.mr3]} fill={theme.iconSuccessFill} />
+                                        {translate('workspace.changeOwner.addPaymentCardPciCompliant')}
+                                    </Text>
+                                    <Text style={[styles.mt3, styles.searchInputStyle,  styles.dFlex, styles.alignItemsCenter]}>
+                                        <Icon src={Expensicons.Checkmark} additionalStyles={[styles.mr3]} fill={theme.iconSuccessFill} />
+                                        {translate('workspace.changeOwner.addPaymentCardBankLevelEncrypt')}
+                                    </Text>
+                                    <Text style={[styles.mt3, styles.searchInputStyle, styles.dFlex, styles.alignItemsCenter]}>
+                                        <Icon src={Expensicons.Checkmark} additionalStyles={[styles.mr3]} fill={theme.iconSuccessFill} />
+                                        {translate('workspace.changeOwner.addPaymentCardRedundant')}
+                                    </Text>
+                                </View>
+                                <Text style={[styles.mt3, styles.searchInputStyle]}>
+                                    {translate('workspace.changeOwner.addPaymentCardLearnMore')}{' '}
+                                    <TextLink style={[styles.searchInputStyle, styles.link]} href={CONST.PERSONAL_DATA_PROTECTION_INFO_URL}>
+                                        {translate('workspace.changeOwner.addPaymentCardSecurity')}
+                                    </TextLink>.
+                                </Text>
+                            </Section>
                         </FormProvider>
                     </View>
                 </ScreenWrapper>
