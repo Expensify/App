@@ -1,10 +1,11 @@
 import github from '@actions/github';
 import {parse} from '@babel/parser';
 import traverse from '@babel/traverse';
-import CONST from '../../../../libs/CONST';
 import GithubUtils from '../../../../libs/GithubUtils';
 import promiseSome from '../../../../libs/promiseSome';
 import type Category from './Category';
+
+const CONST = require('../../../../libs/CONST');
 
 type SuperClassType = {superClass: {name?: string; object: {name: string}; property: {name: string}} | null; name: string};
 

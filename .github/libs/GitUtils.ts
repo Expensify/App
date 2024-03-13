@@ -1,7 +1,8 @@
 import {execSync, spawn} from 'child_process';
-import * as CONST from './CONST';
 import sanitizeStringForJSONParse from './sanitizeStringForJSONParse';
 import * as VERSION_UPDATER from './versionUpdater';
+
+const CONST = require('./CONST');
 
 type CommitType = {
     commit: string;
