@@ -31,6 +31,7 @@ import type {
     OpenWorkspaceMembersPageParams,
     OpenWorkspaceParams,
     OpenWorkspaceReimburseViewParams,
+    RequestWorkspaceOwnerChangeParams,
     SetWorkspaceApprovalModeParams,
     SetWorkspaceAutoReportingFrequencyParams,
     SetWorkspaceAutoReportingMonthlyOffsetParams,
@@ -43,7 +44,6 @@ import type {
     UpdateWorkspaceGeneralSettingsParams,
     UpdateWorkspaceMembersRoleParams,
 } from '@libs/API/parameters';
-import type RequestWorkspaceOwnerChangeParams from '@libs/API/parameters/RequestWorkspaceOwnerChangeParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -1030,28 +1030,24 @@ function clearWorkspaceOwnerChangeFlow(policyID: string) {
 function addBillingCardAndRequestPolicyOwnerChange(
     policyID: string,
     cardData: {
-        cardNumber: string,
-        cardYear: string,
-        cardMonth: string,
-        cardCVV: string,
-        addressName: string,
-        addressZip: string,
-    }
+        cardNumber: string;
+        cardYear: string;
+        cardMonth: string;
+        cardCVV: string;
+        addressName: string;
+        addressZip: string;
+    },
 ) {
-    const {
-        cardNumber,
-        cardYear,
-        cardMonth,
-        cardCVV,
-        addressName,
-        addressZip,
-    } = cardData;
+    const {cardNumber, cardYear, cardMonth, cardCVV, addressName, addressZip} = cardData;
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.WORKSPACE_CHANGE_OWNER_PAYMENT_CARD_FORM,
-            value: {isLoading: true},
+            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            value: {
+                errors: null,
+                isLoading: true,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1065,8 +1061,10 @@ function addBillingCardAndRequestPolicyOwnerChange(
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.WORKSPACE_CHANGE_OWNER_PAYMENT_CARD_FORM,
-            value: {isLoading: false},
+            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            value: {
+                isLoading: false,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1081,8 +1079,10 @@ function addBillingCardAndRequestPolicyOwnerChange(
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.WORKSPACE_CHANGE_OWNER_PAYMENT_CARD_FORM,
-            value: {isLoading: false},
+            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            value: {
+                isLoading: false,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1101,11 +1101,10 @@ function addBillingCardAndRequestPolicyOwnerChange(
         cardCVV,
         addressName,
         addressZip,
-    }
+    };
 
     API.write(WRITE_COMMANDS.ADD_BILLING_CARD_AND_REQUEST_WORKSPACE_OWNER_CHANGE, params, {optimisticData, successData, failureData});
 }
-
 
 /**
  * Optimistically create a chat for each member of the workspace, creates both optimistic and success data for onyx.

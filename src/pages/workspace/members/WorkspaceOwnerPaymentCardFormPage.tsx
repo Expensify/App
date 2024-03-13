@@ -1,43 +1,36 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Section, {CARD_LAYOUT} from '@components/Section';
 import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
-import type SCREENS from '@src/SCREENS';
-import FormProvider from '@components/Form/FormProvider';
-import ONYXKEYS from "@src/ONYXKEYS";
-import type {FormInputErrors, FormOnyxValues} from "@components/Form/types";
-import * as ValidationUtils from "@libs/ValidationUtils";
-import INPUT_IDS from "@src/types/form/WorkspaceChangeOwnerPaymentCardForm";
-import InputWrapper from "@components/Form/InputWrapper";
-import TextInput from "@components/TextInput";
-import CONST from "@src/CONST";
-import type {AnimatedTextInputRef} from "@components/RNTextInput";
-import TextLink from "@components/TextLink";
 import * as Policy from '@userActions/Policy';
-import Section, {CARD_LAYOUT} from "@components/Section";
-import * as Illustrations from '@components/Icon/Illustrations';
-import * as Expensicons from '@components/Icon/Expensicons';
-import Icon from "@components/Icon";
-import useTheme from "@hooks/useTheme";
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
+import INPUT_IDS from '@src/types/form/AddDebitCardForm';
 
 type WorkspaceOwnerPaymentCardFormPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.OWNER_PAYMENT_CARD_FORM>;
 
-const REQUIRED_FIELDS = [
-    INPUT_IDS.NAME_ON_CARD,
-    INPUT_IDS.CARD_NUMBER,
-    INPUT_IDS.EXPIRATION_DATE,
-    INPUT_IDS.ADDRESS_NAME,
-    INPUT_IDS.SECURITY_CODE,
-    INPUT_IDS.ADDRESS_ZIP_CODE,
-];
+const REQUIRED_FIELDS = [INPUT_IDS.NAME_ON_CARD, INPUT_IDS.CARD_NUMBER, INPUT_IDS.EXPIRATION_DATE, INPUT_IDS.ADDRESS_STREET, INPUT_IDS.SECURITY_CODE, INPUT_IDS.ADDRESS_ZIP_CODE];
 
 function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFormPageProps) {
     const styles = useThemeStyles();
@@ -48,14 +41,15 @@ function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFor
 
     const policyID = route.params.policyID;
 
-    useEffect(() =>
-        () => {
+    useEffect(
+        () => () => {
             Policy.clearWorkspaceOwnerChangeFlow(policyID);
-        }
+        },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    , []);
+        [],
+    );
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CHANGE_OWNER_PAYMENT_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CHANGE_OWNER_PAYMENT_CARD_FORM> => {
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM> => {
         const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
 
         if (values.nameOnCard && !ValidationUtils.isValidLegalName(values.nameOnCard)) {
@@ -74,8 +68,8 @@ function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFor
             errors.securityCode = 'addDebitCardPage.error.securityCode';
         }
 
-        if (values.addressName && !ValidationUtils.isValidAddress(values.addressName)) {
-            errors.addressName = 'addDebitCardPage.error.addressStreet';
+        if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
+            errors.addressStreet = 'addDebitCardPage.error.addressStreet';
         }
 
         if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
@@ -83,11 +77,23 @@ function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFor
         }
 
         return errors;
-    }
+    };
 
-    const addPaymentCard = useCallback(() => {
-        // TODO: Implement addPaymentCard
-    }, []);
+    const addPaymentCard = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM>) => {
+            const cardData = {
+                cardNumber: values.cardNumber,
+                cardYear: values.expirationDate.slice(-2),
+                cardMonth: values.expirationDate.slice(0, 2),
+                cardCVV: values.securityCode,
+                addressName: values.addressStreet,
+                addressZip: values.addressZipCode,
+            };
+            Policy.addBillingCardAndRequestPolicyOwnerChange(policyID, cardData);
+            Navigation.goBack();
+        },
+        [policyID],
+    );
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
@@ -103,7 +109,7 @@ function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFor
                     <View style={[styles.containerWithSpaceBetween, styles.ph5, styles.pb0]}>
                         <Text style={[styles.textHeadline, styles.mt3]}>{translate('workspace.changeOwner.addPaymentCardTitle')}</Text>
                         <FormProvider
-                            formID={ONYXKEYS.FORMS.WORKSPACE_CHANGE_OWNER_PAYMENT_CARD_FORM}
+                            formID={ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM}
                             validate={validate}
                             onSubmit={addPaymentCard}
                             submitButtonText={translate('workspace.changeOwner.addPaymentCardButtonText')}
@@ -158,7 +164,7 @@ function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFor
                                 <View style={[styles.flex1, styles.mr2]}>
                                     <InputWrapper
                                         InputComponent={TextInput}
-                                        inputID={INPUT_IDS.ADDRESS_NAME}
+                                        inputID={INPUT_IDS.ADDRESS_STREET}
                                         label={translate('cardPage.cardDetails.address')}
                                         aria-label={translate('cardPage.cardDetails.address')}
                                         role={CONST.ROLE.PRESENTATION}
@@ -179,9 +185,19 @@ function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFor
                             </View>
                             <Text style={[styles.textMicroSupporting, styles.mt5]}>
                                 {translate('workspace.changeOwner.addPaymentCardReadAndAcceptTextPart1')}{' '}
-                                <TextLink style={[styles.textMicroSupporting, styles.link]} href={CONST.TERMS_URL}>{translate('workspace.changeOwner.addPaymentCardTerms')}</TextLink>{' '}
+                                <TextLink
+                                    style={[styles.textMicroSupporting, styles.link]}
+                                    href={CONST.TERMS_URL}
+                                >
+                                    {translate('workspace.changeOwner.addPaymentCardTerms')}
+                                </TextLink>{' '}
                                 {translate('workspace.changeOwner.addPaymentCardAnd')}{' '}
-                                <TextLink style={[styles.textMicroSupporting, styles.link]} href={CONST.PRIVACY_URL}>{translate('workspace.changeOwner.addPaymentCardPrivacy')}</TextLink>{' '}
+                                <TextLink
+                                    style={[styles.textMicroSupporting, styles.link]}
+                                    href={CONST.PRIVACY_URL}
+                                >
+                                    {translate('workspace.changeOwner.addPaymentCardPrivacy')}
+                                </TextLink>{' '}
                                 {translate('workspace.changeOwner.addPaymentCardReadAndAcceptTextPart2')}
                             </Text>
                             <Section
@@ -192,23 +208,39 @@ function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFor
                             >
                                 <View style={[styles.mt4, styles.ph2, styles.pb2]}>
                                     <Text style={[styles.searchInputStyle, styles.dFlex, styles.alignItemsCenter]}>
-                                        <Icon src={Expensicons.Checkmark} additionalStyles={[styles.mr3]} fill={theme.iconSuccessFill} />
+                                        <Icon
+                                            src={Expensicons.Checkmark}
+                                            additionalStyles={[styles.mr3]}
+                                            fill={theme.iconSuccessFill}
+                                        />
                                         {translate('workspace.changeOwner.addPaymentCardPciCompliant')}
                                     </Text>
-                                    <Text style={[styles.mt3, styles.searchInputStyle,  styles.dFlex, styles.alignItemsCenter]}>
-                                        <Icon src={Expensicons.Checkmark} additionalStyles={[styles.mr3]} fill={theme.iconSuccessFill} />
+                                    <Text style={[styles.mt3, styles.searchInputStyle, styles.dFlex, styles.alignItemsCenter]}>
+                                        <Icon
+                                            src={Expensicons.Checkmark}
+                                            additionalStyles={[styles.mr3]}
+                                            fill={theme.iconSuccessFill}
+                                        />
                                         {translate('workspace.changeOwner.addPaymentCardBankLevelEncrypt')}
                                     </Text>
                                     <Text style={[styles.mt3, styles.searchInputStyle, styles.dFlex, styles.alignItemsCenter]}>
-                                        <Icon src={Expensicons.Checkmark} additionalStyles={[styles.mr3]} fill={theme.iconSuccessFill} />
+                                        <Icon
+                                            src={Expensicons.Checkmark}
+                                            additionalStyles={[styles.mr3]}
+                                            fill={theme.iconSuccessFill}
+                                        />
                                         {translate('workspace.changeOwner.addPaymentCardRedundant')}
                                     </Text>
                                 </View>
                                 <Text style={[styles.mt3, styles.searchInputStyle]}>
                                     {translate('workspace.changeOwner.addPaymentCardLearnMore')}{' '}
-                                    <TextLink style={[styles.searchInputStyle, styles.link]} href={CONST.PERSONAL_DATA_PROTECTION_INFO_URL}>
+                                    <TextLink
+                                        style={[styles.searchInputStyle, styles.link]}
+                                        href={CONST.PERSONAL_DATA_PROTECTION_INFO_URL}
+                                    >
                                         {translate('workspace.changeOwner.addPaymentCardSecurity')}
-                                    </TextLink>.
+                                    </TextLink>
+                                    .
                                 </Text>
                             </Section>
                         </FormProvider>

@@ -40,12 +40,13 @@ function WorkspaceOwnerChangeCheckPage({route}: WorkspaceMemberDetailsPageProps)
         Navigation.goBack();
     }, [policyID]);
 
-    useEffect(() =>
-        () => {
+    useEffect(
+        () => () => {
             Policy.clearWorkspaceOwnerChangeFlow(policyID);
-        }
+        },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    , []);
+        [],
+    );
 
     const confirmationTitle = useMemo(() => {
         switch (error) {
