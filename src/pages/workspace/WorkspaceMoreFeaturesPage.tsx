@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
@@ -141,9 +142,16 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         [isSmallScreenWidth, styles, renderItem, translate],
     );
 
-    useEffect(() => {
+    function fetchFeatures() {
         Policy.openPolicyMoreFeaturesPage(route.params.policyID);
-    }, [route.params.policyID]);
+    }
+
+    useNetwork({onReconnect: fetchFeatures});
+
+    useEffect(() => {
+        fetchFeatures();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
