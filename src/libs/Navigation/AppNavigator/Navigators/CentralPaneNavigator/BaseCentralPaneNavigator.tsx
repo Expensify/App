@@ -13,20 +13,14 @@ const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') :
 
 type Screens = Partial<Record<keyof CentralPaneNavigatorParamList, () => React.ComponentType>>;
 
-const workspaceSettingsScreens = {
+const settingsScreens = {
     [SCREENS.SETTINGS.WORKSPACES]: () => require('../../../../../pages/workspace/WorkspacesListPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.PROFILE]: () => require('../../../../../pages/workspace/WorkspaceProfilePage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.CARD]: () => require('../../../../../pages/workspace/card/WorkspaceCardPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.WORKFLOWS]: () => require('../../../../../pages/workspace/workflows/WorkspaceWorkflowsPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.REIMBURSE]: () => require('../../../../../pages/workspace/reimburse/WorkspaceReimbursePage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.BILLS]: () => require('../../../../../pages/workspace/bills/WorkspaceBillsPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.INVOICES]: () => require('../../../../../pages/workspace/invoices/WorkspaceInvoicesPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.TRAVEL]: () => require('../../../../../pages/workspace/travel/WorkspaceTravelPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.MEMBERS]: () => require('../../../../../pages/workspace/WorkspaceMembersPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.CATEGORIES]: () => require('../../../../../pages/workspace/categories/WorkspaceCategoriesPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.TAGS]: () => require('../../../../../pages/workspace/tags/WorkspaceTagsPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require('../../../../../pages/settings/Preferences/PreferencesPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.SECURITY]: () => require('../../../../../pages/settings/Security/SecuritySettingsPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.ROOT]: () => require('../../../../../pages/settings/Profile/ProfilePage').default as React.ComponentType,
+    [SCREENS.SETTINGS.WALLET.ROOT]: () => require('../../../../../pages/settings/Wallet/WalletPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.ABOUT]: () => require('../../../../../pages/settings/AboutPage/AboutPage').default as React.ComponentType,
     [SCREENS.SETTINGS.WORKSPACE_JOIN_USER]: () => require('../../../../../pages/workspace/WorkspaceJoinUserPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.DISTANCE_RATES]: () => require('../../../../../pages/workspace/distanceRates/PolicyDistanceRatesPage').default as React.ComponentType,
 } satisfies Screens;
 
 function BaseCentralPaneNavigator() {
@@ -46,8 +40,7 @@ function BaseCentralPaneNavigator() {
                 initialParams={{openOnAdminRoom: openOnAdminRoom === 'true' || undefined}}
                 component={ReportScreenWrapper}
             />
-
-            {Object.entries(workspaceSettingsScreens).map(([screenName, componentGetter]) => (
+            {Object.entries(settingsScreens).map(([screenName, componentGetter]) => (
                 <Stack.Screen
                     key={screenName}
                     name={screenName as keyof Screens}
