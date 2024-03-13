@@ -1446,10 +1446,16 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarAvatar: {
-            backgroundColor: theme.icon,
+            borderRadius: 28,
+            height: variables.componentSizeSmall,
+            width: variables.componentSizeSmall,
+        },
+
+        selectedAvatarBorder: {
+            padding: 2,
+            borderWidth: 2,
             borderRadius: 20,
-            height: variables.componentSizeNormal,
-            width: variables.componentSizeNormal,
+            borderColor: theme.success,
         },
 
         statusIndicator: (backgroundColor = theme.danger) =>
@@ -1459,10 +1465,10 @@ const styles = (theme: ThemeColors) =>
                 borderRadius: 8,
                 borderWidth: 2,
                 position: 'absolute',
-                right: -2,
-                top: -1,
-                height: 16,
-                width: 16,
+                right: -4,
+                top: -3,
+                height: 12,
+                width: 12,
                 zIndex: 10,
             } satisfies ViewStyle),
 
@@ -2652,6 +2658,12 @@ const styles = (theme: ThemeColors) =>
             ...spacing.pt0,
         },
 
+        workspaceSettingsSectionContainer: {
+            borderBottomWidth: 1,
+            borderBottomColor: theme.border,
+            ...spacing.pt4,
+        },
+
         centralPaneAnimation: {
             height: CONST.CENTRAL_PANE_ANIMATION_HEIGHT,
         },
@@ -3090,7 +3102,7 @@ const styles = (theme: ThemeColors) =>
         smallEditIcon: {
             alignItems: 'center',
             backgroundColor: theme.buttonDefaultBG,
-            borderColor: theme.cardBG,
+            borderColor: theme.appBG,
             borderRadius: 20,
             borderWidth: 3,
             color: theme.textReversed,
