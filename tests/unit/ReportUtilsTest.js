@@ -639,6 +639,71 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('shouldDisableThread', () => {
+        const reportID = '1';
+
+        it('should disable on thread-disabled actions', () => {
+            const reportAction = ReportUtils.buildOptimisticCreatedReportAction('email1@test.com');
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+        });
+
+        it('should disable thread on split bill actions', () => {
+            const reportAction = ReportUtils.buildOptimisticIOUReportAction(
+                CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
+                50000,
+                CONST.CURRENCY.USD,
+                '',
+                [{login: 'email1@test.com'}, {login: 'email2@test.com'}],
+                NumberUtils.rand64(),
+            );
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+        });
+
+        it('should disable on deleted and not-thread actions', () => {
+            const reportAction = {
+                message: [
+                    {
+                        translationKey: '',
+                        type: 'COMMENT',
+                        html: '',
+                        text: '',
+                        isEdited: true,
+                    },
+                ],
+                childVisibleActionCount: 1,
+            };
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeFalsy();
+
+            reportAction.childVisibleActionCount = 0;
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+        });
+
+        it('should disable on archived reports and not-thread actions', () => {
+            const reportAction = {
+                childVisibleActionCount: 1,
+            };
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID, true)).toBeFalsy();
+
+            reportAction.childVisibleActionCount = 0;
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID, true)).toBeTruthy();
+        });
+
+        it("should disable on a whisper action and it's neither a report preview nor IOU action", () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+                whisperedToAccountIDs: [123456],
+            };
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+        });
+
+        it('should disable on thread first chat', () => {
+            const reportAction = {
+                childReportID: reportID,
+            };
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+        });
+    });
+
     describe('getAllAncestorReportActions', () => {
         const reports = [
             {reportID: '1', lastReadTime: '2024-02-01 04:56:47.233', reportName: 'Report'},
@@ -702,71 +767,6 @@ describe('ReportUtils', () => {
                     expect(allAncestors[0].shouldHideThreadDividerLine).toBe(true);
                     expect(allAncestors[1].shouldDisplayNewMarker).toBe(true);
                 });
-        });
-    });
-
-    describe('shouldDisableThread', () => {
-        const reportID = '1';
-
-        it('should disable on thread-disabled actions', () => {
-            const reportAction = ReportUtils.buildOptimisticCreatedReportAction('email1@test.com');
-            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
-        });
-
-        it('should disable thread on split bill actions', () => {
-            const reportAction = ReportUtils.buildOptimisticIOUReportAction(
-                CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
-                50000,
-                CONST.CURRENCY.USD,
-                '',
-                [{login: 'email1@test.com'}, {login: 'email2@test.com'}],
-                NumberUtils.rand64(),
-            );
-            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
-        });
-
-        it('should disable on deleted and not-thread actions', () => {
-            const reportAction = {
-                message: [
-                    {
-                        translationKey: '',
-                        type: 'COMMENT',
-                        html: '',
-                        text: '',
-                        isEdited: true,
-                    },
-                ],
-                childVisibleActionCount: 1,
-            };
-            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeFalsy();
-
-            reportAction.childVisibleActionCount = 0;
-            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
-        });
-
-        it('should disable on archived reports and not-thread actions', () => {
-            const reportAction = {
-                childVisibleActionCount: 1,
-            };
-            expect(ReportUtils.shouldDisableThread(reportAction, reportID, true)).toBeFalsy();
-
-            reportAction.childVisibleActionCount = 0;
-            expect(ReportUtils.shouldDisableThread(reportAction, reportID, true)).toBeTruthy();
-        });
-
-        it("should disable on a whisper action and it's neither a report preview nor IOU action", () => {
-            const reportAction = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
-                whisperedToAccountIDs: [123456],
-            };
-            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
-        });
-
-        it('should disable on thread first chat', () => {
-            const reportAction = {
-                childReportID: reportID,
-            };
-            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
         });
     });
 });

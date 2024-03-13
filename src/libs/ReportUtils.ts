@@ -5148,7 +5148,7 @@ function hasUpdatedTotal(report: OnyxEntry<Report>): boolean {
  * - The action is a whisper action and it's neither a report preview nor IOU action
  * - The action is the thread's first chat
  */
-function shouldDisableThread(reportAction: OnyxEntry<ReportAction>, reportID: string, isArchivedRoom = false): boolean {
+function shouldDisableThread(reportAction: OnyxEntry<ReportAction>, reportID: string, isArchivedReport = false): boolean {
     const isSplitBillAction = ReportActionsUtils.isSplitBillAction(reportAction);
     const isDeletedAction = ReportActionsUtils.isDeletedAction(reportAction);
     const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
@@ -5159,7 +5159,7 @@ function shouldDisableThread(reportAction: OnyxEntry<ReportAction>, reportID: st
         CONST.REPORT.ACTIONS.THREAD_DISABLED.some((action: string) => action === reportAction?.actionName) ||
         isSplitBillAction ||
         (isDeletedAction && !reportAction?.childVisibleActionCount) ||
-        (isArchivedRoom && !reportAction?.childVisibleActionCount) ||
+        (isArchivedReport && !reportAction?.childVisibleActionCount) ||
         (isWhisperAction && !isReportPreviewAction && !isIOUAction) ||
         isThreadFirstChat(reportAction, reportID)
     );
