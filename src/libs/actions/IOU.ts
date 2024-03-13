@@ -2064,8 +2064,6 @@ function splitBillAndOpenReport(
 ) {
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, currentCreated, category, tag);
-    console.log('splitData :>> ', splitData);
-    console.log('onyxData :>> ', onyxData);
     const parameters: SplitBillParams = {
         reportID: splitData.chatReportID,
         amount,
