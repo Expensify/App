@@ -1983,9 +1983,6 @@ export default {
             status: 'Status',
             enabled: 'Enabled',
             disabled: 'Disabled',
-            errors: {
-                createRateGenericFailureMessage: 'An error occurred while creating the distance rate, please try again.',
-            },
         },
         editor: {
             descriptionInputLabel: 'Description',

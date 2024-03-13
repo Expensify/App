@@ -2008,9 +2008,6 @@ export default {
             status: 'Estado',
             enabled: 'Activada',
             disabled: 'Desactivada',
-            errors: {
-                createRateGenericFailureMessage: 'An error occurred while creating the distance rate, please try again.',
-            },
         },
         editor: {
             nameInputLabel: 'Nombre',

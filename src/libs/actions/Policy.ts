@@ -3449,11 +3449,7 @@ function openPolicyDistanceRatesPage(policyID?: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE, params);
 }
 
-function createPolicyDistanceRate(customUnitRate: Rate, customUnitID: string, policyID?: string) {
-    if (!policyID) {
-        return;
-    }
-
+function createPolicyDistanceRate(policyID: string, customUnitID: string, customUnitRate: Rate) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3501,8 +3497,8 @@ function createPolicyDistanceRate(customUnitRate: Rate, customUnitID: string, po
                     [customUnitID]: {
                         rates: {
                             [customUnitRate.customUnitRateID ?? '']: {
-                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.distanceRates.errors.createRateGenericFailureMessage'),
-                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                                errors: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage'),
+                                pendingAction: null,
                             },
                         },
                     },

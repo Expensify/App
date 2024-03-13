@@ -26,18 +26,18 @@ import INPUT_IDS from '@src/types/form/PolicyCreateDistanceRateForm';
 import type {Rate} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 
-type PolicyNewDistanceRatePageOnyxProps = {
+type CreateDistanceRatePageOnyxProps = {
     policy: OnyxEntry<Policy>;
 };
 
-type PolicyDistanceRatePageProps = PolicyNewDistanceRatePageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CREATE_DISTANCE_RATE>;
+type CreateDistanceRatePageProps = CreateDistanceRatePageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CREATE_DISTANCE_RATE>;
 
-function PolicyNewDistanceRatePage({policy, route}: PolicyDistanceRatePageProps) {
+function CreateDistanceRatePage({policy, route}: CreateDistanceRatePageProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
     const currency = policy !== null ? policy?.outputCurrency : CONST.CURRENCY.USD;
     const customUnits = policy?.customUnits ?? {};
-    const customUnitID = customUnits[Object.keys(customUnits)[0]].customUnitID;
+    const customUnitID = customUnits[Object.keys(customUnits)[0]]?.customUnitID ?? '';
     const customUnitRateID = generateCustomUnitID();
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM> => {
@@ -45,6 +45,7 @@ function PolicyNewDistanceRatePage({policy, route}: PolicyDistanceRatePageProps)
         const rate = values.rate;
         const parsedRate = MoneyRequestUtils.replaceAllDigits(rate, toLocaleDigit);
         const decimalSeparator = toLocaleDigit('.');
+
         // Allow one more decimal place for accuracy
         const rateValueRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{1,${CurrencyUtils.getCurrencyDecimals(currency) + 1}})?$`, 'i');
         if (!rateValueRegex.test(parsedRate) || parsedRate === '') {
@@ -64,7 +65,7 @@ function PolicyNewDistanceRatePage({policy, route}: PolicyDistanceRatePageProps)
             enabled: true,
         };
 
-        createPolicyDistanceRate(newRate, customUnitID, route.params.policyID);
+        createPolicyDistanceRate(route.params.policyID, customUnitID, newRate);
         Navigation.goBack();
     };
 
@@ -74,7 +75,7 @@ function PolicyNewDistanceRatePage({policy, route}: PolicyDistanceRatePageProps)
                 <ScreenWrapper
                     includeSafeAreaPaddingBottom={false}
                     style={[styles.defaultModalContainer]}
-                    testID={PolicyNewDistanceRatePage.displayName}
+                    testID={CreateDistanceRatePage.displayName}
                 >
                     <HeaderWithBackButton title={translate('workspace.distanceRates.addRate')} />
                     <FormProvider
@@ -102,10 +103,10 @@ function PolicyNewDistanceRatePage({policy, route}: PolicyDistanceRatePageProps)
     );
 }
 
-PolicyNewDistanceRatePage.displayName = 'PolicyNewDistanceRatePage';
+CreateDistanceRatePage.displayName = 'CreateDistanceRatePage';
 
-export default withOnyx<PolicyDistanceRatePageProps, PolicyNewDistanceRatePageOnyxProps>({
+export default withOnyx<CreateDistanceRatePageProps, CreateDistanceRatePageOnyxProps>({
     policy: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
     },
-})(PolicyNewDistanceRatePage);
+})(CreateDistanceRatePage);
