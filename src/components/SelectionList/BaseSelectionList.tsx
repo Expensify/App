@@ -61,7 +61,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldShowTooltips = true,
         shouldUseDynamicMaxToRenderPerBatch = false,
         rightHandSideComponent,
-        checkmarkDirection,
+        checkmarkPosition,
         isLoadingNewOptions = false,
         onLayout,
         customListHeader,
@@ -330,7 +330,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 onDismissError={() => onDismissError?.(item)}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
-                checkmarkDirection={checkmarkDirection}
+                checkmarkPosition={checkmarkPosition}
                 keyForList={item.keyForList ?? ''}
                 isMultilineSupported={isRowMultilineSupported}
             />

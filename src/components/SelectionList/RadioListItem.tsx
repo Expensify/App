@@ -17,7 +17,7 @@ function RadioListItem({
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
-    checkmarkDirection,
+    checkmarkPosition,
     isMultilineSupported = false,
 }: RadioListItemProps) {
     const styles = useThemeStyles();
@@ -37,7 +37,7 @@ function RadioListItem({
             onDismissError={onDismissError}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             rightHandSideComponent={rightHandSideComponent}
-            checkmarkDirection={checkmarkDirection}
+            checkmarkPosition={checkmarkPosition}
             keyForList={item.keyForList}
         >
             <>

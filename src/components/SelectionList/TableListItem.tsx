@@ -19,7 +19,7 @@ function TableListItem({
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
-    checkmarkDirection,
+    checkmarkPosition,
 }: TableListItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -43,7 +43,7 @@ function TableListItem({
             onDismissError={onDismissError}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             rightHandSideComponent={rightHandSideComponent}
-            checkmarkDirection={checkmarkDirection}
+            checkmarkPosition={checkmarkPosition}
             errors={item.errors}
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}

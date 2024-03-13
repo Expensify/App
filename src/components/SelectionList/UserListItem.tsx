@@ -23,7 +23,7 @@ function UserListItem({
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
-    checkmarkDirection,
+    checkmarkPosition,
 }: UserListItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -48,7 +48,7 @@ function UserListItem({
             onDismissError={onDismissError}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             rightHandSideComponent={rightHandSideComponent}
-            checkmarkDirection={checkmarkDirection}
+            checkmarkPosition={checkmarkPosition}
             errors={item.errors}
             pendingAction={item.pendingAction}
             FooterComponent={
