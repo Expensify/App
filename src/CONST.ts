@@ -1431,13 +1431,6 @@ const CONST = {
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
     },
 
-    // TODO: remove this mock when https://github.com/Expensify/App/issues/36982 is done
-    CURRENCY_TO_DEFAULT_MILEAGE_RATE: {
-        USD: { unit: "mile", rate: 0.5 },
-        EUR: { unit: "kilometer", rate: 0.8 },
-        GBP: { unit: "mile", rate: 0.45 },
-    },
-
     TERMS: {
         CFPB_PREPAID: 'cfpb.gov/prepaid',
         CFPB_COMPLAINT: 'cfpb.gov/complaint',
