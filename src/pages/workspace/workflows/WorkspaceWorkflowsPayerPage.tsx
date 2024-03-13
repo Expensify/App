@@ -109,7 +109,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
                 pendingAction: policyMember.pendingAction ?? isAuthorizedPayer ? policy?.pendingFields?.reimburserEmail : null,
             };
 
-            if (policy?.reimburserEmail === details?.login) {
+            if (policy?.reimburserEmail === details?.login ?? policy?.reimburserAccountID === accountID) {
                 authorizedPayerDetails.push(formattedMember);
             } else {
                 policyAdminDetails.push(formattedMember);
@@ -147,7 +147,6 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
         }
 
         sectionsArray.push({
-            title: undefined,
             data: formattedAuthorizedPayer,
             shouldShow: true,
             indexOffset: 0,
