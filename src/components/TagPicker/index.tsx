@@ -59,6 +59,7 @@ function TagPicker({selectedTag, tagListName, policyTags, tagIndex, policyRecent
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
+    console.log('hello');
 
     const policyRecentlyUsedTagsList = useMemo(() => policyRecentlyUsedTags?.[tagListName] ?? [], [policyRecentlyUsedTags, tagListName]);
     const policyTagList = PolicyUtils.getTagList(policyTags, tagIndex);
