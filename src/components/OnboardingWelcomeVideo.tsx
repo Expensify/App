@@ -65,16 +65,15 @@ function OnboardingWelcomeVideo() {
         Navigation.goBack();
     }, []);
 
-    const setAspectRatio = (e: VideoReadyForDisplayEvent | VideoLoadedEventType | undefined) => {
-        if (!e) {
+    const setAspectRatio = (event: VideoReadyForDisplayEvent | VideoLoadedEventType | undefined) => {
+        if (!event) {
             return;
         }
 
-        // TODO: Figure out why on mobile there's e.naturalSize and on web it's e.srcElement
-        if ('naturalSize' in e) {
-            setVideoAspectRatio(e.naturalSize.width / e.naturalSize.height);
+        if ('naturalSize' in event) {
+            setVideoAspectRatio(event.naturalSize.width / event.naturalSize.height);
         } else {
-            setVideoAspectRatio(e.srcElement.videoWidth / e.srcElement.videoHeight);
+            setVideoAspectRatio(event.srcElement.videoWidth / event.srcElement.videoHeight);
         }
     };
 
