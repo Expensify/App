@@ -157,7 +157,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
             title: translate('workflowsPayerPage.admins'),
             data: formattedPolicyAdmins,
             shouldShow: true,
-            indexOffset: formattedPolicyAdmins.length,
+            indexOffset: formattedAuthorizedPayer.length,
         });
         return sectionsArray;
     }, [formattedPolicyAdmins, formattedAuthorizedPayer, translate, searchTerm]);
