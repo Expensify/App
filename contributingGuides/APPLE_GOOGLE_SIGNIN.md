@@ -104,20 +104,32 @@ The iOS and Android implementations do not require extra steps to test, aside fr
 
 ### Web and desktop
 
-#### Render the web Sign In with Apple button in development
+#### Render the web Sign In with Apple / Google SSO buttos in development
 
-The Google Sign In button renders differently in development mode. To prevent confusion
+The Apple/Google Sign In button renders differently in development mode. To prevent confusion
 for developers about a possible regression, we decided to not render third party buttons in
 development mode.
 
-To show the Apple Sign In button in development mode, you can comment out the following code in the 
-LoginForm.js file:
+Here's how you can re-enable the SSO buttons in development mode:
 
-```js
-if (CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
-  return;
-}
-```
+- Remove the condition so that we always render the SSO button components
+  `CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV && (`
+    delete this condition ^
+    ```
+    (
+    ```
+- On [this line](https://github.com/Expensify/App/blob/1d6bb1d14cff3dd029868a0a7c8ee14ae78c527b/config/webpack/webpack.dev.js#L49) in `index.webpack.js`, replace `https` with `http`
+    ```
+   server: {
+       type: 'http',
+       options: {
+    ```
+- On [this line](https://github.com/Expensify/App/blob/ed9707a3f0df9e812b50f8345be0a33ea2495ff8/config/webpack/webpack.dev.js#L47) in `index.webpack.js`, replace `host: dev.new.expensify.com` with `localhost`
+    ```
+        port,
+        host: 'localhost',
+        server: {
+    ```
 
 #### Port requirements
 
