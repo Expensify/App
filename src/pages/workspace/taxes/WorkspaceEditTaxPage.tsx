@@ -10,6 +10,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -29,7 +30,14 @@ function WorkspaceEditTaxPage({
     const currentTaxRate = PolicyUtils.getTaxByID(policy, taxID);
     const {windowWidth} = useWindowDimensions();
 
-    const toggle = () => {};
+    const toggle = () => {
+        // TODO: Backend call doesn't exist yet
+        return;
+        if (!policy?.id || !currentTaxRate) {
+            return;
+        }
+        setPolicyTaxesEnabled(policy.id, [taxID], !currentTaxRate?.isDisabled);
+    };
 
     const threeDotsMenuItems = useMemo(() => {
         const menuItems = [
