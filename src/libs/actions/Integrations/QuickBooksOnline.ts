@@ -1,8 +1,7 @@
 import { getCommandURL } from '@libs/ApiUtils';
 
 const getQuickBooksOnlineSetupLink = (policyID: string) => {
-    const callbackPath = `https://dev.new.expensify.com:8082/workspace/${policyID}/accounting`;
-    const otherParams = new URLSearchParams({callbackPath, policyID}).toString();
+    const otherParams = new URLSearchParams({policyID}).toString();
     const commandUrl = `${getCommandURL({command: 'ConnectPolicyToQuickbooksOnline'})}&${otherParams}`;
     return commandUrl;
 }
