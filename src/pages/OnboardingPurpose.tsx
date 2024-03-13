@@ -63,12 +63,13 @@ function OnboardingPurpose() {
             return;
         }
 
-        Navigation.closeFullScreen();
         Report.completeEngagementModal(CONST.ONBOARDING_CONCIERGE[selectedPurpose], selectedPurpose);
 
         // Only navigate to concierge chat when central pane is visible
         // Otherwise stay on the chats screen.
-        if (!isSmallScreenWidth) {
+        if (isSmallScreenWidth) {
+            Navigation.navigate(ROUTES.HOME);
+        } else {
             Report.navigateToConciergeChat();
         }
 
