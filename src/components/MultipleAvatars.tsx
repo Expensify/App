@@ -209,6 +209,7 @@ function MultipleAvatars({
                                 name={icon.name}
                                 type={icon.type}
                                 fallbackIcon={icon.fallbackIcon}
+                                displayInDefaultIconColor={icon.type !== CONST.ICON_TYPE_WORKSPACE}
                             />
                         </View>
                     </UserDetailsTooltip>
@@ -266,6 +267,7 @@ function MultipleAvatars({
                             name={icons[0].name}
                             type={icons[0].type}
                             fallbackIcon={icons[0].fallbackIcon}
+                            displayInDefaultIconColor={icons[0].type !== CONST.ICON_TYPE_WORKSPACE}
                         />
                     </View>
                 </UserDetailsTooltip>
@@ -286,6 +288,7 @@ function MultipleAvatars({
                                     name={icons[1].name}
                                     type={icons[1].type}
                                     fallbackIcon={icons[1].fallbackIcon}
+                                    displayInDefaultIconColor={icons[1].type !== CONST.ICON_TYPE_WORKSPACE}
                                 />
                             </View>
                         </UserDetailsTooltip>
