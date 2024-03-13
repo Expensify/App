@@ -433,6 +433,7 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
 }
 
 function setWorkspaceAutoReporting(policyID: string, enabled: boolean, frequency: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>) {
+    const policy = ReportUtils.getPolicy(policyID);
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -453,7 +454,9 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean, frequency
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                autoReporting: !enabled,
+                autoReporting: policy.autoReporting,
+                harvesting: policy.harvesting,
+                autoReportingFrequency: policy.autoReportingFrequency,
                 pendingFields: {isAutoApprovalEnabled: null, harvesting: null},
             },
         },
@@ -475,6 +478,8 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean, frequency
 }
 
 function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>) {
+    const policy = ReportUtils.getPolicy(policyID);
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -491,6 +496,7 @@ function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                autoReportingFrequency: policy.autoReportingFrequency,
                 pendingFields: {autoReportingFrequency: null},
             },
         },
@@ -512,6 +518,7 @@ function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf
 
 function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingOffset: number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>) {
     const value = JSON.stringify({autoReportingOffset: autoReportingOffset.toString()});
+    const policy = ReportUtils.getPolicy(policyID);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -529,6 +536,7 @@ function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingO
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                autoReportingOffset: policy.autoReportingOffset,
                 pendingFields: {autoReportingOffset: null},
             },
         },
@@ -550,6 +558,7 @@ function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingO
 
 function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>) {
     const isAutoApprovalEnabled = approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC;
+    const policy = ReportUtils.getPolicy(policyID);
 
     const value = {
         approver,
@@ -573,6 +582,9 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                approver: policy.approver,
+                approvalMode: policy.approvalMode,
+                isAutoApprovalEnabled: policy.isAutoApprovalEnabled,
                 pendingFields: {approvalMode: null},
             },
         },
