@@ -40,8 +40,11 @@ jest.mock('@react-navigation/native', () => {
     return {
         ...actualNav,
         useRoute: () => mockedNavigate,
+        useIsFocused: () => true,
     };
 });
+
+jest.mock('../../src/components/ConfirmedRoute.tsx');
 
 beforeAll(() =>
     Onyx.init({

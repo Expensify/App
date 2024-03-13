@@ -1,7 +1,7 @@
 import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
-import React, {memo, useState} from 'react';
-import {ActivityIndicator, ScrollView, View} from 'react-native';
+import React, {memo, useEffect, useState} from 'react';
+import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import * as AttachmentsPropTypes from '@components/Attachments/propTypes';
@@ -9,13 +9,16 @@ import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CachedPDFPaths from '@libs/actions/CachedPDFPaths';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import compose from '@libs/compose';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -23,6 +26,7 @@ import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
+import AttachmentViewVideo from './AttachmentViewVideo';
 import {attachmentViewDefaultProps, attachmentViewPropTypes} from './propTypes';
 
 const propTypes = {
@@ -54,6 +58,13 @@ const propTypes = {
     /** The id of the transaction related to the attachment */
     // eslint-disable-next-line react/no-unused-prop-types
     transactionID: PropTypes.string,
+
+    /** The id of the report action related to the attachment */
+    reportActionID: PropTypes.string,
+
+    isHovered: PropTypes.bool,
+
+    optionalVideoDuration: PropTypes.number,
 };
 
 const defaultProps = {
@@ -65,6 +76,9 @@ const defaultProps = {
     isWorkspaceAvatar: false,
     maybeIcon: false,
     transactionID: '',
+    reportActionID: '',
+    isHovered: false,
+    optionalVideoDuration: 0,
 };
 
 function AttachmentView({
@@ -79,19 +93,29 @@ function AttachmentView({
     translate,
     isFocused,
     isUsedInCarousel,
-    isSingleCarouselItem,
-    carouselItemIndex,
-    carouselActiveItemIndex,
     isUsedInAttachmentModal,
     isWorkspaceAvatar,
     maybeIcon,
     fallbackSource,
     transaction,
+    reportActionID,
+    isHovered,
+    optionalVideoDuration,
 }) {
+    const {updateCurrentlyPlayingURL} = usePlaybackContext();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [loadComplete, setLoadComplete] = useState(false);
+    const isVideo = (typeof source === 'string' && Str.isVideo(source)) || (file && Str.isVideo(file.name));
+
+    useEffect(() => {
+        if (!isFocused && !(file && isUsedInAttachmentModal)) {
+            return;
+        }
+        updateCurrentlyPlayingURL(isVideo ? source : null);
+    }, [isFocused, isVideo, source, updateCurrentlyPlayingURL, file, isUsedInAttachmentModal]);
+
     const [imageError, setImageError] = useState(false);
 
     useNetwork({onReconnect: () => setImageError(false)});
@@ -136,6 +160,16 @@ function AttachmentView({
     if ((_.isString(source) && Str.isPDF(source)) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename')))) {
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source) : source;
 
+        const onPDFLoadComplete = (path) => {
+            const id = (transaction && transaction.transactionID) || reportActionID;
+            if (path && id) {
+                CachedPDFPaths.add(id, path);
+            }
+            if (!loadComplete) {
+                setLoadComplete(true);
+            }
+        };
+
         // We need the following View component on android native
         // So that the event will propagate properly and
         // the Password protected preview will be shown for pdf attachement we are about to send.
@@ -147,11 +181,9 @@ function AttachmentView({
                     isFocused={isFocused}
                     isAuthTokenRequired={isAuthTokenRequired}
                     encryptedSourceUrl={encryptedSourceUrl}
-                    carouselItemIndex={carouselItemIndex}
-                    carouselActiveItemIndex={carouselActiveItemIndex}
                     onPress={onPress}
                     onToggleKeyboard={onToggleKeyboard}
-                    onLoadComplete={() => !loadComplete && setLoadComplete(true)}
+                    onLoadComplete={onPDFLoadComplete}
                     errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [styles.cursorAuto]}
                     style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
                     isUsedInCarousel={isUsedInCarousel}
@@ -177,14 +209,22 @@ function AttachmentView({
                 loadComplete={loadComplete}
                 isFocused={isFocused}
                 isUsedInCarousel={isUsedInCarousel}
-                isSingleCarouselItem={isSingleCarouselItem}
-                carouselItemIndex={carouselItemIndex}
-                carouselActiveItemIndex={carouselActiveItemIndex}
                 isImage={isImage}
                 onPress={onPress}
                 onError={() => {
                     setImageError(true);
                 }}
+            />
+        );
+    }
+
+    if (isVideo) {
+        return (
+            <AttachmentViewVideo
+                source={source}
+                shouldUseSharedVideoElement={isUsedInCarousel}
+                isHovered={isHovered}
+                videoDuration={optionalVideoDuration}
             />
         );
     }

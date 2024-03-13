@@ -1,34 +1,37 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListRenderItemInfo} from 'react-native';
+import {View} from 'react-native';
 import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
 import FixedFooter from '@components/FixedFooter';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import SectionList from '@components/SectionList';
+import ShowMoreButton from '@components/ShowMoreButton';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import BaseListItem from './BaseListItem';
-import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, RadioItem, Section, SectionListDataType, User} from './types';
+import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, Section, SectionListDataType, SelectionListHandle} from './types';
 
-function BaseSelectionList<TItem extends User | RadioItem>(
+function BaseSelectionList<TItem extends ListItem>(
     {
         sections,
+        ListItem,
         canSelectMultiple = false,
         onSelectRow,
+        onCheckboxPress,
         onSelectAll,
         onDismissError,
         textInputLabel = '',
@@ -58,13 +61,20 @@ function BaseSelectionList<TItem extends User | RadioItem>(
         shouldShowTooltips = true,
         shouldUseDynamicMaxToRenderPerBatch = false,
         rightHandSideComponent,
+        checkmarkPosition,
+        isLoadingNewOptions = false,
+        onLayout,
+        customListHeader,
+        listHeaderWrapperStyle,
+        isRowMultilineSupported = false,
+        textInputRef,
     }: BaseSelectionListProps<TItem>,
-    inputRef: ForwardedRef<RNTextInput>,
+    ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const listRef = useRef<RNSectionList<TItem, Section<TItem>>>(null);
-    const textInputRef = useRef<RNTextInput | null>(null);
+    const innerTextInputRef = useRef<RNTextInput | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const shouldShowTextInput = !!textInputLabel;
     const shouldShowSelectAll = !!onSelectAll;
@@ -72,6 +82,11 @@ function BaseSelectionList<TItem extends User | RadioItem>(
     const isFocused = useIsFocused();
     const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
     const [isInitialSectionListRender, setIsInitialSectionListRender] = useState(true);
+    const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
+    const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+
+    const incrementPage = () => setCurrentPage((prev) => prev + 1);
 
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
@@ -105,7 +120,8 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                 });
 
                 // If disabled, add to the disabled indexes array
-                if (!!section.isDisabled || item.isDisabled) {
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                if (!!section.isDisabled || item.isDisabled || item.isDisabledCheckbox) {
                     disabledOptionsIndexes.push(disabledIndex);
                 }
                 disabledIndex += 1;
@@ -147,6 +163,33 @@ function BaseSelectionList<TItem extends User | RadioItem>(
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
     const [focusedIndex, setFocusedIndex] = useState(() => flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey));
 
+    const [slicedSections, ShowMoreButtonInstance] = useMemo(
+        () => [
+            sections.map((section) => {
+                if (isEmpty(section.data)) {
+                    return section;
+                }
+
+                return {
+                    ...section,
+                    data: section.data.slice(0, CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * currentPage),
+                };
+            }),
+            flattenedSections.allOptions.length > CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * currentPage ? (
+                <ShowMoreButton
+                    containerStyle={[styles.mt2, styles.mb5]}
+                    currentCount={CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * currentPage}
+                    totalCount={flattenedSections.allOptions.length}
+                    onPress={incrementPage}
+                />
+            ) : null,
+        ],
+        // we don't need to add styles here as they change
+        // we don't need to add flattendedSections here as they will change along with sections
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [sections, currentPage],
+    );
+
     // Disable `Enter` shortcut if the active element is a button or checkbox
     const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX].includes(activeElementRole as ButtonOrCheckBoxRoles);
 
@@ -178,9 +221,8 @@ function BaseSelectionList<TItem extends User | RadioItem>(
      * Logic to run when a row is selected, either with click/press or keyboard hotkeys.
      *
      * @param item - the list item
-     * @param shouldUnfocusRow - flag to decide if we should unfocus all rows. True when selecting a row with click or press (not keyboard)
      */
-    const selectRow = (item: TItem, shouldUnfocusRow = false) => {
+    const selectRow = (item: TItem) => {
         // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
         if (canSelectMultiple) {
             if (sections.length > 1) {
@@ -189,34 +231,25 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                 // we focus the first one after all the selected (selected items are always at the top).
                 const selectedOptionsCount = item.isSelected ? flattenedSections.selectedOptions.length - 1 : flattenedSections.selectedOptions.length + 1;
 
-                if (!shouldUnfocusRow) {
-                    setFocusedIndex(selectedOptionsCount);
-                }
-
                 if (!item.isSelected) {
                     // If we're selecting an item, scroll to it's position at the top, so we can see it
                     scrollToIndex(Math.max(selectedOptionsCount - 1, 0), true);
                 }
             }
-
-            if (shouldUnfocusRow) {
-                // Unfocus all rows when selecting row with click/press
-                setFocusedIndex(-1);
-            }
         }
 
         onSelectRow(item);
 
-        if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && textInputRef.current) {
-            textInputRef.current.focus();
+        if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
+            innerTextInputRef.current.focus();
         }
     };
 
     const selectAllRow = () => {
         onSelectAll?.();
 
-        if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && textInputRef.current) {
-            textInputRef.current.focus();
+        if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
+            innerTextInputRef.current.focus();
         }
     };
 
@@ -273,7 +306,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
             // we need to know the heights of all list items up-front in order to synchronously compute the layout of any given list item.
             // So be aware that if you adjust the content of the section header (for example, change the font size), you may need to adjust this explicit height as well.
             <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
-                <Text style={[styles.ph5, styles.textLabelSupporting]}>{section.title}</Text>
+                <Text style={[styles.ph4, styles.textLabelSupporting]}>{section.title}</Text>
             </View>
         );
     };
@@ -282,22 +315,25 @@ function BaseSelectionList<TItem extends User | RadioItem>(
         const indexOffset = section.indexOffset ? section.indexOffset : 0;
         const normalizedIndex = index + indexOffset;
         const isDisabled = !!section.isDisabled || item.isDisabled;
-        const isItemFocused = !isDisabled && focusedIndex === normalizedIndex;
+        const isItemFocused = !isDisabled && (focusedIndex === normalizedIndex || itemsToHighlight?.has(item.keyForList ?? ''));
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
         const showTooltip = shouldShowTooltips && normalizedIndex < 10;
 
         return (
-            <BaseListItem
+            <ListItem
                 item={item}
                 isFocused={isItemFocused}
                 isDisabled={isDisabled}
                 showTooltip={showTooltip}
                 canSelectMultiple={canSelectMultiple}
-                onSelectRow={() => selectRow(item, true)}
-                onDismissError={onDismissError}
+                onSelectRow={() => selectRow(item)}
+                onCheckboxPress={onCheckboxPress ? () => onCheckboxPress?.(item) : undefined}
+                onDismissError={() => onDismissError?.(item)}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
-                keyForList={item.keyForList}
+                checkmarkPosition={checkmarkPosition}
+                keyForList={item.keyForList ?? ''}
+                isMultilineSupported={isRowMultilineSupported}
             />
         );
     };
@@ -319,6 +355,14 @@ function BaseSelectionList<TItem extends User | RadioItem>(
         [focusedIndex, isInitialSectionListRender, scrollToIndex, shouldUseDynamicMaxToRenderPerBatch],
     );
 
+    const onSectionListLayout = useCallback(
+        (nativeEvent: LayoutChangeEvent) => {
+            onLayout?.(nativeEvent);
+            scrollToFocusedIndexOnFirstRender(nativeEvent);
+        },
+        [onLayout, scrollToFocusedIndexOnFirstRender],
+    );
+
     const updateAndScrollToFocusedIndex = useCallback(
         (newFocusedIndex: number) => {
             setFocusedIndex(newFocusedIndex);
@@ -332,10 +376,10 @@ function BaseSelectionList<TItem extends User | RadioItem>(
         useCallback(() => {
             if (shouldShowTextInput) {
                 focusTimeoutRef.current = setTimeout(() => {
-                    if (!textInputRef.current) {
+                    if (!innerTextInputRef.current) {
                         return;
                     }
-                    textInputRef.current.focus();
+                    innerTextInputRef.current.focus();
                 }, CONST.ANIMATED_TRANSITION);
             }
             return () => {
@@ -347,18 +391,59 @@ function BaseSelectionList<TItem extends User | RadioItem>(
         }, [shouldShowTextInput]),
     );
 
+    const prevTextInputValue = usePrevious(textInputValue);
     useEffect(() => {
-        // do not change focus on the first render, as it should focus on the selected item
-        if (isInitialSectionListRender) {
+        // Avoid changing focus if the textInputValue remains unchanged.
+        if (prevTextInputValue === textInputValue || flattenedSections.allOptions.length === 0) {
             return;
         }
+        // Remove the focus if the search input is empty else focus on the first non disabled item
+        const newSelectedIndex = textInputValue === '' ? -1 : 0;
+        // reseting the currrent page to 1 when the user types something
+        setCurrentPage(1);
 
-        // set the focus on the first item when the sections list is changed
-        if (sections.length > 0) {
-            updateAndScrollToFocusedIndex(0);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sections]);
+        updateAndScrollToFocusedIndex(newSelectedIndex);
+    }, [canSelectMultiple, flattenedSections.allOptions.length, prevTextInputValue, textInputValue, updateAndScrollToFocusedIndex]);
+
+    useEffect(
+        () => () => {
+            if (!itemFocusTimeoutRef.current) {
+                return;
+            }
+            clearTimeout(itemFocusTimeoutRef.current);
+        },
+        [],
+    );
+
+    /**
+     * Highlights the items and scrolls to the first item present in the items list.
+     *
+     * @param items - The list of items to highlight.
+     * @param timeout - The timeout in milliseconds before removing the highlight.
+     */
+    const scrollAndHighlightItem = useCallback(
+        (items: string[], timeout: number) => {
+            const newItemsToHighlight = new Set<string>();
+            items.forEach((item) => {
+                newItemsToHighlight.add(item);
+            });
+            const index = flattenedSections.allOptions.findIndex((option) => newItemsToHighlight.has(option.keyForList ?? ''));
+            updateAndScrollToFocusedIndex(index);
+            setItemsToHighlight(newItemsToHighlight);
+
+            if (itemFocusTimeoutRef.current) {
+                clearTimeout(itemFocusTimeoutRef.current);
+            }
+
+            itemFocusTimeoutRef.current = setTimeout(() => {
+                setFocusedIndex(-1);
+                setItemsToHighlight(null);
+            }, timeout);
+        },
+        [flattenedSections.allOptions, updateAndScrollToFocusedIndex],
+    );
+
+    useImperativeHandle(ref, () => ({scrollAndHighlightItem}), [scrollAndHighlightItem]);
 
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
@@ -386,18 +471,17 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                 {({safeAreaPaddingBottomStyle}) => (
                     <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
                         {shouldShowTextInput && (
-                            <View style={[styles.ph5, styles.pb3]}>
+                            <View style={[styles.ph4, styles.pb3]}>
                                 <TextInput
                                     ref={(element) => {
-                                        textInputRef.current = element as RNTextInput;
+                                        innerTextInputRef.current = element as RNTextInput;
 
-                                        if (!inputRef) {
+                                        if (!textInputRef) {
                                             return;
                                         }
 
-                                        if (typeof inputRef === 'function') {
-                                            inputRef(element as RNTextInput);
-                                        }
+                                        // eslint-disable-next-line no-param-reassign
+                                        textInputRef.current = element as RNTextInput;
                                     }}
                                     label={textInputLabel}
                                     accessibilityLabel={textInputLabel}
@@ -412,6 +496,8 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                                     spellCheck={false}
                                     onSubmitEditing={selectFocusedOption}
                                     blurOnSubmit={!!flattenedSections.allOptions.length}
+                                    isLoading={isLoadingNewOptions}
+                                    testID="selection-list-text-input"
                                 />
                             </View>
                         )}
@@ -426,37 +512,31 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                         ) : (
                             <>
                                 {!headerMessage && canSelectMultiple && shouldShowSelectAll && (
-                                    <PressableWithFeedback
-                                        style={[styles.peopleRow, styles.userSelectNone, styles.ph5, styles.pb3]}
-                                        onPress={selectAllRow}
-                                        accessibilityLabel={translate('workspace.people.selectAll')}
-                                        role="button"
-                                        accessibilityState={{checked: flattenedSections.allSelected}}
-                                        disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
-                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                                        onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
-                                    >
+                                    <View style={[styles.peopleRow, styles.userSelectNone, styles.ph4, styles.pb3, listHeaderWrapperStyle]}>
                                         <Checkbox
-                                            accessibilityLabel={translate('workspace.people.selectAll')}
                                             isChecked={flattenedSections.allSelected}
                                             onPress={selectAllRow}
                                             disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
+                                            accessibilityLabel={translate('workspace.people.selectAll')}
                                         />
-                                        <View style={[styles.flex1]}>
-                                            <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
-                                        </View>
-                                    </PressableWithFeedback>
+                                        {customListHeader ?? (
+                                            <View style={[styles.flex1]}>
+                                                <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
+                                            </View>
+                                        )}
+                                    </View>
                                 )}
+                                {!headerMessage && !canSelectMultiple && customListHeader}
                                 <SectionList
                                     ref={listRef}
-                                    sections={sections}
+                                    sections={slicedSections}
                                     stickySectionHeadersEnabled={false}
                                     renderSectionHeader={renderSectionHeader}
                                     renderItem={renderItem}
                                     getItemLayout={getItemLayout}
                                     onScroll={onScroll}
                                     onScrollBeginDrag={onScrollBeginDrag}
-                                    keyExtractor={(item) => item.keyForList}
+                                    keyExtractor={(item, index) => item.keyForList ?? `${index}`}
                                     extraData={focusedIndex}
                                     indicatorStyle="white"
                                     keyboardShouldPersistTaps="always"
@@ -466,8 +546,9 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                                     windowSize={5}
                                     viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                     testID="selection-list"
-                                    onLayout={scrollToFocusedIndexOnFirstRender}
+                                    onLayout={onSectionListLayout}
                                     style={(!maxToRenderPerBatch || isInitialSectionListRender) && styles.opacity0}
+                                    ListFooterComponent={ShowMoreButtonInstance}
                                 />
                                 {children}
                             </>
@@ -476,6 +557,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                             <FixedFooter style={[styles.mtAuto]}>
                                 <Button
                                     success
+                                    large
                                     style={[styles.w100]}
                                     text={confirmButtonText || translate('common.confirm')}
                                     onPress={onConfirm}

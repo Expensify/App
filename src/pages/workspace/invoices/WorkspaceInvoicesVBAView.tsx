@@ -26,6 +26,7 @@ function WorkspaceInvoicesVBAView({policyID}: WorkspaceInvoicesVBAViewProps) {
             <Section
                 title={translate('workspace.invoices.moneyBackInAFlash')}
                 icon={Illustrations.MoneyBadge}
+                isCentralPane
                 menuItems={[
                     {
                         title: translate('workspace.invoices.viewUnpaidInvoices'),

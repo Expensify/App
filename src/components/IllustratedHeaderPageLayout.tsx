@@ -16,11 +16,16 @@ type IllustratedHeaderPageLayoutProps = HeaderPageLayoutProps & {
 
     /** Overlay content to display on top of animation */
     overlayContent?: () => ReactNode;
+
+    /** TestID to apply to the whole section container */
+    testID: string;
 };
 
-function IllustratedHeaderPageLayout({backgroundColor, children, illustration, overlayContent, ...rest}: IllustratedHeaderPageLayoutProps) {
+function IllustratedHeaderPageLayout({backgroundColor, children, illustration, testID, overlayContent, ...rest}: IllustratedHeaderPageLayoutProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const shouldLimitHeight = !rest.shouldShowBackButton;
+
     return (
         <HeaderPageLayout
             backgroundColor={backgroundColor ?? theme.appBG}
@@ -29,14 +34,15 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, o
                     <Lottie
                         source={illustration}
                         style={styles.w100}
-                        webStyle={styles.w100}
+                        webStyle={shouldLimitHeight ? styles.h100 : styles.w100}
                         autoPlay
                         loop
                     />
                     {overlayContent?.()}
                 </>
             }
-            headerContainerStyles={[styles.justifyContentCenter, styles.w100]}
+            testID={testID}
+            headerContainerStyles={[styles.justifyContentCenter, styles.w100, shouldLimitHeight && styles.centralPaneAnimation]}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         >

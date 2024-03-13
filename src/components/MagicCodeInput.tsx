@@ -7,6 +7,7 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
+import type {MaybePhraseKey} from '@libs/Localize';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import FormHelpMessage from './FormHelpMessage';
@@ -32,7 +33,7 @@ type MagicCodeInputProps = {
     shouldDelayFocus?: boolean;
 
     /** Error text to display */
-    errorText?: string;
+    errorText?: MaybePhraseKey;
 
     /** Specifies autocomplete hints for the system, so it can provide autofill */
     autoComplete: AutoCompleteVariant;
@@ -278,7 +279,7 @@ function MagicCodeInput(
 
                 const indexToFocus = numbers[editIndex] === CONST.MAGIC_CODE_EMPTY_CHAR ? indexBeforeLastEditIndex : editIndex;
                 const formElement = inputRefs.current as HTMLFormElement | null;
-                (formElement?.[indexToFocus] as HTMLInputElement).focus();
+                (formElement?.[indexToFocus] as HTMLInputElement)?.focus();
                 onChangeTextProp(value.substring(0, indexToFocus));
 
                 return;
@@ -366,6 +367,7 @@ function MagicCodeInput(
                         collapsable={false}
                     >
                         <TextInput
+                            disableKeyboard={isDisableKeyboard}
                             onLayout={(e) => {
                                 inputWidth.current = e.nativeEvent.layout.width;
                             }}
@@ -428,3 +430,4 @@ function MagicCodeInput(
 MagicCodeInput.displayName = 'MagicCodeInput';
 
 export default forwardRef(MagicCodeInput);
+export type {AutoCompleteVariant, MagicCodeInputHandle, MagicCodeInputProps};

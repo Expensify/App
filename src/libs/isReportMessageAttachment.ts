@@ -1,3 +1,4 @@
+import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
 import type {Message} from '@src/types/onyx/ReportAction';
 
@@ -7,15 +8,15 @@ import type {Message} from '@src/types/onyx/ReportAction';
  *
  * @param reportActionMessage report action's message as text, html and translationKey
  */
-export default function isReportMessageAttachment({text, html, translationKey}: Message): boolean {
-    if (!text || !html) {
+export default function isReportMessageAttachment(message: Message | undefined): boolean {
+    if (!message?.text || !message.html) {
         return false;
     }
 
-    if (translationKey && text === CONST.ATTACHMENT_MESSAGE_TEXT) {
-        return translationKey === CONST.TRANSLATION_KEYS.ATTACHMENT;
+    if (message.translationKey && message.text === CONST.ATTACHMENT_MESSAGE_TEXT) {
+        return message?.translationKey === CONST.TRANSLATION_KEYS.ATTACHMENT;
     }
 
     const regex = new RegExp(` ${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="(.*)"`, 'i');
-    return text === CONST.ATTACHMENT_MESSAGE_TEXT && (!!html.match(regex) || html === CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML);
+    return (message.text === CONST.ATTACHMENT_MESSAGE_TEXT || !!Str.isVideo(message.text)) && (!!message.html.match(regex) || message.html === CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML);
 }

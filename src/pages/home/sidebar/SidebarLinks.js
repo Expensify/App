@@ -1,37 +1,23 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {InteractionManager, StyleSheet, View} from 'react-native';
 import _ from 'underscore';
-import LogoComponent from '@assets/images/expensify-wordmark.svg';
-import Header from '@components/Header';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import ImageSVG from '@components/ImageSVG';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import Timing from '@libs/actions/Timing';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Navigation from '@libs/Navigation/Navigation';
 import onyxSubscribe from '@libs/onyxSubscribe';
-import Performance from '@libs/Performance';
-import SidebarUtils from '@libs/SidebarUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import safeAreaInsetPropTypes from '@pages/safeAreaInsetPropTypes';
-import variables from '@styles/variables';
 import * as App from '@userActions/App';
-import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SignInOrAvatarWithOptionalStatus from './SignInOrAvatarWithOptionalStatus';
 
 const basePropTypes = {
     /** Toggles the navigation menu open and closed */
@@ -55,23 +41,17 @@ const propTypes = {
 };
 
 function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport, isCreateMenuOpen}) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const modal = useRef({});
-    const {translate, updateLocale} = useLocalize();
+    const {updateLocale} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
 
     useEffect(() => {
-        if (!isSmallScreenWidth) {
-            return;
-        }
         App.confirmReadyToOpenApp();
-    }, [isSmallScreenWidth]);
+    }, []);
 
     useEffect(() => {
-        SidebarUtils.setIsSidebarLoadedReady();
-
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
                 updateLocale();
@@ -107,7 +87,6 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
         ReportActionContextMenu.hideContextMenu(false);
 
         return () => {
-            SidebarUtils.resetIsSidebarLoadedReadyPromise();
             if (unsubscribeEscapeKey) {
                 unsubscribeEscapeKey();
             }
@@ -117,19 +96,6 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
-    const showSearchPage = useCallback(() => {
-        if (isCreateMenuOpen) {
-            // Prevent opening Search page when click Search icon quickly after clicking FAB icon
-            return;
-        }
-
-        // Capture metric for opening the search page
-        Timing.start(CONST.TIMING.OPEN_SEARCH);
-        Performance.markStart(CONST.TIMING.OPEN_SEARCH);
-
-        Navigation.navigate(ROUTES.SEARCH);
-    }, [isCreateMenuOpen]);
 
     /**
      * Show Report page with selected report id
@@ -155,44 +121,15 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const contentContainerStyles = useMemo(() => StyleSheet.flatten([styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]), [insets]);
+
     return (
         <View style={[styles.flex1, styles.h100]}>
-            <View
-                style={[styles.flexRow, styles.ph5, styles.pv3, styles.justifyContentBetween, styles.alignItemsCenter]}
-                dataSet={{dragArea: true}}
-            >
-                <Header
-                    title={
-                        <ImageSVG
-                            src={LogoComponent}
-                            width={variables.lhnLogoWidth}
-                            height={variables.lhnLogoHeight}
-                            fill={theme.text}
-                            contentFit="contain"
-                        />
-                    }
-                    role={CONST.ROLE.PRESENTATION}
-                    shouldShowEnvironmentBadge
-                />
-                <Tooltip text={translate('common.search')}>
-                    <PressableWithoutFeedback
-                        accessibilityLabel={translate('sidebarScreen.buttonSearch')}
-                        role={CONST.ROLE.BUTTON}
-                        style={[styles.flexRow, styles.ph5]}
-                        onPress={Session.checkIfActionIsAllowed(showSearchPage)}
-                    >
-                        <Icon
-                            fill={theme.icon}
-                            src={Expensicons.MagnifyingGlass}
-                        />
-                    </PressableWithoutFeedback>
-                </Tooltip>
-                <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={isCreateMenuOpen} />
-            </View>
             <View style={[styles.pRelative, styles.flex1]}>
                 <LHNOptionsList
                     style={styles.flex1}
-                    contentContainerStyles={StyleSheet.flatten([styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}])}
+                    contentContainerStyles={contentContainerStyles}
                     data={optionListItems}
                     onSelectRow={showReportPage}
                     shouldDisableFocusOptions={isSmallScreenWidth}
@@ -200,7 +137,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                     onFirstItemRendered={App.setSidebarLoaded}
                 />
                 {isLoading && optionListItems.length === 0 && (
-                    <View style={[StyleSheet.absoluteFillObject, styles.highlightBG]}>
+                    <View style={[StyleSheet.absoluteFillObject, styles.appBG]}>
                         <OptionsListSkeletonView shouldAnimate />
                     </View>
                 )}

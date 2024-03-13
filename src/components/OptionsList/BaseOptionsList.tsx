@@ -1,6 +1,6 @@
 import isEqual from 'lodash/isEqual';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, memo, useEffect, useRef} from 'react';
+import React, {forwardRef, memo, useEffect, useMemo, useRef} from 'react';
 import type {SectionListRenderItem} from 'react-native';
 import {View} from 'react-native';
 import OptionRow from '@components/OptionRow';
@@ -9,8 +9,6 @@ import SectionList from '@components/SectionList';
 import Text from '@components/Text';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Timing from '@libs/actions/Timing';
-import Performance from '@libs/Performance';
 import type {OptionData} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
@@ -33,7 +31,7 @@ function BaseOptionsList(
         shouldHaveOptionSeparator = false,
         showTitleTooltip = false,
         optionHoveredStyle,
-        contentContainerStyles,
+        contentContainerStyles: contentContainerStylesProp,
         sectionHeaderStyle,
         showScrollIndicator = true,
         listContainerStyles: listContainerStylesProp,
@@ -53,6 +51,7 @@ function BaseOptionsList(
         nestedScrollEnabled = true,
         bounces = true,
         renderFooterContent,
+        safeAreaPaddingBottomStyle,
     }: BaseOptionListProps,
     ref: ForwardedRef<OptionsList>,
 ) {
@@ -66,7 +65,8 @@ function BaseOptionsList(
     const previousSections = usePrevious<OptionsListData[]>(sections);
     const didLayout = useRef(false);
 
-    const listContainerStyles = listContainerStylesProp ?? [styles.flex1];
+    const listContainerStyles = useMemo(() => listContainerStylesProp ?? [styles.flex1], [listContainerStylesProp, styles.flex1]);
+    const contentContainerStyles = useMemo(() => [safeAreaPaddingBottomStyle, contentContainerStylesProp], [contentContainerStylesProp, safeAreaPaddingBottomStyle]);
 
     /**
      * This helper function is used to memoize the computation needed for getItemLayout. It is run whenever section data changes.
@@ -110,16 +110,6 @@ function BaseOptionsList(
         flattenedData.current = buildFlatSectionArray();
     });
 
-    useEffect(() => {
-        if (isLoading) {
-            return;
-        }
-
-        // Mark the end of the search page load time. This data is collected only for Search page.
-        Timing.end(CONST.TIMING.OPEN_SEARCH);
-        Performance.markEnd(CONST.TIMING.OPEN_SEARCH);
-    }, [isLoading]);
-
     const onViewableItemsChanged = () => {
         if (didLayout.current || !onLayout) {
             return;
@@ -143,7 +133,6 @@ function BaseOptionsList(
      *
      *     [{header}, {sectionHeader}, {item}, {item}, {sectionHeader}, {item}, {item}, {footer}]
      */
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     const getItemLayout = (_data: OptionsListData[] | null, flatDataArrayIndex: number) => {
         if (!flattenedData.current[flatDataArrayIndex]) {
             flattenedData.current = buildFlatSectionArray();
@@ -175,11 +164,7 @@ function BaseOptionsList(
     const renderItem: SectionListRenderItem<OptionData, Section> = ({item, index, section}) => {
         const isItemDisabled = isDisabled || !!section.isDisabled || !!item.isDisabled;
         const isSelected = selectedOptions?.some((option) => {
-            if (option.accountID && option.accountID === item.accountID) {
-                return true;
-            }
-
-            if (option.reportID && option.reportID === item.reportID) {
+            if (option.keyForList && option.keyForList === item.keyForList) {
                 return true;
             }
 
@@ -204,7 +189,7 @@ function BaseOptionsList(
                 selectedStateButtonText={multipleOptionSelectorButtonText}
                 onSelectedStatePressed={onAddToSelection}
                 highlightSelected={highlightSelectedOptions}
-                boldStyle={boldStyle}
+                boldStyle={item.boldStyle ?? boldStyle}
                 isDisabled={isItemDisabled}
                 shouldHaveOptionSeparator={index > 0 && shouldHaveOptionSeparator}
                 shouldDisableRowInnerPadding={shouldDisableRowInnerPadding}

@@ -1,3 +1,4 @@
+import Str from 'expensify-common/lib/str';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
@@ -7,6 +8,11 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as UserUtils from './UserUtils';
+
+type FirstAndLastName = {
+    firstName: string;
+    lastName: string;
+};
 
 let personalDetails: Array<PersonalDetails | null> = [];
 let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
@@ -18,9 +24,21 @@ Onyx.connect({
     },
 });
 
-function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails> | null, defaultValue = '', shouldFallbackToHidden = true): string {
-    const displayName = passedPersonalDetails?.displayName ? passedPersonalDetails.displayName.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '') : '';
+function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails> | null, defaultValue = '', shouldFallbackToHidden = true, shouldAddCurrentUserPostfix = false): string {
+    let displayName = passedPersonalDetails?.displayName ? passedPersonalDetails.displayName.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '') : '';
+
+    // If the displayName is not set by the user, the backend sets the diplayName same as the login so
+    // we need to remove the sms domain from the displayName if it is an sms login.
+    if (displayName === passedPersonalDetails?.login && Str.isSMSLogin(passedPersonalDetails?.login)) {
+        displayName = Str.removeSMSDomain(displayName);
+    }
+
+    if (shouldAddCurrentUserPostfix && !!displayName) {
+        displayName = `${displayName} (${Localize.translateLocal('common.you').toLowerCase()})`;
+    }
+
     const fallbackValue = shouldFallbackToHidden ? Localize.translateLocal('common.hidden') : '';
+
     return displayName || defaultValue || fallbackValue;
 }
 
@@ -50,6 +68,10 @@ function getPersonalDetailsByIDs(accountIDs: number[], currentUserAccountID: num
     return result;
 }
 
+function getPersonalDetailByEmail(email: string): PersonalDetails | undefined {
+    return (Object.values(allPersonalDetails ?? {}) as PersonalDetails[]).find((detail) => detail?.login === email);
+}
+
 /**
  * Given a list of logins, find the associated personal detail and return related accountIDs.
  *
@@ -58,7 +80,7 @@ function getPersonalDetailsByIDs(accountIDs: number[], currentUserAccountID: num
  */
 function getAccountIDsByLogins(logins: string[]): number[] {
     return logins.reduce<number[]>((foundAccountIDs, login) => {
-        const currentDetail = personalDetails.find((detail) => detail?.login === login);
+        const currentDetail = personalDetails.find((detail) => detail?.login === login?.toLowerCase());
         if (!currentDetail) {
             // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
             foundAccountIDs.push(UserUtils.generateAccountID(login));
@@ -173,8 +195,8 @@ function getStreetLines(street = '') {
  * @param privatePersonalDetails - details object
  * @returns - formatted address
  */
-function getFormattedAddress(privatePersonalDetails: PrivatePersonalDetails): string {
-    const {address} = privatePersonalDetails;
+function getFormattedAddress(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): string {
+    const {address} = privatePersonalDetails ?? {};
     const [street1, street2] = getStreetLines(address?.street);
     const formattedAddress =
         formatPiece(street1) + formatPiece(street2) + formatPiece(address?.city) + formatPiece(address?.state) + formatPiece(address?.zip) + formatPiece(address?.country);
@@ -196,6 +218,57 @@ function getEffectiveDisplayName(personalDetail?: PersonalDetails): string | und
 }
 
 /**
+ * Creates a new displayName for a user based on passed personal details or login.
+ */
+function createDisplayName(login: string, passedPersonalDetails: Pick<PersonalDetails, 'firstName' | 'lastName'> | OnyxEntry<PersonalDetails>): string {
+    // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
+    // so that the option looks cleaner in our UI.
+    const userLogin = LocalePhoneNumber.formatPhoneNumber(login);
+
+    if (!passedPersonalDetails) {
+        return userLogin;
+    }
+
+    const firstName = passedPersonalDetails.firstName ?? '';
+    const lastName = passedPersonalDetails.lastName ?? '';
+    const fullName = `${firstName} ${lastName}`.trim();
+
+    // It's possible for fullName to be empty string, so we must use "||" to fallback to userLogin.
+    return fullName || userLogin;
+}
+
+/**
+ * Gets the first and last name from the user's personal details.
+ * If the login is the same as the displayName, then they don't exist,
+ * so we return empty strings instead.
+ */
+function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstName, lastName}: PersonalDetails): FirstAndLastName {
+    // It's possible for firstName to be empty string, so we must use "||" to consider lastName instead.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    if (firstName || lastName) {
+        return {firstName: firstName ?? '', lastName: lastName ?? ''};
+    }
+    if (login && Str.removeSMSDomain(login) === displayName) {
+        return {firstName: '', lastName: ''};
+    }
+
+    if (displayName) {
+        const firstSpaceIndex = displayName.indexOf(' ');
+        const lastSpaceIndex = displayName.lastIndexOf(' ');
+        if (firstSpaceIndex === -1) {
+            return {firstName: displayName, lastName: ''};
+        }
+
+        return {
+            firstName: displayName.substring(0, firstSpaceIndex).trim(),
+            lastName: displayName.substring(lastSpaceIndex).trim(),
+        };
+    }
+
+    return {firstName: '', lastName: ''};
+}
+
+/**
  * Whether personal details is empty
  */
 function isPersonalDetailsEmpty() {
@@ -206,6 +279,7 @@ export {
     isPersonalDetailsEmpty,
     getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
+    getPersonalDetailByEmail,
     getAccountIDsByLogins,
     getLoginsByAccountIDs,
     getNewPersonalDetailsOnyxData,
@@ -213,4 +287,6 @@ export {
     getFormattedStreet,
     getStreetLines,
     getEffectiveDisplayName,
+    createDisplayName,
+    extractFirstAndLastNameFromAvailableDetails,
 };

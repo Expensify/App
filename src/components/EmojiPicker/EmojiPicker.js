@@ -33,6 +33,7 @@ const EmojiPicker = forwardRef((props, ref) => {
     const emojiPopoverAnchorRef = useRef(null);
     const onModalHide = useRef(() => {});
     const onEmojiSelected = useRef(() => {});
+    const activeEmoji = useRef();
     const emojiSearchInput = useRef();
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
 
@@ -53,12 +54,14 @@ const EmojiPicker = forwardRef((props, ref) => {
      * @param {Function} [onEmojiSelectedValue=() => {}] - Run a callback when Emoji selected.
      * @param {React.MutableRefObject} emojiPopoverAnchorValue - Element to which Popover is anchored
      * @param {Object} [anchorOrigin=DEFAULT_ANCHOR_ORIGIN] - Anchor origin for Popover
-     * @param {Function} [onWillShow=() => {}] - Run a callback when Popover will show
+     * @param {Function} [onWillShow] - Run a callback when Popover will show
      * @param {String} id - Unique id for EmojiPicker
+     * @param {String} activeEmojiValue - Selected emoji to be highlighted
      */
-    const showEmojiPicker = (onModalHideValue, onEmojiSelectedValue, emojiPopoverAnchorValue, anchorOrigin, onWillShow = () => {}, id) => {
+    const showEmojiPicker = (onModalHideValue, onEmojiSelectedValue, emojiPopoverAnchorValue, anchorOrigin, onWillShow, id, activeEmojiValue) => {
         onModalHide.current = onModalHideValue;
         onEmojiSelected.current = onEmojiSelectedValue;
+        activeEmoji.current = activeEmojiValue;
         emojiPopoverAnchorRef.current = emojiPopoverAnchorValue;
         const emojiPopoverAnchor = getEmojiPopoverAnchor();
         if (emojiPopoverAnchor.current && emojiPopoverAnchor.current.blur) {
@@ -69,7 +72,8 @@ const EmojiPicker = forwardRef((props, ref) => {
         const anchorOriginValue = anchorOrigin || DEFAULT_ANCHOR_ORIGIN;
 
         calculateAnchorPosition(emojiPopoverAnchor.current, anchorOriginValue).then((value) => {
-            onWillShow();
+            // eslint-disable-next-line es/no-optional-chaining
+            onWillShow?.();
             setIsEmojiPickerVisible(true);
             setEmojiPopoverAnchorPosition(value);
             setEmojiPopoverAnchorOrigin(anchorOriginValue);
@@ -190,6 +194,7 @@ const EmojiPicker = forwardRef((props, ref) => {
         >
             <EmojiPickerMenu
                 onEmojiSelected={selectEmoji}
+                activeEmoji={activeEmoji.current}
                 ref={(el) => (emojiSearchInput.current = el)}
             />
         </PopoverWithMeasuredContent>

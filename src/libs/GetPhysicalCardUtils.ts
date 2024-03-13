@@ -1,67 +1,31 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import ROUTES from '@src/ROUTES';
-import type {Login} from '@src/types/onyx';
+import type {Route} from '@src/ROUTES';
+import type {GetPhysicalCardForm} from '@src/types/form';
+import type {LoginList, PrivatePersonalDetails} from '@src/types/onyx';
+import * as LoginUtils from './LoginUtils';
 import Navigation from './Navigation/Navigation';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as UserUtils from './UserUtils';
 
-type DraftValues = {
-    addressLine1: string;
-    addressLine2: string;
-    city: string;
-    country: string;
-    legalFirstName: string;
-    legalLastName: string;
-    phoneNumber: string;
-    state: string;
-    zipPostCode: string;
-};
-
-type PrivatePersonalDetails = {
-    address: {street: string; city: string; state: string; country: string; zip: string};
-    legalFirstName: string;
-    legalLastName: string;
-    phoneNumber: string;
-};
-
-type LoginList = Record<string, Login>;
-
-/**
- *
- * @param domain
- * @param privatePersonalDetails
- * @param loginList
- * @returns
- */
-function getCurrentRoute(domain: string, privatePersonalDetails: PrivatePersonalDetails, loginList: LoginList) {
-    const {
-        address: {street, city, state, country, zip},
-        legalFirstName,
-        legalLastName,
-        phoneNumber,
-    } = privatePersonalDetails;
+function getCurrentRoute(domain: string, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): Route {
+    const {address, legalFirstName, legalLastName, phoneNumber} = privatePersonalDetails ?? {};
 
     if (!legalFirstName && !legalLastName) {
         return ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME.getRoute(domain);
     }
-    if (!phoneNumber && !UserUtils.getSecondaryPhoneLogin(loginList)) {
+    if (!phoneNumber || !LoginUtils.validateNumber(phoneNumber)) {
         return ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_PHONE.getRoute(domain);
     }
-    if (!(street && city && state && country && zip)) {
+    if (!(address?.street && address?.city && address?.state && address?.country && address?.zip)) {
         return ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_ADDRESS.getRoute(domain);
     }
 
     return ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_CONFIRM.getRoute(domain);
 }
 
-/**
- *
- * @param domain
- * @param privatePersonalDetails
- * @param loginList
- * @returns
- */
-function goToNextPhysicalCardRoute(domain: string, privatePersonalDetails: PrivatePersonalDetails, loginList: LoginList) {
-    Navigation.navigate(getCurrentRoute(domain, privatePersonalDetails, loginList));
+function goToNextPhysicalCardRoute(domain: string, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>) {
+    Navigation.navigate(getCurrentRoute(domain, privatePersonalDetails));
 }
 
 /**
@@ -72,8 +36,8 @@ function goToNextPhysicalCardRoute(domain: string, privatePersonalDetails: Priva
  * @param loginList
  * @returns
  */
-function setCurrentRoute(currentRoute: string, domain: string, privatePersonalDetails: PrivatePersonalDetails, loginList: LoginList) {
-    const expectedRoute = getCurrentRoute(domain, privatePersonalDetails, loginList);
+function setCurrentRoute(currentRoute: string, domain: string, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>) {
+    const expectedRoute = getCurrentRoute(domain, privatePersonalDetails);
 
     // If the user is on the current route or the current route is confirmation, then he's allowed to stay on the current step
     if ([currentRoute, ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_CONFIRM.getRoute(domain)].includes(expectedRoute)) {
@@ -90,24 +54,22 @@ function setCurrentRoute(currentRoute: string, domain: string, privatePersonalDe
  * @param privatePersonalDetails
  * @returns
  */
-function getUpdatedDraftValues(draftValues: DraftValues, privatePersonalDetails: PrivatePersonalDetails, loginList: LoginList) {
-    const {
-        address: {city, country, state, street = '', zip},
-        legalFirstName,
-        legalLastName,
-        phoneNumber,
-    } = privatePersonalDetails;
+function getUpdatedDraftValues(draftValues: OnyxEntry<GetPhysicalCardForm>, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>, loginList: OnyxEntry<LoginList>): GetPhysicalCardForm {
+    const {address, legalFirstName, legalLastName, phoneNumber} = privatePersonalDetails ?? {};
 
     return {
-        legalFirstName: draftValues.legalFirstName || legalFirstName,
-        legalLastName: draftValues.legalLastName || legalLastName,
-        addressLine1: draftValues.addressLine1 || street.split('\n')[0],
-        addressLine2: draftValues.addressLine2 || street.split('\n')[1] || '',
-        city: draftValues.city || city,
-        country: draftValues.country || country,
-        phoneNumber: draftValues.phoneNumber || (phoneNumber ?? UserUtils.getSecondaryPhoneLogin(loginList) ?? ''),
-        state: draftValues.state || state,
-        zipPostCode: draftValues.zipPostCode || zip,
+        /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+        // we do not need to use nullish coalescing here because we want to allow empty strings
+        legalFirstName: draftValues?.legalFirstName || legalFirstName || '',
+        legalLastName: draftValues?.legalLastName || legalLastName || '',
+        addressLine1: draftValues?.addressLine1 || address?.street.split('\n')[0] || '',
+        addressLine2: draftValues?.addressLine2 || address?.street.split('\n')[1] || '',
+        city: draftValues?.city || address?.city || '',
+        country: draftValues?.country || address?.country || '',
+        phoneNumber: draftValues?.phoneNumber || phoneNumber || UserUtils.getSecondaryPhoneLogin(loginList) || '',
+        state: draftValues?.state || address?.state || '',
+        zipPostCode: draftValues?.zipPostCode || address?.zip || '',
+        /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     };
 }
 
@@ -116,8 +78,8 @@ function getUpdatedDraftValues(draftValues: DraftValues, privatePersonalDetails:
  * @param draftValues
  * @returns
  */
-function getUpdatedPrivatePersonalDetails(draftValues: DraftValues): PrivatePersonalDetails {
-    const {addressLine1, addressLine2, city, country, legalFirstName, legalLastName, phoneNumber, state, zipPostCode} = draftValues;
+function getUpdatedPrivatePersonalDetails(draftValues: OnyxEntry<GetPhysicalCardForm>): PrivatePersonalDetails {
+    const {addressLine1, addressLine2, city = '', country = '', legalFirstName, legalLastName, phoneNumber, state = '', zipPostCode = ''} = draftValues ?? {};
     return {
         legalFirstName,
         legalLastName,

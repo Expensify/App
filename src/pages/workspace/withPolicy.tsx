@@ -6,7 +6,9 @@ import React, {forwardRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {SettingsNavigatorParamList} from '@navigation/types';
+import taxPropTypes from '@components/taxPropTypes';
+import {translatableTextPropTypes} from '@libs/Localize';
+import type {CentralPaneNavigatorParamList, FullScreenNavigatorParamList, SettingsNavigatorParamList, WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
 import policyMemberPropType from '@pages/policyMemberPropType';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -14,7 +16,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type PolicyRoute = RouteProp<SettingsNavigatorParamList, ValueOf<typeof SCREENS.WORKSPACE>>;
+type WorkspaceParamList = WorkspacesCentralPaneNavigatorParamList & FullScreenNavigatorParamList & CentralPaneNavigatorParamList & SettingsNavigatorParamList;
+type PolicyRoute = RouteProp<WorkspaceParamList, ValueOf<typeof SCREENS.WORKSPACE>>;
 
 function getPolicyIDFromRoute(route: PolicyRoute): string {
     return route?.params?.policyID ?? '';
@@ -56,7 +59,7 @@ const policyPropTypes = {
          *     }
          * }
          */
-        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
 
         /** Whether or not the policy requires tags */
         requiresTag: PropTypes.bool,
@@ -67,8 +70,20 @@ const policyPropTypes = {
         /** Whether or not the policy has multiple tag lists */
         hasMultipleTagLists: PropTypes.bool,
 
-        /** Whether or not the policy has tax tracking enabled */
+        /**
+         * Whether or not the policy has tax tracking enabled
+         *
+         * @deprecated - use tax.trackingEnabled instead
+         */
         isTaxTrackingEnabled: PropTypes.bool,
+
+        /** Whether or not the policy has tax tracking enabled */
+        tax: PropTypes.shape({
+            trackingEnabled: PropTypes.bool,
+        }),
+
+        /** Collection of tax rates attached to a policy */
+        taxRates: taxPropTypes,
     }),
 
     /** The employee list of this policy */
@@ -133,5 +148,5 @@ export default function <TProps extends WithPolicyProps, TRef>(WrappedComponent:
     })(forwardRef(WithPolicy));
 }
 
-export {policyPropTypes, policyDefaultProps};
-export type {WithPolicyOnyxProps, WithPolicyProps, PolicyRoute};
+export {policyDefaultProps, policyPropTypes};
+export type {PolicyRoute, WithPolicyOnyxProps, WithPolicyProps};
