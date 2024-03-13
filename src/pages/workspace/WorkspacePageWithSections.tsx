@@ -19,7 +19,6 @@ import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimburs
 import * as BankAccounts from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
 import type {Policy, ReimbursementAccount, User} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -81,6 +80,9 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
          * taller header on desktop and different font of the title.
          * */
         icon?: IconAsset;
+
+        /** Whether the page is loading, example any other API call in progres */
+        isLoading?: boolean;
     };
 
 function fetchData(policyID: string, skipVBBACal?: boolean) {
@@ -110,12 +112,14 @@ function WorkspacePageWithSections({
     shouldShowOfflineIndicatorInWideScreen = false,
     shouldShowNonAdmin = false,
     shouldShowNotFoundPage = false,
+    isLoading: isPageLoading = false,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID ?? '';
     useNetwork({onReconnect: () => fetchData(policyID, shouldSkipVBBACall)});
 
-    const isLoading = reimbursementAccount?.isLoading ?? true;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const isLoading = (reimbursementAccount?.isLoading || isPageLoading) ?? true;
     const achState = reimbursementAccount?.achData?.state ?? '';
     const isUsingECard = user?.isUsingExpensifyCard ?? false;
     const hasVBA = achState === BankAccount.STATE.OPEN;
@@ -152,8 +156,8 @@ function WorkspacePageWithSections({
             shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen && !shouldShow}
         >
             <FullPageNotFoundView
-                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
-                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
+                onBackButtonPress={Navigation.dismissModal}
+                onLinkPress={Navigation.resetToHome}
                 shouldShow={shouldShow}
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
                 shouldForceFullScreen
@@ -162,8 +166,9 @@ function WorkspacePageWithSections({
                     title={headerText}
                     guidesCallTaskID={guidesCallTaskID}
                     shouldShowBackButton={isSmallScreenWidth || shouldShowBackButton}
-                    onBackButtonPress={() => Navigation.goBack(backButtonRoute ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}
+                    onBackButtonPress={() => Navigation.goBack(backButtonRoute)}
                     icon={icon ?? undefined}
+                    style={styles.headerBarDesktopHeight}
                 />
                 {(isLoading || firstRender.current) && shouldShowLoading && isFocused ? (
                     <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />

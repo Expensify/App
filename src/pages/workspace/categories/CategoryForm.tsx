@@ -5,6 +5,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -29,6 +30,7 @@ type EditCategoryFormProps = {
 function CategoryForm({onSubmit, policyCategories, categoryName}: EditCategoryFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
@@ -70,6 +72,7 @@ function CategoryForm({onSubmit, policyCategories, categoryName}: EditCategoryFo
             enabledWhenOffline
         >
             <InputWrapper
+                ref={inputCallbackRef}
                 InputComponent={TextInput}
                 maxLength={CONST.CATEGORY_NAME_LIMIT}
                 defaultValue={categoryName}
