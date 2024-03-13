@@ -53,12 +53,7 @@ import ReportFooter from './report/ReportFooter';
 import {ActionListContext, ReactionListContext} from './ReportScreenContext';
 import type {ActionListContextType, ReactionListRef, ScrollPosition} from './ReportScreenContext';
 
-type ReportActionMap = Record<string, OnyxTypes.ReportAction>;
-
 type ReportScreenOnyxProps = {
-    /** All the report actions for this report */
-    allReportActions: ReportActionMap;
-
     /** Tells us if the sidebar has rendered */
     isSidebarLoaded: OnyxEntry<boolean>;
 
@@ -77,8 +72,8 @@ type ReportScreenOnyxProps = {
     /** Whether the composer is full size */
     isComposerFullSize: OnyxEntry<boolean>;
 
-    /** All the report actions for this report */
-    // reportActions: OnyxTypes.ReportAction[];
+    /** An array containing all report actions related to this report, sorted based on a date criterion */
+    sortedAllReportActions: OnyxTypes.ReportAction[];
 
     /** The report currently being looked at */
     report: OnyxEntry<ReportWithoutHasDraft>;
@@ -110,7 +105,7 @@ function ReportScreen({
     betas = [],
     route,
     report: reportProp,
-    allReportActions,
+    sortedAllReportActions,
     reportMetadata = {
         isLoadingInitialReportActions: true,
         isLoadingOlderReportActions: false,
@@ -226,13 +221,12 @@ function ReportScreen({
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
     const [isLinkingToMessage, setLinkingToMessage] = useState(!!reportActionIDFromRoute);
     const reportActions = useMemo(() => {
-        if (!allReportActions) {
+        if (!sortedAllReportActions.length) {
             return [];
         }
-        const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, true);
-        const currentRangeOfReportActions = ReportActionsUtils.getContinuousReportActionChain(sortedReportActions, reportActionIDFromRoute);
+        const currentRangeOfReportActions = ReportActionsUtils.getContinuousReportActionChain(sortedAllReportActions, reportActionIDFromRoute);
         return currentRangeOfReportActions;
-    }, [reportActionIDFromRoute, allReportActions]);
+    }, [reportActionIDFromRoute, sortedAllReportActions]);
 
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger. If we have cached reportActions, they will be shown immediately. We aim to display a loader first, then fetch relevant reportActions, and finally show them.
     useLayoutEffect(() => {
@@ -510,14 +504,14 @@ function ReportScreen({
     };
 
     const isLinkedReportActionDeleted = useMemo(() => {
-        if (!reportActionIDFromRoute || !allReportActions) {
+        if (!reportActionIDFromRoute || !sortedAllReportActions) {
             return false;
         }
-        const action = allReportActions[reportActionIDFromRoute];
+        const action = sortedAllReportActions.find(item => item.reportActionID === reportActionIDFromRoute);
         return action && ReportActionsUtils.isDeletedAction(action);
-    }, [reportActionIDFromRoute, allReportActions]);
+    }, [reportActionIDFromRoute, sortedAllReportActions]);
 
-    if (isLinkedReportActionDeleted || (!shouldShowSkeleton && reportActionIDFromRoute && reportActions?.length === 0 && !isLinkingToMessage)) {
+    if (isLinkedReportActionDeleted ?? (!shouldShowSkeleton && reportActionIDFromRoute && reportActions?.length === 0 && !isLinkingToMessage)) {
         return (
             <BlockingView
                 icon={Illustrations.ToddBehindCloud}
@@ -626,9 +620,10 @@ export default withViewportOffsetTop(
                 isSidebarLoaded: {
                     key: ONYXKEYS.IS_SIDEBAR_LOADED,
                 },
-                allReportActions: {
+                sortedAllReportActions: {
                     key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
                     canEvict: false,
+                    selector: (allReportActions: OnyxEntry<OnyxTypes.ReportActions>) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, true),
                 },
                 report: {
                     key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
@@ -680,7 +675,7 @@ export default withViewportOffsetTop(
                 ReportScreen,
                 (prevProps, nextProps) =>
                     prevProps.isSidebarLoaded === nextProps.isSidebarLoaded &&
-                    lodashIsEqual(prevProps.allReportActions, nextProps.allReportActions) &&
+                    lodashIsEqual(prevProps.sortedAllReportActions, nextProps.sortedAllReportActions) &&
                     lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
                     prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
                     lodashIsEqual(prevProps.betas, nextProps.betas) &&
