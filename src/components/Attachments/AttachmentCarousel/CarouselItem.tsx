@@ -19,6 +19,7 @@ type CarouselItemProps = {
     /** onPress callback */
     onPress?: () => void;
 
+    /** Whether attachment carousel modal is hovered over */
     isModalHovered?: boolean;
 
     /** Whether the attachment is currently being viewed in the carousel */
