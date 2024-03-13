@@ -375,7 +375,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         if (previousTransactionTaxAmount !== transaction.taxAmount && amountInSmallestCurrencyUnits !== transaction.taxAmount) {
             return;
         }
-        IOU.setMoneyRequestTaxAmount(transaction.transactionID, amountInSmallestCurrencyUnits);
+        IOU.setMoneyRequestTaxAmount(transaction.transactionID, amountInSmallestCurrencyUnits, true);
     }, [taxRates.defaultValue, transaction, previousTransactionTaxAmount]);
 
     /**
