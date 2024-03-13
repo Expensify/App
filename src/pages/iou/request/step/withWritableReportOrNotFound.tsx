@@ -1,9 +1,11 @@
+import type {RouteProp} from '@react-navigation/core';
 import type {ComponentType, ForwardedRef} from 'react';
 import React, {forwardRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -14,9 +16,7 @@ type WithWritableReportOrNotFoundOnyxProps = {
     report: OnyxEntry<Report>;
 };
 
-type WithWritableReportOrNotFoundProps = WithWritableReportOrNotFoundOnyxProps & {
-    route: {params: {iouType: string; reportID: string} | undefined};
-};
+type WithWritableReportOrNotFoundProps = WithWritableReportOrNotFoundOnyxProps & {route: RouteProp<MoneyRequestNavigatorParamList>};
 
 export default function <TRef, TProps extends WithWritableReportOrNotFoundProps>(WrappedComponent: ComponentType<TProps>) {
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -41,7 +41,7 @@ export default function <TRef, TProps extends WithWritableReportOrNotFoundProps>
 
     return withOnyx<TProps, WithWritableReportOrNotFoundOnyxProps>({
         report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID ?? '0'}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params && 'reportID' in route.params ? route.params.reportID : '0'}`,
         },
     })(forwardRef(WithWritableReportOrNotFound));
 }
