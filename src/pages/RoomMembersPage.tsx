@@ -183,6 +183,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                     return;
                 }
             }
+            const pendingChatMember = report?.pendingChatMembers?.find((member) => member.accountID === accountID.toString());
 
             result.push({
                 keyForList: String(accountID),
@@ -199,10 +200,11 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                         id: Number(accountID),
                     },
                 ],
+                pendingAction: pendingChatMember?.pendingAction,
             });
         });
 
-        result = result.sort((value1, value2) => localeCompare(value1.text, value2.text));
+        result = result.sort((value1, value2) => localeCompare(value1.text ?? '', value2.text ?? ''));
 
         return result;
     };
@@ -222,7 +224,9 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
             testID={RoomMembersPage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={isEmptyObject(report) || !isPolicyMember}
+                shouldShow={
+                    isEmptyObject(report) || (!ReportUtils.isChatThread(report) && ((ReportUtils.isUserCreatedPolicyRoom(report) && !isPolicyMember) || ReportUtils.isDefaultRoom(report)))
+                }
                 subtitleKey={isEmptyObject(report) ? undefined : 'roomMembersPage.notAuthorized'}
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));

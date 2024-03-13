@@ -4,7 +4,6 @@ import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentReportID from '@hooks/useCurrentReportID';
-import useFlipper from '@hooks/useFlipper';
 import useTheme from '@hooks/useTheme';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Log from '@libs/Log';
@@ -46,7 +45,7 @@ function parseAndLogRoute(state: NavigationState) {
 
     const focusedRoute = findFocusedRoute(state);
 
-    if (focusedRoute?.name !== SCREENS.NOT_FOUND) {
+    if (focusedRoute?.name !== SCREENS.NOT_FOUND && focusedRoute?.name !== SCREENS.SAML_SIGN_IN) {
         updateLastVisitedPath(currentPath);
     }
 
@@ -61,7 +60,6 @@ function parseAndLogRoute(state: NavigationState) {
 }
 
 function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: NavigationRootProps) {
-    useFlipper(navigationRef);
     const firstRenderRef = useRef(true);
     const theme = useTheme();
     const {cleanStaleScrollOffsets} = useContext(ScrollOffsetContext);
