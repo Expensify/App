@@ -1,11 +1,9 @@
-import type { MockGithub } from '@kie/mock-github';
-import kieMockGithub from '@kie/mock-github';
+import {MockGithub} from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/lintAssertions';
 import mocks from './mocks/lintMocks';
-import { ExtendedAct } from './utils/ExtendedAct';
+import {ExtendedAct} from './utils/ExtendedAct';
 import * as utils from './utils/utils';
-
 
 jest.setTimeout(90 * 1000);
 let mockGithub: MockGithub;
@@ -30,7 +28,7 @@ describe('test workflow lint', () => {
 
     beforeEach(async () => {
         // create a local repository and copy required files
-        mockGithub = new kieMockGithub.MockGithub({
+        mockGithub = new MockGithub({
             repo: {
                 testLintWorkflowRepo: {
                     files: FILES_TO_COPY_INTO_TEST_REPO,
