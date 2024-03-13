@@ -3574,7 +3574,7 @@ function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomU
                 customUnits: {
                     [currentCustomUnit.customUnitID]: {
                         ...currentCustomUnit,
-                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.distanceRates.errors.updateRateUnitGenericFailureMessage'),
+                        errors: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage'),
                         pendingAction: null,
                     },
                 },
@@ -3629,7 +3629,7 @@ function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUn
                 customUnits: {
                     [currentCustomUnit.customUnitID]: {
                         ...currentCustomUnit,
-                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.distanceRates.errors.updateRateDefaultCategoryGenericFailureMessage'),
+                        errors: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage'),
                         pendingAction: null,
                     },
                 },
