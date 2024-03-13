@@ -487,7 +487,7 @@ const isChannelMuted = (reportId: string) =>
     });
 
 function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
-    const reportActionsOnly = pushJSON.filter((update) => update.key.includes('reportActions_'));
+    const reportActionsOnly = pushJSON.filter((update) => update.key?.includes('reportActions_'));
     // "reportActions_5134363522480668" -> "5134363522480668"
     const reportIDs = reportActionsOnly.map((value) => value.key.split('_')[1]);
 
@@ -578,35 +578,15 @@ function subscribeToUserEvents() {
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID.toString(), (pushJSON) => {
-        // The data for this push event comes in two different formats:
-        // 1. Original format - this is what was sent before the RELIABLE_UPDATES project and will go away once RELIABLE_UPDATES is fully complete
-        //     - The data is an array of objects, where each object is an onyx update
-        //       Example: [{onyxMethod: 'whatever', key: 'foo', value: 'bar'}]
-        // 1. Reliable updates format - this is what was sent with the RELIABLE_UPDATES project and will be the format from now on
-        //     - The data is an object, containing updateIDs from the server and an array of onyx updates (this array is the same format as the original format above)
-        //       Example: {lastUpdateID: 1, previousUpdateID: 0, updates: [{onyxMethod: 'whatever', key: 'foo', value: 'bar'}]}
-        if (Array.isArray(pushJSON)) {
-            Log.warn('Received pusher event with array format');
-            pushJSON.forEach((multipleEvent) => {
-                PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
-            });
-            return;
-        }
-
+        // The data for the update is an object, containing updateIDs from the server and an array of onyx updates (this array is the same format as the original format above)
+        // Example: {lastUpdateID: 1, previousUpdateID: 0, updates: [{onyxMethod: 'whatever', key: 'foo', value: 'bar'}]}
         const updates = {
             type: CONST.ONYX_UPDATE_TYPES.PUSHER,
             lastUpdateID: Number(pushJSON.lastUpdateID || 0),
             updates: pushJSON.updates ?? [],
             previousUpdateID: Number(pushJSON.previousUpdateID || 0),
         };
-        if (!OnyxUpdates.doesClientNeedToBeUpdated(Number(pushJSON.previousUpdateID || 0))) {
-            OnyxUpdates.apply(updates);
-            return;
-        }
-
-        // If we reached this point, we need to pause the queue while we prepare to fetch older OnyxUpdates.
-        SequentialQueue.pause();
-        OnyxUpdates.saveUpdateInformation(updates);
+        OnyxUpdates.applyOnyxUpdatesReliably(updates);
     });
 
     // Handles Onyx updates coming from Pusher through the mega multipleEvents.
