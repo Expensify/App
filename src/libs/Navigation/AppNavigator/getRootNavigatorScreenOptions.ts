@@ -16,8 +16,6 @@ const commonScreenOptions: StackNavigationOptions = {
     animationTypeForReplace: 'push',
 };
 
-const SLIDE_LEFT_OUTPUT_RANGE_MULTIPLIER = -1;
-
 type GetRootNavigatorScreenOptions = (isSmallScreenWidth: boolean, styles: ThemeStyles, StyleUtils: StyleUtilsType) => ScreenOptions;
 
 const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScreenWidth, themeStyles, StyleUtils) => {
@@ -42,8 +40,9 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
         },
         leftModalNavigator: {
             ...commonScreenOptions,
-            cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props, SLIDE_LEFT_OUTPUT_RANGE_MULTIPLIER),
+            cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
             presentation: Platform.OS === 'android' ? 'modal' : 'transparentModal',
+            gestureDirection: 'horizontal-inverted',
 
             // We want pop in LHP since there are some flows that would work weird otherwise
             animationTypeForReplace: 'pop',

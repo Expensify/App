@@ -1,3 +1,4 @@
+import Str from 'expensify-common/lib/str';
 import React from 'react';
 import {View} from 'react-native';
 import MultipleAvatars from '@components/MultipleAvatars';
@@ -18,6 +19,7 @@ function UserListItem({
     isDisabled,
     canSelectMultiple,
     onSelectRow,
+    onCheckboxPress,
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
@@ -41,6 +43,7 @@ function UserListItem({
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
+            onCheckboxPress={onCheckboxPress}
             onDismissError={onDismissError}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             rightHandSideComponent={rightHandSideComponent}
@@ -55,7 +58,7 @@ function UserListItem({
             }
             keyForList={item.keyForList}
         >
-            {(hovered) => (
+            {(hovered?: boolean) => (
                 <>
                     {!!item.icons &&
                         (item.shouldShowSubscript ? (
@@ -79,11 +82,11 @@ function UserListItem({
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
-                            text={item.text}
-                            textStyles={[
+                            text={Str.removeSMSDomain(item.text ?? '')}
+                            style={[
                                 styles.optionDisplayName,
                                 isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                styles.sidebarLinkTextBold,
+                                item.isBold !== false && styles.sidebarLinkTextBold,
                                 styles.pre,
                                 item.alternateText ? styles.mb1 : null,
                             ]}
@@ -91,8 +94,8 @@ function UserListItem({
                         {!!item.alternateText && (
                             <TextWithTooltip
                                 shouldShowTooltip={showTooltip}
-                                text={item.alternateText}
-                                textStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                text={Str.removeSMSDomain(item.alternateText ?? '')}
+                                style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                             />
                         )}
                     </View>
