@@ -15,6 +15,7 @@ import LocalNotification from '@libs/Notification/LocalNotification';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
+import BaseSidebarScreen from '@pages/home/sidebar/SidebarScreen/BaseSidebarScreen';
 import FontUtils from '@styles/utils/FontUtils';
 import * as AppActions from '@userActions/App';
 import * as Report from '@userActions/Report';
@@ -602,6 +603,27 @@ describe('Full app render tests', () => {
             alternateText = screen.queryAllByLabelText(hintText);
             expect(alternateText).toHaveLength(1);
             expect(alternateText[0].props.children).toBe('Comment 9');
+        });
+    });
+
+    describe('App transition', () => {
+        it('Should take already-signed in users to the home page by default', async () => {
+            const initialURL = new URL('https://new.expensify.com/transition');
+            initialURL.searchParams.append('accountID', USER_A_ACCOUNT_ID.toString(10));
+            initialURL.searchParams.append('email', USER_A_EMAIL);
+            Linking.setInitialURL(initialURL.href);
+
+            await Onyx.set(ONYXKEYS.SESSION, {
+                accountID: USER_A_ACCOUNT_ID,
+                email: USER_A_EMAIL,
+                authToken: 'asdf1234',
+            });
+
+            render(<App />);
+            await waitForBatchedUpdatesWithAct();
+
+            const sidebarScreen = screen.queryByTestId(BaseSidebarScreen.displayName);
+            expect(sidebarScreen).toBeTruthy();
         });
     });
 });
