@@ -40,4 +40,5 @@ export type {ReportPhysicalCardForm} from './ReportPhysicalCardForm';
 export type {WorkspaceDescriptionForm} from './WorkspaceDescriptionForm';
 export type {PolicyTagNameForm} from './PolicyTagNameForm';
 export type {PolicyCreateDistanceRateForm} from './PolicyCreateDistanceRateForm';
+export type {PolicyDistanceRateEditForm} from './PolicyDistanceRateEditForm';
 export type {default as Form} from './Form';

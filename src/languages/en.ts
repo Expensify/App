@@ -1977,6 +1977,8 @@ export default {
             disabled: 'Disabled',
             unit: 'Unit',
             defaultCategory: 'Default category',
+            deleteDistanceRate: 'Delete distance rate',
+            areYouSureDelete: 'Are you sure you want to delete this rate?',
             errors: {
                 createRateGenericFailureMessage: 'An error occurred while creating the distance rate, please try again.',
                 updateRateUnitGenericFailureMessage: 'An error occurred while updating the distance rate unit, please try again.',

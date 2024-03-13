@@ -116,8 +116,8 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID));
     };
 
-    const editRate = () => {
-        // Navigation.navigate(ROUTES.WORKSPACE_EDIT_DISTANCE_RATE.getRoute(policyID, rateID));
+    const editRate = (rate: RateForList) => {
+        Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_EDIT.getRoute(policyID, rate.value));
     };
 
     const disableRates = () => {
