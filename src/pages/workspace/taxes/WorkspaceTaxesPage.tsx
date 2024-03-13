@@ -71,7 +71,7 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
                     alternateText: textForDefault(key),
                     keyForList: key,
                     isSelected: !!selectedTaxesIDs.includes(key),
-                    isDisabledCheckbox: key !== defaultExternalID,
+                    isDisabledCheckbox: key === defaultExternalID,
                     rightElement: (
                         <View style={styles.flexRow}>
                             <Text style={[styles.disabledText, styles.alignSelfCenter]}>
