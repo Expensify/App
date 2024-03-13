@@ -1,6 +1,6 @@
 // eslint-disable-next-line you-dont-need-lodash-underscore/each
-import ONYXKEYS from '@src/ONYXKEYS';
 import Onyx from 'react-native-onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import * as ReportActionFile from './actions/Report';
 
@@ -15,7 +15,7 @@ export default function markAllPolicyReportsAsRead(policyID: string) {
 
             let delay = 0;
             Object.keys(allReports).forEach((key: string) => {
-                const report: Report|null|undefined = allReports[key];
+                const report: Report | null | undefined = allReports[key];
                 if (report?.policyID !== policyID) {
                     return;
                 }
@@ -28,5 +28,5 @@ export default function markAllPolicyReportsAsRead(policyID: string) {
             });
             Onyx.disconnect(connectionID);
         },
-    })
+    });
 }
