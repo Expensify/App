@@ -64,8 +64,6 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
         method,
         body,
         headers: requestHeaders,
-        // We want to include the cookie accountID that is returned form the API
-        credentials: 'include',
     })
         .then((response) => {
             if (response.headers.get('x-accountid') ?? false) {
