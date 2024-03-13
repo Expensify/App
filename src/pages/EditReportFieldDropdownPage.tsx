@@ -62,8 +62,6 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, 
             ];
         }
 
-        setHeaderMessage(!fieldOptions.length && !recentlyUsedOptions.length ? translate('common.noResultsFound') : '');
-
         const newSections = [];
 
         const selectedValue = fieldValue;
