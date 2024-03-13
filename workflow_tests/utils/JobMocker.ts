@@ -12,20 +12,20 @@ type YamlWorkflow = {
 
 type MockJob = {
     steps: MockJobStep[];
-    uses?: string; // ?
-    secrets?: string[]; // ?
-    with?: string; // ?
-    outputs?: string[]; // ?
-    runsOn: string; // ?
+    uses?: string;
+    secrets?: string[];
+    with?: string;
+    outputs?: string[];
+    runsOn: string;
 };
 
 type MockJobStep = {
-    id?: string; // ?
+    id?: string;
     name: string;
-    run?: string; // ?
+    run?: string;
     mockWith?: string;
-    with?: string; // ?
-    envs?: string[]; // ?
+    with?: string;
+    envs?: string[];
     inputs?: string[];
 };
 

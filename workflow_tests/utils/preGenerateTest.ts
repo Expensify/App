@@ -204,7 +204,7 @@ const parseWorkflowFile = (workflow: YamlWorkflow) => {
         };
         job.steps.forEach((step) => {
             const workflowStep = {
-                name: step.name || '', // ?
+                name: step.name,
                 inputs: Object.keys(step.with ?? {}),
                 envs: step.envs ?? [],
             };
@@ -227,7 +227,7 @@ const getMockFileContent = (workflowName: string, jobs: Record<string, YamlMockJ
                 .replaceAll('#', '')
                 .toUpperCase()}__STEP_MOCK`;
             stepMocks.push(stepMockName);
-            mockStepsContent += mockStepTemplate(stepMockName, step, jobId); // ?
+            mockStepsContent += mockStepTemplate(stepMockName, step, jobId);
         });
         const jobMocksName = `${workflowName.toUpperCase()}__${jobId.toUpperCase()}__STEP_MOCKS`;
         jobMocks.push(jobMocksName);
