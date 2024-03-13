@@ -199,6 +199,7 @@ const WorkspaceSettingsModalStackNavigator = createModalStackNavigator(
         [SCREENS.WORKSPACE.CATEGORIES]: () => require('../../../pages/workspace/categories/WorkspaceCategoriesPage').default as React.ComponentType,
         [SCREENS.WORKSPACE.MORE_FEATURES]: () => require('../../../pages/workspace/WorkspaceMoreFeaturesPage').default as React.ComponentType,
         [SCREENS.WORKSPACE.TAGS]: () => require('../../../pages/workspace/tags/WorkspaceTagsPage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.TAXES]: () => require('../../../pages/workspace/taxes/WorkspaceTaxesPage').default as React.ComponentType,
         [SCREENS.WORKSPACE.DISTANCE_RATES]: () => require('../../../pages/workspace/distanceRates/PolicyDistanceRatesPage').default as React.ComponentType,
     },
     (styles) => ({cardStyle: styles.navigationScreenCardStyle, headerShown: false}),
