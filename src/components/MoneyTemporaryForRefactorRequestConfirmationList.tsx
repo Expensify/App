@@ -136,9 +136,6 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     /** List styles for OptionsSelector */
     listStyles?: StyleProp<ViewStyle>;
 
-    /** ID of the transaction that represents the money request */
-    transactionID?: string;
-
     /** Transaction that represents the money request */
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
 
@@ -164,7 +161,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 };
 
 function MoneyTemporaryForRefactorRequestConfirmationList({
-    transaction,
+    transaction=null,
     onSendMoney,
     onConfirm,
     onSelectParticipant,
@@ -462,7 +459,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     // Auto select the category if there is only one enabled category and it is required
     useEffect(() => {
-        const enabledCategories = _.filter(policyCategories, (category) => category.enabled);
+        const enabledCategories = policyCategories.filter((category: policyCategory) => category.enabled);
         if (iouCategory || !shouldShowCategories || enabledCategories.length !== 1 || !isCategoryRequired) {
             return;
         }
@@ -481,7 +478,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             updatedTagsString = IOUUtils.insertTagIntoTransactionTagsString(updatedTagsString, enabledTags[0] ? enabledTags[0].name : '', index);
         });
         if (updatedTagsString !== TransactionUtils.getTag(transaction) && updatedTagsString) {
-            IOU.setMoneyRequestTag(transaction.transactionID, updatedTagsString);
+            IOU.setMoneyRequestTag(transaction?.transactionID ?? '', updatedTagsString);
         }
     }, [policyTagLists, transaction, policyTags, isTagRequired, canUseViolations]);
 
