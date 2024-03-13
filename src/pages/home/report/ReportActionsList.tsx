@@ -336,12 +336,11 @@ function ReportActionsList({
         }
     };
 
-    const trackVerticalScrolling = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const trackVerticalScrolling = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
         handleUnreadFloatingButton();
         onScroll?.(event);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    };
 
     const scrollToBottomAndMarkReportAsRead = () => {
         reportScrollManager.scrollToBottom();
