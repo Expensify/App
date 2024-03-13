@@ -434,7 +434,7 @@ const ROUTES = {
         route: 'request/state',
 
         getRoute: (state?: string, backTo?: string, label?: string) =>
-            `${getUrlWithBackToParam(`moneyrequest/state${state ? `?state=${encodeURIComponent(state)}` : ''}`, backTo)}${
+            `${getUrlWithBackToParam(`request/state${state ? `?state=${encodeURIComponent(state)}` : ''}`, backTo)}${
                 // the label param can be an empty string so we cannot use a nullish ?? operator
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 label ? `${backTo || state ? '&' : '?'}label=${encodeURIComponent(label)}` : ''
