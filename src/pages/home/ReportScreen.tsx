@@ -109,7 +109,6 @@ function isEmpty(report: OnyxTypes.Report): boolean {
     if (isEmptyObject(report)) {
         return true;
     }
-    console.log(report)
     return !Object.values(report).some((value) => value !== undefined && value !== '');
 }
 
