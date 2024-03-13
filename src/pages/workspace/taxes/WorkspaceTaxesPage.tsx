@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -12,13 +12,15 @@ import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearDraftValues} from '@libs/actions/FormActions';
+import {openPolicyTaxesPage} from '@libs/actions/Policy';
 import {clearTaxRateError} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
-import type {CentralPaneNavigatorParamList} from '@navigation/types';
+import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -28,7 +30,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type WorkspaceTaxesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES>;
+type WorkspaceTaxesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES>;
 
 function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -38,6 +40,17 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
     const [selectedTaxesIDs, setSelectedTaxesIDs] = useState<string[]>([]);
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
+
+    const fetchTaxes = () => {
+        openPolicyTaxesPage(route.params.policyID);
+    };
+
+    const {isOffline} = useNetwork({onReconnect: fetchTaxes});
+
+    useEffect(() => {
+        fetchTaxes();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const textForDefault = useCallback(
         (taxID: string): string => {
@@ -63,7 +76,7 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
                     alternateText: textForDefault(key),
                     keyForList: key,
                     isSelected: !!selectedTaxesIDs.includes(key),
-                    isSelectable: key !== defaultExternalID && key !== foreignTaxDefault,
+                    isDisabledCheckbox: key === defaultExternalID,
                     pendingAction: value.pendingAction,
                     errors: value.errors,
                     rightElement: (
@@ -81,10 +94,10 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
                     ),
                 }))
                 .sort((a, b) => a.text.localeCompare(b.text)),
-        [policy?.taxRates?.taxes, textForDefault, foreignTaxDefault, defaultExternalID, selectedTaxesIDs, styles, theme.icon, translate],
+        [policy?.taxRates?.taxes, textForDefault, selectedTaxesIDs, defaultExternalID, styles, translate, theme.icon],
     );
 
-    const isLoading = taxesList === undefined;
+    const isLoading = !isOffline && taxesList === undefined;
 
     const toggleTax = (tax: ListItem) => {
         const key = tax.keyForList;
@@ -101,7 +114,7 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
     };
 
     const toggleAllTaxes = () => {
-        const taxesToSelect = taxesList.filter((tax) => tax.keyForList !== defaultExternalID && tax.keyForList !== foreignTaxDefault);
+        const taxesToSelect = taxesList.filter((tax) => tax.keyForList !== defaultExternalID);
         setSelectedTaxesIDs((prev) => {
             if (prev.length === taxesToSelect.length) {
                 return [];

@@ -1,5 +1,5 @@
-import type {ReactElement, ReactNode} from 'react';
-import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {MutableRefObject, ReactElement, ReactNode} from 'react';
+import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
 import type {MaybePhraseKey} from '@libs/Localize';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -60,8 +60,8 @@ type ListItem = {
     /** Whether this option is selected */
     isSelected?: boolean;
 
-    /** Whether this option is selectable */
-    isSelectable?: boolean;
+    /** Whether the checkbox should be disabled */
+    isDisabledCheckbox?: boolean;
 
     /** Whether this option is disabled for selection */
     isDisabled?: boolean | null;
@@ -287,6 +287,13 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to wrap long text up to 2 lines */
     isRowMultilineSupported?: boolean;
+
+    /** Ref for textInput */
+    textInputRef?: MutableRefObject<TextInput | null>;
+};
+
+type SelectionListHandle = {
+    scrollAndHighlightItem?: (items: string[], timeout: number) => void;
 };
 
 type ItemLayout = {
@@ -320,4 +327,5 @@ export type {
     ItemLayout,
     ButtonOrCheckBoxRoles,
     SectionListDataType,
+    SelectionListHandle,
 };
