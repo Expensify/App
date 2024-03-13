@@ -104,13 +104,13 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
     };
 
     return (
-        <Tooltip text={translate('common.create')}>
-            <PressableWithoutFeedback
-                style={styles.h100}
-                accessibilityLabel={accessibilityLabel}
-                onPress={toggleFabAction}
-            >
-                <View style={styles.bottomTabBarItem}>
+        <PressableWithoutFeedback
+            style={styles.h100}
+            accessibilityLabel={accessibilityLabel}
+            onPress={toggleFabAction}
+        >
+            <View style={styles.bottomTabBarItem}>
+                <Tooltip text={translate('common.create')}>
                     <AnimatedPressable
                         ref={(el) => {
                             fabPressable.current = el ?? null;
@@ -136,9 +136,9 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
                             />
                         </Svg>
                     </AnimatedPressable>
-                </View>
-            </PressableWithoutFeedback>
-        </Tooltip>
+                </Tooltip>
+            </View>
+        </PressableWithoutFeedback>
     );
 }
 
