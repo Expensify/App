@@ -475,7 +475,15 @@ function getIconWidthAndHeightStyle(small: boolean, medium: boolean, large: bool
     }
 }
 
-function getButtonStyleWithIcon(styles: ThemeStyles, small: boolean, medium: boolean, large: boolean, hasIcon?: boolean, hasText?: boolean, shouldShowRightIcon?: boolean): ViewStyle | undefined {
+function getButtonStyleWithIcon(
+    styles: ThemeStyles,
+    small: boolean,
+    medium: boolean,
+    large: boolean,
+    hasIcon?: boolean,
+    hasText?: boolean,
+    shouldShowRightIcon?: boolean,
+): ViewStyle | undefined {
     const useDefaultButtonStyles = Boolean(hasIcon && shouldShowRightIcon) || Boolean(!hasIcon && !shouldShowRightIcon);
     switch (true) {
         case small: {
