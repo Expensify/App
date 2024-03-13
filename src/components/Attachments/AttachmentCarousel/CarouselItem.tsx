@@ -76,7 +76,6 @@ function CarouselItem({item, onPress, isFocused, isModalHovered}: CarouselItemPr
                     source={item.source}
                     file={item.file}
                     isAuthTokenRequired={item.isAuthTokenRequired}
-                    isUsedInCarousel
                     onPress={onPress}
                     transactionID={item.transactionID}
                     reportActionID={item.reportActionID}
