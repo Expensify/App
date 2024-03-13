@@ -16,7 +16,6 @@ import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {clearDraftValues} from '@libs/actions/FormActions';
 import {openPolicyTaxesPage} from '@libs/actions/Policy';
 import {clearTaxRateError} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
@@ -26,7 +25,6 @@ import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccess
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
