@@ -1777,6 +1777,7 @@ export default {
             testTransactions: 'Transacciones de prueba',
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
+            selected: ({selectedNumber}) => `${selectedNumber} seleccionados`,
             settlementFrequency: 'Frecuencia de liquidación',
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
             unavailable: 'Espacio de trabajo no disponible',
@@ -1791,7 +1792,6 @@ export default {
             moreFeatures: 'Más características',
             requested: 'Solicitado',
             distanceRates: 'Tasas de distancia',
-            selected: ({selectedNumber}) => `${selectedNumber} seleccionados`,
         },
         type: {
             free: 'Gratis',
@@ -1799,6 +1799,10 @@ export default {
             collect: 'Recolectar',
         },
         categories: {
+            deleteCategories: 'Eliminar categorías',
+            disableCategories: 'Desactivar categorías',
+            enableCategories: 'Activar categorías',
+            deleteFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
             categoryName: 'Nombre de la categoría',
             requiresCategory: 'Los miembros deben categorizar todos los gastos',
             enableCategory: 'Activar categoría',
