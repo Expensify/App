@@ -200,13 +200,4 @@ const FILES_TO_COPY_INTO_TEST_REPO = [
     },
 ];
 
-module.exports = {
-    setUpActParams,
-    createMockStep,
-    createStepAssertion,
-    setJobRunners,
-    deepCopy,
-    getLogFilePath,
-    FILES_TO_COPY_INTO_TEST_REPO,
-    removeMockRepoDir,
-};
+export {setUpActParams, createMockStep, createStepAssertion, setJobRunners, deepCopy, getLogFilePath, FILES_TO_COPY_INTO_TEST_REPO, removeMockRepoDir};

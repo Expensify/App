@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/dot-notation */
 // This eslint-disable comment is here to allow accessing private properties in the Act class
 import type {RunOpts, Workflow} from '@kie/act-js';
-import kieActJs from '@kie/act-js';
+import * as kieActJs from '@kie/act-js';
 import path from 'path';
 import {JobMocker} from './JobMocker';
 import type {MockJob} from './JobMocker';
