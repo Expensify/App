@@ -2769,13 +2769,12 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
-                    errors: {
-                        [policyCategory.oldName]: null,
-                        [policyCategory.newName]: {
-                            ...policyCategoryToUpdate,
-                            name: policyCategory.newName,
-                            pendingAction: null,
-                        },
+                    [policyCategory.oldName]: null,
+                    [policyCategory.newName]: {
+                        ...policyCategoryToUpdate,
+                        name: policyCategory.newName,
+                        errors: null,
+                        pendingAction: null,
                     },
                 },
             },

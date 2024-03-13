@@ -13,6 +13,7 @@ import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAcce
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyCategories} from '@src/types/onyx';
 import CategoryForm from './CategoryForm';
@@ -31,7 +32,7 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
     const editCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             Policy.renamePolicyCategory(route.params.policyID, {oldName: route.params.categoryName, newName: values.categoryName});
-            Navigation.goBack();
+            Navigation.goBack(ROUTES.WORKSPACE_CATEGORIES.getRoute(route.params.policyID));
         },
         [route.params.categoryName, route.params.policyID],
     );
