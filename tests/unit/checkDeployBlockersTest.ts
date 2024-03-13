@@ -2,12 +2,18 @@
  * @jest-environment node
  */
 import * as core from '@actions/core';
-import _ from 'underscore';
+import asMutable from '@src/types/utils/asMutable';
 import run from '../../.github/actions/javascript/checkDeployBlockers/checkDeployBlockers';
 import GithubUtils from '../../.github/libs/GithubUtils';
 
+type CommentData = {body: string};
+
+type Comment = {data?: CommentData[]};
+
+type PullRequest = {url: string; isQASuccess: boolean};
+
 // Static mock function for core.getInput
-const mockGetInput = jest.fn().mockImplementation((arg) => {
+const mockGetInput = jest.fn().mockImplementation((arg: string): string | number | undefined => {
     if (arg === 'GITHUB_TOKEN') {
         return 'fake_token';
     }
@@ -23,8 +29,8 @@ const mockListComments = jest.fn();
 
 beforeAll(() => {
     // Mock core module
-    core.getInput = mockGetInput;
-    core.setOutput = mockSetOutput;
+    asMutable(core).getInput = mockGetInput;
+    asMutable(core).setOutput = mockSetOutput;
 
     // Mock octokit module
     const moctokit = {
@@ -35,10 +41,12 @@ beforeAll(() => {
             },
         },
     };
+
+    // @ts-expect-error TODO: Remove this once GithubUtils (https://github.com/Expensify/App/issues/25382) is migrated to TypeScript.
     GithubUtils.internalOctokit = moctokit;
 });
 
-let baseComments = [];
+let baseComments: Comment = {};
 beforeEach(() => {
     baseComments = {
         data: [
@@ -65,11 +73,11 @@ afterAll(() => {
     jest.clearAllMocks();
 });
 
-function checkbox(isClosed) {
+function checkbox(isClosed: boolean): string {
     return isClosed ? '[x]' : '[ ]';
 }
 
-function mockIssue(prList, deployBlockerList) {
+function mockIssue(prList: PullRequest[], deployBlockerList?: PullRequest[]) {
     return {
         data: {
             number: 1,
@@ -79,25 +87,27 @@ function mockIssue(prList, deployBlockerList) {
 **Compare Changes:** https://github.com/Expensify/App/compare/production...staging
 
 **This release contains changes from the following pull requests:**
-${_.map(
-    prList,
-    ({url, isQASuccess}) => `
+${prList
+    .map(
+        ({url, isQASuccess}) => `
 - ${checkbox(isQASuccess)} ${url}
 `,
-)}
+    )
+    .join('\n')}
 ${
-    !_.isEmpty(deployBlockerList)
+    !deployBlockerList || deployBlockerList.length < 0
         ? `
 
 **Deploy Blockers:**`
         : ''
-}  
-${_.map(
-    deployBlockerList,
-    ({url, isQASuccess}) => `
+}
+${deployBlockerList
+    ?.map(
+        ({url, isQASuccess}) => `
 - ${checkbox(isQASuccess)} ${url}
 `,
-)}
+    )
+    .join('\n')}
 cc @Expensify/applauseleads
 `,
         },
@@ -108,51 +118,46 @@ describe('checkDeployBlockers', () => {
     const allClearIssue = mockIssue([{url: 'https://github.com/Expensify/App/pull/6882', isQASuccess: true}]);
 
     describe('checkDeployBlockers', () => {
-        test('Test an issue with all checked items and :shipit:', () => {
+        test('Test an issue with all checked items and :shipit:', async () => {
             mockGetIssue.mockResolvedValue(allClearIssue);
             mockListComments.mockResolvedValue(baseComments);
-            return run().then(() => {
-                expect(mockSetOutput).toHaveBeenCalledWith('HAS_DEPLOY_BLOCKERS', false);
-            });
+            await expect(run()).resolves.toBeUndefined();
+            expect(mockSetOutput).toHaveBeenCalledWith('HAS_DEPLOY_BLOCKERS', false);
         });
 
-        test('Test an issue with all boxes checked but no :shipit:', () => {
+        test('Test an issue with all boxes checked but no :shipit:', async () => {
             mockGetIssue.mockResolvedValue(allClearIssue);
             const extraComments = {
-                data: [...baseComments.data, {body: 'This issue either has unchecked QA steps or has not yet been stamped with a :shipit: comment. Reopening!'}],
+                data: [...(baseComments?.data ?? []), {body: 'This issue either has unchecked QA steps or has not yet been stamped with a :shipit: comment. Reopening!'}],
             };
             mockListComments.mockResolvedValue(extraComments);
-            return run().then(() => {
-                expect(mockSetOutput).toHaveBeenCalledWith('HAS_DEPLOY_BLOCKERS', true);
-            });
+            await expect(run()).resolves.toBeUndefined();
+            expect(mockSetOutput).toHaveBeenCalledWith('HAS_DEPLOY_BLOCKERS', true);
         });
 
-        test('Test an issue with all boxes checked but no comments', () => {
+        test('Test an issue with all boxes checked but no comments', async () => {
             mockGetIssue.mockResolvedValue(allClearIssue);
             mockListComments.mockResolvedValue({data: []});
-            return run().then(() => {
-                expect(mockSetOutput).toHaveBeenCalledWith('HAS_DEPLOY_BLOCKERS', true);
-            });
+            await expect(run()).resolves.toBeUndefined();
+            expect(mockSetOutput).toHaveBeenCalledWith('HAS_DEPLOY_BLOCKERS', true);
         });
 
-        test('Test an issue with all QA checked but not all deploy blockers', () => {
+        test('Test an issue with all QA checked but not all deploy blockers', async () => {
             mockGetIssue.mockResolvedValue(
                 mockIssue([{url: 'https://github.com/Expensify/App/pull/6882', isQASuccess: true}], [{url: 'https://github.com/Expensify/App/pull/6883', isQASuccess: false}]),
             );
             mockListComments.mockResolvedValue(baseComments);
-            return run().then(() => {
-                expect(mockSetOutput).toHaveBeenCalledWith('HAS_DEPLOY_BLOCKERS', true);
-            });
+            await expect(run()).resolves.toBeUndefined();
+            expect(mockSetOutput).toHaveBeenCalledWith('HAS_DEPLOY_BLOCKERS', true);
         });
 
-        test('Test an issue with all QA checked and all deploy blockers resolved', () => {
+        test('Test an issue with all QA checked and all deploy blockers resolved', async () => {
             mockGetIssue.mockResolvedValue(
                 mockIssue([{url: 'https://github.com/Expensify/App/pull/6882', isQASuccess: true}], [{url: 'https://github.com/Expensify/App/pull/6883', isQASuccess: true}]),
             );
             mockListComments.mockResolvedValue(baseComments);
-            return run().then(() => {
-                expect(mockSetOutput).toHaveBeenCalledWith('HAS_DEPLOY_BLOCKERS', false);
-            });
+            await expect(run()).resolves.toBeUndefined();
+            expect(mockSetOutput).toHaveBeenCalledWith('HAS_DEPLOY_BLOCKERS', false);
         });
     });
 });

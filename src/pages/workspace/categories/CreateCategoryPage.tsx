@@ -9,6 +9,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -34,6 +35,7 @@ type CreateCategoryPageProps = WorkspaceCreateCategoryPageOnyxProps & StackScree
 function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE_FORM>) => {
@@ -72,6 +74,7 @@ function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) 
                     includeSafeAreaPaddingBottom={false}
                     style={[styles.defaultModalContainer]}
                     testID={CreateCategoryPage.displayName}
+                    shouldEnableMaxHeight
                 >
                     <HeaderWithBackButton
                         title={translate('workspace.categories.addCategory')}
@@ -92,7 +95,7 @@ function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) 
                             accessibilityLabel={translate('common.name')}
                             inputID={INPUT_IDS.CATEGORY_NAME}
                             role={CONST.ROLE.PRESENTATION}
-                            autoFocus
+                            ref={inputCallbackRef}
                         />
                     </FormProvider>
                 </ScreenWrapper>
