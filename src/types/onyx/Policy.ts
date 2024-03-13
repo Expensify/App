@@ -321,6 +321,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Email of the reimburser when reimbursement is set direct */
         reimburserEmail?: string;
 
+        /** AccountID of the reimburser when reimbursement is set direct */
+        reimburserAccountID?: number;
+
         /** ReportID of the admins room for this workspace */
         chatReportIDAdmins?: number;
 
