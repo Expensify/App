@@ -12,6 +12,31 @@ index 2225375..48f94ca 100644
      if (!f.exists()) {
          f = new File("$envFile");
      }
+diff --git a/node_modules/react-native-config/ios/ReactNativeConfig/GeneratedDotEnv.m b/node_modules/react-native-config/ios/ReactNativeConfig/GeneratedDotEnv.m
+index 59df625..04a2f3d 100644
+--- a/node_modules/react-native-config/ios/ReactNativeConfig/GeneratedDotEnv.m
++++ b/node_modules/react-native-config/ios/ReactNativeConfig/GeneratedDotEnv.m
+@@ -1 +1 @@
+-  #define DOT_ENV @{ @"ENV":@"dev",@"API_URL":@"http://localhost" };
++  #define DOT_ENV @{  };
+diff --git a/node_modules/react-native-config/ios/ReactNativeConfig/RNCConfigModule.h b/node_modules/react-native-config/ios/ReactNativeConfig/RNCConfigModule.h
+index 5341aca..c550e69 100644
+--- a/node_modules/react-native-config/ios/ReactNativeConfig/RNCConfigModule.h
++++ b/node_modules/react-native-config/ios/ReactNativeConfig/RNCConfigModule.h
+@@ -6,10 +6,10 @@
+ 
+ #if __has_include(<React/RCTBridgeModule.h>)
+ #import <React/RCTBridgeModule.h>
+-#elif __has_include("React/RCTBridgeModule.h")
+-#import "React/RCTBridgeModule.h"
++#elif __has_include(<React/RCTBridgeModule.h>)
++#import <React/RCTBridgeModule.h>
+ #else
+-#import "RCTBridgeModule.h"
++#import <React/RCTBridgeModule.h>
+ #endif
+ 
+ @interface RNCConfigModule : NSObject <RCTBridgeModule>
 diff --git a/node_modules/react-native-config/react-native-config.podspec b/node_modules/react-native-config/react-native-config.podspec
 index 56bce4a..44603dd 100644
 --- a/node_modules/react-native-config/react-native-config.podspec

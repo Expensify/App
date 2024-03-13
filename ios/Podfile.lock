@@ -247,7 +247,7 @@ PODS:
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
   - Onfido (29.7.1)
-  - onfido-react-native-sdk (10.7.0):
+  - onfido-react-native-sdk (10.6.0):
     - glog
     - hermes-engine
     - Onfido (~> 29.7.0)
@@ -1758,7 +1758,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNDeviceInfo (10.4.0):
+  - RNDeviceInfo (10.3.1):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -2452,7 +2452,7 @@ SPEC CHECKSUMS:
   MapboxMobileEvents: de50b3a4de180dd129c326e09cd12c8adaaa46d6
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
   Onfido: 342cbecd7a4383e98dfe7f9c35e98aaece599062
-  onfido-react-native-sdk: 48a5defe0977d0fa3704e612c29ad49726a3a230
+  onfido-react-native-sdk: 81e930e77236a0fc3da90e6a6eb834734d8ec2f5
   Plaid: 08a150ee90948c5103ce4425353f9d73e12db3f4
   PromisesObjC: c50d2056b5253dadbd6c2bea79b0674bd5a52fa4
   RCT-Folly: 7169b2b1c44399c76a47b5deaaba715eeeb476c0
@@ -2525,7 +2525,7 @@ SPEC CHECKSUMS:
   RNCAsyncStorage: 559f22cc4b582414e783fd7255974b29e24b451c
   RNCClipboard: c73bbc2e9012120161f1012578418827983bfd0c
   RNCPicker: c77efa39690952647b83d8085520bf50ebf94ecb
-  RNDeviceInfo: 20edc6a404b24be68668c8905663b57bb18f2bf1
+  RNDeviceInfo: cbf78fdb515ae73e641ee7c6b474f77a0299e7e6
   RNDevMenu: 72807568fe4188bd4c40ce32675d82434b43c45d
   RNFBAnalytics: f76bfa164ac235b00505deb9fc1776634056898c
   RNFBApp: 729c0666395b1953198dc4a1ec6deb8fbe1c302e

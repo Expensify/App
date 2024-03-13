@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native-vision-camera/android/build.gradle b/node_modules/react-native-vision-camera/android/build.gradle
-index ddfa243..bafffc3 100644
+index 686dba3..0abdcb0 100644
 --- a/node_modules/react-native-vision-camera/android/build.gradle
 +++ b/node_modules/react-native-vision-camera/android/build.gradle
-@@ -334,7 +334,7 @@ if (ENABLE_FRAME_PROCESSORS) {
+@@ -353,7 +353,7 @@ if (ENABLE_FRAME_PROCESSORS) {
    def thirdPartyVersions = new Properties()
    thirdPartyVersions.load(new FileInputStream(thirdPartyVersionsFile))
  
@@ -11,7 +11,7 @@ index ddfa243..bafffc3 100644
    def boost_file = new File(downloadsDir, "boost_${BOOST_VERSION}.tar.gz")
    def DOUBLE_CONVERSION_VERSION = thirdPartyVersions["DOUBLE_CONVERSION_VERSION"]
    def double_conversion_file = new File(downloadsDir, "double-conversion-${DOUBLE_CONVERSION_VERSION}.tar.gz")
-@@ -352,7 +352,7 @@ if (ENABLE_FRAME_PROCESSORS) {
+@@ -371,7 +371,7 @@ if (ENABLE_FRAME_PROCESSORS) {
  
    task downloadBoost(dependsOn: createNativeDepsDirectories, type: Download) {
      def transformedVersion = BOOST_VERSION.replace("_", ".")
