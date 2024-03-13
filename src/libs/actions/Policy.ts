@@ -3536,10 +3536,6 @@ function clearCreateDistanceRateError(policyID: string, currentRates: Record<str
 }
 
 function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: CustomUnit) {
-    if (!policyID || !currentCustomUnit || !newCustomUnit) {
-        return;
-    }
-
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3595,10 +3591,6 @@ function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomU
 }
 
 function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: CustomUnit) {
-    if (!policyID || !currentCustomUnit || !newCustomUnit) {
-        return;
-    }
-
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
