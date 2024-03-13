@@ -464,7 +464,7 @@ function ReportScreen({
     }, [report, didSubscribeToReportLeavingEvents, reportIDFromRoute]);
 
     const onListLayout = useCallback((event: LayoutChangeEvent) => {
-        setListHeight((prev) => event.nativeEvent.layout.height ?? prev);
+        setListHeight((prev) => event.nativeEvent?.layout?.height ?? prev);
         if (!markReadyForHydration) {
             return;
         }

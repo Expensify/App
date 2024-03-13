@@ -1,27 +1,47 @@
+import type {ComponentMeta, Story} from '@storybook/react';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
+import type {FormProviderProps} from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import Picker from '@components/Picker';
 import StatePicker from '@components/StatePicker';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import type {MaybePhraseKey} from '@libs/Localize';
 import NetworkConnection from '@libs/NetworkConnection';
 import * as ValidationUtils from '@libs/ValidationUtils';
-// eslint-disable-next-line no-restricted-imports
-import {defaultStyles} from '@styles/index';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
+import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
+import {defaultStyles} from '@src/styles';
+
+type FormStory = Story<FormProviderProps>;
+
+type StorybookFormValues = {
+    routingNumber?: string;
+    accountNumber?: string;
+    street?: string;
+    dob?: string;
+    pickFruit?: string;
+    pickAnotherFruit?: string;
+    state?: string;
+    checkbox?: boolean;
+};
+
+type StorybookFormErrors = Partial<Record<keyof StorybookFormValues, string>>;
+
+const STORYBOOK_FORM_ID = 'TestForm' as keyof OnyxFormValuesMapping;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story = {
+const story: ComponentMeta<typeof FormProvider> = {
     title: 'Components/Form',
     component: FormProvider,
     subcomponents: {
@@ -35,16 +55,21 @@ const story = {
     },
 };
 
-function Template(args) {
+function Template(props: FormProviderProps) {
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
     NetworkConnection.setOfflineStatus(false);
-    FormActions.setIsLoading(args.formID, args.formState.isLoading);
-    FormActions.setErrors(args.formID, args.formState.error);
-    FormActions.setDraftValues(args.formID, args.draftValues);
+    FormActions.setIsLoading(props.formID, !!props.formState?.isLoading);
+    FormActions.setDraftValues(props.formID, props.draftValues);
+
+    if (props.formState?.error) {
+        FormActions.setErrors(props.formID, {error: props.formState.error as MaybePhraseKey});
+    } else {
+        FormActions.clearErrors(props.formID);
+    }
 
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <FormProvider {...args}>
+        <FormProvider {...props}>
             <View>
                 <InputWrapper
                     InputComponent={TextInput}
@@ -61,27 +86,28 @@ function Template(args) {
                 label="Account number"
                 accessibilityLabel="Account number"
                 inputID="accountNumber"
-                containerStyles={[defaultStyles.mt4]}
+                containerStyles={defaultStyles.mt4}
             />
             <InputWrapper
                 InputComponent={AddressSearch}
                 label="Street"
                 inputID="street"
-                containerStyles={[defaultStyles.mt4]}
+                containerStyles={defaultStyles.mt4}
                 hint="common.noPO"
             />
             <InputWrapper
                 InputComponent={DatePicker}
                 inputID="dob"
                 label="Date of Birth"
-                containerStyles={[defaultStyles.mt4]}
+                containerStyles={defaultStyles.mt4}
             />
             <View>
                 <InputWrapper
                     InputComponent={Picker}
                     label="Fruit"
                     inputID="pickFruit"
-                    containerStyles={[defaultStyles.mt4]}
+                    onInputChange={() => {}}
+                    containerStyles={defaultStyles.mt4}
                     shouldSaveDraft
                     items={[
                         {
@@ -103,7 +129,8 @@ function Template(args) {
                 InputComponent={Picker}
                 label="Another Fruit"
                 inputID="pickAnotherFruit"
-                containerStyles={[defaultStyles.mt4]}
+                onInputChange={() => {}}
+                containerStyles={defaultStyles.mt4}
                 items={[
                     {
                         label: 'Select a Fruit',
@@ -139,21 +166,24 @@ function Template(args) {
 
 /**
  * Story to exhibit the native event handlers for TextInput in the Form Component
- * @param {Object} args
- * @returns {JSX}
  */
-function WithNativeEventHandler(args) {
+function WithNativeEventHandler(props: FormProviderProps) {
     const [log, setLog] = useState('');
 
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
     NetworkConnection.setOfflineStatus(false);
-    FormActions.setIsLoading(args.formID, args.formState.isLoading);
-    FormActions.setErrors(args.formID, args.formState.error);
-    FormActions.setDraftValues(args.formID, args.draftValues);
+    FormActions.setIsLoading(props.formID, !!props.formState?.isLoading);
+    FormActions.setDraftValues(props.formID, props.draftValues);
+
+    if (props.formState?.error) {
+        FormActions.setErrors(props.formID, {error: props.formState.error as MaybePhraseKey});
+    } else {
+        FormActions.clearErrors(props.formID);
+    }
 
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <FormProvider {...args}>
+        <FormProvider {...props}>
             <InputWrapper
                 InputComponent={TextInput}
                 role={CONST.ROLE.PRESENTATION}
@@ -170,16 +200,16 @@ function WithNativeEventHandler(args) {
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
-const Default = Template.bind({});
-const Loading = Template.bind({});
-const ServerError = Template.bind({});
-const InputError = Template.bind({});
+const Default: FormStory = Template.bind({});
+const Loading: FormStory = Template.bind({});
+const ServerError: FormStory = Template.bind({});
+const InputError: FormStory = Template.bind({});
 
 const defaultArgs = {
-    formID: 'TestForm',
+    formID: STORYBOOK_FORM_ID,
     submitButtonText: 'Submit',
-    validate: (values) => {
-        const errors = {};
+    validate: (values: StorybookFormValues) => {
+        const errors: StorybookFormErrors = {};
         if (!ValidationUtils.isRequiredFulfilled(values.routingNumber)) {
             errors.routingNumber = 'Please enter a routing number';
         }
@@ -206,10 +236,10 @@ const defaultArgs = {
         }
         return errors;
     },
-    onSubmit: (values) => {
+    onSubmit: (values: StorybookFormValues) => {
         setTimeout(() => {
             alert(`Form submitted!\n\nInput values: ${JSON.stringify(values, null, 4)}`);
-            FormActions.setIsLoading('TestForm', false);
+            FormActions.setIsLoading(STORYBOOK_FORM_ID, false);
         }, 1000);
     },
     formState: {
