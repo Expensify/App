@@ -34,8 +34,6 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
         leftModalNavigator: {
             ...commonScreenOptions,
             cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
-            // presentation: 'transparentModal',
-            // gestureDirection: 'horizontal-inverted',
             animation: 'slide_from_left',
             customAnimationOnGesture: true,
 
