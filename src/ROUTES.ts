@@ -431,7 +431,7 @@ const ROUTES = {
     },
 
     MONEY_REQUEST_STATE_SELECTOR: {
-        route: 'moneyrequest/state',
+        route: 'request/state',
 
         getRoute: (state?: string, backTo?: string, label?: string) =>
             `${getUrlWithBackToParam(`moneyrequest/state${state ? `?state=${encodeURIComponent(state)}` : ''}`, backTo)}${
