@@ -977,7 +977,17 @@ function getCategoryListSections(
     }
 
     if (searchInputValue) {
-        const searchCategories = enabledCategories.filter((category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
+        const searchCategories: Category[] = [];
+
+        enabledCategories.forEach((category) => {
+            if (!category.name.toLowerCase().includes(searchInputValue.toLowerCase())) {
+                return;
+            }
+            searchCategories.push({
+                ...category,
+                isSelected: selectedOptions.some((selectedOption) => selectedOption.name === category.name),
+            });
+        });
 
         categorySections.push({
             // "Search" section

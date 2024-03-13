@@ -1,16 +1,16 @@
+import type {ComponentMeta} from '@storybook/react';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {useState} from 'react';
 import {Image, View} from 'react-native';
 import Composer from '@components/Composer';
+import type {ComposerProps} from '@components/Composer/types';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
 import useStyleUtils from '@hooks/useStyleUtils';
 // eslint-disable-next-line no-restricted-imports
-import {defaultStyles} from '@styles/index';
-// eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
-import CONST from '@src/CONST';
+import {defaultStyles} from '@src/styles';
 
 const ComposerWithNavigation = withNavigationFallback(Composer);
 
@@ -19,25 +19,25 @@ const ComposerWithNavigation = withNavigationFallback(Composer);
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story = {
+const story: ComponentMeta<typeof ComposerWithNavigation> = {
     title: 'Components/Composer',
     component: ComposerWithNavigation,
 };
 
 const parser = new ExpensiMark();
 
-function Default(args) {
+function Default(props: ComposerProps) {
     const StyleUtils = useStyleUtils();
-    const [pastedFile, setPastedFile] = useState(null);
-    const [comment, setComment] = useState(args.defaultValue);
-    const renderedHTML = parser.replace(comment);
+    const [pastedFile, setPastedFile] = useState<File | null>(null);
+    const [comment, setComment] = useState(props.defaultValue);
+    const renderedHTML = parser.replace(comment ?? '');
 
     return (
         <View>
             <View style={[defaultStyles.border, defaultStyles.p4]}>
                 <ComposerWithNavigation
                     // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...args}
+                    {...props}
                     multiline
                     onChangeText={setComment}
                     onPasteFile={setPastedFile}
@@ -45,17 +45,14 @@ function Default(args) {
                 />
             </View>
             <View style={[defaultStyles.flexRow, defaultStyles.mv5, defaultStyles.flexWrap, defaultStyles.w100]}>
-                <View
-                    style={[defaultStyles.border, defaultStyles.noLeftBorderRadius, defaultStyles.noRightBorderRadius, defaultStyles.p5, defaultStyles.flex1]}
-                    id={CONST.REPORT.DROP_NATIVE_ID}
-                >
+                <View style={[defaultStyles.border, defaultStyles.noLeftBorderRadius, defaultStyles.noRightBorderRadius, defaultStyles.p5, defaultStyles.flex1]}>
                     <Text style={[defaultStyles.mb2, defaultStyles.textLabelSupporting]}>Entered Comment (Drop Enabled)</Text>
                     <Text>{comment}</Text>
                 </View>
                 <View style={[defaultStyles.p5, defaultStyles.borderBottom, defaultStyles.borderRight, defaultStyles.borderTop, defaultStyles.flex1]}>
                     <Text style={[defaultStyles.mb2, defaultStyles.textLabelSupporting]}>Rendered Comment</Text>
-                    {Boolean(renderedHTML) && <RenderHTML html={renderedHTML} />}
-                    {Boolean(pastedFile) && (
+                    {!!renderedHTML && <RenderHTML html={renderedHTML} />}
+                    {!!pastedFile && (
                         <View style={defaultStyles.mv3}>
                             <Image
                                 source={{uri: URL.createObjectURL(pastedFile)}}
