@@ -32,6 +32,11 @@ type Item = {
     pickAttachment: () => Promise<Asset[] | void | DocumentPickerResponse[]>;
 };
 
+type DocumentPickerOptionsParams = {
+    type: string[];
+    copyTo: 'cachesDirectory' | 'documentDirectory';
+};
+
 /**
  * See https://github.com/react-native-image-picker/react-native-image-picker/#options
  * for ImagePicker configuration options
@@ -61,12 +66,7 @@ const getImagePickerOptions = (type: string): CameraOptions => {
  * @returns {Object}
  */
 
-const getDocumentPickerOptions = (
-    type: string,
-): {
-    type: string[];
-    copyTo: 'cachesDirectory' | 'documentDirectory';
-} => {
+const getDocumentPickerOptions = (type: string): DocumentPickerOptionsParams => {
     if (type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
         return {
             type: [RNDocumentPicker.types.images],
