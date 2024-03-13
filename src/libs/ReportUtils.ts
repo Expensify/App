@@ -3553,16 +3553,15 @@ function buildOptimisticChatReport(
     parentReportID = '',
     description = '',
 ): OptimisticChatReport {
-    const participants: Participants = participantList.reduce((acc: Participants, accountID: number) => {
+    const participants = participantList.reduce((reportParticipants: Participants, accountID: number) => {
         const participant: ReportParticipant = {
             hidden: false,
-            role: accountID === currentUserAccountID ? CONST.POLICY.ROLE.ADMIN : CONST.POLICY.ROLE.MEMBER,
+            role: accountID === currentUserAccountID ? CONST.REPORT.ROLE.ADMIN : CONST.REPORT.ROLE.MEMBER,
         };
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        return {...acc, [accountID]: participant};
+
+        return {...reportParticipants, [accountID]: participant};
     }, {} as Participants);
     const isGroup = chatType === CONST.REPORT.CHAT_TYPE.GROUP_CHAT;
-    const currentNotificationPreference = isGroup ? CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN : notificationPreference;
     const currentTime = DateUtils.getDBTime();
     const isNewlyCreatedWorkspaceChat = chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT && isOwnPolicyExpenseChat;
     return {
@@ -3577,7 +3576,7 @@ function buildOptimisticChatReport(
         lastMessageText: undefined,
         lastReadTime: currentTime,
         lastVisibleActionCreated: currentTime,
-        notificationPreference: currentNotificationPreference,
+        notificationPreference,
         oldPolicyName,
         ownerAccountID: ownerAccountID || CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
         parentReportActionID,

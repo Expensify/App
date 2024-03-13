@@ -1652,10 +1652,14 @@ function createSplitsAndOnyxData(
 ): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
+
     const existingSplitChatReport =
+        // eslint-disable-next-line no-nested-ternary
         existingSplitChatReportID || participants[0].reportID
             ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingSplitChatReportID || participants[0].reportID}`]
-            : ReportUtils.getChatByParticipants(participantAccountIDs);
+            : participants.length < 2
+            ? ReportUtils.getChatByParticipants(participantAccountIDs)
+            : null;
     const splitChatReport = existingSplitChatReport ?? ReportUtils.buildOptimisticChatReport(participantAccountIDs);
     const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
 
@@ -2060,7 +2064,8 @@ function splitBillAndOpenReport(
 ) {
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, currentCreated, category, tag);
-
+    console.log('splitData :>> ', splitData);
+    console.log('onyxData :>> ', onyxData);
     const parameters: SplitBillParams = {
         reportID: splitData.chatReportID,
         amount,

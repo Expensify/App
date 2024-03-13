@@ -374,7 +374,7 @@ function getOptionData({
         }
 
         result.alternateText =
-            ReportUtils.isDeprecatedGroupDM(report) || (ReportUtils.isGroupChat(report) && lastActorDisplayName)
+            (ReportUtils.isGroupChat(report) || ReportUtils.isDeprecatedGroupDM(report)) && lastActorDisplayName
                 ? `${lastActorDisplayName}: ${lastMessageText}`
                 : lastMessageText || formattedLogin;
     }

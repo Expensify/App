@@ -812,7 +812,18 @@ function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true
 
     if (isEmptyObject(chat)) {
         if (newGroupDraft) {
-            newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs, reportName, CONST.REPORT.CHAT_TYPE.GROUP_CHAT);
+            newChat = ReportUtils.buildOptimisticChatReport(
+                participantAccountIDs,
+                reportName,
+                CONST.REPORT.CHAT_TYPE.GROUP_CHAT,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            );
         } else {
             newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
         }
@@ -2992,8 +3003,8 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
     API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER, parameters, {optimisticData, failureData});
 }
 
-function setGroupDraft(invitedLogins: string[], reportName = '') {
-    Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {participantLogins: invitedLogins, reportName});
+function setGroupDraft(participantLogins: string[], reportName = '') {
+    Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {participantLogins, reportName});
 }
 
 export {

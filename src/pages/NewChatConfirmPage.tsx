@@ -79,13 +79,13 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                         text: selectedOption?.text ?? '',
                         keyForList: selectedOption?.keyForList ?? '',
                         isSelected: !isAdmin,
+                        isDisabled: isAdmin,
                         rightElement: roleBadge,
                         accountID,
                         icons: selectedOption?.icons,
                     };
                     return section;
                 })
-                .filter((selectedOption) => selectedOption.text !== undefined)
                 .sort((a, b) => a.text?.toLowerCase().localeCompare(b.text?.toLowerCase() ?? '') ?? -1),
         [selectedOptions, personalData.accountID, translate, styles.textStrong, styles.justifyContentCenter, styles.badgeBordered, styles.activeItemBadge, StyleUtils],
     );

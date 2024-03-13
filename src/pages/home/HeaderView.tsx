@@ -145,7 +145,7 @@ function HeaderView({report, personalDetails, parentReport, policy, session, rep
 
     const canJoinOrLeave = !isSelfDM && !isGroupChat && (isChatThread || isUserCreatedPolicyRoom || canLeaveRoom);
     const canJoin = canJoinOrLeave && !isWhisperAction && report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
-    const canLeave = canJoinOrLeave && ((isChatThread && report.notificationPreference?.length) ?? isUserCreatedPolicyRoom ?? canLeaveRoom);
+    const canLeave = canJoinOrLeave && ((isChatThread && !!report.notificationPreference?.length) || isUserCreatedPolicyRoom || canLeaveRoom);
     if (canJoin) {
         threeDotMenuItems.push({
             icon: Expensicons.ChatBubbles,
