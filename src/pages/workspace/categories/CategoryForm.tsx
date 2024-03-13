@@ -16,7 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceCategoryForm';
 import type {PolicyCategories} from '@src/types/onyx';
 
-type EditCategoryFormProps = {
+type CategoryFormProps = {
     /** All policy categories */
     policyCategories: OnyxEntry<PolicyCategories>;
 
@@ -27,7 +27,7 @@ type EditCategoryFormProps = {
     onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => void;
 };
 
-function CategoryForm({onSubmit, policyCategories, categoryName}: EditCategoryFormProps) {
+function CategoryForm({onSubmit, policyCategories, categoryName}: CategoryFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -53,7 +53,7 @@ function CategoryForm({onSubmit, policyCategories, categoryName}: EditCategoryFo
         [policyCategories],
     );
 
-    const handleOnSubmit = useCallback(
+    const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             onSubmit(values);
             Keyboard.dismiss();
@@ -65,7 +65,7 @@ function CategoryForm({onSubmit, policyCategories, categoryName}: EditCategoryFo
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM}
-            onSubmit={handleOnSubmit}
+            onSubmit={submit}
             submitButtonText={translate('common.save')}
             validate={validate}
             style={[styles.mh5, styles.flex1]}
