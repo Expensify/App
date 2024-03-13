@@ -101,7 +101,7 @@ function OnboardingWelcomeVideo() {
                         videoPlayerStyle={[styles.onboardingVideoPlayer, {aspectRatio}]}
                         onVideoLoaded={setAspectRatio}
                         onPlaybackStatusUpdate={setVideoStatus}
-                        shouldShowProgressVolumeOnly
+                        progressStatus={CONST.VIDEO_PLAYER.PROGRESS_STATUS.VOLUME_ONLY}
                         shouldPlay
                         isLooping
                     />

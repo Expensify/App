@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import stylePropTypes from '@styles/stylePropTypes';
 import CONST from '@src/CONST';
+import _ from 'underscore';
 import ProgressBar from './ProgressBar';
 import VolumeButton from './VolumeButton';
 
@@ -35,16 +36,16 @@ const propTypes = {
 
     togglePlayCurrentVideo: PropTypes.func.isRequired,
 
-    progressVolumeOnly: PropTypes.bool,
+    progressStatus: PropTypes.oneOf(_.values(CONST.VIDEO_PLAYER.PROGRESS_STATUS)),
 };
 
 const defaultProps = {
     small: false,
     style: undefined,
-    progressVolumeOnly: false,
+    progressStatus: CONST.VIDEO_PLAYER.PROGRESS_STATUS.SHOW,
 };
 
-function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying, small, style, showPopoverMenu, togglePlayCurrentVideo, progressVolumeOnly}) {
+function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying, small, style, showPopoverMenu, togglePlayCurrentVideo, progressStatus}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {updateCurrentlyPlayingURL} = usePlaybackContext();
@@ -71,10 +72,10 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying
 
     return (
         <Animated.View
-            style={[styles.videoPlayerControlsContainer, small ? [styles.p2, styles.pb0] : [styles.p3, styles.pb1], progressVolumeOnly && [styles.pt2, styles.pb2], style]}
+            style={[styles.videoPlayerControlsContainer, small ? [styles.p2, styles.pb0] : [styles.p3, styles.pb1], progressStatus === CONST.VIDEO_PLAYER.PROGRESS_STATUS.VOLUME_ONLY && [styles.pt2, styles.pb2], style]}
             onLayout={onLayout}
         >
-            {!progressVolumeOnly && (
+            {progressStatus === CONST.VIDEO_PLAYER.PROGRESS_STATUS.SHOW && (
                 <View style={[styles.videoPlayerControlsButtonContainer, !small && styles.mb4]}>
                     <View style={[styles.videoPlayerControlsRow]}>
                         <IconButton
@@ -118,7 +119,7 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying
                         seekPosition={seekPosition}
                     />
                 </View>
-                {progressVolumeOnly && <VolumeButton style={styles.ml3} />}
+                {progressStatus === CONST.VIDEO_PLAYER.PROGRESS_STATUS.VOLUME_ONLY && <VolumeButton style={styles.ml3} />}
             </View>
         </Animated.View>
     );

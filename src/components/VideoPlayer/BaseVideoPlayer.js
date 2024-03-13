@@ -32,7 +32,7 @@ function BaseVideoPlayer({
     shouldUseSharedVideoElement,
     shouldUseSmallVideoControls,
     shouldShowVideoControls,
-    shouldShowProgressVolumeOnly,
+    progressStatus,
     onPlaybackStatusUpdate,
     onFullscreenUpdate,
     shouldPlay,
@@ -282,7 +282,7 @@ function BaseVideoPlayer({
                                     small={shouldUseSmallVideoControls}
                                     style={videoControlsStyle}
                                     togglePlayCurrentVideo={togglePlayCurrentVideo}
-                                    progressVolumeOnly={shouldShowProgressVolumeOnly}
+                                    progressStatus={progressStatus}
                                     showPopoverMenu={showPopoverMenu}
                                 />
                             )}
