@@ -1,8 +1,8 @@
+import type {StepIdentifier} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
 import fs from 'fs';
 import path from 'path';
 import yaml from 'yaml';
 import type {ExtendedAct} from './ExtendedAct';
-import type {MockJobStep} from './JobMocker';
 
 type EventOptions = {
     action?: string;
@@ -65,7 +65,7 @@ function createMockStep(
     outEnvs: Record<string, string> | null = null,
     isSuccessful = true,
     id = null,
-) {
+): StepIdentifier {
     const mockStepName = name;
     let mockWithCommand = 'echo [MOCK]';
     if (jobId) {
@@ -95,14 +95,16 @@ function createMockStep(
     if (!isSuccessful) {
         mockWithCommand += '\nexit 1';
     }
-    const mockStep: MockJobStep = {
+    if (id) {
+        return {
+            id,
+            mockWith: mockWithCommand,
+        };
+    }
+    return {
         name: mockStepName,
         mockWith: mockWithCommand,
     };
-    if (id) {
-        mockStep.id = id;
-    }
-    return mockStep;
 }
 
 function createStepAssertion(
