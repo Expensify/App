@@ -1,54 +1,45 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
-import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import PressableAvatarWithIndicator from './PressableAvatarWithIndicator';
 
 type AvatarWithOptionalStatusProps = {
-    /** Whether the create menu is open or not */
-    isCreateMenuOpen?: boolean;
-
     /** Emoji status */
     emojiStatus?: string;
+
+    /** Whether the avatar is selected */
+    isSelected?: boolean;
+
+    /** Callback called when the avatar or status icon is pressed */
+    onPress?: () => void;
 };
 
-function AvatarWithOptionalStatus({emojiStatus = '', isCreateMenuOpen = false}: AvatarWithOptionalStatusProps) {
+function AvatarWithOptionalStatus({emojiStatus = '', isSelected = false, onPress}: AvatarWithOptionalStatusProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const showStatusPage = useCallback(() => {
-        if (isCreateMenuOpen) {
-            // Prevent opening Settings page when click profile avatar quickly after clicking FAB icon
-            return;
-        }
-
-        Navigation.setShouldPopAllStateOnUP();
-        Navigation.navigate(ROUTES.SETTINGS_STATUS);
-    }, [isCreateMenuOpen]);
-
     return (
         <View style={styles.sidebarStatusAvatarContainer}>
-            <PressableAvatarWithIndicator isCreateMenuOpen={isCreateMenuOpen} />
+            <PressableAvatarWithIndicator
+                isSelected={isSelected}
+                onPress={onPress}
+            />
             <PressableWithoutFeedback
                 accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
                 role={CONST.ROLE.BUTTON}
-                onPress={showStatusPage}
+                onPress={onPress}
                 style={[styles.sidebarStatusAvatar]}
             >
-                <Tooltip text={translate('statusPage.status')}>
-                    <Text
-                        style={styles.emojiStatusLHN}
-                        numberOfLines={1}
-                    >
-                        {emojiStatus}
-                    </Text>
-                </Tooltip>
+                <Text
+                    style={styles.emojiStatusLHN}
+                    numberOfLines={1}
+                >
+                    {emojiStatus}
+                </Text>
             </PressableWithoutFeedback>
         </View>
     );

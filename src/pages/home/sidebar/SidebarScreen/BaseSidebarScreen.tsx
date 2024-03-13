@@ -1,8 +1,10 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
+import TopBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import Performance from '@libs/Performance';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import Timing from '@userActions/Timing';
@@ -18,6 +20,7 @@ const startTimer = () => {
 
 function BaseSidebarScreen() {
     const styles = useThemeStyles();
+    const {activeWorkspaceID} = useActiveWorkspace();
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
@@ -32,12 +35,15 @@ function BaseSidebarScreen() {
             includePaddingTop={false}
         >
             {({insets}) => (
-                <View style={[styles.flex1]}>
-                    <SidebarLinksData
-                        onLinkClick={startTimer}
-                        insets={insets}
-                    />
-                </View>
+                <>
+                    <TopBar activeWorkspaceID={activeWorkspaceID} />
+                    <View style={[styles.flex1]}>
+                        <SidebarLinksData
+                            onLinkClick={startTimer}
+                            insets={insets}
+                        />
+                    </View>
+                </>
             )}
         </ScreenWrapper>
     );

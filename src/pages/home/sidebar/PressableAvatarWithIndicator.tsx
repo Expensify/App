@@ -1,4 +1,5 @@
-import React, {useCallback} from 'react';
+import React from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import AvatarWithIndicator from '@components/AvatarWithIndicator';
@@ -6,11 +7,10 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import Navigation from '@libs/Navigation/Navigation';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 type PressableAvatarWithIndicatorOnyxProps = {
     /** Indicates whether the app is loading initial data */
@@ -18,36 +18,33 @@ type PressableAvatarWithIndicatorOnyxProps = {
 };
 
 type PressableAvatarWithIndicatorProps = PressableAvatarWithIndicatorOnyxProps & {
-    /** Whether the create menu is open or not */
-    isCreateMenuOpen: boolean;
+    /** Whether the avatar is selected */
+    isSelected: boolean;
+
+    /** Callback called when the avatar is pressed */
+    onPress: () => void;
 };
 
-function PressableAvatarWithIndicator({isCreateMenuOpen = false, isLoading = true}: PressableAvatarWithIndicatorProps) {
+function PressableAvatarWithIndicator({isLoading = true, isSelected = false, onPress}: PressableAvatarWithIndicatorProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-
-    const showSettingsPage = useCallback(() => {
-        if (isCreateMenuOpen) {
-            // Prevent opening Settings page when click profile avatar quickly after clicking FAB icon
-            return;
-        }
-
-        Navigation.navigate(ROUTES.SETTINGS);
-    }, [isCreateMenuOpen]);
 
     return (
         <PressableWithoutFeedback
             accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
             role={CONST.ROLE.BUTTON}
-            onPress={showSettingsPage}
+            onPress={onPress}
         >
             <OfflineWithFeedback pendingAction={currentUserPersonalDetails.pendingFields?.avatar ?? null}>
-                <AvatarWithIndicator
-                    source={UserUtils.getAvatar(currentUserPersonalDetails.avatar, currentUserPersonalDetails.accountID)}
-                    tooltipText={translate('profilePage.profile')}
-                    fallbackIcon={currentUserPersonalDetails.fallbackIcon}
-                    isLoading={!!isLoading && !currentUserPersonalDetails.avatar}
-                />
+                <View style={[isSelected && styles.selectedAvatarBorder]}>
+                    <AvatarWithIndicator
+                        source={UserUtils.getAvatar(currentUserPersonalDetails.avatar, currentUserPersonalDetails.accountID)}
+                        tooltipText={translate('profilePage.profile')}
+                        fallbackIcon={currentUserPersonalDetails.fallbackIcon}
+                        isLoading={!!isLoading && !currentUserPersonalDetails.avatar}
+                    />
+                </View>
             </OfflineWithFeedback>
         </PressableWithoutFeedback>
     );

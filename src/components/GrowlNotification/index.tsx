@@ -1,6 +1,8 @@
+import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Animated, View} from 'react-native';
 import {Directions, Gesture, GestureDetector} from 'react-native-gesture-handler';
+import type {SvgProps} from 'react-native-svg';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Pressables from '@components/Pressable';
@@ -8,6 +10,7 @@ import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Growl from '@libs/Growl';
+import type {GrowlRef} from '@libs/Growl';
 import useNativeDriver from '@libs/useNativeDriver';
 import CONST from '@src/CONST';
 import GrowlNotificationContainer from './GrowlNotificationContainer';
@@ -16,15 +19,29 @@ const INACTIVE_POSITION_Y = -255;
 
 const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
 
-function GrowlNotification(_, ref) {
+function GrowlNotification(_: unknown, ref: ForwardedRef<GrowlRef>) {
     const translateY = useRef(new Animated.Value(INACTIVE_POSITION_Y)).current;
     const [bodyText, setBodyText] = useState('');
     const [type, setType] = useState('success');
-    const [duration, setDuration] = useState();
+    const [duration, setDuration] = useState<number>();
     const theme = useTheme();
     const styles = useThemeStyles();
 
-    const types = {
+    type GrowlIconTypes = Record<
+        /** String representing the growl type, all type strings
+         *  for growl notifications are stored in CONST.GROWL
+         */
+        string,
+        {
+            /** Expensicon for the page */
+            icon: React.FC<SvgProps>;
+
+            /** Color for the icon (should be from theme) */
+            iconColor: string;
+        }
+    >;
+
+    const types: GrowlIconTypes = {
         [CONST.GROWL.SUCCESS]: {
             icon: Expensicons.Checkmark,
             iconColor: theme.success,
@@ -46,7 +63,7 @@ function GrowlNotification(_, ref) {
      * @param {String} type
      * @param {Number} duration
      */
-    const show = useCallback((text, growlType, growlDuration) => {
+    const show = useCallback((text: string, growlType: string, growlDuration: number) => {
         setBodyText(text);
         setType(growlType);
         setDuration(growlDuration);
@@ -61,7 +78,6 @@ function GrowlNotification(_, ref) {
         (val = INACTIVE_POSITION_Y) => {
             Animated.spring(translateY, {
                 toValue: val,
-                duration: 80,
                 useNativeDriver,
             }).start();
         },
