@@ -188,6 +188,15 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         });
     }
 
+    if (policy?.tax?.trackingEnabled) {
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.taxes',
+            icon: Expensicons.Tax,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAXES.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.TAXES,
+        });
+    }
+
     protectedCollectPolicyMenuItems.push({
         translationKey: 'workspace.common.moreFeatures',
         icon: Expensicons.Gear,

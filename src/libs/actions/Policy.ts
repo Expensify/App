@@ -27,6 +27,7 @@ import type {
     OpenPolicyDistanceRatesPageParams,
     OpenPolicyMoreFeaturesPageParams,
     OpenPolicyTagsPageParams,
+    OpenPolicyTaxesPageParams,
     OpenPolicyWorkflowsPageParams,
     OpenWorkspaceInvitePageParams,
     OpenWorkspaceMembersPageParams,
@@ -2109,6 +2110,19 @@ function openPolicyTagsPage(policyID: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_TAGS_PAGE, params);
 }
 
+function openPolicyTaxesPage(policyID: string) {
+    if (!policyID) {
+        Log.warn('openPolicyTaxesPage invalid params', {policyID});
+        return;
+    }
+
+    const params: OpenPolicyTaxesPageParams = {
+        policyID,
+    };
+
+    API.read(READ_COMMANDS.OPEN_POLICY_TAXES_PAGE, params);
+}
+
 function openWorkspaceInvitePage(policyID: string, clientMemberEmails: string[]) {
     if (!policyID || !clientMemberEmails) {
         Log.warn('openWorkspaceInvitePage invalid params', {policyID, clientMemberEmails});
@@ -3342,6 +3356,10 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
     const parameters: EnablePolicyTaxesParams = {policyID, enabled};
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_TAXES, parameters, onyxData);
+
+    if (enabled) {
+        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_TAXES.getRoute(policyID));
+    }
 }
 
 function enablePolicyWorkflows(policyID: string, enabled: boolean) {
@@ -3530,6 +3548,7 @@ export {
     openWorkspaceMembersPage,
     openPolicyCategoriesPage,
     openPolicyTagsPage,
+    openPolicyTaxesPage,
     openWorkspaceInvitePage,
     openWorkspace,
     removeWorkspace,
