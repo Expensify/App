@@ -13,7 +13,8 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type HeaderIndice = {code: string; index: number; icon: IconAsset};
 type EmojiSpacer = {code: string; spacer: boolean};
-type EmojiPickerList = Array<EmojiSpacer | Emoji | HeaderEmoji>;
+type EmojiPickerListItem = EmojiSpacer | Emoji | HeaderEmoji;
+type EmojiPickerList = EmojiPickerListItem[];
 type ReplacedEmoji = {text: string; emojis: Emoji[]; cursorPosition?: number};
 
 let frequentlyUsedEmojis: FrequentlyUsedEmoji[] = [];
@@ -568,7 +569,7 @@ function getSpacersIndexes(allEmojis: EmojiPickerList): number[] {
     return spacersIndexes;
 }
 
-export type {HeaderIndice, EmojiPickerList, EmojiSpacer};
+export type {HeaderIndice, EmojiPickerList, EmojiSpacer, EmojiPickerListItem};
 
 export {
     findEmojiByName,

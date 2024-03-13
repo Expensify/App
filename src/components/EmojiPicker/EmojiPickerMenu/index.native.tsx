@@ -1,10 +1,13 @@
+import type {ListRenderItem} from '@shopify/flash-list';
 import lodashDebounce from 'lodash/debounce';
 import React, {useCallback} from 'react';
+import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import {runOnUI, scrollTo} from 'react-native-reanimated';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -14,10 +17,11 @@ import * as EmojiUtils from '@libs/EmojiUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import BaseEmojiPickerMenu from './BaseEmojiPickerMenu';
-import type {EmojiPickerMenuProps, RenderItemProps} from './types';
+import type EmojiPickerMenuProps from './types';
 import useEmojiPickerMenu from './useEmojiPickerMenu';
 
-function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, ref: ForwardedRef<BaseTextInputRef>) {
     const styles = useThemeStyles();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
@@ -55,7 +59,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps) {
             return;
         }
 
-        setFilteredEmojis(newFilteredEmojiList as EmojiUtils.EmojiPickerList);
+        setFilteredEmojis(newFilteredEmojiList ?? []);
         setHeaderIndices([]);
     }, 300);
 
@@ -73,14 +77,21 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps) {
      * Items with the code "SPACER" return nothing and are used to fill rows up to 8
      * so that the sticky headers function properly.
      */
-    const renderItem = useCallback(
-        ({item, target}: RenderItemProps) => {
-            const {code, types} = item;
-            if (item.spacer) {
+    const renderItem: ListRenderItem<EmojiUtils.EmojiPickerListItem> = useCallback(
+        ({item, target}) => {
+            let code: string;
+            let types: readonly string[] | undefined;
+            if ('types' in item) {
+                ({code, types} = item);
+            } else {
+                ({code} = item);
+            }
+
+            if ('spacer' in item && item.spacer) {
                 return null;
             }
 
-            if (item.header) {
+            if ('header' in item && item.header) {
                 return (
                     <View style={[styles.emojiHeaderContainer, target === 'StickyHeader' ? styles.mh4 : {width: windowWidth}]}>
                         <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}` as TranslationPaths)}</Text>
@@ -88,12 +99,17 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps) {
                 );
             }
 
-            const emojiCode = types?.[preferredSkinTone as number] ? types[preferredSkinTone as number] : code;
+            const emojiCode = typeof preferredSkinTone === 'number' && types?.[preferredSkinTone] ? types?.[preferredSkinTone] : code;
             const shouldEmojiBeHighlighted = !!activeEmoji && EmojiUtils.getRemovedSkinToneEmoji(emojiCode) === EmojiUtils.getRemovedSkinToneEmoji(activeEmoji);
 
             return (
                 <EmojiPickerMenuItem
-                    onPress={singleExecution((emoji) => onEmojiSelected(emoji, item))}
+                    onPress={singleExecution((emoji) => {
+                        if (!('name' in item)) {
+                            return;
+                        }
+                        onEmojiSelected(emoji, item);
+                    })}
                     emoji={emojiCode}
                     isHighlighted={shouldEmojiBeHighlighted}
                 />

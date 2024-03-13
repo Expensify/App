@@ -2,7 +2,7 @@ import type {FlashList} from '@shopify/flash-list';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import {useAnimatedRef} from 'react-native-reanimated';
 import emojis from '@assets/emojis';
-import type {Emoji, HeaderEmoji, PickerEmojis} from '@assets/emojis/types';
+import type {PickerEmojis} from '@assets/emojis/types';
 import {useFrequentlyUsedEmojis} from '@components/OnyxProvider';
 import useLocalize from '@hooks/useLocalize';
 import usePreferredEmojiSkinTone from '@hooks/usePreferredEmojiSkinTone';
@@ -11,7 +11,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as EmojiUtils from '@libs/EmojiUtils';
 
 const useEmojiPickerMenu = () => {
-    const emojiListRef = useAnimatedRef<FlashList<Emoji | HeaderEmoji | EmojiUtils.EmojiSpacer>>();
+    const emojiListRef = useAnimatedRef<FlashList<EmojiUtils.EmojiPickerListItem>>();
     const frequentlyUsedEmojis = useFrequentlyUsedEmojis();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const allEmojis = useMemo(() => EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis), [frequentlyUsedEmojis]);
@@ -48,7 +48,7 @@ const useEmojiPickerMenu = () => {
             const normalizedSearchTerm = searchTerm.toLowerCase().trim().replaceAll(':', '');
             const emojisSuggestions = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, preferredLocale, allEmojis.length);
 
-            return [normalizedSearchTerm, emojisSuggestions];
+            return [normalizedSearchTerm, emojisSuggestions] as const;
         },
         [allEmojis, preferredLocale],
     );
