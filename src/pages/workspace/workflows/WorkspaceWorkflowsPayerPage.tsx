@@ -172,13 +172,11 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
     const setPolicyAuthorizedPayer = (member: MemberOption) => {
         const authorizedPayerEmail = personalDetails?.[member.accountID]?.login ?? '';
 
-        if (policy?.reimburserEmail === authorizedPayerEmail) {
+        if (policy?.reimburserEmail === authorizedPayerEmail || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+            Navigation.goBack();
             return;
         }
 
-        if (policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-            return;
-        }
         const authorizedPayerAccountID = member.accountID;
         Policy.setWorkspacePayer(policy?.id ?? '', authorizedPayerEmail, authorizedPayerAccountID);
         Navigation.goBack();
