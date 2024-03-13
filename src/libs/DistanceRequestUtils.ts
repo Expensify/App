@@ -243,3 +243,5 @@ export default {
     getDistanceForDisplay,
     getRateForP2P,
 };
+
+export type {DefaultMileageRate};
