@@ -1,8 +1,9 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo, useState} from 'react';
-import {View} from 'react-native';
+import React, {useEffect, useMemo, useState} from 'react';
+import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -13,14 +14,19 @@ import TableListItem from '@components/SelectionList/TableListItem';
 import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import type {CentralPaneNavigatorParamList} from '@navigation/types';
+import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import * as Policy from '@userActions/Policy';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -37,7 +43,7 @@ type WorkspaceTagsOnyxProps = {
     policyTags: OnyxEntry<OnyxTypes.PolicyTagList>;
 };
 
-type WorkspaceTagsPageProps = WorkspaceTagsOnyxProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
+type WorkspaceTagsPageProps = WorkspaceTagsOnyxProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
 
 function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -45,19 +51,31 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const [selectedTags, setSelectedTags] = useState<Record<string, boolean>>({});
+
+    function fetchTags() {
+        Policy.openPolicyTagsPage(route.params.policyID);
+    }
+
+    const {isOffline} = useNetwork({onReconnect: fetchTags});
+
+    useEffect(() => {
+        fetchTags();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
     const tagList = useMemo<PolicyForList[]>(
         () =>
             policyTagLists
                 .map((policyTagList) =>
-                    Object.values(policyTagList.tags).map((value) => ({
+                    Object.values(policyTagList.tags || []).map((value) => ({
                         value: value.name,
                         text: value.name,
                         keyForList: value.name,
                         isSelected: !!selectedTags[value.name],
                         rightElement: (
                             <View style={styles.flexRow}>
-                                <Text style={[styles.disabledText, styles.alignSelfCenter]}>
+                                <Text style={[styles.textSupporting, styles.alignSelfCenter, styles.pl2, styles.label]}>
                                     {value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}
                                 </Text>
                                 <View style={[styles.p1, styles.pl2]}>
@@ -71,7 +89,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                     })),
                 )
                 .flat(),
-        [policyTagLists, selectedTags, styles.alignSelfCenter, styles.disabledText, styles.flexRow, styles.p1, styles.pl2, theme.icon, translate],
+        [policyTagLists, selectedTags, styles.alignSelfCenter, styles.flexRow, styles.label, styles.p1, styles.pl2, styles.textSupporting, theme.icon, translate],
     );
 
     const toggleTag = (tag: PolicyForList) => {
@@ -93,6 +111,39 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
         </View>
     );
 
+    const navigateToTagsSettings = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route.params.policyID));
+    };
+
+    const navigateToCreateTagPage = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_TAG_CREATE.getRoute(route.params.policyID));
+    };
+
+    const isLoading = !isOffline && policyTags === undefined;
+
+    const headerButtons = (
+        <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
+            <Button
+                medium
+                success
+                onPress={navigateToCreateTagPage}
+                icon={Expensicons.Plus}
+                text={translate('workspace.tags.addTag')}
+                style={[styles.pr2, isSmallScreenWidth && styles.w50]}
+            />
+            {policyTags && (
+                <Button
+                    medium
+                    onPress={navigateToTagsSettings}
+                    icon={Expensicons.Gear}
+                    iconStyles={[styles.mr2]}
+                    text={translate('common.settings')}
+                    style={[isSmallScreenWidth && styles.w50]}
+                />
+            )}
+        </View>
+    );
+
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
@@ -106,11 +157,28 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                         icon={Illustrations.Tag}
                         title={translate('workspace.common.tags')}
                         shouldShowBackButton={isSmallScreenWidth}
-                    />
-                    <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+                    >
+                        {!isSmallScreenWidth && headerButtons}
+                    </HeaderWithBackButton>
+                    {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
+                    <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
                     </View>
-                    {tagList.length ? (
+                    {isLoading && (
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            style={[styles.flex1]}
+                            color={theme.spinner}
+                        />
+                    )}
+                    {tagList.length === 0 && !isLoading && (
+                        <WorkspaceEmptyStateSection
+                            title={translate('workspace.tags.emptyTags.title')}
+                            icon={Illustrations.EmptyStateExpenses}
+                            subtitle={translate('workspace.tags.emptyTags.subtitle')}
+                        />
+                    )}
+                    {tagList.length > 0 && (
                         <SelectionList
                             canSelectMultiple
                             sections={[{data: tagList, indexOffset: 0, isDisabled: false}]}
@@ -121,12 +189,6 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                             ListItem={TableListItem}
                             customListHeader={getCustomListHeader()}
                             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        />
-                    ) : (
-                        <WorkspaceEmptyStateSection
-                            title={translate('workspace.tags.emptyTags.title')}
-                            icon={Illustrations.EmptyStateExpenses}
-                            subtitle={translate('workspace.tags.emptyTags.subtitle')}
                         />
                     )}
                 </ScreenWrapper>
