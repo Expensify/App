@@ -95,13 +95,15 @@ function createMockStep(
     if (!isSuccessful) {
         mockWithCommand += '\nexit 1';
     }
-    if (id) {
+    if (!id) {
         return {
-            id,
+            name: mockStepName,
             mockWith: mockWithCommand,
         };
     }
+
     return {
+        id,
         name: mockStepName,
         mockWith: mockWithCommand,
     };
