@@ -5,12 +5,12 @@ import type {ExtendedAct} from './ExtendedAct';
 import type {MockJobStep} from './JobMocker';
 
 type EventOptions = {
-    action: string;
+    action?: string;
 };
 
 function setUpActParams(
     act: ExtendedAct,
-    event = null,
+    event: string | null = null,
     eventOptions: EventOptions | null = null,
     secrets: Record<string, string> | null = null,
     githubToken: string | null = null,
@@ -165,7 +165,11 @@ function deepCopy<TObject>(originalObject: TObject): TObject {
     return JSON.parse(JSON.stringify(originalObject));
 }
 
-function getLogFilePath(workflowName: string, testName: string) {
+function getLogFilePath(workflowName: string, testName: string | undefined) {
+    if (!testName) {
+        throw new Error();
+    }
+
     const logsDir = path.resolve(__dirname, '..', 'logs');
     if (!fs.existsSync(logsDir)) {
         fs.mkdirSync(logsDir);
