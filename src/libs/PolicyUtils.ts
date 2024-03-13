@@ -1,5 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -11,6 +12,14 @@ import Navigation from './Navigation/Navigation';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 type UnitRate = {rate: number};
+
+let allPolicies: OnyxCollection<Policy>;
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (value) => (allPolicies = value),
+});
 
 /**
  * Filter out the active policies, which will exclude policies with pending deletion
@@ -265,6 +274,10 @@ function goBackFromInvalidPolicy() {
     Navigation.navigateWithSwitchPolicyID({route: ROUTES.ALL_SETTINGS});
 }
 
+function getPersonalPolicy() {
+    return Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL);
+}
+
 export {
     getActivePolicies,
     hasAccountingConnections,
@@ -295,6 +308,7 @@ export {
     getPathWithoutPolicyID,
     getPolicyMembersByIdWithoutCurrentUser,
     goBackFromInvalidPolicy,
+    getPersonalPolicy
 };
 
 export type {MemberEmailsToAccountIDs};
