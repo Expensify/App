@@ -1072,6 +1072,11 @@ export default {
             },
         },
     },
+    workflowsPayerPage: {
+        title: 'Authorized payer',
+        genericErrorMessage: 'The authorized payer could not be changed. Please try again.',
+        admins: 'Admins',
+    },
     reportFraudPage: {
         title: 'Report virtual card fraud',
         description: 'If your virtual card details have been stolen or compromised, we’ll permanently deactivate your existing card and provide you with a new virtual card and number.',
@@ -1829,11 +1834,14 @@ export default {
             requiresTag: 'Members must tag all spend',
             customTagName: 'Custom tag name',
             enableTag: 'Enable tag',
+            addTag: 'Add tag',
             subtitle: 'Tags add more detailed ways to classify costs.',
             emptyTags: {
                 title: "You haven't created any tags",
                 subtitle: 'Add a tag to track projects, locations, departments, and more.',
             },
+            tagRequiredError: 'Tag name is required.',
+            existingTagError: 'A tag with this name already exists.',
             genericFailureMessage: 'An error occurred while updating the tag, please try again.',
         },
         emptyWorkspace: {
@@ -1979,11 +1987,6 @@ export default {
             defaultCategory: 'Default category',
             deleteDistanceRate: 'Delete distance rate',
             areYouSureDelete: 'Are you sure you want to delete this rate?',
-            errors: {
-                createRateGenericFailureMessage: 'An error occurred while creating the distance rate, please try again.',
-                updateRateUnitGenericFailureMessage: 'An error occurred while updating the distance rate unit, please try again.',
-                updateRateDefaultCategoryGenericFailureMessage: 'An error occurred while updating the distance rate default category, please try again.',
-            },
             units: {
                 MI: 'Miles',
                 KM: 'Kilometers',

@@ -102,7 +102,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
         >
             {(hasVBA?: boolean) => (
                 <ScrollView>
-                    <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <View style={[styles.flex1, styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <Section
                             isCentralPane
                             title=""

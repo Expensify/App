@@ -156,6 +156,8 @@ export type {default as SetWorkspaceAutoReportingParams} from './SetWorkspaceAut
 export type {default as SetWorkspaceAutoReportingFrequencyParams} from './SetWorkspaceAutoReportingFrequencyParams';
 export type {default as SetWorkspaceAutoReportingMonthlyOffsetParams} from './SetWorkspaceAutoReportingMonthlyOffsetParams';
 export type {default as SetWorkspaceApprovalModeParams} from './SetWorkspaceApprovalModeParams';
+export type {default as SetWorkspacePayerParams} from './SetWorkspacePayerParams';
+export type {default as SetWorkspaceReimbursementParams} from './SetWorkspaceReimbursementParams';
 export type {default as SetPolicyRequiresTag} from './SetPolicyRequiresTag';
 export type {default as RenamePolicyTaglist} from './RenamePolicyTaglist';
 export type {default as SwitchToOldDotParams} from './SwitchToOldDotParams';
@@ -169,6 +171,7 @@ export type {default as EnablePolicyReportFieldsParams} from './EnablePolicyRepo
 export type {default as AcceptJoinRequestParams} from './AcceptJoinRequest';
 export type {default as DeclineJoinRequestParams} from './DeclineJoinRequest';
 export type {default as JoinPolicyInviteLinkParams} from './JoinPolicyInviteLink';
+export type {default as OpenPolicyWorkflowsPageParams} from './OpenPolicyWorkflowsPageParams';
 export type {default as OpenPolicyDistanceRatesPageParams} from './OpenPolicyDistanceRatesPageParams';
 export type {default as CreatePolicyDistanceRateParams} from './CreatePolicyDistanceRateParams';
 export type {default as SetPolicyDistanceRatesUnitParams} from './SetPolicyDistanceRatesUnitParams';
@@ -176,3 +179,4 @@ export type {default as SetPolicyDistanceRatesDefaultCategoryParams} from './Set
 export type {default as UpdatePolicyDistanceRateValueParams} from './UpdatePolicyDistanceRateValueParams';
 export type {default as SetPolicyDistanceRatesEnabledParams} from './SetPolicyDistanceRatesEnabledParams';
 export type {default as DeletePolicyDistanceRatesParams} from './DeletePolicyDistanceRatesParams';
+export type {default as CreatePolicyTagsParams} from './CreatePolicyTagsParams';
