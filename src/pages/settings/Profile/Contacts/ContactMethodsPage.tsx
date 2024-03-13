@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import Str from 'expensify-common/lib/str';
 import React, {useCallback} from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -11,6 +11,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -120,6 +121,7 @@ function ContactMethodsPage({loginList, session, route}: ContactMethodsPageProps
                 {loginMenuItems}
                 <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                     <Button
+                        large
                         success
                         text={translate('contacts.newContactMethod')}
                         onPress={onNewContactMethodButtonPress}

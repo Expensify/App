@@ -160,7 +160,7 @@ function isAmountMissing(transaction: OnyxEntry<Transaction>) {
     return transaction?.amount === 0 && (!transaction.modifiedAmount || transaction.modifiedAmount === 0);
 }
 
-function isCreatedMissing(transaction: OnyxEntry<Transaction> | undefined) {
+function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
     return transaction?.created === '' && (!transaction.created || transaction.modifiedCreated === '');
 }
 
@@ -489,7 +489,7 @@ function hasMissingSmartscanFields(transaction: OnyxEntry<Transaction>): boolean
 /**
  * Check if the transaction has a defined route
  */
-function hasRoute(transaction: Transaction): boolean {
+function hasRoute(transaction: OnyxEntry<Transaction>): boolean {
     return !!transaction?.routes?.route0?.geometry?.coordinates;
 }
 
