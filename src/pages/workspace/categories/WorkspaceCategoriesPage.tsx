@@ -21,7 +21,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import type {CentralPaneNavigatorParamList} from '@navigation/types';
+import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
@@ -47,7 +47,7 @@ type WorkspaceCategoriesOnyxProps = {
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 };
 
-type WorkspaceCategoriesPageProps = WorkspaceCategoriesOnyxProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
+type WorkspaceCategoriesPageProps = WorkspaceCategoriesOnyxProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
 
 function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCategoriesPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -143,6 +143,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                 medium
                 onPress={navigateToCategoriesSettings}
                 icon={Expensicons.Gear}
+                iconStyles={[styles.mr2]}
                 text={translate('common.settings')}
                 style={[isSmallScreenWidth && styles.w50]}
             />
@@ -166,7 +167,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                         {!isSmallScreenWidth && headerButtons}
                     </HeaderWithBackButton>
                     {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
-                    <View style={[styles.ph5, styles.pb5]}>
+                    <View style={[styles.ph5, styles.pb5, styles.pt3]}>
                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
                     </View>
                     {isLoading && (

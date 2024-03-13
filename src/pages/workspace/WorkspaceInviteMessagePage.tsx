@@ -101,7 +101,6 @@ function WorkspaceInviteMessagePage({
         Keyboard.dismiss();
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
         Policy.addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, welcomeNote ?? '', route.params.policyID);
-        Policy.setWorkspaceInviteMembersDraft(route.params.policyID, {});
         SearchInputManager.searchInput = '';
         // Pop the invite message page before navigating to the members page.
         Navigation.goBack();

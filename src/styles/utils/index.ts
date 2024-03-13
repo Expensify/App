@@ -453,7 +453,7 @@ function getBackgroundColorWithOpacityStyle(backgroundColor: string, opacity: nu
     return {};
 }
 
-function getWidthAndHeightStyle(width: number, height?: number): ViewStyle {
+function getWidthAndHeightStyle(width: number, height?: number): Pick<ViewStyle, 'height' | 'width'> {
     return {
         width,
         height: height ?? width,
@@ -1484,6 +1484,11 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     },
 
     getFullscreenCenteredContentStyles: () => [StyleSheet.absoluteFill, styles.justifyContentCenter, styles.alignItemsCenter],
+
+    /**
+     * Returns the styles for the Tools modal
+     */
+    getTestToolsModalStyle: (windowWidth: number): ViewStyle[] => [styles.settingsPageBody, styles.p5, {width: windowWidth * 0.9}],
 
     getMultiselectListStyles: (isSelected: boolean, isDisabled: boolean): ViewStyle => ({
         ...styles.mr3,
