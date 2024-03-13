@@ -1,5 +1,5 @@
-import {createServer} from 'http';
 import type {IncomingMessage, ServerResponse} from 'http';
+import {createServer} from 'http';
 import type {NativeCommand, TestResult} from '@libs/E2E/client';
 import type {NetworkCacheMap, TestConfig} from '@libs/E2E/types';
 import config from '../config';
@@ -166,7 +166,7 @@ const createServerInstance = (): ServerInstance => {
                         return;
                     }
 
-                    const cachedData = networkCache[appInstanceId] || {};
+                    const cachedData = networkCache[appInstanceId] ?? {};
                     res.end(JSON.stringify(cachedData));
                 });
 
