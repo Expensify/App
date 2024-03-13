@@ -135,13 +135,12 @@ function SettlementButton({
         PaymentMethods.openWalletPage();
     }, []);
 
-    const policy = ReportUtils.getPolicy(policyID);
     const session = useSession();
     const chatReport = ReportUtils.getReport(chatReportID);
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport as OnyxEntry<Report>);
     const shouldShowPaywithExpensifyOption =
         !isPaidGroupPolicy ||
-        (!shouldHidePaymentOptions && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && policy?.reimburserEmail === session?.email);
+        (!shouldHidePaymentOptions && ReportUtils.isPayer(session, iouReport as OnyxEntry<Report>));
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
         const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
