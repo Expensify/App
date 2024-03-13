@@ -4,7 +4,7 @@ import type {ParsableStyle} from '@styles/utils/types';
 
 type PressableWithSecondaryInteractionProps = PressableWithFeedbackProps & {
     /** The function that should be called when this pressable is pressed */
-    onPress: (event?: GestureResponderEvent) => void;
+    onPress?: (event?: GestureResponderEvent) => void;
 
     /** The function that should be called when this pressable is pressedIn */
     onPressIn?: (event?: GestureResponderEvent) => void;
