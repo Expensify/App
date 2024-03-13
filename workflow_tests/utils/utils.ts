@@ -1,16 +1,16 @@
+import type {StepIdentifier} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
 import fs from 'fs';
 import path from 'path';
 import yaml from 'yaml';
 import type {ExtendedAct} from './ExtendedAct';
-import type {MockJobStep} from './JobMocker';
 
 type EventOptions = {
-    action: string;
+    action?: string;
 };
 
 function setUpActParams(
     act: ExtendedAct,
-    event = null,
+    event: string | null = null,
     eventOptions: EventOptions | null = null,
     secrets: Record<string, string> | null = null,
     githubToken: string | null = null,
@@ -65,7 +65,7 @@ function createMockStep(
     outEnvs: Record<string, string> | null = null,
     isSuccessful = true,
     id = null,
-) {
+): StepIdentifier {
     const mockStepName = name;
     let mockWithCommand = 'echo [MOCK]';
     if (jobId) {
@@ -95,14 +95,16 @@ function createMockStep(
     if (!isSuccessful) {
         mockWithCommand += '\nexit 1';
     }
-    const mockStep: MockJobStep = {
+    if (id) {
+        return {
+            id,
+            mockWith: mockWithCommand,
+        };
+    }
+    return {
         name: mockStepName,
         mockWith: mockWithCommand,
     };
-    if (id) {
-        mockStep.id = id;
-    }
-    return mockStep;
 }
 
 function createStepAssertion(
@@ -111,7 +113,6 @@ function createStepAssertion(
     expectedOutput = null,
     jobId: string | null = null,
     message: string | null = null,
-    // Replace arrays with records
     inputs: Array<{key: string; value: string}> | null = null,
     envs: Array<{key: string; value: string}> | null = null,
 ) {
@@ -165,7 +166,11 @@ function deepCopy<TObject>(originalObject: TObject): TObject {
     return JSON.parse(JSON.stringify(originalObject));
 }
 
-function getLogFilePath(workflowName: string, testName: string) {
+function getLogFilePath(workflowName: string, testName: string | undefined) {
+    if (!testName) {
+        throw new Error();
+    }
+
     const logsDir = path.resolve(__dirname, '..', 'logs');
     if (!fs.existsSync(logsDir)) {
         fs.mkdirSync(logsDir);
