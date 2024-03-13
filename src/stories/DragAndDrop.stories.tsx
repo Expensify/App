@@ -1,24 +1,24 @@
-import lodashGet from 'lodash/get';
+import type {ComponentMeta} from '@storybook/react';
 import React, {useState} from 'react';
 import {Image, View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import Text from '@components/Text';
-// eslint-disable-next-line no-restricted-imports
-import {defaultStyles} from '@styles/index';
+import {defaultStyles} from '@src/styles';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story = {
+const story: ComponentMeta<typeof DragAndDropConsumer> = {
     title: 'Components/DragAndDrop',
     component: DragAndDropConsumer,
 };
 
 function Default() {
     const [fileURL, setFileURL] = useState('');
+
     return (
         <View
             style={[
@@ -46,11 +46,11 @@ function Default() {
                     )}
                 </View>
                 <DragAndDropConsumer
-                    onDrop={(e) => {
-                        const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-                        if (file && file.type.includes('image')) {
+                    onDrop={(event) => {
+                        const file = event.dataTransfer?.files?.[0];
+                        if (file?.type.includes('image')) {
                             const reader = new FileReader();
-                            reader.addEventListener('load', () => setFileURL(reader.result));
+                            reader.addEventListener('load', () => setFileURL(reader.result as string));
                             reader.readAsDataURL(file);
                         }
                     }}

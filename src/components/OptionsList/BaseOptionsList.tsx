@@ -133,7 +133,6 @@ function BaseOptionsList(
      *
      *     [{header}, {sectionHeader}, {item}, {item}, {sectionHeader}, {item}, {item}, {footer}]
      */
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     const getItemLayout = (_data: OptionsListData[] | null, flatDataArrayIndex: number) => {
         if (!flattenedData.current[flatDataArrayIndex]) {
             flattenedData.current = buildFlatSectionArray();

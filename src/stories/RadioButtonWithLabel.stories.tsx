@@ -1,35 +1,37 @@
+import type {ComponentMeta, ComponentStory} from '@storybook/react';
 import React from 'react';
 import RadioButtonWithLabel from '@components/RadioButtonWithLabel';
+import type {RadioButtonWithLabelProps} from '@components/RadioButtonWithLabel';
+
+type RadioButtonWithLabelStory = ComponentStory<typeof RadioButtonWithLabel>;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story = {
+const story: ComponentMeta<typeof RadioButtonWithLabel> = {
     title: 'Components/RadioButtonWithLabel',
     component: RadioButtonWithLabel,
 };
 
-function Template(args) {
+function Template(props: RadioButtonWithLabelProps) {
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <RadioButtonWithLabel {...args} />;
+    return <RadioButtonWithLabel {...props} />;
 }
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
-const Default = Template.bind({});
-const Checked = Template.bind({});
+const Default: RadioButtonWithLabelStory = Template.bind({});
+const Checked: RadioButtonWithLabelStory = Template.bind({});
 Default.args = {
     isChecked: false,
     label: 'This radio button is unchecked',
-    onInputChange: () => {},
 };
 
 Checked.args = {
     isChecked: true,
     label: 'This radio button is checked',
-    onInputChange: () => {},
 };
 
 export default story;
