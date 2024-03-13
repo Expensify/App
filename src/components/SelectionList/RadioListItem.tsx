@@ -42,8 +42,8 @@ function RadioListItem({
                 <View style={[styles.flex1, styles.alignItemsStart]}>
                     <TextWithTooltip
                         shouldShowTooltip={showTooltip}
-                        text={item.text}
-                        textStyles={[
+                        text={item.text ?? ''}
+                        style={[
                             styles.optionDisplayName,
                             isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
                             styles.sidebarLinkTextBold,
@@ -57,7 +57,7 @@ function RadioListItem({
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
                             text={item.alternateText}
-                            textStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                            style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                         />
                     )}
                 </View>

@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import {FlatList, ScrollView, View} from 'react-native';
+import {FlatList, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -17,12 +17,14 @@ import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -51,6 +53,7 @@ type WorkspaceItem = Required<Pick<MenuItemProps, 'title' | 'disabled'>> &
         policyID?: string;
         adminRoom?: string | null;
         announceRoom?: string | null;
+        isJoinRequestPending?: boolean;
     };
 
 // eslint-disable-next-line react/no-unused-prop-types
@@ -115,11 +118,12 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
     const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
+    const isLessThanMediumScreen = isMediumScreenWidth || isSmallScreenWidth;
 
     const confirmDeleteAndHideModal = () => {
         if (!policyIDToDelete || !policyNameToDelete) {
@@ -191,8 +195,9 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                                 workspaceIcon={item.icon}
                                 ownerAccountID={item.ownerAccountID}
                                 workspaceType={item.type}
+                                isJoinRequestPending={item?.isJoinRequestPending}
                                 rowStyles={hovered && styles.hoveredComponentBG}
-                                layoutWidth={isSmallScreenWidth ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}
+                                layoutWidth={isLessThanMediumScreen ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}
                                 brickRoadIndicator={item.brickRoadIndicator}
                                 shouldDisableThreeDotsMenu={item.disabled}
                             />
@@ -201,11 +206,11 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                 </PressableWithoutFeedback>
             );
         },
-        [isSmallScreenWidth, styles.mb3, styles.mh5, styles.ph5, styles.hoveredComponentBG, translate],
+        [isLessThanMediumScreen, styles.mb3, styles.mh5, styles.ph5, styles.hoveredComponentBG, translate],
     );
 
     const listHeaderComponent = useCallback(() => {
-        if (isSmallScreenWidth) {
+        if (isLessThanMediumScreen) {
             return <View style={styles.mt5} />;
         }
 
@@ -238,7 +243,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                 <View style={[styles.ml10, styles.mr2]} />
             </View>
         );
-    }, [isSmallScreenWidth, styles, translate]);
+    }, [isLessThanMediumScreen, styles, translate]);
 
     const policyRooms = useMemo(() => {
         if (!reports || isEmptyObject(reports)) {
@@ -283,8 +288,28 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
 
         return Object.values(policies)
             .filter((policy): policy is PolicyType => PolicyUtils.shouldShowPolicy(policy, !!isOffline))
-            .map(
-                (policy): WorkspaceItem => ({
+            .map((policy): WorkspaceItem => {
+                if (policy?.isJoinRequestPending && policy?.policyDetailsForNonMembers) {
+                    const policyInfo = Object.values(policy.policyDetailsForNonMembers)[0];
+                    const id = Object.keys(policy.policyDetailsForNonMembers)[0];
+                    return {
+                        title: policyInfo.name,
+                        icon: policyInfo.avatar ? policyInfo.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
+                        disabled: true,
+                        ownerAccountID: policyInfo.ownerAccountID,
+                        type: policyInfo.type,
+                        iconType: policyInfo.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+                        iconFill: theme.textLight,
+                        fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                        policyID: id,
+                        role: CONST.POLICY.ROLE.USER,
+                        errors: null,
+                        action: () => null,
+                        dismissError: () => null,
+                        isJoinRequestPending: true,
+                    };
+                }
+                return {
                     title: policy.name,
                     icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                     action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id)),
@@ -307,8 +332,8 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                     ownerAccountID: policy.ownerAccountID,
                     role: policy.role,
                     type: policy.type,
-                }),
-            )
+                };
+            })
             .sort((a, b) => localeCompare(a.title, b.title));
     }, [reimbursementAccount?.errors, policies, isOffline, theme.textLight, allPolicyMembers, policyRooms]);
 
@@ -323,7 +348,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
             >
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
-                    shouldShowBackButton={isSmallScreenWidth}
+                    shouldShowBackButton={isLessThanMediumScreen}
                     onBackButtonPress={() => Navigation.goBack()}
                 >
                     <Button
@@ -331,18 +356,18 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                         success
                         medium
                         text={translate('workspace.new.newWorkspace')}
-                        onPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
+                        onPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
                     />
                 </HeaderWithBackButton>
                 <ScrollView contentContainerStyle={styles.pt3}>
-                    <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <View style={[styles.flex1, isLessThanMediumScreen ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <FeatureList
                             menuItems={workspaceFeatures}
                             title={translate('workspace.emptyWorkspace.title')}
                             subtitle={translate('workspace.emptyWorkspace.subtitle')}
                             ctaText={translate('workspace.new.newWorkspace')}
                             ctaAccessibilityLabel={translate('workspace.new.newWorkspace')}
-                            onCtaPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
+                            onCtaPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
                             illustration={LottieAnimations.WorkspacePlanet}
                             // We use this style to vertically center the illustration, as the original illustration is not centered
                             illustrationStyle={styles.emptyWorkspaceIllustrationStyle}
@@ -362,7 +387,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
             <View style={styles.flex1}>
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
-                    shouldShowBackButton={isSmallScreenWidth}
+                    shouldShowBackButton={isLessThanMediumScreen}
                     onBackButtonPress={() => Navigation.goBack()}
                 >
                     <Button
@@ -370,7 +395,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                         success
                         medium
                         text={translate('workspace.new.newWorkspace')}
-                        onPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
+                        onPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
                     />
                 </HeaderWithBackButton>
                 <FlatList

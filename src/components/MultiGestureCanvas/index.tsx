@@ -51,9 +51,11 @@ type MultiGestureCanvasProps = ChildrenProps & {
     onSwipeDown?: OnSwipeDownCallback;
 };
 
+const defaultContentSize = {width: 1, height: 1};
+
 function MultiGestureCanvas({
     canvasSize,
-    contentSize = {width: 1, height: 1},
+    contentSize: contentSizeProp,
     zoomRange: zoomRangeProp,
     isActive = true,
     children,
@@ -66,6 +68,7 @@ function MultiGestureCanvas({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
+    const contentSize = contentSizeProp ?? defaultContentSize;
     const shouldDisableTransformationGesturesFallback = useSharedValue(false);
     const shouldDisableTransformationGestures = shouldDisableTransformationGesturesProp ?? shouldDisableTransformationGesturesFallback;
 
@@ -116,9 +119,11 @@ function MultiGestureCanvas({
     const reset = useWorkletCallback((animated: boolean, callback?: () => void) => {
         stopAnimation();
 
+        offsetX.value = 0;
+        offsetY.value = 0;
+        pinchScale.value = 1;
+
         if (animated) {
-            offsetX.value = 0;
-            offsetY.value = 0;
             panTranslateX.value = withSpring(0, SPRING_CONFIG);
             panTranslateY.value = withSpring(0, SPRING_CONFIG);
             pinchTranslateX.value = withSpring(0, SPRING_CONFIG);
@@ -128,8 +133,6 @@ function MultiGestureCanvas({
             return;
         }
 
-        offsetX.value = 0;
-        offsetY.value = 0;
         panTranslateX.value = 0;
         panTranslateY.value = 0;
         pinchTranslateX.value = 0;
@@ -224,6 +227,8 @@ function MultiGestureCanvas({
                 },
                 {scale: totalScale.value},
             ],
+            // Hide the image if the size is not ready yet
+            opacity: contentSizeProp?.width ? 1 : 0,
         };
     });
 
