@@ -10,7 +10,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {DEFAULT_ZOOM_RANGE, SPRING_CONFIG, ZOOM_RANGE_BOUNCE_FACTORS} from './constants';
-import type {CanvasSize, ContentSize, OnScaleChangedCallback, OnTapCallback, ZoomRange} from './types';
+import type {CanvasSize, ContentSize, OnScaleChangedCallback, OnSwipeDownCallback, OnTapCallback, ZoomRange} from './types';
 import usePanGesture from './usePanGesture';
 import usePinchGesture from './usePinchGesture';
 import useTapGestures from './useTapGestures';
@@ -47,11 +47,15 @@ type MultiGestureCanvasProps = ChildrenProps & {
 
     /** Handles scale changed event */
     onTap?: OnTapCallback;
+
+    onSwipeDown?: OnSwipeDownCallback;
 };
+
+const defaultContentSize = {width: 1, height: 1};
 
 function MultiGestureCanvas({
     canvasSize,
-    contentSize = {width: 1, height: 1},
+    contentSize: contentSizeProp,
     zoomRange: zoomRangeProp,
     isActive = true,
     children,
@@ -59,10 +63,12 @@ function MultiGestureCanvas({
     shouldDisableTransformationGestures: shouldDisableTransformationGesturesProp,
     onTap,
     onScaleChanged,
+    onSwipeDown,
 }: MultiGestureCanvasProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
+    const contentSize = contentSizeProp ?? defaultContentSize;
     const shouldDisableTransformationGesturesFallback = useSharedValue(false);
     const shouldDisableTransformationGestures = shouldDisableTransformationGesturesProp ?? shouldDisableTransformationGesturesFallback;
 
@@ -88,6 +94,7 @@ function MultiGestureCanvas({
 
     const panTranslateX = useSharedValue(0);
     const panTranslateY = useSharedValue(0);
+    const isSwipingDownToClose = useSharedValue(false);
     const panGestureRef = useRef(Gesture.Pan());
 
     const pinchScale = useSharedValue(1);
@@ -112,9 +119,11 @@ function MultiGestureCanvas({
     const reset = useWorkletCallback((animated: boolean, callback?: () => void) => {
         stopAnimation();
 
+        offsetX.value = 0;
+        offsetY.value = 0;
+        pinchScale.value = 1;
+
         if (animated) {
-            offsetX.value = withSpring(0, SPRING_CONFIG);
-            offsetY.value = withSpring(0, SPRING_CONFIG);
             panTranslateX.value = withSpring(0, SPRING_CONFIG);
             panTranslateY.value = withSpring(0, SPRING_CONFIG);
             pinchTranslateX.value = withSpring(0, SPRING_CONFIG);
@@ -124,8 +133,6 @@ function MultiGestureCanvas({
             return;
         }
 
-        offsetX.value = 0;
-        offsetY.value = 0;
         panTranslateX.value = 0;
         panTranslateY.value = 0;
         pinchTranslateX.value = 0;
@@ -172,6 +179,8 @@ function MultiGestureCanvas({
         panTranslateY,
         stopAnimation,
         shouldDisableTransformationGestures,
+        isSwipingDownToClose,
+        onSwipeDown,
     })
         .simultaneousWithExternalGesture(...panGestureSimultaneousList)
         .withRef(panGestureRef);
@@ -218,6 +227,8 @@ function MultiGestureCanvas({
                 },
                 {scale: totalScale.value},
             ],
+            // Hide the image if the size is not ready yet
+            opacity: contentSizeProp?.width ? 1 : 0,
         };
     });
 

@@ -1,14 +1,16 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
+import MenuItemGroup from '@components/MenuItemGroup';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
@@ -169,53 +171,55 @@ function ProfilePage(props) {
                 icon={Illustrations.Profile}
             />
             <ScrollView style={styles.pt3}>
-                <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    <Section
-                        title={props.translate('profilePage.publicSection.title')}
-                        subtitle={props.translate('profilePage.publicSection.subtitle')}
-                        isCentralPane
-                        subtitleMuted
-                        childrenStyles={styles.pt5}
-                        titleStyles={styles.accountSettingsSectionTitle}
-                    >
-                        {_.map(publicOptions, (detail, index) => (
-                            <MenuItemWithTopDescription
-                                key={`${detail.title}_${index}`}
-                                shouldShowRightIcon
-                                title={detail.title}
-                                description={detail.description}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                onPress={() => Navigation.navigate(detail.pageRoute)}
-                                brickRoadIndicator={detail.brickRoadIndicator}
-                            />
-                        ))}
-                    </Section>
-                    <Section
-                        title={props.translate('profilePage.privateSection.title')}
-                        subtitle={props.translate('profilePage.privateSection.subtitle')}
-                        isCentralPane
-                        subtitleMuted
-                        childrenStyles={styles.pt3}
-                        titleStyles={styles.accountSettingsSectionTitle}
-                    >
-                        {isLoadingPersonalDetails ? (
-                            <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]} />
-                        ) : (
-                            <>
-                                {_.map(privateOptions, (detail, index) => (
-                                    <MenuItemWithTopDescription
-                                        key={`${detail.title}_${index}`}
-                                        shouldShowRightIcon
-                                        title={detail.title}
-                                        description={detail.description}
-                                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                                        onPress={() => Navigation.navigate(detail.pageRoute)}
-                                    />
-                                ))}
-                            </>
-                        )}
-                    </Section>
-                </View>
+                <MenuItemGroup>
+                    <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                        <Section
+                            title={props.translate('profilePage.publicSection.title')}
+                            subtitle={props.translate('profilePage.publicSection.subtitle')}
+                            isCentralPane
+                            subtitleMuted
+                            childrenStyles={styles.pt5}
+                            titleStyles={styles.accountSettingsSectionTitle}
+                        >
+                            {_.map(publicOptions, (detail, index) => (
+                                <MenuItemWithTopDescription
+                                    key={`${detail.title}_${index}`}
+                                    shouldShowRightIcon
+                                    title={detail.title}
+                                    description={detail.description}
+                                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                                    onPress={() => Navigation.navigate(detail.pageRoute)}
+                                    brickRoadIndicator={detail.brickRoadIndicator}
+                                />
+                            ))}
+                        </Section>
+                        <Section
+                            title={props.translate('profilePage.privateSection.title')}
+                            subtitle={props.translate('profilePage.privateSection.subtitle')}
+                            isCentralPane
+                            subtitleMuted
+                            childrenStyles={styles.pt3}
+                            titleStyles={styles.accountSettingsSectionTitle}
+                        >
+                            {isLoadingPersonalDetails ? (
+                                <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]} />
+                            ) : (
+                                <>
+                                    {_.map(privateOptions, (detail, index) => (
+                                        <MenuItemWithTopDescription
+                                            key={`${detail.title}_${index}`}
+                                            shouldShowRightIcon
+                                            title={detail.title}
+                                            description={detail.description}
+                                            wrapperStyle={styles.sectionMenuItemTopDescription}
+                                            onPress={() => Navigation.navigate(detail.pageRoute)}
+                                        />
+                                    ))}
+                                </>
+                            )}
+                        </Section>
+                    </View>
+                </MenuItemGroup>
             </ScrollView>
         </ScreenWrapper>
     );

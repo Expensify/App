@@ -1,6 +1,7 @@
 import type {AvatarSource} from '@libs/UserUtils';
 import type TIMEZONES from '@src/TIMEZONES';
 import type * as OnyxCommon from './OnyxCommon';
+import type Report from './Report';
 
 type SelectedTimezone = (typeof TIMEZONES)[number];
 
@@ -23,7 +24,7 @@ type Status = {
     clearAfter: string; // ISO 8601 format;
 };
 
-type PersonalDetails = {
+type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** ID of the current user from their personal details */
     accountID: number;
 
@@ -74,15 +75,15 @@ type PersonalDetails = {
     /** Field-specific server side errors keyed by microtime */
     errorFields?: OnyxCommon.ErrorFields<'avatar'>;
 
-    /** Field-specific pending states for offline UI status */
-    pendingFields?: OnyxCommon.PendingFields<'avatar' | 'originalFileName'>;
-
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon?: string;
 
     /** Status of the current user from their personal details */
     status?: Status;
-};
+
+    /** Chat report with assignee of task */
+    assigneeChatReport?: Report;
+}>;
 
 type PersonalDetailsList = Record<string, PersonalDetails | null>;
 

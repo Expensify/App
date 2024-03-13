@@ -400,6 +400,11 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
         },
 
+        textNormalThemeText: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
+        },
+
         textLarge: {
             fontSize: variables.fontSizeLarge,
         },
@@ -435,11 +440,19 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightXXXLarge,
         },
 
+        textHeadlineH2: {
+            ...headlineFont,
+            ...whiteSpace.preWrap,
+            color: theme.heading,
+            fontSize: variables.fontSizeh2,
+            lineHeight: variables.lineHeightSizeh2,
+        },
+
         textHeadlineH1: {
             ...headlineFont,
             ...whiteSpace.preWrap,
             color: theme.heading,
-            fontSize: variables.fontSizeh1,
+            fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightSizeh1,
         },
 
@@ -485,6 +498,10 @@ const styles = (theme: ThemeColors) =>
 
         opacity0: {
             opacity: 0,
+        },
+
+        opacitySemiTransparent: {
+            opacity: 0.5,
         },
 
         opacity1: {
@@ -632,9 +649,21 @@ const styles = (theme: ThemeColors) =>
         },
 
         buttonDivider: {
-            height: variables.dropDownButtonDividerHeight,
-            borderWidth: 0.7,
-            borderColor: theme.textLight,
+            borderRightWidth: 1,
+            borderRightColor: theme.buttonHoveredBG,
+            ...sizing.h100,
+        },
+
+        buttonSuccessDivider: {
+            borderRightWidth: 1,
+            borderRightColor: theme.successHover,
+            ...sizing.h100,
+        },
+
+        buttonDangerDivider: {
+            borderRightWidth: 1,
+            borderRightColor: theme.dangerHover,
+            ...sizing.h100,
         },
 
         noBorderRadius: {
@@ -721,7 +750,7 @@ const styles = (theme: ThemeColors) =>
             height: 140,
         },
 
-        pickerSmall: (backgroundColor = theme.highlightBG) =>
+        pickerSmall: (disabled = false, backgroundColor = theme.highlightBG) =>
             ({
                 inputIOS: {
                     fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
@@ -763,7 +792,7 @@ const styles = (theme: ThemeColors) =>
                     height: 26,
                     opacity: 1,
                     backgroundColor,
-                    ...cursor.cursorPointer,
+                    ...(disabled ? cursor.cursorDisabled : cursor.cursorPointer),
                 },
                 inputAndroid: {
                     fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
@@ -1235,6 +1264,13 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
+        textLabelSupportingNormal: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeLabel,
+            color: theme.textSupporting,
+            fontWeight: FontUtils.fontWeight.normal,
+        },
+
         textLabelError: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeLabel,
@@ -1406,10 +1442,16 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarAvatar: {
-            backgroundColor: theme.icon,
+            borderRadius: 28,
+            height: variables.componentSizeSmall,
+            width: variables.componentSizeSmall,
+        },
+
+        selectedAvatarBorder: {
+            padding: 2,
+            borderWidth: 2,
             borderRadius: 20,
-            height: variables.componentSizeNormal,
-            width: variables.componentSizeNormal,
+            borderColor: theme.success,
         },
 
         statusIndicator: (backgroundColor = theme.danger) =>
@@ -1419,10 +1461,10 @@ const styles = (theme: ThemeColors) =>
                 borderRadius: 8,
                 borderWidth: 2,
                 position: 'absolute',
-                right: -2,
-                top: -1,
-                height: 16,
-                width: 16,
+                right: -4,
+                top: -3,
+                height: 12,
+                width: 12,
                 zIndex: 10,
             } satisfies ViewStyle),
 
@@ -1476,25 +1518,23 @@ const styles = (theme: ThemeColors) =>
         },
 
         breadcrumsContainer: {
-            height: 24,
+            minHeight: 24,
         },
 
         breadcrumb: {
             color: theme.textSupporting,
-            fontSize: variables.fontSizeh1,
-            lineHeight: variables.lineHeightSizeh1,
+            fontSize: variables.breadcrumbsFontSize,
             ...headlineFont,
         },
 
         breadcrumbStrong: {
             color: theme.text,
-            fontSize: variables.fontSizeXLarge,
+            fontSize: variables.breadcrumbsFontSize,
         },
 
         breadcrumbSeparator: {
             color: theme.icon,
-            fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightSizeh1,
+            fontSize: variables.breadcrumbsFontSize,
             ...headlineFont,
         },
 
@@ -2614,6 +2654,12 @@ const styles = (theme: ThemeColors) =>
             ...spacing.pt0,
         },
 
+        workspaceSettingsSectionContainer: {
+            borderBottomWidth: 1,
+            borderBottomColor: theme.border,
+            ...spacing.pt4,
+        },
+
         centralPaneAnimation: {
             height: CONST.CENTRAL_PANE_ANIMATION_HEIGHT,
         },
@@ -2625,7 +2671,7 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 13,
             fontSize: 13,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
-            fontWeight: 400,
+            fontWeight: '400',
             lineHeight: 16,
             color: theme.textSupporting,
         },
@@ -3439,6 +3485,19 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        emptyCardSectionTitle: {
+            fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightXXLarge,
+            textAlign: 'center',
+        },
+
+        emptyCardSectionSubtitle: {
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightXLarge,
+            color: theme.textSupporting,
+            textAlign: 'center',
+        },
+
         transferBalance: {
             width: 'auto',
             borderRadius: 0,
@@ -3999,14 +4058,26 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
         },
 
-        reportPreviewBoxBody: {
+        expenseAndReportPreviewBoxBody: {
             padding: 16,
+        },
+
+        expenseAndReportPreviewTextContainer: {
+            gap: 8,
+        },
+
+        reportPreviewAmountSubtitleContainer: {
+            gap: 4,
+        },
+
+        expenseAndReportPreviewTextButtonContainer: {
+            gap: 16,
         },
 
         reportActionItemImages: {
             flexDirection: 'row',
             margin: 4,
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: 12,
             overflow: 'hidden',
             height: variables.reportActionImagesSingleImageHeight,
         },
@@ -4301,6 +4372,11 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        walletCardNumber: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
+        },
+
         walletCardMenuItem: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontWeight: FontUtils.fontWeight.bold,
@@ -4576,6 +4652,7 @@ const styles = (theme: ThemeColors) =>
         videoPlayerTimeComponentWidth: {
             width: 40,
         },
+
         colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),
 
         updateAnimation: {
@@ -4591,10 +4668,13 @@ const styles = (theme: ThemeColors) =>
             width: variables.updateTextViewContainerWidth,
         },
 
+        widthAuto: {
+            width: 'auto',
+        },
+
         workspaceTitleStyle: {
-            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontWeight: '500',
-            fontSize: variables.workspaceProfileName,
+            ...headlineFont,
+            fontSize: variables.fontSizeXLarge,
         },
     } satisfies Styles);
 
