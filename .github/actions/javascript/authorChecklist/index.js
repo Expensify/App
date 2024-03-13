@@ -4,30 +4,6 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 4097:
-/***/ ((module) => {
-
-const CONST = {
-    GITHUB_OWNER: 'Expensify',
-    APP_REPO: 'App',
-    APPLAUSE_BOT: 'applausebot',
-    OS_BOTIFY: 'OSBotify',
-    LABELS: {
-        STAGING_DEPLOY: 'StagingDeployCash',
-        DEPLOY_BLOCKER: 'DeployBlockerCash',
-        INTERNAL_QA: 'InternalQA',
-    },
-    DATE_FORMAT_STRING: 'yyyy-MM-dd',
-};
-
-CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
-CONST.APP_REPO_GIT_URL = `git@github.com:${CONST.GITHUB_OWNER}/${CONST.APP_REPO}.git`;
-
-module.exports = CONST;
-
-
-/***/ }),
-
 /***/ 7999:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -37,7 +13,7 @@ const core = __nccwpck_require__(2186);
 const {GitHub, getOctokitOptions} = __nccwpck_require__(3030);
 const {throttling} = __nccwpck_require__(9968);
 const {paginateRest} = __nccwpck_require__(4193);
-const CONST = __nccwpck_require__(4097);
+const CONST = __nccwpck_require__(9873);
 
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
 const PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`);
@@ -18403,10 +18379,10 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const escapeRegExp_1 = __importDefault(__nccwpck_require__(8415));
-const CONST_1 = __importDefault(__nccwpck_require__(4097));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(7999));
 const newComponentCategory_1 = __importDefault(__nccwpck_require__(9032));
-const pathToAuthorChecklist = `https://raw.githubusercontent.com/${CONST_1.default.GITHUB_OWNER}/${CONST_1.default.APP_REPO}/main/.github/PULL_REQUEST_TEMPLATE.md`;
+const CONST = __nccwpck_require__(9873);
+const pathToAuthorChecklist = `https://raw.githubusercontent.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}/main/.github/PULL_REQUEST_TEMPLATE.md`;
 const checklistStartsWith = '### PR Author Checklist';
 const checklistEndsWith = '\r\n### Screenshots/Videos';
 const prNumber = github.context.payload.pull_request?.number;
@@ -18419,8 +18395,8 @@ const CHECKLIST_CATEGORIES = {
 async function getChecklistCategoriesForPullRequest() {
     const checks = new Set();
     const changedFiles = await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.pulls.listFiles, {
-        owner: CONST_1.default.GITHUB_OWNER,
-        repo: CONST_1.default.APP_REPO,
+        owner: CONST.GITHUB_OWNER,
+        repo: CONST.APP_REPO,
         // eslint-disable-next-line @typescript-eslint/naming-convention
         pull_number: prNumber,
         // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -18511,8 +18487,8 @@ async function generateDynamicChecksAndCheckForCompletion() {
     if (didChecklistChange) {
         console.log('Checklist changed, updating PR...');
         await GithubUtils_1.default.octokit.pulls.update({
-            owner: CONST_1.default.GITHUB_OWNER,
-            repo: CONST_1.default.APP_REPO,
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
             // eslint-disable-next-line @typescript-eslint/naming-convention
             pull_number: prNumber,
             body: newBody,
@@ -18557,9 +18533,9 @@ exports.detectReactComponent = void 0;
 const github_1 = __importDefault(__nccwpck_require__(5438));
 const parser_1 = __nccwpck_require__(5026);
 const traverse_1 = __importDefault(__nccwpck_require__(1380));
-const CONST_1 = __importDefault(__nccwpck_require__(4097));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(7999));
 const promiseSome_1 = __importDefault(__nccwpck_require__(8534));
+const CONST = __nccwpck_require__(9873);
 const items = [
     "I verified that similar component doesn't exist in the codebase",
     'I verified that all props are defined accurately and each prop has a `/** comment above it */`',
@@ -18618,8 +18594,8 @@ function nodeBase64ToUtf8(data) {
 }
 async function detectReactComponentInFile(filename) {
     const params = {
-        owner: CONST_1.default.GITHUB_OWNER,
-        repo: CONST_1.default.APP_REPO,
+        owner: CONST.GITHUB_OWNER,
+        repo: CONST.APP_REPO,
         path: filename,
         ref: github_1.default.context.payload.pull_request?.head.ref,
     };
@@ -18647,6 +18623,30 @@ const newComponentCategory = {
     items,
 };
 exports["default"] = newComponentCategory;
+
+
+/***/ }),
+
+/***/ 9873:
+/***/ ((module) => {
+
+"use strict";
+
+const CONST = {
+    GITHUB_OWNER: 'Expensify',
+    APP_REPO: 'App',
+    APPLAUSE_BOT: 'applausebot',
+    OS_BOTIFY: 'OSBotify',
+    LABELS: {
+        STAGING_DEPLOY: 'StagingDeployCash',
+        DEPLOY_BLOCKER: 'DeployBlockerCash',
+        INTERNAL_QA: 'InternalQA',
+    },
+    DATE_FORMAT_STRING: 'yyyy-MM-dd',
+};
+CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
+CONST.APP_REPO_GIT_URL = `git@github.com:${CONST.GITHUB_OWNER}/${CONST.APP_REPO}.git`;
+module.exports = CONST;
 
 
 /***/ }),

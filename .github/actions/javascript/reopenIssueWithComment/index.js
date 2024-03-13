@@ -4,30 +4,6 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 4097:
-/***/ ((module) => {
-
-const CONST = {
-    GITHUB_OWNER: 'Expensify',
-    APP_REPO: 'App',
-    APPLAUSE_BOT: 'applausebot',
-    OS_BOTIFY: 'OSBotify',
-    LABELS: {
-        STAGING_DEPLOY: 'StagingDeployCash',
-        DEPLOY_BLOCKER: 'DeployBlockerCash',
-        INTERNAL_QA: 'InternalQA',
-    },
-    DATE_FORMAT_STRING: 'yyyy-MM-dd',
-};
-
-CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
-CONST.APP_REPO_GIT_URL = `git@github.com:${CONST.GITHUB_OWNER}/${CONST.APP_REPO}.git`;
-
-module.exports = CONST;
-
-
-/***/ }),
-
 /***/ 7999:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -37,7 +13,7 @@ const core = __nccwpck_require__(2186);
 const {GitHub, getOctokitOptions} = __nccwpck_require__(3030);
 const {throttling} = __nccwpck_require__(9968);
 const {paginateRest} = __nccwpck_require__(4193);
-const CONST = __nccwpck_require__(4097);
+const CONST = __nccwpck_require__(9873);
 
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
 const PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`);
@@ -13601,6 +13577,30 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 9873:
+/***/ ((module) => {
+
+"use strict";
+
+const CONST = {
+    GITHUB_OWNER: 'Expensify',
+    APP_REPO: 'App',
+    APPLAUSE_BOT: 'applausebot',
+    OS_BOTIFY: 'OSBotify',
+    LABELS: {
+        STAGING_DEPLOY: 'StagingDeployCash',
+        DEPLOY_BLOCKER: 'DeployBlockerCash',
+        INTERNAL_QA: 'InternalQA',
+    },
+    DATE_FORMAT_STRING: 'yyyy-MM-dd',
+};
+CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
+CONST.APP_REPO_GIT_URL = `git@github.com:${CONST.GITHUB_OWNER}/${CONST.APP_REPO}.git`;
+module.exports = CONST;
+
+
+/***/ }),
+
 /***/ 2877:
 /***/ ((module) => {
 
@@ -15962,7 +15962,7 @@ var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 (() => {
 const core = __nccwpck_require__(2186);
-const CONST = __nccwpck_require__(4097);
+const CONST = __nccwpck_require__(9873);
 const GithubUtils = __nccwpck_require__(7999);
 
 const issueNumber = core.getInput('ISSUE_NUMBER', {required: true});

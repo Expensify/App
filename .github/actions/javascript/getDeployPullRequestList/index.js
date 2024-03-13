@@ -10,7 +10,7 @@
 const _ = __nccwpck_require__(5067);
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
-const ActionUtils = __nccwpck_require__(970);
+const ActionUtils = __nccwpck_require__(6981);
 const GitUtils = (__nccwpck_require__(1547)["default"]);
 const GithubUtils = __nccwpck_require__(7999);
 
@@ -52,76 +52,6 @@ module.exports = run;
 
 /***/ }),
 
-/***/ 970:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const core = __nccwpck_require__(2186);
-
-/**
- * Safely parse a JSON input to a GitHub Action.
- *
- * @param {String} name - The name of the input.
- * @param {Object} options - Options to pass to core.getInput
- * @param {*} [defaultValue] - A default value to provide for the input.
- *                             Not required if the {required: true} option is given in the second arg to this function.
- * @returns {any}
- */
-function getJSONInput(name, options, defaultValue = undefined) {
-    const input = core.getInput(name, options);
-    if (input) {
-        return JSON.parse(input);
-    }
-    return defaultValue;
-}
-
-/**
- * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
- *
- * @param {String} name
- * @param {Object} options
- * @param {*} [defaultValue]
- * @returns {string|undefined}
- */
-function getStringInput(name, options, defaultValue = undefined) {
-    const input = core.getInput(name, options);
-    if (!input) {
-        return defaultValue;
-    }
-    return input;
-}
-
-module.exports = {
-    getJSONInput,
-    getStringInput,
-};
-
-
-/***/ }),
-
-/***/ 4097:
-/***/ ((module) => {
-
-const CONST = {
-    GITHUB_OWNER: 'Expensify',
-    APP_REPO: 'App',
-    APPLAUSE_BOT: 'applausebot',
-    OS_BOTIFY: 'OSBotify',
-    LABELS: {
-        STAGING_DEPLOY: 'StagingDeployCash',
-        DEPLOY_BLOCKER: 'DeployBlockerCash',
-        INTERNAL_QA: 'InternalQA',
-    },
-    DATE_FORMAT_STRING: 'yyyy-MM-dd',
-};
-
-CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
-CONST.APP_REPO_GIT_URL = `git@github.com:${CONST.GITHUB_OWNER}/${CONST.APP_REPO}.git`;
-
-module.exports = CONST;
-
-
-/***/ }),
-
 /***/ 7999:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -131,7 +61,7 @@ const core = __nccwpck_require__(2186);
 const {GitHub, getOctokitOptions} = __nccwpck_require__(3030);
 const {throttling} = __nccwpck_require__(9968);
 const {paginateRest} = __nccwpck_require__(4193);
-const CONST = __nccwpck_require__(4097);
+const CONST = __nccwpck_require__(9873);
 
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
 const PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`);
@@ -664,189 +594,6 @@ class GithubUtils {
 module.exports = GithubUtils;
 module.exports.ISSUE_OR_PULL_REQUEST_REGEX = ISSUE_OR_PULL_REQUEST_REGEX;
 module.exports.POLL_RATE = POLL_RATE;
-
-
-/***/ }),
-
-/***/ 9338:
-/***/ ((module) => {
-
-const replacer = (str) =>
-    ({
-        '\\': '\\\\',
-        '\t': '\\t',
-        '\n': '\\n',
-        '\r': '\\r',
-        '\f': '\\f',
-        '"': '\\"',
-    }[str]);
-
-/**
- * Replace any characters in the string that will break JSON.parse for our Git Log output
- *
- * Solution partly taken from SO user Gabriel Rodríguez Flores 🙇
- * https://stackoverflow.com/questions/52789718/how-to-remove-special-characters-before-json-parse-while-file-reading
- *
- * @param {String} inputString
- * @returns {String}
- */
-module.exports = function (inputString) {
-    if (typeof inputString !== 'string') {
-        throw new TypeError('Input must me of type String');
-    }
-
-    // Replace any newlines and escape backslashes
-    return inputString.replace(/\\|\t|\n|\r|\f|"/g, replacer);
-};
-
-
-/***/ }),
-
-/***/ 8007:
-/***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
-
-"use strict";
-__nccwpck_require__.r(__webpack_exports__);
-/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
-/* harmony export */   "MAX_INCREMENTS": () => (/* binding */ MAX_INCREMENTS),
-/* harmony export */   "SEMANTIC_VERSION_LEVELS": () => (/* binding */ SEMANTIC_VERSION_LEVELS),
-/* harmony export */   "getPreviousVersion": () => (/* binding */ getPreviousVersion),
-/* harmony export */   "getVersionNumberFromString": () => (/* binding */ getVersionNumberFromString),
-/* harmony export */   "getVersionStringFromNumber": () => (/* binding */ getVersionStringFromNumber),
-/* harmony export */   "incrementMinor": () => (/* binding */ incrementMinor),
-/* harmony export */   "incrementPatch": () => (/* binding */ incrementPatch),
-/* harmony export */   "incrementVersion": () => (/* binding */ incrementVersion)
-/* harmony export */ });
-const _ = __nccwpck_require__(5067);
-
-const SEMANTIC_VERSION_LEVELS = {
-    MAJOR: 'MAJOR',
-    MINOR: 'MINOR',
-    PATCH: 'PATCH',
-    BUILD: 'BUILD',
-};
-const MAX_INCREMENTS = 99;
-
-/**
- * Transforms a versions string into a number
- *
- * @param {String} versionString
- * @returns {Array}
- */
-const getVersionNumberFromString = (versionString) => {
-    const [version, build] = versionString.split('-');
-    const [major, minor, patch] = _.map(version.split('.'), (n) => Number(n));
-
-    return [major, minor, patch, Number.isInteger(Number(build)) ? Number(build) : 0];
-};
-
-/**
- * Transforms version numbers components into a version string
- *
- * @param {Number} major
- * @param {Number} minor
- * @param {Number} patch
- * @param {Number} [build]
- * @returns {String}
- */
-const getVersionStringFromNumber = (major, minor, patch, build = 0) => `${major}.${minor}.${patch}-${build}`;
-
-/**
- * Increments a minor version
- *
- * @param {Number} major
- * @param {Number} minor
- * @returns {String}
- */
-const incrementMinor = (major, minor) => {
-    if (minor < MAX_INCREMENTS) {
-        return getVersionStringFromNumber(major, minor + 1, 0, 0);
-    }
-
-    return getVersionStringFromNumber(major + 1, 0, 0, 0);
-};
-
-/**
- * Increments a Patch version
- *
- * @param {Number} major
- * @param {Number} minor
- * @param {Number} patch
- * @returns {String}
- */
-const incrementPatch = (major, minor, patch) => {
-    if (patch < MAX_INCREMENTS) {
-        return getVersionStringFromNumber(major, minor, patch + 1, 0);
-    }
-    return incrementMinor(major, minor);
-};
-
-/**
- * Increments a build version
- *
- * @param {String} version
- * @param {String} level
- * @returns {String}
- */
-const incrementVersion = (version, level) => {
-    const [major, minor, patch, build] = getVersionNumberFromString(version);
-
-    // Majors will always be incremented
-    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
-        return getVersionStringFromNumber(major + 1, 0, 0, 0);
-    }
-
-    if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
-        return incrementMinor(major, minor);
-    }
-
-    if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
-        return incrementPatch(major, minor, patch);
-    }
-
-    if (build < MAX_INCREMENTS) {
-        return getVersionStringFromNumber(major, minor, patch, build + 1);
-    }
-
-    return incrementPatch(major, minor, patch);
-};
-
-/**
- * @param {String} currentVersion
- * @param {String} level
- * @returns {String}
- */
-function getPreviousVersion(currentVersion, level) {
-    const [major, minor, patch, build] = getVersionNumberFromString(currentVersion);
-
-    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
-        if (major === 1) {
-            return getVersionStringFromNumber(1, 0, 0, 0);
-        }
-        return getVersionStringFromNumber(major - 1, 0, 0, 0);
-    }
-
-    if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
-        if (minor === 0) {
-            return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.MAJOR);
-        }
-        return getVersionStringFromNumber(major, minor - 1, 0, 0);
-    }
-
-    if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
-        if (patch === 0) {
-            return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.MINOR);
-        }
-        return getVersionStringFromNumber(major, minor, patch - 1, 0);
-    }
-
-    if (build === 0) {
-        return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.PATCH);
-    }
-    return getVersionStringFromNumber(major, minor, patch, build - 1);
-}
-
-
 
 
 /***/ }),
@@ -13922,6 +13669,92 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 6981:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getStringInput = exports.getJSONInput = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+/**
+ * Safely parse a JSON input to a GitHub Action.
+ *
+ * @param name - The name of the input.
+ * @param options - Options to pass to core.getInput
+ * @param [defaultValue] - A default value to provide for the input.
+ *                             Not required if the {required: true} option is given in the second arg to this function.
+ */
+function getJSONInput(name, options, defaultValue = undefined) {
+    const input = core.getInput(name, options);
+    if (input) {
+        return JSON.parse(input);
+    }
+    return defaultValue;
+}
+exports.getJSONInput = getJSONInput;
+/**
+ * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
+ */
+function getStringInput(name, options, defaultValue = undefined) {
+    const input = core.getInput(name, options);
+    if (!input) {
+        return defaultValue;
+    }
+    return input;
+}
+exports.getStringInput = getStringInput;
+
+
+/***/ }),
+
+/***/ 9873:
+/***/ ((module) => {
+
+"use strict";
+
+const CONST = {
+    GITHUB_OWNER: 'Expensify',
+    APP_REPO: 'App',
+    APPLAUSE_BOT: 'applausebot',
+    OS_BOTIFY: 'OSBotify',
+    LABELS: {
+        STAGING_DEPLOY: 'StagingDeployCash',
+        DEPLOY_BLOCKER: 'DeployBlockerCash',
+        INTERNAL_QA: 'InternalQA',
+    },
+    DATE_FORMAT_STRING: 'yyyy-MM-dd',
+};
+CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
+CONST.APP_REPO_GIT_URL = `git@github.com:${CONST.GITHUB_OWNER}/${CONST.APP_REPO}.git`;
+module.exports = CONST;
+
+
+/***/ }),
+
 /***/ 1547:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -13955,9 +13788,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const child_process_1 = __nccwpck_require__(2081);
-const CONST = __importStar(__nccwpck_require__(4097));
-const sanitizeStringForJSONParse_1 = __importDefault(__nccwpck_require__(9338));
-const VERSION_UPDATER = __importStar(__nccwpck_require__(8007));
+const sanitizeStringForJSONParse_1 = __importDefault(__nccwpck_require__(3902));
+const VERSION_UPDATER = __importStar(__nccwpck_require__(8982));
+const CONST = __nccwpck_require__(9873);
 /**
  * @param [shallowExcludeTag] When fetching the given tag, exclude all history reachable by the shallowExcludeTag (used to make fetch much faster)
  */
@@ -14076,6 +13909,140 @@ exports["default"] = {
     getValidMergedPRs,
     getPullRequestsMergedBetween,
 };
+
+
+/***/ }),
+
+/***/ 3902:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+/* eslint-disable @typescript-eslint/naming-convention */
+const replacer = (str) => ({
+    '\\': '\\\\',
+    '\t': '\\t',
+    '\n': '\\n',
+    '\r': '\\r',
+    '\f': '\\f',
+    '"': '\\"',
+}[str] ?? '');
+/**
+ * Replace any characters in the string that will break JSON.parse for our Git Log output
+ *
+ * Solution partly taken from SO user Gabriel Rodríguez Flores 🙇
+ * https://stackoverflow.com/questions/52789718/how-to-remove-special-characters-before-json-parse-while-file-reading
+ */
+function default_1(inputString) {
+    if (typeof inputString !== 'string') {
+        throw new TypeError('Input must me of type String');
+    }
+    // Replace any newlines and escape backslashes
+    return inputString.replace(/\\|\t|\n|\r|\f|"/g, replacer);
+}
+exports["default"] = default_1;
+
+
+/***/ }),
+
+/***/ 8982:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getPreviousVersion = exports.incrementPatch = exports.incrementMinor = exports.SEMANTIC_VERSION_LEVELS = exports.MAX_INCREMENTS = exports.incrementVersion = exports.getVersionStringFromNumber = exports.getVersionNumberFromString = void 0;
+const SEMANTIC_VERSION_LEVELS = {
+    MAJOR: 'MAJOR',
+    MINOR: 'MINOR',
+    PATCH: 'PATCH',
+    BUILD: 'BUILD',
+};
+exports.SEMANTIC_VERSION_LEVELS = SEMANTIC_VERSION_LEVELS;
+const MAX_INCREMENTS = 99;
+exports.MAX_INCREMENTS = MAX_INCREMENTS;
+/**
+ * Transforms a versions string into a number
+ */
+const getVersionNumberFromString = (versionString) => {
+    const [version, build] = versionString.split('-');
+    const [major, minor, patch] = version.split('.').map((n) => Number(n));
+    return [major, minor, patch, Number.isInteger(Number(build)) ? Number(build) : 0];
+};
+exports.getVersionNumberFromString = getVersionNumberFromString;
+/**
+ * Transforms version numbers components into a version string
+ */
+const getVersionStringFromNumber = (major, minor, patch, build = 0) => `${major}.${minor}.${patch}-${build}`;
+exports.getVersionStringFromNumber = getVersionStringFromNumber;
+/**
+ * Increments a minor version
+ */
+const incrementMinor = (major, minor) => {
+    if (minor < MAX_INCREMENTS) {
+        return getVersionStringFromNumber(major, minor + 1, 0, 0);
+    }
+    return getVersionStringFromNumber(major + 1, 0, 0, 0);
+};
+exports.incrementMinor = incrementMinor;
+/**
+ * Increments a Patch version
+ */
+const incrementPatch = (major, minor, patch) => {
+    if (patch < MAX_INCREMENTS) {
+        return getVersionStringFromNumber(major, minor, patch + 1, 0);
+    }
+    return incrementMinor(major, minor);
+};
+exports.incrementPatch = incrementPatch;
+/**
+ * Increments a build version
+ */
+const incrementVersion = (version, level) => {
+    const [major, minor, patch, build] = getVersionNumberFromString(version);
+    // Majors will always be incremented
+    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
+        return getVersionStringFromNumber(major + 1, 0, 0, 0);
+    }
+    if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
+        return incrementMinor(major, minor);
+    }
+    if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
+        return incrementPatch(major, minor, patch);
+    }
+    if (build < MAX_INCREMENTS) {
+        return getVersionStringFromNumber(major, minor, patch, build + 1);
+    }
+    return incrementPatch(major, minor, patch);
+};
+exports.incrementVersion = incrementVersion;
+function getPreviousVersion(currentVersion, level) {
+    const [major, minor, patch, build] = getVersionNumberFromString(currentVersion);
+    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
+        if (major === 1) {
+            return getVersionStringFromNumber(1, 0, 0, 0);
+        }
+        return getVersionStringFromNumber(major - 1, 0, 0, 0);
+    }
+    if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
+        if (minor === 0) {
+            return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.MAJOR);
+        }
+        return getVersionStringFromNumber(major, minor - 1, 0, 0);
+    }
+    if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
+        if (patch === 0) {
+            return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.MINOR);
+        }
+        return getVersionStringFromNumber(major, minor, patch - 1, 0);
+    }
+    if (build === 0) {
+        return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.PATCH);
+    }
+    return getVersionStringFromNumber(major, minor, patch, build - 1);
+}
+exports.getPreviousVersion = getPreviousVersion;
 
 
 /***/ }),
@@ -16440,34 +16407,6 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	}
 /******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__nccwpck_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__nccwpck_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
