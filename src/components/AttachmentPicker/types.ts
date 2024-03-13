@@ -3,7 +3,12 @@ import type {ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import type CONST from '@src/CONST';
 
-type OpenPickerFunction = (options: {onPicked: (file: FileObject) => void; onCanceled?: () => void}) => void;
+type PickerOptions = {
+    onPicked: (file: FileObject) => void;
+    onCanceled?: () => void;
+};
+
+type OpenPickerFunction = (options: PickerOptions) => void;
 
 type AttachmentPickerProps = {
     /**

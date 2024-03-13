@@ -1,10 +1,8 @@
-import lodashCompact from 'lodash/compact';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Alert, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import RNDocumentPicker from 'react-native-document-picker';
-import type {DocumentPickerOptions, DocumentPickerResponse} from 'react-native-document-picker';
-import type {SupportedPlatforms} from 'react-native-document-picker/lib/typescript/fileTypes';
+import type {DocumentPickerResponse} from 'react-native-document-picker';
 import {launchImageLibrary} from 'react-native-image-picker';
 import type {Asset, Callback, CameraOptions, ImagePickerResponse} from 'react-native-image-picker';
 import type {FileObject} from '@components/AttachmentModal';
@@ -58,12 +56,28 @@ const getImagePickerOptions = (type: string): CameraOptions => {
 };
 
 /**
- * See https://github.com/rnmods/react-native-document-picker#options for DocumentPicker configuration options
+ * Return documentPickerOptions based on the type
+ * @param {String} type
+ * @returns {Object}
  */
-const documentPickerOptions = {
-    type: [RNDocumentPicker.types.allFiles],
-    copyTo: 'cachesDirectory',
-} satisfies DocumentPickerOptions<SupportedPlatforms>;
+
+const getDocumentPickerOptions = (
+    type: string,
+): {
+    type: string[];
+    copyTo: 'cachesDirectory' | 'documentDirectory';
+} => {
+    if (type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
+        return {
+            type: [RNDocumentPicker.types.images],
+            copyTo: 'cachesDirectory',
+        };
+    }
+    return {
+        type: [RNDocumentPicker.types.allFiles],
+        copyTo: 'cachesDirectory',
+    };
+};
 
 /**
  * The data returned from `show` is different on web and mobile, so use this function to ensure the data we
@@ -157,7 +171,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
      */
     const showDocumentPicker = useCallback(
         (): Promise<DocumentPickerResponse[] | void> =>
-            RNDocumentPicker.pick(documentPickerOptions).catch((error) => {
+            RNDocumentPicker.pick(getDocumentPickerOptions(type)).catch((error) => {
                 if (RNDocumentPicker.isCancel(error)) {
                     return;
                 }
@@ -165,30 +179,32 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                 showGeneralAlert(error.message);
                 throw error;
             }),
-        [showGeneralAlert],
+        [showGeneralAlert, type],
     );
 
     const menuItemData: Item[] = useMemo(() => {
-        const data = lodashCompact([
-            !shouldHideCameraOption && {
-                icon: Expensicons.Camera,
-                textTranslationKey: 'attachmentPicker.takePhoto' as TranslationPaths,
-                pickAttachment: () => showImagePicker(launchCamera),
-            },
+        const data: Item[] = [
             {
                 icon: Expensicons.Gallery,
-                textTranslationKey: 'attachmentPicker.chooseFromGallery' as TranslationPaths,
+                textTranslationKey: 'attachmentPicker.chooseFromGallery',
                 pickAttachment: () => showImagePicker(launchImageLibrary),
             },
-            type !== CONST.ATTACHMENT_PICKER_TYPE.IMAGE && {
+            {
                 icon: Expensicons.Paperclip,
-                textTranslationKey: 'attachmentPicker.chooseDocument' as TranslationPaths,
+                textTranslationKey: 'attachmentPicker.chooseDocument',
                 pickAttachment: showDocumentPicker,
             },
-        ]);
+        ];
+        if (!shouldHideCameraOption) {
+            data.push({
+                icon: Expensicons.Camera,
+                textTranslationKey: 'attachmentPicker.takePhoto',
+                pickAttachment: () => showImagePicker(launchCamera),
+            });
+        }
 
         return data;
-    }, [showDocumentPicker, showImagePicker, type, shouldHideCameraOption]);
+    }, [showDocumentPicker, showImagePicker, shouldHideCameraOption]);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: menuItemData.length - 1, isActive: isVisible});
 
@@ -223,13 +239,18 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
      * sends the selected attachment to the caller (parent component)
      */
     const pickAttachment = useCallback(
-        (attachments: Array<Asset & DocumentPickerResponse> = []): Promise<Asset[] | void | DocumentPickerResponse[]> => {
+        (attachments: Array<(Asset & DocumentPickerResponse) | void> = []): Promise<Asset[] | void | DocumentPickerResponse[]> => {
             if (attachments.length === 0) {
                 onCanceled.current();
                 return Promise.resolve();
             }
 
             const fileData = attachments[0];
+
+            if (!fileData) {
+                onCanceled.current();
+                return Promise.resolve();
+            }
 
             if (fileData.width === -1 || fileData.height === -1) {
                 showImageCorruptionAlert();
