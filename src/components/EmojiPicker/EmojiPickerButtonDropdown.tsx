@@ -79,13 +79,15 @@ function EmojiPickerButtonDropdown(
                             style={styles.emojiPickerButtonDropdownIcon}
                             numberOfLines={1}
                         >
-                            {// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                            value || (
-                                <Icon
-                                    src={Expensicons.Emoji}
-                                    fill={StyleUtils.getIconFillColor(CONST.BUTTON_STATES.DISABLED)}
-                                />
-                            )}
+                            {
+                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                value || (
+                                    <Icon
+                                        src={Expensicons.Emoji}
+                                        fill={StyleUtils.getIconFillColor(CONST.BUTTON_STATES.DISABLED)}
+                                    />
+                                )
+                            }
                         </Text>
                         <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, disabled && styles.cursorDisabled, styles.rotate90]}>
                             <Icon

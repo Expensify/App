@@ -41,7 +41,7 @@ function EmojiSkinToneList() {
         // eslint-disable-next-line react-hooks/exhaustive-deps -- only run when preferredSkinTone updates
     }, [preferredSkinTone]);
 
-    const currentSkinTone = getSkinToneEmojiFromIndex(preferredSkinTone as number);
+    const currentSkinTone = getSkinToneEmojiFromIndex(preferredSkinTone);
     return (
         <View style={[styles.flexRow, styles.p3, styles.ph4, styles.emojiPickerContainer]}>
             {!isSkinToneListVisible && (
