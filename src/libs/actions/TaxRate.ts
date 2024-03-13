@@ -1,13 +1,13 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {CreatePolicyTaxParams, SetPolicyTaxesEnabledParams} from '@libs/API/parameters';
+import type {CreatePolicyTaxParams, DeletePolicyTaxesParams, SetPolicyTaxesEnabledParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import * as ErrorUtils from '@src/libs/ErrorUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, TaxRate} from '@src/types/onyx';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 let allPolicies: OnyxCollection<Policy>;
@@ -99,7 +99,7 @@ function createWorkspaceTax(policyID: string, taxRate: TaxRate) {
     API.write(WRITE_COMMANDS.CREATE_POLICY_TAX, parameters, onyxData);
 }
 
-function clearTaxRateError(policyID: string, taxID: string, pendingAction?: PendingAction) {
+function clearTaxRateError(policyID: string, taxID: string, pendingAction?: OnyxCommon.PendingAction) {
     if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
             taxRates: {
@@ -175,9 +175,80 @@ function setPolicyTaxesEnabled(policyID: string, taxesIDsToUpdate: string[], isE
         taxFields: JSON.stringify(taxesIDsToUpdate.map((taxID) => ({taxCode: taxID, enabled: isEnabled}))),
     } satisfies SetPolicyTaxesEnabledParams;
 
-    console.log({parameters});
-
     API.write(WRITE_COMMANDS.SET_POLICY_TAXES_ENABLED, parameters, onyxData);
 }
 
-export {createWorkspaceTax, clearTaxRateError, getNextTaxID, getTaxValueWithPercentage, setPolicyTaxesEnabled};
+type TaxRateDeleteMap = Record<
+    string,
+    | (Pick<TaxRate, 'pendingAction'> & {
+          errors: OnyxCommon.Errors | null;
+      })
+    | null
+>;
+
+/**
+ * API call to delete policy taxes
+ * @param taxesToDelete A tax IDs array to delete
+ */
+function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const policyTaxRates = policy?.taxRates?.taxes;
+
+    if (!policyTaxRates) {
+        throw new Error('Policy or tax rates not found');
+    }
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        taxes: taxesToDelete.reduce((acc, taxID) => {
+                            acc[taxID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: null};
+                            return acc;
+                        }, {} as TaxRateDeleteMap),
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        taxes: taxesToDelete.reduce((acc, taxID) => {
+                            acc[taxID] = null;
+                            return acc;
+                        }, {} as TaxRateDeleteMap),
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        taxes: taxesToDelete.reduce((acc, taxID) => {
+                            acc[taxID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.genericFailureMessage')};
+                            return acc;
+                        }, {} as TaxRateDeleteMap),
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        taxCodes: JSON.stringify(taxesToDelete.map((taxID) => policyTaxRates[taxID].name)),
+    } as DeletePolicyTaxesParams;
+
+    API.write(WRITE_COMMANDS.DELETE_POLICY_TAXES, parameters, onyxData);
+}
+
+export {createWorkspaceTax, clearTaxRateError, getNextTaxID, getTaxValueWithPercentage, setPolicyTaxesEnabled, deletePolicyTaxes};

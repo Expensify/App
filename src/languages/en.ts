@@ -1856,6 +1856,8 @@ export default {
                 valuePercentageRange: 'Please enter a valid percentage between 0 and 100',
                 genericFailureMessage: 'An error occurred while updating the tax rate, please try again.',
             },
+            deleteTax: 'Delete tax',
+            deleteTaxConfirmation: 'Are you sure you want to delete this tax?',
         },
         emptyWorkspace: {
             title: 'Create a workspace',

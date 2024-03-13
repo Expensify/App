@@ -177,3 +177,4 @@ export type {default as OpenPolicyDistanceRatesPageParams} from './OpenPolicyDis
 export type {default as OpenPolicyTaxesPageParams} from './OpenPolicyTaxesPageParams';
 export type {default as CreatePolicyTagsParams} from './CreatePolicyTagsParams';
 export type {default as SetPolicyTaxesEnabledParams} from './SetPolicyTaxesEnabledParams';
+export type {default as DeletePolicyTaxesParams} from './DeletePolicyTaxesParams';

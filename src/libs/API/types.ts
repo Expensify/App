@@ -174,6 +174,7 @@ const WRITE_COMMANDS = {
     DECLINE_JOIN_REQUEST: 'DeclineJoinRequest',
     CREATE_POLICY_TAX: 'CreatePolicyTax',
     SET_POLICY_TAXES_ENABLED: 'SetPolicyTaxesEnabled',
+    DELETE_POLICY_TAXES: 'DeletePolicyTaxes',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -346,6 +347,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DECLINE_JOIN_REQUEST]: Parameters.DeclineJoinRequestParams;
     [WRITE_COMMANDS.CREATE_POLICY_TAX]: Parameters.CreatePolicyTaxParams;
     [WRITE_COMMANDS.SET_POLICY_TAXES_ENABLED]: Parameters.SetPolicyTaxesEnabledParams;
+    [WRITE_COMMANDS.DELETE_POLICY_TAXES]: Parameters.DeletePolicyTaxesParams;
 };
 
 const READ_COMMANDS = {

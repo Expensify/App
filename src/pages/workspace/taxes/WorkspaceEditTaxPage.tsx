@@ -1,6 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -10,7 +11,8 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
+import {deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
+import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -29,6 +31,7 @@ function WorkspaceEditTaxPage({
     const {translate} = useLocalize();
     const currentTaxRate = PolicyUtils.getTaxByID(policy, taxID);
     const {windowWidth} = useWindowDimensions();
+    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
     const toggle = () => {
         // TODO: Backend call doesn't exist yet
@@ -39,12 +42,21 @@ function WorkspaceEditTaxPage({
         setPolicyTaxesEnabled(policy.id, [taxID], !currentTaxRate?.isDisabled);
     };
 
+    const deleteTax = () => {
+        if (!policy?.id) {
+            return;
+        }
+        deletePolicyTaxes(policy?.id, [taxID]);
+        setIsDeleteModalVisible(false);
+        Navigation.goBack();
+    };
+
     const threeDotsMenuItems = useMemo(() => {
         const menuItems = [
             {
                 icon: Expensicons.Trashcan,
                 text: translate('common.delete'),
-                onSelected: () => {},
+                onSelected: () => setIsDeleteModalVisible(true),
             },
         ];
         return menuItems;
@@ -96,6 +108,16 @@ function WorkspaceEditTaxPage({
                     />
                 </View>
             </View>
+            <ConfirmModal
+                title={translate('workspace.taxes.deleteTax')}
+                isVisible={isDeleteModalVisible}
+                onConfirm={deleteTax}
+                onCancel={() => setIsDeleteModalVisible(false)}
+                prompt={translate('workspace.taxes.deleteTaxConfirmation')}
+                confirmText={translate('common.delete')}
+                cancelText={translate('common.cancel')}
+                danger
+            />
         </ScreenWrapper>
     );
 }
