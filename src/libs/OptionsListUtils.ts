@@ -1422,6 +1422,24 @@ function createOptionList(reports: OnyxCollection<Report>, personalDetails: Onyx
     };
 }
 
+function createOptionFromReport(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>) {
+    const accountIDs = report.participantAccountIDs ?? [];
+
+    return {
+        item: report,
+        ...createOption(
+            accountIDs,
+            personalDetails,
+            report,
+            {},
+            {
+                showChatPreviewLine: true,
+                forcePolicyNamePreview: true,
+            },
+        ),
+    };
+}
+
 /**
  * filter options based on specific conditions
  */
@@ -2139,6 +2157,7 @@ export {
     transformedTaxRates,
     getShareLogOptions,
     createOptionList,
+    createOptionFromReport,
 };
 
 export type {MemberForList, CategorySection, GetOptions, OptionList, SearchOption, PayeePersonalDetails};

@@ -1,7 +1,12 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {OptionList} from '@libs/OptionsListUtils';
-import {usePersonalDetails, useReports} from './OnyxProvider';
+import * as ReportUtils from '@libs/ReportUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report} from '@src/types/onyx';
+import {usePersonalDetails} from './OnyxProvider';
 
 type OptionsListContextProps = {
     options: OptionList;
@@ -9,7 +14,11 @@ type OptionsListContextProps = {
     areOptionsInitialized: boolean;
 };
 
-type OptionsListProviderProps = {
+type OptionsListProviderOnyxProps = {
+    reports: OnyxCollection<Report>;
+};
+
+type OptionsListProviderProps = OptionsListProviderOnyxProps & {
     /** Actual content wrapped by this component */
     children: React.ReactNode;
 };
@@ -23,14 +32,34 @@ const OptionsListContext = createContext<OptionsListContextProps>({
     areOptionsInitialized: false,
 });
 
-function OptionsListContextProvider({children}: OptionsListProviderProps) {
+function OptionsListContextProvider({reports, children}: OptionsListProviderProps) {
     const areOptionsInitialized = useRef(false);
     const [options, setOptions] = useState<OptionList>({
         reports: [],
         personalDetails: [],
     });
     const personalDetails = usePersonalDetails();
-    const reports = useReports();
+
+    useEffect(() => {
+        // there is no need to update the options if the options are not initialized
+        if (!areOptionsInitialized.current) {
+            return;
+        }
+
+        const lastUpdatedReport = ReportUtils.getLastUpdatedReport();
+        const newOption = OptionsListUtils.createOptionFromReport(lastUpdatedReport, personalDetails);
+        const replaceIndex = options.reports.findIndex((option) => option.reportID === lastUpdatedReport.reportID);
+
+        if (replaceIndex === undefined) {
+            return;
+        }
+
+        setOptions((prevOptions) => {
+            const newOptions = {...prevOptions};
+            newOptions.reports[replaceIndex] = newOption;
+            return newOptions;
+        });
+    }, [options.reports, personalDetails, reports]);
 
     const loadOptions = useCallback(() => {
         const optionLists = OptionsListUtils.createOptionList(reports, personalDetails);
@@ -77,4 +106,10 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     };
 };
 
-export {OptionsListContextProvider, useOptionsListContext, useOptionsList};
+export default withOnyx<OptionsListProviderProps, OptionsListProviderOnyxProps>({
+    reports: {
+        key: ONYXKEYS.COLLECTION.REPORT,
+    },
+})(OptionsListContextProvider);
+
+export {useOptionsListContext, useOptionsList};

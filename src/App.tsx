@@ -15,7 +15,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import OnyxProvider from './components/OnyxProvider';
-import {OptionsListContextProvider} from './components/OptionListContextProvider';
+import OptionsListContextProvider from './components/OptionListContextProvider';
 import PopoverContextProvider from './components/PopoverProvider';
 import SafeArea from './components/SafeArea';
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
