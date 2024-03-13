@@ -352,10 +352,7 @@ function ReportScreen({
             ComposerActions.setShouldShowComposeInput(true);
         });
         return () => {
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            if (interactionTask) {
-                interactionTask.cancel();
-            }
+            interactionTask.cancel();
             if (!didSubscribeToReportLeavingEvents) {
                 return;
             }
