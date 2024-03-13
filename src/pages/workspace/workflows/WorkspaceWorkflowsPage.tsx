@@ -207,7 +207,10 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
-        <View style={styles.mt7} key={`toggleSettingOptionItem-${index}`}>
+        <View
+            style={styles.mt7}
+            key={`toggleSettingOptionItem-${index}`}
+        >
             <ToggleSettingOptionRow
                 icon={item.icon}
                 title={item.title}
