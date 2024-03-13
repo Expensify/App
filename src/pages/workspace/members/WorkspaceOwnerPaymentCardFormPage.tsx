@@ -58,7 +58,29 @@ function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFor
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CHANGE_OWNER_PAYMENT_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CHANGE_OWNER_PAYMENT_CARD_FORM> => {
         const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
 
-        // TODO Implement validation for the form
+        if (values.nameOnCard && !ValidationUtils.isValidLegalName(values.nameOnCard)) {
+            errors.nameOnCard = 'addDebitCardPage.error.invalidName';
+        }
+
+        if (values.cardNumber && !ValidationUtils.isValidDebitCard(values.cardNumber.replace(/ /g, ''))) {
+            errors.cardNumber = 'addDebitCardPage.error.debitCardNumber';
+        }
+
+        if (values.expirationDate && !ValidationUtils.isValidExpirationDate(values.expirationDate)) {
+            errors.expirationDate = 'addDebitCardPage.error.expirationDate';
+        }
+
+        if (values.securityCode && !ValidationUtils.isValidSecurityCode(values.securityCode)) {
+            errors.securityCode = 'addDebitCardPage.error.securityCode';
+        }
+
+        if (values.addressName && !ValidationUtils.isValidAddress(values.addressName)) {
+            errors.addressName = 'addDebitCardPage.error.addressStreet';
+        }
+
+        if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
+            errors.addressZipCode = 'addDebitCardPage.error.addressZipCode';
+        }
 
         return errors;
     }
