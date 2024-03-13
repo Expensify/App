@@ -16,7 +16,6 @@ import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
 import Text from './Text';
 
 type PopoverMenuItem = MenuItemProps & {
-
     /** Text label */
     text: string;
 
