@@ -91,6 +91,7 @@ function IOURequestStepScan({
         }
 
         navigator.mediaDevices.getUserMedia({video: {facingMode: {exact: 'environment'}, zoom: {ideal: 1}}}).then((stream) => {
+            _.forEach(stream.getTracks(), (track) => track.stop());
             // Only Safari 17+ supports zoom constraint
             if (Browser.isMobileSafari() && stream.getTracks().length > 0) {
                 const deviceId = _.chain(stream.getTracks())
@@ -103,7 +104,6 @@ function IOURequestStepScan({
                     return;
                 }
             }
-            _.forEach(stream.getTracks(), (track) => track.stop());
             if (!navigator.mediaDevices.enumerateDevices) {
                 setVideoConstraints({facingMode: {exact: 'environment'}});
                 return;
