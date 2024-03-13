@@ -16,6 +16,7 @@ import type {Locale, ReportAction, ReportActionReactions} from '@src/types/onyx'
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import AddReactionBubble from './AddReactionBubble';
 import EmojiReactionBubble from './EmojiReactionBubble';
+import type {OpenPickerCallback} from './QuickEmojiReactions/types';
 import ReactionTooltipContent from './ReactionTooltipContent';
 
 type ReportActionItemEmojiReactionsProps = WithCurrentUserPersonalDetailsProps & {
@@ -34,6 +35,15 @@ type ReportActionItemEmojiReactionsProps = WithCurrentUserPersonalDetailsProps &
      * hence this function asks to toggle the reaction by emoji.
      */
     toggleReaction: (emoji: Emoji) => void;
+
+    /**
+     * Function to call when the user presses on the add reaction button.
+     * This is only called when the user presses on the button, not on the
+     * reaction bubbles.
+     * This is optional, because we don't need it everywhere.
+     * For example in the ReportActionContextMenu we don't need it.
+     */
+    onPressOpenPicker: (openPicker: OpenPickerCallback) => void;
 
     /** We disable reacting with emojis on report actions that have errors */
     shouldBlockReactions?: boolean;
@@ -79,6 +89,7 @@ function ReportActionItemEmojiReactions({
     reportAction,
     currentUserPersonalDetails,
     toggleReaction,
+    onPressOpenPicker,
     emojiReactions = {},
     shouldBlockReactions = false,
     preferredLocale = CONST.LOCALES.DEFAULT,
@@ -170,6 +181,7 @@ function ReportActionItemEmojiReactions({
                 })}
                 {!shouldBlockReactions && (
                     <AddReactionBubble
+                        onPressOpenPicker={onPressOpenPicker}
                         onSelectEmoji={toggleReaction}
                         reportAction={reportAction}
                         setIsEmojiPickerActive={setIsEmojiPickerActive}

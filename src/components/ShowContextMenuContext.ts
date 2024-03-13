@@ -15,10 +15,12 @@ type ShowContextMenuContextProps = {
     action: OnyxEntry<ReportAction>;
     transactionThreadReport: OnyxEntry<Report>;
     checkIfContextMenuActive: () => void;
+    onShowContextMenu: (callback: () => void) => void;
 };
 
 const ShowContextMenuContext = createContext<ShowContextMenuContextProps>({
     anchor: null,
+    onShowContextMenu: (callback) => callback(),
     report: null,
     action: null,
     transactionThreadReport: null,
@@ -58,7 +60,7 @@ function showContextMenuForReport(
         action?.reportActionID,
         ReportUtils.getOriginalReportID(reportID, action),
         undefined,
-        checkIfContextMenuActive,
+        undefined,
         checkIfContextMenuActive,
         isArchivedRoom,
     );

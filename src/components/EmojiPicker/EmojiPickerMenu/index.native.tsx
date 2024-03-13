@@ -1,9 +1,10 @@
 import type {ListRenderItem} from '@shopify/flash-list';
 import lodashDebounce from 'lodash/debounce';
-import React, {useCallback} from 'react';
+import React, {useCallback, useContext} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import {runOnUI, scrollTo} from 'react-native-reanimated';
+import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -114,9 +115,25 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
         },
         [styles, windowWidth, preferredSkinTone, singleExecution, onEmojiSelected, translate, activeEmoji],
     );
+    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
+    const onLayout = useCallback(
+        (event) => {
+            const {height} = event.nativeEvent.layout;
+            actionSheetAwareScrollViewContext.transitionActionSheetState({
+                type: ActionSheetAwareScrollView.Actions.MEASURE_EMOJI_PICKER_POPOVER,
+                payload: {
+                    popoverHeight: height,
+                },
+            });
+        },
+        [actionSheetAwareScrollViewContext],
+    );
 
     return (
-        <View style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(shouldUseNarrowLayout)]}>
+        <View
+            onLayout={onLayout}
+            style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(shouldUseNarrowLayout)]}
+        >
             <View style={[styles.ph4, styles.pb1, styles.pt2]}>
                 <TextInput
                     label={translate('common.search')}

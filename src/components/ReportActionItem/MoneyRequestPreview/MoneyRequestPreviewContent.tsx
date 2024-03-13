@@ -56,6 +56,7 @@ function MoneyRequestPreviewContent({
     containerStyles,
     walletTerms,
     checkIfContextMenuActive = () => {},
+    onShowContextMenu = () => {},
     shouldShowPendingConversionMessage = false,
     isHovered = false,
     isWhisper = false,
@@ -137,7 +138,7 @@ function MoneyRequestPreviewContent({
     };
 
     const showContextMenu = (event: GestureResponderEvent) => {
-        showContextMenuForReport(event, contextMenuAnchor, reportID, action, checkIfContextMenuActive);
+        onShowContextMenu(() => showContextMenuForReport(event, contextMenuAnchor, reportID, action, checkIfContextMenuActive));
     };
 
     const getPreviewHeaderText = (): string => {

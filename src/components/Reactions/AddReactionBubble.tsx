@@ -57,9 +57,10 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
 
     const onPress = () => {
-        const openPicker = (refParam?: PickerRefElement, anchorOrigin?: AnchorOrigin) => {
+        const openPicker = (refParam?: PickerRefElement, anchorOrigin?: AnchorOrigin, onHide = () => {}) => {
             EmojiPickerAction.showEmojiPicker(
                 () => {
+                    onHide();
                     setIsEmojiPickerActive?.(false);
                 },
                 (emojiCode, emojiObject) => {

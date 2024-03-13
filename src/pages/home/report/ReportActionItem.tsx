@@ -6,6 +6,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import {AttachmentContext} from '@components/AttachmentContext';
+import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import Button from '@components/Button';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
@@ -16,6 +17,7 @@ import KYCWall from '@components/KYCWall';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {useBlockedFromConcierge, usePersonalDetails, useReportActionsDrafts} from '@components/OnyxProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+import type {OpenPickerCallback} from '@components/Reactions/QuickEmojiReactions/types';
 import ReportActionItemEmojiReactions from '@components/Reactions/ReportActionItemEmojiReactions';
 import RenderHTML from '@components/RenderHTML';
 import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
@@ -186,6 +188,7 @@ function ReportActionItem({
     shouldUseThreadDividerLine = false,
     linkedTransactionRouteError,
 }: ReportActionItemProps) {
+    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const blockedFromConcierge = useBlockedFromConcierge();
@@ -321,7 +324,60 @@ function ReportActionItem({
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(action.reportActionID));
-    }, [action.reportActionID]);
+
+        actionSheetAwareScrollViewContext.transitionActionSheetState({
+            type: ActionSheetAwareScrollView.Actions.CLOSE_POPOVER,
+        });
+    }, [actionSheetAwareScrollViewContext, action.reportActionID]);
+
+    const handlePressOpenPicker = useCallback(
+        (openPicker: OpenPickerCallback) => {
+            if (!(popoverAnchorRef.current && 'measureInWindow' in popoverAnchorRef.current)) {
+                return;
+            }
+
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            popoverAnchorRef.current.measureInWindow((_fx, fy, _width, height) => {
+                actionSheetAwareScrollViewContext.transitionActionSheetState({
+                    type: ActionSheetAwareScrollView.Actions.OPEN_EMOJI_PICKER_POPOVER,
+                    payload: {
+                        fy,
+                        height,
+                    },
+                });
+
+                openPicker(undefined, undefined, () => {
+                    actionSheetAwareScrollViewContext.transitionActionSheetState({
+                        type: ActionSheetAwareScrollView.Actions.CLOSE_EMOJI_PICKER_POPOVER,
+                    });
+                });
+            });
+        },
+        [actionSheetAwareScrollViewContext],
+    );
+
+    const handleShowContextMenu = useCallback(
+        (callback: () => void) => {
+            if (!(popoverAnchorRef.current && 'measureInWindow' in popoverAnchorRef.current)) {
+                return;
+            }
+
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            popoverAnchorRef.current?.measureInWindow((_fx, fy, _width, height) => {
+                actionSheetAwareScrollViewContext.transitionActionSheetState({
+                    type: ActionSheetAwareScrollView.Actions.OPEN_POPOVER,
+                    payload: {
+                        popoverHeight: 0,
+                        fy,
+                        height,
+                    },
+                });
+
+                callback();
+            });
+        },
+        [actionSheetAwareScrollViewContext],
+    );
 
     /**
      * Show the ReportActionContextMenu modal popover.
@@ -335,29 +391,31 @@ function ReportActionItem({
                 return;
             }
 
-            setIsContextMenuActive(true);
-            const selection = SelectionScraper.getCurrentSelection();
-            ReportActionContextMenu.showContextMenu(
-                CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
-                event,
-                selection,
-                popoverAnchorRef.current,
-                report.reportID,
-                action.reportActionID,
-                originalReportID,
-                draftMessage ?? '',
-                () => setIsContextMenuActive(true),
-                toggleContextMenuFromActiveReportAction,
-                ReportUtils.isArchivedRoom(originalReport),
-                ReportUtils.chatIncludesChronos(originalReport),
-                false,
-                false,
-                [],
-                false,
-                setIsEmojiPickerActive as () => void,
-            );
+            handleShowContextMenu(() => {
+                setIsContextMenuActive(true);
+                const selection = SelectionScraper.getCurrentSelection();
+                ReportActionContextMenu.showContextMenu(
+                    CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
+                    event,
+                    selection,
+                    popoverAnchorRef.current,
+                    report.reportID,
+                    action.reportActionID,
+                    originalReportID,
+                    draftMessage ?? '',
+                    () => setIsContextMenuActive(true),
+                    toggleContextMenuFromActiveReportAction,
+                    ReportUtils.isArchivedRoom(originalReport),
+                    ReportUtils.chatIncludesChronos(originalReport),
+                    false,
+                    false,
+                    [],
+                    false,
+                    setIsEmojiPickerActive as () => void,
+                );
+            });
         },
-        [draftMessage, action, report.reportID, toggleContextMenuFromActiveReportAction, originalReport, originalReportID],
+        [draftMessage, action, report.reportID, toggleContextMenuFromActiveReportAction, originalReport, originalReportID, handleShowContextMenu],
     );
 
     // Handles manual scrolling to the bottom of the chat when the last message is an actionable whisper and it's resolved.
@@ -386,8 +444,9 @@ function ReportActionItem({
             action,
             transactionThreadReport,
             checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
+            onShowContextMenu: handleShowContextMenu,
         }),
-        [report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport],
+        [report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport, handleShowContextMenu],
     );
 
     const attachmentContextValue = useMemo(() => ({reportID: report.reportID, type: CONST.ATTACHMENT_TYPE.REPORT}), [report.reportID]);
@@ -530,6 +589,7 @@ function ReportActionItem({
                     isMostRecentIOUReportAction={isMostRecentIOUReportAction}
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef.current}
+                    onShowContextMenu={handleShowContextMenu}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     style={displayAsGroup ? [] : [styles.mt2]}
                     isWhisper={isWhisper}
@@ -546,6 +606,7 @@ function ReportActionItem({
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
                     action={action}
                     isHovered={hovered}
+                    onShowContextMenu={handleShowContextMenu}
                     contextMenuAnchor={popoverAnchorRef.current}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     isWhisper={isWhisper}
@@ -561,6 +622,7 @@ function ReportActionItem({
                         chatReportID={report.reportID}
                         action={action}
                         isHovered={hovered}
+                        onShowContextMenu={handleShowContextMenu}
                         contextMenuAnchor={popoverAnchorRef.current}
                         checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                         policyID={report.policyID ?? ''}
@@ -707,6 +769,7 @@ function ReportActionItem({
                 {!ReportActionsUtils.isMessageDeleted(action) && (
                     <View style={draftMessageRightAlign}>
                         <ReportActionItemEmojiReactions
+                            onPressOpenPicker={handlePressOpenPicker}
                             reportAction={action}
                             emojiReactions={emojiReactions}
                             shouldBlockReactions={hasErrors}

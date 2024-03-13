@@ -1,4 +1,5 @@
 import type {ReactNode} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import type CONST from '@src/CONST';
@@ -40,6 +41,12 @@ type AttachmentPickerProps = {
 
     /** The types of files that can be selected with this picker. */
     type?: ValueOf<typeof CONST.ATTACHMENT_PICKER_TYPE>;
+
+    /**
+     * Optional callback attached to popover's children container.
+     * Invoked on Popover mount and layout changes.
+     */
+    onLayout?: ((event: LayoutChangeEvent) => void) | undefined;
 };
 
 export default AttachmentPickerProps;

@@ -7,6 +7,7 @@ import {InteractionManager} from 'react-native';
 import type {GestureResponderEvent, Text, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
+import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MiniQuickEmojiReactions from '@components/Reactions/MiniQuickEmojiReactions';
 import QuickEmojiReactions from '@components/Reactions/QuickEmojiReactions';
@@ -30,8 +31,8 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Beta, ReportAction, ReportActionReactions, Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {clearActiveReportAction, hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
-import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /** Gets the HTML version of the message in an action */
 function getActionHtml(reportAction: OnyxEntry<ReportAction>): string {
@@ -73,6 +74,7 @@ type ContextMenuActionPayload = {
     draftMessage: string;
     selection: string;
     close: () => void;
+    transitionActionSheetState: (params: {type: string; payload?: Record<string, unknown>}) => void;
     openContextMenu: () => void;
     interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
     anchor?: MutableRefObject<HTMLDivElement | View | Text | null>;
@@ -229,7 +231,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         icon: Expensicons.Pencil,
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && !isArchivedRoom && !isChronosReport,
-        onPress: (closePopover, {reportID, reportAction, draftMessage}) => {
+        onPress: (closePopover, {reportID, reportAction, draftMessage, transitionActionSheetState}) => {
             if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                 hideContextMenu(false);
                 const childReportID = reportAction?.childReportID ?? '0';
@@ -247,6 +249,10 @@ const ContextMenuActions: ContextMenuAction[] = [
             };
 
             if (closePopover) {
+                transitionActionSheetState({
+                    type: ActionSheetAwareScrollView.Actions.EDIT_REPORT,
+                });
+
                 // Hide popover, then call editAction
                 hideContextMenu(false, editAction);
                 return;
@@ -490,10 +496,21 @@ const ContextMenuActions: ContextMenuAction[] = [
             !isArchivedRoom &&
             !isChronosReport &&
             !ReportActionsUtils.isMessageDeleted(reportAction),
-        onPress: (closePopover, {reportID, reportAction}) => {
+        onPress: (closePopover, {reportID, reportAction, transitionActionSheetState}) => {
             if (closePopover) {
+                transitionActionSheetState({
+                    type: ActionSheetAwareScrollView.Actions.SHOW_DELETE_CONFIRM_MODAL,
+                });
+
+                const onClose = () => {
+                    transitionActionSheetState({
+                        type: ActionSheetAwareScrollView.Actions.CLOSE_CONFIRM_MODAL,
+                    });
+                    clearActiveReportAction();
+                };
+
                 // Hide popover, then call showDeleteConfirmModal
-                hideContextMenu(false, () => showDeleteModal(reportID, reportAction));
+                hideContextMenu(false, () => showDeleteModal(reportID, reportAction, true, onClose, onClose));
                 return;
             }
 

@@ -1,5 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {memo, useEffect, useRef} from 'react';
+import React, {memo, useContext, useEffect, useRef} from 'react';
+import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -30,11 +31,49 @@ type EmojiPickerButtonProps = {
 };
 
 function EmojiPickerButton({isDisabled = false, id = '', emojiPickerID = '', shiftVertical = 0, onModalHide, onEmojiSelected}: EmojiPickerButtonProps) {
+    const actionSheetContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
     const {translate} = useLocalize();
     const isFocused = useIsFocused();
+
+    const onPress = () => {
+        if (!isFocused) {
+            return;
+        }
+
+        actionSheetContext.transitionActionSheetState({
+            type: ActionSheetAwareScrollView.Actions.OPEN_EMOJI_PICKER_POPOVER_STANDALONE,
+        });
+
+        const onHide = () => {
+            actionSheetContext.transitionActionSheetState({
+                type: ActionSheetAwareScrollView.Actions.CLOSE_EMOJI_PICKER_POPOVER_STANDALONE,
+            });
+
+            if (onModalHide) {
+                onModalHide();
+            }
+        };
+
+        if (!EmojiPickerAction.emojiPickerRef.current?.isEmojiPickerVisible) {
+            EmojiPickerAction.showEmojiPicker(
+                onHide,
+                onEmojiSelected,
+                emojiPopoverAnchor,
+                {
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    shiftVertical,
+                },
+                () => {},
+                emojiPickerID,
+            );
+        } else {
+            EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
+        }
+    };
 
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
 
@@ -44,27 +83,7 @@ function EmojiPickerButton({isDisabled = false, id = '', emojiPickerID = '', shi
                 ref={emojiPopoverAnchor}
                 style={({hovered, pressed}) => [styles.chatItemEmojiButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
                 disabled={isDisabled}
-                onPress={() => {
-                    if (!isFocused) {
-                        return;
-                    }
-                    if (!EmojiPickerAction.emojiPickerRef?.current?.isEmojiPickerVisible) {
-                        EmojiPickerAction.showEmojiPicker(
-                            onModalHide,
-                            onEmojiSelected,
-                            emojiPopoverAnchor,
-                            {
-                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                                shiftVertical,
-                            },
-                            () => {},
-                            emojiPickerID,
-                        );
-                    } else {
-                        EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
-                    }
-                }}
+                onPress={onPress}
                 id={id}
                 accessibilityLabel={translate('reportActionCompose.emoji')}
             >
