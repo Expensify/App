@@ -2,7 +2,7 @@ import React, {memo} from 'react';
 import PDFView from '@components/PDFView';
 import {attachmentViewPdfDefaultProps, attachmentViewPdfPropTypes} from './propTypes';
 
-function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, onPress, onToggleKeyboard, onLoadComplete, errorLabelStyles, style, isUsedAsChatAttachment, onError}) {
+function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, onPress, onToggleKeyboard, onLoadComplete, errorLabelStyles, style, isUsedAsChatAttachment}) {
     return (
         <PDFView
             onPress={onPress}
@@ -13,7 +13,7 @@ function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, onPress, onTogg
             onToggleKeyboard={onToggleKeyboard}
             onLoadComplete={onLoadComplete}
             errorLabelStyles={errorLabelStyles}
-            onError={onError}
+            isUsedAsChatAttachment={isUsedAsChatAttachment}
         />
     );
 }

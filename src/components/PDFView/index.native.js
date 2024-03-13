@@ -41,7 +41,7 @@ const propTypes = {
 const THUMBNAIL_HEIGHT = 250;
 const THUMBNAIL_WIDTH = 250;
 
-function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused, onScaleChanged, sourceURL, errorLabelStyles, onError, isUsedAsChatAttachment}) {
+function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused, onScaleChanged, sourceURL, errorLabelStyles, isUsedAsChatAttachment}) {
     const [shouldRequestPassword, setShouldRequestPassword] = useState(false);
     const [shouldAttemptPDFLoad, setShouldAttemptPDFLoad] = useState(true);
     const [shouldShowLoadingIndicator, setShouldShowLoadingIndicator] = useState(true);
@@ -94,7 +94,6 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         setShouldShowLoadingIndicator(false);
         setShouldRequestPassword(false);
         setShouldAttemptPDFLoad(false);
-        onError(error);
     };
 
     /**
@@ -194,10 +193,10 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
             </View>
         );
     }
-    // // uncomment this code to see failedToLoadPDF
-    // if (failedToLoadPDF) {
-    //     return rendeFailedToLoadPDF();
-    // }
+
+    if (failedToLoadPDF) {
+        return rendeFailedToLoadPDF();
+    }
 
     return onPress && !successToLoadPDF ? (
         <PressableWithoutFeedback
