@@ -61,6 +61,16 @@ const registerListener = (session: Session, options: Options, callback: (error: 
             item.setSavePath(filePath);
         }
 
+        item.on('updated', (doneEvent: Event, state: string) => {
+            if (state !== 'interrupted') {
+                return;
+            }
+
+            const errorMessage = `The download of ${path.basename(filePath)} was interrupted`;
+            item.cancel();
+            callback(new Error(errorMessage));
+        });
+
         item.on('done', (doneEvent: Event, state: string) => {
             downloadItems.delete(item);
 
