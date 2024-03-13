@@ -9,7 +9,7 @@ import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
+import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import * as Policy from '@userActions/Policy';
 import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
@@ -21,7 +21,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscree
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import ToggleSettingOptionRow from './workflows/ToggleSettingsOptionRow';
 
-type WorkspaceMoreFeaturesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.MORE_FEATURES>;
+type WorkspaceMoreFeaturesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.MORE_FEATURES>;
 
 type Item = {
     icon: IconAsset;

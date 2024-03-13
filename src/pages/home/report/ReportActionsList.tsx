@@ -255,9 +255,18 @@ function ReportActionsList({
             setMessageManuallyMarkedUnread(0);
         });
 
+        const deletedReportActionSubscription = DeviceEventEmitter.addListener(`deletedReportAction_${report.reportID}`, (reportActionID) => {
+            if (cacheUnreadMarkers.get(report.reportID) !== reportActionID) {
+                return;
+            }
+
+            setMessageManuallyMarkedUnread(new Date().getTime());
+        });
+
         return () => {
             unreadActionSubscription.remove();
             readNewestActionSubscription.remove();
+            deletedReportActionSubscription.remove();
         };
     }, [report.reportID]);
 
