@@ -78,7 +78,7 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
         userToInvite,
         headerMessage,
     } = useMemo(() => {
-        if (!isScreenTransitionEnd) {
+        if (!areOptionsInitialized) {
             return {
                 recentReports: [],
                 personalDetails: [],
@@ -89,7 +89,7 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
         const optionList = OptionsListUtils.getSearchOptions(options, debouncedSearchValue.trim(), betas ?? []);
         const header = OptionsListUtils.getHeaderMessage(optionList.recentReports.length + optionList.personalDetails.length !== 0, Boolean(optionList.userToInvite), debouncedSearchValue);
         return {...optionList, headerMessage: header};
-    }, [isScreenTransitionEnd, options, debouncedSearchValue, betas]);
+    }, [areOptionsInitialized, options, debouncedSearchValue, betas]);
 
     const sections = useMemo((): SearchPageSectionList => {
         const newSections: SearchPageSectionList = [];
@@ -157,7 +157,7 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
                     />
                     <View style={[themeStyles.flex1, themeStyles.w100, safeAreaPaddingBottomStyle]}>
                         <SelectionList<OptionData>
-                            sections={didScreenTransitionEnd || areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
+                            sections={(!areOptionsInitialized && didScreenTransitionEnd) || areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
                             ListItem={UserListItem}
                             textInputValue={searchValue}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
@@ -167,7 +167,7 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
                             onLayout={setPerformanceTimersEnd}
                             autoFocus
                             onSelectRow={selectReport}
-                            showLoadingPlaceholder={!didScreenTransitionEnd}
+                            showLoadingPlaceholder={areOptionsInitialized && debouncedSearchValue.trim() === '' ? sections.length === 0 : !didScreenTransitionEnd}
                             footerContent={SearchPageFooterInstance}
                             isLoadingNewOptions={isSearchingForReports ?? undefined}
                         />
