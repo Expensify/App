@@ -4,6 +4,8 @@ import {flushSync} from 'react-dom';
 // eslint-disable-next-line no-restricted-imports
 import type {DimensionValue, NativeSyntheticEvent, Text as RNText, TextInput, TextInputKeyPressEventData, TextInputSelectionChangeEventData} from 'react-native';
 import {StyleSheet, View} from 'react-native';
+import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
+import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import Text from '@components/Text';
 import useHtmlPaste from '@hooks/useHtmlPaste';
 import useIsScrollBarVisible from '@hooks/useIsScrollBarVisible';
@@ -19,8 +21,6 @@ import * as FileUtils from '@libs/fileDownload/FileUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import CONST from '@src/CONST';
-import type { AnimatedMarkdownTextInputRef } from '@components/RNMarkdownTextInput';
-import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import type {ComposerProps} from './types';
 
 /**
