@@ -452,7 +452,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                                 disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                                             />
                                             {!customListHeader ? (
-                                                <View style={[styles.flex1]}>
+                                                <View>
                                                     <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
                                                 </View>
                                             ) : null}
