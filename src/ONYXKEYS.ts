@@ -271,6 +271,9 @@ const ONYXKEYS = {
     /** Indicates whether an forced upgrade is required */
     UPDATE_REQUIRED: 'updateRequired',
 
+    /** Indicates whether an forced reset is required a.k.a. clear Oynx data without signing the user out */
+    RESET_REQUIRED: 'resetRequired',
+
     /** Stores the logs of the app for debugging purposes */
     LOGS: 'logs',
 
@@ -583,6 +586,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.LAST_VISITED_PATH]: string | undefined;
     [ONYXKEYS.RECENTLY_USED_REPORT_FIELDS]: OnyxTypes.RecentlyUsedReportFields;
     [ONYXKEYS.UPDATE_REQUIRED]: boolean;
+    [ONYXKEYS.RESET_REQUIRED]: boolean;
     [ONYXKEYS.PLAID_CURRENT_EVENT]: string;
     [ONYXKEYS.LOGS]: Record<number, OnyxTypes.Log>;
     [ONYXKEYS.SHOULD_STORE_LOGS]: boolean;
