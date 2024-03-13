@@ -7,7 +7,10 @@ type OnboardingLayout = {
 };
 
 /**
- * Onboarding layout for medium screen width is narrowed similarly as on web/desktop.
+ * The main difference between useOnboardingLayout and useWindowDimension is that
+ * useWindowDimension hardcodes isSmallScreenWidth, isMediumScreenWidth and
+ * isLargeScreenWidth on native platforms, while this hook below always takes
+ * screen width into consideration, no matter the platform.
  */
 export default function useOnboardingLayout(): OnboardingLayout {
     const {width: windowWidth} = useWindowDimensions();
