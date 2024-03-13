@@ -135,6 +135,7 @@ function SettlementButton({
         PaymentMethods.openWalletPage();
     }, []);
 
+    const policy = ReportUtils.getPolicy(policyID);
     const session = useSession();
     const chatReport = ReportUtils.getReport(chatReportID);
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport as OnyxEntry<Report>);
@@ -183,7 +184,9 @@ function SettlementButton({
         if (isExpenseReport && shouldShowPaywithExpensifyOption) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.VBBA]);
         }
-        buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
+        if (isExpenseReport && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
+            buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
+        }
 
         if (shouldShowApproveButton) {
             buttonOptions.push(approveButtonOption);
