@@ -109,7 +109,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
                 pendingAction: policyMember.pendingAction ?? isAuthorizedPayer ? policy?.pendingFields?.reimburserEmail : null,
             };
 
-            if (policy?.reimburserEmail === details?.login ?? policy?.reimburserAccountID === accountID) {
+            if (policy?.reimburserEmail === details?.login) {
                 authorizedPayerDetails.push(formattedMember);
             } else {
                 policyAdminDetails.push(formattedMember);
@@ -147,16 +147,17 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
         }
 
         sectionsArray.push({
+            title: undefined,
             data: formattedAuthorizedPayer,
             shouldShow: true,
-            indexOffset: formattedPolicyAdmins.length,
+            indexOffset: 0,
         });
 
         sectionsArray.push({
             title: translate('workflowsPayerPage.admins'),
             data: formattedPolicyAdmins,
             shouldShow: true,
-            indexOffset: 0,
+            indexOffset: formattedPolicyAdmins.length,
         });
         return sectionsArray;
     }, [formattedPolicyAdmins, formattedAuthorizedPayer, translate, searchTerm]);
@@ -170,6 +171,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
 
     const setPolicyAuthorizedPayer = (member: MemberOption) => {
         const authorizedPayerEmail = personalDetails?.[member.accountID]?.login ?? '';
+
         if (policy?.reimburserEmail === authorizedPayerEmail) {
             return;
         }
