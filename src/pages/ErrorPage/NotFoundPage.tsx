@@ -4,15 +4,18 @@ import ScreenWrapper from '@components/ScreenWrapper';
 
 type NotFoundPageProps = {
     onBackButtonPress?: () => void;
+
+    shouldForceFullScreen?: boolean;
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-function NotFoundPage({onBackButtonPress}: NotFoundPageProps) {
+function NotFoundPage({onBackButtonPress, shouldForceFullScreen}: NotFoundPageProps) {
     return (
         <ScreenWrapper testID={NotFoundPage.displayName}>
             <FullPageNotFoundView
                 shouldShow
                 onBackButtonPress={onBackButtonPress}
+                shouldForceFullScreen={shouldForceFullScreen}
             />
         </ScreenWrapper>
     );

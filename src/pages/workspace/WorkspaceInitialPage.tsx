@@ -227,7 +227,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         }
         // We are dismissing any modals that are open when the NotFound view is shown
         Navigation.isNavigationReady().then(() => {
-            Navigation.dismissModal();
+            Navigation.dismissRHP();
         });
     }, [canAccessRoute, policy, shouldShowNotFoundPage]);
 
