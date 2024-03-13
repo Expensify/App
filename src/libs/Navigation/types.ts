@@ -212,6 +212,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.TAXES_NEW]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.TAXES_EDIT]: {
+        policyID: string;
+        taxID: string;
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type NewChatNavigatorParamList = {

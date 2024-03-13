@@ -4,7 +4,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy, PolicyMembers, PolicyTagList, PolicyTags} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, PolicyMembers, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Navigation from './Navigation/Navigation';
@@ -272,6 +272,11 @@ function goBackFromInvalidPolicy() {
     Navigation.navigateWithSwitchPolicyID({route: ROUTES.ALL_SETTINGS});
 }
 
+/** Get a tax with given ID from policy */
+function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefined {
+    return policy?.taxRates?.taxes?.[taxID ?? ''];
+}
+
 export {
     getActivePolicies,
     hasAccountingConnections,
@@ -303,6 +308,7 @@ export {
     getPolicyMembersByIdWithoutCurrentUser,
     goBackFromInvalidPolicy,
     hasTaxRateError,
+    getTaxByID,
 };
 
 export type {MemberEmailsToAccountIDs};

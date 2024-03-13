@@ -182,7 +182,7 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
                         canSelectMultiple
                         sections={[{data: taxesList, indexOffset: 0, isDisabled: false}]}
                         onCheckboxPress={toggleTax}
-                        onSelectRow={() => {}}
+                        onSelectRow={(tax: ListItem) => tax.keyForList && Navigation.navigate(ROUTES.WORKSPACE_TAXES_EDIT.getRoute(policy?.id ?? '', tax.keyForList))}
                         onSelectAll={toggleAllTaxes}
                         showScrollIndicator
                         ListItem={TableListItem}

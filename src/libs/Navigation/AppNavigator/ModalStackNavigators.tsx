@@ -277,6 +277,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: () => require('../../../pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: () => require('../../../pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAXES_NEW]: () => require('../../../pages/workspace/taxes/WorkspaceNewTaxPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.TAXES_EDIT]: () => require('../../../pages/workspace/taxes/WorkspaceEditTaxPage').default as React.ComponentType,
 });
 
 const EnablePaymentsStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({

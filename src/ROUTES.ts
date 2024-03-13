@@ -601,6 +601,10 @@ const ROUTES = {
         route: 'workspace/:policyID/taxes/new',
         getRoute: (policyID: string) => `workspace/${policyID}/taxes/new` as const,
     },
+    WORKSPACE_TAXES_EDIT: {
+        route: 'workspace/:policyID/tax/:taxID',
+        getRoute: (policyID: string, taxID: string) => `workspace/${policyID}/tax/${encodeURI(taxID)}` as const,
+    },
     WORKSPACE_DISTANCE_RATES: {
         route: 'workspace/:policyID/distance-rates',
         getRoute: (policyID: string) => `workspace/${policyID}/distance-rates` as const,
