@@ -31,10 +31,8 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
             initialRouteName: SCREENS.HOME,
             screens: {
                 [SCREENS.HOME]: ROUTES.HOME,
-                [SCREENS.ALL_SETTINGS]: ROUTES.ALL_SETTINGS,
-                [SCREENS.WORKSPACE.INITIAL]: {
-                    path: ROUTES.WORKSPACE_INITIAL.route,
-                    exact: true,
+                [SCREENS.SETTINGS.ROOT]: {
+                    path: ROUTES.SETTINGS,
                 },
             },
         },
@@ -42,36 +40,27 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]: {
             screens: {
                 [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
-
+                [SCREENS.SETTINGS.PROFILE.ROOT]: {
+                    path: ROUTES.SETTINGS_PROFILE,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
+                    path: ROUTES.SETTINGS_PREFERENCES,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.SECURITY]: {
+                    path: ROUTES.SETTINGS_SECURITY,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.WALLET.ROOT]: {
+                    path: ROUTES.SETTINGS_WALLET,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.ABOUT]: {
+                    path: ROUTES.SETTINGS_ABOUT,
+                    exact: true,
+                },
                 [SCREENS.SETTINGS.WORKSPACES]: ROUTES.SETTINGS_WORKSPACES,
-                [SCREENS.WORKSPACE.PROFILE]: ROUTES.WORKSPACE_PROFILE.route,
-                [SCREENS.WORKSPACE.CARD]: {
-                    path: ROUTES.WORKSPACE_CARD.route,
-                },
-                [SCREENS.WORKSPACE.WORKFLOWS]: {
-                    path: ROUTES.WORKSPACE_WORKFLOWS.route,
-                },
-                [SCREENS.WORKSPACE.REIMBURSE]: {
-                    path: ROUTES.WORKSPACE_REIMBURSE.route,
-                },
-                [SCREENS.WORKSPACE.BILLS]: {
-                    path: ROUTES.WORKSPACE_BILLS.route,
-                },
-                [SCREENS.WORKSPACE.INVOICES]: {
-                    path: ROUTES.WORKSPACE_INVOICES.route,
-                },
-                [SCREENS.WORKSPACE.TRAVEL]: {
-                    path: ROUTES.WORKSPACE_TRAVEL.route,
-                },
-                [SCREENS.WORKSPACE.MEMBERS]: {
-                    path: ROUTES.WORKSPACE_MEMBERS.route,
-                },
-                [SCREENS.WORKSPACE.CATEGORIES]: {
-                    path: ROUTES.WORKSPACE_CATEGORIES.route,
-                },
-                [SCREENS.WORKSPACE.TAGS]: {
-                    path: ROUTES.WORKSPACE_TAGS.route,
-                },
             },
         },
         [SCREENS.NOT_FOUND]: '*',
@@ -282,6 +271,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
                             path: ROUTES.WORKSPACE_CATEGORIES_SETTINGS.route,
                         },
+                        [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_PAYER.route,
+                        },
                         [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
                             path: ROUTES.WORKSPACE_MEMBER_DETAILS.route,
                         },
@@ -290,6 +282,15 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.CATEGORY_CREATE]: {
                             path: ROUTES.WORKSPACE_CATEGORY_CREATE.route,
+                        },
+                        [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_TAGS_SETTINGS.route,
+                        },
+                        [SCREENS.WORKSPACE.TAGS_EDIT]: {
+                            path: ROUTES.WORKSPACE_EDIT_TAGS.route,
+                        },
+                        [SCREENS.WORKSPACE.TAG_CREATE]: {
+                            path: ROUTES.WORKSPACE_TAG_CREATE.route,
                         },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
@@ -545,30 +546,47 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
 
         [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: {
             screens: {
-                [SCREENS.SETTINGS.ROOT]: {
-                    path: ROUTES.SETTINGS,
+                [SCREENS.WORKSPACE.INITIAL]: {
+                    path: ROUTES.WORKSPACE_INITIAL.route,
                 },
-                [SCREENS.SETTINGS_CENTRAL_PANE]: {
+                [SCREENS.WORKSPACES_CENTRAL_PANE]: {
                     screens: {
-                        [SCREENS.SETTINGS.PROFILE.ROOT]: {
-                            path: ROUTES.SETTINGS_PROFILE,
-                            exact: true,
+                        [SCREENS.WORKSPACE.PROFILE]: ROUTES.WORKSPACE_PROFILE.route,
+                        [SCREENS.WORKSPACE.CARD]: {
+                            path: ROUTES.WORKSPACE_CARD.route,
                         },
-                        [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
-                            path: ROUTES.SETTINGS_PREFERENCES,
-                            exact: true,
+                        [SCREENS.WORKSPACE.WORKFLOWS]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS.route,
                         },
-                        [SCREENS.SETTINGS.SECURITY]: {
-                            path: ROUTES.SETTINGS_SECURITY,
-                            exact: true,
+                        [SCREENS.WORKSPACE.REIMBURSE]: {
+                            path: ROUTES.WORKSPACE_REIMBURSE.route,
                         },
-                        [SCREENS.SETTINGS.WALLET.ROOT]: {
-                            path: ROUTES.SETTINGS_WALLET,
-                            exact: true,
+                        [SCREENS.WORKSPACE.BILLS]: {
+                            path: ROUTES.WORKSPACE_BILLS.route,
                         },
-                        [SCREENS.SETTINGS.ABOUT]: {
-                            path: ROUTES.SETTINGS_ABOUT,
-                            exact: true,
+                        [SCREENS.WORKSPACE.INVOICES]: {
+                            path: ROUTES.WORKSPACE_INVOICES.route,
+                        },
+                        [SCREENS.WORKSPACE.TRAVEL]: {
+                            path: ROUTES.WORKSPACE_TRAVEL.route,
+                        },
+                        [SCREENS.WORKSPACE.MEMBERS]: {
+                            path: ROUTES.WORKSPACE_MEMBERS.route,
+                        },
+                        [SCREENS.WORKSPACE.CATEGORIES]: {
+                            path: ROUTES.WORKSPACE_CATEGORIES.route,
+                        },
+                        [SCREENS.WORKSPACE.MORE_FEATURES]: {
+                            path: ROUTES.WORKSPACE_MORE_FEATURES.route,
+                        },
+                        [SCREENS.WORKSPACE.TAGS]: {
+                            path: ROUTES.WORKSPACE_TAGS.route,
+                        },
+                        [SCREENS.WORKSPACE.TAXES]: {
+                            path: ROUTES.WORKSPACE_TAXES.route,
+                        },
+                        [SCREENS.WORKSPACE.DISTANCE_RATES]: {
+                            path: ROUTES.WORKSPACE_DISTANCE_RATES.route,
                         },
                     },
                 },

@@ -447,7 +447,6 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
         file,
-        shouldAllowActionableMentionWhispers: true,
         clientCreatedTime: file ? attachmentAction?.created : reportCommentAction?.created,
     };
 
@@ -1858,7 +1857,7 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
     };
 
     API.write(WRITE_COMMANDS.ADD_WORKSPACE_ROOM, parameters, {optimisticData, successData, failureData});
-    Navigation.dismissModal(policyReport.reportID);
+    Navigation.dismissModalWithReport(policyReport);
 }
 
 /** Deletes a report, along with its reportActions, any linked reports, and any linked IOU report. */
@@ -2230,10 +2229,10 @@ function toggleEmojiReaction(
     addEmojiReaction(originalReportID, reportAction.reportActionID, emoji, skinTone);
 }
 
-function openReportFromDeepLink(url: string, isAuthenticated: boolean) {
+function openReportFromDeepLink(url: string) {
     const reportID = ReportUtils.getReportIDFromLink(url);
 
-    if (reportID && !isAuthenticated) {
+    if (reportID && !Session.hasAuthToken()) {
         // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
         openReport(reportID, [], {}, '0', true);
 

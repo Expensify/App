@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
@@ -106,6 +105,9 @@ type TaxCode = {
     name: string;
 };
 
+/**
+ * Data imported from QuickBooks Online.
+ */
 type QBOConnectionData = {
     country: string;
     edition: string;
@@ -126,6 +128,9 @@ type QBOConnectionData = {
 
 type IntegrationEntityMap = 'NONE' | 'DEFAULT' | 'TAG' | 'REPORT_FIELD';
 
+/**
+ * User configuration for the QuickBooks Online accounting integration.
+ */
 type QBOConnectionConfig = {
     realmId: string;
     companyName: string;
@@ -205,6 +210,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The URL for the policy avatar */
         avatar?: string;
+        avatarURL?: string;
 
         /** Error objects keyed by field name containing errors keyed by microtime */
         errorFields?: OnyxCommon.ErrorFields;
@@ -315,6 +321,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Email of the reimburser when reimbursement is set direct */
         reimburserEmail?: string;
+
+        /** AccountID of the reimburser when reimbursement is set direct */
+        reimburserAccountID?: number;
 
         /** ReportID of the admins room for this workspace */
         chatReportIDAdmins?: number;
