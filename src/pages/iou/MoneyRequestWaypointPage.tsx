@@ -20,6 +20,7 @@ function MoneyRequestWaypointPage({transactionID = '', route}: MoneyRequestWaypo
             // Put the transactionID into the route params so that WaypointEdit behaves the same when creating a new waypoint
             // or editing an existing waypoint.
             route={{
+                ...route,
                 params: {
                     ...route.params,
                     transactionID,
