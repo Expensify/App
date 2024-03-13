@@ -202,7 +202,6 @@ async function signInAndGetAppWithUnreadChat(): Promise<void> {
     // Render the App and sign in as a test user.
     render(<App />);
     await waitForBatchedUpdatesWithAct();
-    await waitForBatchedUpdatesWithAct();
     const hintText = Localize.translateLocal('loginForm.loginForm');
     const loginForm = screen.queryAllByLabelText(hintText);
     expect(loginForm).toHaveLength(1);
