@@ -61,7 +61,6 @@ function WorkspaceNewTaxPage({
                 code: getNextTaxID(values[INPUT_IDS.NAME]),
             } satisfies TaxRate;
             createWorkspaceTax(policyID, taxRate);
-            clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM);
             Navigation.goBack();
         },
         [policyID],
@@ -94,7 +93,6 @@ function WorkspaceNewTaxPage({
                             multiline={false}
                             role={CONST.ROLE.PRESENTATION}
                             autoFocus
-                            shouldSaveDraft
                         />
                         <InputWrapper
                             InputComponent={AmountPicker}
@@ -104,7 +102,6 @@ function WorkspaceNewTaxPage({
                             rightLabel={translate('common.required')}
                             hideCurrencySymbol
                             extraSymbol={<Text style={styles.iouAmountText}>%</Text>}
-                            shouldSaveDraft
                         />
                     </View>
                 </FormProvider>

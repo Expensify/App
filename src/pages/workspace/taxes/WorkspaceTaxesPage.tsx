@@ -136,10 +136,7 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
             <Button
                 medium
                 success
-                onPress={() => {
-                    clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM);
-                    Navigation.navigate(ROUTES.WORKSPACE_TAXES_NEW.getRoute(policy?.id ?? ''));
-                }}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_NEW.getRoute(policy?.id ?? ''))}
                 icon={Expensicons.Plus}
                 text={translate('workspace.taxes.addRate')}
                 style={[styles.mr3, isSmallScreenWidth && styles.w50]}
