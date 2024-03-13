@@ -22,6 +22,7 @@ const SCREENS = {
     VALIDATE_LOGIN: 'ValidateLogin',
     UNLINK_LOGIN: 'UnlinkLogin',
     SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
+    WORKSPACES_CENTRAL_PANE: 'WorkspacesCentralPane',
     SETTINGS: {
         ROOT: 'Settings_Root',
         SHARE_CODE: 'Settings_Share_Code',
@@ -218,6 +219,7 @@ const SCREENS = {
         TAGS: 'Workspace_Tags',
         TAGS_SETTINGS: 'Tags_Settings',
         TAGS_EDIT: 'Tags_Edit',
+        TAG_CREATE: 'Tag_Create',
         CURRENCY: 'Workspace_Profile_Currency',
         WORKFLOWS: 'Workspace_Workflows',
         WORKFLOWS_PAYER: 'Workspace_Workflows_Payer',

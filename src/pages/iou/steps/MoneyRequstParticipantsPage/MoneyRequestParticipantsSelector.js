@@ -36,6 +36,9 @@ const propTypes = {
     /** Callback to add participants in MoneyRequestModal */
     onAddParticipants: PropTypes.func.isRequired,
 
+    /** An object that holds data about which referral banners have been dismissed */
+    dismissedReferralBanners: PropTypes.objectOf(PropTypes.bool),
+
     /** Selected participants from MoneyRequestModal with login */
     participants: PropTypes.arrayOf(
         PropTypes.shape({
@@ -64,6 +67,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    dismissedReferralBanners: {},
     participants: [],
     safeAreaPaddingBottomStyle: {},
     reports: {},
@@ -74,6 +78,7 @@ const defaultProps = {
 
 function MoneyRequestParticipantsSelector({
     betas,
+    dismissedReferralBanners,
     participants,
     reports,
     navigateToRequest,
@@ -281,10 +286,11 @@ function MoneyRequestParticipantsSelector({
     const footerContent = useMemo(
         () => (
             <View>
-                <ReferralProgramCTA
-                    referralContentType={referralContentType}
-                    style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.mb5]}
-                />
+                {!dismissedReferralBanners[referralContentType] && (
+                    <View style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.pb5]}>
+                        <ReferralProgramCTA referralContentType={referralContentType} />
+                    </View>
+                )}
 
                 {shouldShowSplitBillErrorMessage && (
                     <FormHelpMessage
@@ -305,7 +311,7 @@ function MoneyRequestParticipantsSelector({
                 )}
             </View>
         ),
-        [handleConfirmSelection, participants.length, referralContentType, shouldShowSplitBillErrorMessage, styles, translate],
+        [handleConfirmSelection, participants.length, dismissedReferralBanners, referralContentType, shouldShowSplitBillErrorMessage, styles, translate],
     );
 
     const itemRightSideComponent = useCallback(
@@ -365,6 +371,10 @@ MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector
 MoneyRequestParticipantsSelector.defaultProps = defaultProps;
 
 export default withOnyx({
+    dismissedReferralBanners: {
+        key: ONYXKEYS.ACCOUNT,
+        selector: (data) => data.dismissedReferralBanners || {},
+    },
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
     },

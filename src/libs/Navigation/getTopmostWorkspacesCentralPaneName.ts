@@ -2,12 +2,12 @@ import type {NavigationState, PartialState} from '@react-navigation/native';
 import SCREENS from '@src/SCREENS';
 
 // Get the name of topmost report in the navigation stack.
-function getTopmostSettingsCentralPaneName(state: NavigationState | PartialState<NavigationState>): string | undefined {
+function getTopmostWorkspacesCentralPaneName(state: NavigationState | PartialState<NavigationState>): string | undefined {
     if (!state) {
         return;
     }
 
-    const topmostCentralPane = state.routes.filter((route) => typeof route !== 'number' && 'name' in route && route.name === SCREENS.SETTINGS_CENTRAL_PANE).at(-1);
+    const topmostCentralPane = state.routes.filter((route) => typeof route !== 'number' && 'name' in route && route.name === SCREENS.WORKSPACES_CENTRAL_PANE).at(-1);
 
     if (!topmostCentralPane) {
         return;
@@ -24,4 +24,4 @@ function getTopmostSettingsCentralPaneName(state: NavigationState | PartialState
     return topmostCentralPane.state?.routes.at(-1)?.name;
 }
 
-export default getTopmostSettingsCentralPaneName;
+export default getTopmostWorkspacesCentralPaneName;
