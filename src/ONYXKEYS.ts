@@ -1,4 +1,4 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type * as FormTypes from './types/form';
@@ -40,6 +40,7 @@ const ONYXKEYS = {
 
     /** Credentials to authenticate the user */
     CREDENTIALS: 'credentials',
+    STASHED_CREDENTIALS: 'stashedCredentials',
 
     // Contains loading data for the IOU feature (MoneyRequestModal, IOUDetail, & MoneyRequestPreview Components)
     IOU: 'iou',
@@ -102,6 +103,7 @@ const ONYXKEYS = {
 
     /** Information about the current session (authToken, accountID, email, loading, error) */
     SESSION: 'session',
+    STASHED_SESSION: 'stashedSession',
     BETAS: 'betas',
 
     /** NVP keys
@@ -125,6 +127,9 @@ const ONYXKEYS = {
 
     /** This NVP contains the choice that the user made on the engagement modal */
     NVP_INTRO_SELECTED: 'introSelected',
+
+    /** The NVP with the last distance rate used per policy */
+    NVP_LAST_SELECTED_DISTANCE_RATES: 'lastSelectedDistanceRates',
 
     /** Does this user have push notifications enabled for this device? */
     PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
@@ -205,8 +210,14 @@ const ONYXKEYS = {
     /** Is report data loading? */
     IS_LOADING_APP: 'isLoadingApp',
 
+    /** Is the user in the process of switching to OldDot? */
+    IS_SWITCHING_TO_OLD_DOT: 'isSwitchingToOldDot',
+
     /** Is the test tools modal open? */
     IS_TEST_TOOLS_MODAL_OPEN: 'isTestToolsModalOpen',
+
+    /** Is app in profiling mode */
+    APP_PROFILING_IN_PROGRESS: 'isProfilingInProgress',
 
     /** Stores information about active wallet transfer amount, selectedAccountID, status, etc */
     WALLET_TRANSFER: 'walletTransfer',
@@ -232,9 +243,6 @@ const ONYXKEYS = {
     // The theme setting set by the user in preferences.
     // This can be either "light", "dark" or "system"
     PREFERRED_THEME: 'preferredTheme',
-
-    // Experimental memory only Onyx mode flag
-    IS_USING_MEMORY_ONLY_KEYS: 'isUsingMemoryOnlyKeys',
 
     // Information about the onyx updates IDs that were received from the server
     ONYX_UPDATES_FROM_SERVER: 'onyxUpdatesFromServer',
@@ -269,6 +277,9 @@ const ONYXKEYS = {
     /** Indicates whether we should store logs or not */
     SHOULD_STORE_LOGS: 'shouldStoreLogs',
 
+    // Paths of PDF file that has been cached during one session
+    CACHED_PDF_PATHS: 'cachedPDFPaths',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -276,10 +287,10 @@ const ONYXKEYS = {
         POLICY_MEMBERS: 'policyMembers_',
         POLICY_DRAFTS: 'policyDrafts_',
         POLICY_MEMBERS_DRAFTS: 'policyMembersDrafts_',
+        POLICY_JOIN_MEMBER: 'policyJoinMember_',
         POLICY_CATEGORIES: 'policyCategories_',
         POLICY_RECENTLY_USED_CATEGORIES: 'policyRecentlyUsedCategories_',
         POLICY_TAGS: 'policyTags_',
-        POLICY_TAX_RATE: 'policyTaxRates_',
         POLICY_RECENTLY_USED_TAGS: 'policyRecentlyUsedTags_',
         POLICY_REPORT_FIELDS: 'policyReportFields_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
@@ -319,6 +330,10 @@ const ONYXKEYS = {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
         ADD_DEBIT_CARD_FORM_DRAFT: 'addDebitCardFormDraft',
         WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
+        WORKSPACE_CATEGORY_CREATE_FORM: 'workspaceCategoryCreate',
+        WORKSPACE_CATEGORY_CREATE_FORM_DRAFT: 'workspaceCategoryCreateDraft',
+        WORKSPACE_TAG_CREATE_FORM: 'workspaceTagCreate',
+        WORKSPACE_TAG_CREATE_FORM_DRAFT: 'workspaceTagCreateDraft',
         WORKSPACE_SETTINGS_FORM_DRAFT: 'workspaceSettingsFormDraft',
         WORKSPACE_DESCRIPTION_FORM: 'workspaceDescriptionForm',
         WORKSPACE_DESCRIPTION_FORM_DRAFT: 'workspaceDescriptionFormDraft',
@@ -388,6 +403,12 @@ const ONYXKEYS = {
         REIMBURSEMENT_ACCOUNT_FORM_DRAFT: 'reimbursementAccountDraft',
         PERSONAL_BANK_ACCOUNT: 'personalBankAccountForm',
         PERSONAL_BANK_ACCOUNT_DRAFT: 'personalBankAccountFormDraft',
+        EXIT_SURVEY_REASON_FORM: 'exitSurveyReasonForm',
+        EXIT_SURVEY_REASON_FORM_DRAFT: 'exitSurveyReasonFormDraft',
+        EXIT_SURVEY_RESPONSE_FORM: 'exitSurveyResponseForm',
+        EXIT_SURVEY_RESPONSE_FORM_DRAFT: 'exitSurveyResponseFormDraft',
+        POLICY_TAG_NAME_FORM: 'policyTagNameForm',
+        POLICY_TAG_NAME_FORM_DRAFT: 'policyTagNameFormDraft',
     },
 } as const;
 
@@ -396,6 +417,8 @@ type AllOnyxKeys = DeepValueOf<typeof ONYXKEYS>;
 type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM]: FormTypes.AddDebitCardForm;
     [ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM]: FormTypes.WorkspaceSettingsForm;
+    [ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE_FORM]: FormTypes.WorkspaceCategoryCreateForm;
+    [ONYXKEYS.FORMS.WORKSPACE_TAG_CREATE_FORM]: FormTypes.WorkspaceTagCreateForm;
     [ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM]: FormTypes.WorkspaceRateAndUnitForm;
     [ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM]: FormTypes.CloseAccountForm;
     [ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM]: FormTypes.ProfileSettingsForm;
@@ -410,6 +433,8 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.ROOM_SETTINGS_FORM]: FormTypes.RoomSettingsForm;
     [ONYXKEYS.FORMS.NEW_TASK_FORM]: FormTypes.NewTaskForm;
     [ONYXKEYS.FORMS.EDIT_TASK_FORM]: FormTypes.EditTaskForm;
+    [ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM]: FormTypes.ExitSurveyReasonForm;
+    [ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM]: FormTypes.ExitSurveyResponseForm;
     [ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM]: FormTypes.MoneyRequestDescriptionForm;
     [ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM]: FormTypes.MoneyRequestMerchantForm;
     [ONYXKEYS.FORMS.MONEY_REQUEST_AMOUNT_FORM]: FormTypes.MoneyRequestAmountForm;
@@ -430,6 +455,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM]: FormTypes.ReimbursementAccountForm;
     [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT]: FormTypes.PersonalBankAccountForm;
     [ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM]: FormTypes.WorkspaceDescriptionForm;
+    [ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM]: FormTypes.PolicyTagNameForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -468,7 +494,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SELECTED_TAB]: string;
     [ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT]: string;
     [ONYXKEYS.COLLECTION.NEXT_STEP]: OnyxTypes.ReportNextStep;
-    [ONYXKEYS.COLLECTION.POLICY_TAX_RATE]: string[];
+    [ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER]: OnyxTypes.PolicyJoinMember;
 };
 
 type OnyxValuesMapping = {
@@ -481,6 +507,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PERSISTED_REQUESTS]: OnyxTypes.Request[];
     [ONYXKEYS.CURRENT_DATE]: string;
     [ONYXKEYS.CREDENTIALS]: OnyxTypes.Credentials;
+    [ONYXKEYS.STASHED_CREDENTIALS]: OnyxTypes.Credentials;
     [ONYXKEYS.IOU]: OnyxTypes.IOU;
     [ONYXKEYS.MODAL]: OnyxTypes.Modal;
     [ONYXKEYS.NETWORK]: OnyxTypes.Network;
@@ -499,6 +526,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.USER_LOCATION]: OnyxTypes.UserLocation;
     [ONYXKEYS.LOGIN_LIST]: OnyxTypes.LoginList;
     [ONYXKEYS.SESSION]: OnyxTypes.Session;
+    [ONYXKEYS.STASHED_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.BETAS]: OnyxTypes.Beta[];
     [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;
     [ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE]: OnyxTypes.BlockedFromConcierge;
@@ -510,6 +538,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoint[];
     [ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL]: boolean;
     [ONYXKEYS.NVP_INTRO_SELECTED]: OnyxTypes.IntroSelected;
+    [ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES]: OnyxTypes.LastSelectedDistanceRates;
     [ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED]: boolean;
     [ONYXKEYS.PLAID_DATA]: OnyxTypes.PlaidData;
     [ONYXKEYS.IS_PLAID_DISABLED]: boolean;
@@ -533,7 +562,9 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: boolean;
     [ONYXKEYS.IS_LOADING_REPORT_DATA]: boolean;
     [ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN]: boolean;
+    [ONYXKEYS.APP_PROFILING_IN_PROGRESS]: boolean;
     [ONYXKEYS.IS_LOADING_APP]: boolean;
+    [ONYXKEYS.IS_SWITCHING_TO_OLD_DOT]: boolean;
     [ONYXKEYS.WALLET_TRANSFER]: OnyxTypes.WalletTransfer;
     [ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID]: string;
     [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: boolean;
@@ -542,7 +573,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS]: Record<string, string>;
     [ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID]: string;
     [ONYXKEYS.PREFERRED_THEME]: ValueOf<typeof CONST.THEME>;
-    [ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS]: boolean;
     [ONYXKEYS.MAPBOX_ACCESS_TOKEN]: OnyxTypes.MapboxAccessToken;
     [ONYXKEYS.ONYX_UPDATES_FROM_SERVER]: OnyxTypes.OnyxUpdatesFromServer;
     [ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT]: number;
@@ -556,6 +586,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PLAID_CURRENT_EVENT]: string;
     [ONYXKEYS.LOGS]: Record<number, OnyxTypes.Log>;
     [ONYXKEYS.SHOULD_STORE_LOGS]: boolean;
+    [ONYXKEYS.CACHED_PDF_PATHS]: Record<string, string>;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;
@@ -566,7 +597,7 @@ type OnyxFormDraftKey = keyof OnyxFormDraftValuesMapping;
 type OnyxValueKey = keyof OnyxValuesMapping;
 
 type OnyxKey = OnyxValueKey | OnyxCollectionKey | OnyxFormKey | OnyxFormDraftKey;
-type OnyxValue<TOnyxKey extends OnyxKey> = OnyxEntry<OnyxValues[TOnyxKey]>;
+type OnyxValue<TOnyxKey extends OnyxKey> = TOnyxKey extends keyof OnyxCollectionValuesMapping ? OnyxCollection<OnyxValues[TOnyxKey]> : OnyxEntry<OnyxValues[TOnyxKey]>;
 
 type MissingOnyxKeysError = `Error: Types don't match, OnyxKey type is missing: ${Exclude<AllOnyxKeys, OnyxKey>}`;
 /** If this type errors, it means that the `OnyxKey` type is missing some keys. */
@@ -574,4 +605,4 @@ type MissingOnyxKeysError = `Error: Types don't match, OnyxKey type is missing: 
 type AssertOnyxKeys = AssertTypesEqual<AllOnyxKeys, OnyxKey, MissingOnyxKeysError>;
 
 export default ONYXKEYS;
-export type {OnyxValues, OnyxKey, OnyxCollectionKey, OnyxValue, OnyxValueKey, OnyxFormKey, OnyxFormValuesMapping, OnyxFormDraftKey};
+export type {OnyxValues, OnyxKey, OnyxCollectionKey, OnyxValue, OnyxValueKey, OnyxFormKey, OnyxFormValuesMapping, OnyxFormDraftKey, OnyxCollectionValuesMapping};

@@ -1,14 +1,6 @@
 import Config from '../../../tests/e2e/config';
 import Routes from '../../../tests/e2e/server/routes';
-import type {NetworkCacheMap, TestConfig} from './types';
-
-type TestResult = {
-    name: string;
-    branch?: string;
-    duration?: number;
-    error?: string;
-    renderCount?: number;
-};
+import type {NetworkCacheMap, TestConfig, TestResult} from './types';
 
 type NativeCommandPayload = {
     text: string;
@@ -113,3 +105,4 @@ export default {
     updateNetworkCache,
     getNetworkCache,
 };
+export type {TestResult, NativeCommand};

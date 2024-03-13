@@ -22,6 +22,7 @@ const SCREENS = {
     VALIDATE_LOGIN: 'ValidateLogin',
     UNLINK_LOGIN: 'UnlinkLogin',
     SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
+    WORKSPACES_CENTRAL_PANE: 'WorkspacesCentralPane',
     SETTINGS: {
         ROOT: 'Settings_Root',
         SHARE_CODE: 'Settings_Share_Code',
@@ -80,6 +81,12 @@ const SCREENS = {
             REPORT_VIRTUAL_CARD_FRAUD: 'Settings_Wallet_ReportVirtualCardFraud',
             CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
         },
+
+        EXIT_SURVEY: {
+            REASON: 'Settings_ExitSurvey_Reason',
+            RESPONSE: 'Settings_ExitSurvey_Response',
+            CONFIRM: 'Settings_ExitSurvey_Confirm',
+        },
     },
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
@@ -122,6 +129,7 @@ const SCREENS = {
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
     DESKTOP_SIGN_IN_REDIRECT: 'DesktopSignInRedirect',
     SAML_SIGN_IN: 'SAMLSignIn',
+    WORKSPACE_JOIN_USER: 'WorkspaceJoinUser',
 
     MONEY_REQUEST: {
         MANUAL_TAB: 'manual',
@@ -208,11 +216,26 @@ const SCREENS = {
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
         CATEGORIES: 'Workspace_Categories',
+        TAGS: 'Workspace_Tags',
+        TAGS_SETTINGS: 'Tags_Settings',
+        TAGS_EDIT: 'Tags_Edit',
+        TAG_CREATE: 'Tag_Create',
         CURRENCY: 'Workspace_Profile_Currency',
         WORKFLOWS: 'Workspace_Workflows',
+        WORKFLOWS_PAYER: 'Workspace_Workflows_Payer',
+        WORKFLOWS_APPROVER: 'Workspace_Workflows_Approver',
+        WORKFLOWS_AUTO_REPORTING_FREQUENCY: 'Workspace_Workflows_Auto_Reporting_Frequency',
+        WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET: 'Workspace_Workflows_Auto_Reporting_Monthly_Offset',
         DESCRIPTION: 'Workspace_Profile_Description',
         SHARE: 'Workspace_Profile_Share',
         NAME: 'Workspace_Profile_Name',
+        CATEGORY_CREATE: 'Category_Create',
+        CATEGORY_SETTINGS: 'Category_Settings',
+        CATEGORIES_SETTINGS: 'Categories_Settings',
+        MORE_FEATURES: 'Workspace_More_Features',
+        MEMBER_DETAILS: 'Workspace_Member_Details',
+        MEMBER_DETAILS_ROLE_SELECTION: 'Workspace_Member_Details_Role_Selection',
+        DISTANCE_RATES: 'Distance_Rates',
     },
 
     EDIT_REQUEST: {
@@ -260,6 +283,7 @@ const SCREENS = {
     GET_ASSISTANCE: 'GetAssistance',
     REFERRAL_DETAILS: 'Referral_Details',
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
+    TRANSACTION_RECEIPT: 'TransactionReceipt',
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;
