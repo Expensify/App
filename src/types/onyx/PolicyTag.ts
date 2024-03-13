@@ -10,9 +10,12 @@ type PolicyTag = {
     /** "General Ledger code" that corresponds to this tag in an accounting system. Similar to an ID. */
     // eslint-disable-next-line @typescript-eslint/naming-convention
     'GL Code': string;
+
+    /** A list of errors keyed by microtime */
+    errors?: OnyxCommon.Errors | null;
 };
 
-type PolicyTags = Record<string, PolicyTag>;
+type PolicyTags = Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyTag>>;
 
 type PolicyTagList<T extends string = string> = Record<
     T,
@@ -28,6 +31,9 @@ type PolicyTagList<T extends string = string> = Record<
 
         /** Index by which the tag appears in the hierarchy of tags */
         orderWeight: number;
+
+        /** A list of errors keyed by microtime */
+        errors?: OnyxCommon.Errors;
     }>
 >;
 
