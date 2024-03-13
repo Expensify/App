@@ -8,7 +8,7 @@ import WrappedText from './WrappedText';
 function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer, defaultRendererProps, textStyle, boxModelStyle}: InlineCodeBlockProps<TComponent>) {
     const styles = useThemeStyles();
     const data = removeEmojiTag(defaultRendererProps);
-    
+
     return (
         <TDefaultRenderer
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -18,7 +18,7 @@ function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer,
                 textStyles={textStyle}
                 wordStyles={[boxModelStyle, styles.codeWordStyle]}
             >
-                {'data' in defaultRendererProps.tnode && defaultRendererProps.tnode.data}
+                {data}
             </WrappedText>
         </TDefaultRenderer>
     );
