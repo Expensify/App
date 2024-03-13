@@ -20,8 +20,6 @@ import InputWrapper from "@components/Form/InputWrapper";
 import TextInput from "@components/TextInput";
 import CONST from "@src/CONST";
 import AddressSearch from "@components/AddressSearch";
-import StatePicker from "@components/StatePicker";
-import CheckboxWithLabel from "@components/CheckboxWithLabel";
 import type {AnimatedTextInputRef} from "@components/RNTextInput";
 import TextLink from "@components/TextLink";
 
