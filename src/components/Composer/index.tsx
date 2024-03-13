@@ -1,4 +1,3 @@
-import {MarkdownTextInput} from '@expensify/react-native-live-markdown';
 import type {BaseSyntheticEvent, ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
@@ -21,6 +20,7 @@ import * as FileUtils from '@libs/fileDownload/FileUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import CONST from '@src/CONST';
+import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import type {ComposerProps} from './types';
 
 /**
@@ -330,11 +330,11 @@ function Composer(
 
     return (
         <>
-            <MarkdownTextInput
+            <RNMarkdownTextInput
                 autoComplete="off"
                 autoCorrect={!Browser.isMobileSafari()}
                 placeholderTextColor={theme.placeholderText}
-                ref={(el) => (textInput.current = el as AnimatedTextInputRef)}
+                ref={(el) => (textInput.current = el as AnimatedTextInputRef | null)}
                 selection={selection}
                 style={inputStyleMemo}
                 markdownStyle={markdownStyle}
