@@ -16,16 +16,18 @@ jest.mock('@components/Icon/Expensicons');
 jest.mock('@react-navigation/native');
 
 const getMockedReportsMap = (length = 100) => {
-    const mockReports = Array.from({length}, (value, index) => {
-        const reportID = index + 1;
-        const participants = [1, 2];
-        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
-        const report = LHNTestUtils.getFakeReport(participants, 1, true);
+    const mockReports = Object.fromEntries(
+        Array.from({length}, (value, index) => {
+            const reportID = index + 1;
+            const participants = [1, 2];
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+            const report = LHNTestUtils.getFakeReport(participants, 1, true);
 
-        return {[reportKey]: report};
-    });
+            return [reportKey, report];
+        }),
+    );
 
-    return {...mockReports};
+    return mockReports;
 };
 
 const mockedResponseMap = getMockedReportsMap(500);
