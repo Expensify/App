@@ -127,6 +127,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                     styles.alignItemsStart,
                                     styles.sectionMenuItemTopDescription,
                                 ]}
+                                editIconStyle={styles.smallEditIconWorkspace}
                                 isUsingDefaultAvatar={!policy?.avatar ?? null}
                                 onImageSelected={(file) => Policy.updateWorkspaceAvatar(policy?.id ?? '', file as File)}
                                 onImageRemoved={() => Policy.deleteWorkspaceAvatar(policy?.id ?? '')}

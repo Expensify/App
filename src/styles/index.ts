@@ -3096,13 +3096,20 @@ const styles = (theme: ThemeColors) =>
         smallEditIcon: {
             alignItems: 'center',
             backgroundColor: theme.buttonDefaultBG,
-            borderColor: theme.appBG,
             borderRadius: 20,
             borderWidth: 3,
             color: theme.textReversed,
             height: 40,
             width: 40,
             justifyContent: 'center',
+        },
+
+        smallEditIconWorkspace: {
+            borderColor: theme.cardBG,
+        },
+
+        smallEditIconAccount: {
+            borderColor: theme.appBG,
         },
 
         smallAvatarEditIcon: {
