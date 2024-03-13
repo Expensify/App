@@ -1,6 +1,5 @@
 import type {VideoReadyForDisplayEvent} from 'expo-av';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import type {LayoutChangeEvent, LayoutRectangle} from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -39,7 +38,6 @@ type VideoStatus = 'video' | 'animation';
 function OnboardingWelcomeVideo() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const containerDimensions = useRef<LayoutRectangle>({width: 0, height: 0, x: 0, y: 0});
     const [isModalVisible, setIsModalVisible] = useState(true);
     const {isSmallScreenWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
@@ -61,10 +59,6 @@ function OnboardingWelcomeVideo() {
             setIsWelcomeVideoStatusLocked(true);
         }
     }, [isOffline, isVideoLoaded, isWelcomeVideoStatusLocked]);
-
-    const storeContainerDimensions = (event: LayoutChangeEvent) => {
-        containerDimensions.current = event.nativeEvent.layout;
-    };
 
     const closeModal = useCallback(() => {
         setIsModalVisible(false);
@@ -89,7 +83,7 @@ function OnboardingWelcomeVideo() {
     };
 
     const getWelcomeVideo = () => {
-        const videoWidth = containerDimensions.current.width - 2 * MODAL_PADDING;
+        const aspectRatio = videoAspectRatio || VIDEO_ASPECT_RATIO;
 
         return (
             <View
@@ -99,14 +93,13 @@ function OnboardingWelcomeVideo() {
                     // for the video until it loads. Also, when
                     // welcomeVideoStatus === 'animation' it will
                     // set the same aspect ratio as the video would.
-                    {aspectRatio: VIDEO_ASPECT_RATIO},
+                    {aspectRatio},
                 ]}
             >
                 {welcomeVideoStatus === 'video' ? (
                     <VideoPlayer
                         url={CONST.WELCOME_VIDEO_URL}
-                        videoPlayerStyle={[styles.onboardingVideoPlayer, {width: videoWidth, height: videoWidth / videoAspectRatio}]}
-                        style={styles.h100}
+                        videoPlayerStyle={[styles.onboardingVideoPlayer, {aspectRatio}]}
                         onVideoLoaded={setAspectRatio}
                         onPlaybackStatusUpdate={setVideoStatus}
                         shouldShowProgressVolumeOnly
@@ -133,10 +126,7 @@ function OnboardingWelcomeVideo() {
             onClose={closeModal}
             innerContainerStyle={shouldUseNarrowLayout ? undefined : {paddingTop: MODAL_PADDING, paddingBottom: MODAL_PADDING}}
         >
-            <View
-                style={[styles.mh100, shouldUseNarrowLayout && styles.welcomeVideoNarrowLayout]}
-                onLayout={storeContainerDimensions}
-            >
+            <View style={[styles.mh100, shouldUseNarrowLayout && styles.welcomeVideoNarrowLayout]}>
                 <View style={shouldUseNarrowLayout ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{getWelcomeVideo()}</View>
                 <View style={[shouldUseNarrowLayout ? [styles.mt5, styles.mh8] : [styles.mt3, styles.mh5]]}>
                     <View style={[shouldUseNarrowLayout ? [styles.gap1, styles.mb8] : [styles.gap2, styles.mb10]]}>
