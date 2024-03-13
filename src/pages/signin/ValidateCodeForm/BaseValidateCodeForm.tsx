@@ -380,6 +380,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
                 <Button
                     isDisabled={isOffline}
                     success
+                    large
                     style={[styles.mv3]}
                     text={translate('common.signIn')}
                     isLoading={isValidateCodeFormSubmitting}
