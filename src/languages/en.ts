@@ -2037,6 +2037,7 @@ export default {
             addPaymentCardRedundant: 'Redundant infrastructure',
             addPaymentCardLearnMore: 'Learn more about our',
             addPaymentCardSecurity: 'security',
+            // TODO: these are temporary messages, and should be replaced once the copy is available
             amountOwedTitle: 'Amount owed title',
             amountOwedButtonText: 'Amount owed button text',
             amountOwedText: 'Amount owed paragraph text.',
