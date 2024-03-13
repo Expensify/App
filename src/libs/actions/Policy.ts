@@ -3563,4 +3563,5 @@ export {
     openPolicyDistanceRatesPage,
     createPolicyTag,
     clearWorkspaceReimbursementErrors,
+    deleteWorkspaceCategories,
 };
