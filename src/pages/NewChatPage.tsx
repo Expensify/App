@@ -16,7 +16,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import doInteractionTask from '@libs/DoInteractionTask';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
@@ -49,12 +48,12 @@ const excludedGroupEmails = CONST.EXPENSIFY_EMAILS.filter((value) => value !== C
 
 function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingForReports, dismissedReferralBanners}: NewChatPageProps) {
     const {translate} = useLocalize();
-    const {options} = useOptionsList();
+    const {options, areOptionsInitialized} = useOptionsList();
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
-    const [filteredRecentReports, setFilteredRecentReports] = useState<ReportUtils.OptionData[]>([]);
-    const [filteredPersonalDetails, setFilteredPersonalDetails] = useState<ReportUtils.OptionData[]>([]);
-    const [filteredUserToInvite, setFilteredUserToInvite] = useState<ReportUtils.OptionData | null>();
+    const [filteredRecentReports, setFilteredRecentReports] = useState<OptionData[]>([]);
+    const [filteredPersonalDetails, setFilteredPersonalDetails] = useState<OptionData[]>([]);
+    const [filteredUserToInvite, setFilteredUserToInvite] = useState<OptionData | null>();
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -70,8 +69,6 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
         maxParticipantsReached,
         selectedOptions.some((participant) => participant?.searchText?.toLowerCase().includes(searchTerm.trim().toLowerCase())),
     );
-
-    const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
 
     const sections = useMemo((): OptionsListUtils.CategorySection[] => {
         const sectionsList: OptionsListUtils.CategorySection[] = [];
@@ -265,7 +262,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
                             headerMessage={headerMessage}
                             boldStyle
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                            shouldShowOptions={isOptionsDataReady && didScreenTransitionEnd}
+                            shouldShowOptions={areOptionsInitialized && didScreenTransitionEnd}
                             shouldShowConfirmButton
                             shouldShowReferralCTA={!dismissedReferralBanners[CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]}
                             referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}
