@@ -30,6 +30,7 @@ import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import {useNavigation} from "@react-navigation/native";
 import * as CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
 
@@ -61,11 +62,23 @@ function IOURequestStepScan({
     const styles = useThemeStyles();
     const devices = useCameraDevices('wide-angle-camera');
     const device = devices.back;
+    const navigation = useNavigation();
 
     const camera = useRef(null);
     const [flash, setFlash] = useState(false);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState(undefined);
     const askedForPermission = useRef(false);
+
+    const [didCapturePhoto, setDidCapturePhoto] = useState(false);
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('focus', () => {
+            setDidCapturePhoto(false);
+        });
+
+        return () => {
+            unsubscribe();
+        }
+    }, [navigation]);
 
     const {translate} = useLocalize();
 
@@ -238,6 +251,10 @@ function IOURequestStepScan({
             return;
         }
 
+        if (didCapturePhoto) {
+            return;
+        }
+
         return camera.current
             .takePhoto({
                 qualityPrioritization: 'speed',
@@ -255,13 +272,15 @@ function IOURequestStepScan({
                     return;
                 }
 
+                setDidCapturePhoto(true);
                 navigateToConfirmationStep();
             })
             .catch((error) => {
+                setDidCapturePhoto(false);
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep, cameraPermissionStatus]);
+    }, [flash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep, cameraPermissionStatus, didCapturePhoto]);
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
