@@ -275,8 +275,7 @@ function SuggestionMention(
             }));
             setHighlightedMentionIndex(0);
         },
-        // [getMentionOptions, personalDetails, resetSuggestions, setHighlightedMentionIndex, value, isComposerFocused, lastSelectedMentionSuggestion],
-        [isComposerFocused, value, lastSelectedMentionSuggestion, setHighlightedMentionIndex, resetSuggestions, getMentionOptions, personalDetails],
+        [isComposerFocused, value, lastSelectedMentionSuggestion, reportID, setHighlightedMentionIndex, resetSuggestions, getMentionOptions, personalDetails],
     );
 
     useEffect(() => {
