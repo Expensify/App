@@ -107,7 +107,7 @@ const WRITE_COMMANDS = {
     DELETE_WORKSPACE_AVATAR: 'DeleteWorkspaceAvatar',
     UPDATE_WORKSPACE_GENERAL_SETTINGS: 'UpdateWorkspaceGeneralSettings',
     UPDATE_WORKSPACE_CUSTOM_UNIT_AND_RATE: 'UpdateWorkspaceCustomUnitAndRate',
-    REMOVE_WORKSPACE_INTEGRATION: 'RemoveWorkspaceIntegration',
+    REMOVE_POLICY_CONNECTION: 'RemovePolicyConnection',
     UPDATE_WORKSPACE_DESCRIPTION: 'UpdateWorkspaceDescription',
     CREATE_WORKSPACE: 'CreateWorkspace',
     CREATE_WORKSPACE_FROM_IOU_PAYMENT: 'CreateWorkspaceFromIOUPayment',

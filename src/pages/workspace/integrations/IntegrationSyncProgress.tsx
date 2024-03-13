@@ -4,7 +4,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Modal from '@components/Modal';
-import type { WorkspaceSingleIntegrationImportStatus } from '@src/types/onyx';
+import type { WorkspaceIntegrationImportStatus } from '@src/types/onyx';
 import Icon from '@components/Icon';
 import useTheme from '@hooks/useTheme';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -15,7 +15,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 
 type IntegrationSyncProgressProps = {
     /** The policy ID currently being configured */
-    syncStatus: WorkspaceSingleIntegrationImportStatus;
+    syncStatus: WorkspaceIntegrationImportStatus;
     onClose: () => void;
 };
 

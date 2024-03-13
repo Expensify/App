@@ -902,21 +902,22 @@ function deleteWorkspaceAvatar(policyID: string) {
     API.write(WRITE_COMMANDS.DELETE_WORKSPACE_AVATAR, params, {optimisticData, finallyData, failureData});
 }
 
-function removeWorkspaceIntegration(policyID: string, connectionName: string) {
+function removePolicyConnection(policyID: string, connectionName: string) {
     const optimisticData: OnyxUpdate[] = [
-        // {
-        //     onyxMethod: Onyx.METHOD.MERGE,
-        //     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-        //     value: {
-        //         pendingFields: {
-        //             avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-        //         },
-        //         errorFields: {
-        //             avatar: null,
-        //         },
-        //         avatar: '',
-        //     },
-        // },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [connectionName]: null,
+                }
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_STATUS}${policyID}`,
+            value: null,
+        },
     ];
     const finallyData: OnyxUpdate[] = [
         // {
@@ -940,7 +941,7 @@ function removeWorkspaceIntegration(policyID: string, connectionName: string) {
         //     },
         // },
     ];
-    API.write(WRITE_COMMANDS.REMOVE_WORKSPACE_INTEGRATION, {policyID, connectionName}, {optimisticData, finallyData, failureData});
+    API.write(WRITE_COMMANDS.REMOVE_POLICY_CONNECTION, {policyID, connectionName}, {optimisticData, finallyData, failureData});
 }
 
 /**
@@ -2242,7 +2243,7 @@ export {
     updateGeneralSettings,
     clearWorkspaceGeneralSettingsErrors,
     deleteWorkspaceAvatar,
-    removeWorkspaceIntegration,
+    removePolicyConnection,
     updateWorkspaceAvatar,
     clearAvatarErrors,
     generatePolicyID,

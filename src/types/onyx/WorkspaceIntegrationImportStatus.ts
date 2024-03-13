@@ -1,6 +1,7 @@
-import type WorkspaceSingleIntegrationImportStatus from "./WorkspaceSingleIntegrationImportStatus";
-
-// The key is the connection name, i.e. quickbooksOnline
-type WorkspaceIntegrationImportStatus = Record<string, WorkspaceSingleIntegrationImportStatus>;
+type WorkspaceIntegrationImportStatus = {
+    status: 'starting' | 'finished' | 'progress';
+    stageInProgress: string | null;
+    connectionName: 'quickbooksOnline'
+};
 
 export default WorkspaceIntegrationImportStatus;

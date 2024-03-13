@@ -5,7 +5,6 @@ import Text from '@components/Text';
 import Button from '@components/Button';
 import type {Policy, WorkspaceIntegrationImportStatus} from '@src/types/onyx';
 import useLocalize from '@hooks/useLocalize';
-import { removeWorkspaceIntegration } from '@libs/actions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type { OnyxEntry} from 'react-native-onyx';
 import { withOnyx } from 'react-native-onyx';
@@ -18,8 +17,8 @@ import useTheme from '@hooks/useTheme';
 import { ActivityIndicator, View } from 'react-native';
 import type { WithPolicyAndFullscreenLoadingProps } from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
-import IntegrationSyncProgress from './IntegrationSyncProgress';
 import ConnectToQuickbooksOnlineButton from './ConnectToQuickbooksOnlineButton';
+import ConnectionThreeDotMenuItems from './ConnectionThreeDotMenuItems';
 
 type WorkspaceAccountingPageOnyxProps = {
     /** From Onyx */
@@ -39,13 +38,15 @@ function WorkspaceAccountingPage({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const [triggeredSyncManually, setTriggeredSyncManually] = useState<boolean>(false);
-    const quickbooksOnlineSyncStatus = integrationImportStatus?.quickbooksOnline ?? null;
-    const isSyncInProgress = quickbooksOnlineSyncStatus !== null && quickbooksOnlineSyncStatus.status !== 'finished';
+    const isSyncInProgress = integrationImportStatus?.status === 'starting' || integrationImportStatus?.status === 'progress';
 
     let supportingText = 'Some supporting text...';
     if (isSyncInProgress) {
-        supportingText = 'Syncing stuff...';
+        if (integrationImportStatus.stageInProgress !== null) {
+            supportingText = integrationImportStatus.stageInProgress;
+        } else {
+            supportingText = 'Importing data...';
+        }
     }
     return (
         <ScreenWrapper
@@ -85,6 +86,9 @@ function WorkspaceAccountingPage({
                             {!policy?.connections?.quickbooksOnline &&
                                 <ConnectToQuickbooksOnlineButton policyID={policy.id}/>
                             }
+                            {!isSyncInProgress && !!policy?.connections?.quickbooksOnline && (
+                                <ConnectionThreeDotMenuItems policyID={policy.id} />
+                            )}
                         </View>
                     </Section>
                     <>
@@ -97,19 +101,10 @@ function WorkspaceAccountingPage({
                                 <Button onPress={() => alert('ahh!')}>
                                     <Text>Import</Text>
                                 </Button>
-                                <Button onPress={() => removeWorkspaceIntegration(policy.id, 'quickbooksOnline')}>
-                                    <Text>Disconnect</Text>
-                                </Button>
                             </>
                         )}
                     </>
                 </>
-            )}
-            {quickbooksOnlineSyncStatus !== null && quickbooksOnlineSyncStatus.status !== 'finished' && triggeredSyncManually && (
-                <IntegrationSyncProgress
-                    syncStatus={quickbooksOnlineSyncStatus}
-                    onClose={() => setTriggeredSyncManually(true)}
-                />
             )}
         </ScreenWrapper>
     );
@@ -120,7 +115,7 @@ WorkspaceAccountingPage.displayName = 'WorkspaceAccountingPage';
 export default withPolicyAndFullscreenLoading(
     withOnyx<WorkspaceAccountingPageProps, WorkspaceAccountingPageOnyxProps>({
         integrationImportStatus: {
-            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_INTEGRATION_IMPORT_STATUS}${props.route.params.policyID}`,
+            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_STATUS}${props.route.params.policyID}`,
         },
     })(WorkspaceAccountingPage),
 );
