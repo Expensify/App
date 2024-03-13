@@ -107,7 +107,6 @@ function OnboardingPurpose() {
                 <HeaderWithBackButton
                     shouldShowBackButton
                     onBackButtonPress={handleGoBack}
-                    iconFill={theme.iconColorfulBackground}
                     progressBarPercentage={66.6}
                 />
             </View>
