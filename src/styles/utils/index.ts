@@ -475,14 +475,21 @@ function getIconWidthAndHeightStyle(small: boolean, medium: boolean, large: bool
     }
 }
 
-function getButtonStyleWithIcon(styles: ThemeStyles, small: boolean, medium: boolean, large: boolean, hasIcon?: boolean, hasText?: boolean): ViewStyle | undefined {
+function getButtonStyleWithIcon(styles: ThemeStyles, small: boolean, medium: boolean, large: boolean, hasIcon?: boolean, hasText?: boolean, shouldShowRightIcon?: boolean): ViewStyle | undefined {
+    const useDefaultButtonStyles = Boolean(hasIcon && shouldShowRightIcon) || Boolean(!hasIcon && !shouldShowRightIcon);
     switch (true) {
-        case small:
-            return !hasIcon ? styles.buttonSmall : {...styles.buttonSmall, ...(hasText ? styles.pl2 : styles.ph0)};
-        case medium:
-            return !hasIcon ? styles.buttonMedium : {...styles.buttonMedium, ...(hasText ? styles.pl3 : styles.ph0)};
-        case large:
-            return !hasIcon ? styles.buttonLarge : {...styles.buttonLarge, ...(hasText ? styles.pl4 : styles.ph0)};
+        case small: {
+            const verticalStyle = hasIcon ? styles.pl2 : styles.pr2;
+            return useDefaultButtonStyles ? styles.buttonSmall : {...styles.buttonSmall, ...(hasText ? verticalStyle : styles.ph0)};
+        }
+        case medium: {
+            const verticalStyle = hasIcon ? styles.pl3 : styles.pr3;
+            return useDefaultButtonStyles ? styles.buttonMedium : {...styles.buttonMedium, ...(hasText ? verticalStyle : styles.ph0)};
+        }
+        case large: {
+            const verticalStyle = hasIcon ? styles.pl4 : styles.pr4;
+            return useDefaultButtonStyles ? styles.buttonLarge : {...styles.buttonLarge, ...(hasText ? verticalStyle : styles.ph0)};
+        }
         default: {
             return undefined;
         }

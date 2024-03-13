@@ -251,11 +251,13 @@ function Button(
                         {textComponent}
                     </View>
                     {shouldShowRightIcon && (
-                        <View style={[styles.justifyContentCenter, styles.ml1, iconRightStyles]}>
+                        <View style={[styles.justifyContentCenter, large ? styles.ml2 : styles.ml1, iconRightStyles]}>
                             <Icon
                                 src={iconRight}
                                 fill={iconFill ?? (success || danger ? theme.textLight : theme.icon)}
                                 small={small}
+                                medium={medium}
+                                large={large}
                             />
                         </View>
                     )}
@@ -313,7 +315,7 @@ function Button(
                 ]}
                 style={[
                     styles.button,
-                    StyleUtils.getButtonStyleWithIcon(styles, small, medium, large, Boolean(icon), Boolean(text?.length > 0)),
+                    StyleUtils.getButtonStyleWithIcon(styles, small, medium, large, Boolean(icon), Boolean(text?.length > 0), shouldShowRightIcon),
                     success ? styles.buttonSuccess : undefined,
                     danger ? styles.buttonDanger : undefined,
                     isDisabled ? styles.buttonOpacityDisabled : undefined,
