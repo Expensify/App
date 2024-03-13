@@ -3666,6 +3666,10 @@ function canIOUBePaid(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chat
         return false;
     }
 
+    if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
+        return false;
+    }
+
     const isPayer = ReportUtils.isPayer(
         {
             email: currentUserEmail,
