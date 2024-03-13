@@ -47,8 +47,11 @@ type NewChatPageProps = NewChatPageWithOnyxProps & {
 const excludedGroupEmails = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
 
 function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingForReports, dismissedReferralBanners}: NewChatPageProps) {
+    const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
     const {translate} = useLocalize();
-    const {options, areOptionsInitialized} = useOptionsList();
+    const {options, areOptionsInitialized} = useOptionsList({
+        shouldInitialize: isScreenTransitionEnd,
+    });
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState<OptionData[]>([]);
@@ -238,6 +241,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
             includePaddingTop={false}
             shouldEnableMaxHeight
             testID={NewChatPage.displayName}
+            onEntryTransitionEnd={() => setIsScreenTransitionEnd(true)}
         >
             {({safeAreaPaddingBottomStyle, insets}) => (
                 <KeyboardAvoidingView

@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -48,15 +48,24 @@ const reportFilter = (reportOptions: Array<OptionsListUtils.SearchOption<Report>
     }, []);
 
 function TaskShareDestinationSelectorModal({isSearchingForReports}: TaskShareDestinationSelectorModalProps) {
+    const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {options: optionList} = useOptionsList();
+    const {options: optionList, areOptionsInitialized} = useOptionsList({
+        shouldInitialize: isScreenTransitionEnd,
+    });
 
     const textInputHint = useMemo(() => (isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''), [isOffline, translate]);
 
     const options = useMemo(() => {
+        if (!areOptionsInitialized) {
+            return {
+                sections: [],
+                headerMessage: '',
+            };
+        }
         const filteredReports = reportFilter(optionList.reports);
 
         const {recentReports} = OptionsListUtils.getShareDestinationOptions(filteredReports, optionList.personalDetails, [], debouncedSearchValue.trim(), [], CONST.EXPENSIFY_EMAILS, true);
@@ -82,7 +91,7 @@ function TaskShareDestinationSelectorModal({isSearchingForReports}: TaskShareDes
                 : [];
 
         return {sections, headerMessage};
-    }, [optionList.reports, optionList.personalDetails, debouncedSearchValue]);
+    }, [areOptionsInitialized, optionList.reports, optionList.personalDetails, debouncedSearchValue]);
 
     useEffect(() => {
         ReportActions.searchInServer(debouncedSearchValue);
@@ -92,6 +101,7 @@ function TaskShareDestinationSelectorModal({isSearchingForReports}: TaskShareDes
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             testID="TaskShareDestinationSelectorModal"
+            onEntryTransitionEnd={() => setIsScreenTransitionEnd(true)}
         >
             {({didScreenTransitionEnd}) => (
                 <>
@@ -102,13 +112,13 @@ function TaskShareDestinationSelectorModal({isSearchingForReports}: TaskShareDes
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <SelectionList
                             ListItem={UserListItem}
-                            sections={didScreenTransitionEnd ? options.sections : []}
+                            sections={(!areOptionsInitialized && didScreenTransitionEnd) || areOptionsInitialized ? options.sections : []}
                             onSelectRow={selectReportHandler}
                             onChangeText={setSearchValue}
                             textInputValue={searchValue}
                             headerMessage={options.headerMessage}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            showLoadingPlaceholder={!didScreenTransitionEnd}
+                            showLoadingPlaceholder={areOptionsInitialized && debouncedSearchValue.trim() === '' ? options.sections.length === 0 : !didScreenTransitionEnd}
                             isLoadingNewOptions={isSearchingForReports ?? undefined}
                             textInputHint={textInputHint}
                         />

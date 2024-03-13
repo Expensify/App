@@ -52,7 +52,7 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
     const [userToInvite, setUserToInvite] = useState<ReportUtils.OptionData | null>(null);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const navigation: StackNavigationProp<RootStackParamList> = useNavigation();
-    const {options} = useOptionsList();
+    const {options, areOptionsInitialized} = useOptionsList();
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers = useMemo(
@@ -239,7 +239,7 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
                     onConfirm={inviteUsers}
                     showScrollIndicator
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                    showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetails)}
+                    showLoadingPlaceholder={!didScreenTransitionEnd && !areOptionsInitialized}
                 />
                 <View style={[styles.flexShrink0]}>
                     <FormAlertWithSubmitButton

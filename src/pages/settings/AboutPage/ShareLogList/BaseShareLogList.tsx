@@ -2,7 +2,6 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -12,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
@@ -30,8 +28,7 @@ function BaseShareLogList({betas, onAttachLogToReport}: BaseShareLogListProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isMounted = useRef(false);
-    const personalDetails = usePersonalDetails();
-    const {options} = useOptionsList();
+    const {options, areOptionsInitialized} = useOptionsList();
 
     const updateOptions = useCallback(() => {
         const {
@@ -47,12 +44,14 @@ function BaseShareLogList({betas, onAttachLogToReport}: BaseShareLogListProps) {
         });
     }, [betas, options, searchValue]);
 
-    const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
-
     useEffect(() => {
+        if (!areOptionsInitialized) {
+            return;
+        }
+
         updateOptions();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [areOptionsInitialized]);
 
     useEffect(() => {
         if (!isMounted.current) {
@@ -134,7 +133,7 @@ function BaseShareLogList({betas, onAttachLogToReport}: BaseShareLogListProps) {
                             value={searchValue}
                             headerMessage={headerMessage}
                             showTitleTooltip
-                            shouldShowOptions={isOptionsDataReady}
+                            shouldShowOptions={areOptionsInitialized}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
