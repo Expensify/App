@@ -2826,6 +2826,76 @@ function createPolicyTag(policyID: string, tagName: string) {
     API.write(WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, onyxData);
 }
 
+function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName: string}) {
+    const tagListName = Object.keys(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})[0];
+    const oldTag = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[policyTag.oldName] ?? {};
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [tagListName]: {
+                        tags: {
+                            [policyTag.oldName]: null,
+                            [policyTag.newName]: {
+                                ...oldTag,
+                                name: policyTag.newName,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [tagListName]: {
+                        tags: {
+                            [policyTag.oldName]: null,
+                            [policyTag.newName]: {
+                                ...oldTag,
+                                name: policyTag.newName,
+                                errors: null,
+                                pendingAction: null,
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [tagListName]: {
+                        tags: {
+                            [policyTag.newName]: null,
+                            [policyTag.oldName]: {
+                                ...oldTag,
+                                name: policyTag.oldName,
+                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.genericFailureMessage'),
+                                pendingAction: null,
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        tags: JSON.stringify({[policyTag.oldName]: policyTag.newName}),
+    };
+
+    API.write(WRITE_COMMANDS.RENAME_POLICY_TAG, parameters, onyxData);
+}
+
 function setWorkspaceRequiresCategory(policyID: string, requiresCategory: boolean) {
     const onyxData: OnyxData = {
         optimisticData: [
@@ -3589,6 +3659,7 @@ export {
     openPolicyDistanceRatesPage,
     openPolicyMoreFeaturesPage,
     createPolicyTag,
+    renamePolicyTag,
     clearWorkspaceReimbursementErrors,
     deleteWorkspaceCategories,
 };

@@ -22,18 +22,19 @@ import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccess
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
 import type {PolicyTagList} from '@src/types/onyx';
 
-type WorkspaceCreateTagPageOnyxProps = {
+type WorkspaceEditTagPageOnyxProps = {
     /** All policy tags */
     policyTags: OnyxEntry<PolicyTagList>;
 };
 
-type CreateTagPageProps = WorkspaceCreateTagPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_CREATE>;
+type EditTagPageProps = WorkspaceEditTagPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_EDIT>;
 
-function CreateTagPage({route, policyTags}: CreateTagPageProps) {
+function EditTagPage({route, policyTags}: EditTagPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -58,13 +59,13 @@ function CreateTagPage({route, policyTags}: CreateTagPageProps) {
         [policyTags],
     );
 
-    const createTag = useCallback(
+    const editTag = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_CREATE_FORM>) => {
-            Policy.createPolicyTag(route.params.policyID, values.tagName.trim());
+            Policy.renamePolicyTag(route.params.policyID, {oldName: route.params.tagName, newName: values.tagName.trim()});
             Keyboard.dismiss();
-            Navigation.goBack();
+            Navigation.goBack(ROUTES.WORKSPACE_TAGS.getRoute(route.params.policyID));
         },
-        [route.params.policyID],
+        [route.params.policyID, route.params.tagName],
     );
 
     return (
@@ -73,7 +74,7 @@ function CreateTagPage({route, policyTags}: CreateTagPageProps) {
                 <ScreenWrapper
                     includeSafeAreaPaddingBottom={false}
                     style={[styles.defaultModalContainer]}
-                    testID={CreateTagPage.displayName}
+                    testID={EditTagPage.displayName}
                     shouldEnableMaxHeight
                 >
                     <HeaderWithBackButton
@@ -82,7 +83,7 @@ function CreateTagPage({route, policyTags}: CreateTagPageProps) {
                     />
                     <FormProvider
                         formID={ONYXKEYS.FORMS.WORKSPACE_TAG_CREATE_FORM}
-                        onSubmit={createTag}
+                        onSubmit={editTag}
                         submitButtonText={translate('common.save')}
                         validate={validate}
                         style={[styles.mh5, styles.flex1]}
@@ -104,10 +105,10 @@ function CreateTagPage({route, policyTags}: CreateTagPageProps) {
     );
 }
 
-CreateTagPage.displayName = 'CreateTagPage';
+EditTagPage.displayName = 'EditTagPage';
 
-export default withOnyx<CreateTagPageProps, WorkspaceCreateTagPageOnyxProps>({
+export default withOnyx<EditTagPageProps, WorkspaceEditTagPageOnyxProps>({
     policyTags: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`,
     },
-})(CreateTagPage);
+})(EditTagPage);
