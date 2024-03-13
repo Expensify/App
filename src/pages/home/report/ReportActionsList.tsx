@@ -108,8 +108,6 @@ function isMessageUnread(message: OnyxTypes.ReportAction, lastReadTime?: string)
     return !!(message && lastReadTime && message.created && lastReadTime < message.created);
 }
 
-const onScrollToIndexFailed = () => {};
-
 function ReportActionsList({
     report,
     parentReportAction,
@@ -257,9 +255,18 @@ function ReportActionsList({
             setMessageManuallyMarkedUnread(0);
         });
 
+        const deletedReportActionSubscription = DeviceEventEmitter.addListener(`deletedReportAction_${report.reportID}`, (reportActionID) => {
+            if (cacheUnreadMarkers.get(report.reportID) !== reportActionID) {
+                return;
+            }
+
+            setMessageManuallyMarkedUnread(new Date().getTime());
+        });
+
         return () => {
             unreadActionSubscription.remove();
             readNewestActionSubscription.remove();
+            deletedReportActionSubscription.remove();
         };
     }, [report.reportID]);
 
@@ -298,9 +305,7 @@ function ReportActionsList({
             if (unsubscribe) {
                 unsubscribe();
             }
-            InteractionManager.runAfterInteractions(() => {
-                Report.unsubscribeFromReportChannel(report.reportID);
-            });
+            Report.unsubscribeFromReportChannel(report.reportID);
         };
 
         newActionUnsubscribeMap[report.reportID] = cleanup;
@@ -327,12 +332,11 @@ function ReportActionsList({
         }
     };
 
-    const trackVerticalScrolling = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const trackVerticalScrolling = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
         handleUnreadFloatingButton();
         onScroll?.(event);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    };
 
     const scrollToBottomAndMarkReportAsRead = () => {
         reportScrollManager.scrollToBottom();
@@ -477,7 +481,7 @@ function ReportActionsList({
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
-    const extraData = useMemo(() => [isSmallScreenWidth ? currentUnreadMarker : undefined, ReportUtils.isArchivedRoom(report)], [currentUnreadMarker, isSmallScreenWidth, report]);
+    const extraData = [isSmallScreenWidth ? currentUnreadMarker : undefined, ReportUtils.isArchivedRoom(report)];
     const hideComposer = !ReportUtils.canUserPerformWriteAction(report);
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
 
@@ -554,7 +558,7 @@ function ReportActionsList({
                     keyboardShouldPersistTaps="handled"
                     onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}
-                    onScrollToIndexFailed={onScrollToIndexFailed}
+                    onScrollToIndexFailed={() => {}}
                     extraData={extraData}
                 />
             </Animated.View>
