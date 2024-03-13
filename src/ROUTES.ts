@@ -465,6 +465,10 @@ const ROUTES = {
         route: 'workspace/:policyID/profile',
         getRoute: (policyID: string) => `workspace/${policyID}/profile` as const,
     },
+    WORKSPACE_PROFILE_ADDRESS: {
+        route: 'workspace/:policyID/profile/address',
+        getRoute: (policyID: string) => `workspace/${policyID}/profile/address` as const,
+    },
     WORKSPACE_PROFILE_CURRENCY: {
         route: 'workspace/:policyID/profile/currency',
         getRoute: (policyID: string) => `workspace/${policyID}/profile/currency` as const,

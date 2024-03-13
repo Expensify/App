@@ -50,7 +50,10 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
     const currencySymbol = currencyList?.[outputCurrency]?.symbol ?? '';
     const formattedCurrency = !isEmptyObject(policy) && !isEmptyObject(currencyList) ? `${outputCurrency} - ${currencySymbol}` : '';
 
+    const formattedAddress = 'abc';
+
     const onPressCurrency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_CURRENCY.getRoute(policy?.id ?? '')), [policy?.id]);
+    const onPressAddress = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(policy?.id ?? '')), [policy?.id]);
     const onPressName = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_NAME.getRoute(policy?.id ?? '')), [policy?.id]);
     const onPressDescription = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(policy?.id ?? '')), [policy?.id]);
     const onPressShare = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_SHARE.getRoute(policy?.id ?? '')), [policy?.id]);
@@ -184,6 +187,20 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                     <Text style={[styles.textLabel, styles.colorMuted, styles.mt1, styles.mh5, styles.sectionMenuItemTopDescription]}>
                                         {hasVBA ? translate('workspace.editor.currencyInputDisabledText') : translate('workspace.editor.currencyInputHelpText')}
                                     </Text>
+                                </View>
+                            </OfflineWithFeedback>
+                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
+                                <View>
+                                    <MenuItemWithTopDescription
+                                        title={formattedAddress}
+                                        description={translate('workspace.editor.addressInputLabel')}
+                                        shouldShowRightIcon={!readOnly}
+                                        disabled={hasVBA ? true : readOnly}
+                                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                                        onPress={onPressAddress}
+                                        shouldGreyOutWhenDisabled={false}
+                                        shouldUseDefaultCursorWhenDisabled
+                                    />
                                 </View>
                             </OfflineWithFeedback>
                             {!readOnly && (

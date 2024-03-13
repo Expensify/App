@@ -249,6 +249,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.CURRENCY]: {
                             path: ROUTES.WORKSPACE_PROFILE_CURRENCY.route,
                         },
+                        [SCREENS.WORKSPACE.ADDRESS]: {
+                            path: ROUTES.WORKSPACE_PROFILE_ADDRESS.route,
+                        },
                         [SCREENS.WORKSPACE.DESCRIPTION]: {
                             path: ROUTES.WORKSPACE_PROFILE_DESCRIPTION.route,
                         },

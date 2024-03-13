@@ -219,6 +219,7 @@ const SCREENS = {
         TAGS_SETTINGS: 'Tags_Settings',
         TAGS_EDIT: 'Tags_Edit',
         CURRENCY: 'Workspace_Profile_Currency',
+        ADDRESS: 'Workspace_Profile_Address',
         WORKFLOWS: 'Workspace_Workflows',
         WORKFLOWS_APPROVER: 'Workspace_Workflows_Approver',
         WORKFLOWS_AUTO_REPORTING_FREQUENCY: 'Workspace_Workflows_Auto_Reporting_Frequency',
