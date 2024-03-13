@@ -1,4 +1,5 @@
 import type {BrowserWindow} from 'electron';
+import ELECTRON_EVENTS from '@desktop/ELECTRON_EVENTS';
 import electronDownload from './electronDownloadManager';
 import type {Options} from './electronDownloadManagerType';
 
@@ -52,9 +53,11 @@ const createDownloadQueue = () => {
                 ...item.options,
                 onCompleted: () => {
                     shiftDownloadItem();
+                    item.win.webContents.send(ELECTRON_EVENTS.DOWNLOAD_COMPLETED, {url: item.url});
                 },
                 onCancel: () => {
                     shiftDownloadItem();
+                    item.win.webContents.send(ELECTRON_EVENTS.DOWNLOAD_CANCELLED, {url: item.url});
                 },
             },
         };

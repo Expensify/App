@@ -12,14 +12,20 @@ const fileDownload: FileDownload = (url, fileName) => {
     };
     window.electron.send(ELECTRON_EVENTS.DOWNLOAD, {url, options});
 
-    /**
-     * Adds a 1000ms delay to keep showing the loading spinner
-     * and prevent rapid clicks on the same download link.
-     */
     return new Promise((resolve) => {
-        setTimeout(() => {
+        window.electron.on(ELECTRON_EVENTS.DOWNLOAD_COMPLETED, (args) => {
+            if (args.url !== url) {
+                return;
+            }
             resolve();
-        }, 1000);
+        });
+
+        window.electron.on(ELECTRON_EVENTS.DOWNLOAD_CANCELLED, (args) => {
+            if (args.url !== url) {
+                return;
+            }
+            resolve();
+        });
     });
 };
 

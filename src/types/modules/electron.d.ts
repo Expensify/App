@@ -3,7 +3,7 @@ type ContextBridgeApi = {
     send: (channel: string, data?: unknown) => void;
     sendSync: (channel: string, data?: unknown) => unknown;
     invoke: (channel: string, ...args: unknown) => Promise<unknown>;
-    on: (channel: string, func: () => void) => void;
+    on: (channel: string, func: (args) => void) => void;
     removeAllListeners: (channel: string) => void;
 };
 
