@@ -24,7 +24,7 @@ function BaseListItem<TItem extends ListItem>({
     onCheckboxPress,
     onDismissError = () => {},
     rightHandSideComponent,
-    checkmarkPosition = 'left',
+    checkmarkPosition = CONST.DIRECTION.LEFT,
     keyForList,
     errors,
     pendingAction,
@@ -78,7 +78,7 @@ function BaseListItem<TItem extends ListItem>({
                 style={pressableStyle}
             >
                 <View style={wrapperStyle}>
-                    {canSelectMultiple && checkmarkPosition === 'left' && (
+                    {canSelectMultiple && checkmarkPosition === CONST.DIRECTION.LEFT && (
                         <PressableWithFeedback
                             accessibilityLabel={item.text ?? ''}
                             role={CONST.ROLE.BUTTON}
@@ -101,7 +101,7 @@ function BaseListItem<TItem extends ListItem>({
 
                     {typeof children === 'function' ? children(hovered) : children}
 
-                    {canSelectMultiple && checkmarkPosition === 'right' && (
+                    {canSelectMultiple && checkmarkPosition === CONST.DIRECTION.RIGHT && (
                         <PressableWithFeedback
                             onPress={handleCheckboxPress}
                             disabled={isDisabled}

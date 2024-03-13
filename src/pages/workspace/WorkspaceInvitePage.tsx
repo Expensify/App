@@ -321,7 +321,7 @@ function WorkspaceInvitePage({
                     showScrollIndicator
                     showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetailsProp)}
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                    checkmarkPosition="right"
+                    checkmarkPosition={CONST.DIRECTION.RIGHT}
                 />
                 <View style={[styles.flexShrink0]}>
                     <FormAlertWithSubmitButton

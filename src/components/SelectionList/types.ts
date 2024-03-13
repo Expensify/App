@@ -35,7 +35,7 @@ type CommonListItemProps<TItem> = {
     rightHandSideComponent?: ((item: TItem) => ReactElement<TItem>) | ReactElement | null;
 
     /** Direction of checkmark to show */
-    checkmarkPosition?: 'left' | 'right';
+    checkmarkPosition?: ValueOf<typeof CONST.DIRECTION>;
 
     /** Styles for the pressable component */
     pressableStyle?: StyleProp<ViewStyle>;
@@ -271,7 +271,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     rightHandSideComponent?: ((item: ListItem) => ReactElement<ListItem>) | ReactElement | null;
 
     /** Direction of checkmark to show */
-    checkmarkPosition?: 'left' | 'right';
+    checkmarkPosition?: ValueOf<typeof CONST.DIRECTION>;
 
     /** Whether to show the loading indicator for new options */
     isLoadingNewOptions?: boolean;
