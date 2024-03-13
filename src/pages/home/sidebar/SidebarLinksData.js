@@ -57,7 +57,7 @@ function SidebarLinksData({isFocused, currentReportID, insets, isLoadingApp, onL
 
     const orderedReportIDsRef = useRef(null);
     const isLoading = isLoadingApp;
-    const {orderedReportIDs, reportIDsWithErrors} = useReportIDs();
+    const {orderedReportIDs} = useReportIDs();
 
     const optionListItems = useMemo(() => {
         if (deepEqual(orderedReportIDsRef.current, orderedReportIDs)) {
@@ -93,7 +93,6 @@ function SidebarLinksData({isFocused, currentReportID, insets, isLoadingApp, onL
                 isLoading={isLoading}
                 activeWorkspaceID={activeWorkspaceID}
                 optionListItems={optionListItems}
-                reportIDsWithErrors={reportIDsWithErrors}
             />
         </View>
     );
