@@ -18,7 +18,7 @@ import Text from './Text';
 
 type PopoverMenuItem = {
     /** An icon element displayed on the left side */
-    icon: IconAsset;
+    icon?: IconAsset;
 
     /** Text label */
     text: string;

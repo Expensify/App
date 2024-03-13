@@ -1,8 +1,8 @@
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -29,7 +29,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Transaction, TransactionViolations, UserWallet} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ReportActionItemImages from './ReportActionItemImages';
 
@@ -48,6 +48,9 @@ type ReportPreviewOnyxProps = {
 
     /** All of the transaction violations */
     transactionViolations: OnyxCollection<TransactionViolations>;
+
+    /** The user's wallet account */
+    userWallet: OnyxEntry<UserWallet>;
 };
 
 type ReportPreviewProps = ReportPreviewOnyxProps & {
@@ -94,6 +97,7 @@ function ReportPreview({
     isHovered = false,
     isWhisper = false,
     checkIfContextMenuActive = () => {},
+    userWallet,
 }: ReportPreviewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -209,6 +213,9 @@ function ReportPreview({
 
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
 
+    const shouldPromptUserToAddBankAccount = ReportUtils.hasMissingPaymentMethod(userWallet, iouReportID);
+    const shouldShowRBR = !iouSettled && hasErrors;
+
     /*
      Show subtitle if at least one of the money requests is not being smart scanned, and either:
      - There is more than one money request – in this case, the "X requests, Y scanning" subtitle is shown;
@@ -254,10 +261,17 @@ function ReportPreview({
                                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                             <Text style={[styles.textLabelSupporting, styles.lh16]}>{getPreviewMessage()}</Text>
                                         </View>
-                                        {!iouSettled && hasErrors && (
+                                        {shouldShowRBR && (
                                             <Icon
                                                 src={Expensicons.DotIndicator}
                                                 fill={theme.danger}
+                                            />
+                                        )}
+
+                                        {!shouldShowRBR && shouldPromptUserToAddBankAccount && (
+                                            <Icon
+                                                src={Expensicons.DotIndicator}
+                                                fill={theme.success}
                                             />
                                         )}
                                     </View>
@@ -342,5 +356,8 @@ export default withOnyx<ReportPreviewProps, ReportPreviewOnyxProps>({
     },
     transactionViolations: {
         key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    },
+    userWallet: {
+        key: ONYXKEYS.USER_WALLET,
     },
 })(ReportPreview);
