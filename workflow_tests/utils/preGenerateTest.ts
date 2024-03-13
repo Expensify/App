@@ -125,8 +125,7 @@ const stepAssertionTemplate = (stepName: string, jobId: string, stepMessage: str
 const jobMocksTemplate = (jobMocksName: string, stepMocks: string[]) => {
     const stepMocksString = stepMocks.map((stepMock) => `${stepMock}`).join(',');
 
-    return `const ${jobMocksName} = [${stepMocksString}
-            ];`;
+    return `const ${jobMocksName} = [${stepMocksString}\n];`;
 };
 
 const jobAssertionTemplate = (jobAssertionName: string, stepAssertionsContent: string) => `

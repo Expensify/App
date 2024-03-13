@@ -160,7 +160,7 @@ function setJobRunners(act: ExtendedAct, jobs: Record<string, string>, workflowP
     return act;
 }
 
-function deepCopy<T>(originalObject: T): T {
+function deepCopy<TObject extends Record<string, unknown>>(originalObject: TObject): TObject {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return JSON.parse(JSON.stringify(originalObject));
 }

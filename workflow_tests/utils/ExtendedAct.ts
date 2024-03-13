@@ -8,7 +8,7 @@ import type {MockJob} from './JobMocker';
 
 type ExtendedActOpts = RunOpts & {actor?: string; workflowFile?: string; mockJobs?: Record<string, MockJob>};
 
-// @ts-expect-error Override shouldn't be done on private methods - wait until the issue is resolved
+// @ts-expect-error Override shouldn't be done on private methods wait until https://github.com/kiegroup/act-js/issues/77 is resolved or try to create a params workaround
 class ExtendedAct extends kieActJs.Act {
     async parseRunOpts(opts?: ExtendedActOpts) {
         const {cwd, actArguments, proxy} = await super['parseRunOpts'](opts);
