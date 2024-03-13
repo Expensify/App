@@ -121,8 +121,16 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     };
 
     const disableRates = () => {
+        if (customUnit === undefined) {
+            return;
+        }
+
         if (selectedDistanceRates.length !== Object.values(customUnitRates).length) {
-            // run enableWorkspaceDistanceRates for all selected rows
+            Policy.setPolicyDistanceRatesEnabled(
+                policyID,
+                customUnit,
+                selectedDistanceRates.filter((rate) => rate.enabled),
+            );
             return;
         }
 
@@ -130,12 +138,28 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     };
 
     const enableRates = () => {
-        // run enableWorkspaceDistanceRates for all selected rows
+        if (customUnit === undefined) {
+            return;
+        }
+
+        Policy.setPolicyDistanceRatesEnabled(
+            policyID,
+            customUnit,
+            selectedDistanceRates.filter((rate) => !rate.enabled),
+        );
     };
 
     const deleteRates = () => {
+        if (customUnit === undefined) {
+            return;
+        }
+
         if (selectedDistanceRates.length !== Object.values(customUnitRates).length) {
-            // run deleteWorkspaceDistanceRates for all selected rows
+            Policy.deletePolicyDistanceRates(
+                policyID,
+                customUnit,
+                selectedDistanceRates.map((rate) => rate.customUnitRateID ?? ''),
+            );
             return;
         }
 

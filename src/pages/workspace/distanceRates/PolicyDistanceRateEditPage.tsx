@@ -64,7 +64,7 @@ function PolicyDistanceRateEditPage({policy, route}: PolicyDistanceRateEditPageP
     };
 
     const deleteRate = () => {
-        Policy.deletePolicyDistanceRates(policyID, [rateID], customUnit);
+        Policy.deletePolicyDistanceRates(policyID, customUnit, [rateID]);
         setIsDeleteModalVisible(false);
     };
 

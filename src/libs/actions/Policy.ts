@@ -3649,10 +3649,6 @@ function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUn
 }
 
 function updatePolicyDistanceRateValue(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[]) {
-    if (!policyID || !customUnit || !customUnitRates) {
-        return;
-    }
-
     const currentRates = customUnit.rates;
     const optimisticRates: Record<string, Rate> = {};
     const successRates: Record<string, Rate> = {};
@@ -3723,17 +3719,13 @@ function updatePolicyDistanceRateValue(policyID: string, customUnit: CustomUnit,
     const params: UpdatePolicyDistanceRateValueParams = {
         policyID,
         customUnitID: customUnit.customUnitID,
-        customUnitRates: JSON.stringify(customUnitRates),
+        customUnitRates,
     };
 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE_VALUE, params, {optimisticData, successData, failureData});
 }
 
 function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[]) {
-    if (!policyID || !customUnit || !customUnitRates) {
-        return;
-    }
-
     const currentRates = customUnit.rates;
     const optimisticRates: Record<string, Rate> = {};
     const successRates: Record<string, Rate> = {};
@@ -3799,17 +3791,13 @@ function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit,
     const params: SetPolicyDistanceRatesEnabledParams = {
         policyID,
         customUnitID: customUnit.customUnitID,
-        customUnitRates: JSON.stringify(customUnitRates),
+        customUnitRates,
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_ENABLED, params, {optimisticData, successData, failureData});
 }
 
-function deletePolicyDistanceRates(policyID: string, rateIDsToDelete: string[], customUnit?: CustomUnit) {
-    if (!policyID || !rateIDsToDelete || !customUnit) {
-        return;
-    }
-
+function deletePolicyDistanceRates(policyID: string, customUnit: CustomUnit, rateIDsToDelete: string[]) {
     const currentRates = customUnit.rates;
     const optimisticRates: Record<string, Rate> = {};
     const successRates: Record<string, Rate> = {};
