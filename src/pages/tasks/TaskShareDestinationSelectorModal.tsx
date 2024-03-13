@@ -38,9 +38,9 @@ const selectReportHandler = (option: unknown) => {
     Navigation.goBack(ROUTES.NEW_TASK);
 };
 
-const reportFilter = (reportOptions: OptionsListUtils.ReportOption[]) =>
-    (reportOptions ?? []).reduce((filtered: OptionsListUtils.ReportOption[], option) => {
-        const report = option.item as Report;
+const reportFilter = (reportOptions: Array<OptionsListUtils.SearchOption<Report>>) =>
+    (reportOptions ?? []).reduce((filtered: Array<OptionsListUtils.SearchOption<Report>>, option) => {
+        const report = option.item;
         if (ReportUtils.canUserPerformWriteAction(report) && ReportUtils.canCreateTaskInReport(report) && !ReportUtils.isCanceledTaskReport(report)) {
             filtered.push(option);
         }

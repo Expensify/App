@@ -53,13 +53,13 @@ import * as TaskUtils from './TaskUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
 
-type ReportOption = ReportUtils.OptionData & {
-    item: Report | PersonalDetails;
+type SearchOption<T> = ReportUtils.OptionData & {
+    item: T;
 };
 
 type OptionList = {
-    reports: ReportOption[];
-    personalDetails: ReportOption[];
+    reports: Array<SearchOption<Report>>;
+    personalDetails: Array<SearchOption<PersonalDetails>>;
 };
 
 type Tag = {
@@ -1351,7 +1351,7 @@ function createOptionList(reports: OnyxCollection<Report>, personalDetails: Onyx
         return report?.lastVisibleActionCreated;
     });
     orderedReports.reverse();
-    const allReportOptions: ReportOption[] = [];
+    const allReportOptions: Array<SearchOption<Report>> = [];
 
     orderedReports.forEach((report) => {
         if (!report) {
@@ -1407,7 +1407,7 @@ function createOptionList(reports: OnyxCollection<Report>, personalDetails: Onyx
 
     return {
         reports: allReportOptions,
-        personalDetails: allPersonalDetailsOptions as ReportOption[],
+        personalDetails: allPersonalDetailsOptions as Array<SearchOption<PersonalDetails>>,
     };
 }
 
@@ -1499,7 +1499,7 @@ function getOptions(
 
     // Filter out all the reports that shouldn't be displayed
     const filteredReportOptions = options.reports.filter((option) => {
-        const report = option.item as Report;
+        const report = option.item;
 
         const {parentReportID, parentReportActionID} = report ?? {};
         const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
@@ -1523,7 +1523,7 @@ function getOptions(
     // - Order everything by the last message timestamp (descending)
     // - All archived reports should remain at the bottom
     const orderedReportOptions = lodashSortBy(filteredReportOptions, (option) => {
-        const report = option.item as Report;
+        const report = option.item;
         if (ReportUtils.isArchivedRoom(report)) {
             return CONST.DATE.UNIX_EPOCH;
         }
@@ -1533,7 +1533,7 @@ function getOptions(
     orderedReportOptions.reverse();
 
     const allReportOptions = orderedReportOptions.filter((option) => {
-        const report = option.item as Report;
+        const report = option.item;
 
         if (!report) {
             return;
@@ -1612,7 +1612,7 @@ function getOptions(
         for (const reportOption of allReportOptions) {
             // update the alternate text if needed
             if ((!!reportOption.isChatRoom || reportOption.isPolicyExpenseChat) && forcePolicyNamePreview) {
-                reportOption.alternateText = ReportUtils.getChatRoomSubtitle(reportOption.item as Report);
+                reportOption.alternateText = ReportUtils.getChatRoomSubtitle(reportOption.item);
             }
 
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
@@ -1853,8 +1853,8 @@ function getIOUConfirmationOptionsFromParticipants(participants: Participant[], 
  * Build the options for the New Group view
  */
 function getFilteredOptions(
-    reports: ReportOption[] = [],
-    personalDetails: ReportOption[] = [],
+    reports: Array<SearchOption<Report>> = [],
+    personalDetails: Array<SearchOption<PersonalDetails>> = [],
     betas: OnyxEntry<Beta[]> = [],
     searchValue = '',
     selectedOptions: Array<Partial<ReportUtils.OptionData>> = [],
@@ -1905,8 +1905,8 @@ function getFilteredOptions(
  */
 
 function getShareDestinationOptions(
-    reports: ReportOption[],
-    personalDetails: ReportOption[],
+    reports: Array<SearchOption<Report>> = [],
+    personalDetails: Array<SearchOption<PersonalDetails>> = [],
     betas: OnyxEntry<Beta[]> = [],
     searchValue = '',
     selectedOptions: Array<Partial<ReportUtils.OptionData>> = [],
@@ -1966,7 +1966,13 @@ function formatMemberForList(member: ReportUtils.OptionData): MemberForList {
 /**
  * Build the options for the Workspace Member Invite view
  */
-function getMemberInviteOptions(personalDetails: ReportOption[], betas: Beta[] = [], searchValue = '', excludeLogins: string[] = [], includeSelectedOptions = false): GetOptions {
+function getMemberInviteOptions(
+    personalDetails: Array<SearchOption<PersonalDetails>>,
+    betas: Beta[] = [],
+    searchValue = '',
+    excludeLogins: string[] = [],
+    includeSelectedOptions = false,
+): GetOptions {
     return getOptions(
         {reports: [], personalDetails},
         {
@@ -2124,4 +2130,4 @@ export {
     createOptionList,
 };
 
-export type {MemberForList, CategorySection, GetOptions, OptionList, ReportOption};
+export type {MemberForList, CategorySection, GetOptions, OptionList, SearchOption};
