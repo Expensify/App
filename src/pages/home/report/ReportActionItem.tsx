@@ -53,7 +53,6 @@ import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as Policy from '@userActions/Policy';
-import * as store from '@userActions/ReimbursementAccount/store';
 import * as Report from '@userActions/Report';
 import * as ReportActions from '@userActions/ReportActions';
 import * as Session from '@userActions/Session';
@@ -98,9 +97,6 @@ type ReportActionItemOnyxProps = {
     /** The user's wallet account */
     userWallet: OnyxEntry<OnyxTypes.UserWallet>;
 
-    /** All the report actions belonging to the report's parent */
-    parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
-
     /** All policy report fields */
     policyReportFields: OnyxEntry<OnyxTypes.PolicyReportFields>;
 
@@ -111,6 +107,9 @@ type ReportActionItemOnyxProps = {
 type ReportActionItemProps = {
     /** Report for this action */
     report: OnyxTypes.Report;
+
+    /** Report action belonging to the report's parent */
+    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
     /** All the data of the action item */
     action: OnyxTypes.ReportAction;
@@ -151,7 +150,7 @@ function ReportActionItem({
     index,
     iouReport,
     isMostRecentIOUReportAction,
-    parentReportActions,
+    parentReportAction,
     preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
     shouldDisplayNewMarker,
     userWallet,
@@ -470,17 +469,13 @@ function ReportActionItem({
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails[report.ownerAccountID ?? -1]);
             const paymentType = action.originalMessage.paymentType ?? '';
 
-            const isSubmitterOfUnsettledReport = ReportUtils.isCurrentUserSubmitter(report.reportID) && !ReportUtils.isSettled(report.reportID);
-            const shouldShowAddCreditBankAccountButton = isSubmitterOfUnsettledReport && !store.hasCreditBankAccount() && paymentType !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
-            const shouldShowEnableWalletButton =
-                isSubmitterOfUnsettledReport && (isEmptyObject(userWallet) || userWallet?.tierName === CONST.WALLET.TIER_NAME.SILVER) && paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
-
+            const missingPaymentMethod = ReportUtils.getIndicatedMissingPaymentMethod(userWallet, report.reportID, action);
             children = (
                 <ReportActionItemBasicMessage
                     message={translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', {submitterDisplayName})}
                 >
                     <>
-                        {shouldShowAddCreditBankAccountButton && (
+                        {missingPaymentMethod === 'bankAccount' && (
                             <Button
                                 success
                                 style={[styles.w100, styles.requestPreviewBox]}
@@ -489,8 +484,7 @@ function ReportActionItem({
                                 pressOnEnter
                             />
                         )}
-
-                        {shouldShowEnableWalletButton && (
+                        {missingPaymentMethod === 'wallet' && (
                             <KYCWall
                                 onSuccessfulKYC={() => Navigation.navigate(ROUTES.ENABLE_PAYMENTS)}
                                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
@@ -665,7 +659,6 @@ function ReportActionItem({
     };
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-        const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''] ?? null;
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);
             if (ReportActionsUtils.isDeletedParentAction(parentReportAction) || isReversedTransaction) {
@@ -865,7 +858,6 @@ function ReportActionItem({
                 )}
             </Hoverable>
             <View style={styles.reportActionSystemMessageContainer}>
-                {/* @ts-expect-error TODO check if there is a field on the reportAction object */}
                 <InlineSystemMessage message={action.error} />
             </View>
         </PressableWithSecondaryInteraction>
@@ -899,14 +891,10 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
     userWallet: {
         key: ONYXKEYS.USER_WALLET,
     },
-    parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID ?? 0}`,
-        canEvict: false,
-    },
 })(
     memo(ReportActionItem, (prevProps, nextProps) => {
-        const prevParentReportAction = prevProps.parentReportActions?.[prevProps.report.parentReportActionID ?? ''];
-        const nextParentReportAction = nextProps.parentReportActions?.[nextProps.report.parentReportActionID ?? ''];
+        const prevParentReportAction = prevProps.parentReportAction;
+        const nextParentReportAction = nextProps.parentReportAction;
         return (
             prevProps.displayAsGroup === nextProps.displayAsGroup &&
             prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction &&
