@@ -22,8 +22,8 @@ type VideoPlayerControlsProps = {
     videoPlayerRef: MutableRefObject<Video>;
     isPlaying: boolean;
     // Defines if component should have small icons and tighter spacing inline
-    small: boolean;
-    style: StyleProp<ViewStyle>;
+    small?: boolean;
+    style?: StyleProp<ViewStyle>;
     showPopoverMenu: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
     togglePlayCurrentVideo: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 };

@@ -36,9 +36,8 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions =
     const [measuredDimensions, setMeasuredDimensions] = useState(videoDimensions);
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(measuredDimensions.width, measuredDimensions.height);
 
-    // onVideoLoaded is passed to VideoPlayer, then BaseVideoPlayer and then as a prop onReadyForDisplay of Video.
-    // Therefore, the type of the event should be VideoReadyForDisplayEvent, however it does not include srcElement in its definition,
-    // as srcElement is present only for web implementation of Video. VideoPlayerPreview is used only for web.
+    // `onVideoLoaded` is passed to VideoPlayerPreview's `Video` element which is displayed only on web.
+    // VideoReadyForDisplayEvent type is lacking srcElement, that's why it's added here
 
     const onVideoLoaded = (event: VideoReadyForDisplayEvent & {srcElement: HTMLVideoElement}) => {
         setMeasuredDimensions({width: event.srcElement.videoWidth, height: event.srcElement.videoHeight});

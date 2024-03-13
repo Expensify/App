@@ -63,7 +63,7 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
         progressWidth.value = getProgress(position, duration);
     }, [duration, isSliderPressed, position, progressWidth]);
 
-    const progressBarStyle = useAnimatedStyle(() => ({width: `${progressWidth.value}%`} as ViewStyle));
+    const progressBarStyle: ViewStyle = useAnimatedStyle(() => ({width: `${progressWidth.value}%`}));
 
     return (
         <GestureDetector gesture={pan}>

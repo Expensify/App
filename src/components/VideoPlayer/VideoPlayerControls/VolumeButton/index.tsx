@@ -1,5 +1,5 @@
 import React, {memo, useCallback, useState} from 'react';
-import type {LayoutChangeEvent, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {GestureStateChangeEvent, GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as NumberUtils from '@libs/NumberUtils';
 
 type VolumeButtonProps = {
-    style: ViewStyle;
+    style: StyleProp<ViewStyle>;
     small?: boolean;
 };
 
