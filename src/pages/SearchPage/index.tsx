@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -18,7 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import * as ReportUtils from '@libs/ReportUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -38,7 +37,7 @@ type SearchPageOnyxProps = {
 type SearchPageProps = SearchPageOnyxProps & StackScreenProps<RootStackParamList, typeof SCREENS.SEARCH_ROOT>;
 
 type SearchPageSectionItem = {
-    data: ReportUtils.OptionData[];
+    data: OptionData[];
     shouldShow: boolean;
     indexOffset: number;
 };
@@ -57,8 +56,9 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const themeStyles = useThemeStyles();
-    const personalDetails = usePersonalDetails();
-    const {options, areOptionsInitialized} = useOptionsList();
+    const {options, areOptionsInitialized} = useOptionsList({
+        shouldInitialize: isScreenTransitionEnd,
+    });
     const offlineMessage: MaybePhraseKey = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
@@ -78,7 +78,7 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
         userToInvite,
         headerMessage,
     } = useMemo(() => {
-        if (!areOptionsInitialized && !isScreenTransitionEnd) {
+        if (!isScreenTransitionEnd) {
             return {
                 recentReports: [],
                 personalDetails: [],
@@ -89,7 +89,7 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
         const optionList = OptionsListUtils.getSearchOptions(options, debouncedSearchValue.trim(), betas ?? []);
         const header = OptionsListUtils.getHeaderMessage(optionList.recentReports.length + optionList.personalDetails.length !== 0, Boolean(optionList.userToInvite), debouncedSearchValue);
         return {...optionList, headerMessage: header};
-    }, [areOptionsInitialized, isScreenTransitionEnd, options, debouncedSearchValue, betas]);
+    }, [isScreenTransitionEnd, options, debouncedSearchValue, betas]);
 
     const sections = useMemo((): SearchPageSectionList => {
         const newSections: SearchPageSectionList = [];
@@ -124,7 +124,7 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
         return newSections;
     }, [localPersonalDetails, recentReports, userToInvite]);
 
-    const selectReport = (option: ReportUtils.OptionData) => {
+    const selectReport = (option: OptionData) => {
         if (!option) {
             return;
         }
@@ -141,8 +141,6 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
         setIsScreenTransitionEnd(true);
     };
 
-    const isOptionsDataReady = useMemo(() => ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails), [personalDetails]);
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -158,8 +156,8 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
                         onBackButtonPress={Navigation.goBack}
                     />
                     <View style={[themeStyles.flex1, themeStyles.w100, safeAreaPaddingBottomStyle]}>
-                        <SelectionList<ReportUtils.OptionData>
-                            sections={(areOptionsInitialized || didScreenTransitionEnd) && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
+                        <SelectionList<OptionData>
+                            sections={didScreenTransitionEnd || areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
                             ListItem={UserListItem}
                             textInputValue={searchValue}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
@@ -169,7 +167,7 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
                             onLayout={setPerformanceTimersEnd}
                             autoFocus
                             onSelectRow={selectReport}
-                            showLoadingPlaceholder={(!areOptionsInitialized && !didScreenTransitionEnd) || !isOptionsDataReady} // showLoadingPlaceholder={(!areOptionsInitialized && !didScreenTransitionEnd) || !isOptionsDataReady}
+                            showLoadingPlaceholder={!didScreenTransitionEnd}
                             footerContent={SearchPageFooterInstance}
                             isLoadingNewOptions={isSearchingForReports ?? undefined}
                         />

@@ -45,8 +45,8 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
             return;
         }
 
-        areOptionsInitialized.current = true;
         loadOptions();
+        areOptionsInitialized.current = true;
     }, [loadOptions]);
 
     return (
@@ -59,12 +59,17 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
 const useOptionsListContext = () => useContext(OptionsListContext);
 
 // Hook to use the OptionsListContext with an initializer to load the options
-const useOptionsList = () => {
+const useOptionsList = (options?: {shouldInitialize: boolean}) => {
+    const {shouldInitialize = true} = options ?? {};
     const {initializeOptions, ...optionsListContext} = useOptionsListContext();
 
     useEffect(() => {
+        if (!shouldInitialize || optionsListContext.areOptionsInitialized) {
+            return;
+        }
+
         initializeOptions();
-    }, [initializeOptions, optionsListContext]);
+    }, [shouldInitialize, initializeOptions, optionsListContext.areOptionsInitialized]);
 
     return {
         initializeOptions,
