@@ -3498,7 +3498,6 @@ function createPolicyDistanceRate(policyID: string, customUnitID: string, custom
                         rates: {
                             [customUnitRate.customUnitRateID ?? '']: {
                                 errors: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage'),
-                                pendingAction: null,
                             },
                         },
                     },
@@ -3516,11 +3515,7 @@ function createPolicyDistanceRate(policyID: string, customUnitID: string, custom
     API.write(WRITE_COMMANDS.CREATE_POLICY_DISTANCE_RATE, params, {optimisticData, successData, failureData});
 }
 
-function clearCreateDistanceRateError(policyID: string, currentRates: Record<string, Rate>, customUnitID?: string, customUnitRateIDToClear?: string) {
-    if (!policyID || !customUnitID || !customUnitRateIDToClear) {
-        return;
-    }
-
+function clearCreateDistanceRateItemAndError(policyID: string, currentRates: Record<string, Rate>, customUnitID: string, customUnitRateIDToClear: string) {
     const updatedRates = {...currentRates};
     delete updatedRates[customUnitRateIDToClear];
 
@@ -3604,7 +3599,7 @@ export {
     openPolicyDistanceRatesPage,
     generateCustomUnitID,
     createPolicyDistanceRate,
-    clearCreateDistanceRateError,
+    clearCreateDistanceRateItemAndError,
     createPolicyTag,
     clearWorkspaceReimbursementErrors,
 };
