@@ -11,7 +11,6 @@ import Text from '@components/Text';
 import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearDraftValues} from '@libs/actions/FormActions';
 import {createWorkspaceTax, getNextTaxID, getTaxValueWithPercentage} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -78,7 +77,6 @@ function WorkspaceNewTaxPage({
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                     shouldValidateOnBlur={false}
-                    shouldValidateOnChange
                     disablePressOnEnter={false}
                 >
                     <View style={styles.mhn5}>
