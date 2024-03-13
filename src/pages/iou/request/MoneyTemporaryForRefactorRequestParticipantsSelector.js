@@ -28,6 +28,9 @@ const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
+    /** An object that holds data about which referral banners have been dismissed */
+    dismissedReferralBanners: PropTypes.objectOf(PropTypes.bool),
+
     /** Callback to request parent modal to go to next step, which should be split */
     onFinish: PropTypes.func.isRequired,
 
@@ -66,6 +69,7 @@ const defaultProps = {
     safeAreaPaddingBottomStyle: {},
     reports: {},
     betas: [],
+    dismissedReferralBanners: {},
     didScreenTransitionEnd: false,
 };
 
@@ -78,6 +82,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     safeAreaPaddingBottomStyle,
     iouType,
     iouRequestType,
+    dismissedReferralBanners,
     didScreenTransitionEnd,
 }) {
     const {translate} = useLocalize();
@@ -263,10 +268,11 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const footerContent = useMemo(
         () => (
             <View>
-                <ReferralProgramCTA
-                    referralContentType={referralContentType}
-                    style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.mb5]}
-                />
+                {!dismissedReferralBanners[referralContentType] && (
+                    <View style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.pb5]}>
+                        <ReferralProgramCTA referralContentType={referralContentType} />
+                    </View>
+                )}
 
                 {shouldShowSplitBillErrorMessage && (
                     <FormHelpMessage
@@ -288,7 +294,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 )}
             </View>
         ),
-        [handleConfirmSelection, participants.length, referralContentType, shouldShowSplitBillErrorMessage, styles, translate],
+        [handleConfirmSelection, participants.length, dismissedReferralBanners, referralContentType, shouldShowSplitBillErrorMessage, styles, translate],
     );
 
     const itemRightSideComponent = useCallback(
@@ -353,6 +359,10 @@ MoneyTemporaryForRefactorRequestParticipantsSelector.defaultProps = defaultProps
 MoneyTemporaryForRefactorRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelector';
 
 export default withOnyx({
+    dismissedReferralBanners: {
+        key: ONYXKEYS.ACCOUNT,
+        selector: (data) => data.dismissedReferralBanners || {},
+    },
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
     },
