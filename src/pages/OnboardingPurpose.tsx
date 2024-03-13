@@ -73,6 +73,8 @@ function OnboardingPurpose() {
             Report.navigateToConciergeChat();
         }
 
+        // Small delay purely due to design considerations,
+        // no special technical reasons behind that.
         setTimeout(() => {
             Navigation.navigate(ROUTES.WELCOME_VIDEO_ROOT);
         }, variables.welcomeVideoDelay);
