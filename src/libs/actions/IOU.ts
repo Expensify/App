@@ -1269,7 +1269,7 @@ function getTrackExpenseInformation(
     // 2. The transaction thread, which requires the iouAction, and CREATED action for the transaction thread
     const currentTime = DateUtils.getDBTime();
     const iouAction = ReportUtils.buildOptimisticIOUReportAction(
-        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+        CONST.IOU.REPORT_ACTION_TYPE.TRACK,
         amount,
         currency,
         comment,
@@ -1283,7 +1283,7 @@ function getTrackExpenseInformation(
         false,
         currentTime,
     );
-    const optimisticTransactionThread = ReportUtils.buildTransactionThread(iouAction, chatReport.reportID);
+    const optimisticTransactionThread = ReportUtils.buildTransactionThread(iouAction, chatReport);
     const optimisticCreatedActionForTransactionThread = ReportUtils.buildOptimisticCreatedReportAction(payeeEmail);
 
     // STEP 5: Build Onyx Data
