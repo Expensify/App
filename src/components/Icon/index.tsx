@@ -1,13 +1,14 @@
-import type {ImageContentFit} from 'expo-image';
+import type { ImageContentFit } from 'expo-image';
 import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import type { StyleProp, ViewStyle } from 'react-native';
+import { View } from 'react-native';
 import ImageSVG from '@components/ImageSVG';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import type IconAsset from '@src/types/utils/IconAsset';
 import IconWrapperStyles from './IconWrapperStyles';
+
 
 type IconProps = {
     /** The asset to render. */
@@ -40,6 +41,9 @@ type IconProps = {
     /** Is icon pressed */
     pressed?: boolean;
 
+    /** Is icon will be used with text */
+    hasText?: boolean;
+
     /** Additional styles to add to the Icon */
     additionalStyles?: StyleProp<ViewStyle>;
 
@@ -56,6 +60,7 @@ function Icon({
     height = variables.iconSizeNormal,
     fill = undefined,
     small = false,
+                  hasText = false,
     large = false,
     medium = false,
     inline = false,
@@ -67,7 +72,7 @@ function Icon({
 }: IconProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
-    const {width: iconWidth, height: iconHeight} = StyleUtils.getIconWidthAndHeightStyle(small, medium, large, width, height);
+    const {width: iconWidth, height: iconHeight} = StyleUtils.getIconWidthAndHeightStyle(small, medium, large, width, height, hasText);
     const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, styles.pAbsolute, additionalStyles];
 
     if (inline) {

@@ -461,14 +461,14 @@ function getWidthAndHeightStyle(width: number, height?: number): Pick<ViewStyle,
     };
 }
 
-function getIconWidthAndHeightStyle(small: boolean, medium: boolean, large: boolean, width: number, height: number): Pick<ImageSVGProps, 'width' | 'height'> {
+function getIconWidthAndHeightStyle(small: boolean, medium: boolean, large: boolean, width: number, height: number, hasText?: boolean): Pick<ImageSVGProps, 'width' | 'height'> {
     switch (true) {
         case small:
-            return {width: variables.iconSizeExtraSmall, height: variables.iconSizeExtraSmall};
+            return {width: hasText ? variables.iconSizeExtraSmall : variables.iconSizeSmall, height: hasText ? variables.iconSizeExtraSmall : variables?.iconSizeSmall};
         case medium:
-            return {width: variables.iconSizeSmall, height: variables.iconSizeSmall};
+            return {width: hasText ? variables.iconSizeSmall : variables.iconSizeNormal, height: hasText ? variables.iconSizeSmall : variables.iconSizeNormal};
         case large:
-            return {width: variables.iconSizeNormal, height: variables.iconSizeNormal};
+            return {width: hasText ? variables.iconSizeNormal : variables.iconSizeLarge, height: hasText ? variables.iconSizeNormal : variables.iconSizeLarge};
         default: {
             return {width, height};
         }
@@ -485,9 +485,6 @@ function getButtonStyleWithIcon(
     shouldShowRightIcon?: boolean,
 ): ViewStyle | undefined {
     const useDefaultButtonStyles = Boolean(hasIcon && shouldShowRightIcon) || Boolean(!hasIcon && !shouldShowRightIcon);
-    if (hasIcon && !hasText) {
-        return {...styles.buttonMedium, ...styles.ph0};
-    }
     switch (true) {
         case small: {
             const verticalStyle = hasIcon ? styles.pl2 : styles.pr2;
@@ -502,6 +499,10 @@ function getButtonStyleWithIcon(
             return useDefaultButtonStyles ? styles.buttonLarge : {...styles.buttonLarge, ...(hasText ? verticalStyle : styles.ph0)};
         }
         default: {
+            if (hasIcon && !hasText) {
+                return {...styles.buttonMedium, ...styles.ph0};
+            }
+
             return undefined;
         }
     }
