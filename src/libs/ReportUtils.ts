@@ -61,6 +61,7 @@ import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import {isEmailPublicDomain} from './LoginUtils';
+import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import linkingConfig from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
 import * as NumberUtils from './NumberUtils';
@@ -2641,6 +2642,9 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         }
         if (parentReportActionMessage && isArchivedRoom(report)) {
             return `${parentReportActionMessage} (${Localize.translateLocal('common.archived')})`;
+        }
+        if (ReportActionsUtils.isModifiedExpenseAction(parentReportAction)) {
+            return ModifiedExpenseMessage.getForReportAction(report?.reportID, parentReportAction);
         }
         return parentReportActionMessage;
     }
