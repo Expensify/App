@@ -4075,6 +4075,10 @@ function canAccessReport(report: OnyxEntry<Report>, policies: OnyxCollection<Pol
         return false;
     }
 
+    if (report?.errorFields?.notFound) {
+        return false;
+    }
+
     return true;
 }
 
