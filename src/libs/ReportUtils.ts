@@ -4278,7 +4278,8 @@ function getChatByParticipants(newParticipantList: number[], reports: OnyxCollec
                 isTaskReport(report) ||
                 isMoneyRequestReport(report) ||
                 isChatRoom(report) ||
-                isPolicyExpenseChat(report)
+                isPolicyExpenseChat(report) ||
+                isGroupChat(report)
             ) {
                 return false;
             }

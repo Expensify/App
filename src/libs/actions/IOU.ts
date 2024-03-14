@@ -1653,13 +1653,11 @@ function createSplitsAndOnyxData(
     const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
 
-    const existingSplitChatReport =
-        // eslint-disable-next-line no-nested-ternary
-        existingSplitChatReportID || participants[0].reportID
-            ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingSplitChatReportID || participants[0].reportID}`]
-            : participants.length < 2
-            ? ReportUtils.getChatByParticipants(participantAccountIDs)
-            : null;
+    const existingChatReportID = existingSplitChatReportID || participants[0].reportID;
+    let existingSplitChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingChatReportID}`];
+    if (!existingSplitChatReport) {
+        existingSplitChatReport = participants.length < 2 ? ReportUtils.getChatByParticipants(participantAccountIDs) : null;
+    }
     const splitChatReport = existingSplitChatReport ?? ReportUtils.buildOptimisticChatReport(participantAccountIDs);
     const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
 
