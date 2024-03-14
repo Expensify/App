@@ -2887,6 +2887,24 @@ function createPolicyTag(policyID: string, tagName: string) {
     API.write(WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, onyxData);
 }
 
+function clearPolicyTagErrors(policyID: string, tagName: string) {
+    const tagListName = Object.keys(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})[0];
+    const tag = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[tagListName].tags?.[tagName];
+    if (!tag) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
+        [tagListName]: {
+            tags: {
+                [tagName]: {
+                    errors: null,
+                },
+            },
+        },
+    });
+}
+
 function setWorkspaceRequiresCategory(policyID: string, requiresCategory: boolean) {
     const onyxData: OnyxData = {
         optimisticData: [
@@ -3651,6 +3669,7 @@ export {
     openPolicyDistanceRatesPage,
     openPolicyMoreFeaturesPage,
     createPolicyTag,
+    clearPolicyTagErrors,
     clearWorkspaceReimbursementErrors,
     deleteWorkspaceCategories,
 };
