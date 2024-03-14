@@ -1933,7 +1933,8 @@ export default {
             syncNow: 'Sync now',
             disconnect: 'Disconnect',
             disconnectTitle: 'Disconnect integration',
-            disconnectPrompt: 'Are you sure you want to disconnect this integration'
+            disconnectPrompt: 'Are you sure you want to disconnect this integration?',
+            importing: 'Importing customers',
         },
         bills: {
             manageYourBills: 'Manage your bills',
