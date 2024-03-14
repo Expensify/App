@@ -18,6 +18,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -156,7 +157,11 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                 />
                             </OfflineWithFeedback>
                             {(!StringUtils.isEmptyString(policy?.description ?? '') || !readOnly) && (
-                                <OfflineWithFeedback pendingAction={policy?.pendingFields?.description}>
+                                <OfflineWithFeedback
+                                    pendingAction={policy?.pendingFields?.description}
+                                    errors={ErrorUtils.getLatestErrorField(policy ?? {}, 'description')}
+                                    onClose={() => Policy.clearWorkspaceGeneralSettingError(policy?.id ?? '')}
+                                >
                                     <MenuItemWithTopDescription
                                         title={policyDescription}
                                         description={translate('workspace.editor.descriptionInputLabel')}
@@ -170,7 +175,12 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                     />
                                 </OfflineWithFeedback>
                             )}
-                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
+                            <OfflineWithFeedback
+                                pendingAction={policy?.pendingFields?.generalSettings}
+                                errors={ErrorUtils.getLatestErrorField(policy ?? {}, 'generalSettings')}
+                                onClose={() => Policy.clearWorkspaceGeneralSettingError(policy?.id ?? '')}
+                                errorRowStyles={[styles.mt2]}
+                            >
                                 <View>
                                     <MenuItemWithTopDescription
                                         title={formattedCurrency}
