@@ -27,7 +27,7 @@ function PolicyAccountingPage() {
             {
                 translationKey: 'workspace.accounting.qbo',
                 icon: Expensicons.QBORound,
-                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute())),
+                action: undefined,
             },
         ];
 
@@ -36,9 +36,7 @@ function PolicyAccountingPage() {
             title: translate(item.translationKey as TranslationPaths),
             icon: item.icon,
             onPress: item.action,
-            shouldShowRightIcon: false,
-
-            link: '',
+            interactive: false,
             shouldShowRightComponent: true,
             rightComponent: (
                 <Button
