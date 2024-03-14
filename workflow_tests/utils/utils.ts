@@ -1,17 +1,14 @@
+import type {EventJSON} from '@kie/act-js/build/src/action-event/action-event.types';
 import type {StepIdentifier} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
 import fs from 'fs';
 import path from 'path';
 import yaml from 'yaml';
 import type {ExtendedAct} from './ExtendedAct';
 
-type EventOptions = {
-    action?: string;
-};
-
 function setUpActParams(
     act: ExtendedAct,
     event: string | null = null,
-    eventOptions: EventOptions | null = null,
+    eventOptions: EventJSON | null = null,
     secrets: Record<string, string> | null = null,
     githubToken: string | null = null,
     envVars: Record<string, string> | null = null,
