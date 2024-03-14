@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+
 const replacer = (str: string): string =>
     ({
         '\\': '\\\\',
@@ -15,11 +16,13 @@ const replacer = (str: string): string =>
  * Solution partly taken from SO user Gabriel Rodríguez Flores 🙇
  * https://stackoverflow.com/questions/52789718/how-to-remove-special-characters-before-json-parse-while-file-reading
  */
-export default function (inputString: string) {
+const sanitizeStringForJSONParse = (inputString: string) => {
     if (typeof inputString !== 'string') {
         throw new TypeError('Input must me of type String');
     }
 
     // Replace any newlines and escape backslashes
     return inputString.replace(/\\|\t|\n|\r|\f|"/g, replacer);
-}
+};
+
+export default sanitizeStringForJSONParse;

@@ -8,7 +8,7 @@ import * as core from '@actions/core';
  * @param [defaultValue] - A default value to provide for the input.
  *                             Not required if the {required: true} option is given in the second arg to this function.
  */
-function getJSONInput(name: string, options: core.InputOptions, defaultValue: undefined | null | boolean = undefined): unknown {
+function getJSONInput(name: string, options: core.InputOptions, defaultValue?: null | boolean): unknown {
     const input = core.getInput(name, options);
     if (input) {
         return JSON.parse(input);
@@ -19,7 +19,7 @@ function getJSONInput(name: string, options: core.InputOptions, defaultValue: un
 /**
  * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
  */
-function getStringInput(name: string, options: core.InputOptions, defaultValue: undefined | string = undefined): string | undefined {
+function getStringInput(name: string, options: core.InputOptions, defaultValue?: string): string | undefined {
     const input = core.getInput(name, options);
     if (!input) {
         return defaultValue;

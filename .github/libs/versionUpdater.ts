@@ -10,7 +10,7 @@ const MAX_INCREMENTS = 99 as const;
 /**
  * Transforms a versions string into a number
  */
-const getVersionNumberFromString = (versionString: string) => {
+const getVersionNumberFromString = (versionString: string): number[] => {
     const [version, build] = versionString.split('-');
     const [major, minor, patch] = version.split('.').map((n) => Number(n));
 
