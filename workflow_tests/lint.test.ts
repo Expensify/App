@@ -1,3 +1,4 @@
+import type {MockStep} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
 import {MockGithub} from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/lintAssertions';
@@ -52,7 +53,7 @@ describe('test workflow lint', () => {
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'lint.yml');
             let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
-            const testMockSteps = {
+            const testMockSteps: MockStep = {
                 lint: mocks.LINT__LINT__STEP_MOCKS,
             };
 

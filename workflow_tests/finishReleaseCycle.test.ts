@@ -1,9 +1,9 @@
-import type {MockGithub} from '@kie/mock-github';
-import kieMockGithub from '@kie/mock-github';
+import {MockGithub} from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/finishReleaseCycleAssertions';
 import mocks from './mocks/finishReleaseCycleMocks';
 import {ExtendedAct} from './utils/ExtendedAct';
+import type {MockJob} from './utils/JobMocker';
 import * as utils from './utils/utils';
 
 jest.setTimeout(90 * 1000);
@@ -25,7 +25,7 @@ describe('test workflow finishReleaseCycle', () => {
 
     beforeEach(async () => {
         // create a local repository and copy required files
-        mockGithub = new kieMockGithub.MockGithub({
+        mockGithub = new MockGithub({
             repo: {
                 testFinishReleaseCycleWorkflowRepo: {
                     files: FILES_TO_COPY_INTO_TEST_REPO,
@@ -72,7 +72,7 @@ describe('test workflow finishReleaseCycle', () => {
                             updateProduction: mocks.FINISHRELEASECYCLE__UPDATEPRODUCTION__STEP_MOCKS,
                             updateStaging: mocks.FINISHRELEASECYCLE__UPDATESTAGING__STEP_MOCKS,
                         };
-                        const testMockJobs = {
+                        const testMockJobs: Record<string, MockJob> = {
                             createNewPatchVersion: {
                                 steps: mocks.FINISHRELEASECYCLE__CREATENEWPATCHVERSION__STEP_MOCKS,
                                 outputs: {

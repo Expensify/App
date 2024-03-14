@@ -1,3 +1,4 @@
+import type {StepIdentifier} from '@kie/act-js';
 import type {PathOrFileDescriptor} from 'fs';
 import fs from 'fs';
 import path from 'path';
@@ -11,22 +12,12 @@ type YamlWorkflow = {
 };
 
 type MockJob = {
-    steps: MockJobStep[];
+    steps: StepIdentifier[];
     uses?: string;
     secrets?: string[];
     with?: string;
-    outputs?: string[];
+    outputs?: Record<string, string>;
     runsOn: string;
-};
-
-type MockJobStep = {
-    id?: string;
-    name: string;
-    run?: string;
-    mockWith?: string;
-    with?: string;
-    envs?: string[];
-    inputs?: string[];
 };
 
 class JobMocker {
@@ -57,8 +48,8 @@ class JobMocker {
                     jobWith = job.with;
                     delete job.with;
                 }
-                job.steps = mockJob.steps.map((step) => {
-                    const mockStep: MockJobStep = {
+                job.steps = mockJob.steps.map((step): StepIdentifier => {
+                    const mockStep: StepIdentifier = {
                         name: step.name,
                         run: step.mockWith,
                     };
@@ -113,4 +104,4 @@ class JobMocker {
 
 // eslint-disable-next-line import/prefer-default-export
 export {JobMocker};
-export type {MockJob, YamlWorkflow, YamlMockJob, MockJobStep};
+export type {MockJob, YamlWorkflow, YamlMockJob};
