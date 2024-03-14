@@ -73,17 +73,31 @@ const translationCache = new Map<ValueOf<typeof CONST.LOCALES>, Map<TranslationP
 );
 
 /**
- * Return translated string for given locale and phrase
+ * Helper function to get the translated string for given
+ * locale and phrase. This function is used to avoid
+ * duplicate code in getTranslatedPhrase and translate functions.
  *
- * @param [desiredLanguage] eg 'en', 'es-ES'
- * @param [phraseParameters] Parameters to supply if the phrase is a template literal.
+ * This function first checks if the phrase is already translated
+ * and in the cache, it returns the translated value from the cache.
+ *
+ * If the phrase is not translated, it checks if the phrase is
+ * available in the given locale. If it is, it translates the
+ * phrase and stores the translated value in the cache and returns
+ * the translated value.
+ *
+ * @param language
+ * @param phraseKey
+ * @param fallbackLanguage
+ * @param phraseParameters
  */
-function translate<TKey extends TranslationPaths>(desiredLanguage: 'en' | 'es' | 'es-ES' | 'es_ES', phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>): string {
-    // Search phrase in full locale e.g. es-ES
-    const language = desiredLanguage === CONST.LOCALES.ES_ES_ONFIDO ? CONST.LOCALES.ES_ES : desiredLanguage;
-
+function getTranslatedPhrase<TKey extends TranslationPaths>(
+    language: 'en' | 'es' | 'es-ES',
+    phraseKey: TKey,
+    fallbackLanguage: 'en' | 'es' | null = null,
+    ...phraseParameters: PhraseParameters<Phrase<TKey>>
+): string | null {
     // Get the cache for the above locale
-    let cacheForLocale = translationCache.get(language);
+    const cacheForLocale = translationCache.get(language);
 
     // Directly access and assign the translated value from the cache, instead of
     // going through map.has() and map.get() to avoid multiple lookups.
@@ -94,7 +108,8 @@ function translate<TKey extends TranslationPaths>(desiredLanguage: 'en' | 'es' |
         return valueFromCache;
     }
 
-    let translatedPhrase = translations?.[language]?.[phraseKey] as Phrase<TKey>;
+    const translatedPhrase = translations?.[language]?.[phraseKey] as Phrase<TKey>;
+
     if (translatedPhrase) {
         if (typeof translatedPhrase === 'function') {
             return translatedPhrase(...phraseParameters);
@@ -103,31 +118,42 @@ function translate<TKey extends TranslationPaths>(desiredLanguage: 'en' | 'es' |
         // We set the translated value in the cache only for the phrases without parameters.
         cacheForLocale?.set(phraseKey, translatedPhrase);
         return translatedPhrase;
+    }
+
+    if (!fallbackLanguage) {
+        return null;
     }
 
     // Phrase is not found in full locale, search it in fallback language e.g. es
-    const languageAbbreviation = desiredLanguage.substring(0, 2) as 'en' | 'es';
-    // Get the cache for the above locale
-    cacheForLocale = translationCache.get(languageAbbreviation);
-    translatedPhrase = translations?.[languageAbbreviation]?.[phraseKey] as Phrase<TKey>;
-    if (translatedPhrase) {
-        if (typeof translatedPhrase === 'function') {
-            return translatedPhrase(...phraseParameters);
-        }
+    const fallbacktranslatedPhrase = getTranslatedPhrase(fallbackLanguage, phraseKey, null, ...phraseParameters);
 
-        // We set the translated value in the cache only for the phrases without parameters.
-        cacheForLocale?.set(phraseKey, translatedPhrase);
-        return translatedPhrase;
+    if (fallbacktranslatedPhrase) {
+        return fallbacktranslatedPhrase;
     }
 
-    if (languageAbbreviation !== CONST.LOCALES.DEFAULT) {
-        Log.alert(`${phraseKey} was not found in the ${languageAbbreviation} locale`);
+    if (fallbackLanguage !== CONST.LOCALES.DEFAULT) {
+        Log.alert(`${phraseKey} was not found in the ${fallbackLanguage} locale`);
     }
 
     // Phrase is not translated, search it in default language (en)
-    translatedPhrase = translations?.[CONST.LOCALES.DEFAULT]?.[phraseKey] as Phrase<TKey>;
+    return getTranslatedPhrase(CONST.LOCALES.DEFAULT, phraseKey, null, ...phraseParameters);
+}
+
+/**
+ * Return translated string for given locale and phrase
+ *
+ * @param [desiredLanguage] eg 'en', 'es-ES'
+ * @param [phraseParameters] Parameters to supply if the phrase is a template literal.
+ */
+function translate<TKey extends TranslationPaths>(desiredLanguage: 'en' | 'es' | 'es-ES' | 'es_ES', phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>): string {
+    // Search phrase in full locale e.g. es-ES
+    const language = desiredLanguage === CONST.LOCALES.ES_ES_ONFIDO ? CONST.LOCALES.ES_ES : desiredLanguage;
+    // Phrase is not found in full locale, search it in fallback language e.g. es
+    const languageAbbreviation = desiredLanguage.substring(0, 2) as 'en' | 'es';
+
+    const translatedPhrase = getTranslatedPhrase(language, phraseKey, languageAbbreviation, ...phraseParameters);
     if (translatedPhrase) {
-        return typeof translatedPhrase === 'function' ? translatedPhrase(...phraseParameters) : translatedPhrase;
+        return translatedPhrase;
     }
 
     // Phrase is not found in default language, on production and staging log an alert to server
