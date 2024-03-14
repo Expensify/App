@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -7,13 +6,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
-import type SCREENS from '@src/SCREENS';
 import IOURequestStepScan from './iou/request/step/IOURequestStepScan';
+import type IOURequestStepProps from './iou/request/step/IOURequestStepScan/types';
 
-type EditRequestReceiptPageProps = StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.SCAN_TAB>;
-
-function EditRequestReceiptPage({route}: EditRequestReceiptPageProps) {
+function EditRequestReceiptPage({route}: IOURequestStepProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
@@ -32,7 +28,10 @@ function EditRequestReceiptPage({route}: EditRequestReceiptPageProps) {
                             title={translate('common.receipt')}
                             onBackButtonPress={Navigation.goBack}
                         />
-                        <IOURequestStepScan route={route} />
+                        <IOURequestStepScan
+                            // @ts-expect-error HOCs which are used in the component aren't migrated to TS
+                            route={route}
+                        />
                     </View>
                 </DragAndDropProvider>
             )}

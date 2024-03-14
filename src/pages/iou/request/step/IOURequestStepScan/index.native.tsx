@@ -294,6 +294,8 @@ function IOURequestStepScan({
                             <NavigationAwareCamera
                                 ref={camera}
                                 device={device}
+                                // @ts-expect-error The HOC are not migrated to TypeScript yet
+                                style={[styles.flex1]}
                                 zoom={device.neutralZoom}
                                 photo
                                 cameraTabIndex={1}
