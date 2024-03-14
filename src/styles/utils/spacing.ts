@@ -119,10 +119,6 @@ export default {
         marginRight: 20,
     },
 
-    mr23: {
-        marginRight: 23,
-    },
-
     mr8: {
         marginRight: 32,
     },
