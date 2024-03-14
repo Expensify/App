@@ -21,6 +21,7 @@ import type {ViolationField} from '@hooks/useViolations';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
@@ -89,8 +90,8 @@ function MoneyRequestView({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {translate} = useLocalize();
-    const {canUseViolations} = usePermissions();
+    const {translate, toLocaleDigit} = useLocalize();
+    const {canUseViolations, canUseP2PDistanceRequests} = usePermissions();
     const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''] ?? null;
     const moneyRequestReport = parentReport;
     const {
@@ -150,6 +151,20 @@ function MoneyRequestView({
     );
 
     let amountDescription = `${translate('iou.amount')}`;
+
+    const hasRoute = TransactionUtils.hasRoute(transaction);
+    const distance = transaction?.routes?.route0?.distance ?? 0;
+    const rateID = transaction?.comment.customUnit?.customUnitRateID ?? '0';
+
+    const rates = DistanceRequestUtils.getMileageRates(policy?.id);
+    const {unit, currency, rate} = rates[rateID as string] ?? {
+        unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+        currency: CONST.CURRENCY.USD,
+        rate: 0,
+    };
+
+    const rateToDisplay = DistanceRequestUtils.getRateForDisplay(hasRoute, unit, rate, currency, translate, toLocaleDigit);
+    const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
 
     const saveBillable = useCallback(
         (newBillable: boolean) => {
@@ -236,6 +251,44 @@ function MoneyRequestView({
         [transactionAmount, isSettled, isCancelled, isPolicyExpenseChat, isEmptyMerchant, transactionDate, hasErrors, canUseViolations, hasViolations, translate, getViolationsForField],
     );
 
+    const distanceRequestFields = canUseP2PDistanceRequests ? (
+                <>
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
+                        <MenuItemWithTopDescription
+                            description={translate('common.distance')}
+                            title={distanceToDisplay}
+                            interactive={canEditDistance}
+                            shouldShowRightIcon={canEditDistance}
+                            titleStyle={styles.flex1}
+                            onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DISTANCE))}
+                        />
+                    </OfflineWithFeedback>
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
+                        <MenuItemWithTopDescription
+                            description={translate('common.rate')}
+                            title={rateToDisplay}
+                            // TODO: make it interactive and show right icon when EditRatePage is ready
+                            interactive={false}
+                            shouldShowRightIcon={false}
+                            titleStyle={styles.flex1}
+                            // TODO: Add route for editing rate
+                            onPress={() => {}}
+                        />
+                    </OfflineWithFeedback>
+                </>
+            ) : (
+                <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
+                    <MenuItemWithTopDescription
+                        description={translate('common.distance')}
+                        title={transactionMerchant}
+                        interactive={canEditDistance}
+                        shouldShowRightIcon={canEditDistance}
+                        titleStyle={styles.flex1}
+                        onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DISTANCE))}
+                    />
+                </OfflineWithFeedback>
+            )
+
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
             <AnimatedEmptyStateBackground />
@@ -320,16 +373,7 @@ function MoneyRequestView({
                     />
                 </OfflineWithFeedback>
                 {isDistanceRequest ? (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
-                        <MenuItemWithTopDescription
-                            description={translate('common.distance')}
-                            title={transactionMerchant}
-                            interactive={canEditDistance}
-                            shouldShowRightIcon={canEditDistance}
-                            titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DISTANCE))}
-                        />
-                    </OfflineWithFeedback>
+                    distanceRequestFields
                 ) : (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('merchant')}>
                         <MenuItemWithTopDescription

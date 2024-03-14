@@ -108,12 +108,12 @@ function getRoundedDistanceInUnits(distanceInMeters: number, unit: Unit): string
 function getRateForDisplay(
     hasRoute: boolean,
     unit: Unit,
-    rate: number,
-    currency: string,
+    rate: number | undefined,
+    currency: string | undefined,
     translate: LocaleContextProps['translate'],
     toLocaleDigit: LocaleContextProps['toLocaleDigit'],
 ): string {
-    if (!hasRoute || !rate) {
+    if (!hasRoute || !rate || !currency) {
         return translate('iou.routePending');
     }
 
@@ -125,7 +125,6 @@ function getRateForDisplay(
     return `${currencySymbol}${ratePerUnit} / ${singularDistanceUnit}`;
 }
 
-// TODO: this function will be added in https://github.com/Expensify/App/pull/37185, remove it to avoid conflicts
 /**
  * @param hasRoute Whether the route exists for the distance request
  * @param distanceInMeters Distance traveled
@@ -134,7 +133,7 @@ function getRateForDisplay(
  * @param translate Translate function
  * @returns A string that describes the distance traveled
  */
-function getDistanceForDisplay(hasRoute: boolean, distanceInMeters: number, unit: Unit, rate: number, translate: LocaleContextProps['translate']): string {
+function getDistanceForDisplay(hasRoute: boolean, distanceInMeters: number, unit: Unit, rate: number | undefined, translate: LocaleContextProps['translate']): string {
     if (!hasRoute || !rate) {
         return translate('iou.routePending');
     }
@@ -161,7 +160,7 @@ function getDistanceMerchant(
     hasRoute: boolean,
     distanceInMeters: number,
     unit: Unit,
-    rate: number,
+    rate: number | undefined,
     currency: string,
     translate: LocaleContextProps['translate'],
     toLocaleDigit: LocaleContextProps['toLocaleDigit'],
@@ -184,7 +183,7 @@ function getDistanceMerchant(
  * @returns An array of mileage rates or an empty array if not found.
  */
 function getMileageRates(policyID?: string): Record<string, DefaultMileageRate> {
-    const mileageRates = {};
+    const mileageRates: Record<string, DefaultMileageRate> = {};
 
     if (!policyID) {
         return mileageRates;
@@ -202,7 +201,6 @@ function getMileageRates(policyID?: string): Record<string, DefaultMileageRate> 
     }
 
     Object.entries(distanceUnit.rates).forEach(([rateID, rate]) => {
-        // TODO: fix TS error
         mileageRates[rateID] = {
             rate: rate.rate,
             currency: rate.currency,
@@ -215,8 +213,7 @@ function getMileageRates(policyID?: string): Record<string, DefaultMileageRate> 
     return mileageRates;
 }
 
-// TODO: probably will need to be changed
-function getRateForP2P(currency) {
+function getRateForP2P(currency: string) {
     return CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currency] ?? CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE.USD;
 }
 
