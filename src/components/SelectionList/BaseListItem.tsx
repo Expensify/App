@@ -36,8 +36,6 @@ function BaseListItem<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const {hovered, bind} = useHover();
 
-    const isItemSelectable = item.isSelectable === undefined || item.isSelectable;
-
     const rightHandSideComponentRender = () => {
         if (canSelectMultiple || !rightHandSideComponent) {
             return null;
