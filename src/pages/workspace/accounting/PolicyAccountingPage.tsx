@@ -13,8 +13,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
-import ROUTES from '@src/ROUTES';
 
 function PolicyAccountingPage() {
     const styles = useThemeStyles();
@@ -38,6 +38,8 @@ function PolicyAccountingPage() {
             onPress: item.action,
             interactive: false,
             shouldShowRightComponent: true,
+            iconHeight: variables.avatarSizeNormal,
+            iconWidth: variables.avatarSizeNormal,
             rightComponent: (
                 <Button
                     onPress={() => {}}
