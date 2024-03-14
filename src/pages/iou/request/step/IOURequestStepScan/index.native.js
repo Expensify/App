@@ -1,3 +1,4 @@
+import {useNavigation} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, View} from 'react-native';
@@ -30,7 +31,6 @@ import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import {useNavigation} from "@react-navigation/native";
 import * as CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
 
@@ -77,7 +77,7 @@ function IOURequestStepScan({
 
         return () => {
             unsubscribe();
-        }
+        };
     }, [navigation]);
 
     const {translate} = useLocalize();
