@@ -29,6 +29,7 @@ import type {
     ReportMetadata,
     Session,
     Task,
+    TaxRate,
     Transaction,
     TransactionViolation,
     UserWallet,
@@ -404,6 +405,9 @@ type OptionData = {
     isDisabled?: boolean | null;
     name?: string | null;
     isSelfDM?: boolean | null;
+    reportID?: string;
+    enabled?: boolean;
+    data?: Partial<TaxRate>;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {

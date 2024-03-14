@@ -1,16 +1,19 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {Tag} from '@src/libs/OptionsListUtils';
 import * as OptionsListUtils from '@src/libs/OptionsListUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyCategories, Report, TaxRatesWithDefault} from '@src/types/onyx';
+import type {PersonalDetails, Policy, PolicyCategories, Report, TaxRatesWithDefault} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+type PersonalDetailsList = Record<string, PersonalDetails & ReportUtils.OptionData>;
 
 describe('OptionsListUtils', () => {
     // Given a set of reports with both single participants and multiple participants some pinned and some not
-    const REPORTS: Record<string, Report> = {
+    const REPORTS: OnyxCollection<Report> = {
         '1': {
             lastReadTime: '2021-01-14 11:25:39.295',
             lastVisibleActionCreated: '2022-11-22 03:26:02.015',
@@ -133,7 +136,7 @@ describe('OptionsListUtils', () => {
     };
 
     // And a set of personalDetails some with existing reports and some without
-    const PERSONAL_DETAILS = {
+    const PERSONAL_DETAILS: PersonalDetailsList = {
         // These exist in our reports
         '1': {
             accountID: 1,
@@ -200,7 +203,7 @@ describe('OptionsListUtils', () => {
         },
     };
 
-    const REPORTS_WITH_CONCIERGE = {
+    const REPORTS_WITH_CONCIERGE: OnyxCollection<Report> = {
         ...REPORTS,
 
         '11': {
@@ -215,7 +218,7 @@ describe('OptionsListUtils', () => {
         },
     };
 
-    const REPORTS_WITH_CHRONOS = {
+    const REPORTS_WITH_CHRONOS: OnyxCollection<Report> = {
         ...REPORTS,
         '12': {
             lastReadTime: '2021-01-14 11:25:39.302',
@@ -229,7 +232,7 @@ describe('OptionsListUtils', () => {
         },
     };
 
-    const REPORTS_WITH_RECEIPTS = {
+    const REPORTS_WITH_RECEIPTS: OnyxCollection<Report> = {
         ...REPORTS,
         '13': {
             lastReadTime: '2021-01-14 11:25:39.302',
@@ -243,7 +246,7 @@ describe('OptionsListUtils', () => {
         },
     };
 
-    const REPORTS_WITH_WORKSPACE_ROOMS = {
+    const REPORTS_WITH_WORKSPACE_ROOMS: OnyxCollection<Report> = {
         ...REPORTS,
         '14': {
             lastReadTime: '2021-01-14 11:25:39.302',
@@ -254,62 +257,67 @@ describe('OptionsListUtils', () => {
             visibleChatMemberAccountIDs: [1, 10, 3],
             reportName: '',
             oldPolicyName: 'Avengers Room',
-            isArchivedRoom: false,
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
             isOwnPolicyExpenseChat: true,
             type: CONST.REPORT.TYPE.CHAT,
         },
     };
 
-    const PERSONAL_DETAILS_WITH_CONCIERGE = {
+    const PERSONAL_DETAILS_WITH_CONCIERGE: PersonalDetailsList = {
         ...PERSONAL_DETAILS,
 
         '999': {
             accountID: 999,
             displayName: 'Concierge',
             login: 'concierge@expensify.com',
+            reportID: '',
         },
     };
 
-    const PERSONAL_DETAILS_WITH_CHRONOS = {
+    const PERSONAL_DETAILS_WITH_CHRONOS: PersonalDetailsList = {
         ...PERSONAL_DETAILS,
 
         '1000': {
             accountID: 1000,
             displayName: 'Chronos',
             login: 'chronos@expensify.com',
+            reportID: '',
         },
     };
 
-    const PERSONAL_DETAILS_WITH_RECEIPTS = {
+    const PERSONAL_DETAILS_WITH_RECEIPTS: PersonalDetailsList = {
         ...PERSONAL_DETAILS,
 
         '1001': {
             accountID: 1001,
             displayName: 'Receipts',
             login: 'receipts@expensify.com',
+            reportID: '',
         },
     };
 
-    const PERSONAL_DETAILS_WITH_PERIODS = {
+    const PERSONAL_DETAILS_WITH_PERIODS: PersonalDetailsList = {
         ...PERSONAL_DETAILS,
 
         '1002': {
             accountID: 1002,
             displayName: 'The Flash',
             login: 'barry.allen@expensify.com',
+            reportID: '',
         },
     };
 
-    const POLICY = {
-        id: 'ABC123',
+    const policyID = 'ABC123';
+
+    const POLICY: Policy = {
+        id: policyID,
         name: 'Hero Policy',
         role: 'user',
         type: 'free',
         owner: '',
         outputCurrency: '',
         isPolicyExpenseChatEnabled: false,
-    } as const;
+    };
 
     // Set the currently logged in user, report data, and personal details
     beforeAll(() => {
@@ -322,7 +330,7 @@ describe('OptionsListUtils', () => {
                     ownerAccountID: 8,
                     total: 1000,
                 },
-                [`${ONYXKEYS.COLLECTION.POLICY}${POLICY.id}` as const]: POLICY,
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: POLICY,
             },
         });
         Onyx.registerLogger(() => {});
@@ -619,7 +627,7 @@ describe('OptionsListUtils', () => {
 
     it('getShareDestinationsOptions()', () => {
         // Filter current REPORTS as we do in the component, before getting share destination options
-        const filteredReports = Object.entries(REPORTS).reduce<Record<string, Report>>((reports, [reportKey, report]) => {
+        const filteredReports = Object.entries(REPORTS).reduce<Record<string, Report | null>>((reports, [reportKey, report]) => {
             if (!ReportUtils.canUserPerformWriteAction(report) || ReportUtils.isExpensifyOnlyParticipantInReport(report)) {
                 return reports;
             }
@@ -647,7 +655,7 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports.length).toBe(1);
 
         // Filter current REPORTS_WITH_WORKSPACE_ROOMS as we do in the component, before getting share destination options
-        const filteredReportsWithWorkspaceRooms = Object.entries(REPORTS_WITH_WORKSPACE_ROOMS).reduce<Record<string, Report>>((reports, [reportKey, report]) => {
+        const filteredReportsWithWorkspaceRooms = Object.entries(REPORTS_WITH_WORKSPACE_ROOMS).reduce<Record<string, Report | null>>((reports, [reportKey, report]) => {
             if (!ReportUtils.canUserPerformWriteAction(report) || ReportUtils.isExpensifyOnlyParticipantInReport(report)) {
                 return reports;
             }
@@ -703,7 +711,7 @@ describe('OptionsListUtils', () => {
         const emptySearch = '';
         const wrongSearch = 'bla bla';
         const recentlyUsedCategories = ['Taxi', 'Restaurant'];
-        const selectedOptions = [
+        const selectedOptions: Array<Partial<ReportUtils.OptionData>> = [
             {
                 name: 'Medical',
                 enabled: true,
@@ -713,6 +721,7 @@ describe('OptionsListUtils', () => {
             Taxi: {
                 enabled: false,
                 name: 'Taxi',
+                unencodedName: 'Taxi',
                 areCommentsRequired: false,
                 'GL Code': '',
                 externalID: '',
@@ -721,6 +730,7 @@ describe('OptionsListUtils', () => {
             Restaurant: {
                 enabled: true,
                 name: 'Restaurant',
+                unencodedName: 'Restaurant',
                 areCommentsRequired: false,
                 'GL Code': '',
                 externalID: '',
@@ -729,6 +739,7 @@ describe('OptionsListUtils', () => {
             Food: {
                 enabled: true,
                 name: 'Food',
+                unencodedName: 'Food',
                 areCommentsRequired: false,
                 'GL Code': '',
                 externalID: '',
@@ -737,13 +748,14 @@ describe('OptionsListUtils', () => {
             'Food: Meat': {
                 enabled: true,
                 name: 'Food: Meat',
+                unencodedName: 'Food: Meat',
                 areCommentsRequired: false,
                 'GL Code': '',
                 externalID: '',
                 origin: '',
             },
         };
-        const smallResultList = [
+        const smallResultList: OptionsListUtils.CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: false,
@@ -776,7 +788,7 @@ describe('OptionsListUtils', () => {
                 ],
             },
         ];
-        const smallSearchResultList = [
+        const smallSearchResultList: OptionsListUtils.CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -801,7 +813,7 @@ describe('OptionsListUtils', () => {
                 ],
             },
         ];
-        const smallWrongSearchResultList = [
+        const smallWrongSearchResultList: OptionsListUtils.CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -813,6 +825,7 @@ describe('OptionsListUtils', () => {
             Taxi: {
                 enabled: false,
                 name: 'Taxi',
+                unencodedName: 'Taxi',
                 areCommentsRequired: false,
                 'GL Code': '',
                 externalID: '',
@@ -821,6 +834,7 @@ describe('OptionsListUtils', () => {
             Restaurant: {
                 enabled: true,
                 name: 'Restaurant',
+                unencodedName: 'Restaurant',
                 areCommentsRequired: false,
                 'GL Code': '',
                 externalID: '',
@@ -829,6 +843,7 @@ describe('OptionsListUtils', () => {
             Food: {
                 enabled: true,
                 name: 'Food',
+                unencodedName: 'Food',
                 areCommentsRequired: false,
                 'GL Code': '',
                 externalID: '',
@@ -837,6 +852,7 @@ describe('OptionsListUtils', () => {
             'Food: Meat': {
                 enabled: true,
                 name: 'Food: Meat',
+                unencodedName: 'Food: Meat',
                 areCommentsRequired: false,
                 'GL Code': '',
                 externalID: '',
@@ -845,6 +861,7 @@ describe('OptionsListUtils', () => {
             'Food: Milk': {
                 enabled: true,
                 name: 'Food: Milk',
+                unencodedName: 'Food: Milk',
                 areCommentsRequired: false,
                 'GL Code': '',
                 externalID: '',
@@ -853,6 +870,7 @@ describe('OptionsListUtils', () => {
             'Food: Vegetables': {
                 enabled: false,
                 name: 'Food: Vegetables',
+                unencodedName: 'Food: Vegetables',
                 areCommentsRequired: false,
                 'GL Code': '',
                 externalID: '',
@@ -861,6 +879,7 @@ describe('OptionsListUtils', () => {
             'Cars: Audi': {
                 enabled: true,
                 name: 'Cars: Audi',
+                unencodedName: 'Cars: Audi',
                 areCommentsRequired: false,
                 'GL Code': '',
                 externalID: '',
@@ -869,6 +888,7 @@ describe('OptionsListUtils', () => {
             'Cars: BMW': {
                 enabled: false,
                 name: 'Cars: BMW',
+                unencodedName: 'Cars: BMW',
                 areCommentsRequired: false,
                 'GL Code': '',
                 externalID: '',
@@ -877,6 +897,7 @@ describe('OptionsListUtils', () => {
             'Cars: Mercedes-Benz': {
                 enabled: true,
                 name: 'Cars: Mercedes-Benz',
+                unencodedName: 'Cars: Mercedes-Benz',
                 areCommentsRequired: false,
                 'GL Code': '',
                 externalID: '',
@@ -885,6 +906,7 @@ describe('OptionsListUtils', () => {
             Medical: {
                 enabled: false,
                 name: 'Medical',
+                unencodedName: 'Medical',
                 areCommentsRequired: false,
                 'GL Code': '',
                 externalID: '',
@@ -893,6 +915,7 @@ describe('OptionsListUtils', () => {
             'Travel: Meals': {
                 enabled: true,
                 name: 'Travel: Meals',
+                unencodedName: 'Travel: Meals',
                 areCommentsRequired: false,
                 'GL Code': '',
                 externalID: '',
@@ -901,6 +924,7 @@ describe('OptionsListUtils', () => {
             'Travel: Meals: Breakfast': {
                 enabled: true,
                 name: 'Travel: Meals: Breakfast',
+                unencodedName: 'Travel: Meals: Breakfast',
                 areCommentsRequired: false,
                 'GL Code': '',
                 externalID: '',
@@ -909,6 +933,7 @@ describe('OptionsListUtils', () => {
             'Travel: Meals: Dinner': {
                 enabled: false,
                 name: 'Travel: Meals: Dinner',
+                unencodedName: 'Travel: Meals: Dinner',
                 areCommentsRequired: false,
                 'GL Code': '',
                 externalID: '',
@@ -917,13 +942,14 @@ describe('OptionsListUtils', () => {
             'Travel: Meals: Lunch': {
                 enabled: true,
                 name: 'Travel: Meals: Lunch',
+                unencodedName: 'Travel: Meals: Lunch',
                 areCommentsRequired: false,
                 'GL Code': '',
                 externalID: '',
                 origin: '',
             },
         };
-        const largeResultList = [
+        const largeResultList: OptionsListUtils.CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: false,
@@ -1050,7 +1076,7 @@ describe('OptionsListUtils', () => {
                 ],
             },
         ];
-        const largeSearchResultList = [
+        const largeSearchResultList: OptionsListUtils.CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -1083,7 +1109,7 @@ describe('OptionsListUtils', () => {
                 ],
             },
         ];
-        const largeWrongSearchResultList = [
+        const largeWrongSearchResultList: OptionsListUtils.CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -1092,7 +1118,7 @@ describe('OptionsListUtils', () => {
             },
         ];
         const emptyCategoriesList = {};
-        const emptySelectedResultList = [
+        const emptySelectedResultList: OptionsListUtils.CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: false,
@@ -1201,7 +1227,7 @@ describe('OptionsListUtils', () => {
                 accountID: null,
             },
         };
-        const smallResultList = [
+        const smallResultList: OptionsListUtils.CategorySection[] = [
             {
                 title: '',
                 shouldShow: false,
@@ -1232,7 +1258,7 @@ describe('OptionsListUtils', () => {
                 ],
             },
         ];
-        const smallSearchResultList = [
+        const smallSearchResultList: OptionsListUtils.CategorySection[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -1248,7 +1274,7 @@ describe('OptionsListUtils', () => {
                 ],
             },
         ];
-        const smallWrongSearchResultList = [
+        const smallWrongSearchResultList: OptionsListUtils.CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -1313,7 +1339,7 @@ describe('OptionsListUtils', () => {
                 accountID: null,
             },
         };
-        const largeResultList = [
+        const largeResultList: OptionsListUtils.CategorySection[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -1400,7 +1426,7 @@ describe('OptionsListUtils', () => {
                 ],
             },
         ];
-        const largeSearchResultList = [
+        const largeSearchResultList: OptionsListUtils.CategorySection[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -1423,7 +1449,7 @@ describe('OptionsListUtils', () => {
                 ],
             },
         ];
-        const largeWrongSearchResultList = [
+        const largeWrongSearchResultList: OptionsListUtils.CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -2177,25 +2203,25 @@ describe('OptionsListUtils', () => {
                 CODE2: {
                     name: 'Tax rate 2',
                     value: '3%',
-                    code: '',
-                    modifiedName: '',
+                    code: 'CODE2',
+                    modifiedName: 'Tax rate 2 (3%)',
                 },
                 CODE3: {
                     name: 'Tax option 3',
                     value: '5%',
-                    code: '',
-                    modifiedName: '',
+                    code: 'CODE3',
+                    modifiedName: 'Tax option 3 (5%)',
                 },
                 CODE1: {
                     name: 'Tax exempt 1',
                     value: '0%',
-                    code: '',
-                    modifiedName: '',
+                    code: 'CODE1',
+                    modifiedName: 'Tax exempt 1 (0%) • Default',
                 },
             },
         };
 
-        const resultList = [
+        const resultList: OptionsListUtils.CategorySection[] = [
             {
                 title: '',
                 shouldShow: false,
@@ -2248,7 +2274,7 @@ describe('OptionsListUtils', () => {
             },
         ];
 
-        const searchResultList = [
+        const searchResultList: OptionsListUtils.CategorySection[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -2272,7 +2298,7 @@ describe('OptionsListUtils', () => {
             },
         ];
 
-        const wrongSearchResultList = [
+        const wrongSearchResultList: OptionsListUtils.CategorySection[] = [
             {
                 title: '',
                 shouldShow: true,

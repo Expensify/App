@@ -4,7 +4,7 @@ import Onyx from 'react-native-onyx';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -14,7 +14,7 @@ jest.mock('@libs/Permissions');
 
 const currentUserEmail = 'bjorn@vikings.net';
 const currentUserAccountID = 5;
-const participantsPersonalDetails = {
+const participantsPersonalDetails: PersonalDetailsList = {
     '1': {
         accountID: 1,
         displayName: 'Ragnar Lothbrok',
@@ -45,7 +45,7 @@ const participantsPersonalDetails = {
         login: 'lagertha2@vikings.net',
         pronouns: 'She/her',
     },
-} as const;
+};
 
 const policy: Policy = {
     id: '1',

@@ -2076,4 +2076,4 @@ export {
     getShareLogOptions,
 };
 
-export type {MemberForList, CategorySection, GetOptions, PayeePersonalDetails, Tag};
+export type {MemberForList, CategorySection, CategoryTreeSection, GetOptions, PayeePersonalDetails, Tag};
