@@ -1932,6 +1932,8 @@ export default {
             other: 'Other integrations',
             syncNow: 'Sync now',
             disconnect: 'Disconnect',
+            disconnectTitle: 'Disconnect integration',
+            disconnectPrompt: 'Are you sure you want to disconnect this integration'
         },
         bills: {
             manageYourBills: 'Manage your bills',
