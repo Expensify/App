@@ -1,20 +1,19 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
-import {plaidDataPropTypes} from '@pages/ReimbursementAccount/plaidDataPropTypes';
 import * as App from '@userActions/App';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PlaidData} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
 import FormHelpMessage from './FormHelpMessage';
 import Icon from './Icon';
@@ -24,103 +23,82 @@ import PlaidLink from './PlaidLink';
 import RadioButtons from './RadioButtons';
 import Text from './Text';
 
-const propTypes = {
+type AddPlaidBankAccountOnyxProps = {
     /** If the user has been throttled from Plaid */
-    isPlaidDisabled: PropTypes.bool,
-
-    /** Contains plaid data */
-    plaidData: plaidDataPropTypes.isRequired,
-
-    /** Selected account ID from the Picker associated with the end of the Plaid flow */
-    selectedPlaidAccountID: PropTypes.string,
+    isPlaidDisabled: OnyxEntry<boolean>;
 
     /** Plaid SDK token to use to initialize the widget */
-    plaidLinkToken: PropTypes.string,
-
-    /** Fired when the user exits the Plaid flow */
-    onExitPlaid: PropTypes.func,
-
-    /** Fired when the user selects an account */
-    onSelect: PropTypes.func,
-
-    /** Additional text to display */
-    text: PropTypes.string,
-
-    /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
-    receivedRedirectURI: PropTypes.string,
-
-    /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
-    plaidLinkOAuthToken: PropTypes.string,
-
-    /** If we're updating an existing bank account, what's its bank account ID? */
-    bankAccountID: PropTypes.number,
-
-    /** Are we adding a withdrawal account? */
-    allowDebit: PropTypes.bool,
-
-    /** Is displayed in new VBBA */
-    isDisplayedInNewVBBA: PropTypes.bool,
-
-    /** Text to display on error message */
-    errorText: PropTypes.string,
-
-    /** Function called whenever radio button value changes */
-    onInputChange: PropTypes.func,
+    plaidLinkToken: OnyxEntry<string>;
 };
 
-const defaultProps = {
-    selectedPlaidAccountID: '',
-    plaidLinkToken: '',
-    onExitPlaid: () => {},
-    onSelect: () => {},
-    text: '',
-    receivedRedirectURI: null,
-    plaidLinkOAuthToken: '',
-    allowDebit: false,
-    bankAccountID: 0,
-    isPlaidDisabled: false,
-    isDisplayedInNewVBBA: false,
-    errorText: '',
-    onInputChange: () => {},
+type AddPlaidBankAccountProps = AddPlaidBankAccountOnyxProps & {
+    /** Contains plaid data */
+    plaidData: OnyxEntry<PlaidData>;
+
+    /** Selected account ID from the Picker associated with the end of the Plaid flow */
+    selectedPlaidAccountID?: string;
+
+    /** Fired when the user exits the Plaid flow */
+    onExitPlaid?: () => void;
+
+    /** Fired when the user selects an account */
+    onSelect?: (plaidAccountID: string) => void;
+
+    /** Additional text to display */
+    text?: string;
+
+    /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
+    receivedRedirectURI?: string;
+
+    /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
+    plaidLinkOAuthToken?: string;
+
+    /** If we're updating an existing bank account, what's its bank account ID? */
+    bankAccountID?: number;
+
+    /** Are we adding a withdrawal account? */
+    allowDebit?: boolean;
+
+    /** Is displayed in new VBBA */
+    isDisplayedInNewVBBA?: boolean;
+
+    /** Text to display on error message */
+    errorText?: string;
+
+    /** Function called whenever radio button value changes */
+    onInputChange?: (plaidAccountID: string) => void;
 };
 
 function AddPlaidBankAccount({
     plaidData,
-    selectedPlaidAccountID,
+    selectedPlaidAccountID = '',
     plaidLinkToken,
-    onExitPlaid,
-    onSelect,
-    text,
+    onExitPlaid = () => {},
+    onSelect = () => {},
+    text = '',
     receivedRedirectURI,
-    plaidLinkOAuthToken,
-    bankAccountID,
-    allowDebit,
+    plaidLinkOAuthToken = '',
+    bankAccountID = 0,
+    allowDebit = false,
     isPlaidDisabled,
-    isDisplayedInNewVBBA,
-    errorText,
-    onInputChange,
-}) {
+    isDisplayedInNewVBBA = false,
+    errorText = '',
+    onInputChange = () => {},
+}: AddPlaidBankAccountProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const plaidBankAccounts = lodashGet(plaidData, 'bankAccounts', []);
-    const defaultSelectedPlaidAccount = _.find(plaidBankAccounts, (account) => account.plaidAccountID === selectedPlaidAccountID);
-    const defaultSelectedPlaidAccountID = lodashGet(defaultSelectedPlaidAccount, 'plaidAccountID', '');
-    const defaultSelectedPlaidAccountMask = lodashGet(
-        _.find(plaidBankAccounts, (account) => account.plaidAccountID === selectedPlaidAccountID),
-        'mask',
-        '',
-    );
-    const subscribedKeyboardShortcuts = useRef([]);
-    const previousNetworkState = useRef();
+    const plaidBankAccounts = plaidData?.bankAccounts ?? [];
+    const defaultSelectedPlaidAccount = plaidBankAccounts.find((account) => account.plaidAccountID === selectedPlaidAccountID);
+    const defaultSelectedPlaidAccountID = defaultSelectedPlaidAccount?.plaidAccountID ?? '';
+    const defaultSelectedPlaidAccountMask = plaidBankAccounts.find((account) => account.plaidAccountID === selectedPlaidAccountID)?.mask ?? '';
+    const subscribedKeyboardShortcuts = useRef<Array<() => void>>([]);
+    const previousNetworkState = useRef<boolean | undefined>();
     const [selectedPlaidAccountMask, setSelectedPlaidAccountMask] = useState(defaultSelectedPlaidAccountMask);
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
-    /**
-     * @returns {String}
-     */
-    const getPlaidLinkToken = () => {
+    const getPlaidLinkToken = (): string | undefined => {
         if (plaidLinkToken) {
             return plaidLinkToken;
         }
@@ -135,7 +113,7 @@ function AddPlaidBankAccount({
      * I'm using useCallback so the useEffect which uses this function doesn't run on every render.
      */
     const isAuthenticatedWithPlaid = useCallback(
-        () => (receivedRedirectURI && plaidLinkOAuthToken) || !_.isEmpty(lodashGet(plaidData, 'bankAccounts')) || !_.isEmpty(lodashGet(plaidData, 'errors')),
+        () => (!!receivedRedirectURI && !!plaidLinkOAuthToken) || !!plaidData?.bankAccounts?.length || !isEmptyObject(plaidData?.errors),
         [plaidData, plaidLinkOAuthToken, receivedRedirectURI],
     );
 
@@ -144,15 +122,15 @@ function AddPlaidBankAccount({
      */
     const subscribeToNavigationShortcuts = () => {
         // find and block the shortcuts
-        const shortcutsToBlock = _.filter(CONST.KEYBOARD_SHORTCUTS, (x) => x.type === CONST.KEYBOARD_SHORTCUTS_TYPES.NAVIGATION_SHORTCUT);
-        subscribedKeyboardShortcuts.current = _.map(shortcutsToBlock, (shortcut) =>
+        const shortcutsToBlock = Object.values(CONST.KEYBOARD_SHORTCUTS).filter((shortcut) => 'type' in shortcut && shortcut.type === CONST.KEYBOARD_SHORTCUTS_TYPES.NAVIGATION_SHORTCUT);
+        subscribedKeyboardShortcuts.current = shortcutsToBlock.map((shortcut) =>
             KeyboardShortcut.subscribe(
                 shortcut.shortcutKey,
                 () => {}, // do nothing
                 shortcut.descriptionKey,
                 shortcut.modifiers,
                 false,
-                () => lodashGet(plaidData, 'bankAccounts', []).length > 0, // start bubbling when there are bank accounts
+                () => (plaidData?.bankAccounts ?? []).length > 0, // start bubbling when there are bank accounts
             ),
         );
     };
@@ -161,7 +139,7 @@ function AddPlaidBankAccount({
      * Unblocks the keyboard shortcuts that can navigate
      */
     const unsubscribeToNavigationShortcuts = () => {
-        _.each(subscribedKeyboardShortcuts.current, (unsubscribe) => unsubscribe());
+        subscribedKeyboardShortcuts.current.forEach((unsubscribe) => unsubscribe());
         subscribedKeyboardShortcuts.current = [];
     };
 
@@ -189,22 +167,21 @@ function AddPlaidBankAccount({
     }, [allowDebit, bankAccountID, isAuthenticatedWithPlaid, isOffline]);
 
     const token = getPlaidLinkToken();
-    const options = _.map(plaidBankAccounts, (account) => ({
+    const options = plaidBankAccounts.map((account) => ({
         value: account.plaidAccountID,
-        label: account.addressName,
+        label: account.addressName ?? '',
     }));
     const {icon, iconSize, iconStyles} = getBankIcon({styles});
-    const plaidErrors = lodashGet(plaidData, 'errors');
-    const plaidDataErrorMessage = !_.isEmpty(plaidErrors) ? _.chain(plaidErrors).values().first().value() : '';
-    const bankName = lodashGet(plaidData, 'bankName');
+    const plaidErrors = plaidData?.errors;
+    const plaidDataErrorMessage = !isEmptyObject(plaidErrors) ? (Object.values(plaidErrors)[0] as string) : '';
+    const bankName = plaidData?.bankName;
 
     /**
-     * @param {String} plaidAccountID
      *
      * When user selects one of plaid accounts we need to set the mask in order to display it on UI
      */
-    const handleSelectingPlaidAccount = (plaidAccountID) => {
-        const mask = _.find(plaidBankAccounts, (account) => account.plaidAccountID === plaidAccountID).mask;
+    const handleSelectingPlaidAccount = (plaidAccountID: string) => {
+        const mask = plaidBankAccounts.find((account) => account.plaidAccountID === plaidAccountID)?.mask ?? '';
         setSelectedPlaidAccountMask(mask);
         onSelect(plaidAccountID);
         onInputChange(plaidAccountID);
@@ -219,26 +196,26 @@ function AddPlaidBankAccount({
     }
 
     const onError = useCallback((error) => {
-        Log.hmmm('[PlaidLink] Error: ', error.message);
+        Log.hmmm('[PlaidLink] Error: ', error?.message);
     }, []);
 
     const renderPlaidLink = () => {
-        if (Boolean(token) && !bankName) {
+        if (!!token && !bankName) {
             return (
                 <PlaidLink
                     token={token}
                     onSuccess={({publicToken, metadata}) => {
                         Log.info('[PlaidLink] Success!');
-                        BankAccounts.openPlaidBankAccountSelector(publicToken, metadata.institution.name, allowDebit, bankAccountID);
+                        BankAccounts.openPlaidBankAccountSelector(publicToken, metadata?.institution?.name ?? '', allowDebit, bankAccountID);
                     }}
                     onError={onError}
                     onEvent={(event, metadata) => {
                         BankAccounts.setPlaidEvent(event);
                         // Handle Plaid login errors (will potentially reset plaid token and item depending on the error)
                         if (event === 'ERROR') {
-                            Log.hmmm('[PlaidLink] Error: ', metadata);
-                            if (bankAccountID && metadata && metadata.error_code) {
-                                BankAccounts.handlePlaidError(bankAccountID, metadata.error_code, metadata.error_message, metadata.request_id);
+                            Log.hmmm('[PlaidLink] Error: ', {...metadata});
+                            if (bankAccountID && metadata && 'error_code' in metadata) {
+                                BankAccounts.handlePlaidError(bankAccountID, metadata.error_code ?? '', metadata.error_message ?? '', metadata.request_id);
                             }
                         }
 
@@ -259,7 +236,7 @@ function AddPlaidBankAccount({
             return <Text style={[styles.formError, styles.mh5]}>{plaidDataErrorMessage}</Text>;
         }
 
-        if (lodashGet(plaidData, 'isLoading')) {
+        if (plaidData?.isLoading) {
             return (
                 <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <ActivityIndicator
@@ -282,7 +259,7 @@ function AddPlaidBankAccount({
         return (
             <FullPageOfflineBlockingView>
                 <Text style={[styles.mb3, styles.textHeadline]}>{translate('bankAccount.chooseAnAccount')}</Text>
-                {!_.isEmpty(text) && <Text style={[styles.mb6, styles.textSupporting]}>{text}</Text>}
+                {!!text && <Text style={[styles.mb6, styles.textSupporting]}>{text}</Text>}
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb6]}>
                     <Icon
                         src={icon}
@@ -312,7 +289,7 @@ function AddPlaidBankAccount({
     // Plaid bank accounts view
     return (
         <FullPageOfflineBlockingView>
-            {!_.isEmpty(text) && <Text style={[styles.mb5]}>{text}</Text>}
+            {!!text && <Text style={[styles.mb5]}>{text}</Text>}
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
                 <Icon
                     src={icon}
@@ -338,11 +315,9 @@ function AddPlaidBankAccount({
     );
 }
 
-AddPlaidBankAccount.propTypes = propTypes;
-AddPlaidBankAccount.defaultProps = defaultProps;
 AddPlaidBankAccount.displayName = 'AddPlaidBankAccount';
 
-export default withOnyx({
+export default withOnyx<AddPlaidBankAccountProps, AddPlaidBankAccountOnyxProps>({
     plaidLinkToken: {
         key: ONYXKEYS.PLAID_LINK_TOKEN,
         initWithStoredValues: false,

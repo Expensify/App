@@ -283,6 +283,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.CATEGORY_CREATE]: {
                             path: ROUTES.WORKSPACE_CATEGORY_CREATE.route,
                         },
+                        [SCREENS.WORKSPACE.CATEGORY_EDIT]: {
+                            path: ROUTES.WORKSPACE_CATEGORY_EDIT.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURI(categoryName),
+                            },
+                        },
                         [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
                             path: ROUTES.WORKSPACE_TAGS_SETTINGS.route,
                         },
@@ -581,6 +587,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.TAGS]: {
                             path: ROUTES.WORKSPACE_TAGS.route,
+                        },
+                        [SCREENS.WORKSPACE.TAXES]: {
+                            path: ROUTES.WORKSPACE_TAXES.route,
                         },
                         [SCREENS.WORKSPACE.DISTANCE_RATES]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATES.route,

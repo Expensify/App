@@ -63,8 +63,8 @@ function AddressBusiness({reimbursementAccount, onNext, isEditing}: AddressBusin
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
-        isEditing,
         onNext,
+        shouldSaveDraft: isEditing,
     });
 
     return (

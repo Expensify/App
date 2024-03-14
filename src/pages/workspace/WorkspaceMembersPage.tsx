@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -18,7 +19,7 @@ import MessagesRow from '@components/MessagesRow';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import TableListItem from '@components/SelectionList/TableListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -41,7 +42,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList, PolicyMember, PolicyMembers, Session} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs, PersonalDetailsList, PolicyMember, PolicyMembers, Session} from '@src/types/onyx';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -50,8 +51,12 @@ import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 type WorkspaceMembersPageOnyxProps = {
     /** Personal details of all users */
     personalDetails: OnyxEntry<PersonalDetailsList>;
+
     /** Session info for the currently logged in user. */
     session: OnyxEntry<Session>;
+
+    /** An object containing the accountID for every invited user email */
+    invitedEmailsToAccountIDsDraft: OnyxEntry<InvitedEmailsToAccountIDs>;
 };
 
 type WorkspaceMembersPageProps = WithPolicyAndFullscreenLoadingProps &
@@ -70,7 +75,16 @@ function invertObject(object: Record<string, string>): Record<string, string> {
 
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 
-function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, session, currentUserPersonalDetails, isLoadingReportData = true}: WorkspaceMembersPageProps) {
+function WorkspaceMembersPage({
+    policyMembers,
+    personalDetails,
+    invitedEmailsToAccountIDsDraft,
+    route,
+    policy,
+    session,
+    currentUserPersonalDetails,
+    isLoadingReportData = true,
+}: WorkspaceMembersPageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
@@ -91,6 +105,8 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
         () => !isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) || isEmptyObject(policyMembers)),
         [isOfflineAndNoMemberDataAvailable, personalDetails, policyMembers],
     );
+    const selectionListRef = useRef<SelectionListHandle>(null);
+    const isFocused = useIsFocused();
 
     /**
      * Get filtered personalDetails list with current policyMembers
@@ -288,15 +304,17 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     /**
      * Check if the policy member is deleted from the workspace
      */
-    const isDeletedPolicyMember = (policyMember: PolicyMember): boolean =>
-        !isOffline && policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyMember.errors);
+    const isDeletedPolicyMember = useCallback(
+        (policyMember: PolicyMember): boolean => !isOffline && policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyMember.errors),
+        [isOffline],
+    );
     const policyOwner = policy?.owner;
     const currentUserLogin = currentUserPersonalDetails.login;
     const policyID = route.params.policyID;
 
     const invitedPrimaryToSecondaryLogins = invertObject(policy?.primaryLoginsInvited ?? {});
 
-    const getUsers = (): MemberOption[] => {
+    const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];
 
         Object.entries(policyMembers ?? {}).forEach(([accountIDKey, policyMember]) => {
@@ -369,8 +387,40 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
 
         return result;
-    };
-    const data = getUsers();
+    }, [
+        StyleUtils,
+        currentUserLogin,
+        formatPhoneNumber,
+        invitedPrimaryToSecondaryLogins,
+        isDeletedPolicyMember,
+        isPolicyAdmin,
+        personalDetails,
+        policy?.owner,
+        policy?.ownerAccountID,
+        policyMembers,
+        policyOwner,
+        selectedEmployees,
+        session?.accountID,
+        styles.activeItemBadge,
+        styles.badgeBordered,
+        styles.justifyContentCenter,
+        styles.textStrong,
+        translate,
+    ]);
+
+    const data = useMemo(() => getUsers(), [getUsers]);
+
+    useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+        if (isEmptyObject(invitedEmailsToAccountIDsDraft) || accountIDs === prevAccountIDs) {
+            return;
+        }
+        const invitedEmails = Object.values(invitedEmailsToAccountIDsDraft).map(String);
+        selectionListRef.current?.scrollAndHighlightItem?.(invitedEmails, 1500);
+        Policy.setWorkspaceInviteMembersDraft(route.params.policyID, {});
+    }, [invitedEmailsToAccountIDsDraft, route.params.policyID, isFocused, accountIDs, prevAccountIDs]);
 
     const getHeaderMessage = () => {
         if (isOfflineAndNoMemberDataAvailable) {
@@ -483,7 +533,6 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                         onPress={inviteUser}
                         text={translate('workspace.invite.member')}
                         icon={Expensicons.Plus}
-                        iconStyles={StyleUtils.getTransformScaleStyle(0.6)}
                         innerStyles={[isSmallScreenWidth && styles.alignItemsCenter]}
                         style={[isSmallScreenWidth && styles.flexGrow1]}
                     />
@@ -537,6 +586,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 />
                 <View style={[styles.w100, styles.flex1]}>
                     <SelectionList
+                        ref={selectionListRef}
                         canSelectMultiple={isPolicyAdmin}
                         sections={[{data, indexOffset: 0, isDisabled: false}]}
                         ListItem={TableListItem}
@@ -550,7 +600,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                         showLoadingPlaceholder={isLoading}
                         showScrollIndicator
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                        ref={textInputRef}
+                        textInputRef={textInputRef}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                     />
@@ -567,6 +617,9 @@ export default withCurrentUserPersonalDetails(
         withOnyx<WorkspaceMembersPageProps, WorkspaceMembersPageOnyxProps>({
             personalDetails: {
                 key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            },
+            invitedEmailsToAccountIDsDraft: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
             },
             session: {
                 key: ONYXKEYS.SESSION,

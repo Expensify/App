@@ -415,6 +415,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                             originalFileName={currentUserDetails.originalFileName}
                             headerTitle={translate('profilePage.profileAvatar')}
                             fallbackIcon={currentUserDetails?.fallbackIcon}
+                            editIconStyle={styles.smallEditIconAccount}
                         />
                     </OfflineWithFeedback>
                     <Text
@@ -438,11 +439,12 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
 
     return (
         <ScreenWrapper
-            style={[styles.w100, styles.pt4]}
+            style={[styles.w100]}
+            includePaddingTop={false}
             includeSafeAreaPaddingBottom={false}
             testID={InitialSettingsPage.displayName}
         >
-            <ScrollView style={styles.w100}>
+            <ScrollView style={[styles.w100, styles.pt4]}>
                 {headerContent}
                 {accountMenuItems}
                 {workspaceMenuItems}

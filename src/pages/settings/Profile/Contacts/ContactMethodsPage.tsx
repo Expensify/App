@@ -121,6 +121,7 @@ function ContactMethodsPage({loginList, session, route}: ContactMethodsPageProps
                 {loginMenuItems}
                 <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                     <Button
+                        large
                         success
                         text={translate('contacts.newContactMethod')}
                         onPress={onNewContactMethodButtonPress}
