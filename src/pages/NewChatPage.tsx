@@ -52,6 +52,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: isScreenTransitionEnd,
     });
+
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState<OptionData[]>([]);
@@ -60,7 +61,6 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
 
     const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
@@ -212,7 +212,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
 
     useEffect(() => {
         const interactionTask = doInteractionTask(() => {
-            setDidScreenTransitionEnd(true);
+            setIsScreenTransitionEnd(true);
         });
 
         return () => {
@@ -225,11 +225,11 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
     }, []);
 
     useEffect(() => {
-        if (!didScreenTransitionEnd) {
+        if (!isScreenTransitionEnd) {
             return;
         }
         updateOptions();
-    }, [didScreenTransitionEnd, updateOptions]);
+    }, [isScreenTransitionEnd, updateOptions]);
 
     const {inputCallbackRef} = useAutoFocusInput();
 
@@ -241,7 +241,6 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
             includePaddingTop={false}
             shouldEnableMaxHeight
             testID={NewChatPage.displayName}
-            onEntryTransitionEnd={() => setIsScreenTransitionEnd(true)}
         >
             {({safeAreaPaddingBottomStyle, insets}) => (
                 <KeyboardAvoidingView
@@ -266,7 +265,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
                             headerMessage={headerMessage}
                             boldStyle
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                            shouldShowOptions={areOptionsInitialized && didScreenTransitionEnd}
+                            shouldShowOptions={areOptionsInitialized && isScreenTransitionEnd}
                             shouldShowConfirmButton
                             shouldShowReferralCTA={!dismissedReferralBanners[CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]}
                             referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}
