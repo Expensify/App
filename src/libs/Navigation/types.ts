@@ -530,6 +530,9 @@ type WorkspacesCentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.MEMBERS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.CATEGORIES]: {
         policyID: string;
     };
