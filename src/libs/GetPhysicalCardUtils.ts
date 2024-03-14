@@ -54,11 +54,7 @@ function setCurrentRoute(currentRoute: string, domain: string, privatePersonalDe
  * @param privatePersonalDetails
  * @returns
  */
-function getUpdatedDraftValues(
-    draftValues: OnyxEntry<GetPhysicalCardForm>,
-    privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>,
-    loginList: OnyxEntry<LoginList>,
-): Partial<GetPhysicalCardForm> {
+function getUpdatedDraftValues(draftValues: OnyxEntry<GetPhysicalCardForm>, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>, loginList: OnyxEntry<LoginList>): GetPhysicalCardForm {
     const {address, legalFirstName, legalLastName, phoneNumber} = privatePersonalDetails ?? {};
 
     return {
