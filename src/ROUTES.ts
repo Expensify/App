@@ -555,7 +555,7 @@ const ROUTES = {
     },
     WORKSPACE_CATEGORY_SETTINGS: {
         route: 'settings/workspaces/:policyID/categories/:categoryName',
-        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURI(categoryName)}` as const,
+        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}` as const,
     },
     WORKSPACE_CATEGORIES_SETTINGS: {
         route: 'settings/workspaces/:policyID/categories/settings',

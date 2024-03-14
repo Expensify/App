@@ -265,7 +265,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
                             path: ROUTES.WORKSPACE_CATEGORY_SETTINGS.route,
                             parse: {
-                                categoryName: (categoryName: string) => decodeURI(categoryName),
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
                             },
                         },
                         [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
