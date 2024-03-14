@@ -1,7 +1,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {CreatePolicyTaxParams, DeletePolicyTaxesParams, SetPolicyTaxesEnabledParams} from '@libs/API/parameters';
+import type {CreatePolicyTaxParams, DeletePolicyTaxesParams, SetPolicyTaxesEnabledParams, UpdatePolicyTaxValueParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import * as ErrorUtils from '@src/libs/ErrorUtils';
@@ -251,4 +251,135 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
     API.write(WRITE_COMMANDS.DELETE_POLICY_TAXES, parameters, onyxData);
 }
 
-export {createWorkspaceTax, clearTaxRateError, getNextTaxID, getTaxValueWithPercentage, setPolicyTaxesEnabled, deletePolicyTaxes};
+/**
+ * Rename policy tax
+ */
+function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number) {
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const originalTaxRate = {...policy?.taxRates?.taxes[taxID]};
+    const stringTaxValue = `${taxValue}%`;
+
+    console.log({policy, originalTaxRate, stringTaxValue, taxValue, taxID});
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        taxes: {
+                            [taxID]: {
+                                value: stringTaxValue,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                errors: null,
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        taxes: {
+                            [taxID]: {value: stringTaxValue, pendingAction: null, errors: null},
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        taxes: {
+                            [taxID]: {value: originalTaxRate.value, pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.genericFailureMessage')},
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    if (!originalTaxRate.name) {
+        throw new Error('Tax rate name not found');
+    }
+
+    const parameters = {
+        policyID,
+        taxCode: originalTaxRate.name,
+        taxAmount: Number(taxValue),
+    } as UpdatePolicyTaxValueParams;
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_TAX_VALUE, parameters, onyxData);
+}
+
+function renamePolicyTax(policyID: string, taxID: string, newName: string) {
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const originalTaxRate = {...policy?.taxRates?.taxes[taxID]};
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        taxes: {
+                            [taxID]: {
+                                name: newName,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                errors: null,
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        taxes: {
+                            [taxID]: {name: newName, pendingAction: null, errors: null},
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        taxes: {
+                            [taxID]: {name: originalTaxRate.name, pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.genericFailureMessage')},
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    if (!originalTaxRate.name) {
+        throw new Error('Tax rate name not found');
+    }
+
+    const parameters = {
+        policyID,
+        taxCode: taxID,
+        newName,
+    };
+
+    API.write(WRITE_COMMANDS.RENAME_POLICY_TAX, parameters, onyxData);
+}
+
+export {createWorkspaceTax, clearTaxRateError, getNextTaxID, getTaxValueWithPercentage, setPolicyTaxesEnabled, deletePolicyTaxes, updatePolicyTaxValue, renamePolicyTax};

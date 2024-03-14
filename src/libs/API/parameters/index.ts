@@ -180,3 +180,4 @@ export type {default as OpenPolicyMoreFeaturesPageParams} from './OpenPolicyMore
 export type {default as CreatePolicyTagsParams} from './CreatePolicyTagsParams';
 export type {default as SetPolicyTaxesEnabledParams} from './SetPolicyTaxesEnabledParams';
 export type {default as DeletePolicyTaxesParams} from './DeletePolicyTaxesParams';
+export type {default as UpdatePolicyTaxValueParams} from './UpdatePolicyTaxValueParams';

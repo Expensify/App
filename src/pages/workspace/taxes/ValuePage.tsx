@@ -48,7 +48,7 @@ function ValuePage({
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM>) => {
-            updatePolicyTaxValue(policyID, taxID, `${values.value}%`);
+            updatePolicyTaxValue(policyID, taxID, Number(values.value));
             Navigation.goBack(ROUTES.WORKSPACE_TAXES_EDIT.getRoute(policyID ?? '', taxID));
         },
         [policyID, taxID],
