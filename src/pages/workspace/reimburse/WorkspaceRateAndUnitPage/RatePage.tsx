@@ -46,7 +46,7 @@ function WorkspaceRatePage(props: WorkspaceRatePageProps) {
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM>) => {
         const rate = values.rate;
         Policy.setRateForReimburseView((parseFloat(rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toFixed(1));
-        Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? ''));
+        Navigation.goBack(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? ''));
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM> => {
