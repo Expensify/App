@@ -2897,9 +2897,12 @@ function clearPolicyTagErrors(policyID: string, tagName: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
         [tagListName]: {
             tags: {
-                [tagName]: {
-                    errors: null,
-                },
+                [tagName]:
+                    tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
+                        ? null
+                        : {
+                              errors: null,
+                          },
             },
         },
     });
