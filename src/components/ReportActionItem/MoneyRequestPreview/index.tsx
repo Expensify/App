@@ -10,7 +10,7 @@ function MoneyRequestPreview(props: MoneyRequestPreviewProps) {
     // We should not render the component if there is no iouReport and it's not a split.
     // Moved outside of the component scope to allow for easier use of hooks in the main component.
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return lodashIsEmpty(props.iouReport) && !props.isBillSplit ? null : <MoneyRequestPreviewContent {...props} />;
+    return lodashIsEmpty(props.iouReport) && !(props.isBillSplit || props.isTrackExpense) ? null : <MoneyRequestPreviewContent {...props} />;
 }
 
 MoneyRequestPreview.displayName = 'MoneyRequestPreview';

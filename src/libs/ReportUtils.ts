@@ -2367,6 +2367,18 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
     }
 
     const transaction = TransactionUtils.getLinkedTransaction(reportAction);
+
+    if (ReportActionsUtils.isTrackExpenseAction(reportAction)) {
+        if (isEmptyObject(transaction)) {
+            return Localize.translateLocal('iou.trackExpense');
+        }
+        const transactionDetails = getTransactionDetails(transaction);
+        return Localize.translateLocal('iou.threadTrackReportName', {
+            formattedAmount: CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency) ?? '',
+            comment: (!TransactionUtils.isMerchantMissing(transaction) ? transactionDetails?.merchant : transactionDetails?.comment) ?? '',
+        });
+    }
+
     if (isEmptyObject(transaction)) {
         // Transaction data might be empty on app's first load, if so we fallback to Request
         return Localize.translateLocal('iou.request');
@@ -3140,6 +3152,9 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
             iouMessage = `requested ${amount}${comment && ` for ${comment}`}`;
+            break;
+        case CONST.IOU.REPORT_ACTION_TYPE.TRACK:
+            iouMessage = `tracked ${amount}${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.SPLIT:
             iouMessage = `split ${amount}${comment && ` for ${comment}`}`;
@@ -4989,7 +5004,13 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
             amount: formattedAmount,
         });
     }
-    translationKey = ReportActionsUtils.isSplitBillAction(reportAction) ? 'iou.didSplitAmount' : 'iou.requestedAmount';
+    if (ReportActionsUtils.isSplitBillAction(reportAction)) {
+        translationKey = 'iou.didSplitAmount';
+    } else if (ReportActionsUtils.isTrackExpenseAction(reportAction)) {
+        translationKey = 'iou.trackedAmount';
+    } else {
+        translationKey = 'iou.requestedAmount';
+    }
     return Localize.translateLocal(translationKey, {
         formattedAmount,
         comment: transactionDetails?.comment ?? '',

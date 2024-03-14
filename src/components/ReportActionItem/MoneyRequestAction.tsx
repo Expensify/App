@@ -81,6 +81,7 @@ function MoneyRequestAction({
     const {isOffline} = useNetwork();
 
     const isSplitBillAction = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+    const isTrackExpenseAction = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK;
 
     const onMoneyRequestPreviewPressed = () => {
         if (isSplitBillAction) {
@@ -116,6 +117,7 @@ function MoneyRequestAction({
             chatReportID={chatReportID}
             reportID={reportID}
             isBillSplit={isSplitBillAction}
+            isTrackExpense={isTrackExpenseAction}
             action={action}
             contextMenuAnchor={contextMenuAnchor}
             checkIfContextMenuActive={checkIfContextMenuActive}

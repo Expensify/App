@@ -1276,7 +1276,7 @@ function getTrackExpenseInformation(
         [participant],
         optimisticTransaction.transactionID,
         undefined,
-        chatReport.reportID,
+        '0',
         false,
         false,
         receiptObject,
@@ -1285,6 +1285,9 @@ function getTrackExpenseInformation(
     );
     const optimisticTransactionThread = ReportUtils.buildTransactionThread(iouAction, chatReport);
     const optimisticCreatedActionForTransactionThread = ReportUtils.buildOptimisticCreatedReportAction(payeeEmail);
+
+    // The IOU action and the transactionThread are co-dependent as parent-child, so we need to link them together
+    iouAction.childReportID = optimisticTransactionThread.reportID;
 
     // STEP 5: Build Onyx Data
     const [optimisticData, successData, failureData] = buildOnyxDataForTrackExpense(
