@@ -59,10 +59,27 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
             newOptions.reports[replaceIndex] = newOption;
             return newOptions;
         });
-    }, [options.reports, personalDetails, reports]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [reports]);
+
+    useEffect(() => {
+        // there is no need to update the options if the options are not initialized
+        if (!areOptionsInitialized.current) {
+            return;
+        }
+
+        // since personal details are not a collection, we need to recreate the whole list from scratch
+        const newPersonalDetailsOptions = OptionsListUtils.createOptionList(personalDetails).personalDetails;
+
+        setOptions((prevOptions) => {
+            const newOptions = {...prevOptions};
+            newOptions.personalDetails = newPersonalDetailsOptions;
+            return newOptions;
+        });
+    }, [personalDetails]);
 
     const loadOptions = useCallback(() => {
-        const optionLists = OptionsListUtils.createOptionList(reports, personalDetails);
+        const optionLists = OptionsListUtils.createOptionList(personalDetails, reports);
         setOptions({
             reports: optionLists.reports,
             personalDetails: optionLists.personalDetails,
