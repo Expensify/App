@@ -3979,10 +3979,10 @@ function buildOptimisticMoneyRequestEntities(
     receipt: Receipt = {},
     isOwnPolicyExpenseChat = false,
 ): [OptimisticCreatedReportAction, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport, OptimisticCreatedReportAction] {
-    const iouActionCreationTime = DateUtils.getDBTime();
+    const createdActionForChat = buildOptimisticCreatedReportAction(payeeEmail);
 
     // The `CREATED` action must be optimistically generated before the IOU action so that it won't appear after the IOU action in the chat.
-    const createdActionForChat = buildOptimisticCreatedReportAction(payeeEmail);
+    const iouActionCreationTime = DateUtils.getDBTime();
     const createdActionForIOUReport = buildOptimisticCreatedReportAction(payeeEmail, DateUtils.subtractMillisecondsFromDateTime(iouActionCreationTime, 1));
     const iouAction = buildOptimisticIOUReportAction(
         type,
