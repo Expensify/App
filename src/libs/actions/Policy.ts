@@ -2762,6 +2762,67 @@ function createPolicyCategory(policyID: string, categoryName: string) {
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES, parameters, onyxData);
 }
 
+function renamePolicyCategory(policyID: string, policyCategory: {oldName: string; newName: string}) {
+    const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[policyCategory.oldName] ?? {};
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [policyCategory.oldName]: null,
+                    [policyCategory.newName]: {
+                        ...policyCategoryToUpdate,
+                        name: policyCategory.newName,
+                        unencodedName: decodeURIComponent(policyCategory.newName),
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [policyCategory.oldName]: null,
+                    [policyCategory.newName]: {
+                        ...policyCategoryToUpdate,
+                        name: policyCategory.newName,
+                        unencodedName: decodeURIComponent(policyCategory.newName),
+                        errors: null,
+                        pendingAction: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [policyCategory.newName]: null,
+                    [policyCategory.oldName]: {
+                        ...policyCategoryToUpdate,
+                        name: policyCategory.oldName,
+                        unencodedName: decodeURIComponent(policyCategory.oldName),
+                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.genericFailureMessage'),
+                        pendingAction: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        categories: JSON.stringify({[policyCategory.oldName]: policyCategory.newName}),
+    };
+
+    API.write(WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY, parameters, onyxData);
+}
+
 function createPolicyTag(policyID: string, tagName: string) {
     const tagListName = Object.keys(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})[0];
 
@@ -3572,6 +3633,7 @@ export {
     acceptJoinRequest,
     declineJoinRequest,
     createPolicyCategory,
+    renamePolicyCategory,
     clearCategoryErrors,
     setWorkspacePayer,
     clearWorkspacePayerError,

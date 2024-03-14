@@ -569,6 +569,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/categories/new',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/new` as const,
     },
+    WORKSPACE_CATEGORY_EDIT: {
+        route: 'workspace/:policyID/categories/:categoryName/edit',
+        getRoute: (policyID: string, categoryName: string) => `workspace/${policyID}/categories/${encodeURI(categoryName)}/edit` as const,
+    },
     WORKSPACE_TAGS: {
         route: 'settings/workspaces/:policyID/tags',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags` as const,
