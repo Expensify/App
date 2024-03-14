@@ -196,6 +196,7 @@ const WorkspaceSettingsModalStackNavigator = createModalStackNavigator(
         [SCREENS.WORKSPACE.INVOICES]: () => require('../../../pages/workspace/invoices/WorkspaceInvoicesPage').default as React.ComponentType,
         [SCREENS.WORKSPACE.TRAVEL]: () => require('../../../pages/workspace/travel/WorkspaceTravelPage').default as React.ComponentType,
         [SCREENS.WORKSPACE.MEMBERS]: () => require('../../../pages/workspace/WorkspaceMembersPage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.ACCOUNTING]: () => require('../../../pages/workspace/accounting/PolicyAccountingPage').default as React.ComponentType,
         [SCREENS.WORKSPACE.CATEGORIES]: () => require('../../../pages/workspace/categories/WorkspaceCategoriesPage').default as React.ComponentType,
         [SCREENS.WORKSPACE.MORE_FEATURES]: () => require('../../../pages/workspace/WorkspaceMoreFeaturesPage').default as React.ComponentType,
         [SCREENS.WORKSPACE.TAGS]: () => require('../../../pages/workspace/tags/WorkspaceTagsPage').default as React.ComponentType,
