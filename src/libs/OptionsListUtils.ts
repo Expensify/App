@@ -1720,6 +1720,10 @@ function getOptions(
         );
     }
 
+    // console.log('recentReportOptions: ', recentReportOptions);
+    console.log('userToInvite: ', userToInvite);
+    console.log('currentUserOption: ', currentUserOption);
+
     return {
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
