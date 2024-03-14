@@ -19,7 +19,7 @@ import linkingConfig from './linkingConfig';
 import linkTo from './linkTo';
 import navigationRef from './navigationRef';
 import switchPolicyID from './switchPolicyID';
-import type {State, StateOrRoute, SwitchPolicyIDParams} from './types';
+import type {NavigationStateRoute, State, StateOrRoute, SwitchPolicyIDParams} from './types';
 
 let resolveNavigationIsReadyPromise: () => void;
 const navigationIsReadyPromise = new Promise<void>((resolve) => {
@@ -235,6 +235,18 @@ function goBack(fallbackRoute?: Route, shouldEnforceFallback = false, shouldPopT
 }
 
 /**
+ * Reset the navigation state to Home page
+ */
+function resetToHome() {
+    const rootState = navigationRef.getRootState();
+    const bottomTabKey = rootState.routes.find((item: NavigationStateRoute) => item.name === NAVIGATORS.BOTTOM_TAB_NAVIGATOR)?.state?.key;
+    if (bottomTabKey) {
+        navigationRef.dispatch({...StackActions.popToTop(), target: bottomTabKey});
+    }
+    navigationRef.dispatch({...StackActions.popToTop(), target: rootState.key});
+}
+
+/**
  * Close the full screen modal.
  */
 function closeFullScreen() {
@@ -245,7 +257,7 @@ function closeFullScreen() {
 /**
  * Update route params for the specified route.
  */
-function setParams(params: Record<string, unknown>, routeKey: string) {
+function setParams(params: Record<string, unknown>, routeKey = '') {
     navigationRef.current?.dispatch({
         ...CommonActions.setParams(params),
         source: routeKey,
@@ -366,6 +378,7 @@ export default {
     parseHybridAppUrl,
     closeFullScreen,
     navigateWithSwitchPolicyID,
+    resetToHome,
 };
 
 export {navigationRef};

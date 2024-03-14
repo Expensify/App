@@ -33,6 +33,12 @@ function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails
         displayName = displayName.substring(CONST.MERGED_ACCOUNT_PREFIX.length);
     }
 
+    // If the displayName is not set by the user, the backend sets the diplayName same as the login so
+    // we need to remove the sms domain from the displayName if it is an sms login.
+    if (displayName === passedPersonalDetails?.login && Str.isSMSLogin(passedPersonalDetails?.login)) {
+        displayName = Str.removeSMSDomain(displayName);
+    }
+
     if (shouldAddCurrentUserPostfix && !!displayName) {
         displayName = `${displayName} (${Localize.translateLocal('common.you').toLowerCase()})`;
     }

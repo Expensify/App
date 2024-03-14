@@ -1,6 +1,7 @@
 import type {ComponentType, FocusEvent, Key, MutableRefObject, ReactNode, Ref} from 'react';
 import type {GestureResponderEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import type AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import type AddressSearch from '@components/AddressSearch';
 import type AmountForm from '@components/AmountForm';
 import type AmountTextInput from '@components/AmountTextInput';
@@ -16,6 +17,7 @@ import type TextInput from '@components/TextInput';
 import type ValuePicker from '@components/ValuePicker';
 import type {MaybePhraseKey} from '@libs/Localize';
 import type BusinessTypePicker from '@pages/ReimbursementAccount/BusinessInfo/substeps/TypeBusiness/BusinessTypePicker';
+import type {Country} from '@src/CONST';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
 import type {BaseForm} from '@src/types/form/Form';
 
@@ -40,13 +42,15 @@ type ValidInputs =
     | typeof RoomNameInput
     | typeof ValuePicker
     | typeof DatePicker
-    | typeof RadioButtons;
+    | typeof RadioButtons
+    | typeof AddPlaidBankAccount;
 
-type ValueTypeKey = 'string' | 'boolean' | 'date';
+type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country';
 type ValueTypeMap = {
     string: string;
     boolean: boolean;
     date: Date;
+    country: Country | '';
 };
 type FormValue = ValueOf<ValueTypeMap>;
 
@@ -126,8 +130,25 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
     disablePressOnEnter?: boolean;
 };
 
+type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
+    resetForm: (optionalValue: FormOnyxValues<TFormID>) => void;
+};
+
 type InputRefs = Record<string, MutableRefObject<InputComponentBaseProps>>;
 
 type FormInputErrors<TFormID extends OnyxFormKey = OnyxFormKey> = Partial<Record<FormOnyxKeys<TFormID>, MaybePhraseKey>>;
 
-export type {FormProps, ValidInputs, InputComponentValueProps, FormValue, ValueTypeKey, FormOnyxValues, FormOnyxKeys, FormInputErrors, InputRefs, InputComponentBaseProps, ValueTypeMap};
+export type {
+    FormProps,
+    ValidInputs,
+    InputComponentValueProps,
+    FormValue,
+    ValueTypeKey,
+    FormOnyxValues,
+    FormOnyxKeys,
+    FormInputErrors,
+    InputRefs,
+    InputComponentBaseProps,
+    ValueTypeMap,
+    FormRef,
+};
