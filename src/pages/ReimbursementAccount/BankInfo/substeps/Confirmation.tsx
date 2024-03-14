@@ -96,6 +96,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                             success
                             style={[styles.w100]}
                             onPress={onNext}
+                            large
                             text={translate('common.confirm')}
                         />
                     </View>

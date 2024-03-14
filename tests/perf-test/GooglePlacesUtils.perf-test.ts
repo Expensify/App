@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {measureFunction} from 'reassure';
-import * as GooglePlacesUtils from '../../src/libs/GooglePlacesUtils';
+import * as GooglePlacesUtils from '@src/libs/GooglePlacesUtils';
 
-const addressComponents = [
+const addressComponents: GooglePlacesUtils.AddressComponent[] = [
     {
         long_name: 'Bushwick',
         short_name: 'Bushwick',
@@ -34,7 +35,7 @@ const addressComponents = [
     },
 ];
 
-const bigObjectToFind = {
+const bigObjectToFind: GooglePlacesUtils.FieldsToExtract = {
     sublocality: 'long_name',
     administrative_area_level_1: 'short_name',
     postal_code: 'long_name',
