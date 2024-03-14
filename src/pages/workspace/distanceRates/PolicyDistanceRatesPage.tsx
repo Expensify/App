@@ -200,7 +200,6 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                         onPress={addRate}
                         style={[styles.mr3, isSmallScreenWidth && styles.flexGrow1]}
                         icon={Expensicons.Plus}
-                        iconStyles={[styles.mr2]}
                         success
                     />
 
@@ -210,7 +209,6 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                         onPress={openSettings}
                         style={[isSmallScreenWidth && styles.flexGrow1]}
                         icon={Expensicons.Gear}
-                        iconStyles={[styles.mr2]}
                     />
                 </>
             ) : (
