@@ -125,7 +125,6 @@ function getOrderedReportIDs(
         // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
         // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
         // the reportDisplayName property to the report object directly.
-        // eslint-disable-next-line no-param-reassign
         if (report) {
             // eslint-disable-next-line no-param-reassign
             report.displayName = ReportUtils.getReportName(report);
