@@ -50,7 +50,9 @@ function FeatureEnabledAccessOrRedirectComponent(props: FeatureEnabledAccessOrRe
             return;
         }
 
-        Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(props.policyID));
+        setTimeout(() => {
+            Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(props.policyID));
+        }, 1000);
     }, [props.policyID, shouldRedirect]);
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
