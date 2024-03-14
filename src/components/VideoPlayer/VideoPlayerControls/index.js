@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
+import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
 import refPropTypes from '@components/refPropTypes';
 import Text from '@components/Text';
@@ -12,7 +13,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import stylePropTypes from '@styles/stylePropTypes';
 import CONST from '@src/CONST';
-import _ from 'underscore';
 import ProgressBar from './ProgressBar';
 import VolumeButton from './VolumeButton';
 
@@ -72,7 +72,12 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying
 
     return (
         <Animated.View
-            style={[styles.videoPlayerControlsContainer, small ? [styles.p2, styles.pb0] : [styles.p3, styles.pb1], controlsStatus === CONST.VIDEO_PLAYER.CONTROLS_STATUS.VOLUME_ONLY && [styles.pt2, styles.pb2], style]}
+            style={[
+                styles.videoPlayerControlsContainer,
+                small ? [styles.p2, styles.pb0] : [styles.p3, styles.pb1],
+                controlsStatus === CONST.VIDEO_PLAYER.CONTROLS_STATUS.VOLUME_ONLY && [styles.pt2, styles.pb2],
+                style,
+            ]}
             onLayout={onLayout}
         >
             {controlsStatus === CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW && (

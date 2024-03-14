@@ -1,8 +1,8 @@
 import {ResizeMode} from 'expo-av';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import stylePropTypes from '@styles/stylePropTypes';
 import CONST from '@src/CONST';
-import _ from 'underscore';
 
 const videoPlayerPropTypes = {
     url: PropTypes.string.isRequired,
