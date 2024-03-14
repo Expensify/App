@@ -5,6 +5,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
@@ -12,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -20,6 +22,7 @@ import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAcce
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import * as Policy from '@userActions/Policy';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -83,21 +86,23 @@ function WorkspaceEditTaxPage({
                                 shouldShowThreeDotsButton
                                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                             />
-                            {taxID ? (
-                                // TODO: Extract it to a separate component or use a common one
-                                <View style={[styles.flexRow, styles.mv4, styles.justifyContentBetween, styles.ph5]}>
-                                    <View style={styles.flex4}>
-                                        <Text>Enable rate</Text>
-                                    </View>
-                                    <View style={[styles.flex1, styles.alignItemsEnd]}>
+                            <OfflineWithFeedback
+                                errors={ErrorUtils.getLatestErrorMessageField(currentTaxRate)}
+                                pendingAction={currentTaxRate?.pendingFields?.enabled}
+                                errorRowStyles={styles.mh5}
+                                onClose={() => {}}
+                            >
+                                <View style={[styles.mt2, styles.mh5]}>
+                                    <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                                        <Text>{translate('workspace.taxes.actions.enable')}</Text>
                                         <Switch
-                                            accessibilityLabel="TODO"
                                             isOn={!currentTaxRate?.isDisabled}
+                                            accessibilityLabel={translate('workspace.taxes.actions.enable')}
                                             onToggle={toggle}
                                         />
                                     </View>
                                 </View>
-                            ) : null}
+                            </OfflineWithFeedback>
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
                                 title={currentTaxRate?.name}

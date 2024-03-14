@@ -53,6 +53,10 @@ type TaxRate = {
 
     /** An error message to display to the user */
     errors?: OnyxCommon.Errors;
+
+    pendingFields?: {
+        enabled?: OnyxCommon.PendingAction;
+    };
 };
 
 type TaxRates = Record<string, TaxRate>;
