@@ -7,7 +7,6 @@ type IOURequestStepProps = {
     route: RouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.SCAN_TAB>;
     report: OnyxTypes.Report;
     transaction: OnyxTypes.Transaction;
-
 };
 
 export default IOURequestStepProps;
