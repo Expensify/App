@@ -1,5 +1,4 @@
 import React from 'react';
-import {Platform} from 'react-native';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import Text from '@components/Text';
@@ -8,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {ReactionListEvent} from '@pages/home/ReportScreenContext';
 import CONST from '@src/CONST';
+import getEmojiReactionBubbleTextOffsetStyle from './getEmojiReactionBubbleTextOffsetStyle';
 
 type EmojiReactionBubbleProps = {
     /**
@@ -83,8 +83,7 @@ function EmojiReactionBubble(
             accessible
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
         >
-            {/* TODO: investigate why emojis are moved up on iOS on the new architecture */}
-            <Text style={[styles.emojiReactionBubbleText, StyleUtils.getEmojiReactionBubbleTextStyle(isContextMenu), {transform: [{translateY: Platform.OS === 'ios' ? 2 : 0}]}]}>{emojiCodes.join('')}</Text>
+            <Text style={[styles.emojiReactionBubbleText, StyleUtils.getEmojiReactionBubbleTextStyle(isContextMenu), getEmojiReactionBubbleTextOffsetStyle()]}>{emojiCodes.join('')}</Text>
             {count > 0 && <Text style={[styles.reactionCounterText, StyleUtils.getEmojiReactionCounterTextStyle(hasUserReacted)]}>{count}</Text>}
         </PressableWithSecondaryInteraction>
     );
