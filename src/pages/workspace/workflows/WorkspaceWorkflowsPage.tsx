@@ -80,7 +80,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
         const hasReimburserEmailError = !!policy?.errorFields?.reimburserEmail;
 
         return [
-            ...(!canUseDelayedSubmission
+            ...(canUseDelayedSubmission
                 ? [
                       {
                           icon: Illustrations.ReceiptEnvelope,
