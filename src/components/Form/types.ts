@@ -1,6 +1,7 @@
 import type {ComponentType, FocusEvent, Key, MutableRefObject, ReactNode, Ref} from 'react';
 import type {GestureResponderEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import type AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import type AddressSearch from '@components/AddressSearch';
 import type AmountForm from '@components/AmountForm';
 import type AmountPicker from '@components/AmountPicker';
@@ -42,8 +43,9 @@ type ValidInputs =
     | typeof RoomNameInput
     | typeof ValuePicker
     | typeof DatePicker
+    | typeof RadioButtons
     | typeof AmountPicker
-    | typeof RadioButtons;
+    | typeof AddPlaidBankAccount;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country';
 type ValueTypeMap = {
@@ -130,8 +132,25 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
     disablePressOnEnter?: boolean;
 };
 
+type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
+    resetForm: (optionalValue: FormOnyxValues<TFormID>) => void;
+};
+
 type InputRefs = Record<string, MutableRefObject<InputComponentBaseProps>>;
 
 type FormInputErrors<TFormID extends OnyxFormKey = OnyxFormKey> = Partial<Record<FormOnyxKeys<TFormID>, MaybePhraseKey>>;
 
-export type {FormProps, ValidInputs, InputComponentValueProps, FormValue, ValueTypeKey, FormOnyxValues, FormOnyxKeys, FormInputErrors, InputRefs, InputComponentBaseProps, ValueTypeMap};
+export type {
+    FormProps,
+    ValidInputs,
+    InputComponentValueProps,
+    FormValue,
+    ValueTypeKey,
+    FormOnyxValues,
+    FormOnyxKeys,
+    FormInputErrors,
+    InputRefs,
+    InputComponentBaseProps,
+    ValueTypeMap,
+    FormRef,
+};

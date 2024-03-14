@@ -4,7 +4,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy, PolicyMembers, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, PolicyCategories, PolicyMembers, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Navigation from './Navigation/Navigation';
@@ -35,6 +35,13 @@ function hasPolicyMemberError(policyMembers: OnyxEntry<PolicyMembers>): boolean 
  */
 function hasTaxRateError(policy: OnyxEntry<Policy>): boolean {
     return Object.values(policy?.taxRates?.taxes ?? {}).some((taxRate) => Object.keys(taxRate?.errors ?? {}).length > 0);
+}
+
+/**
+ * Check if the policy has any errors within the categories.
+ */
+function hasPolicyCategoriesError(policyCategories: OnyxEntry<PolicyCategories>): boolean {
+    return Object.keys(policyCategories ?? {}).some((categoryName) => Object.keys(policyCategories?.[categoryName]?.errors ?? {}).length > 0);
 }
 
 /**
@@ -309,6 +316,7 @@ export {
     goBackFromInvalidPolicy,
     hasTaxRateError,
     getTaxByID,
+    hasPolicyCategoriesError,
 };
 
 export type {MemberEmailsToAccountIDs};

@@ -263,6 +263,7 @@ function ReportScreen({
             reportID={reportID}
             onNavigationMenuButtonClicked={goBack}
             report={report}
+            parentReportAction={parentReportAction}
         />
     );
 
