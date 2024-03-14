@@ -142,7 +142,7 @@
     "react-native-haptic-feedback": "^2.2.0",
     "react-native-image-pan-zoom": "^2.1.12",
     "react-native-image-picker": "^7.0.3",
-    "react-native-image-size": "git+https://github.com/j-piasecki/react-native-image-size#ec6b8bcac5e007166c716af65304be34de8cbe62",
+    "react-native-image-size": "git+https://github.com/Expensify/react-native-image-size#7d363665d3b6c75ab935a2fc080479eeff306725",
     "react-native-key-command": "^1.0.8",
     "react-native-launch-arguments": "^4.0.2",
     "react-native-linear-gradient": "^2.8.1",
