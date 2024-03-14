@@ -415,6 +415,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                             originalFileName={currentUserDetails.originalFileName}
                             headerTitle={translate('profilePage.profileAvatar')}
                             fallbackIcon={currentUserDetails?.fallbackIcon}
+                            editIconStyle={styles.smallEditIconAccount}
                         />
                     </OfflineWithFeedback>
                     <Text
