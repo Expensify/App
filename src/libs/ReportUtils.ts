@@ -574,6 +574,9 @@ function getRootParentReport(report: OnyxEntry<Report> | undefined | EmptyObject
     return getRootParentReport(!isEmptyObject(parentReport) ? parentReport : null);
 }
 
+/**
+ * @deprecated Use withOnyx or Onyx.connect() instead
+ */
 function getPolicy(policyID: string | undefined): Policy | EmptyObject {
     if (!allPolicies || !policyID) {
         return {};
