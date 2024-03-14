@@ -1,16 +1,17 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 import {getOctokitOptions, GitHub} from '@actions/github/lib/utils';
 import type {Octokit as OctokitCore} from '@octokit/core';
+import type {graphql} from '@octokit/graphql/dist-types/types';
+import type {components as OctokitComponents} from '@octokit/openapi-types/types';
 import type {PaginateInterface} from '@octokit/plugin-paginate-rest';
 import {paginateRest} from '@octokit/plugin-paginate-rest';
+import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
+import type {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/parameters-and-response-types';
+import type {Api} from '@octokit/plugin-rest-endpoint-methods/dist-types/types';
 import {throttling} from '@octokit/plugin-throttling';
-import _ from 'underscore';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {Constructor} from '@octokit/core/dist-types/types'
-import type {Api} from '@octokit/plugin-rest-endpoint-methods/dist-types/types'
-import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types'
-import type {graphql} from '@octokit/graphql/dist-types/types'
-import type {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/parameters-and-response-types'
+import arrayDifference from '@src/utils/arrayDifference';
 import CONST from './CONST';
 
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
@@ -26,18 +27,48 @@ const POLL_RATE = 10000;
 
 type OctokitOptions = {method: string; url: string; request: {retryCount: number}};
 
-// (params?: RestEndpointMethodTypes["issues"]["listForRepo"]["parameters"]): Promise<RestEndpointMethodTypes["issues"]["listForRepo"]["response"]>;
-type ListForRepoResult = RestEndpointMethodTypes["issues"]["listForRepo"]["response"]
-type Unpacked<T> = T extends Array<infer U> ? U : T;
-type ListForRepoDataItem = Unpacked<Pick<ListForRepoResult, 'data'>>
+type ListForRepoResult = RestEndpointMethodTypes['issues']['listForRepo']['response'];
+type OctokitIssueItem = OctokitComponents['schemas']['issue'];
+
+type ListForRepoMethod = RestEndpointMethods['issues']['listForRepo'];
+
+type StagingDeployCashPR = {
+    url: string;
+    number: number;
+    isVerified: boolean;
+};
+
+type StagingDeployCashBlocker = {
+    url: string;
+    number: number;
+    isResolved: boolean;
+};
+
+type OctokitArtifact = OctokitComponents['schemas']['artifact'];
+
+type OctokitPR = OctokitComponents['schemas']['pull-request-simple'];
+
+type StagingDeployCashData = {
+    title: string;
+    url: string;
+    number: number;
+    labels: OctokitIssueItem['labels'];
+    PRList: StagingDeployCashPR[];
+    deployBlockers: StagingDeployCashBlocker[];
+    internalQAPRList: StagingDeployCashBlocker[];
+    isTimingDashboardChecked: boolean;
+    isFirebaseChecked: boolean;
+    isGHStatusChecked: boolean;
+    tag?: string;
+};
+
+type StagingDeployCashBody = {
+    issueBody: string;
+    issueAssignees: Array<string | undefined>;
+};
 
 class GithubUtils {
-    // static internalOctokit: OctokitCore & {paginate: PaginateInterface};
-    // static internalOctokit: OctokitCore & {paginate: PaginateInterface} & import("@octokit/core/dist-types/types").Constructor<import("@octokit/plugin-rest-endpoint-methods/dist-types/types").Api & {
-    //     paginate: import("@octokit/plugin-paginate-rest").PaginateInterface;
-    // }>;
-    // static internalOctokit: OctokitCore & Constructor<Api & {paginate: PaginateInterface}>
-    static internalOctokit: OctokitCore & Api & {paginate: PaginateInterface}
+    static internalOctokit: OctokitCore & Api & {paginate: PaginateInterface};
 
     /**
      * Initialize internal octokit
@@ -93,7 +124,7 @@ class GithubUtils {
      * @static
      * @memberof GithubUtils
      */
-    static get graphql() {
+    static get graphql(): graphql {
         if (this.internalOctokit) {
             return this.internalOctokit.graphql;
         }
@@ -109,7 +140,7 @@ class GithubUtils {
      * @static
      * @memberof GithubUtils
      */
-    static get paginate() {
+    static get paginate(): PaginateInterface {
         if (this.internalOctokit) {
             return this.internalOctokit.paginate;
         }
@@ -123,7 +154,7 @@ class GithubUtils {
      *
      * @returns
      */
-    static getStagingDeployCash() {
+    static getStagingDeployCash(): Promise<StagingDeployCashData> {
         return this.octokit.issues
             .listForRepo({
                 owner: CONST.GITHUB_OWNER,
@@ -134,12 +165,14 @@ class GithubUtils {
             .then(({data}: ListForRepoResult) => {
                 if (!data.length) {
                     const error = new Error(`Unable to find ${CONST.LABELS.STAGING_DEPLOY} issue.`);
+                    // @ts-expect-error -- TODO: Fix this
                     error.code = 404;
                     throw error;
                 }
 
                 if (data.length > 1) {
                     const error = new Error(`Found more than one ${CONST.LABELS.STAGING_DEPLOY} issue.`);
+                    // @ts-expect-error -- TODO: Fix this
                     error.code = 500;
                     throw error;
                 }
@@ -154,10 +187,11 @@ class GithubUtils {
      * @param issue
      * @returns
      */
-    static getStagingDeployCashData(issue) {
+    static getStagingDeployCashData(issue: OctokitIssueItem): StagingDeployCashData {
         try {
             const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
-            const tag = issue.body.match(versionRegex)[0].replace(/`/g, '');
+            const tag = issue.body?.match(versionRegex)?.[0].replace(/`/g, '');
+
             return {
                 title: issue.title,
                 url: issue.url,
@@ -166,9 +200,9 @@ class GithubUtils {
                 PRList: this.getStagingDeployCashPRList(issue),
                 deployBlockers: this.getStagingDeployCashDeployBlockers(issue),
                 internalQAPRList: this.getStagingDeployCashInternalQA(issue),
-                isTimingDashboardChecked: /-\s\[x]\sI checked the \[App Timing Dashboard]/.test(issue.body),
-                isFirebaseChecked: /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body),
-                isGHStatusChecked: /-\s\[x]\sI checked \[GitHub Status]/.test(issue.body),
+                isTimingDashboardChecked: issue.body ? /-\s\[x]\sI checked the \[App Timing Dashboard]/.test(issue.body) : false,
+                isFirebaseChecked: issue.body ? /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body) : false,
+                isGHStatusChecked: issue.body ? /-\s\[x]\sI checked \[GitHub Status]/.test(issue.body) : false,
                 tag,
             };
         } catch (exception) {
@@ -184,13 +218,14 @@ class GithubUtils {
      * @param issue
      * @returns - [{url: String, number: Number, isVerified: Boolean}]
      */
-    static getStagingDeployCashPRList(issue) {
-        let PRListSection = issue.body.match(/pull requests:\*\*\r?\n((?:-.*\r?\n)+)\r?\n\r?\n?/) || [];
-        if (PRListSection.length !== 2) {
+    static getStagingDeployCashPRList(issue: OctokitIssueItem): StagingDeployCashPR[] {
+        let PRListSection: RegExpMatchArray | null | [] | string = issue.body?.match(/pull requests:\*\*\r?\n((?:-.*\r?\n)+)\r?\n\r?\n?/) ?? [];
+        if (PRListSection?.length !== 2) {
             // No PRs, return an empty array
             console.log('Hmmm...The open StagingDeployCash does not list any pull requests, continuing...');
             return [];
         }
+
         PRListSection = PRListSection[1];
         const PRList = [...PRListSection.matchAll(new RegExp(`- \\[([ x])] (${PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
             url: match[2],
@@ -198,7 +233,7 @@ class GithubUtils {
             isVerified: match[1] === 'x',
         }));
         // eslint-disable-next-line no-nested-ternary
-        return PRList.sort((a, b) => (a.number > b.number) ? 1 : ((b.number > a.number) ? -1 : 0))
+        return PRList.sort((a, b) => (a.number > b.number ? 1 : b.number > a.number ? -1 : 0));
     }
 
     /**
@@ -209,11 +244,12 @@ class GithubUtils {
      * @param issue
      * @returns - [{URL: String, number: Number, isResolved: Boolean}]
      */
-    static getStagingDeployCashDeployBlockers(issue) {
-        let deployBlockerSection = issue.body.match(/Deploy Blockers:\*\*\r?\n((?:-.*\r?\n)+)/) || [];
+    static getStagingDeployCashDeployBlockers(issue: OctokitIssueItem): StagingDeployCashBlocker[] {
+        let deployBlockerSection: RegExpMatchArray | null | [] | string = issue.body?.match(/Deploy Blockers:\*\*\r?\n((?:-.*\r?\n)+)/) ?? [];
         if (deployBlockerSection.length !== 2) {
             return [];
         }
+
         deployBlockerSection = deployBlockerSection[1];
         const deployBlockers = [...deployBlockerSection.matchAll(new RegExp(`- \\[([ x])]\\s(${ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
             url: match[2],
@@ -221,7 +257,12 @@ class GithubUtils {
             isResolved: match[1] === 'x',
         }));
         // eslint-disable-next-line no-nested-ternary
-        return deployBlockers.sort((a, b) => (a.number > b.number) ? 1 : ((b.number > a.number) ? -1 : 0));
+        return deployBlockers.sort((a, b) => (a.number > b.number ? 1 : b.number > a.number ? -1 : 0));
+    }
+
+    static test(): ListForRepoMethod {
+        const x = this.octokit.issues.listForRepo;
+        return x;
     }
 
     /**
@@ -232,8 +273,8 @@ class GithubUtils {
      * @param issue
      * @returns - [{URL: String, number: Number, isResolved: Boolean}]
      */
-    static getStagingDeployCashInternalQA(issue) {
-        let internalQASection = issue.body.match(/Internal QA:\*\*\r?\n((?:- \[[ x]].*\r?\n)+)/) || [];
+    static getStagingDeployCashInternalQA(issue: OctokitIssueItem): StagingDeployCashBlocker[] {
+        let internalQASection: RegExpMatchArray | [] | null | string = issue.body?.match(/Internal QA:\*\*\r?\n((?:- \[[ x]].*\r?\n)+)/) ?? [];
         if (internalQASection.length !== 2) {
             return [];
         }
@@ -244,7 +285,7 @@ class GithubUtils {
             isResolved: match[1] === 'x',
         }));
         // eslint-disable-next-line no-nested-ternary
-        return internalQAPRs.sort((a, b) => (a.number > b.number) ? 1 : ((b.number > a.number) ? -1 : 0));
+        return internalQAPRs.sort((a, b) => (a.number > b.number ? 1 : b.number > a.number ? -1 : 0));
     }
 
     /**
@@ -271,32 +312,34 @@ class GithubUtils {
         isTimingDashboardChecked = false,
         isFirebaseChecked = false,
         isGHStatusChecked = false,
-    ) {
-        return this.fetchAllPullRequests(PRList.map(this.getPullRequestNumberFromURL))
+    ): Promise<StagingDeployCashBody | void> {
+        return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
             .then((data) => {
                 // The format of this map is following:
                 // {
                 //    'https://github.com/Expensify/App/pull/9641': 'PauloGasparSv',
                 //    'https://github.com/Expensify/App/pull/9642': 'mountiny'
                 // }
-                const internalQAPRMap = data
-                    .filter((pr) => !isEmptyObject(_.findWhere(pr.labels, {name: CONST.LABELS.INTERNAL_QA})))
-                    .reduce((map, pr) => {
-                        // eslint-disable-next-line no-param-reassign
-                        map[pr.html_url] = pr.merged_by.login;
-                        return map;
-                    }, {});
+                const internalQAPRMap = Array.isArray(data)
+                    ? data
+                          .filter((pr) => !isEmptyObject(pr.labels.find((label) => label.name === CONST.LABELS.INTERNAL_QA)))
+                          .reduce<Record<string, string | undefined>>((map, pr) => {
+                              // @ts-expect-error -- TODO: fix this
+                              // eslint-disable-next-line no-param-reassign
+                              map[pr.html_url] = pr.merged_by.login;
+                              return map;
+                          }, {})
+                    : {};
                 console.log('Found the following Internal QA PRs:', internalQAPRMap);
 
-                const noQAPRs = _.pluck(
-                    data.filter((PR) => /\[No\s?QA]/i.test(PR.title)),
-                    'html_url',
-                );
+                const noQAPRs = Array.isArray(data) ? data.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((pr) => pr.html_url) : [];
                 console.log('Found the following NO QA PRs:', noQAPRs);
-                const verifiedOrNoQAPRs = _.union(verifiedPRList, noQAPRs);
+                const verifiedOrNoQAPRs = [...new Set([...verifiedPRList, ...noQAPRs])];
 
-                const sortedPRList = _.chain(PRList).difference(Object.keys(internalQAPRMap)).unique().sortBy(GithubUtils.getPullRequestNumberFromURL).value();
-                const sortedDeployBlockers = [...new Set(deployBlockers)].sort(GithubUtils.getIssueOrPullRequestNumberFromURL);
+                const sortedPRList = [...new Set(arrayDifference(PRList, Object.keys(internalQAPRMap)))].sort(
+                    (a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b),
+                );
+                const sortedDeployBlockers = [...new Set(deployBlockers)].sort((pr) => GithubUtils.getIssueOrPullRequestNumberFromURL(pr));
 
                 // Tag version and comparison URL
                 // eslint-disable-next-line max-len
@@ -316,9 +359,9 @@ class GithubUtils {
                 if (!isEmptyObject(internalQAPRMap)) {
                     console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
                     issueBody += '**Internal QA:**\r\n';
-                    internalQAPRMap.each((merger, URL) => {
+                    Object.keys(internalQAPRMap).forEach((merger, URL) => {
                         const mergerMention = `@${merger}`;
-                        issueBody += `${resolvedInternalQAPRs.includes(URL) ? '- [x]' : '- [ ]'} `;
+                        issueBody += `${resolvedInternalQAPRs.includes(URL.toString()) ? '- [x]' : '- [ ]'} `;
                         issueBody += `${URL}`;
                         issueBody += ` - ${mergerMention}`;
                         issueBody += '\r\n';
@@ -352,6 +395,7 @@ class GithubUtils {
                 issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';
                 const issueAssignees = Object.values(internalQAPRMap);
                 const issue = {issueBody, issueAssignees};
+
                 return issue;
             })
             .catch((err) => console.warn('Error generating StagingDeployCash issue body! Continuing...', err));
@@ -360,7 +404,7 @@ class GithubUtils {
     /**
      * Fetch all pull requests given a list of PR numbers.
      */
-    static fetchAllPullRequests(pullRequestNumbers: number[]) {
+    static fetchAllPullRequests(pullRequestNumbers: number[]): Promise<OctokitPR[] | void> {
         const oldestPR = pullRequestNumbers.sort()[0];
         return this.paginate(
             this.octokit.pulls.list,
@@ -387,7 +431,7 @@ class GithubUtils {
      * @param pullRequestNumber
      * @returns
      */
-    static getPullRequestBody(pullRequestNumber) {
+    static getPullRequestBody(pullRequestNumber: number): Promise<string | null> {
         return this.octokit.pulls
             .get({
                 owner: CONST.GITHUB_OWNER,
@@ -401,7 +445,7 @@ class GithubUtils {
      * @param pullRequestNumber
      * @returns
      */
-    static getAllReviewComments(pullRequestNumber) {
+    static getAllReviewComments(pullRequestNumber: number): Promise<string[]> {
         return this.paginate(
             this.octokit.pulls.listReviews,
             {
@@ -418,7 +462,7 @@ class GithubUtils {
      * @param issueNumber
      * @returns
      */
-    static getAllComments(issueNumber) {
+    static getAllComments(issueNumber: number): Promise<Array<string | undefined>> {
         return this.paginate(
             this.octokit.issues.listComments,
             {
@@ -439,7 +483,7 @@ class GithubUtils {
      * @param messageBody - The comment message
      * @returns
      */
-    static createComment(repo, number, messageBody) {
+    static createComment(repo: string, number: number, messageBody: string): Promise<RestEndpointMethodTypes['issues']['createComment']['response']> {
         console.log(`Writing comment on #${number}`);
         return this.octokit.issues.createComment({
             owner: CONST.GITHUB_OWNER,
@@ -455,7 +499,7 @@ class GithubUtils {
      * @param workflow
      * @returns
      */
-    static getLatestWorkflowRunID(workflow) {
+    static getLatestWorkflowRunID(workflow: string | number): Promise<number> {
         console.log(`Fetching New Expensify workflow runs for ${workflow}...`);
         return (
             this.octokit.actions
@@ -475,7 +519,7 @@ class GithubUtils {
      * @param pullRequests
      * @returns
      */
-    static getReleaseBody(pullRequests) {
+    static getReleaseBody(pullRequests: number[]): string {
         return pullRequests.map((number) => `- ${this.getPullRequestURLFromNumber(number)}`).join('\r\n');
     }
 
@@ -486,6 +530,7 @@ class GithubUtils {
      * @returns
      */
     static getPullRequestURLFromNumber(value: number): string {
+        // @ts-expect-error -- TODO: Remove this once CONST.js (https://github.com/Expensify/App/issues/25362) is migrated
         return `${CONST.APP_REPO_URL}/pull/${value}`;
     }
 
@@ -511,7 +556,7 @@ class GithubUtils {
      * @returns
      * @throws {Error} If the URL is not a valid Github Issue.
      */
-    static getIssueNumberFromURL(URL) {
+    static getIssueNumberFromURL(URL: string): number {
         const matches = URL.match(ISSUE_REGEX);
         if (!Array.isArray(matches) || matches.length !== 2) {
             throw new Error(`Provided URL ${URL} is not a Github Issue!`);
@@ -526,7 +571,7 @@ class GithubUtils {
      * @returns
      * @throws {Error} If the URL is not a valid Github Issue or Pull Request.
      */
-    static getIssueOrPullRequestNumberFromURL(URL) {
+    static getIssueOrPullRequestNumberFromURL(URL: string): number {
         const matches = URL.match(ISSUE_OR_PULL_REQUEST_REGEX);
         if (!Array.isArray(matches) || matches.length !== 2) {
             throw new Error(`Provided URL ${URL} is not a valid Github Issue or Pull Request!`);
@@ -540,28 +585,26 @@ class GithubUtils {
      * @param issueNumber
      * @returns
      */
-    static getActorWhoClosedIssue(issueNumber) {
-        return (
-            this.paginate(this.octokit.issues.listEvents, {
-                owner: CONST.GITHUB_OWNER,
-                repo: CONST.APP_REPO,
-                issue_number: issueNumber,
-                per_page: 100,
-            })
-                .then((events) => events.filter((event) => event.event === 'closed'))
-                // .then((closedEvents) => lodashGet(_.last(closedEvents), 'actor.login', ''));
-                .then((closedEvents) => _.last(closedEvents).actor.login ?? '')
-        );
+    static getActorWhoClosedIssue(issueNumber: number): Promise<string> {
+        return this.paginate(this.octokit.issues.listEvents, {
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            issue_number: issueNumber,
+            per_page: 100,
+        })
+            .then((events) => events.filter((event) => event.event === 'closed'))
+            .then((closedEvents) => closedEvents.slice(-1)[0].actor?.login ?? '');
     }
 
-    static getArtifactByName(artefactName) {
+    static getArtifactByName(artefactName: string): Promise<OctokitArtifact | undefined> {
         return this.paginate(this.octokit.actions.listArtifactsForRepo, {
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
             per_page: 100,
-        }).then((artifacts) => _.findWhere(artifacts, {name: artefactName}));
+        }).then((artifacts: OctokitArtifact[]) => artifacts.find((artifact) => artifact.name === artefactName));
     }
 }
 
 export default GithubUtils;
 export {ISSUE_OR_PULL_REQUEST_REGEX, POLL_RATE};
+export type {ListForRepoMethod};

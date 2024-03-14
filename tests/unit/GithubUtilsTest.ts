@@ -5,6 +5,7 @@
  */
 import * as core from '@actions/core';
 import type {Writable} from 'type-fest';
+import type {ListForRepoMethod} from '../../.github/libs/GithubUtils';
 import GithubUtils from '../../.github/libs/GithubUtils';
 
 const mockGetInput = jest.fn();
@@ -186,17 +187,17 @@ describe('GithubUtils', () => {
                 PRList: [],
             };
 
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [bareIssue]});
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [bareIssue]}) as unknown as ListForRepoMethod;
             return GithubUtils.getStagingDeployCash().then((data) => expect(data).toStrictEqual(bareExpectedResponse));
         });
 
         test('Test finding an open issue successfully', () => {
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [baseIssue]});
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [baseIssue]}) as unknown as ListForRepoMethod;
             return GithubUtils.getStagingDeployCash().then((data) => expect(data).toStrictEqual(baseExpectedResponse));
         });
 
         test('Test finding an open issue successfully and parsing with deploy blockers', () => {
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [issueWithDeployBlockers]});
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [issueWithDeployBlockers]}) as unknown as ListForRepoMethod;
             return GithubUtils.getStagingDeployCash().then((data) => expect(data).toStrictEqual(expectedResponseWithDeployBlockers));
         });
 
@@ -206,7 +207,7 @@ describe('GithubUtils', () => {
 
             GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({
                 data: [modifiedIssueWithDeployBlockers],
-            });
+            }) as unknown as ListForRepoMethod;
             return GithubUtils.getStagingDeployCash().then((data) => expect(data).toStrictEqual(expectedResponseWithDeployBlockers));
         });
 
@@ -214,17 +215,17 @@ describe('GithubUtils', () => {
             const noBodyIssue = baseIssue;
             noBodyIssue.body = '';
 
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [noBodyIssue]});
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [noBodyIssue]}) as unknown as ListForRepoMethod;
             return GithubUtils.getStagingDeployCash().catch((e) => expect(e).toEqual(new Error('Unable to find StagingDeployCash issue with correct data.')));
         });
 
         test('Test finding more than one issue', () => {
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [{a: 1}, {b: 2}]});
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [{a: 1}, {b: 2}]}) as unknown as ListForRepoMethod;
             return GithubUtils.getStagingDeployCash().catch((e) => expect(e).toEqual(new Error('Found more than one StagingDeployCash issue.')));
         });
 
         test('Test finding no issues', () => {
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: []});
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: []}) as unknown as ListForRepoMethod;
             return GithubUtils.getStagingDeployCash().catch((e) => expect(e).toEqual(new Error('Unable to find StagingDeployCash issue.')));
         });
     });
@@ -465,6 +466,9 @@ describe('GithubUtils', () => {
 
         test('Test no verified PRs', () => {
             githubUtils.generateStagingDeployCashBody(tag, basePRList).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
                 expect(issue.issueBody).toBe(
                     `${baseExpectedOutput}` +
                         `${openCheckbox}${basePRList[2]}` +
@@ -484,6 +488,9 @@ describe('GithubUtils', () => {
 
         test('Test some verified PRs', () => {
             githubUtils.generateStagingDeployCashBody(tag, basePRList, [basePRList[0]]).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
                 expect(issue.issueBody).toBe(
                     `${baseExpectedOutput}` +
                         `${openCheckbox}${basePRList[2]}` +
@@ -503,6 +510,9 @@ describe('GithubUtils', () => {
 
         test('Test all verified PRs', () => {
             githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
                 expect(issue.issueBody).toBe(
                     `${allVerifiedExpectedOutput}` +
                         `${lineBreak}${deployerVerificationsHeader}` +
@@ -517,6 +527,9 @@ describe('GithubUtils', () => {
 
         test('Test no resolved deploy blockers', () => {
             githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, baseDeployBlockerList).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
                 expect(issue.issueBody).toBe(
                     `${allVerifiedExpectedOutput}` +
                         `${lineBreak}${deployBlockerHeader}` +
@@ -534,6 +547,9 @@ describe('GithubUtils', () => {
 
         test('Test some resolved deploy blockers', () => {
             githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, baseDeployBlockerList, [baseDeployBlockerList[0]]).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
                 expect(issue.issueBody).toBe(
                     `${allVerifiedExpectedOutput}` +
                         `${lineBreak}${deployBlockerHeader}` +
@@ -551,6 +567,9 @@ describe('GithubUtils', () => {
 
         test('Test all resolved deploy blockers', () => {
             githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, baseDeployBlockerList, baseDeployBlockerList).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
                 expect(issue.issueBody).toBe(
                     `${baseExpectedOutput}` +
                         `${closedCheckbox}${basePRList[2]}` +
@@ -573,6 +592,9 @@ describe('GithubUtils', () => {
 
         test('Test internalQA PRs', () => {
             githubUtils.generateStagingDeployCashBody(tag, [...basePRList, ...internalQAPRList]).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
                 expect(issue.issueBody).toBe(
                     `${baseExpectedOutput}` +
                         `${openCheckbox}${basePRList[2]}` +
@@ -595,6 +617,9 @@ describe('GithubUtils', () => {
 
         test('Test some verified internalQA PRs', () => {
             githubUtils.generateStagingDeployCashBody(tag, [...basePRList, ...internalQAPRList], [], [], [], [internalQAPRList[0]]).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
                 expect(issue.issueBody).toBe(
                     `${baseExpectedOutput}` +
                         `${openCheckbox}${basePRList[2]}` +
