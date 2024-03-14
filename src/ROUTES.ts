@@ -549,6 +549,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/members',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/members` as const,
     },
+    WORKSPACE_ACCOUNTING: {
+        route: 'settings/workspaces/:policyID/accounting',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting` as const,
+    },
     WORKSPACE_CATEGORIES: {
         route: 'settings/workspaces/:policyID/categories',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories` as const,
