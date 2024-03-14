@@ -33,6 +33,7 @@ function PolicyAccountingPage() {
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const shouldSetupQBO = true;
+    const shouldShowQBIConnectionOptionsMenuItems = true;
 
     const connectionIconSize = {iconHeight: variables.avatarSizeNormal, iconWidth: variables.avatarSizeNormal};
     const connectionsMenuItems: WorkspaceMenuItem[] = [
@@ -48,14 +49,7 @@ function PolicyAccountingPage() {
         },
     ];
 
-    const qboConnectionMenuItems: WorkspaceMenuItem[] = [
-        {
-            translationKey: 'workspace.accounting.qbo',
-            descriptionTranslationKey: 'workspace.accounting.lastSync',
-            icon: Expensicons.QBORound,
-            iconRight: Expensicons.ThreeDots,
-            ...connectionIconSize,
-        },
+    const qboConnectionOptionsMenuItems: WorkspaceMenuItem[] = [
         {
             translationKey: 'workspace.accounting.import',
             icon: Expensicons.Pencil,
@@ -71,6 +65,17 @@ function PolicyAccountingPage() {
             icon: Expensicons.Gear,
             iconRight: Expensicons.ArrowRight,
         },
+    ];
+
+    const qboConnectionMenuItems: WorkspaceMenuItem[] = [
+        {
+            translationKey: 'workspace.accounting.qbo',
+            descriptionTranslationKey: 'workspace.accounting.lastSync',
+            icon: Expensicons.QBORound,
+            iconRight: Expensicons.ThreeDots,
+            ...connectionIconSize,
+        },
+        ...(shouldShowQBIConnectionOptionsMenuItems ? qboConnectionOptionsMenuItems : []),
         {
             descriptionTranslationKey: 'workspace.accounting.other',
             iconRight: Expensicons.DownArrow,
