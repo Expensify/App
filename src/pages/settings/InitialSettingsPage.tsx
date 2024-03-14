@@ -439,7 +439,8 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
 
     return (
         <ScreenWrapper
-            style={[styles.w100, styles.pt4]}
+            style={[styles.w100, styles.pb0]}
+            includePaddingTop={false}
             includeSafeAreaPaddingBottom={false}
             testID={InitialSettingsPage.displayName}
         >
