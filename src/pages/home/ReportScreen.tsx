@@ -263,6 +263,7 @@ function ReportScreen({
             reportID={reportID}
             onNavigationMenuButtonClicked={goBack}
             report={report}
+            parentReportAction={parentReportAction}
         />
     );
 
@@ -430,7 +431,7 @@ function ReportScreen({
     }, [report, didSubscribeToReportLeavingEvents, reportID]);
 
     const onListLayout = useCallback((event: LayoutChangeEvent) => {
-        setListHeight((prev) => event.nativeEvent.layout.height ?? prev);
+        setListHeight((prev) => event.nativeEvent?.layout?.height ?? prev);
         if (!markReadyForHydration) {
             return;
         }

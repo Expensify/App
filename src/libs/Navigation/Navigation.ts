@@ -19,7 +19,7 @@ import linkingConfig from './linkingConfig';
 import linkTo from './linkTo';
 import navigationRef from './navigationRef';
 import switchPolicyID from './switchPolicyID';
-import type {State, StateOrRoute, SwitchPolicyIDParams} from './types';
+import type {NavigationStateRoute, State, StateOrRoute, SwitchPolicyIDParams} from './types';
 
 let resolveNavigationIsReadyPromise: () => void;
 const navigationIsReadyPromise = new Promise<void>((resolve) => {
@@ -235,6 +235,18 @@ function goBack(fallbackRoute?: Route, shouldEnforceFallback = false, shouldPopT
 }
 
 /**
+ * Reset the navigation state to Home page
+ */
+function resetToHome() {
+    const rootState = navigationRef.getRootState();
+    const bottomTabKey = rootState.routes.find((item: NavigationStateRoute) => item.name === NAVIGATORS.BOTTOM_TAB_NAVIGATOR)?.state?.key;
+    if (bottomTabKey) {
+        navigationRef.dispatch({...StackActions.popToTop(), target: bottomTabKey});
+    }
+    navigationRef.dispatch({...StackActions.popToTop(), target: rootState.key});
+}
+
+/**
  * Close the full screen modal.
  */
 function closeFullScreen() {
@@ -347,14 +359,6 @@ function navigateWithSwitchPolicyID(params: SwitchPolicyIDParams) {
     return switchPolicyID(navigationRef.current, params);
 }
 
-/**
- * The `popToTop` action takes you back to the first screen in the stack, dismissing all the others.
- * @note we used to call `Navigation.navigate()` before the new navigation was introduced.
- */
-function popToTop() {
-    navigationRef.current?.dispatch(StackActions.popToTop());
-}
-
 export default {
     setShouldPopAllStateOnUP,
     navigate,
@@ -374,7 +378,7 @@ export default {
     parseHybridAppUrl,
     closeFullScreen,
     navigateWithSwitchPolicyID,
-    popToTop,
+    resetToHome,
 };
 
 export {navigationRef};
