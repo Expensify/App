@@ -107,19 +107,23 @@ const useOptionsListContext = () => useContext(OptionsListContext);
 // Hook to use the OptionsListContext with an initializer to load the options
 const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     const {shouldInitialize = true} = options ?? {};
-    const {initializeOptions, ...optionsListContext} = useOptionsListContext();
+    const {initializeOptions, options: optionList, areOptionsInitialized} = useOptionsListContext();
+
+    // freeze the options, so they won't update when the context updates and the screen is open
+    const optionsRef = useRef(optionList);
 
     useEffect(() => {
-        if (!shouldInitialize || optionsListContext.areOptionsInitialized) {
+        if (!shouldInitialize || areOptionsInitialized) {
             return;
         }
 
         initializeOptions();
-    }, [shouldInitialize, initializeOptions, optionsListContext.areOptionsInitialized]);
+    }, [shouldInitialize, initializeOptions, areOptionsInitialized]);
 
     return {
         initializeOptions,
-        ...optionsListContext,
+        options: optionsRef.current,
+        areOptionsInitialized,
     };
 };
 
