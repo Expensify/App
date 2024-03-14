@@ -1,28 +1,21 @@
-import PropTypes from 'prop-types';
 import React from 'react';
-import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 
-const propTypes = {
-    ...withLocalizePropTypes,
+function LanguagePage() {
+    const {translate, preferredLocale} = useLocalize();
 
-    /** The preferred language of the App */
-    preferredLocale: PropTypes.string.isRequired,
-};
-
-function LanguagePage(props) {
-    const localesToLanguages = _.map(CONST.LANGUAGES, (language) => ({
+    const localesToLanguages = CONST.LANGUAGES.map((language) => ({
         value: language,
-        text: props.translate(`languagePage.languages.${language}.label`),
+        text: translate(`languagePage.languages.${language}.label`),
         keyForList: language,
-        isSelected: props.preferredLocale === language,
+        isSelected: preferredLocale === language,
     }));
 
     return (
@@ -31,20 +24,19 @@ function LanguagePage(props) {
             testID={LanguagePage.displayName}
         >
             <HeaderWithBackButton
-                title={props.translate('languagePage.language')}
+                title={translate('languagePage.language')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <SelectionList
                 sections={[{data: localesToLanguages}]}
                 ListItem={RadioListItem}
                 onSelectRow={(language) => App.setLocaleAndNavigate(language.value)}
-                initiallyFocusedOptionKey={_.find(localesToLanguages, (locale) => locale.isSelected).keyForList}
+                initiallyFocusedOptionKey={localesToLanguages.find((locale) => locale.isSelected)?.keyForList}
             />
         </ScreenWrapper>
     );
 }
 
 LanguagePage.displayName = 'LanguagePage';
-LanguagePage.propTypes = propTypes;
 
-export default withLocalize(LanguagePage);
+export default LanguagePage;
