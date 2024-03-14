@@ -4,7 +4,6 @@ import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
 
 /**
  * Set the current fields with errors.
-
  */
 function setBankAccountFormValidationErrors(errorFields: ErrorFields) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errorFields: null});
