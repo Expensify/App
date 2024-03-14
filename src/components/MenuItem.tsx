@@ -374,6 +374,7 @@ function MenuItem(
                     displayNamesWithTooltips={titleWithTooltips}
                     tooltipEnabled
                     numberOfLines={1}
+                    shouldUseFullTitle={!!title}
                 />
             );
         }
