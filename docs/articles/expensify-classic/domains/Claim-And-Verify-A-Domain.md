@@ -31,7 +31,8 @@ You can claim and verify private domains only. Public domains (like gmail.com) c
 # Step 2: Verify domain ownership
 
 {% include info.html %}
-To complete this step, you must have a Control workspace, and you’ll need access to your domain provider account (GoDaddy, Wix, GSuite, etc.). If you don’t verify the domain, you will still have access to the domain to add and manage credit card expenses and domain admins, but you will not be able to invite members, add groups, use domain reporting tools, set delegates for employees on vacation, or enable SAML SSO. For more guidance on how to complete this process for a specific provider, check the provider’s website.{% include end-info.html %}
+To complete this step, you must have a Control workspace, and you’ll need access to your domain provider account (GoDaddy, Wix, GSuite, etc.). If you don’t verify the domain, you will still have access to the domain to add and manage credit card expenses and domain admins, but you will not be able to invite members, add groups, use domain reporting tools, set delegates for employees on vacation, or enable SAML SSO. For more guidance on how to complete this process for a specific provider, check the provider’s website.
+{% include end-info.html %}
 
 <ol type="a">
    <li>Log in to your DNS service provider (which may be the website you purchased the domain from or that currently hosts the domain, like NameCheap, GoDaddy, DNSMadeEasy, or Amazon Route53. You may need to contact your company’s IT department if your domain is managed internally).</li>

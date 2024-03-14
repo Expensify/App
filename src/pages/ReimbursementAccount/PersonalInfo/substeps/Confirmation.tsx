@@ -120,6 +120,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                         <Button
                             isDisabled={isOffline}
                             success
+                            large
                             isLoading={isLoading}
                             style={[styles.w100]}
                             onPress={onNext}
