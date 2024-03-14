@@ -621,7 +621,7 @@ function MoneyRequestConfirmationList({
                     <ConfirmedRoute transaction={transaction} />
                 </View>
             )}
-
+            {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
             {receiptImage || receiptThumbnail ? (
                 <ReceiptImage
                     style={styles.moneyRequestImage}
