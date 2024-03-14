@@ -5,11 +5,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagList, ReportAction} from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
+import getReportPolicyID from './getReportPolicyID';
 import * as Localize from './Localize';
 import * as PolicyUtils from './PolicyUtils';
 import type {ExpenseOriginalMessage} from './ReportUtils';
 import * as TransactionUtils from './TransactionUtils';
-import getReportPolicyID from './getReportPolicyID';
 
 let allPolicyTags: OnyxCollection<PolicyTagList> = {};
 Onyx.connect({
