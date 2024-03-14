@@ -626,7 +626,7 @@ function MoneyRequestConfirmationList({
                 <ReceiptImage
                     style={styles.moneyRequestImage}
                     isThumbnail={isThumbnail}
-                    source={String(receiptThumbnail || receiptImage)}
+                    source={String(receiptThumbnail ?? receiptImage)}
                     // AuthToken is required when retrieving the image from the server
                     // but we don't need it to load the blob:// or file:// image when starting a money request / split bill
                     // So if we have a thumbnail, it means we're retrieving the image from the server
