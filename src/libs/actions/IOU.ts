@@ -914,22 +914,22 @@ function getMoneyRequestInformation(
     // 4. The transaction thread, which requires the iouAction, and CREATED action for the transaction thread
     // 5. REPORTPREVIEW action for the chatReport
     // Note: The CREATED action for the IOU report must be optimistically generated before the IOU action so there's no chance that it appears after the IOU action in the chat
-    const optimisticCreatedActionForChat = ReportUtils.buildOptimisticCreatedReportAction(payeeEmail);
-    const [optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] = ReportUtils.buildOptimisticMoneyRequestEntities(
-        iouReport,
-        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-        amount,
-        currency,
-        comment,
-        payeeEmail,
-        [participant],
-        optimisticTransaction.transactionID,
-        undefined,
-        false,
-        false,
-        receiptObject,
-        false,
-    );
+    const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
+        ReportUtils.buildOptimisticMoneyRequestEntities(
+            iouReport,
+            CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            amount,
+            currency,
+            comment,
+            payeeEmail,
+            [participant],
+            optimisticTransaction.transactionID,
+            undefined,
+            false,
+            false,
+            receiptObject,
+            false,
+        );
 
     let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
     if (reportPreviewAction) {
@@ -1887,17 +1887,17 @@ function createSplitsAndOnyxData(
         // 3. IOU action for the iouReport
         // 4. Transaction Thread and the CREATED action for it
         // 5. REPORTPREVIEW action for the chatReport
-        const oneOnOneCreatedActionForChat = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
-        const [oneOnOneCreatedActionForIOU, oneOnOneIOUAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] = ReportUtils.buildOptimisticMoneyRequestEntities(
-            oneOnOneIOUReport,
-            CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            splitAmount,
-            currency,
-            comment,
-            currentUserEmailForIOUSplit,
-            [participant],
-            oneOnOneTransaction.transactionID,
-        );
+        const [oneOnOneCreatedActionForChat, oneOnOneCreatedActionForIOU, oneOnOneIOUAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
+            ReportUtils.buildOptimisticMoneyRequestEntities(
+                oneOnOneIOUReport,
+                CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                splitAmount,
+                currency,
+                comment,
+                currentUserEmailForIOUSplit,
+                [participant],
+                oneOnOneTransaction.transactionID,
+            );
 
         // Add optimistic personal details for new participants
         const oneOnOnePersonalDetailListAction: OnyxTypes.PersonalDetailsList = shouldCreateOptimisticPersonalDetails
@@ -2507,18 +2507,18 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             updatedTransaction.billable,
         );
 
-        const oneOnOneCreatedActionForChat = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
-        const [oneOnOneCreatedActionForIOU, oneOnOneIOUAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] = ReportUtils.buildOptimisticMoneyRequestEntities(
-            oneOnOneIOUReport,
-            CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            splitAmount,
-            currency ?? '',
-            updatedTransaction.comment.comment ?? '',
-            currentUserEmailForIOUSplit,
-            [participant],
-            oneOnOneTransaction.transactionID,
-            undefined,
-        );
+        const [oneOnOneCreatedActionForChat, oneOnOneCreatedActionForIOU, oneOnOneIOUAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
+            ReportUtils.buildOptimisticMoneyRequestEntities(
+                oneOnOneIOUReport,
+                CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                splitAmount,
+                currency ?? '',
+                updatedTransaction.comment.comment ?? '',
+                currentUserEmailForIOUSplit,
+                [participant],
+                oneOnOneTransaction.transactionID,
+                undefined,
+            );
 
         let oneOnOneReportPreviewAction = ReportActionsUtils.getReportPreviewAction(oneOnOneChatReport?.reportID ?? '', oneOnOneIOUReport?.reportID ?? '');
         if (oneOnOneReportPreviewAction) {
@@ -3234,7 +3234,7 @@ function getSendMoneyParams(
         value: optimisticTransaction,
     };
 
-    const [optimisticCreatedActionForIOUReport, optimisticIOUReportAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
+    const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, optimisticIOUReportAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
         ReportUtils.buildOptimisticMoneyRequestEntities(
             optimisticIOUReport,
             CONST.IOU.REPORT_ACTION_TYPE.PAY,
@@ -3249,7 +3249,6 @@ function getSendMoneyParams(
             true,
         );
 
-    const optimisticCreatedActionForChatReport = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
     const reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticIOUReport);
 
     // Change the method to set for new reports because it doesn't exist yet, is faster,
@@ -3293,12 +3292,10 @@ function getSendMoneyParams(
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
         value: {
+            [optimisticCreatedActionForIOUReport.reportActionID]: optimisticCreatedActionForIOUReport,
             [optimisticIOUReportAction.reportActionID]: {
                 ...(optimisticIOUReportAction as OnyxTypes.ReportAction),
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-            [optimisticCreatedActionForIOUReport.reportActionID]: {
-                ...(optimisticCreatedActionForIOUReport as OnyxTypes.ReportAction),
             },
         },
     };
@@ -3428,7 +3425,7 @@ function getSendMoneyParams(
 
         if (optimisticChatReportActionsData.value) {
             // Add an optimistic created action to the optimistic chat reportActions data
-            optimisticChatReportActionsData.value[optimisticCreatedActionForChatReport.reportActionID] = optimisticCreatedActionForChatReport;
+            optimisticChatReportActionsData.value[optimisticCreatedActionForChat.reportActionID] = optimisticCreatedActionForChat;
         }
     } else {
         failureData.push({
@@ -3464,7 +3461,7 @@ function getSendMoneyParams(
             paymentMethodType,
             transactionID: optimisticTransaction.transactionID,
             newIOUReportDetails,
-            createdReportActionID: isNewChat ? optimisticCreatedActionForChatReport.reportActionID : '0',
+            createdReportActionID: isNewChat ? optimisticCreatedActionForChat.reportActionID : '0',
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
             transactionThreadReportID: optimisticTransactionThread.reportID,
             createdReportActionIDForThread: optimisticCreatedActionForTransactionThread.reportActionID,
