@@ -404,7 +404,6 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                                 >
                                     <View>
                                         <Button
-                                            medium
                                             icon={Expensicons.Rotate}
                                             iconFill={theme.inverse}
                                             onPress={rotateImage}
