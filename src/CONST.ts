@@ -3298,7 +3298,7 @@ const CONST = {
         CONTROLS_STATUS: {
             SHOW: 'show',
             HIDE: 'hide',
-            VOLUME_ONLY: 'volumeOnly'
+            VOLUME_ONLY: 'volumeOnly',
         },
         CONTROLS_POSITION: {
             NATIVE: 32,
