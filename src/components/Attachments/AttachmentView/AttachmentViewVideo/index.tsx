@@ -1,12 +1,11 @@
 import React from 'react';
-import type {ImageURISource} from 'react-native';
 import VideoPlayer from '@components/VideoPlayer';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 type AttachmentViewVideoProps = {
     /** Video file source URL */
-    source: string | ImageURISource | ImageURISource[];
+    source: string;
 
     /** Whether the video is currently being hovered over */
     isHovered?: boolean;

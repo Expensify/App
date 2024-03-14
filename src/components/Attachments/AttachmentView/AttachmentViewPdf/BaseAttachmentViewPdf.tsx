@@ -4,7 +4,7 @@ import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCa
 import type {AttachmentFile} from '@components/Attachments/types';
 import PDFView from '@components/PDFView';
 
-type BaseAttachmentViewPdfProps = {
+type AttachmentViewPdfProps = {
     encryptedSourceUrl: string;
     onToggleKeyboard?: (shouldFadeOut: boolean) => void;
     onLoadComplete: (path: string) => void;
@@ -40,7 +40,7 @@ function BaseAttachmentViewPdf({
     onLoadComplete,
     errorLabelStyles,
     style,
-}: BaseAttachmentViewPdfProps) {
+}: AttachmentViewPdfProps) {
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
     const isScrollEnabled = attachmentCarouselPagerContext === null ? undefined : attachmentCarouselPagerContext.isScrollEnabled;
 
@@ -109,4 +109,4 @@ function BaseAttachmentViewPdf({
 BaseAttachmentViewPdf.displayName = 'BaseAttachmentViewPdf';
 
 export default memo(BaseAttachmentViewPdf);
-export type {BaseAttachmentViewPdfProps};
+export type {AttachmentViewPdfProps as BaseAttachmentViewPdfProps};
