@@ -65,9 +65,9 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
 
     const dismissError = useCallback(
         (item: RateForList) => {
-            Policy.clearCreateDistanceRateItemAndError(policyID, customUnitRates, customUnit?.customUnitID ?? '', item.value);
+            Policy.clearCreateDistanceRateItemAndError(policyID, customUnit?.customUnitID ?? '', item.value);
         },
-        [customUnit?.customUnitID, customUnitRates, policyID],
+        [customUnit?.customUnitID, policyID],
     );
 
     const {isOffline} = useNetwork({onReconnect: fetchDistanceRates});

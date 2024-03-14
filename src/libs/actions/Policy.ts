@@ -3547,7 +3547,6 @@ function createPolicyDistanceRate(policyID: string, customUnitID: string, custom
                     [customUnitID]: {
                         rates: {
                             [customUnitRate.customUnitRateID ?? '']: {
-                                errors: null,
                                 pendingAction: null,
                             },
                         },
@@ -3576,7 +3575,7 @@ function createPolicyDistanceRate(policyID: string, customUnitID: string, custom
     ];
 
     const params: CreatePolicyDistanceRateParams = {
-        policyID,
+        policyID: `${policyID}1`,
         customUnitID,
         customUnitRate: JSON.stringify(customUnitRate),
     };
@@ -3584,14 +3583,13 @@ function createPolicyDistanceRate(policyID: string, customUnitID: string, custom
     API.write(WRITE_COMMANDS.CREATE_POLICY_DISTANCE_RATE, params, {optimisticData, successData, failureData});
 }
 
-function clearCreateDistanceRateItemAndError(policyID: string, currentRates: Record<string, Rate>, customUnitID: string, customUnitRateIDToClear: string) {
-    const updatedRates = {...currentRates};
-    delete updatedRates[customUnitRateIDToClear];
-
+function clearCreateDistanceRateItemAndError(policyID: string, customUnitID: string, customUnitRateIDToClear: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         customUnits: {
             [customUnitID]: {
-                rates: updatedRates,
+                rates: {
+                    [customUnitRateIDToClear]: null,
+                },
             },
         },
     });
