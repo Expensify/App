@@ -218,7 +218,8 @@ function IOURequestStepScan({
             showCameraAlert();
         }
 
-        camera?.current?.takePhoto({
+        camera?.current
+            ?.takePhoto({
                 qualityPrioritization: 'speed',
                 flash: flash ? 'on' : 'off',
             })
@@ -293,7 +294,6 @@ function IOURequestStepScan({
                             <NavigationAwareCamera
                                 ref={camera}
                                 device={device}
-                                style={[styles.flex1]}
                                 zoom={device.neutralZoom}
                                 photo
                                 cameraTabIndex={1}

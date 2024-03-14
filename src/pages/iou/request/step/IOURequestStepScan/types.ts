@@ -1,18 +1,13 @@
-import type {StackScreenProps} from '@react-navigation/stack';
+import type {RouteProp} from '@react-navigation/native';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type IOURequestStepRoute = StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.SCAN_TAB>;
-
-type IOURequestStepReport = {
+type IOURequestStepProps = {
+    route: RouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.SCAN_TAB>;
     report: OnyxTypes.Report;
-};
-
-type IOURequestStepTransaction = {
     transaction: OnyxTypes.Transaction;
-};
 
-type IOURequestStepProps = IOURequestStepRoute & IOURequestStepReport & IOURequestStepTransaction;
+};
 
 export default IOURequestStepProps;

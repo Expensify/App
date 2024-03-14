@@ -191,15 +191,20 @@ function IOURequestStepScan({
                 <NavigationAwareCamera
                     onUserMedia={() => setCameraPermissionState('granted')}
                     onUserMediaError={() => setCameraPermissionState('denied')}
-                    style={{...styles.videoContainer, display: cameraPermissionState !== 'granted' ? 'none' : 'block'}}
+                    style={{ ...styles.videoContainer, display: cameraPermissionState !== 'granted' ? 'none' : 'block' }}
                     ref={cameraRef}
                     screenshotFormat="image/png"
-                    videoConstraints={{facingMode: {exact: 'environment'}}}
+                    videoConstraints={{ facingMode: { exact: 'environment' } }}
                     torchOn={isFlashLightOn}
                     onTorchAvailability={setIsTorchAvailable}
                     forceScreenshotSourceSize
-                    cameraTabIndex={1}
-                />
+                    cameraTabIndex={1} 
+                    audio={false} 
+                    disablePictureInPicture={false} 
+                    imageSmoothing={false} 
+                    mirrored={false} 
+                    screenshotQuality={0}
+                    />
             </View>
 
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>

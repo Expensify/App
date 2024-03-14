@@ -1,25 +1,20 @@
-import type {CameraDevice} from 'react-native-vision-camera';
+import type {CameraProps} from 'react-native-vision-camera';
+import type {WebcamProps} from 'react-webcam';
 
-type NavigationAwareCameraProps = {
-    /** Flag to turn on/off the torch/flashlight - if available */
-    torchOn?: boolean;
+type NavigationAwareCameraProps = WebcamProps & {
+        /** Flag to turn on/off the torch/flashlight - if available */
+        torchOn?: boolean;
 
-    /** The index of the tab that contains this camera */
-    onTorchAvailability?: (torchAvailable: boolean) => void;
-
-    /** Callback function when media stream becomes available - user granted camera permissions and camera starts to work */
-    cameraTabIndex: number;
-
-    /** Callback function passing torch/flashlight capability as bool param of the browser */
-    onUserMedia?: (stream: MediaStream) => void;
-
-    /** Callback function when media stream becomes available - user granted camera permissions and camera starts to work */
-    onUserMediaError: (error: string | DOMException) => void;
+        /** The index of the tab that contains this camera */
+        onTorchAvailability?: (torchAvailable: boolean) => void;
+    
+        /** Callback function when media stream becomes available - user granted camera permissions and camera starts to work */
+        cameraTabIndex: number;
 };
 
-type NavigationAwareCameraNativeProps = {
+type NavigationAwareCameraNativeProps = CameraProps & {
     cameraTabIndex: number;
-    device: CameraDevice;
+
 };
 
 export type {NavigationAwareCameraProps, NavigationAwareCameraNativeProps};
