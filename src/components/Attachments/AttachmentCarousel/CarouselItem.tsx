@@ -23,14 +23,13 @@ type CarouselItemProps = {
     isModalHovered?: boolean;
 
     /** Whether the attachment is currently being viewed in the carousel */
-    isFocused?: boolean;
+    isFocused: boolean;
 };
 
 function CarouselItem({item, onPress, isFocused, isModalHovered}: CarouselItemProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isAttachmentHidden} = useContext(ReportAttachmentsContext);
-    // eslint-disable-next-line es/no-nullish-coalescing-operators
     const [isHidden, setIsHidden] = useState(() => (item.reportActionID ? isAttachmentHidden(item.reportActionID) : item.hasBeenFlagged));
 
     const renderButton = (style: StyleProp<ViewStyle>) => (
@@ -60,7 +59,8 @@ function CarouselItem({item, onPress, isFocused, isModalHovered}: CarouselItemPr
                 style={[styles.attachmentRevealButtonContainer]}
                 onPress={onPress}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-                accessibilityLabel={item.file?.name ?? translate('attachmentView.unknownFilename')}
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                accessibilityLabel={item.file?.name || translate('attachmentView.unknownFilename')}
             >
                 {children}
             </PressableWithoutFeedback>

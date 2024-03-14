@@ -6,7 +6,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type CONST from '@src/CONST';
 
 type PlaybackContext = {
-    updateCurrentlyPlayingURL: (url: string) => void;
+    updateCurrentlyPlayingURL: (url: string | null) => void;
     currentlyPlayingURL: string | null;
     originalParent: View | null;
     sharedElement: View | null;

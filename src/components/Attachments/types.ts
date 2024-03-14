@@ -2,7 +2,7 @@ import type {FileObject} from '@components/AttachmentModal';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 // This can be either a string, function, or number
-type AttachmentSource = string | IconAsset;
+type AttachmentSource = string | IconAsset | number;
 
 type AttachmentFile = {name?: string};
 

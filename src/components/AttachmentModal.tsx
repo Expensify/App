@@ -31,6 +31,7 @@ import type ModalType from '@src/types/utils/ModalType';
 import AttachmentCarousel from './Attachments/AttachmentCarousel';
 import AttachmentCarouselPagerContext from './Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import AttachmentView from './Attachments/AttachmentView';
+import type {Attachment} from './Attachments/types';
 import BlockingView from './BlockingViews/BlockingView';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
@@ -61,15 +62,6 @@ type AttachmentModalOnyxProps = {
     parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
 };
 
-type Attachment = {
-    source: AvatarSource;
-    isAuthTokenRequired: boolean;
-    file?: FileObject;
-    isReceipt?: boolean;
-    hasBeenFlagged?: boolean;
-    reportActionID?: string;
-};
-
 type ImagePickerResponse = {
     height: number;
     name: string;
@@ -79,7 +71,7 @@ type ImagePickerResponse = {
     width: number;
 };
 
-type FileObject = {name?: string} & Partial<File | ImagePickerResponse>;
+type FileObject = Partial<File | ImagePickerResponse>;
 
 type ChildrenProps = {
     displayFileInModal: (data: FileObject) => void;
@@ -181,7 +173,7 @@ function AttachmentModal({
     const [isAuthTokenRequiredState, setIsAuthTokenRequiredState] = useState(isAuthTokenRequired);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths | null>(null);
     const [attachmentInvalidReason, setAttachmentInvalidReason] = useState<TranslationPaths | null>(null);
-    const [sourceState, setSourceState] = useState<AvatarSource | undefined>(() => source);
+    const [sourceState, setSourceState] = useState<AvatarSource>(() => source);
     const [modalType, setModalType] = useState<ModalType>(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const [confirmButtonFadeAnimation] = useState(() => new Animated.Value(1));
@@ -221,7 +213,7 @@ function AttachmentModal({
      * If our attachment is a PDF, return the unswipeablge Modal type.
      */
     const getModalType = useCallback(
-        (sourceURL: string | undefined, fileObject: FileObject) =>
+        (sourceURL: string, fileObject: FileObject) =>
             sourceURL && (Str.isPDF(sourceURL) || (fileObject && Str.isPDF(fileObject.name ?? translate('attachmentView.unknownFilename'))))
                 ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
                 : CONST.MODAL.MODAL_TYPE.CENTERED,
@@ -292,14 +284,14 @@ function AttachmentModal({
     }, [transaction, report]);
 
     const isValidFile = useCallback((fileObject: FileObject) => {
-        if (fileObject.size && fileObject.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+        if (fileObject.size !== undefined && fileObject.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
             setIsAttachmentInvalid(true);
             setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooLarge');
             setAttachmentInvalidReason('attachmentPicker.sizeExceeded');
             return false;
         }
 
-        if (fileObject.size && fileObject.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+        if (fileObject.size !== undefined && fileObject.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
             setIsAttachmentInvalid(true);
             setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooSmall');
             setAttachmentInvalidReason('attachmentPicker.sizeNotMet');
@@ -352,7 +344,7 @@ function AttachmentModal({
                 setSourceState(inputSource);
                 setFile(updatedFile);
                 setModalType(inputModalType);
-            } else {
+            } else if (fileObject.uri) {
                 const inputModalType = getModalType(fileObject.uri, fileObject);
                 setIsModalOpen(true);
                 setSourceState(fileObject.uri);
@@ -413,7 +405,7 @@ function AttachmentModal({
         setIsAuthTokenRequiredState(isAuthTokenRequired);
     }, [isAuthTokenRequired]);
 
-    const sourceForAttachmentView = sourceState ?? source;
+    const sourceForAttachmentView = sourceState || source;
 
     const threeDotsMenuItems = useMemo(() => {
         if (!isReceiptAttachment || !parentReport || !parentReportActions) {
@@ -635,4 +627,4 @@ export default withOnyx<AttachmentModalProps, AttachmentModalOnyxProps>({
     },
 })(memo(AttachmentModal));
 
-export type {Attachment, FileObject};
+export type {FileObject};

@@ -150,7 +150,7 @@ function AttachmentCarouselPager(
 
     const carouselItems = items.map((item, index) => (
         <View
-            key={item.source as string}
+            key={typeof item.source === 'string' || typeof item.source === 'number' ? item.source : item.reportActionID ?? index}
             style={styles.flex1}
         >
             <CarouselItem

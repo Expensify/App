@@ -105,7 +105,6 @@ function AttachmentView({
     optionalVideoDuration,
 }: AttachmentViewProps) {
     const {translate} = useLocalize();
-    // @ts-expect-error Wait for usePlaybackContext TS migration https://github.com/Expensify/App/issues/36724
     const {updateCurrentlyPlayingURL} = usePlaybackContext();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -117,7 +116,7 @@ function AttachmentView({
         if (!isFocused && !(file && isUsedInAttachmentModal)) {
             return;
         }
-        updateCurrentlyPlayingURL(isVideo ? source : null);
+        updateCurrentlyPlayingURL(isVideo ? (source as string) : null);
     }, [file, isFocused, isUsedInAttachmentModal, isVideo, source, updateCurrentlyPlayingURL]);
 
     const [imageError, setImageError] = useState(false);

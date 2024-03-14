@@ -12,7 +12,11 @@ function CarouselActions({onCycleThroughAttachments}: CarouselActionsProps) {
         const shortcutLeftConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT;
         const unsubscribeLeftKey = KeyboardShortcut.subscribe(
             shortcutLeftConfig.shortcutKey,
-            () => {
+            (event) => {
+                if (event?.target instanceof HTMLElement) {
+                    // prevents focus from highlighting around the modal
+                    event.target.blur();
+                }
                 onCycleThroughAttachments(-1);
             },
             shortcutLeftConfig.descriptionKey,
@@ -22,7 +26,11 @@ function CarouselActions({onCycleThroughAttachments}: CarouselActionsProps) {
         const shortcutRightConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT;
         const unsubscribeRightKey = KeyboardShortcut.subscribe(
             shortcutRightConfig.shortcutKey,
-            () => {
+            (event) => {
+                if (event?.target instanceof HTMLElement) {
+                    // prevents focus from highlighting around the modal
+                    event.target.blur();
+                }
                 onCycleThroughAttachments(1);
             },
             shortcutRightConfig.descriptionKey,

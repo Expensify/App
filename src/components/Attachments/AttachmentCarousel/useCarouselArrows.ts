@@ -1,3 +1,4 @@
+import type {SetStateAction} from 'react';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
@@ -32,7 +33,7 @@ function useCarouselArrows() {
     }, [canUseTouchScreen, cancelAutoHideArrows]);
 
     const setShouldShowArrows = useCallback(
-        (show: boolean | ((oldState: boolean) => boolean) = true) => {
+        (show: SetStateAction<boolean> = true) => {
             setShouldShowArrowsInternal(show);
             autoHideArrows();
         },
