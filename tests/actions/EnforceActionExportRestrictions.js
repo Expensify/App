@@ -1,5 +1,5 @@
 import * as ReportUtils from '@libs/ReportUtils';
-import * as Task from '@libs/Task';
+import * as Task from '@userActions/Task';
 
 // There are some methods that are OK to use inside an action file, but should not be exported. These are typically methods that look up and return Onyx data.
 // The correct pattern to use is that every file will use it's own withOnyx or Onyx.connect() to access the Onyx data it needs. This prevents data from becoming stale
@@ -8,11 +8,11 @@ import * as Task from '@libs/Task';
 describe('ReportUtils', () => {
     it('does not export getParentReport', () => {
         expect(ReportUtils.getParentReport).toBeUndefined();
-    })
+    });
 });
 
 describe('Task', () => {
     it('does not export getParentReport', () => {
         expect(Task.getParentReport).toBeUndefined();
-    })
+    });
 });
