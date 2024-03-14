@@ -7,14 +7,14 @@ import * as Task from '@userActions/Task';
 // https://github.com/Expensify/App/issues/27262
 describe('ReportUtils', () => {
     it('does not export getParentReport', () => {
-        // @ts-expect-error the tets is asserting that it's undefined, so the TS error is normal
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(ReportUtils.getParentReport).toBeUndefined();
     });
 });
 
 describe('Task', () => {
     it('does not export getParentReport', () => {
-        // @ts-expect-error the tets is asserting that it's undefined, so the TS error is normal
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(Task.getParentReport).toBeUndefined();
     });
 });
