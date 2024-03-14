@@ -1925,6 +1925,11 @@ export default {
             qbo: 'Quickbooks Online',
             xero: 'Xero',
             setup: 'Set up',
+            lastSync: 'Last synced just now',
+            import: 'Import',
+            export: 'Export',
+            advanced: 'Advanced',
+            other: 'Other integrations',
         },
         bills: {
             manageYourBills: 'Manage your bills',
