@@ -53,7 +53,7 @@ beforeAll(() => {
             },
         },
         paginate: jest.fn().mockImplementation((objectMethod: () => Promise<{data: unknown}>) => objectMethod().then(({data}) => data)),
-    } as typeof GithubUtils.octokit;
+    } as unknown as typeof GithubUtils.internalOctokit;
     GithubUtils.internalOctokit = moctokit;
 
     // Mock GitUtils
