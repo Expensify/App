@@ -181,6 +181,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.TAG_SETTINGS]: {
+        policyID: string;
+        tagName: string;
+    };
     [SCREENS.WORKSPACE.TAGS_EDIT]: {
         policyID: string;
         tagName: string;
@@ -538,7 +542,7 @@ type WorkspacesCentralPaneNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.TAGS]: {
         policyID: string;
-        categoryName: string;
+        tagName: string;
     };
     [SCREENS.WORKSPACE.TAXES]: {
         policyID: string;

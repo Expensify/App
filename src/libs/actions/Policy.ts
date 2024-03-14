@@ -54,6 +54,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -69,6 +70,7 @@ import type {
     PolicyCategory,
     PolicyMember,
     PolicyTagList,
+    PolicyTags,
     RecentlyUsedCategories,
     RecentlyUsedTags,
     ReimbursementAccount,
@@ -2826,6 +2828,92 @@ function createPolicyTag(policyID: string, tagName: string) {
     API.write(WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, onyxData);
 }
 
+function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {name: string; enabled: boolean}>) {
+    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[0] ?? {};
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [policyTag.name]: {
+                        tags: {
+                            ...Object.keys(tagsToUpdate).reduce<PolicyTags>((acc, key) => {
+                                acc[key] = {
+                                    ...policyTag.tags[key],
+                                    ...tagsToUpdate[key],
+                                    errors: null,
+                                    pendingFields: {
+                                        enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                    },
+                                };
+
+                                return acc;
+                            }, {}),
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [policyTag.name]: {
+                        tags: {
+                            ...Object.keys(tagsToUpdate).reduce<PolicyTags>((acc, key) => {
+                                acc[key] = {
+                                    ...policyTag.tags[key],
+                                    ...tagsToUpdate[key],
+                                    errors: null,
+                                    pendingFields: {
+                                        enabled: null,
+                                    },
+                                };
+
+                                return acc;
+                            }, {}),
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [policyTag.name]: {
+                        tags: {
+                            ...Object.keys(tagsToUpdate).reduce<PolicyTags>((acc, key) => {
+                                acc[key] = {
+                                    ...policyTag.tags[key],
+                                    ...tagsToUpdate[key],
+                                    errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                                    pendingFields: {
+                                        enabled: null,
+                                    },
+                                };
+
+                                return acc;
+                            }, {}),
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        tags: JSON.stringify(Object.keys(tagsToUpdate).map((key) => tagsToUpdate[key])),
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_TAGS_ENABLED, parameters, onyxData);
+}
+
 function setWorkspaceRequiresCategory(policyID: string, requiresCategory: boolean) {
     const onyxData: OnyxData = {
         optimisticData: [
@@ -3591,4 +3679,5 @@ export {
     createPolicyTag,
     clearWorkspaceReimbursementErrors,
     deleteWorkspaceCategories,
+    setWorkspaceTagEnabled,
 };
