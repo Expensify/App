@@ -49,6 +49,11 @@ const getReqData = (req: IncomingMessage): Promise<string> => {
 
 // Expects a POST request with JSON data. Returns parsed JSON data.
 const getPostJSONRequestData = <TRequestData extends RequestData>(req: IncomingMessage, res: ServerResponse<IncomingMessage>): Promise<TRequestData | undefined> | undefined => {
+    // CORS check
+    if (req.method === 'OPTIONS') {
+        res.end('ok');
+        return;
+    }
     if (req.method !== 'POST') {
         res.statusCode = 400;
         res.end('Unsupported method');
@@ -105,6 +110,11 @@ const createServerInstance = (): ServerInstance => {
 
     const server = createServer((req, res): ServerResponse<IncomingMessage> | void => {
         res.statusCode = 200;
+        // Set CORS headers
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST, PUT, PATCH, DELETE');
+        res.setHeader('Access-Control-Allow-Headers', '*');
+
         switch (req.url) {
             case Routes.testConfig: {
                 testStartedListeners.forEach((listener) => listener(activeTestConfig));
