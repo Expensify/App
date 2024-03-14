@@ -5,7 +5,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -39,7 +38,6 @@ function OnboardingWelcomeVideo() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isModalVisible, setIsModalVisible] = useState(true);
-    const {isSmallScreenWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
     const [welcomeVideoStatus, setWelcomeVideoStatus] = useState<VideoStatus>('video');
     const [isWelcomeVideoStatusLocked, setIsWelcomeVideoStatusLocked] = useState(false);
@@ -106,13 +104,14 @@ function OnboardingWelcomeVideo() {
                         isLooping
                     />
                 ) : (
-                    <Lottie
-                        source={LottieAnimations.Hands}
-                        style={styles.w100}
-                        webStyle={isSmallScreenWidth ? styles.h100 : styles.w100}
-                        autoPlay
-                        loop
-                    />
+                    <View style={[styles.flex1, styles.alignItemsCenter, {aspectRatio}]}>
+                        <Lottie
+                            source={LottieAnimations.Hands}
+                            style={styles.h100}
+                            autoPlay
+                            loop
+                        />
+                    </View>
                 )}
             </View>
         );
