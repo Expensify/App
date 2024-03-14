@@ -167,6 +167,15 @@ function SuggestionMention(
                 if (searchValue && !displayText.toLowerCase().includes(searchValue.toLowerCase())) {
                     return false;
                 }
+
+                // Given a match, we need to check if the user is in the same private domain as the current user
+                // If the emails are in the same domain, we need to check if the mention code generated (with a space)
+                // is equal to the search value. If it is, we should not show the suggestion
+                const mentionCode = formatLoginPrivateDomain(detail?.login, detail?.login);
+                if (`${mentionCode} ` === searchValue) {
+                    return false;
+                }
+
                 return true;
             });
 
@@ -247,7 +256,6 @@ function SuggestionMention(
 
             if (!isCursorBeforeTheMention && isMentionCode(suggestionWord)) {
                 const suggestions = getMentionOptions(personalDetails, prefix);
-
                 nextState.suggestedMentions = suggestions;
                 nextState.shouldShowSuggestionMenu = !!suggestions.length;
             }
@@ -268,7 +276,6 @@ function SuggestionMention(
             // See: https://github.com/facebook/react-native/pull/36930#issuecomment-1593028467
             return;
         }
-
         calculateMentionSuggestion(selection.end);
     }, [selection, value, previousValue, calculateMentionSuggestion]);
 
