@@ -368,7 +368,8 @@ function ReportScreen({
             return;
         }
         Report.openReport(report.reportID);
-        // I'm disabling the warning because we don't want run this useEffect when report is changed
+
+        // We don't want to run this useEffect every time `report` is changed
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [prevIsFocused, report.notificationPreference, isFocused]);
 
