@@ -3295,8 +3295,9 @@ const CONST = {
         HIDE_TIME_TEXT_WIDTH: 250,
         MIN_WIDTH: 170,
         MIN_HEIGHT: 120,
-        PROGRESS_STATUS: {
+        CONTROLS_STATUS: {
             SHOW: 'show',
+            HIDE: 'hide',
             VOLUME_ONLY: 'volumeOnly'
         },
         CONTROLS_POSITION: {
