@@ -171,6 +171,7 @@ function SuggestionMention(
                 // Given a match, we need to check if the user is in the same private domain as the current user
                 // If the emails are in the same domain, we need to check if the mention code generated (with a space)
                 // is equal to the search value. If it is, we should not show the suggestion
+                // See https://github.com/Expensify/App/issues/38358 for more context
                 const mentionCode = formatLoginPrivateDomain(detail?.login, detail?.login);
                 if (`${mentionCode} ` === searchValue) {
                     return false;
