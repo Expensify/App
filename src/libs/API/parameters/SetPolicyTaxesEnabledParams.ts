@@ -4,7 +4,7 @@ type SetPolicyTaxesEnabledParams = {
      * Stringified JSON object with type of following structure:
      * Array<{taxCode: string, enabled: bool}>
      */
-    taxFields: string;
+    taxFieldsArray: string;
 };
 
 export default SetPolicyTaxesEnabledParams;

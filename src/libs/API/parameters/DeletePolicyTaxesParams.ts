@@ -5,7 +5,7 @@ type DeletePolicyTaxesParams = {
      * Array<string>
      * Each element is a tax name
      */
-    taxCodes: string;
+    taxNames: string;
 };
 
 export default DeletePolicyTaxesParams;

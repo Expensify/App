@@ -170,7 +170,7 @@ function setPolicyTaxesEnabled(policyID: string, taxesIDsToUpdate: string[], isE
 
     const parameters = {
         policyID,
-        taxFields: JSON.stringify(taxesIDsToUpdate.map((taxID) => ({taxCode: originalTaxes[taxID].name, enabled: isEnabled}))),
+        taxFieldsArray: JSON.stringify(taxesIDsToUpdate.map((taxID) => ({taxCode: originalTaxes[taxID].name, enabled: isEnabled}))),
     } satisfies SetPolicyTaxesEnabledParams;
 
     API.write(WRITE_COMMANDS.SET_POLICY_TAXES_ENABLED, parameters, onyxData);
@@ -243,7 +243,7 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
 
     const parameters = {
         policyID,
-        taxCodes: JSON.stringify(taxesToDelete.map((taxID) => policyTaxRates[taxID].name)),
+        taxNames: JSON.stringify(taxesToDelete.map((taxID) => policyTaxRates[taxID].name)),
     } as DeletePolicyTaxesParams;
 
     API.write(WRITE_COMMANDS.DELETE_POLICY_TAXES, parameters, onyxData);
@@ -256,8 +256,6 @@ function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number)
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const originalTaxRate = {...policy?.taxRates?.taxes[taxID]};
     const stringTaxValue = `${taxValue}%`;
-
-    console.log({policy, originalTaxRate, stringTaxValue, taxValue, taxID});
 
     const onyxData: OnyxData = {
         optimisticData: [
