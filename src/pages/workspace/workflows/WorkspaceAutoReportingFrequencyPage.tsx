@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -80,7 +81,12 @@ function WorkspaceAutoReportingFrequencyPage({policy}: WorkspaceAutoReportingFre
     };
 
     const monthlyFrequencyDetails = () => (
-        <OfflineWithFeedback pendingAction={policy?.pendingFields?.autoReportingOffset}>
+        <OfflineWithFeedback
+            pendingAction={policy?.pendingFields?.autoReportingOffset}
+            errors={ErrorUtils.getLatestErrorField(policy ?? {}, 'autoReportingOffset')}
+            onClose={() => Policy.clearWorkspaceAutoReportingOffsetError(policy?.id ?? '')}
+            errorRowStyles={[styles.ml7]}
+        >
             <MenuItem
                 title={translate('workflowsPage.submissionFrequencyDateOfMonth')}
                 titleStyle={styles.textLabelSupportingNormal}
@@ -119,12 +125,17 @@ function WorkspaceAutoReportingFrequencyPage({policy}: WorkspaceAutoReportingFre
                     title={translate('workflowsPage.submissionFrequency')}
                     onBackButtonPress={Navigation.goBack}
                 />
-
-                <FlatList
-                    data={autoReportingFrequencyItems}
-                    renderItem={renderItem}
-                    keyExtractor={(item: WorkspaceAutoReportingFrequencyPageItem) => item.text}
-                />
+                <OfflineWithFeedback
+                    pendingAction={policy?.pendingFields?.autoReportingFrequency}
+                    errors={ErrorUtils.getLatestErrorField(policy ?? {}, 'autoReportingFrequency')}
+                    onClose={() => Policy.clearWorkspaceAutoReportingFrequencyError(policy?.id ?? '')}
+                >
+                    <FlatList
+                        data={autoReportingFrequencyItems}
+                        renderItem={renderItem}
+                        keyExtractor={(item: WorkspaceAutoReportingFrequencyPageItem) => item.text}
+                    />
+                </OfflineWithFeedback>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
