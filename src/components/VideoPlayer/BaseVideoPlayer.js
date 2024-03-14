@@ -31,8 +31,7 @@ function BaseVideoPlayer({
     videoDuration,
     shouldUseSharedVideoElement,
     shouldUseSmallVideoControls,
-    shouldShowVideoControls,
-    progressStatus,
+    controlsStatus,
     onPlaybackStatusUpdate,
     onFullscreenUpdate,
     shouldPlay,
@@ -272,7 +271,7 @@ function BaseVideoPlayer({
 
                             {(isLoading || isBuffering) && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
 
-                            {shouldShowVideoControls && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen) && (
+                            {controlsStatus !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen) && (
                                 <VideoPlayerControls
                                     duration={duration}
                                     position={position}
@@ -282,7 +281,7 @@ function BaseVideoPlayer({
                                     small={shouldUseSmallVideoControls}
                                     style={videoControlsStyle}
                                     togglePlayCurrentVideo={togglePlayCurrentVideo}
-                                    progressStatus={progressStatus}
+                                    controlsStatus={controlsStatus}
                                     showPopoverMenu={showPopoverMenu}
                                 />
                             )}
