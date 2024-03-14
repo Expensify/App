@@ -439,7 +439,12 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
 
     return (
         <ScreenWrapper
+<<<<<<< HEAD
             style={[styles.w100, styles.pt4]}
+=======
+            style={[styles.w100, styles.pb0]}
+            includePaddingTop={false}
+>>>>>>> 35e9e15 (Merge pull request #38343 from ahmedGaber93/fix-38328)
             includeSafeAreaPaddingBottom={false}
             testID={InitialSettingsPage.displayName}
         >
