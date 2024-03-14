@@ -56,6 +56,7 @@ import * as store from './actions/ReimbursementAccount/store';
 import * as CollectionUtils from './CollectionUtils';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
+import originalGetReportPolicyID from './getReportPolicyID';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
@@ -4444,7 +4445,7 @@ function getReportIDFromLink(url: string | null): string {
  * Get the report policyID given a reportID
  */
 function getReportPolicyID(reportID?: string): string | undefined {
-    return getReport(reportID)?.policyID;
+    return originalGetReportPolicyID(reportID);
 }
 
 /**

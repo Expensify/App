@@ -7,9 +7,9 @@ import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as PolicyUtils from './PolicyUtils';
-import * as ReportUtils from './ReportUtils';
 import type {ExpenseOriginalMessage} from './ReportUtils';
 import * as TransactionUtils from './TransactionUtils';
+import getReportPolicyID from './getReportPolicyID';
 
 let allPolicyTags: OnyxCollection<PolicyTagList> = {};
 Onyx.connect({
@@ -102,7 +102,7 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         return '';
     }
     const reportActionOriginalMessage = reportAction?.originalMessage as ExpenseOriginalMessage | undefined;
-    const policyID = ReportUtils.getReportPolicyID(reportID) ?? '';
+    const policyID = getReportPolicyID(reportID) ?? '';
 
     const removalFragments: string[] = [];
     const setFragments: string[] = [];
