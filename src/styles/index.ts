@@ -1441,8 +1441,8 @@ const styles = (theme: ThemeColors) =>
 
         sidebarAvatar: {
             borderRadius: 28,
-            height: variables.componentSizeSmall,
-            width: variables.componentSizeSmall,
+            height: 28,
+            width: 28,
         },
 
         selectedAvatarBorder: {
