@@ -9,7 +9,7 @@ function desktopLoginRedirect(autoAuthState: AutoAuthState, isSignedIn: boolean)
     const shouldPopToTop = (autoAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED || autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN) && !isSignedIn;
 
     if (shouldPopToTop) {
-        Navigation.isNavigationReady().then(() => Navigation.popToTop());
+        Navigation.isNavigationReady().then(() => Navigation.resetToHome());
     }
 }
 
