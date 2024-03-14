@@ -565,7 +565,6 @@ function buildOnyxDataForMoneyRequest(
     );
 
     if (!isOneOnOneSplit) {
-        console.log('bad');
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
@@ -3329,6 +3328,15 @@ function getSendMoneyParams(
                   lastVisibleActionCreated: reportPreviewAction.created,
               },
           };
+    const optimisticQuickActionData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.SET,
+        key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+        value: {
+            action: CONST.QUICK_ACTIONS.SEND_MONEY,
+            reportID: chatReport.reportID,
+            isFirstQuickAction: isEmptyObject(quickAction),
+        },
+    };
     const optimisticIOUReportData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticIOUReport.reportID}`,
@@ -3495,6 +3503,7 @@ function getSendMoneyParams(
 
     const optimisticData: OnyxUpdate[] = [
         optimisticChatReportData,
+        optimisticQuickActionData,
         optimisticIOUReportData,
         optimisticChatReportActionsData,
         optimisticIOUReportActionsData,
