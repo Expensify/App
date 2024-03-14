@@ -9,7 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {renamePolicyTax, updatePolicyTaxValue} from '@libs/actions/TaxRate';
+import {updatePolicyTaxValue} from '@libs/actions/TaxRate';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -20,7 +20,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTaxValueForm';
-import type * as OnyxTypes from '@src/types/onyx';
 
 type ValuePageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES_VALUE>;
 
@@ -34,6 +33,8 @@ function ValuePage({
     const {translate} = useLocalize();
     const currentTaxRate = PolicyUtils.getTaxByID(policy, taxID);
     const [value, setValue] = useState(currentTaxRate?.value?.replace('%', ''));
+
+    const goBack = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_TAXES_EDIT.getRoute(policyID ?? '', taxID)), [policyID, taxID]);
 
     // TODO: Extract it to a separate file, and use it also when creating a new tax
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM>) => {
@@ -49,9 +50,9 @@ function ValuePage({
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM>) => {
             updatePolicyTaxValue(policyID, taxID, Number(values.value));
-            Navigation.goBack(ROUTES.WORKSPACE_TAXES_EDIT.getRoute(policyID ?? '', taxID));
+            goBack();
         },
-        [policyID, taxID],
+        [goBack, policyID, taxID],
     );
 
     return (
@@ -60,7 +61,10 @@ function ValuePage({
             shouldEnableMaxHeight
             testID={ValuePage.displayName}
         >
-            <HeaderWithBackButton title={translate('workspace.taxes.value')} />
+            <HeaderWithBackButton
+                title={translate('workspace.taxes.value')}
+                onBackButtonPress={goBack}
+            />
 
             <FormProvider
                 formID={ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM}

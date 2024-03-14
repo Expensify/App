@@ -1,12 +1,13 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {renamePolicyTax} from '@libs/actions/TaxRate';
@@ -20,7 +21,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTaxNameForm';
-import type * as OnyxTypes from '@src/types/onyx';
 
 type NamePageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES_NAME>;
 
@@ -35,12 +35,15 @@ function NamePage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currentTaxRate = PolicyUtils.getTaxByID(policy, taxID);
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const [name, setName] = useState(() => parser.htmlToMarkdown(currentTaxRate?.name ?? ''));
 
+    const goBack = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_TAXES_EDIT.getRoute(policyID ?? '', taxID)), [policyID, taxID]);
+
     const submit = () => {
         renamePolicyTax(policyID, taxID, name);
-        Navigation.goBack(ROUTES.WORKSPACE_TAXES_EDIT.getRoute(policyID ?? '', taxID));
+        goBack();
     };
 
     return (
@@ -49,7 +52,10 @@ function NamePage({
             shouldEnableMaxHeight
             testID={NamePage.displayName}
         >
-            <HeaderWithBackButton title={translate('common.name')} />
+            <HeaderWithBackButton
+                title={translate('common.name')}
+                onBackButtonPress={goBack}
+            />
 
             <FormProvider
                 formID={ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM}
@@ -67,12 +73,10 @@ function NamePage({
                         label={translate('workspace.editor.nameInputLabel')}
                         accessibilityLabel={translate('workspace.editor.nameInputLabel')}
                         value={name}
-                        maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
-                        spellCheck={false}
-                        autoFocus
+                        maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
                         onChangeText={setName}
-                        autoGrowHeight
-                        containerStyles={[styles.autoGrowHeightMultilineInput]}
+                        multiline={false}
+                        ref={inputCallbackRef}
                     />
                 </View>
             </FormProvider>
