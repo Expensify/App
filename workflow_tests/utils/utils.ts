@@ -95,13 +95,15 @@ function createMockStep(
     if (!isSuccessful) {
         mockWithCommand += '\nexit 1';
     }
-    if (id) {
+    if (!id) {
         return {
-            id,
+            name: mockStepName,
             mockWith: mockWithCommand,
         };
     }
+
     return {
+        id,
         name: mockStepName,
         mockWith: mockWithCommand,
     };
@@ -113,7 +115,6 @@ function createStepAssertion(
     expectedOutput = null,
     jobId: string | null = null,
     message: string | null = null,
-    // Replace arrays with records
     inputs: Array<{key: string; value: string}> | null = null,
     envs: Array<{key: string; value: string}> | null = null,
 ) {
