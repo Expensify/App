@@ -140,11 +140,11 @@ function hasReceipt(transaction: Transaction | undefined | null): boolean {
     return !!transaction?.receipt?.state || hasEReceipt(transaction);
 }
 
-function isMerchantMissing(transaction: Transaction) {
-    if (transaction.modifiedMerchant && transaction.modifiedMerchant !== '') {
+function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
+    if (transaction?.modifiedMerchant && transaction.modifiedMerchant !== '') {
         return transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     }
-    const isMerchantEmpty = transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.merchant === '';
+    const isMerchantEmpty = transaction?.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction?.merchant === '';
 
     return isMerchantEmpty;
 }
@@ -156,18 +156,18 @@ function isPartialMerchant(merchant: string): boolean {
     return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 }
 
-function isAmountMissing(transaction: Transaction) {
-    return transaction.amount === 0 && (!transaction.modifiedAmount || transaction.modifiedAmount === 0);
+function isAmountMissing(transaction: OnyxEntry<Transaction>) {
+    return transaction?.amount === 0 && (!transaction.modifiedAmount || transaction.modifiedAmount === 0);
 }
 
-function isCreatedMissing(transaction: Transaction) {
-    return transaction.created === '' && (!transaction.created || transaction.modifiedCreated === '');
+function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
+    return transaction?.created === '' && (!transaction.created || transaction.modifiedCreated === '');
 }
 
-function areRequiredFieldsEmpty(transaction: Transaction): boolean {
+function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>): boolean {
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
     const isFromExpenseReport = parentReport?.type === CONST.REPORT.TYPE.EXPENSE;
-    const isSplitPolicyExpenseChat = !!transaction.comment?.splits?.some((participant) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`]?.isOwnPolicyExpenseChat);
+    const isSplitPolicyExpenseChat = !!transaction?.comment?.splits?.some((participant) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`]?.isOwnPolicyExpenseChat);
     const isMerchantRequired = isFromExpenseReport || isSplitPolicyExpenseChat;
     return (isMerchantRequired && isMerchantMissing(transaction)) || isAmountMissing(transaction) || isCreatedMissing(transaction);
 }
@@ -489,7 +489,7 @@ function hasMissingSmartscanFields(transaction: OnyxEntry<Transaction>): boolean
 /**
  * Check if the transaction has a defined route
  */
-function hasRoute(transaction: Transaction): boolean {
+function hasRoute(transaction: OnyxEntry<Transaction>): boolean {
     return !!transaction?.routes?.route0?.geometry?.coordinates;
 }
 
