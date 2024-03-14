@@ -71,6 +71,13 @@ Onyx.connect({
     },
 });
 
+let allReports: OnyxCollection<OnyxTypes.Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReports = value),
+});
+
 /**
  * Clears out the task info from the store
  */
@@ -758,7 +765,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
     const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(report.reportID ?? '', CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED, message);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
     const parentReportAction = getParentReportAction(report);
-    const parentReport = ReportUtils.getParentReport(report);
+    const parentReport = report?.parentReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] ?? {} : {};
 
     // If the task report is the last visible action in the parent report, we should navigate back to the parent report
     const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(report.reportID ?? '');
@@ -927,7 +934,7 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
         return false;
     }
 
-    const parentReport = ReportUtils.getParentReport(taskReport);
+    const parentReport = taskReport?.parentReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReport.parentReportID}`] ?? {} : {};
     if (ReportUtils.isArchivedRoom(parentReport)) {
         return false;
     }
