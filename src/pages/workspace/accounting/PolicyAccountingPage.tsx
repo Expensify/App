@@ -26,7 +26,7 @@ function PolicyAccountingPage() {
         const baseMenuItems = [
             {
                 translationKey: 'workspace.accounting.qbo',
-                icon: Expensicons.Shield,
+                icon: Expensicons.QBORound,
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute())),
             },
         ];
