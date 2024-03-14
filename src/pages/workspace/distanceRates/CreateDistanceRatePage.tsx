@@ -1,5 +1,6 @@
+import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useCallback, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
@@ -7,6 +8,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -39,6 +41,20 @@ function CreateDistanceRatePage({policy, route}: CreateDistanceRatePageProps) {
     const customUnits = policy?.customUnits ?? {};
     const customUnitID = customUnits[Object.keys(customUnits)[0]]?.customUnitID ?? '';
     const customUnitRateID = generateCustomUnitID();
+    const textInputRef = useRef<AnimatedTextInputRef | null>(null);
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    useFocusEffect(
+        useCallback(() => {
+            focusTimeoutRef.current = setTimeout(() => textInputRef.current?.focus(), CONST.ANIMATED_TRANSITION);
+            return () => {
+                if (!focusTimeoutRef.current) {
+                    return;
+                }
+                clearTimeout(focusTimeoutRef.current);
+            };
+        }, []),
+    );
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM> = {};
@@ -95,6 +111,7 @@ function CreateDistanceRatePage({policy, route}: CreateDistanceRatePageProps) {
                             extraDecimals={1}
                             isCurrencyPressable={false}
                             currency={currency}
+                            ref={(e) => (textInputRef.current = e)}
                         />
                     </FormProvider>
                 </ScreenWrapper>
