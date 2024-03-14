@@ -187,6 +187,10 @@ function AddPlaidBankAccount({
         onInputChange(plaidAccountID);
     };
 
+    const onError = useCallback((error: ErrorEvent | null) => {
+        Log.hmmm('[PlaidLink] Error: ', error?.message);
+    }, []);
+
     if (isPlaidDisabled) {
         return (
             <View>
@@ -194,10 +198,6 @@ function AddPlaidBankAccount({
             </View>
         );
     }
-
-    const onError = useCallback((error: ErrorEvent | null) => {
-        Log.hmmm('[PlaidLink] Error: ', error?.message);
-    }, []);
 
     const renderPlaidLink = () => {
         if (!!token && !bankName) {
