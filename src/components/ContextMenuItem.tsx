@@ -101,7 +101,7 @@ function ContextMenuItem(
         >
             {({hovered, pressed}) => (
                 <Icon
-                    small
+                    medium
                     src={itemIcon}
                     fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isThrottledButtonActive))}
                 />
