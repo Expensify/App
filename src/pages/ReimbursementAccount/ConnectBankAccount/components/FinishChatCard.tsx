@@ -42,7 +42,6 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount}: FinishCha
                     text={translate('connectBankAccountStep.letsChatCTA')}
                     onPress={handleNavigateToConciergeChat}
                     icon={Expensicons.ChatBubble}
-                    iconStyles={[styles.buttonCTAIcon]}
                     shouldShowRightIcon
                     large
                     success
