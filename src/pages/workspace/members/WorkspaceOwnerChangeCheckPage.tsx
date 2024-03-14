@@ -17,13 +17,6 @@ import type SCREENS from '@src/SCREENS';
 
 type WorkspaceMemberDetailsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.OWNER_CHANGE_CHECK>;
 
-const CONFIRMABLE_ERRORS: string[] = [
-    CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED,
-    CONST.POLICY.OWNERSHIP_ERRORS.OWNER_OWES_AMOUNT,
-    CONST.POLICY.OWNERSHIP_ERRORS.SUBSCRIPTION,
-    CONST.POLICY.OWNERSHIP_ERRORS.DUPLICATE_SUBSCRIPTION,
-];
-
 function WorkspaceOwnerChangeCheckPage({route}: WorkspaceMemberDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -31,14 +24,15 @@ function WorkspaceOwnerChangeCheckPage({route}: WorkspaceMemberDetailsPageProps)
     const policyID = route.params.policyID;
     const error = route.params.error;
 
-    const shouldAskForConfirmation = CONFIRMABLE_ERRORS.includes(error);
+    const confirm = useCallback(() => {
+        if (error === CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS) {
+            // cannot transfer ownership if there are failed settlements
+            Policy.clearWorkspaceOwnerChangeFlow(policyID);
+            Navigation.goBack();
+        }
 
-    const confirm = useCallback(() => {}, []);
-
-    const cancel = useCallback(() => {
-        Policy.clearWorkspaceOwnerChangeFlow(policyID);
-        Navigation.goBack();
-    }, [policyID]);
+        // TODO: handle confirmation
+    }, [error, policyID]);
 
     useEffect(
         () => () => {
@@ -87,13 +81,13 @@ function WorkspaceOwnerChangeCheckPage({route}: WorkspaceMemberDetailsPageProps)
             case CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED:
                 return translate('workspace.changeOwner.amountOwedText');
             case CONST.POLICY.OWNERSHIP_ERRORS.OWNER_OWES_AMOUNT:
-                return translate('workspace.changeOwner.ownerOwesAmountText');
+                return translate('workspace.changeOwner.ownerOwesAmountText', {email: 'test@test.com', amount: '$10.50'});
             case CONST.POLICY.OWNERSHIP_ERRORS.SUBSCRIPTION:
-                return translate('workspace.changeOwner.subscriptionText');
+                return translate('workspace.changeOwner.subscriptionText', {usersCount: 3, finalCount: 5});
             case CONST.POLICY.OWNERSHIP_ERRORS.DUPLICATE_SUBSCRIPTION:
-                return translate('workspace.changeOwner.duplicateSubscriptionText');
+                return translate('workspace.changeOwner.duplicateSubscriptionText', {email: 'test@test.com', workspaceName: 'Test workspace'});
             case CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS:
-                return translate('workspace.changeOwner.hasFailedSettlementsText');
+                return translate('workspace.changeOwner.hasFailedSettlementsText', {email: 'test@test.com'});
             default:
                 return null;
         }
@@ -110,21 +104,12 @@ function WorkspaceOwnerChangeCheckPage({route}: WorkspaceMemberDetailsPageProps)
                     <View style={[styles.containerWithSpaceBetween, styles.pb5, styles.ph5]}>
                         <Text style={[styles.textHeadline, styles.mt3, styles.mb5]}>{confirmationTitle}</Text>
                         <Text style={styles.flex1}>{confirmationText}</Text>
-                        {shouldAskForConfirmation ? (
-                            <Button
-                                success
-                                large
-                                onPress={confirm}
-                                text={confirmationButtonText}
-                            />
-                        ) : (
-                            <Button
-                                success
-                                large
-                                onPress={cancel}
-                                text={translate('common.buttonConfirm')}
-                            />
-                        )}
+                        <Button
+                            success
+                            large
+                            onPress={confirm}
+                            text={confirmationButtonText}
+                        />
                     </View>
                 </ScreenWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
