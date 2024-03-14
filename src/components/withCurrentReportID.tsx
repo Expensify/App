@@ -4,7 +4,6 @@ import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {createContext, forwardRef, useCallback, useMemo, useState} from 'react';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import Navigation from '@libs/Navigation/Navigation';
-import SCREENS from '@src/SCREENS';
 
 type CurrentReportIDContextValue = {
     updateCurrentReportID: (state: NavigationState) => void;
@@ -44,11 +43,14 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
 
             /**
              * This is to make sure we don't set the undefined as reportID when
-             * switching between chat list and settings->workspaces tab.
-             * and doing so avoids an unnecessary re-render of `useReportIDs`.
+             * switching between chat list and settings tab. The settings tab
+             * includes multiple screens and we don't want to set the reportID
+             * to falsy value when switching between them.
+             *
+             * Doing so avoids an unnecessary re-render of `useReportIDs`.
              */
             const params = state?.routes?.[state.index]?.params;
-            if (params && 'screen' in params && params.screen === SCREENS.SETTINGS.WORKSPACES) {
+            if (params && 'screen' in params && typeof params.screen === 'string' && params.screen.indexOf('Settings_') !== -1) {
                 return;
             }
             setCurrentReportID(reportID);
