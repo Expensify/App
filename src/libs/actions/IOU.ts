@@ -465,6 +465,7 @@ function buildOnyxDataForMoneyRequest(
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     optimisticNextStep?: OnyxTypes.ReportNextStep | null,
+    isOneOnOneSplit = false,
 ): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
     const outstandingChildRequest = getOutstandingChildRequest(policy ?? {}, iouReport);
@@ -509,16 +510,6 @@ function buildOnyxDataForMoneyRequest(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: transaction,
         },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-            value:{
-                action: newQuickAction,
-                reportID: chatReport?.reportID,
-                isFirstQuickAction: isEmptyObject(quickAction);
-            },
-        },
-
     isNewChatReport
             ? {
                   onyxMethod: Onyx.METHOD.SET,
@@ -572,6 +563,19 @@ function buildOnyxDataForMoneyRequest(
             value: null,
         },
     );
+
+    if (!isOneOnOneSplit) {
+        console.log('bad');
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+            value:{
+                action: newQuickAction,
+                reportID: chatReport?.reportID,
+                isFirstQuickAction: isEmptyObject(quickAction),
+            },
+        });
+    }
 
     if (optimisticPolicyRecentlyUsedCategories.length) {
         optimisticData.push({
@@ -1726,6 +1730,7 @@ function createSplitsAndOnyxData(
         };
     }
 
+    console.log('here');
     const optimisticData: OnyxUpdate[] = [
         {
             // Use set for new reports because it doesn't exist yet, is faster,
@@ -1733,6 +1738,15 @@ function createSplitsAndOnyxData(
             onyxMethod: existingSplitChatReport ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${splitChatReport.reportID}`,
             value: splitChatReport,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+            value:{
+                action: TransactionUtils.isDistanceRequest(splitTransaction) ? CONST.QUICK_ACTIONS.SPLIT_DISTANCE : CONST.QUICK_ACTIONS.SPLIT_MANUAL,
+                reportID: splitChatReport.reportID,
+                isFirstQuickAction: isEmptyObject(quickAction),
+            },
         },
         existingSplitChatReport
             ? {
@@ -1965,6 +1979,11 @@ function createSplitsAndOnyxData(
             optimisticTransactionThread,
             optimisticCreatedActionForTransactionThread,
             shouldCreateNewOneOnOneIOUReport,
+            null,
+            null,
+            null,
+            null,
+            true,
         );
 
         const individualSplit = {
@@ -2188,6 +2207,15 @@ function startSplitBill(
             onyxMethod: existingSplitChatReport ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${splitChatReport.reportID}`,
             value: splitChatReport,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+            value:{
+                action: CONST.QUICK_ACTIONS.SPLIT_SCAN,
+                reportID: splitChatReport.reportID,
+                isFirstQuickAction: isEmptyObject(quickAction),
+            },
         },
         existingSplitChatReport
             ? {
@@ -2564,6 +2592,11 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             optimisticTransactionThread,
             optimisticCreatedActionForTransactionThread,
             shouldCreateNewOneOnOneIOUReport,
+            null,
+            null,
+            null,
+            null,
+            true,
         );
 
         splits.push({
