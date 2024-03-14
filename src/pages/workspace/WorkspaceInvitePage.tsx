@@ -308,7 +308,7 @@ function WorkspaceInvitePage({
                     />
                     <SelectionList
                         canSelectMultiple
-                        sections={(!areOptionsInitialized && didScreenTransitionEnd) || areOptionsInitialized ? sections : []}
+                        sections={sections}
                         ListItem={UserListItem}
                         textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                         textInputValue={searchTerm}
@@ -322,6 +322,7 @@ function WorkspaceInvitePage({
                         showScrollIndicator
                         showLoadingPlaceholder={areOptionsInitialized && searchTerm.trim() === '' ? sections.length === 0 : !didScreenTransitionEnd}
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                        checkmarkPosition={CONST.DIRECTION.RIGHT}
                     />
                     <View style={[styles.flexShrink0]}>
                         <FormAlertWithSubmitButton

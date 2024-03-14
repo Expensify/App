@@ -1,52 +1,43 @@
-import PropTypes from 'prop-types';
+import type {AVPlaybackStatusToSet, Video} from 'expo-av';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import type {View} from 'react-native';
 import useCurrentReportID from '@hooks/useCurrentReportID';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type {PlaybackContext, StatusCallback} from './types';
 
-const PlaybackContext = React.createContext(null);
+const Context = React.createContext<PlaybackContext | null>(null);
 
-function PlaybackContextProvider({children}) {
-    const [currentlyPlayingURL, setCurrentlyPlayingURL] = useState(null);
-    const [sharedElement, setSharedElement] = useState(null);
-    const [originalParent, setOriginalParent] = useState(null);
-    const currentVideoPlayerRef = useRef(null);
-    const {currentReportID} = useCurrentReportID();
+function PlaybackContextProvider({children}: ChildrenProps) {
+    const [currentlyPlayingURL, setCurrentlyPlayingURL] = useState<string | null>(null);
+    const [sharedElement, setSharedElement] = useState<View | null>(null);
+    const [originalParent, setOriginalParent] = useState<View | null>(null);
+    const currentVideoPlayerRef = useRef<Video | null>(null);
+    const {currentReportID} = useCurrentReportID() ?? {};
 
     const pauseVideo = useCallback(() => {
-        if (!(currentVideoPlayerRef && currentVideoPlayerRef.current && currentVideoPlayerRef.current.setStatusAsync)) {
-            return;
-        }
-        currentVideoPlayerRef.current.setStatusAsync({shouldPlay: false});
+        currentVideoPlayerRef.current?.setStatusAsync({shouldPlay: false});
     }, [currentVideoPlayerRef]);
 
     const stopVideo = useCallback(() => {
-        if (!(currentVideoPlayerRef && currentVideoPlayerRef.current && currentVideoPlayerRef.current.stopAsync)) {
-            return;
-        }
-        currentVideoPlayerRef.current.stopAsync({shouldPlay: false});
+        currentVideoPlayerRef.current?.stopAsync();
     }, [currentVideoPlayerRef]);
 
     const playVideo = useCallback(() => {
-        if (!(currentVideoPlayerRef && currentVideoPlayerRef.current && currentVideoPlayerRef.current.setStatusAsync)) {
-            return;
-        }
-        currentVideoPlayerRef.current.getStatusAsync().then((status) => {
-            const newStatus = {shouldPlay: true};
-            if (status.durationMillis === status.positionMillis) {
+        currentVideoPlayerRef.current?.getStatusAsync().then((status) => {
+            const newStatus: AVPlaybackStatusToSet = {shouldPlay: true};
+            if ('durationMillis' in status && status.durationMillis === status.positionMillis) {
                 newStatus.positionMillis = 0;
             }
-            currentVideoPlayerRef.current.setStatusAsync(newStatus);
+            currentVideoPlayerRef.current?.setStatusAsync(newStatus);
         });
     }, [currentVideoPlayerRef]);
 
     const unloadVideo = useCallback(() => {
-        if (!(currentVideoPlayerRef && currentVideoPlayerRef.current && currentVideoPlayerRef.current.unloadAsync)) {
-            return;
-        }
-        currentVideoPlayerRef.current.unloadAsync();
+        currentVideoPlayerRef.current?.unloadAsync();
     }, [currentVideoPlayerRef]);
 
     const updateCurrentlyPlayingURL = useCallback(
-        (url) => {
+        (url: string) => {
             if (currentlyPlayingURL && url !== currentlyPlayingURL) {
                 pauseVideo();
             }
@@ -56,7 +47,7 @@ function PlaybackContextProvider({children}) {
     );
 
     const shareVideoPlayerElements = useCallback(
-        (ref, parent, child, isUploading) => {
+        (ref: Video, parent: View, child: View, isUploading: boolean) => {
             currentVideoPlayerRef.current = ref;
             setOriginalParent(parent);
             setSharedElement(child);
@@ -69,12 +60,9 @@ function PlaybackContextProvider({children}) {
     );
 
     const checkVideoPlaying = useCallback(
-        (statusCallback) => {
-            if (!(currentVideoPlayerRef && currentVideoPlayerRef.current && currentVideoPlayerRef.current.getStatusAsync)) {
-                return;
-            }
-            currentVideoPlayerRef.current.getStatusAsync().then((status) => {
-                statusCallback(status.isPlaying);
+        (statusCallback: StatusCallback) => {
+            currentVideoPlayerRef.current?.getStatusAsync().then((status) => {
+                statusCallback('isPlaying' in status && status.isPlaying);
             });
         },
         [currentVideoPlayerRef],
@@ -110,21 +98,17 @@ function PlaybackContextProvider({children}) {
         }),
         [updateCurrentlyPlayingURL, currentlyPlayingURL, originalParent, sharedElement, shareVideoPlayerElements, playVideo, pauseVideo, checkVideoPlaying],
     );
-    return <PlaybackContext.Provider value={contextValue}>{children}</PlaybackContext.Provider>;
+    return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }
 
 function usePlaybackContext() {
-    const context = useContext(PlaybackContext);
-    if (context === undefined) {
+    const playbackContext = useContext(Context);
+    if (!playbackContext) {
         throw new Error('usePlaybackContext must be used within a PlaybackContextProvider');
     }
-    return context;
+    return playbackContext;
 }
 
 PlaybackContextProvider.displayName = 'PlaybackContextProvider';
-PlaybackContextProvider.propTypes = {
-    /** Actual content wrapped by this component */
-    children: PropTypes.node.isRequired,
-};
 
 export {PlaybackContextProvider, usePlaybackContext};
