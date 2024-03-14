@@ -573,7 +573,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBERS]: {
                             path: ROUTES.WORKSPACE_MEMBERS.route,
                         },
-                        [SCREENS.WORKSPACE.ACCOUNTING]: {
+                        [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: {
                             path: ROUTES.WORKSPACE_ACCOUNTING.route,
                         },
                         [SCREENS.WORKSPACE.CATEGORIES]: {

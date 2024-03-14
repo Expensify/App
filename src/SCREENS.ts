@@ -213,7 +213,9 @@ const SCREENS = {
         INVOICES: 'Workspace_Invoices',
         TRAVEL: 'Workspace_Travel',
         MEMBERS: 'Workspace_Members',
-        ACCOUNTING: 'Workspace_Accounting',
+        ACCOUNTING: {
+            ROOT: 'Workspace_Accounting',
+        },
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
         CATEGORIES: 'Workspace_Categories',
