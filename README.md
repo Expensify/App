@@ -187,6 +187,79 @@ Our React Native Android app now uses the `Hermes` JS engine which requires your
 
 To make it easier to test things in web, we expose the Onyx object to the window, so you can easily do `Onyx.set('bla', 1)`.
 
+----
+
+# Release Profiler
+Often, performance issue debugging occurs in debug builds, which can introduce errors from elements such as JS Garbage Collection, Hermes debug markers, or LLDB pauses.
+
+`react-native-release-profiler` facilitates profiling within release builds for accurate local problem-solving and broad performance analysis in production to spot regressions or collect extensive device data. Therefore, we will utilize the production build version
+
+### Getting Started with Source Maps
+To accurately profile your application, generating source maps for Android and iOS is crucial. Here's how to enable them:
+1. Enable source maps on Android 
+Ensure the following is set in your app's `android/app/build.gradle` file.
+
+    ```jsx
+    project.ext.react = [
+        enableHermes: true,
+        hermesFlagsRelease: ["-O", "-output-source-map"], // <-- here, plus whichever flag was required to set this away from default
+    ]
+    ```
+    
+2. Enable source maps on IOS 
+Within Xcode head to the build phase - `Bundle React Native code and images`.
+    
+    ```jsx
+    export SOURCEMAP_FILE="$(pwd)/../main.jsbundle.map" // <-- here;
+    
+    export NODE_BINARY=node
+    ../node_modules/react-native/scripts/react-native-xcode.sh
+    ```
+3. Install the necessary packages and CocoaPods dependencies:
+    ```jsx
+    npm i && npm run pod-install
+    ```
+7. Depending on the platform you are targeting, run your Android/iOS app in production mode.
+8. Upon completion, the generated source map can be found at:
+  Android: `android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map` 
+  IOS: `main.jsbundle.map` 
+
+### Recording a Trace:
+1. Ensure you have generated the source map as outlined above.
+2. Launch the app in production mode.
+2. Navigate to the feature you wish to profile.
+3. Initiate the profiling session by tapping with four fingers to open the menu and selecting **`Use Profiling`**.
+4. Close the menu and interact with the app.
+5. After completing your interactions, tap with four fingers again and select to stop profiling.
+6. You will be presented with a **`Share`** option to export the trace, which includes a trace file (`Profile<app version>.cpuprofile`) and build info (`AppInfo<app version>.json`).
+
+Build info:
+```jsx
+{
+    appVersion: "1.0.0",
+    environment: "production",
+    platform: "IOS",
+    totalMemory: "3GB",
+    usedMemory: "300MB"
+}
+```
+
+### How to symbolicate trace record:
+1. You have two files: `AppInfo<app version>.json` and `Profile<app version>.cpuprofile`
+2. Place the `Profile<app version>.cpuprofile` file at the root of your project.
+3. If you have already generated a source map from the steps above for this branch, you can skip to the next step. Otherwise, obtain the app version from `AppInfo<app version>.json` switch to that branch and generate the source map as described.
+
+`IMPORTANT:` You should generate the source map from the same branch as the trace was recorded.
+
+4. Use the following commands to symbolicate the trace for Android and iOS, respectively:
+Android: `npm run symbolicate-release:android`
+IOS: `npm run symbolicate-release:ios` 
+5. A new file named `Profile_trace_for_<app version>-converted.json` will appear in your project's root folder.
+6. Open this file in your tool of choice:
+    - SpeedScope ([https://www.speedscope.app](https://www.speedscope.app/))
+    - Perfetto UI (https://ui.perfetto.dev/)
+    - Google Chrome's Tracing UI (chrome://tracing)
+
 ---
 
 # App Structure and Conventions
