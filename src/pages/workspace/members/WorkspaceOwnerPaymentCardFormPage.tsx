@@ -1,10 +1,11 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -29,6 +30,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddDebitCardForm';
+import WorkspaceOwnerPaymentCardCurrencyModal from './WorkspaceOwnerPaymentCardCurrencyModal';
 
 type WorkspaceOwnerPaymentCardFormPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.OWNER_PAYMENT_CARD_FORM>;
 
@@ -40,6 +42,9 @@ function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFor
     const {translate} = useLocalize();
 
     const cardNumberRef = useRef<AnimatedTextInputRef>(null);
+
+    const [isCurrencyModalVisible, setIsCurrencyModalVisible] = useState(false);
+    const [currency, setCurrency] = useState<keyof typeof CONST.CURRENCY>(CONST.CURRENCY.USD);
 
     const policyID = route.params.policyID;
 
@@ -98,6 +103,15 @@ function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFor
         },
         [policyID],
     );
+
+    const showCurrenciesModal = useCallback(() => {
+        setIsCurrencyModalVisible(true);
+    }, []);
+
+    const changeCurrency = useCallback((newCurrency: keyof typeof CONST.CURRENCY) => {
+        setCurrency(newCurrency);
+        setIsCurrencyModalVisible(false);
+    }, []);
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
@@ -176,8 +190,31 @@ function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFor
                                         maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                                     />
                                 </View>
-                                <View style={[styles.flex1]}>{/*  TODO: currency picker here  */}</View>
+                                <View style={[styles.flex1]}>
+                                    <Hoverable>
+                                        {(isHovered) => (
+                                            <TextInput
+                                                label={translate('common.currency')}
+                                                aria-label={translate('common.currency')}
+                                                role={CONST.ROLE.COMBOBOX}
+                                                icon={Expensicons.ArrowRight}
+                                                onPress={showCurrenciesModal}
+                                                value={currency}
+                                                inputStyle={isHovered && styles.cursorPointer}
+                                                hideFocusedState
+                                            />
+                                        )}
+                                    </Hoverable>
+                                </View>
                             </View>
+
+                            <WorkspaceOwnerPaymentCardCurrencyModal
+                                isVisible={isCurrencyModalVisible}
+                                currencies={Object.keys(CONST.CURRENCY) as Array<keyof typeof CONST.CURRENCY>}
+                                currentCurrency={currency}
+                                onCurrencyChange={changeCurrency}
+                            />
+
                             <Text style={[styles.textMicroSupporting, styles.mt5]}>
                                 {translate('workspace.changeOwner.addPaymentCardReadAndAcceptTextPart1')}{' '}
                                 <TextLink

@@ -313,6 +313,7 @@ export default {
         update: 'Update',
         member: 'Member',
         role: 'Role',
+        currency: 'Currency',
     },
     location: {
         useCurrent: 'Use current location',
@@ -2054,16 +2055,20 @@ export default {
             amountOwedText: 'This account has an outstanding balance from a previous month.\n\nDo you want to clear balance and take over billing of this workspace?',
             ownerOwesAmountTitle: 'Outstanding balance',
             ownerOwesAmountButtonText: 'Transfer balance',
-            ownerOwesAmountText: ({email, amount}) => `The account owning this workspace (${email}) has an outstanding balance from a previous month.\n\nDo you want to transfer this amount (${amount}) in order to take over billing for this workspace? Your payment card will be charged immediately.`,
+            ownerOwesAmountText: ({email, amount}) =>
+                `The account owning this workspace (${email}) has an outstanding balance from a previous month.\n\nDo you want to transfer this amount (${amount}) in order to take over billing for this workspace? Your payment card will be charged immediately.`,
             subscriptionTitle: 'Take over annual subscription',
             subscriptionButtonText: 'Transfer subscription',
-            subscriptionText: ({usersCount, finalCount}) =>  `Taking over this workspace will merge its associated annual subscription with your current subscription. This will increase your subscription size by ${usersCount} users making your new subscription size ${finalCount}. Would you like to continue?`,
+            subscriptionText: ({usersCount, finalCount}) =>
+                `Taking over this workspace will merge its associated annual subscription with your current subscription. This will increase your subscription size by ${usersCount} users making your new subscription size ${finalCount}. Would you like to continue?`,
             duplicateSubscriptionTitle: 'Duplicate subscription alert',
             duplicateSubscriptionButtonText: 'Continue',
-            duplicateSubscriptionText: ({email, workspaceName}) => `It looks like you may be trying to take over billing for ${email}'s workspaces, but to do that, you need to be an admin on all their workspaces first.\n\nClick "Continue" if you only want to take over billing for the workspace ${workspaceName}.\n\nIf you want to take over billing for their entire subscription, please have them add you as an admin to all their workspaces first before taking over billing.`,
+            duplicateSubscriptionText: ({email, workspaceName}) =>
+                `It looks like you may be trying to take over billing for ${email}'s workspaces, but to do that, you need to be an admin on all their workspaces first.\n\nClick "Continue" if you only want to take over billing for the workspace ${workspaceName}.\n\nIf you want to take over billing for their entire subscription, please have them add you as an admin to all their workspaces first before taking over billing.`,
             hasFailedSettlementsTitle: 'Cannot transfer ownership',
             hasFailedSettlementsButtonText: 'Got it',
-            hasFailedSettlementsText: ({email}) => `You cannot take over billing because ${email} has an overdue expensify Expensify Card settlement. Please advise them to reach out to concierge@expensify.com to resolve the issue. Then, you can take over billing for this workspace.`,
+            hasFailedSettlementsText: ({email}) =>
+                `You cannot take over billing because ${email} has an overdue expensify Expensify Card settlement. Please advise them to reach out to concierge@expensify.com to resolve the issue. Then, you can take over billing for this workspace.`,
         },
     },
     getAssistancePage: {
