@@ -1,4 +1,3 @@
-/* eslint-disable rulesdir/no-negated-variables */
 import React, {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
