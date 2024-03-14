@@ -121,7 +121,7 @@ function OnboardingPurpose() {
                     />
                 </View>
             </ScrollView>
-            <View style={[styles.pb8, paddingHorizontal]}>
+            <View style={[styles.pb5, paddingHorizontal]}>
                 <Button
                     success
                     onPress={completeEngagement}
