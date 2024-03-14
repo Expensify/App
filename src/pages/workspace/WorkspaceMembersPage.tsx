@@ -220,7 +220,7 @@ function WorkspaceMembersPage({
      * Add or remove all users passed from the selectedEmployees list
      */
     const toggleAllUsers = (memberList: MemberOption[]) => {
-        const enabledAccounts = memberList.filter((member) => !member.isDisabled && member.isSelectable);
+        const enabledAccounts = memberList.filter((member) => !member.isDisabled && !member.isDisabledCheckbox);
         const everyoneSelected = enabledAccounts.every((member) => selectedEmployees.includes(member.accountID));
 
         if (everyoneSelected) {
@@ -359,7 +359,7 @@ function WorkspaceMembersPage({
                 keyForList: accountIDKey,
                 accountID,
                 isSelected,
-                isSelectable: isPolicyAdmin && accountID !== policy?.ownerAccountID && accountID !== session?.accountID,
+                isDisabledCheckbox: !(isPolicyAdmin && accountID !== policy?.ownerAccountID && accountID !== session?.accountID),
                 isDisabled: isPolicyAdmin && (policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyMember.errors)),
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
@@ -529,7 +529,6 @@ function WorkspaceMembersPage({
                         onPress={inviteUser}
                         text={translate('workspace.invite.member')}
                         icon={Expensicons.Plus}
-                        iconStyles={StyleUtils.getTransformScaleStyle(0.6)}
                         innerStyles={[isSmallScreenWidth && styles.alignItemsCenter]}
                         style={[isSmallScreenWidth && styles.flexGrow1]}
                     />

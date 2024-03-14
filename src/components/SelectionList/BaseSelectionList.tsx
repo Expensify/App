@@ -61,6 +61,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldShowTooltips = true,
         shouldUseDynamicMaxToRenderPerBatch = false,
         rightHandSideComponent,
+        checkmarkPosition,
         isLoadingNewOptions = false,
         onLayout,
         customListHeader,
@@ -119,8 +120,8 @@ function BaseSelectionList<TItem extends ListItem>(
                 });
 
                 // If disabled, add to the disabled indexes array
-                // eslint-disable-next-line
-                if (!!section.isDisabled || item.isDisabled || (item.isSelectable !== undefined && !item.isSelectable)) {
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                if (!!section.isDisabled || item.isDisabled || item.isDisabledCheckbox) {
                     disabledOptionsIndexes.push(disabledIndex);
                 }
                 disabledIndex += 1;
@@ -330,6 +331,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 onDismissError={() => onDismissError?.(item)}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
+                checkmarkPosition={checkmarkPosition}
                 keyForList={item.keyForList ?? ''}
                 isMultilineSupported={isRowMultilineSupported}
             />
@@ -555,6 +557,7 @@ function BaseSelectionList<TItem extends ListItem>(
                             <FixedFooter style={[styles.mtAuto]}>
                                 <Button
                                     success
+                                    large
                                     style={[styles.w100]}
                                     text={confirmButtonText || translate('common.confirm')}
                                     onPress={onConfirm}
