@@ -1930,6 +1930,8 @@ export default {
             export: 'Export',
             advanced: 'Advanced',
             other: 'Other integrations',
+            syncNow: 'Sync now',
+            disconnect: 'Disconnect',
         },
         bills: {
             manageYourBills: 'Manage your bills',

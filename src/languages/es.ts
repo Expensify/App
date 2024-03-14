@@ -1920,6 +1920,8 @@ export default {
             export: 'Export',
             advanced: 'Advanced',
             other: 'Other integrations',
+            syncNow: 'Sync now',
+            disconnect: 'Disconnect',
         },
         card: {
             header: 'Desbloquea Tarjetas Expensify gratis',
