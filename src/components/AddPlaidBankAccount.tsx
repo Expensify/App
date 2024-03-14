@@ -195,7 +195,7 @@ function AddPlaidBankAccount({
         );
     }
 
-    const onError = useCallback((error) => {
+    const onError = useCallback((error: ErrorEvent | null) => {
         Log.hmmm('[PlaidLink] Error: ', error?.message);
     }, []);
 
