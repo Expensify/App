@@ -108,7 +108,7 @@ function WorkspaceEditTaxPage({
                 </View>
             </View>
             <ConfirmModal
-                title={translate('workspace.taxes.deleteTax')}
+                title={translate('workspace.taxes.actions.delete')}
                 isVisible={isDeleteModalVisible}
                 onConfirm={deleteTax}
                 onCancel={() => setIsDeleteModalVisible(false)}

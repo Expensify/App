@@ -2,6 +2,8 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import Button from '@components/Button';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {DropdownOption, WorkspaceTaxRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -129,23 +131,64 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
         </View>
     );
 
+    const dropdownMenuOptions = useMemo(() => {
+        const options: Array<DropdownOption<WorkspaceTaxRatesBulkActionType>> = [
+            {
+                icon: Expensicons.Trashcan,
+                text: translate('workspace.taxes.actions.delete'),
+                value: CONST.POLICY.TAX_RATES_BULK_ACTION_TYPES.DELETE,
+                onSelected: () => {},
+            },
+        ];
+
+        // `Disable rates` when at least one enabled rate is selected.
+        if (selectedTaxesIDs.some((taxID) => !policy?.taxRates?.taxes[taxID]?.isDisabled)) {
+            options.push({
+                icon: Expensicons.Document,
+                text: translate('workspace.taxes.actions.disable'),
+                value: CONST.POLICY.TAX_RATES_BULK_ACTION_TYPES.DISABLE,
+            });
+        }
+
+        // `Enable rates` when at least one disabled rate is selected.
+        if (selectedTaxesIDs.some((taxID) => policy?.taxRates?.taxes[taxID]?.isDisabled)) {
+            options.push({
+                icon: Expensicons.Document,
+                text: translate('workspace.taxes.actions.enable'),
+                value: CONST.POLICY.TAX_RATES_BULK_ACTION_TYPES.ENABLE,
+            });
+        }
+        return options;
+    }, [policy?.taxRates?.taxes, selectedTaxesIDs, translate]);
+
     const headerButtons = (
         <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
-            <Button
-                medium
-                success
-                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_NEW.getRoute(policy?.id ?? ''))}
-                icon={Expensicons.Plus}
-                text={translate('workspace.taxes.addRate')}
-                style={[styles.mr3, isSmallScreenWidth && styles.w50]}
-            />
-            <Button
-                medium
-                onPress={() => {}}
-                icon={Expensicons.Gear}
-                text={translate('common.settings')}
-                style={[isSmallScreenWidth && styles.w50]}
-            />
+            {!selectedTaxesIDs.length ? (
+                <>
+                    <Button
+                        medium
+                        success
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_NEW.getRoute(policy?.id ?? ''))}
+                        icon={Expensicons.Plus}
+                        text={translate('workspace.taxes.addRate')}
+                        style={[styles.mr3, isSmallScreenWidth && styles.w50]}
+                    />
+                    <Button
+                        medium
+                        onPress={() => {}}
+                        icon={Expensicons.Gear}
+                        text={translate('common.settings')}
+                        style={[isSmallScreenWidth && styles.w50]}
+                    />
+                </>
+            ) : (
+                <ButtonWithDropdownMenu<WorkspaceTaxRatesBulkActionType>
+                    onPress={() => {}}
+                    options={dropdownMenuOptions}
+                    buttonSize="medium"
+                    customText={`${selectedTaxesIDs.length} selected`}
+                />
+            )}
         </View>
     );
 
