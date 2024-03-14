@@ -6,9 +6,8 @@ import CheckForPreviousReportActionID from '@src/libs/migrations/CheckForPreviou
 import KeyReportActionsDraftByReportActionID from '@src/libs/migrations/KeyReportActionsDraftByReportActionID';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActionsDraftCollectionDataSet} from '@src/types/onyx/ReportActionsDrafts';
-import { toCollectionDataSet } from '@src/types/utils/CollectionDataSet';
+import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-
 
 jest.mock('@src/libs/getPlatform');
 
