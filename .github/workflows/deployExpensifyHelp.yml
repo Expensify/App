@@ -8,6 +8,13 @@ on:
     paths:
       - 'docs/**'
 
+  # Run on any pull request (except PRs against staging or production) that has changes to the docs directory
+  pull_request:
+    types: [opened, synchronize]
+    branches-ignore: [staging, production]
+    paths:
+      - 'docs/**'
+
   # Run on any manual trigger
   workflow_dispatch:
 
@@ -44,6 +51,8 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: helpdot
           directory: ./docs/_site
+        # Add the conditional on this step to prevent execution for pull requests from forks
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
 
       - name: Setup Cloudflare CLI
         run: pip3 install cloudflare==2.19.0
