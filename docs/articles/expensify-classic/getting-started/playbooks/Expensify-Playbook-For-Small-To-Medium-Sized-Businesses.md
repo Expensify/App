@@ -114,7 +114,7 @@ For an efficient company, we recommend setting up [Scheduled Submit](https://hel
 - You’ll notice *Scheduled Submit* is located directly under *Report Basics*
 - Choose *Daily*
 
-Between Expensify's SmartScan technology, automatic categorization, and [DoubleCheck](https://help.expensify.com/articles/expensify-classic/manage-employees-and-report-approvals/Approving-Reports) features, your employees shouldn't need to do anything more than swipe their Expensify Card or take a photo of  their receipt.
+Between Expensify's SmartScan technology, automatic categorization, and [DoubleCheck](https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Approving-Reports) features, your employees shouldn't need to do anything more than swipe their Expensify Card or take a photo of  their receipt.
 
 Expenses with violations will stay behind for the employee to fix, while expenses that are “in-workspace” will move into an approver’s queue to mitigate any potential for delays. Scheduled Submit will ensure all expenses are submitted automatically for approval.
 
@@ -147,10 +147,10 @@ You only need to do this once: you are fully set up for not only reimbursing exp
 
 ## Step 9: Invite employees and set an approval workflow
 *Select an Approval Mode*
-We recommend you select *Advanced Approval* as your Approval Mode to set up a middle-management layer of approval. If you have a single layer of approval, we recommend selecting [Submit & Approve](https://help.expensify.com/articles/expensify-classic/manage-employees-and-report-approvals/Approval-Workflows). But if *Advanced Approval* is your jam, keep reading! 
+We recommend you select *Advanced Approval* as your Approval Mode to set up a middle-management layer of approval. If you have a single layer of approval, we recommend selecting [Submit & Approve](https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Approval-Workflows). But if *Advanced Approval* is your jam, keep reading! 
 
 *Import your employees in bulk via CSV*
-Given the amount of employees you have, it’s best you import employees in bulk via CSV. You can learn more about using a CSV file to bulk upload employees with *Advanced Approval [here](https://help.expensify.com/articles/expensify-classic/manage-employees-and-report-approvals/Approval-Workflows)*
+Given the amount of employees you have, it’s best you import employees in bulk via CSV. You can learn more about using a CSV file to bulk upload employees with *Advanced Approval [here](https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Approval-Workflows)*
 
 ![Bulk import your employees](https://help.expensify.com/assets/images/playbook-impoort-employees.png){:width="100%"}
 
