@@ -62,11 +62,6 @@ type StagingDeployCashData = {
     tag?: string;
 };
 
-// type StagingDeployCashBody = {
-//     issueBody: string;
-//     issueAssignees: Array<string | undefined>;
-// };
-
 class GithubUtils {
     static internalOctokit: OctokitCore & Api & {paginate: PaginateInterface};
 
@@ -500,16 +495,13 @@ class GithubUtils {
      */
     static getLatestWorkflowRunID(workflow: string | number): Promise<number> {
         console.log(`Fetching New Expensify workflow runs for ${workflow}...`);
-        return (
-            this.octokit.actions
-                .listWorkflowRuns({
-                    owner: CONST.GITHUB_OWNER,
-                    repo: CONST.APP_REPO,
-                    workflow_id: workflow,
-                })
-                // .then((response) => lodashGet(response, 'data.workflow_runs[0].id'));
-                .then((response) => response.data.workflow_runs[0].id)
-        );
+        return this.octokit.actions
+            .listWorkflowRuns({
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                workflow_id: workflow,
+            })
+            .then((response) => response.data.workflow_runs[0].id);
     }
 
     /**
