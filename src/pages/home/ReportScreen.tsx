@@ -362,7 +362,7 @@ function ReportScreen({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Open report when the user has left the thread and go back with back button
+    // If a user has chosen to leave a thread, and then returns to it (e.g. with the back button), we need to call `openReport` again in order to allow the user to rejoin and to receive real-time updates
     useEffect(() => {
         if (!isFocused || prevIsFocused || !ReportUtils.isChatThread(report) || report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
             return;
