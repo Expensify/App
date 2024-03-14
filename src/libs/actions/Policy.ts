@@ -459,7 +459,7 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean, frequency
             value: {
                 autoReporting: policy.autoReporting ?? null,
                 harvesting: {
-                    enabled: policy?.harvesting?.enabled ?? null,
+                    enabled: policy.harvesting?.enabled ?? null,
                 },
                 autoReportingFrequency: policy.autoReportingFrequency ?? null,
                 pendingFields: {isAutoApprovalEnabled: null, harvesting: null},
