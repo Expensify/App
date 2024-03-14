@@ -535,6 +535,25 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
 }
 
 /**
+ * Update alternate text option when applicable
+ */
+function getAlternateTextOption(
+    option: ReportUtils.OptionData,
+    {showChatPreviewLine = false, forcePolicyNamePreview = false, lastMessageTextFromReport = ''}: PreviewConfig & {lastMessageTextFromReport?: string},
+) {
+    if (!!option.isThread || !!option.isMoneyRequestReport) {
+        return lastMessageTextFromReport.length > 0 ? option.lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+    }
+    if (!!option.isChatRoom || !!option.isPolicyExpenseChat) {
+        return showChatPreviewLine && !forcePolicyNamePreview && option.lastMessageText ? option.lastMessageText : option.subtitle;
+    }
+    if (option.isTaskReport) {
+        return showChatPreviewLine && option.lastMessageText ? option.lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+    }
+    return showChatPreviewLine && option.lastMessageText ? option.lastMessageText : LocalePhoneNumber.formatPhoneNumber((option.participantsList ?? [])[0].login ?? '');
+}
+
+/**
  * Get the last message text from the report directly or from other sources for special cases.
  */
 function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>): string {
@@ -646,6 +665,7 @@ function createOption(
         isExpenseReport: false,
         policyID: undefined,
         isOptimisticPersonalDetail: false,
+        lastMessageText: '',
     };
 
     const personalDetailMap = getPersonalDetailsForAccountIDs(accountIDs, personalDetails);
@@ -699,14 +719,11 @@ function createOption(
             lastMessageText = `${lastActorDisplayName}: ${lastMessageTextFromReport}`;
         }
 
-        if (result.isThread || result.isMoneyRequestReport) {
-            result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
-        } else if (result.isChatRoom || result.isPolicyExpenseChat) {
-            result.alternateText = showChatPreviewLine && !forcePolicyNamePreview && lastMessageText ? lastMessageText : subtitle;
-        } else if (result.isTaskReport) {
-            result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
-        } else {
-            result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageText : LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '');
+        result.lastMessageText = lastMessageText;
+
+        // If displaying chat preview line is needed, let's overwrite the default alternate text
+        if (showChatPreviewLine || forcePolicyNamePreview) {
+            result.alternateText = getAlternateTextOption(result, {showChatPreviewLine, forcePolicyNamePreview, lastMessageTextFromReport});
         }
         reportName = ReportUtils.getReportName(report);
     } else {
@@ -1394,8 +1411,8 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
                     report,
                     {},
                     {
-                        showChatPreviewLine: true,
-                        forcePolicyNamePreview: true,
+                        showChatPreviewLine: false,
+                        forcePolicyNamePreview: false,
                     },
                 ),
             });
@@ -1410,8 +1427,8 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
             reportMapForAccountIDs[personalDetail?.accountID ?? -1],
             {},
             {
-                showChatPreviewLine: true,
-                forcePolicyNamePreview: true,
+                showChatPreviewLine: false,
+                forcePolicyNamePreview: false,
             },
         ),
     }));
@@ -1433,8 +1450,8 @@ function createOptionFromReport(report: Report, personalDetails: OnyxEntry<Perso
             report,
             {},
             {
-                showChatPreviewLine: true,
-                forcePolicyNamePreview: true,
+                showChatPreviewLine: false,
+                forcePolicyNamePreview: false,
             },
         ),
     };
@@ -1641,10 +1658,11 @@ function getOptions(
 
     if (includeRecentReports) {
         for (const reportOption of allReportOptions) {
-            // update the alternate text if needed
-            if ((!!reportOption.isChatRoom || reportOption.isPolicyExpenseChat) && forcePolicyNamePreview) {
-                reportOption.alternateText = ReportUtils.getChatRoomSubtitle(reportOption.item);
-            }
+            /**
+             * By default, generated options does not have the chat preview line enabled.
+             * If showChatPreviewLine or forcePolicyNamePreview are true, let's generate and overwrite the alternate text.
+             */
+            reportOption.alternateText = getAlternateTextOption(reportOption, {showChatPreviewLine, forcePolicyNamePreview});
 
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
             if (recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
