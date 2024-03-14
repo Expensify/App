@@ -32,7 +32,6 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
     const editCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             Policy.renamePolicyCategory(route.params.policyID, {oldName: route.params.categoryName, newName: values.categoryName});
-            Navigation.goBack(ROUTES.WORKSPACE_CATEGORIES.getRoute(route.params.policyID));
         },
         [route.params.categoryName, route.params.policyID],
     );

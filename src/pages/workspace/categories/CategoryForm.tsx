@@ -57,7 +57,7 @@ function CategoryForm({onSubmit, policyCategories, categoryName}: CategoryFormPr
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             onSubmit(values);
             Keyboard.dismiss();
-            Navigation.goBack();
+            Navigation.dismissModal();
         },
         [onSubmit],
     );
