@@ -585,6 +585,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/tags/edit',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/edit` as const,
     },
+    WORKSPACE_TAXES: {
+        route: 'settings/workspaces/:policyID/taxes',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/taxes` as const,
+    },
     WORKSPACE_MEMBER_DETAILS: {
         route: 'settings/workspaces/:policyID/members/:accountID',
         getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/members/${accountID}`, backTo),
@@ -605,7 +609,6 @@ const ROUTES = {
         route: 'workspace/:policyID/distance-rates/settings',
         getRoute: (policyID: string) => `workspace/${policyID}/distance-rates/settings` as const,
     },
-
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {
         route: 'referral/:contentType',

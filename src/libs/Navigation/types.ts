@@ -546,6 +546,9 @@ type WorkspacesCentralPaneNavigatorParamList = {
         policyID: string;
         categoryName: string;
     };
+    [SCREENS.WORKSPACE.TAXES]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.DISTANCE_RATES]: {
         policyID: string;
     };

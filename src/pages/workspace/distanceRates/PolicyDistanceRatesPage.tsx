@@ -65,12 +65,9 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
 
     const dismissError = useCallback(
         (item: RateForList) => {
-            if (item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-                return;
-            }
-            Policy.clearCreateDistanceRateError(policyID, customUnitRates, customUnit?.customUnitID, item.value);
+            Policy.clearCreateDistanceRateItemAndError(policyID, customUnit?.customUnitID ?? '', item.value);
         },
-        [customUnit?.customUnitID, customUnitRates, policyID],
+        [customUnit?.customUnitID, policyID],
     );
 
     const {isOffline} = useNetwork({onReconnect: fetchDistanceRates});
@@ -269,13 +266,13 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                     {Object.values(customUnitRates).length > 0 && (
                         <SelectionList
                             canSelectMultiple
-                            ListItem={TableListItem}
-                            onSelectAll={toggleAllRates}
-                            onCheckboxPress={toggleRate}
                             sections={[{data: distanceRatesList, indexOffset: 0, isDisabled: false}]}
+                            onCheckboxPress={toggleRate}
                             onSelectRow={editRate}
+                            onSelectAll={toggleAllRates}
                             onDismissError={dismissError}
                             showScrollIndicator
+                            ListItem={TableListItem}
                             customListHeader={getCustomListHeader()}
                             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         />
