@@ -18,7 +18,6 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyTagList} from '@src/types/onyx';
@@ -36,7 +35,7 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
     const policyTag = useMemo(() => PolicyUtils.getTagLists(policyTags)?.[0] ?? {}, [policyTags]);
 
     const currentPolicyTag = policyTag.tags[route.params.tagName];
-    // console.log('currentPolicyTag :>> ', currentPolicyTag);
+
     if (!currentPolicyTag) {
         return <NotFoundPage />;
     }
