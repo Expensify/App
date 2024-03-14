@@ -126,6 +126,14 @@ type WorkspaceMembersRoleData = {
     role: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER;
 };
 
+const CURRENCY_AU = 'AUD';
+const CURRENCY_CA = 'CAD';
+const CURRENCY_GB = 'GBP';
+const CURRENCY_US = 'USD';
+const CURRENCY_EUR = 'EUR';
+
+const DIRECT_REIMBURSEMENT_CURRENCIES: string[] = [CURRENCY_AU, CURRENCY_CA, CURRENCY_EUR, CURRENCY_GB, CURRENCY_US];
+
 const allPolicies: OnyxCollection<Policy> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
@@ -458,6 +466,7 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean, frequency
             value: {
                 autoReporting: !enabled,
                 pendingFields: {isAutoApprovalEnabled: null, harvesting: null},
+                errorFields: {autoReporting: ErrorUtils.getMicroSecondOnyxError('workflowsDelayedSubmissionPage.autoReportingErrorMessage')},
             },
         },
     ];
@@ -495,6 +504,7 @@ function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {autoReportingFrequency: null},
+                errorFields: {autoReportingFrequency: ErrorUtils.getMicroSecondOnyxError('workflowsDelayedSubmissionPage.autoReportingFrequencyErrorMessage')},
             },
         },
     ];
@@ -533,6 +543,7 @@ function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingO
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {autoReportingOffset: null},
+                errorFields: {autoReportingOffset: ErrorUtils.getMicroSecondOnyxError('workflowsDelayedSubmissionPage.monthlyOffsetErrorMessage')},
             },
         },
     ];
@@ -577,6 +588,7 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {approvalMode: null},
+                errorFields: {approvalMode: ErrorUtils.getMicroSecondOnyxError('workflowsApprovalPage.genericErrorMessage')},
             },
         },
     ];
@@ -640,12 +652,30 @@ function setWorkspacePayer(policyID: string, reimburserEmail: string, reimburser
     API.write(WRITE_COMMANDS.SET_WORKSPACE_PAYER, params, {optimisticData, failureData, successData});
 }
 
+function clearWorkspaceAutoReportingError(policyID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {autoReporting: null}});
+}
+
+function clearWorkspaceAutoReportingFrequencyError(policyID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {autoReportingFrequency: null}});
+}
+
+function clearWorkspaceAutoReportingOffsetError(policyID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {autoReportingOffset: null}});
+}
+
+function clearWorkspaceApprovalError(policyID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {approvalMode: null}});
+}
+
 function clearWorkspacePayerError(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {reimburserEmail: null}});
 }
 
 function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>, reimburserAccountID: number, reimburserEmail: string) {
     const policy = ReportUtils.getPolicy(policyID);
+    // const policyCurrency = policy.outputCurrency;
+    const policyCurrency = 'xxx';
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -671,6 +701,10 @@ function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueO
             },
         },
     ];
+    let onyxFailureMessage = ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage');
+    if (!DIRECT_REIMBURSEMENT_CURRENCIES.includes(policyCurrency) && reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+        onyxFailureMessage = ErrorUtils.getMicroSecondOnyxError('workflowsPayerPage.unavailableCurrencyErrorMessage');
+    }
 
     const failureData: OnyxUpdate[] = [
         {
@@ -680,7 +714,7 @@ function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueO
                 reimbursementChoice: policy.reimbursementChoice,
                 reimburserAccountID: policy.reimburserAccountID,
                 reimburserEmail: policy.reimburserEmail,
-                errorFields: {reimbursementChoice: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                errorFields: {reimbursementChoice: onyxFailureMessage},
                 pendingFields: {reimbursementChoice: null},
             },
         },
@@ -3591,4 +3625,8 @@ export {
     createPolicyTag,
     clearWorkspaceReimbursementErrors,
     deleteWorkspaceCategories,
+    clearWorkspaceApprovalError,
+    clearWorkspaceAutoReportingError,
+    clearWorkspaceAutoReportingFrequencyError,
+    clearWorkspaceAutoReportingOffsetError,
 };
