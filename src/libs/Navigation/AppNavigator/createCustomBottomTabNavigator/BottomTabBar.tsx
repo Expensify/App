@@ -12,11 +12,11 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@libs/actions/Session';
-import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
-import {checkIfWorkspaceSettingsTabHasRBR, getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
+import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
+import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
 import variables from '@styles/variables';
 import * as Welcome from '@userActions/Welcome';
@@ -43,14 +43,8 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
         const navigationState = navigation.getState() as State<RootStackParamList> | undefined;
         const routes = navigationState?.routes;
         const currentRoute = routes?.[navigationState?.index ?? 0];
-        const bottomTabRoute = getTopmostBottomTabRoute(navigationState);
-        if (
-            // When we are redirected to the Settings tab from the OldDot, we don't want to call the Welcome.isOnboardingFlowCompleted() method.
-            // To prevent this, the value of the bottomTabRoute?.name is checked here
-            bottomTabRoute?.name === SCREENS.WORKSPACE.INITIAL ||
-            Boolean(currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && currentRoute.name !== NAVIGATORS.CENTRAL_PANE_NAVIGATOR) ||
-            Session.isAnonymousUser()
-        ) {
+
+        if (Boolean(currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && currentRoute.name !== NAVIGATORS.CENTRAL_PANE_NAVIGATOR) || Session.isAnonymousUser()) {
             return;
         }
 
@@ -74,22 +68,20 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
         return topmostBottomTabRoute?.name ?? SCREENS.HOME;
     });
 
-    const shouldShowWorkspaceRedBrickRoad = checkIfWorkspaceSettingsTabHasRBR(activeWorkspaceID) && currentTabName === SCREENS.HOME;
-
-    const chatTabBrickRoad = currentTabName !== SCREENS.HOME ? getChatTabBrickRoad(activeWorkspaceID) : undefined;
+    const chatTabBrickRoad = getChatTabBrickRoad(activeWorkspaceID);
 
     return (
         <View style={styles.bottomTabBarContainer}>
-            <Tooltip text={translate('common.chats')}>
-                <PressableWithFeedback
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.HOME);
-                    }}
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.chats')}
-                    wrapperStyle={styles.flexGrow1}
-                    style={styles.bottomTabBarItem}
-                >
+            <PressableWithFeedback
+                onPress={() => {
+                    Navigation.navigate(ROUTES.HOME);
+                }}
+                role={CONST.ROLE.BUTTON}
+                accessibilityLabel={translate('common.chats')}
+                wrapperStyle={styles.flex1}
+                style={styles.bottomTabBarItem}
+            >
+                <Tooltip text={translate('common.chats')}>
                     <View>
                         <Icon
                             src={Expensicons.ChatBubble}
@@ -101,32 +93,13 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                             <View style={styles.bottomTabStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger)} />
                         )}
                     </View>
-                </PressableWithFeedback>
-            </Tooltip>
+                </Tooltip>
+            </PressableWithFeedback>
+
             <BottomTabBarFloatingActionButton />
-            <Tooltip text={translate('common.settings')}>
-                <PressableWithFeedback
-                    onPress={() =>
-                        interceptAnonymousUser(() =>
-                            activeWorkspaceID ? Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(activeWorkspaceID)) : Navigation.navigate(ROUTES.ALL_SETTINGS),
-                        )
-                    }
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.settings')}
-                    wrapperStyle={styles.flexGrow1}
-                    style={styles.bottomTabBarItem}
-                >
-                    <View>
-                        <Icon
-                            src={Expensicons.Wrench}
-                            fill={currentTabName === SCREENS.ALL_SETTINGS || currentTabName === SCREENS.WORKSPACE.INITIAL ? theme.iconMenu : theme.icon}
-                            width={variables.iconBottomBar}
-                            height={variables.iconBottomBar}
-                        />
-                        {shouldShowWorkspaceRedBrickRoad && <View style={styles.bottomTabStatusIndicator(theme.danger)} />}
-                    </View>
-                </PressableWithFeedback>
-            </Tooltip>
+            <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                <BottomTabAvatar isSelected={currentTabName === SCREENS.SETTINGS.ROOT} />
+            </View>
         </View>
     );
 }

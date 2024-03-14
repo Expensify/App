@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import {Keyboard, StyleSheet, View} from 'react-native';
+import Avatar from '@components/Avatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
@@ -32,7 +33,8 @@ function HeaderWithBackButton({
     onThreeDotsButtonPress = () => {},
     report = null,
     policy,
-    shouldShowAvatarWithDisplay = false,
+    policyAvatar,
+    shouldShowReportAvatarWithDisplay = false,
     shouldShowBackButton = true,
     shouldShowBorderBottom = false,
     shouldShowCloseButton = false,
@@ -59,6 +61,7 @@ function HeaderWithBackButton({
     singleExecution = (func) => func,
     shouldNavigateToTopMostReport = false,
     progressBarPercentage,
+    style,
 }: HeaderWithBackButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -88,7 +91,7 @@ function HeaderWithBackButton({
             );
         }
 
-        if (shouldShowAvatarWithDisplay) {
+        if (shouldShowReportAvatarWithDisplay) {
             return (
                 <AvatarWithDisplayName
                     report={report}
@@ -112,7 +115,7 @@ function HeaderWithBackButton({
         progressBarPercentage,
         report,
         shouldEnableDetailPageNavigation,
-        shouldShowAvatarWithDisplay,
+        shouldShowReportAvatarWithDisplay,
         stepCounter,
         styles.flexGrow1,
         styles.headerProgressBar,
@@ -139,6 +142,7 @@ function HeaderWithBackButton({
                 // be falsey, hence using !== undefined explicitly
                 progressBarPercentage !== undefined && styles.pl2,
                 shouldOverlay && StyleSheet.absoluteFillObject,
+                style,
             ]}
         >
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
@@ -174,6 +178,14 @@ function HeaderWithBackButton({
                         width={variables.iconHeader}
                         height={variables.iconHeader}
                         additionalStyles={[styles.mr2]}
+                    />
+                )}
+                {policyAvatar && (
+                    <Avatar
+                        containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
+                        source={policyAvatar?.source}
+                        name={policyAvatar?.name}
+                        type={policyAvatar?.type}
                     />
                 )}
                 {middleContent}
