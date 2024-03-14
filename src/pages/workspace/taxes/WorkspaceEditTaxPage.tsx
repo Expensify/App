@@ -17,6 +17,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type WorkspaceEditTaxPageBaseProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES_EDIT>;
@@ -94,7 +95,7 @@ function WorkspaceEditTaxPage({
                         description={translate('common.name')}
                         style={[styles.moneyRequestMenuItem]}
                         titleStyle={styles.flex1}
-                        onPress={() => {}}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_NAME.getRoute(`${policy?.id}`, taxID))}
                     />
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
@@ -102,7 +103,7 @@ function WorkspaceEditTaxPage({
                         description={translate('workspace.taxes.value')}
                         style={[styles.moneyRequestMenuItem]}
                         titleStyle={styles.flex1}
-                        onPress={() => {}}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_VALUE.getRoute(`${policy?.id}`, taxID))}
                     />
                 </View>
             </View>

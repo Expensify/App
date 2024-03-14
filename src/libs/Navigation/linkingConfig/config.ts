@@ -321,6 +321,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.TAXES_EDIT]: {
                             path: ROUTES.WORKSPACE_TAXES_EDIT.route,
                         },
+                        [SCREENS.WORKSPACE.TAXES_NAME]: {
+                            path: ROUTES.WORKSPACE_TAXES_NAME.route,
+                        },
+                        [SCREENS.WORKSPACE.TAXES_VALUE]: {
+                            path: ROUTES.WORKSPACE_TAXES_VALUE.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: {
