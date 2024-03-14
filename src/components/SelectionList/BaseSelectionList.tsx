@@ -1,7 +1,7 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListRenderItemInfo} from 'react-native';
 import {View} from 'react-native';
 import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
@@ -23,7 +23,7 @@ import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, Section, SectionListDataType} from './types';
+import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, Section, SectionListDataType, SelectionListHandle} from './types';
 
 function BaseSelectionList<TItem extends ListItem>(
     {
@@ -61,18 +61,20 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldShowTooltips = true,
         shouldUseDynamicMaxToRenderPerBatch = false,
         rightHandSideComponent,
+        checkmarkPosition,
         isLoadingNewOptions = false,
         onLayout,
         customListHeader,
         listHeaderWrapperStyle,
         isRowMultilineSupported = false,
+        textInputRef,
     }: BaseSelectionListProps<TItem>,
-    inputRef: ForwardedRef<RNTextInput>,
+    ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const listRef = useRef<RNSectionList<TItem, Section<TItem>>>(null);
-    const textInputRef = useRef<RNTextInput | null>(null);
+    const innerTextInputRef = useRef<RNTextInput | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const shouldShowTextInput = !!textInputLabel;
     const shouldShowSelectAll = !!onSelectAll;
@@ -80,6 +82,8 @@ function BaseSelectionList<TItem extends ListItem>(
     const isFocused = useIsFocused();
     const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
     const [isInitialSectionListRender, setIsInitialSectionListRender] = useState(true);
+    const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
+    const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
 
     const incrementPage = () => setCurrentPage((prev) => prev + 1);
@@ -116,7 +120,8 @@ function BaseSelectionList<TItem extends ListItem>(
                 });
 
                 // If disabled, add to the disabled indexes array
-                if (!!section.isDisabled || item.isDisabled) {
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                if (!!section.isDisabled || item.isDisabled || item.isDisabledCheckbox) {
                     disabledOptionsIndexes.push(disabledIndex);
                 }
                 disabledIndex += 1;
@@ -235,16 +240,16 @@ function BaseSelectionList<TItem extends ListItem>(
 
         onSelectRow(item);
 
-        if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && textInputRef.current) {
-            textInputRef.current.focus();
+        if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
+            innerTextInputRef.current.focus();
         }
     };
 
     const selectAllRow = () => {
         onSelectAll?.();
 
-        if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && textInputRef.current) {
-            textInputRef.current.focus();
+        if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
+            innerTextInputRef.current.focus();
         }
     };
 
@@ -310,7 +315,7 @@ function BaseSelectionList<TItem extends ListItem>(
         const indexOffset = section.indexOffset ? section.indexOffset : 0;
         const normalizedIndex = index + indexOffset;
         const isDisabled = !!section.isDisabled || item.isDisabled;
-        const isItemFocused = !isDisabled && focusedIndex === normalizedIndex;
+        const isItemFocused = !isDisabled && (focusedIndex === normalizedIndex || itemsToHighlight?.has(item.keyForList ?? ''));
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
         const showTooltip = shouldShowTooltips && normalizedIndex < 10;
 
@@ -326,6 +331,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 onDismissError={() => onDismissError?.(item)}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
+                checkmarkPosition={checkmarkPosition}
                 keyForList={item.keyForList ?? ''}
                 isMultilineSupported={isRowMultilineSupported}
             />
@@ -370,10 +376,10 @@ function BaseSelectionList<TItem extends ListItem>(
         useCallback(() => {
             if (shouldShowTextInput) {
                 focusTimeoutRef.current = setTimeout(() => {
-                    if (!textInputRef.current) {
+                    if (!innerTextInputRef.current) {
                         return;
                     }
-                    textInputRef.current.focus();
+                    innerTextInputRef.current.focus();
                 }, CONST.ANIMATED_TRANSITION);
             }
             return () => {
@@ -398,6 +404,46 @@ function BaseSelectionList<TItem extends ListItem>(
 
         updateAndScrollToFocusedIndex(newSelectedIndex);
     }, [canSelectMultiple, flattenedSections.allOptions.length, prevTextInputValue, textInputValue, updateAndScrollToFocusedIndex]);
+
+    useEffect(
+        () => () => {
+            if (!itemFocusTimeoutRef.current) {
+                return;
+            }
+            clearTimeout(itemFocusTimeoutRef.current);
+        },
+        [],
+    );
+
+    /**
+     * Highlights the items and scrolls to the first item present in the items list.
+     *
+     * @param items - The list of items to highlight.
+     * @param timeout - The timeout in milliseconds before removing the highlight.
+     */
+    const scrollAndHighlightItem = useCallback(
+        (items: string[], timeout: number) => {
+            const newItemsToHighlight = new Set<string>();
+            items.forEach((item) => {
+                newItemsToHighlight.add(item);
+            });
+            const index = flattenedSections.allOptions.findIndex((option) => newItemsToHighlight.has(option.keyForList ?? ''));
+            updateAndScrollToFocusedIndex(index);
+            setItemsToHighlight(newItemsToHighlight);
+
+            if (itemFocusTimeoutRef.current) {
+                clearTimeout(itemFocusTimeoutRef.current);
+            }
+
+            itemFocusTimeoutRef.current = setTimeout(() => {
+                setFocusedIndex(-1);
+                setItemsToHighlight(null);
+            }, timeout);
+        },
+        [flattenedSections.allOptions, updateAndScrollToFocusedIndex],
+    );
+
+    useImperativeHandle(ref, () => ({scrollAndHighlightItem}), [scrollAndHighlightItem]);
 
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
@@ -428,15 +474,14 @@ function BaseSelectionList<TItem extends ListItem>(
                             <View style={[styles.ph4, styles.pb3]}>
                                 <TextInput
                                     ref={(element) => {
-                                        textInputRef.current = element as RNTextInput;
+                                        innerTextInputRef.current = element as RNTextInput;
 
-                                        if (!inputRef) {
+                                        if (!textInputRef) {
                                             return;
                                         }
 
-                                        if (typeof inputRef === 'function') {
-                                            inputRef(element as RNTextInput);
-                                        }
+                                        // eslint-disable-next-line no-param-reassign
+                                        textInputRef.current = element as RNTextInput;
                                     }}
                                     label={textInputLabel}
                                     accessibilityLabel={textInputLabel}
@@ -512,6 +557,7 @@ function BaseSelectionList<TItem extends ListItem>(
                             <FixedFooter style={[styles.mtAuto]}>
                                 <Button
                                     success
+                                    large
                                     style={[styles.w100]}
                                     text={confirmButtonText || translate('common.confirm')}
                                     onPress={onConfirm}

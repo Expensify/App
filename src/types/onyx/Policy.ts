@@ -212,6 +212,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The URL for the policy avatar */
         avatar?: string;
+        avatarURL?: string;
 
         /** Error objects keyed by field name containing errors keyed by microtime */
         errorFields?: OnyxCommon.ErrorFields;
@@ -322,6 +323,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Email of the reimburser when reimbursement is set direct */
         reimburserEmail?: string;
+
+        /** AccountID of the reimburser when reimbursement is set direct */
+        reimburserAccountID?: number;
 
         /** ReportID of the admins room for this workspace */
         chatReportIDAdmins?: number;
