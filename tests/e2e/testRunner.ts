@@ -143,7 +143,7 @@ const runTests = async (): Promise<void> => {
         );
 
         Logger.log('Killing', appPackage);
-        await killApp('android', appPackage);
+        await killApp(platform, appPackage);
     }
 
     // Run the tests
