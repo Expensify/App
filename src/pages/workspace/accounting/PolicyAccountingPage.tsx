@@ -15,6 +15,16 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
+import IconAsset from '@src/types/utils/IconAsset';
+
+type WorkspaceMenuItem = {
+    translationKey?: TranslationPaths;
+    descriptionTranslationKey?: TranslationPaths;
+    icon?: IconAsset;
+    iconRight?: IconAsset;
+    iconHeight?: number;
+    iconWidth?: number;
+};
 
 function PolicyAccountingPage() {
     const styles = useThemeStyles();
@@ -22,29 +32,65 @@ function PolicyAccountingPage() {
     const waitForNavigate = useWaitForNavigation();
     const {isSmallScreenWidth} = useWindowDimensions();
 
+    const shouldSetupQBO = true;
+
+    const connectionIconSize = {iconHeight: variables.avatarSizeNormal, iconWidth: variables.avatarSizeNormal};
+    const connectionsMenuItems: WorkspaceMenuItem[] = [
+        {
+            translationKey: 'workspace.accounting.qbo',
+            icon: Expensicons.QBORound,
+            ...connectionIconSize,
+        },
+        {
+            translationKey: 'workspace.accounting.xero',
+            icon: Expensicons.XeroRound,
+            ...connectionIconSize,
+        },
+    ];
+
+    const qboConnectionMenuItems: WorkspaceMenuItem[] = [
+        {
+            translationKey: 'workspace.accounting.qbo',
+            descriptionTranslationKey: 'workspace.accounting.lastSync',
+            icon: Expensicons.QBORound,
+            iconRight: Expensicons.ThreeDots,
+            ...connectionIconSize,
+        },
+        {
+            translationKey: 'workspace.accounting.import',
+            icon: Expensicons.Pencil,
+            iconRight: Expensicons.ArrowRight,
+        },
+        {
+            translationKey: 'workspace.accounting.export',
+            icon: Expensicons.Send,
+            iconRight: Expensicons.ArrowRight,
+        },
+        {
+            translationKey: 'workspace.accounting.advanced',
+            icon: Expensicons.Gear,
+            iconRight: Expensicons.ArrowRight,
+        },
+        {
+            descriptionTranslationKey: 'workspace.accounting.other',
+            iconRight: Expensicons.DownArrow,
+        },
+    ];
+
     const menuItems = useMemo(() => {
-        const baseMenuItems = [
-            {
-                translationKey: 'workspace.accounting.qbo',
-                icon: Expensicons.QBORound,
-                action: undefined,
-            },
-            {
-                translationKey: 'workspace.accounting.xero',
-                icon: Expensicons.XeroRound,
-                action: undefined,
-            },
-        ];
+        const baseMenuItems = [...(!shouldSetupQBO ? connectionsMenuItems : []), ...(shouldSetupQBO ? qboConnectionMenuItems : [])];
 
         return baseMenuItems.map((item) => ({
-            key: item.translationKey,
-            title: translate(item.translationKey as TranslationPaths),
+            key: item.translationKey || item.descriptionTranslationKey,
+            title: item.translationKey && translate(item.translationKey as TranslationPaths),
+            description: item?.descriptionTranslationKey && translate(item?.descriptionTranslationKey as TranslationPaths),
             icon: item.icon,
-            onPress: item.action,
+            iconRight: item.iconRight,
+            shouldShowRightIcon: !!item.iconRight,
             interactive: false,
-            shouldShowRightComponent: true,
-            iconHeight: variables.avatarSizeNormal,
-            iconWidth: variables.avatarSizeNormal,
+            shouldShowRightComponent: !item.iconRight,
+            iconHeight: item.iconHeight,
+            iconWidth: item.iconWidth,
             rightComponent: (
                 <Button
                     onPress={() => {}}
@@ -55,7 +101,7 @@ function PolicyAccountingPage() {
             ),
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [translate, waitForNavigate, styles]);
+    }, [translate, styles]);
 
     return (
         <ScreenWrapper
