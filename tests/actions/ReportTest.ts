@@ -2,7 +2,7 @@
 import {afterEach, beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
 import {utcToZonedTime} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
@@ -343,7 +343,7 @@ describe('actions/Report', () => {
                 };
 
                 jest.advanceTimersByTime(10);
-                const optimisticReportActions = {
+                const optimisticReportActions: OnyxUpdate = {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                     value: {
@@ -371,7 +371,10 @@ describe('actions/Report', () => {
                 };
                 jest.advanceTimersByTime(10);
                 reportActionCreatedDate = DateUtils.getDBTime();
-                optimisticReportActions.value[400].created = reportActionCreatedDate;
+
+                if (optimisticReportActions.value?.[400]) {
+                    optimisticReportActions.value[400].created = reportActionCreatedDate;
+                }
 
                 // When we emit the events for these pending created actions to update them to not pending
                 PusherHelper.emitOnyxUpdate([
@@ -530,7 +533,6 @@ describe('actions/Report', () => {
                         value: {
                             1: REPORT_ACTION,
                         },
-                        shouldNotify: true,
                     },
                 ]);
                 return SequentialQueue.getCurrentRequest().then(waitForBatchedUpdates);
