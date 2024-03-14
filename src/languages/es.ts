@@ -1068,8 +1068,18 @@ export default {
             },
         },
     },
+    workflowsDelayedSubmissionPage: {
+        autoReportingErrorMessage: 'El parámetro de envío retrasado no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
+        autoReportingFrequencyErrorMessage: 'La frecuencia de envío no pudo ser cambiada. Por favor, inténtelo de nuevo o contacte al soporte.',
+        monthlyOffsetErrorMessage: 'La frecuencia mensual no pudo ser cambiada. Por favor, inténtelo de nuevo o contacte al soporte.',
+    },
+    workflowsApprovalPage: {
+        genericErrorMessage: 'El aprobador no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
+    },
     workflowsPayerPage: {
         title: 'Pagador autorizado',
+        unavailableCurrencyErrorMessage:
+            'El reembolso directo solo está disponible en USD, AUD, GBP, EUR y CAD. Actualmente, esta política está establecida en una moneda que no es elegible para el reembolso directo. Por favor, cambie la moneda de la política para poder habilitar el Reembolso Directo.',
         genericErrorMessage: 'El pagador autorizado no se pudo cambiar. Por favor, inténtalo mas tarde.',
         admins: 'Administradores',
     },
