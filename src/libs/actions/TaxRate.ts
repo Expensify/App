@@ -86,14 +86,12 @@ function createWorkspaceTax(policyID: string, taxRate: TaxRate) {
 
     const parameters = {
         policyID,
-        taxFields: JSON.stringify([
-            {
-                name: taxRate.name,
-                value: taxRate.value,
-                enabled: true,
-                taxCode: taxRate.code,
-            },
-        ]),
+        taxFields: JSON.stringify({
+            name: taxRate.name,
+            value: taxRate.value,
+            enabled: true,
+            taxCode: taxRate.code,
+        }),
     } satisfies CreatePolicyTaxParams;
 
     API.write(WRITE_COMMANDS.CREATE_POLICY_TAX, parameters, onyxData);
@@ -313,7 +311,7 @@ function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number)
 
     const parameters = {
         policyID,
-        taxCode: originalTaxRate.name,
+        taxCode: taxID,
         taxAmount: Number(taxValue),
     } as UpdatePolicyTaxValueParams;
 
