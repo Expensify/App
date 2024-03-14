@@ -83,6 +83,8 @@ import Hourglass from '@assets/images/hourglass.svg';
 import ImageCropCircleMask from '@assets/images/image-crop-circle-mask.svg';
 import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Info from '@assets/images/info.svg';
+import QBORound from '@assets/images/integrationicons/qbo-icon-round.svg';
+import XeroRound from '@assets/images/integrationicons/xero-icon-round.svg';
 import Invoice from '@assets/images/invoice.svg';
 import Key from '@assets/images/key.svg';
 import Keyboard from '@assets/images/keyboard.svg';
@@ -116,7 +118,6 @@ import Play from '@assets/images/play.svg';
 import Plus from '@assets/images/plus.svg';
 import Printer from '@assets/images/printer.svg';
 import Profile from '@assets/images/profile.svg';
-import QBORound from '@assets/images/qbo-icons/qbo-icon-round.svg';
 import QrCode from '@assets/images/qrcode.svg';
 import QuestionMark from '@assets/images/question-mark-circle.svg';
 import ReceiptSearch from '@assets/images/receipt-search.svg';
@@ -154,7 +155,6 @@ import Wallet from '@assets/images/wallet.svg';
 import Workflows from '@assets/images/workflows.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Wrench from '@assets/images/wrench.svg';
-import XeroRound from '@assets/images/xero-icons/xero-icon-round.svg';
 import Zoom from '@assets/images/zoom.svg';
 
 export {
