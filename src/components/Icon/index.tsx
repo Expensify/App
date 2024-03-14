@@ -1,14 +1,13 @@
-import type { ImageContentFit } from 'expo-image';
+import type {ImageContentFit} from 'expo-image';
 import React from 'react';
-import type { StyleProp, ViewStyle } from 'react-native';
-import { View } from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import ImageSVG from '@components/ImageSVG';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import type IconAsset from '@src/types/utils/IconAsset';
 import IconWrapperStyles from './IconWrapperStyles';
-
 
 type IconProps = {
     /** The asset to render. */
@@ -60,7 +59,7 @@ function Icon({
     height = variables.iconSizeNormal,
     fill = undefined,
     small = false,
-                  hasText = false,
+    hasText = false,
     large = false,
     medium = false,
     inline = false,
