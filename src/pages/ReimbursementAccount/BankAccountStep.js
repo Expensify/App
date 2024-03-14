@@ -135,6 +135,7 @@ function BankAccountStep(props) {
                         )}
                         <Button
                             icon={Expensicons.Bank}
+                            iconStyles={[styles.mr5]}
                             text={props.translate('bankAccount.connectOnlineWithPlaid')}
                             onPress={() => {
                                 if (props.isPlaidDisabled || !props.user.validated) {
@@ -148,6 +149,7 @@ function BankAccountStep(props) {
                             shouldShowRightIcon
                             success
                             large
+                            innerStyles={[styles.pr2]}
                         />
                         {Boolean(props.error) && <Text style={[styles.formError, styles.mh5]}>{props.error}</Text>}
                         <View style={[styles.mv3]}>

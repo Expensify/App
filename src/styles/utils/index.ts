@@ -485,6 +485,9 @@ function getButtonStyleWithIcon(
     shouldShowRightIcon?: boolean,
 ): ViewStyle | undefined {
     const useDefaultButtonStyles = Boolean(hasIcon && shouldShowRightIcon) || Boolean(!hasIcon && !shouldShowRightIcon);
+    if (hasIcon && !hasText) {
+        return {...styles.buttonMedium, ...styles.ph0};
+    }
     switch (true) {
         case small: {
             const verticalStyle = hasIcon ? styles.pl2 : styles.pr2;
