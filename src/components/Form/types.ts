@@ -43,6 +43,7 @@ type ValidInputs =
     | typeof RoomNameInput
     | typeof ValuePicker
     | typeof DatePicker
+    | typeof RadioButtons
     | typeof AmountPicker
     | typeof AddPlaidBankAccount;
 
