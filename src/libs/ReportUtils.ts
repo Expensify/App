@@ -56,12 +56,12 @@ import * as store from './actions/ReimbursementAccount/store';
 import * as CollectionUtils from './CollectionUtils';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
-import getForReportAction from './getForReportAction';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import {isEmailPublicDomain} from './LoginUtils';
+import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import linkingConfig from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
 import * as NumberUtils from './NumberUtils';
@@ -2644,7 +2644,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
             return `${parentReportActionMessage} (${Localize.translateLocal('common.archived')})`;
         }
         if (ReportActionsUtils.isModifiedExpenseAction(parentReportAction)) {
-            return getForReportAction(report?.reportID, parentReportAction);
+            return ModifiedExpenseMessage.getForReportAction(report?.reportID, parentReportAction);
         }
         return parentReportActionMessage;
     }
