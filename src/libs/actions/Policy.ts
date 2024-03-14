@@ -254,6 +254,14 @@ function updateLastAccessedWorkspace(policyID: OnyxEntry<string>) {
     Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID);
 }
 
+function hasValidCurrencyForReimbursement(currency: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>) {
+    if (reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+        return DIRECT_REIMBURSEMENT_CURRENCIES.includes(currency);
+    }
+
+    return true;
+}
+
 /**
  * Check if the user has any active free policies (aka workspaces)
  */
@@ -660,6 +668,10 @@ function clearWorkspaceAutoReportingFrequencyError(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {autoReportingFrequency: null}});
 }
 
+function clearWorkspaceGeneralSettingError(policyID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {generalSettings: null}});
+}
+
 function clearWorkspaceAutoReportingOffsetError(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {autoReportingOffset: null}});
 }
@@ -674,8 +686,6 @@ function clearWorkspacePayerError(policyID: string) {
 
 function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>, reimburserAccountID: number, reimburserEmail: string) {
     const policy = ReportUtils.getPolicy(policyID);
-    // const policyCurrency = policy.outputCurrency;
-    const policyCurrency = 'xxx';
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -702,7 +712,7 @@ function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueO
         },
     ];
     let onyxFailureMessage = ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage');
-    if (!DIRECT_REIMBURSEMENT_CURRENCIES.includes(policyCurrency) && reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+    if (!hasValidCurrencyForReimbursement(policy.outputCurrency, reimbursementChoice)) {
         onyxFailureMessage = ErrorUtils.getMicroSecondOnyxError('workflowsPayerPage.unavailableCurrencyErrorMessage');
     }
 
@@ -1376,13 +1386,17 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
             },
         },
     ];
+
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 errorFields: {
-                    generalSettings: ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
+                    generalSettings:
+                        policy?.reimbursementChoice && !hasValidCurrencyForReimbursement(policy.outputCurrency, policy.reimbursementChoice)
+                            ? ErrorUtils.getMicroSecondOnyxError('workflowsPayerPage.unavailableCurrencyErrorMessage')
+                            : ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
                 },
                 ...(distanceUnit?.customUnitID
                     ? {
@@ -3629,4 +3643,5 @@ export {
     clearWorkspaceAutoReportingError,
     clearWorkspaceAutoReportingFrequencyError,
     clearWorkspaceAutoReportingOffsetError,
+    clearWorkspaceGeneralSettingError,
 };
