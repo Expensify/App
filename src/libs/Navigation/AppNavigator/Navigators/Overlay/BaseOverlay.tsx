@@ -1,14 +1,15 @@
 import {useCardAnimation} from '@react-navigation/stack';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {Animated, View} from 'react-native';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
-import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getOperatingSystem from '@libs/getOperatingSystem';
 import CONST from '@src/CONST';
 
-type OverlayProps = {
+type BaseOverlayProps = {
+    /* Whether to use native styles tailored for native devices */
+    shouldUseNativeStyles: boolean;
+
     /* Callback to close the modal */
     onPress?: () => void;
 
@@ -18,20 +19,10 @@ type OverlayProps = {
     isModalOnTheLeft?: boolean;
 };
 
-function Overlay({onOverlayClick, onPress, isModalOnTheLeft = false}: OverlayProps) {
+function BaseOverlay({shouldUseNativeStyles, onOverlayClick, onPress, isModalOnTheLeft = false}: BaseOverlayProps) {
     const styles = useThemeStyles();
     const {current} = useCardAnimation();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useOnboardingLayout();
-
-    // non-native styling uses fixed positioning not supported on native platforms
-    const shouldUseNativeStyles = useMemo(() => {
-        const os = getOperatingSystem();
-        if ((os === CONST.OS.ANDROID || os === CONST.OS.IOS || os === CONST.OS.NATIVE) && shouldUseNarrowLayout) {
-            return true;
-        }
-        return false;
-    }, [shouldUseNarrowLayout]);
 
     return (
         <Animated.View style={shouldUseNativeStyles ? styles.nativeOverlayStyles(current) : styles.overlayStyles(current, isModalOnTheLeft)}>
@@ -65,6 +56,7 @@ function Overlay({onOverlayClick, onPress, isModalOnTheLeft = false}: OverlayPro
     );
 }
 
-Overlay.displayName = 'Overlay';
+BaseOverlay.displayName = 'BaseOverlay';
 
-export default Overlay;
+export type {BaseOverlayProps};
+export default BaseOverlay;
