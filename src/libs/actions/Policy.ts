@@ -3620,7 +3620,6 @@ function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomU
             value: {
                 customUnits: {
                     [newCustomUnit.customUnitID]: {
-                        errors: null,
                         pendingAction: null,
                     },
                 },
@@ -3675,7 +3674,6 @@ function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUn
             value: {
                 customUnits: {
                     [newCustomUnit.customUnitID]: {
-                        errors: null,
                         pendingAction: null,
                     },
                 },
