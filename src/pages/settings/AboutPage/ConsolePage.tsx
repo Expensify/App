@@ -148,12 +148,14 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
                 <Button
                     text={translate('initialSettingsPage.debugConsole.saveLog')}
                     onPress={saveLogs}
+                    large
                     icon={Expensicons.Download}
                     style={[styles.flex1, styles.mr1]}
                 />
                 <Button
                     text={translate('initialSettingsPage.debugConsole.shareLog')}
                     onPress={shareLogs}
+                    large
                     icon={!isGeneratingLogsFile ? Expensicons.UploadAlt : undefined}
                     style={[styles.flex1, styles.ml1]}
                     isLoading={isGeneratingLogsFile}
@@ -173,6 +175,7 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
                     text={translate('initialSettingsPage.debugConsole.execute')}
                     onPress={executeArbitraryCode}
                     style={[styles.mt5]}
+                    large
                 />
             </View>
             <ConfirmModal
