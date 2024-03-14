@@ -1,16 +1,16 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import type {SvgProps} from 'react-native-svg';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type ToggleSettingOptionRowProps = {
     /** Icon to be shown for the option */
-    icon: React.FC<SvgProps>;
+    icon: IconAsset;
     /** Title of the option */
     title: string;
     /** Subtitle of the option */
@@ -23,19 +23,23 @@ type ToggleSettingOptionRowProps = {
     subMenuItems?: React.ReactNode;
     /** If there is a pending action, we will grey out the option */
     pendingAction?: PendingAction;
+    /** Any error message to show */
+    errors?: Errors;
+    /** Callback to close the error messages */
+    onCloseError?: () => void;
 };
 const ICON_SIZE = 48;
 
-function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, isActive, pendingAction}: ToggleSettingOptionRowProps) {
-    const [isEnabled, setIsEnabled] = useState(isActive);
+function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, isActive, pendingAction, errors, onCloseError}: ToggleSettingOptionRowProps) {
     const styles = useThemeStyles();
-    const toggleSwitch = () => {
-        setIsEnabled(!isEnabled);
-        onToggle(!isEnabled);
-    };
 
     return (
-        <OfflineWithFeedback pendingAction={pendingAction}>
+        <OfflineWithFeedback
+            pendingAction={pendingAction}
+            errors={errors}
+            errorRowStyles={[styles.mt2]}
+            onClose={onCloseError}
+        >
             <View style={styles.pRelative}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
@@ -45,7 +49,6 @@ function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, 
                             width={ICON_SIZE}
                             additionalStyles={{
                                 ...styles.mr3,
-                                ...styles.pb4,
                             }}
                         />
                         <View style={[styles.flexColumn, styles.flex1]}>
@@ -53,6 +56,7 @@ function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, 
                                 style={{
                                     ...styles.textMicroBold,
                                     ...styles.textNormal,
+                                    ...styles.lh20,
                                 }}
                             >
                                 {title}
@@ -71,11 +75,11 @@ function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, 
                     </View>
                     <Switch
                         accessibilityLabel={subtitle}
-                        onToggle={toggleSwitch}
-                        isOn={isEnabled}
+                        onToggle={onToggle}
+                        isOn={isActive}
                     />
                 </View>
-                {isEnabled && subMenuItems}
+                {isActive && subMenuItems}
             </View>
         </OfflineWithFeedback>
     );

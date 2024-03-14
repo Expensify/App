@@ -129,5 +129,4 @@ export default withOnyx<EReceiptThumbnailProps, EReceiptThumbnailOnyxProps>({
         key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
     },
 })(EReceiptThumbnail);
-
-export type {IconSize};
+export type {IconSize, EReceiptThumbnailProps, EReceiptThumbnailOnyxProps};

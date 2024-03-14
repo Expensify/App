@@ -111,3 +111,4 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
 ReportActionItemImages.displayName = 'ReportActionItemImages';
 
 export default ReportActionItemImages;
+export type {ReportActionItemImagesProps};
