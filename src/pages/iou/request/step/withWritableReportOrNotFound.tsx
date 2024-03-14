@@ -9,6 +9,7 @@ import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 
 type WithWritableReportOrNotFoundOnyxProps = {
@@ -16,7 +17,7 @@ type WithWritableReportOrNotFoundOnyxProps = {
     report: OnyxEntry<Report>;
 };
 
-type WithWritableReportOrNotFoundProps = WithWritableReportOrNotFoundOnyxProps & {route: RouteProp<MoneyRequestNavigatorParamList>};
+type WithWritableReportOrNotFoundProps = WithWritableReportOrNotFoundOnyxProps & {route: RouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT>};
 
 export default function <TRef, TProps extends WithWritableReportOrNotFoundProps>(WrappedComponent: ComponentType<TProps>) {
     // eslint-disable-next-line rulesdir/no-negated-variables

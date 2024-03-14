@@ -5,7 +5,6 @@ import type {TextInput} from 'react-native';
 import type {Place} from 'react-native-google-places-autocomplete';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import AddressSearch from '@components/AddressSearch';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
@@ -27,7 +26,6 @@ import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route as Routes} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Waypoint} from '@src/types/onyx/Transaction';
@@ -44,16 +42,6 @@ type IOURequestStepWaypointOnyxProps = {
 };
 
 type IOURequestStepWaypointProps = {
-    route: {
-        params: {
-            iouType: ValueOf<typeof CONST.IOU.TYPE>;
-            transactionID: string;
-            reportID: string;
-            backTo: Routes | undefined;
-            action: ValueOf<typeof CONST.IOU.ACTION>;
-            pageIndex: string;
-        };
-    };
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 } & IOURequestStepWaypointOnyxProps &
     WithWritableReportOrNotFoundProps;
