@@ -69,7 +69,6 @@ function ContinueBankAccountSetup(props) {
                             onPress={props.continue}
                             icon={Expensicons.Bank}
                             style={[styles.mv4]}
-                            iconStyles={[styles.buttonCTAIcon]}
                             shouldShowRightIcon
                             large
                             success
