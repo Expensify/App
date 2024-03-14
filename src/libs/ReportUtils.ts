@@ -4577,9 +4577,10 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
         options = [CONST.IOU.TYPE.SPLIT];
     }
 
-    if (canUseTrackExpense && isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat) {
-        options = [...options, CONST.IOU.TYPE.TRACK_EXPENSE];
-    }
+    // TODO: Re-enable this when we have a clarity on track expense in policy expense chat
+    // if (canUseTrackExpense && isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat) {
+    //     options = [...options, CONST.IOU.TYPE.TRACK_EXPENSE];
+    // }
 
     if (canRequestMoney(report, policy, otherParticipants)) {
         options = [...options, CONST.IOU.TYPE.REQUEST];
