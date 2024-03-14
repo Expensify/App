@@ -5,7 +5,7 @@ description: Safely delegate tasks without sharing login information.
 
 # About
 The Copilot feature allows you to safely delegate tasks without sharing login information. Your chosen user can access your account through their own Expensify account, with customizable permissions to manage expenses, create reports, and more. This can even be extended to users outside your policy or domain.
-
+asdfasdfasdfasdfas
 # How-to
 # How to add a Copilot
 1. Log into the Expensify desktop website.
