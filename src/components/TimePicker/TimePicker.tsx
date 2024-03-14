@@ -495,6 +495,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
                         shouldEnableHapticFeedback
                         innerStyles={styleForAM}
                         medium={isExtraSmallScreenHeight}
+                        large={!isExtraSmallScreenHeight}
                         text={translate('common.am')}
                         onLongPress={() => {}}
                         onPress={() => {
@@ -507,6 +508,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
                         shouldEnableHapticFeedback
                         innerStyles={[styleForPM, styles.ml1]}
                         medium={isExtraSmallScreenHeight}
+                        large={!isExtraSmallScreenHeight}
                         text={translate('common.pm')}
                         onLongPress={() => {}}
                         onPress={() => {
@@ -535,6 +537,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
             <Button
                 success
                 medium={isExtraSmallScreenHeight}
+                large={!isExtraSmallScreenHeight}
                 style={[styles.mb5, styles.mh5]}
                 onPress={handleSubmit}
                 pressOnEnter
