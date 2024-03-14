@@ -993,8 +993,6 @@ const CONST = {
     MAGIC_CODE_LENGTH: 6,
     MAGIC_CODE_EMPTY_CHAR: ' ',
 
-    RECOVERY_CODE_LENGTH: 8,
-
     KEYBOARD_TYPE: {
         VISIBLE_PASSWORD: 'visible-password',
         ASCII_CAPABLE: 'ascii-capable',
@@ -1414,6 +1412,11 @@ const CONST = {
             MAKE_MEMBER: 'makeMember',
             MAKE_ADMIN: 'makeAdmin',
         },
+        CATEGORIES_BULK_ACTION_TYPES: {
+            DELETE: 'delete',
+            DISABLE: 'disable',
+            ENABLE: 'enable',
+        },
         DISTANCE_RATES_BULK_ACTION_TYPES: {
             DELETE: 'delete',
             DISABLE: 'disable',
@@ -1660,6 +1663,8 @@ const CONST = {
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
     LOGIN_CHARACTER_LIMIT: 254,
     CATEGORY_NAME_LIMIT: 256,
+
+    TAG_NAME_LIMIT: 256,
 
     TITLE_CHARACTER_LIMIT: 100,
     DESCRIPTION_LIMIT: 500,
