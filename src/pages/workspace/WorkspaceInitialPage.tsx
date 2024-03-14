@@ -209,7 +209,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             translationKey: 'workspace.common.accounting',
             icon: Expensicons.Sync,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID)))),
-            brickRoadIndicator:  undefined,
+            brickRoadIndicator: undefined,
             routeName: SCREENS.WORKSPACE.ACCOUNTING,
         },
         ...(isPaidGroupPolicy && shouldShowProtectedItems ? protectedCollectPolicyMenuItems : []),
