@@ -36,7 +36,7 @@ function LHNOptionsList({
     transactionViolations = {},
     onFirstItemRendered = () => {},
 }: LHNOptionsListProps) {
-    const {saveScrollOffset, scrollToOffset} = useContext(ScrollOffsetContext);
+    const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
     const flashListRef = useRef<FlashList<string>>(null);
     const route = useRoute();
 
@@ -132,8 +132,20 @@ function LHNOptionsList({
     );
 
     const onLayout = useCallback(() => {
-        scrollToOffset(route, flashListRef);
-    }, [route, flashListRef, scrollToOffset]);
+        const offset = getScrollOffset(route);
+
+        if (!(offset && flashListRef.current)) {
+            return;
+        }
+
+        // We need to use requestAnimationFrame to make sure it will scroll properly on iOS.
+        requestAnimationFrame(() => {
+            if (!(offset && flashListRef.current)) {
+                return;
+            }
+            flashListRef.current.scrollToOffset({offset});
+        });
+    }, [route, flashListRef, getScrollOffset]);
 
     return (
         <View style={style ?? styles.flex1}>

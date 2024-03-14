@@ -1,5 +1,4 @@
 import type {ParamListBase, RouteProp} from '@react-navigation/native';
-import type {FlashList} from '@shopify/flash-list';
 import React, {createContext, useCallback, useMemo, useRef} from 'react';
 import type {NavigationPartialRoute, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -8,8 +7,8 @@ type ScrollOffsetContextValue = {
     /** Save scroll offset of flashlist on given screen */
     saveScrollOffset: (route: RouteProp<ParamListBase>, scrollOffset: number) => void;
 
-    /** Scroll to saved offset of given screen */
-    scrollToOffset: (route: RouteProp<ParamListBase>, flashListRef: React.RefObject<FlashList<string>>) => void;
+    /** Get scroll offset value for given screen */
+    getScrollOffset: (route: RouteProp<ParamListBase>) => number | undefined;
 
     /** Clean scroll offsets of screen that aren't anymore in the state */
     cleanStaleScrollOffsets: (state: State) => void;
@@ -22,7 +21,7 @@ type ScrollOffsetContextProviderProps = {
 
 const defaultValue: ScrollOffsetContextValue = {
     saveScrollOffset: () => {},
-    scrollToOffset: () => {},
+    getScrollOffset: () => undefined,
     cleanStaleScrollOffsets: () => {},
 };
 
@@ -43,20 +42,11 @@ export default function ScrollOffsetContextProvider(props: ScrollOffsetContextPr
         scrollOffsetsRef.current[getKey(route)] = scrollOffset;
     }, []);
 
-    const scrollToOffset: ScrollOffsetContextValue['scrollToOffset'] = useCallback((route, flashListRef) => {
-        const offset = scrollOffsetsRef.current[getKey(route)];
-
-        if (!(offset && flashListRef.current)) {
+    const getScrollOffset: ScrollOffsetContextValue['getScrollOffset'] = useCallback((route) => {
+        if (!scrollOffsetsRef.current) {
             return;
         }
-
-        // We need to use requestAnimationFrame to make sure it will scroll properly on iOS.
-        requestAnimationFrame(() => {
-            if (!(offset && flashListRef.current)) {
-                return;
-            }
-            flashListRef.current.scrollToOffset({offset});
-        });
+        return scrollOffsetsRef.current[getKey(route)];
     }, []);
 
     const cleanStaleScrollOffsets: ScrollOffsetContextValue['cleanStaleScrollOffsets'] = useCallback((state) => {
@@ -79,10 +69,10 @@ export default function ScrollOffsetContextProvider(props: ScrollOffsetContextPr
     const contextValue = useMemo(
         (): ScrollOffsetContextValue => ({
             saveScrollOffset,
-            scrollToOffset,
+            getScrollOffset,
             cleanStaleScrollOffsets,
         }),
-        [saveScrollOffset, scrollToOffset, cleanStaleScrollOffsets],
+        [saveScrollOffset, getScrollOffset, cleanStaleScrollOffsets],
     );
 
     return <ScrollOffsetContext.Provider value={contextValue}>{props.children}</ScrollOffsetContext.Provider>;
