@@ -19,7 +19,7 @@ import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import IconAsset from '@src/types/utils/IconAsset';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type WorkspaceMenuItem = {
     translationKey?: TranslationPaths;
@@ -28,6 +28,9 @@ type WorkspaceMenuItem = {
     iconRight?: IconAsset;
     iconHeight?: number;
     iconWidth?: number;
+    interactive?: boolean;
+    disabled?: boolean;
+    onButtonPress?: () => void;
 };
 
 function PolicyAccountingPage() {
@@ -37,76 +40,92 @@ function PolicyAccountingPage() {
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
+    const [shouldSetupQBO, setShouldSetupQBO] = useState<boolean>(false);
     const threeDotsMenuContainerRef = useRef<View>(null);
 
-    const shouldSetupQBO = true;
     const shouldShowQBIConnectionOptionsMenuItems = true;
 
-    const connectionIconSize = {iconHeight: variables.avatarSizeNormal, iconWidth: variables.avatarSizeNormal};
-    const connectionsMenuItems: WorkspaceMenuItem[] = [
-        {
-            translationKey: 'workspace.accounting.qbo',
-            icon: Expensicons.QBORound,
-            ...connectionIconSize,
-        },
-        {
-            translationKey: 'workspace.accounting.xero',
-            icon: Expensicons.XeroRound,
-            ...connectionIconSize,
-        },
-    ];
+    const connectionIconSize = useMemo(() => ({iconHeight: variables.avatarSizeNormal, iconWidth: variables.avatarSizeNormal}), []);
+    const connectionsMenuItems: WorkspaceMenuItem[] = useMemo(
+        () => [
+            {
+                translationKey: 'workspace.accounting.qbo',
+                icon: Expensicons.QBORound,
+                interactive: false,
+                onButtonPress: () => setShouldSetupQBO(true),
+                ...connectionIconSize,
+            },
+            {
+                translationKey: 'workspace.accounting.xero',
+                icon: Expensicons.XeroRound,
+                interactive: false,
+                disabled: true,
+                onButtonPress: () => {},
+                ...connectionIconSize,
+            },
+        ],
+        [setShouldSetupQBO, connectionIconSize],
+    );
 
-    const qboConnectionOptionsMenuItems: WorkspaceMenuItem[] = [
-        {
-            translationKey: 'workspace.accounting.import',
-            icon: Expensicons.Pencil,
-            iconRight: Expensicons.ArrowRight,
-        },
-        {
-            translationKey: 'workspace.accounting.export',
-            icon: Expensicons.Send,
-            iconRight: Expensicons.ArrowRight,
-        },
-        {
-            translationKey: 'workspace.accounting.advanced',
-            icon: Expensicons.Gear,
-            iconRight: Expensicons.ArrowRight,
-        },
-    ];
+    const qboConnectionOptionsMenuItems: WorkspaceMenuItem[] = useMemo(
+        () => [
+            {
+                translationKey: 'workspace.accounting.import',
+                icon: Expensicons.Pencil,
+                iconRight: Expensicons.ArrowRight,
+            },
+            {
+                translationKey: 'workspace.accounting.export',
+                icon: Expensicons.Send,
+                iconRight: Expensicons.ArrowRight,
+            },
+            {
+                translationKey: 'workspace.accounting.advanced',
+                icon: Expensicons.Gear,
+                iconRight: Expensicons.ArrowRight,
+            },
+        ],
+        [],
+    );
 
-    const qboConnectionMenuItems: WorkspaceMenuItem[] = [
-        ...(shouldShowQBIConnectionOptionsMenuItems ? qboConnectionOptionsMenuItems : []),
-        {
-            descriptionTranslationKey: 'workspace.accounting.other',
-            iconRight: Expensicons.DownArrow,
-        },
-    ];
+    const qboConnectionMenuItems: WorkspaceMenuItem[] = useMemo(
+        () => [
+            ...(shouldShowQBIConnectionOptionsMenuItems ? qboConnectionOptionsMenuItems : []),
+            {
+                descriptionTranslationKey: 'workspace.accounting.other',
+                iconRight: Expensicons.DownArrow,
+            },
+        ],
+        [shouldShowQBIConnectionOptionsMenuItems, qboConnectionOptionsMenuItems],
+    );
 
     const menuItems = useMemo(() => {
         const baseMenuItems = [...(!shouldSetupQBO ? connectionsMenuItems : []), ...(shouldSetupQBO ? qboConnectionMenuItems : [])];
 
         return baseMenuItems.map((item) => ({
-            key: item.translationKey || item.descriptionTranslationKey,
+            key: item.translationKey ?? item.descriptionTranslationKey,
             title: item.translationKey && translate(item.translationKey as TranslationPaths),
-            description: item?.descriptionTranslationKey && translate(item?.descriptionTranslationKey as TranslationPaths),
+            description: item.descriptionTranslationKey && translate(item.descriptionTranslationKey as TranslationPaths),
             icon: item.icon,
             iconRight: item.iconRight,
             shouldShowRightIcon: !!item.iconRight,
-            interactive: false,
+            interactive: item.interactive,
             shouldShowRightComponent: !item.iconRight,
             iconHeight: item.iconHeight,
             iconWidth: item.iconWidth,
+            disabled: item.disabled,
             rightComponent: (
                 <Button
-                    onPress={() => {}}
+                    onPress={item.onButtonPress}
                     style={[styles.pl2]}
                     text={translate('workspace.accounting.setup')}
                     small
+                    isDisabled={item.disabled}
                 />
             ),
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [translate, styles]);
+    }, [translate, styles, shouldSetupQBO, connectionsMenuItems, qboConnectionMenuItems]);
 
     const threeDotsMenuItems = [
         {
@@ -144,11 +163,11 @@ function PolicyAccountingPage() {
                         titleStyles={styles.accountSettingsSectionTitle}
                         childrenStyles={styles.pt5}
                     >
-                        <View
-                            ref={threeDotsMenuContainerRef}
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}
-                        >
-                            <View>
+                        {shouldSetupQBO && (
+                            <View
+                                ref={threeDotsMenuContainerRef}
+                                style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}
+                            >
                                 <MenuItem
                                     title={translate('workspace.accounting.qbo')}
                                     description={translate('workspace.accounting.lastSync')}
@@ -158,22 +177,22 @@ function PolicyAccountingPage() {
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
                                     interactive={false}
                                 />
-                            </View>
-                            <ThreeDotsMenu
-                                onIconPress={() => {
-                                    threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
-                                        setThreeDotsMenuPosition({
-                                            horizontal: x + width,
-                                            vertical: y + height,
+                                <ThreeDotsMenu
+                                    onIconPress={() => {
+                                        threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
+                                            setThreeDotsMenuPosition({
+                                                horizontal: x + width,
+                                                vertical: y + height,
+                                            });
                                         });
-                                    });
-                                }}
-                                menuItems={threeDotsMenuItems}
-                                anchorPosition={threeDotsMenuPosition}
-                                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                                shouldOverlay
-                            />{' '}
-                        </View>
+                                    }}
+                                    menuItems={threeDotsMenuItems}
+                                    anchorPosition={threeDotsMenuPosition}
+                                    anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                                    shouldOverlay
+                                />
+                            </View>
+                        )}
                         <MenuItemList
                             menuItems={menuItems}
                             shouldUseSingleExecution
