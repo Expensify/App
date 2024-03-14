@@ -1,6 +1,7 @@
 import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -12,7 +13,7 @@ import Section from '@components/Section';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWaitForNavigation from '@hooks/useWaitForNavigation';
+// import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AnchorPosition} from '@styles/index';
@@ -36,11 +37,12 @@ type WorkspaceMenuItem = {
 function PolicyAccountingPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const waitForNavigate = useWaitForNavigation();
+    // const waitForNavigate = useWaitForNavigation();
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
-    const [shouldSetupQBO, setShouldSetupQBO] = useState<boolean>(false);
+    const [shouldSetupQBO, setShouldSetupQBO] = useState(false);
+    const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const threeDotsMenuContainerRef = useRef<View>(null);
 
     const shouldShowQBIConnectionOptionsMenuItems = true;
@@ -136,7 +138,7 @@ function PolicyAccountingPage() {
         {
             icon: Expensicons.Trashcan,
             text: translate('workspace.accounting.disconnect'),
-            onSelected: () => {},
+            onSelected: () => setIsDisconnectModalOpen(true),
         },
     ];
 
@@ -200,6 +202,16 @@ function PolicyAccountingPage() {
                     </Section>
                 </View>
             </ScrollView>
+            <ConfirmModal
+                title={translate('workspace.accounting.disconnectTitle')}
+                isVisible={isDisconnectModalOpen}
+                onConfirm={() => {}}
+                onCancel={() => setIsDisconnectModalOpen(false)}
+                prompt={translate('workspace.accounting.disconnectPrompt')}
+                confirmText={translate('workspace.accounting.disconnect')}
+                cancelText={translate('common.cancel')}
+                danger
+            />
         </ScreenWrapper>
     );
 }
