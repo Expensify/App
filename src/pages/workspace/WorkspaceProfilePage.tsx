@@ -11,7 +11,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -101,124 +100,122 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
             icon={Illustrations.House}
         >
             {(hasVBA?: boolean) => (
-                <ScrollView>
-                    <View style={[styles.flex1, styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                        <Section
-                            isCentralPane
-                            title=""
-                        >
-                            <Image
-                                style={StyleSheet.flatten([styles.wAuto, styles.h68, imageStyle])}
-                                source={illustrations.WorkspaceProfile}
-                                resizeMode="cover"
-                            />
-                            <AvatarWithImagePicker
-                                onViewPhotoPress={() => Navigation.navigate(ROUTES.WORKSPACE_AVATAR.getRoute(policy?.id ?? ''))}
-                                source={policy?.avatar ?? ''}
-                                size={CONST.AVATAR_SIZE.XLARGE}
-                                avatarStyle={styles.avatarXLarge}
-                                enablePreview
-                                DefaultAvatar={DefaultAvatar}
-                                type={CONST.ICON_TYPE_WORKSPACE}
-                                fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
-                                style={[
-                                    isSmallScreenWidth ? styles.mb1 : styles.mb3,
-                                    isSmallScreenWidth ? styles.mtn17 : styles.mtn20,
-                                    styles.alignItemsStart,
-                                    styles.sectionMenuItemTopDescription,
-                                ]}
-                                editIconStyle={styles.smallEditIconWorkspace}
-                                isUsingDefaultAvatar={!policy?.avatar ?? null}
-                                onImageSelected={(file) => Policy.updateWorkspaceAvatar(policy?.id ?? '', file as File)}
-                                onImageRemoved={() => Policy.deleteWorkspaceAvatar(policy?.id ?? '')}
-                                editorMaskImage={Expensicons.ImageCropSquareMask}
-                                pendingAction={policy?.pendingFields?.avatar}
-                                errors={policy?.errorFields?.avatar}
-                                onErrorClose={() => Policy.clearAvatarErrors(policy?.id ?? '')}
-                                previewSource={UserUtils.getFullSizeAvatar(policy?.avatar ?? '')}
-                                headerTitle={translate('workspace.common.workspaceAvatar')}
-                                originalFileName={policy?.originalFileName}
+                <View style={[styles.flex1, styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <Section
+                        isCentralPane
+                        title=""
+                    >
+                        <Image
+                            style={StyleSheet.flatten([styles.wAuto, styles.h68, imageStyle])}
+                            source={illustrations.WorkspaceProfile}
+                            resizeMode="cover"
+                        />
+                        <AvatarWithImagePicker
+                            onViewPhotoPress={() => Navigation.navigate(ROUTES.WORKSPACE_AVATAR.getRoute(policy?.id ?? ''))}
+                            source={policy?.avatar ?? ''}
+                            size={CONST.AVATAR_SIZE.XLARGE}
+                            avatarStyle={styles.avatarXLarge}
+                            enablePreview
+                            DefaultAvatar={DefaultAvatar}
+                            type={CONST.ICON_TYPE_WORKSPACE}
+                            fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+                            style={[
+                                isSmallScreenWidth ? styles.mb1 : styles.mb3,
+                                isSmallScreenWidth ? styles.mtn17 : styles.mtn20,
+                                styles.alignItemsStart,
+                                styles.sectionMenuItemTopDescription,
+                            ]}
+                            editIconStyle={styles.smallEditIconWorkspace}
+                            isUsingDefaultAvatar={!policy?.avatar ?? null}
+                            onImageSelected={(file) => Policy.updateWorkspaceAvatar(policy?.id ?? '', file as File)}
+                            onImageRemoved={() => Policy.deleteWorkspaceAvatar(policy?.id ?? '')}
+                            editorMaskImage={Expensicons.ImageCropSquareMask}
+                            pendingAction={policy?.pendingFields?.avatar}
+                            errors={policy?.errorFields?.avatar}
+                            onErrorClose={() => Policy.clearAvatarErrors(policy?.id ?? '')}
+                            previewSource={UserUtils.getFullSizeAvatar(policy?.avatar ?? '')}
+                            headerTitle={translate('workspace.common.workspaceAvatar')}
+                            originalFileName={policy?.originalFileName}
+                            disabled={readOnly}
+                            disabledStyle={styles.cursorDefault}
+                            errorRowStyles={undefined}
+                        />
+                        <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
+                            <MenuItemWithTopDescription
+                                title={policyName}
+                                titleStyle={styles.workspaceTitleStyle}
+                                description={translate('workspace.editor.nameInputLabel')}
+                                shouldShowRightIcon={!readOnly}
                                 disabled={readOnly}
-                                disabledStyle={styles.cursorDefault}
-                                errorRowStyles={undefined}
+                                wrapperStyle={[styles.sectionMenuItemTopDescription, isSmallScreenWidth ? styles.mt3 : {}]}
+                                onPress={onPressName}
+                                shouldGreyOutWhenDisabled={false}
+                                shouldUseDefaultCursorWhenDisabled
                             />
-                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
+                        </OfflineWithFeedback>
+                        {(!StringUtils.isEmptyString(policy?.description ?? '') || !readOnly) && (
+                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.description}>
                                 <MenuItemWithTopDescription
-                                    title={policyName}
-                                    titleStyle={styles.workspaceTitleStyle}
-                                    description={translate('workspace.editor.nameInputLabel')}
+                                    title={policyDescription}
+                                    description={translate('workspace.editor.descriptionInputLabel')}
                                     shouldShowRightIcon={!readOnly}
                                     disabled={readOnly}
-                                    wrapperStyle={[styles.sectionMenuItemTopDescription, isSmallScreenWidth ? styles.mt3 : {}]}
-                                    onPress={onPressName}
+                                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                                    onPress={onPressDescription}
+                                    shouldGreyOutWhenDisabled={false}
+                                    shouldUseDefaultCursorWhenDisabled
+                                    shouldRenderAsHTML
+                                />
+                            </OfflineWithFeedback>
+                        )}
+                        <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
+                            <View>
+                                <MenuItemWithTopDescription
+                                    title={formattedCurrency}
+                                    description={translate('workspace.editor.currencyInputLabel')}
+                                    shouldShowRightIcon={!readOnly}
+                                    disabled={hasVBA ? true : readOnly}
+                                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                                    onPress={onPressCurrency}
                                     shouldGreyOutWhenDisabled={false}
                                     shouldUseDefaultCursorWhenDisabled
                                 />
-                            </OfflineWithFeedback>
-                            {(!StringUtils.isEmptyString(policy?.description ?? '') || !readOnly) && (
-                                <OfflineWithFeedback pendingAction={policy?.pendingFields?.description}>
-                                    <MenuItemWithTopDescription
-                                        title={policyDescription}
-                                        description={translate('workspace.editor.descriptionInputLabel')}
-                                        shouldShowRightIcon={!readOnly}
-                                        disabled={readOnly}
-                                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                                        onPress={onPressDescription}
-                                        shouldGreyOutWhenDisabled={false}
-                                        shouldUseDefaultCursorWhenDisabled
-                                        shouldRenderAsHTML
-                                    />
-                                </OfflineWithFeedback>
-                            )}
-                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
-                                <View>
-                                    <MenuItemWithTopDescription
-                                        title={formattedCurrency}
-                                        description={translate('workspace.editor.currencyInputLabel')}
-                                        shouldShowRightIcon={!readOnly}
-                                        disabled={hasVBA ? true : readOnly}
-                                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                                        onPress={onPressCurrency}
-                                        shouldGreyOutWhenDisabled={false}
-                                        shouldUseDefaultCursorWhenDisabled
-                                    />
-                                    <Text style={[styles.textLabel, styles.colorMuted, styles.mt1, styles.mh5, styles.sectionMenuItemTopDescription]}>
-                                        {hasVBA ? translate('workspace.editor.currencyInputDisabledText') : translate('workspace.editor.currencyInputHelpText')}
-                                    </Text>
-                                </View>
-                            </OfflineWithFeedback>
-                            {!readOnly && (
-                                <View style={[styles.flexRow, styles.mt6, styles.mnw120]}>
-                                    <Button
-                                        accessibilityLabel={translate('common.share')}
-                                        text={translate('common.share')}
-                                        onPress={onPressShare}
-                                        medium
-                                        icon={Expensicons.QrCode}
-                                    />
-                                    <Button
-                                        accessibilityLabel={translate('common.delete')}
-                                        text={translate('common.delete')}
-                                        style={[styles.ml2]}
-                                        onPress={() => setIsDeleteModalOpen(true)}
-                                        medium
-                                        icon={Expensicons.Trashcan}
-                                    />
-                                </View>
-                            )}
-                        </Section>
-                        <ConfirmModal
-                            title={translate('common.delete')}
-                            isVisible={isDeleteModalOpen}
-                            onConfirm={confirmDeleteAndHideModal}
-                            onCancel={() => setIsDeleteModalOpen(false)}
-                            prompt={translate('workspace.common.deleteConfirmation')}
-                            confirmText={translate('common.delete')}
-                            cancelText={translate('common.cancel')}
-                            danger
-                        />
-                    </View>
-                </ScrollView>
+                                <Text style={[styles.textLabel, styles.colorMuted, styles.mt1, styles.mh5, styles.sectionMenuItemTopDescription]}>
+                                    {hasVBA ? translate('workspace.editor.currencyInputDisabledText') : translate('workspace.editor.currencyInputHelpText')}
+                                </Text>
+                            </View>
+                        </OfflineWithFeedback>
+                        {!readOnly && (
+                            <View style={[styles.flexRow, styles.mt6, styles.mnw120]}>
+                                <Button
+                                    accessibilityLabel={translate('common.share')}
+                                    text={translate('common.share')}
+                                    onPress={onPressShare}
+                                    medium
+                                    icon={Expensicons.QrCode}
+                                />
+                                <Button
+                                    accessibilityLabel={translate('common.delete')}
+                                    text={translate('common.delete')}
+                                    style={[styles.ml2]}
+                                    onPress={() => setIsDeleteModalOpen(true)}
+                                    medium
+                                    icon={Expensicons.Trashcan}
+                                />
+                            </View>
+                        )}
+                    </Section>
+                    <ConfirmModal
+                        title={translate('common.delete')}
+                        isVisible={isDeleteModalOpen}
+                        onConfirm={confirmDeleteAndHideModal}
+                        onCancel={() => setIsDeleteModalOpen(false)}
+                        prompt={translate('workspace.common.deleteConfirmation')}
+                        confirmText={translate('common.delete')}
+                        cancelText={translate('common.cancel')}
+                        danger
+                    />
+                </View>
             )}
         </WorkspacePageWithSections>
     );
