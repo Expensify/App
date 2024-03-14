@@ -62,10 +62,10 @@ type StagingDeployCashData = {
     tag?: string;
 };
 
-type StagingDeployCashBody = {
-    issueBody: string;
-    issueAssignees: Array<string | undefined>;
-};
+// type StagingDeployCashBody = {
+//     issueBody: string;
+//     issueAssignees: Array<string | undefined>;
+// };
 
 class GithubUtils {
     static internalOctokit: OctokitCore & Api & {paginate: PaginateInterface};
@@ -312,24 +312,24 @@ class GithubUtils {
         isTimingDashboardChecked = false,
         isFirebaseChecked = false,
         isGHStatusChecked = false,
-    ): Promise<StagingDeployCashBody | void> {
+    ): Promise<string | void> {
         return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
             .then((data) => {
                 // The format of this map is following:
                 // {
-                //    'https://github.com/Expensify/App/pull/9641': 'PauloGasparSv',
-                //    'https://github.com/Expensify/App/pull/9642': 'mountiny'
+                //    'https://github.com/Expensify/App/pull/9641': [ 'PauloGasparSv', 'kidroca' ],
+                //    'https://github.com/Expensify/App/pull/9642': [ 'mountiny', 'kidroca' ]
                 // }
                 const internalQAPRMap = Array.isArray(data)
                     ? data
-                          .filter((pr) => !isEmptyObject(pr.labels.find((label) => label.name === CONST.LABELS.INTERNAL_QA)))
-                          .reduce<Record<string, string | undefined>>((map, pr) => {
-                              // @ts-expect-error -- TODO: fix this
+                          .filter((pr) => !isEmptyObject(pr.labels.find((item) => item.name === CONST.LABELS.INTERNAL_QA)))
+                          .reduce<Record<string, string[] | undefined>>((map, pr) => {
                               // eslint-disable-next-line no-param-reassign
-                              map[pr.html_url] = pr.merged_by.login;
+                              map[pr.html_url] = pr.assignees?.map((assignee) => assignee.login).filter(Boolean);
                               return map;
                           }, {})
                     : {};
+
                 console.log('Found the following Internal QA PRs:', internalQAPRMap);
 
                 const noQAPRs = Array.isArray(data) ? data.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((pr) => pr.html_url) : [];
@@ -359,13 +359,15 @@ class GithubUtils {
                 if (!isEmptyObject(internalQAPRMap)) {
                     console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
                     issueBody += '**Internal QA:**\r\n';
-                    Object.keys(internalQAPRMap).forEach((merger, URL) => {
-                        const mergerMention = `@${merger}`;
-                        issueBody += `${resolvedInternalQAPRs.includes(URL.toString()) ? '- [x]' : '- [ ]'} `;
+                    // eslint-disable-next-line no-restricted-syntax, guard-for-in
+                    for (const URL in internalQAPRMap) {
+                        const assignees = internalQAPRMap[URL];
+                        const assigneeMentions = assignees?.reduce((memo, assignee) => `${memo} @${assignee}`, '');
+                        issueBody += `${resolvedInternalQAPRs.includes(URL) ? '- [x]' : '- [ ]'} `;
                         issueBody += `${URL}`;
-                        issueBody += ` - ${mergerMention}`;
+                        issueBody += ` -${assigneeMentions}`;
                         issueBody += '\r\n';
-                    });
+                    }
                     issueBody += '\r\n\r\n';
                 }
 
@@ -393,10 +395,7 @@ class GithubUtils {
                 issueBody += `\r\n- [${isGHStatusChecked ? 'x' : ' '}] I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.`;
 
                 issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';
-                const issueAssignees = Object.values(internalQAPRMap);
-                const issue = {issueBody, issueAssignees};
-
-                return issue;
+                return issueBody;
             })
             .catch((err) => console.warn('Error generating StagingDeployCash issue body! Continuing...', err));
     }
