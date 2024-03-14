@@ -38,12 +38,13 @@ function WorkspaceNewTaxPage({
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM> => {
             const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.VALUE, INPUT_IDS.NAME]);
 
-            const value = Number(values[INPUT_IDS.VALUE]);
-            if (value > 100 || value < 0) {
+            const value = values[INPUT_IDS.VALUE];
+            if (!ValidationUtils.isValidPercentage(value)) {
                 errors[INPUT_IDS.VALUE] = 'workspace.taxes.errors.valuePercentageRange';
             }
 
-            if (Object.values(policy?.taxRates?.taxes ?? {}).find((tax) => tax.name === values[INPUT_IDS.NAME])) {
+            const name = values[INPUT_IDS.NAME];
+            if (policy?.taxRates?.taxes && ValidationUtils.isExistingTaxName(name, policy.taxRates.taxes)) {
                 errors[INPUT_IDS.NAME] = 'workspace.taxes.errors.taxRatealreadyExists';
             }
 
