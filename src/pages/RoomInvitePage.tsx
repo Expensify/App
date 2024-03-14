@@ -32,6 +32,7 @@ import type {PersonalDetailsList, Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
+import SearchInputManager from './workspace/SearchInputManager';
 
 type RoomInvitePageOnyxProps = {
     /** All of the personal details for everyone */
@@ -51,6 +52,10 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
     const [userToInvite, setUserToInvite] = useState<ReportUtils.OptionData | null>(null);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const navigation: StackNavigationProp<RootStackParamList> = useNavigation();
+
+    useEffect(() => {
+        setSearchTerm(SearchInputManager.searchInput);
+    }, []);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers = useMemo(
@@ -187,6 +192,7 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
         if (reportID) {
             Report.inviteToRoom(reportID, invitedEmailsToAccountIDs);
         }
+        SearchInputManager.searchInput = '';
         Navigation.navigate(backRoute);
     }, [selectedOptions, backRoute, reportID, validate]);
 
@@ -231,7 +237,10 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
                     ListItem={UserListItem}
                     textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                     textInputValue={searchTerm}
-                    onChangeText={setSearchTerm}
+                    onChangeText={(value) => {
+                        SearchInputManager.searchInput = value;
+                        setSearchTerm(value);
+                    }}
                     headerMessage={headerMessage}
                     onSelectRow={toggleOption}
                     onConfirm={inviteUsers}

@@ -1,10 +1,11 @@
 import * as core from '@actions/core';
 import {when} from 'jest-when';
+import asMutable from '@src/types/utils/asMutable';
 import ghAction from '../../.github/actions/javascript/postTestBuildComment/postTestBuildComment';
 import GithubUtils from '../../.github/libs/GithubUtils';
 
 const mockGetInput = jest.fn();
-const mockCreateComment = jest.fn();
+const createCommentMock = jest.spyOn(GithubUtils, 'createComment');
 const mockListComments = jest.fn();
 const mockGraphql = jest.fn();
 jest.spyOn(GithubUtils, 'octokit', 'get').mockReturnValue({
@@ -12,7 +13,11 @@ jest.spyOn(GithubUtils, 'octokit', 'get').mockReturnValue({
         listComments: mockListComments,
     },
 });
-jest.spyOn(GithubUtils, 'paginate', 'get').mockReturnValue((endpoint, params) => endpoint(params).then(({data}) => data));
+
+jest.spyOn(GithubUtils, 'paginate', 'get').mockReturnValue(<T, TData>(endpoint: (params: Record<string, T>) => Promise<{data: TData}>, params: Record<string, T>) =>
+    endpoint(params).then((response) => response.data),
+);
+
 jest.spyOn(GithubUtils, 'graphql', 'get').mockReturnValue(mockGraphql);
 
 jest.mock('@actions/github', () => ({
@@ -52,12 +57,11 @@ const message = `:test_tube::test_tube: Use the links below to test this adhoc b
 describe('Post test build comments action tests', () => {
     beforeAll(() => {
         // Mock core module
-        core.getInput = mockGetInput;
-        GithubUtils.createComment = mockCreateComment;
+        asMutable(core).getInput = mockGetInput;
     });
 
     test('Test GH action', async () => {
-        when(core.getInput).calledWith('PR_NUMBER', {required: true}).mockReturnValue(12);
+        when(core.getInput).calledWith('PR_NUMBER', {required: true}).mockReturnValue('12');
         when(core.getInput).calledWith('ANDROID', {required: true}).mockReturnValue('success');
         when(core.getInput).calledWith('IOS', {required: true}).mockReturnValue('success');
         when(core.getInput).calledWith('WEB', {required: true}).mockReturnValue('success');
@@ -66,11 +70,12 @@ describe('Post test build comments action tests', () => {
         when(core.getInput).calledWith('IOS_LINK').mockReturnValue('https://expensify.app/IOS_LINK');
         when(core.getInput).calledWith('WEB_LINK').mockReturnValue('https://expensify.app/WEB_LINK');
         when(core.getInput).calledWith('DESKTOP_LINK').mockReturnValue('https://expensify.app/DESKTOP_LINK');
-        GithubUtils.createComment.mockResolvedValue(true);
+        createCommentMock.mockResolvedValue(true);
         mockListComments.mockResolvedValue({
             data: [
                 {
                     body: ':test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, Desktop, and Web. Happy testing!',
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     node_id: 'IC_abcd',
                 },
             ],
@@ -86,7 +91,7 @@ describe('Post test build comments action tests', () => {
               }
             }
         `);
-        expect(GithubUtils.createComment).toBeCalledTimes(1);
-        expect(GithubUtils.createComment).toBeCalledWith('App', 12, message);
+        expect(createCommentMock).toBeCalledTimes(1);
+        expect(createCommentMock).toBeCalledWith('App', '12', message);
     });
 });
