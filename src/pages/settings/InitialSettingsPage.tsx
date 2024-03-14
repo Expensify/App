@@ -439,11 +439,11 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
 
     return (
         <ScreenWrapper
-            style={[styles.w100, styles.pt4]}
+            style={[styles.w100]}
             includeSafeAreaPaddingBottom={false}
             testID={InitialSettingsPage.displayName}
         >
-            <ScrollView style={styles.w100}>
+            <ScrollView style={[styles.w100, styles.pt4]}>
                 {headerContent}
                 {accountMenuItems}
                 {workspaceMenuItems}
