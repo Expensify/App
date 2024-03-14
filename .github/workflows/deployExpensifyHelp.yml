@@ -8,13 +8,6 @@ on:
     paths:
       - 'docs/**'
 
-  # Run on any pull request (except PRs against staging or production) that has changes to the docs directory
-  pull_request:
-    types: [opened, synchronize]
-    branches-ignore: [staging, production]
-    paths:
-      - 'docs/**'
-
   # Run on any manual trigger
   workflow_dispatch:
 
