@@ -34,12 +34,10 @@ function WorkspaceEditTaxPage({
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
     const toggle = () => {
-        // TODO: Backend call doesn't exist yet
-        return;
         if (!policy?.id || !currentTaxRate) {
             return;
         }
-        setPolicyTaxesEnabled(policy.id, [taxID], !currentTaxRate?.isDisabled);
+        setPolicyTaxesEnabled(policy.id, [taxID], !!currentTaxRate?.isDisabled);
     };
 
     const deleteTax = () => {
