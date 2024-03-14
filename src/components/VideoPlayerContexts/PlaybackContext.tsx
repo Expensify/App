@@ -19,7 +19,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     }, [currentVideoPlayerRef]);
 
     const stopVideo = useCallback(() => {
-        currentVideoPlayerRef.current?.stopAsync();
+        currentVideoPlayerRef.current?.stopAsync?.();
     }, [currentVideoPlayerRef]);
 
     const playVideo = useCallback(() => {
