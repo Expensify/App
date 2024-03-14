@@ -145,7 +145,6 @@ function BankAccountStep(props) {
                             }}
                             isDisabled={props.isPlaidDisabled || !props.user.validated}
                             style={[styles.mt4]}
-                            iconStyles={[styles.buttonCTAIcon]}
                             shouldShowRightIcon
                             success
                             large

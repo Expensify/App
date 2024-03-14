@@ -1,9 +1,11 @@
 import type {ReactNode} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {Action} from '@hooks/useSingleExecution';
 import type {StepCounterParams} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
-import type {Policy, Report} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -89,8 +91,8 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Data to display a step counter in the header */
     stepCounter?: StepCounterParams;
 
-    /** Whether we should show an avatar */
-    shouldShowAvatarWithDisplay?: boolean;
+    /** Whether we should show a report avatar */
+    shouldShowReportAvatarWithDisplay?: boolean;
 
     /** Parent report, if provided it will override props.report for AvatarWithDisplay */
     parentReport?: OnyxEntry<Report>;
@@ -100,6 +102,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** The report's policy, if we're showing the details for a report and need info about it for AvatarWithDisplay */
     policy?: OnyxEntry<Policy>;
+
+    /** Policies, if we're showing the details for a report and need participant details for AvatarWithDisplay */
+    personalDetails?: OnyxCollection<PersonalDetails>;
 
     /** Single execution function to prevent concurrent navigation actions */
     singleExecution?: <T extends unknown[]>(action: Action<T>) => Action<T>;
@@ -118,6 +123,12 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Whether we should overlay the 3 dots menu */
     shouldOverlayDots?: boolean;
+
+    /** Policy avatar to display in the header */
+    policyAvatar?: Icon;
+
+    /** Additional styles to add to the component */
+    style?: StyleProp<ViewStyle>;
 };
 
 export type {ThreeDotsMenuItem};
