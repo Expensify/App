@@ -1402,10 +1402,7 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
         });
     }
 
-    const havingLoginPersonalDetails = Object.fromEntries(
-        Object.entries(personalDetails ?? {}).filter(([, detail]) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail),
-    );
-    const allPersonalDetailsOptions = Object.values(havingLoginPersonalDetails).map((personalDetail) => ({
+    const allPersonalDetailsOptions = Object.values(personalDetails ?? {}).map((personalDetail) => ({
         item: personalDetail,
         ...createOption(
             [personalDetail?.accountID ?? -1],
@@ -1616,7 +1613,9 @@ function getOptions(
         return option;
     });
 
-    let allPersonalDetailsOptions = options.personalDetails;
+    const havingLoginPersonalDetails = options.personalDetails.filter((detail) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail);
+
+    let allPersonalDetailsOptions = havingLoginPersonalDetails;
 
     if (sortPersonalDetailsByAlphaAsc) {
         // PersonalDetails should be ordered Alphabetically by default - https://github.com/Expensify/App/issues/8220#issuecomment-1104009435
