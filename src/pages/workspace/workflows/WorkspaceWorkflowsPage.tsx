@@ -78,6 +78,8 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
         const hasVBA = state === BankAccount.STATE.OPEN;
         const bankDisplayName = bankName ? `${bankName} ${accountNumber ? `${accountNumber.slice(-5)}` : ''}` : '';
         const hasReimburserEmailError = !!policy?.errorFields?.reimburserEmail;
+        const hasApprovalError = !!policy?.errorFields?.approvalMode;
+        const hasDelayedSubmissionError = !!policy?.errorFields?.autoReporting;
 
         return [
             ...(canUseDelayedSubmission
@@ -108,10 +110,13 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                                   shouldShowRightIcon
                                   wrapperStyle={containerStyle}
                                   hoverAndPressStyle={[styles.mr0, styles.br2]}
+                                  brickRoadIndicator={hasDelayedSubmissionError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                               />
                           ),
-                          isActive: (policy?.harvesting?.enabled && policy.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT) ?? false,
+                          isActive: (policy?.harvesting?.enabled && policy.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT && !hasDelayedSubmissionError) ?? false,
                           pendingAction: policy?.pendingFields?.isAutoApprovalEnabled,
+                          errors: ErrorUtils.getLatestErrorField(policy ?? {}, 'autoReporting'),
+                          onCloseError: () => Policy.clearWorkspaceAutoReportingError(policy?.id ?? ''),
                       },
                   ]
                 : []),
@@ -132,10 +137,13 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                         shouldShowRightIcon
                         wrapperStyle={containerStyle}
                         hoverAndPressStyle={[styles.mr0, styles.br2]}
+                        brickRoadIndicator={hasApprovalError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
                 ),
-                isActive: policy?.isAutoApprovalEnabled ?? false,
+                isActive: (policy?.isAutoApprovalEnabled && !hasApprovalError) ?? false,
                 pendingAction: policy?.pendingFields?.approvalMode,
+                errors: ErrorUtils.getLatestErrorField(policy ?? {}, 'approvalMode'),
+                onCloseError: () => Policy.clearWorkspaceApprovalError(policy?.id ?? ''),
             },
             {
                 icon: Illustrations.WalletAlt,
