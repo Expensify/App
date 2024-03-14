@@ -130,8 +130,25 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
     disablePressOnEnter?: boolean;
 };
 
+type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
+    resetForm: (optionalValue: FormOnyxValues<TFormID>) => void;
+};
+
 type InputRefs = Record<string, MutableRefObject<InputComponentBaseProps>>;
 
 type FormInputErrors<TFormID extends OnyxFormKey = OnyxFormKey> = Partial<Record<FormOnyxKeys<TFormID>, MaybePhraseKey>>;
 
-export type {FormProps, ValidInputs, InputComponentValueProps, FormValue, ValueTypeKey, FormOnyxValues, FormOnyxKeys, FormInputErrors, InputRefs, InputComponentBaseProps, ValueTypeMap};
+export type {
+    FormProps,
+    ValidInputs,
+    InputComponentValueProps,
+    FormValue,
+    ValueTypeKey,
+    FormOnyxValues,
+    FormOnyxKeys,
+    FormInputErrors,
+    InputRefs,
+    InputComponentBaseProps,
+    ValueTypeMap,
+    FormRef,
+};
