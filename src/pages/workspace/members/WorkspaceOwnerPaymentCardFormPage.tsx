@@ -17,11 +17,13 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CardUtils from '@libs/CardUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,6 +45,7 @@ function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFor
 
     useEffect(
         () => () => {
+            PaymentMethods.clearDebitCardFormErrorAndSubmit();
             Policy.clearWorkspaceOwnerChangeFlow(policyID);
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -83,11 +86,12 @@ function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFor
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM>) => {
             const cardData = {
                 cardNumber: values.cardNumber,
-                cardYear: values.expirationDate.slice(-2),
-                cardMonth: values.expirationDate.slice(0, 2),
+                cardMonth: CardUtils.getMonthFromExpirationDateString(values.expirationDate),
+                cardYear: CardUtils.getYearFromExpirationDateString(values.expirationDate),
                 cardCVV: values.securityCode,
-                addressName: values.addressStreet,
+                addressName: values.nameOnCard,
                 addressZip: values.addressZipCode,
+                currency: CONST.CURRENCY.USD,
             };
             Policy.addBillingCardAndRequestPolicyOwnerChange(policyID, cardData);
             Navigation.goBack();
@@ -164,16 +168,6 @@ function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFor
                                 <View style={[styles.flex1, styles.mr2]}>
                                     <InputWrapper
                                         InputComponent={TextInput}
-                                        inputID={INPUT_IDS.ADDRESS_STREET}
-                                        label={translate('cardPage.cardDetails.address')}
-                                        aria-label={translate('cardPage.cardDetails.address')}
-                                        role={CONST.ROLE.PRESENTATION}
-                                        spellCheck={false}
-                                    />
-                                </View>
-                                <View style={[styles.flex1]}>
-                                    <InputWrapper
-                                        InputComponent={TextInput}
                                         inputID={INPUT_IDS.ADDRESS_ZIP_CODE}
                                         label={translate('common.zip')}
                                         aria-label={translate('common.zip')}
@@ -182,6 +176,7 @@ function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFor
                                         maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                                     />
                                 </View>
+                                <View style={[styles.flex1]}>{/*  TODO: currency picker here  */}</View>
                             </View>
                             <Text style={[styles.textMicroSupporting, styles.mt5]}>
                                 {translate('workspace.changeOwner.addPaymentCardReadAndAcceptTextPart1')}{' '}
