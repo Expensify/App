@@ -255,9 +255,18 @@ function ReportActionsList({
             setMessageManuallyMarkedUnread(0);
         });
 
+        const deletedReportActionSubscription = DeviceEventEmitter.addListener(`deletedReportAction_${report.reportID}`, (reportActionID) => {
+            if (cacheUnreadMarkers.get(report.reportID) !== reportActionID) {
+                return;
+            }
+
+            setMessageManuallyMarkedUnread(new Date().getTime());
+        });
+
         return () => {
             unreadActionSubscription.remove();
             readNewestActionSubscription.remove();
+            deletedReportActionSubscription.remove();
         };
     }, [report.reportID]);
 
@@ -323,12 +332,11 @@ function ReportActionsList({
         }
     };
 
-    const trackVerticalScrolling = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const trackVerticalScrolling = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
         handleUnreadFloatingButton();
         onScroll?.(event);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    };
 
     const scrollToBottomAndMarkReportAsRead = () => {
         reportScrollManager.scrollToBottom();
