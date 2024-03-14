@@ -26,6 +26,13 @@ Onyx.connect({
 
 function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails> | null, defaultValue = '', shouldFallbackToHidden = true, shouldAddCurrentUserPostfix = false): string {
     let displayName = passedPersonalDetails?.displayName ? passedPersonalDetails.displayName.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '') : '';
+
+    // If the displayName is not set by the user, the backend sets the diplayName same as the login so
+    // we need to remove the sms domain from the displayName if it is an sms login.
+    if (displayName === passedPersonalDetails?.login && Str.isSMSLogin(passedPersonalDetails?.login)) {
+        displayName = Str.removeSMSDomain(displayName);
+    }
+
     if (shouldAddCurrentUserPostfix && !!displayName) {
         displayName = `${displayName} (${Localize.translateLocal('common.you').toLowerCase()})`;
     }
