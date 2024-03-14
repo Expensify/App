@@ -1,19 +1,23 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
+import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import IconAsset from '@src/types/utils/IconAsset';
 
@@ -31,6 +35,9 @@ function PolicyAccountingPage() {
     const {translate} = useLocalize();
     const waitForNavigate = useWaitForNavigation();
     const {isSmallScreenWidth} = useWindowDimensions();
+
+    const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
+    const threeDotsMenuContainerRef = useRef<View>(null);
 
     const shouldSetupQBO = true;
     const shouldShowQBIConnectionOptionsMenuItems = true;
@@ -68,13 +75,6 @@ function PolicyAccountingPage() {
     ];
 
     const qboConnectionMenuItems: WorkspaceMenuItem[] = [
-        {
-            translationKey: 'workspace.accounting.qbo',
-            descriptionTranslationKey: 'workspace.accounting.lastSync',
-            icon: Expensicons.QBORound,
-            iconRight: Expensicons.ThreeDots,
-            ...connectionIconSize,
-        },
         ...(shouldShowQBIConnectionOptionsMenuItems ? qboConnectionOptionsMenuItems : []),
         {
             descriptionTranslationKey: 'workspace.accounting.other',
@@ -108,6 +108,19 @@ function PolicyAccountingPage() {
         }));
     }, [translate, styles]);
 
+    const threeDotsMenuItems = [
+        {
+            icon: Expensicons.Sync,
+            text: translate('workspace.accounting.syncNow'),
+            onSelected: () => {},
+        },
+        {
+            icon: Expensicons.Trashcan,
+            text: translate('workspace.accounting.disconnect'),
+            onSelected: () => {},
+        },
+    ];
+
     return (
         <ScreenWrapper
             testID={PolicyAccountingPage.displayName}
@@ -131,6 +144,36 @@ function PolicyAccountingPage() {
                         titleStyles={styles.accountSettingsSectionTitle}
                         childrenStyles={styles.pt5}
                     >
+                        <View
+                            ref={threeDotsMenuContainerRef}
+                            style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}
+                        >
+                            <View>
+                                <MenuItem
+                                    title={translate('workspace.accounting.qbo')}
+                                    description={translate('workspace.accounting.lastSync')}
+                                    icon={Expensicons.QBORound}
+                                    iconHeight={variables.avatarSizeNormal}
+                                    iconWidth={variables.avatarSizeNormal}
+                                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                                    interactive={false}
+                                />
+                            </View>
+                            <ThreeDotsMenu
+                                onIconPress={() => {
+                                    threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
+                                        setThreeDotsMenuPosition({
+                                            horizontal: x + width,
+                                            vertical: y + height,
+                                        });
+                                    });
+                                }}
+                                menuItems={threeDotsMenuItems}
+                                anchorPosition={threeDotsMenuPosition}
+                                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                                shouldOverlay
+                            />{' '}
+                        </View>
                         <MenuItemList
                             menuItems={menuItems}
                             shouldUseSingleExecution
