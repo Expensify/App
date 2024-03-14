@@ -68,7 +68,7 @@ function OnboardingPurpose() {
         // Only navigate to concierge chat when central pane is visible
         // Otherwise stay on the chats screen.
         if (isSmallScreenWidth) {
-            Navigation.navigate(ROUTES.HOME);
+            Navigation.navigate(ROUTES.ROOT);
         } else {
             Report.navigateToConciergeChat();
         }
@@ -121,7 +121,7 @@ function OnboardingPurpose() {
                     />
                 </View>
             </ScrollView>
-            <View style={[styles.pb5, paddingHorizontal]}>
+            <View style={[styles.pb8, paddingHorizontal]}>
                 <Button
                     success
                     onPress={completeEngagement}
