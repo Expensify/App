@@ -194,7 +194,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION) {
                 return false;
             }
-            return !ReportUtils.shouldDisableThread(reportAction, reportID, isArchivedRoom);
+            return !ReportUtils.shouldDisableThread(reportAction, reportID);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             if (closePopover) {

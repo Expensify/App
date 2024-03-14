@@ -679,13 +679,20 @@ describe('ReportUtils', () => {
         });
 
         it('should disable on archived reports and not-thread actions', () => {
-            const reportAction = {
-                childVisibleActionCount: 1,
-            };
-            expect(ReportUtils.shouldDisableThread(reportAction, reportID, true)).toBeFalsy();
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            })
+                .then(() => waitForBatchedUpdates())
+                .then(() => {
+                    const reportAction = {
+                        childVisibleActionCount: 1,
+                    };
+                    expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeFalsy();
 
-            reportAction.childVisibleActionCount = 0;
-            expect(ReportUtils.shouldDisableThread(reportAction, reportID, true)).toBeTruthy();
+                    reportAction.childVisibleActionCount = 0;
+                    expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+                });
         });
 
         it("should disable on a whisper action and it's neither a report preview nor IOU action", () => {
