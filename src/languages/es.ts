@@ -1257,17 +1257,17 @@ export default {
         welcomeVideo: {
             title: 'Bienvenido a Expensify',
             description: 'Cobrar es tan fácil como enviar un mensaje.',
-            button: "Vámonos",
+            button: 'Vámonos',
         },
-        whatsYourName: "¿Cómo te llamas?",
+        whatsYourName: '¿Cómo te llamas?',
         purpose: {
             title: '¿Qué quieres hacer hoy?',
             [CONST.ONBOARDING_CHOICES.TRACK]: 'Seguimiento fiscal de los gastos de las empresas',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Cobrar de mi empresa',
-            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: "Gestionar los gastos de mi equipo",
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Controlar y presupuestar los gastos personales',
             [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chatea y divide cuentas con tus amigos',
-            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: "Sólo estoy mirando",
+            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Sólo estoy mirando',
         },
         error: {
             requiredFirstName: 'Introduce tu nombre para continuar',
