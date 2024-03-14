@@ -3,7 +3,7 @@ import core from '@actions/core';
 import {context} from '@actions/github';
 import * as ActionUtils from '../../../libs/ActionUtils';
 import CONST from '../../../libs/CONST';
-import * as GithubUtils from '../../../libs/GithubUtils';
+import GithubUtils from '../../../libs/GithubUtils';
 
 type PlatformResult = 'success' | 'cancelled' | 'skipped' | 'failure';
 
@@ -27,13 +27,13 @@ function getDeployTableMessage(platformResult: PlatformResult) {
 /**
  * Comment Single PR
  */
-async function commentPR(PR, message) {
+async function commentPR(PR: number, message: string) {
     try {
         await GithubUtils.createComment(context.repo.repo, PR, message);
         console.log(`Comment created on #${PR} successfully 🎉`);
     } catch (err) {
         console.log(`Unable to write comment on #${PR} 😞`);
-        core.setFailed(err.message);
+        core.setFailed((err as Error).message);
     }
 }
 
@@ -44,10 +44,10 @@ async function run() {
     const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true});
     const version = core.getInput('DEPLOY_VERSION', {required: true});
 
-    const androidResult = getDeployTableMessage(core.getInput('ANDROID', {required: true}));
-    const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', {required: true}));
-    const iOSResult = getDeployTableMessage(core.getInput('IOS', {required: true}));
-    const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}));
+    const androidResult = getDeployTableMessage(core.getInput('ANDROID', {required: true}) as PlatformResult);
+    const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', {required: true}) as PlatformResult);
+    const iOSResult = getDeployTableMessage(core.getInput('IOS', {required: true}) as PlatformResult);
+    const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}) as PlatformResult);
 
     /**
      * @param deployer
@@ -55,13 +55,13 @@ async function run() {
      * @param prTitle
      * @returns
      */
-    function getDeployMessage(deployer, deployVerb, prTitle) {
+    function getDeployMessage(deployer: string, deployVerb: string, prTitle?: string) {
         let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
         message += ` by https://github.com/${deployer} in version: ${version} 🚀`;
         message += `\n\nplatform | result\n---|---\n🤖 android 🤖|${androidResult}\n🖥 desktop 🖥|${desktopResult}`;
         message += `\n🍎 iOS 🍎|${iOSResult}\n🕸 web 🕸|${webResult}`;
 
-        if (deployVerb === 'Cherry-picked' && !/no ?qa/gi.test(prTitle)) {
+        if (prTitle && deployVerb === 'Cherry-picked' && !/no ?qa/gi.test(prTitle)) {
             // eslint-disable-next-line max-len
             message +=
                 '\n\n@Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.';
@@ -122,10 +122,10 @@ async function run() {
             repo: CONST.APP_REPO,
             pull_number: prNumber,
         });
-        const deployer = isCP ? commit.committer.name : pr.merged_by.login;
+        const deployer = isCP ? commit.committer.name : pr.merged_by?.login;
 
         const title = pr.title;
-        const deployMessage = getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed', title);
+        const deployMessage = deployer ? getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed', title) : '';
         await commentPR(prNumber, deployMessage);
     }
 }
