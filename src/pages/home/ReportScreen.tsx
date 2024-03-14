@@ -123,7 +123,7 @@ function ReportScreen({
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const isFocused = useIsFocused();
-
+    const prevIsFocused = usePrevious(isFocused);
     const firstRenderRef = useRef(true);
     const flatListRef = useRef<FlatList>(null);
     const reactionListRef = useRef<ReactionListRef>(null);
@@ -362,13 +362,15 @@ function ReportScreen({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Open report when the user has left the thread and go back with back button
     useEffect(() => {
-        if (!isFocused || !ReportUtils.isChatThread(report) || report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+        if (!isFocused || prevIsFocused || !ReportUtils.isChatThread(report) || report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
             return;
         }
-
         Report.openReport(report.reportID);
-    }, [isFocused, report]);
+        // I'm disabling the warning because we don't want run this useEffect when report is changed
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [prevIsFocused, report.notificationPreference, isFocused]);
 
     useEffect(() => {
         // We don't want this effect to run on the first render.
