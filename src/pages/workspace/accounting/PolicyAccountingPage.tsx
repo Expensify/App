@@ -29,6 +29,11 @@ function PolicyAccountingPage() {
                 icon: Expensicons.QBORound,
                 action: undefined,
             },
+            {
+                translationKey: 'workspace.accounting.xero',
+                icon: Expensicons.XeroRound,
+                action: undefined,
+            },
         ];
 
         return baseMenuItems.map((item) => ({
