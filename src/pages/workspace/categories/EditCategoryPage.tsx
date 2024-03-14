@@ -13,7 +13,6 @@ import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAcce
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyCategories} from '@src/types/onyx';
 import CategoryForm from './CategoryForm';
@@ -43,6 +42,7 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
                     includeSafeAreaPaddingBottom={false}
                     style={[styles.defaultModalContainer]}
                     testID={EditCategoryPage.displayName}
+                    shouldEnableMaxHeight
                 >
                     <HeaderWithBackButton
                         title={translate('workspace.categories.editCategory')}
