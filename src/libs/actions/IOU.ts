@@ -231,6 +231,14 @@ Onyx.connect({
     },
 });
 
+let quickAction: OnyxEntry<OnyxTypes.QuickAction> = {};
+Onyx.connect({
+    key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+    callback: (value) => {
+        quickAction = value;
+    },
+});
+
 /**
  * Initialize money request info
  * @param reportID to attach the transaction to
@@ -462,6 +470,10 @@ function buildOnyxDataForMoneyRequest(
     const outstandingChildRequest = getOutstandingChildRequest(policy ?? {}, iouReport);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const optimisticData: OnyxUpdate[] = [];
+    let newQuickAction = isScanRequest ? CONST.QUICK_ACTIONS.REQUEST_SCAN : CONST.QUICK_ACTIONS.REQUEST_MANUAL;
+    if (TransactionUtils.isDistanceRequest(transaction)) {
+        newQuickAction = CONST.QUICK_ACTIONS.REQUEST_DISTANCE;
+    }
 
     if (chatReport) {
         optimisticData.push({
@@ -497,7 +509,17 @@ function buildOnyxDataForMoneyRequest(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: transaction,
         },
-        isNewChatReport
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+            value:{
+                action: newQuickAction,
+                reportID: chatReport?.reportID,
+                isFirstQuickAction: isEmptyObject(quickAction);
+            },
+        },
+
+    isNewChatReport
             ? {
                   onyxMethod: Onyx.METHOD.SET,
                   key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
