@@ -58,6 +58,9 @@ require('./src/libs/E2E/reactNativeLaunchingTest');
 npm run test:e2e:dev
 ```
 
+> [!IMPORTANT]
+> If you are running tests on web don't forget to run `npx playwright install` for the first time.
+
 ### Running two release builds
 
 The e2e tests are meant to detect performance regressions. For that we need to compare two builds against each other. On the CI system this is e.g. the latest release build (baseline) VS the currently merged PR (compare).

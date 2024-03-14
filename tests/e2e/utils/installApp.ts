@@ -8,8 +8,13 @@ import * as Logger from './logger';
  * It removes the app first if it already exists, so it's a clean installation.
  */
 export default function (packageName: string, path: string, platform = 'android'): PromiseWithAbort {
-    if (platform !== 'android') {
+    if (platform !== 'android' && platform !== 'web') {
         throw new Error(`installApp() missing implementation for platform: ${platform}`);
+    }
+
+    if (platform === 'web') {
+        // do nothing since on web we don't actually install apps and instead simply open page in browser
+        return Promise.resolve();
     }
 
     // Uninstall first, then install

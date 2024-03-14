@@ -55,6 +55,8 @@ if (args.includes('--config')) {
     setConfigPath(configPath);
 }
 
+const platform = getArg('--platform') ?? 'android';
+
 // Important: set app path only after correct config file has been loaded
 const mainAppPath = getArg('--mainAppPath') ?? config.MAIN_APP_PATH;
 const deltaAppPath = getArg('--deltaAppPath') ?? config.DELTA_APP_PATH;
@@ -80,9 +82,9 @@ try {
 // START OF TEST CODE
 const runTests = async (): Promise<void> => {
     Logger.info('Installing apps and reversing port');
-    await installApp(config.MAIN_APP_PACKAGE, mainAppPath);
-    await installApp(config.DELTA_APP_PACKAGE, deltaAppPath);
-    await reversePort();
+    await installApp(config.MAIN_APP_PACKAGE, mainAppPath, platform);
+    await installApp(config.DELTA_APP_PACKAGE, deltaAppPath, platform);
+    await reversePort(platform);
 
     // Start the HTTP server
     const server = createServerInstance();
@@ -125,10 +127,10 @@ const runTests = async (): Promise<void> => {
 
         // Making sure the app is really killed (e.g. if a prior test run crashed)
         Logger.log('Killing', appPackage);
-        await killApp('android', appPackage);
+        await killApp(platform, appPackage);
 
         Logger.log('Launching', appPackage);
-        await launchApp('android', appPackage, config.ACTIVITY_PATH, launchArgs);
+        await launchApp(platform, appPackage, config.ACTIVITY_PATH, launchArgs);
 
         await withFailTimeout(
             new Promise<void>((resolve) => {
