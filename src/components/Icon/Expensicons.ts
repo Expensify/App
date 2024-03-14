@@ -154,6 +154,7 @@ import Wallet from '@assets/images/wallet.svg';
 import Workflows from '@assets/images/workflows.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Wrench from '@assets/images/wrench.svg';
+import XeroRound from '@assets/images/xero-icons/xero-icon-round.svg';
 import Zoom from '@assets/images/zoom.svg';
 
 export {
@@ -303,6 +304,7 @@ export {
     Wallet,
     Workflows,
     Workspace,
+    XeroRound,
     Zoom,
     Twitter,
     Youtube,
