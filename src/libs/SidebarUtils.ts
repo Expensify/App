@@ -64,7 +64,7 @@ function getOrderedReportIDs(
     allReports: OnyxCollection<Report>,
     betas: OnyxEntry<Beta[]>,
     policies: OnyxCollection<Policy>,
-    priorityMode: OnyxEntry<PriorityMode>,
+    priorityMode: PriorityMode,
     allReportActions: OnyxCollection<ReportActions>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentPolicyID = '',

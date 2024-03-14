@@ -582,6 +582,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.TAGS]: {
                             path: ROUTES.WORKSPACE_TAGS.route,
                         },
+                        [SCREENS.WORKSPACE.TAXES]: {
+                            path: ROUTES.WORKSPACE_TAXES.route,
+                        },
                         [SCREENS.WORKSPACE.DISTANCE_RATES]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATES.route,
                         },

@@ -40,6 +40,7 @@ import type {PolicyMembers} from './PolicyMember';
 import type PolicyMember from './PolicyMember';
 import type {PolicyReportField, PolicyReportFields} from './PolicyReportField';
 import type {PolicyTag, PolicyTagList, PolicyTags} from './PolicyTag';
+import type PreferredTheme from './PreferredTheme';
 import type PriorityMode from './PriorityMode';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
@@ -115,6 +116,7 @@ export type {
     PolicyTag,
     PolicyTags,
     PolicyTagList,
+    PreferredTheme,
     PriorityMode,
     PrivatePersonalDetails,
     RecentWaypoint,

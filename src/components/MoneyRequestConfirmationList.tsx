@@ -785,7 +785,7 @@ function MoneyRequestConfirmationList({
                             <MenuItemWithTopDescription
                                 key={name}
                                 shouldShowRightIcon={!isReadOnly}
-                                title={TransactionUtils.getTag(transaction, index)}
+                                title={TransactionUtils.getTagForDisplay(transaction, index)}
                                 description={name}
                                 numberOfLinesTitle={2}
                                 onPress={() => {

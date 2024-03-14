@@ -17,7 +17,7 @@ type OnyxProps = {
     allReportActions: OnyxCollection<ReportActions>;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     policyMembers: OnyxCollection<PolicyMembers>;
-    priorityMode: OnyxEntry<PriorityMode>;
+    priorityMode: PriorityMode;
 };
 
 type WithReportIDsContextProviderProps = OnyxProps & {
