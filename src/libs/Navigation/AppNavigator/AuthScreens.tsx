@@ -6,6 +6,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
+import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -126,6 +127,7 @@ function handleNetworkReconnect() {
     if (isLoadingApp) {
         App.openApp();
     } else {
+        Log.info('[handleNetworkReconnect] Sending ReconnectApp');
         App.reconnectApp(lastUpdateIDAppliedToClient);
     }
 }
@@ -189,6 +191,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         if (SessionUtils.didUserLogInDuringSession()) {
             App.openApp();
         } else {
+            Log.info('[AuthScreens] Sending ReconnectApp');
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
