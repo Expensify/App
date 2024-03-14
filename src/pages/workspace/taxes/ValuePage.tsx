@@ -14,6 +14,9 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,37 +58,45 @@ function ValuePage({
         [goBack, policyID, taxID],
     );
 
-    return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
-            testID={ValuePage.displayName}
-        >
-            <HeaderWithBackButton
-                title={translate('workspace.taxes.value')}
-                onBackButtonPress={goBack}
-            />
+    if (!currentTaxRate) {
+        return <NotFoundPage />;
+    }
 
-            <FormProvider
-                formID={ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM}
-                submitButtonText={translate('workspace.editor.save')}
-                style={[styles.flexGrow1, styles.ph5]}
-                scrollContextEnabled
-                validate={validate}
-                onSubmit={submit}
-                enabledWhenOffline
-                disablePressOnEnter={false}
-            >
-                <InputWrapper
-                    InputComponent={AmountForm}
-                    inputID={INPUT_IDS.VALUE}
-                    defaultValue={value}
-                    onInputChange={setValue}
-                    hideCurrencySymbol
-                    extraSymbol={<Text style={styles.iouAmountText}>%</Text>}
-                />
-            </FormProvider>
-        </ScreenWrapper>
+    return (
+        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
+            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
+                <ScreenWrapper
+                    includeSafeAreaPaddingBottom={false}
+                    shouldEnableMaxHeight
+                    testID={ValuePage.displayName}
+                >
+                    <HeaderWithBackButton
+                        title={translate('workspace.taxes.value')}
+                        onBackButtonPress={goBack}
+                    />
+
+                    <FormProvider
+                        formID={ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM}
+                        submitButtonText={translate('workspace.editor.save')}
+                        style={[styles.flexGrow1, styles.ph5]}
+                        scrollContextEnabled
+                        validate={validate}
+                        onSubmit={submit}
+                        enabledWhenOffline
+                        disablePressOnEnter={false}
+                    >
+                        <InputWrapper
+                            InputComponent={AmountForm}
+                            inputID={INPUT_IDS.VALUE}
+                            defaultValue={value}
+                            onInputChange={setValue}
+                            hideCurrencySymbol
+                            extraSymbol={<Text style={styles.iouAmountText}>%</Text>}
+                        />
+                    </FormProvider>
+                </ScreenWrapper>
+            </PaidPolicyAccessOrNotFoundWrapper>
+        </AdminPolicyAccessOrNotFoundWrapper>
     );
 }
 

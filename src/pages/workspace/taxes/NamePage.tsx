@@ -14,6 +14,9 @@ import {renamePolicyTax} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
@@ -46,41 +49,49 @@ function NamePage({
         goBack();
     };
 
-    return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
-            testID={NamePage.displayName}
-        >
-            <HeaderWithBackButton
-                title={translate('common.name')}
-                onBackButtonPress={goBack}
-            />
+    if (!currentTaxRate) {
+        return <NotFoundPage />;
+    }
 
-            <FormProvider
-                formID={ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM}
-                submitButtonText={translate('workspace.editor.save')}
-                style={[styles.flexGrow1, styles.ph5]}
-                scrollContextEnabled
-                onSubmit={submit}
-                enabledWhenOffline
-            >
-                <View style={styles.mb4}>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        role={CONST.ROLE.PRESENTATION}
-                        inputID={INPUT_IDS.NAME}
-                        label={translate('workspace.editor.nameInputLabel')}
-                        accessibilityLabel={translate('workspace.editor.nameInputLabel')}
-                        value={name}
-                        maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
-                        onChangeText={setName}
-                        multiline={false}
-                        ref={inputCallbackRef}
+    return (
+        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
+            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
+                <ScreenWrapper
+                    includeSafeAreaPaddingBottom={false}
+                    shouldEnableMaxHeight
+                    testID={NamePage.displayName}
+                >
+                    <HeaderWithBackButton
+                        title={translate('common.name')}
+                        onBackButtonPress={goBack}
                     />
-                </View>
-            </FormProvider>
-        </ScreenWrapper>
+
+                    <FormProvider
+                        formID={ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM}
+                        submitButtonText={translate('workspace.editor.save')}
+                        style={[styles.flexGrow1, styles.ph5]}
+                        scrollContextEnabled
+                        onSubmit={submit}
+                        enabledWhenOffline
+                    >
+                        <View style={styles.mb4}>
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                role={CONST.ROLE.PRESENTATION}
+                                inputID={INPUT_IDS.NAME}
+                                label={translate('workspace.editor.nameInputLabel')}
+                                accessibilityLabel={translate('workspace.editor.nameInputLabel')}
+                                value={name}
+                                maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
+                                onChangeText={setName}
+                                multiline={false}
+                                ref={inputCallbackRef}
+                            />
+                        </View>
+                    </FormProvider>
+                </ScreenWrapper>
+            </PaidPolicyAccessOrNotFoundWrapper>
+        </AdminPolicyAccessOrNotFoundWrapper>
     );
 }
 

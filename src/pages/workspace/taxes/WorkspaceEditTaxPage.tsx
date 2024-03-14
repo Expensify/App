@@ -15,6 +15,9 @@ import {deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import ROUTES from '@src/ROUTES';
@@ -24,7 +27,7 @@ type WorkspaceEditTaxPageBaseProps = WithPolicyAndFullscreenLoadingProps & Stack
 
 function WorkspaceEditTaxPage({
     route: {
-        params: {taxID},
+        params: {policyID, taxID},
     },
     policy,
 }: WorkspaceEditTaxPageBaseProps) {
@@ -61,63 +64,71 @@ function WorkspaceEditTaxPage({
         return menuItems;
     }, [translate]);
 
+    if (!currentTaxRate) {
+        return <NotFoundPage />;
+    }
+
     return (
-        <ScreenWrapper
-            testID={WorkspaceEditTaxPage.displayName}
-            style={styles.mb5}
-        >
-            <View style={[styles.h100, styles.flex1, styles.justifyContentBetween]}>
-                <View>
-                    <HeaderWithBackButton
-                        title={currentTaxRate?.name}
-                        threeDotsMenuItems={threeDotsMenuItems}
-                        shouldShowThreeDotsButton
-                        threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
-                    />
-                    {taxID ? (
-                        // TODO: Extract it to a separate component or use a common one
-                        <View style={[styles.flexRow, styles.mv4, styles.justifyContentBetween, styles.ph5]}>
-                            <View style={styles.flex4}>
-                                <Text>Enable rate</Text>
-                            </View>
-                            <View style={[styles.flex1, styles.alignItemsEnd]}>
-                                <Switch
-                                    accessibilityLabel="TODO"
-                                    isOn={!currentTaxRate?.isDisabled}
-                                    onToggle={toggle}
-                                />
-                            </View>
+        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
+            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
+                <ScreenWrapper
+                    testID={WorkspaceEditTaxPage.displayName}
+                    style={styles.mb5}
+                >
+                    <View style={[styles.h100, styles.flex1, styles.justifyContentBetween]}>
+                        <View>
+                            <HeaderWithBackButton
+                                title={currentTaxRate?.name}
+                                threeDotsMenuItems={threeDotsMenuItems}
+                                shouldShowThreeDotsButton
+                                threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
+                            />
+                            {taxID ? (
+                                // TODO: Extract it to a separate component or use a common one
+                                <View style={[styles.flexRow, styles.mv4, styles.justifyContentBetween, styles.ph5]}>
+                                    <View style={styles.flex4}>
+                                        <Text>Enable rate</Text>
+                                    </View>
+                                    <View style={[styles.flex1, styles.alignItemsEnd]}>
+                                        <Switch
+                                            accessibilityLabel="TODO"
+                                            isOn={!currentTaxRate?.isDisabled}
+                                            onToggle={toggle}
+                                        />
+                                    </View>
+                                </View>
+                            ) : null}
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={currentTaxRate?.name}
+                                description={translate('common.name')}
+                                style={[styles.moneyRequestMenuItem]}
+                                titleStyle={styles.flex1}
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_NAME.getRoute(`${policy?.id}`, taxID))}
+                            />
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={currentTaxRate?.value}
+                                description={translate('workspace.taxes.value')}
+                                style={[styles.moneyRequestMenuItem]}
+                                titleStyle={styles.flex1}
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_VALUE.getRoute(`${policy?.id}`, taxID))}
+                            />
                         </View>
-                    ) : null}
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        title={currentTaxRate?.name}
-                        description={translate('common.name')}
-                        style={[styles.moneyRequestMenuItem]}
-                        titleStyle={styles.flex1}
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_NAME.getRoute(`${policy?.id}`, taxID))}
+                    </View>
+                    <ConfirmModal
+                        title={translate('workspace.taxes.actions.delete')}
+                        isVisible={isDeleteModalVisible}
+                        onConfirm={deleteTax}
+                        onCancel={() => setIsDeleteModalVisible(false)}
+                        prompt={translate('workspace.taxes.deleteTaxConfirmation')}
+                        confirmText={translate('common.delete')}
+                        cancelText={translate('common.cancel')}
+                        danger
                     />
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        title={currentTaxRate?.value}
-                        description={translate('workspace.taxes.value')}
-                        style={[styles.moneyRequestMenuItem]}
-                        titleStyle={styles.flex1}
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_VALUE.getRoute(`${policy?.id}`, taxID))}
-                    />
-                </View>
-            </View>
-            <ConfirmModal
-                title={translate('workspace.taxes.actions.delete')}
-                isVisible={isDeleteModalVisible}
-                onConfirm={deleteTax}
-                onCancel={() => setIsDeleteModalVisible(false)}
-                prompt={translate('workspace.taxes.deleteTaxConfirmation')}
-                confirmText={translate('common.delete')}
-                cancelText={translate('common.cancel')}
-                danger
-            />
-        </ScreenWrapper>
+                </ScreenWrapper>
+            </PaidPolicyAccessOrNotFoundWrapper>
+        </AdminPolicyAccessOrNotFoundWrapper>
     );
 }
 
