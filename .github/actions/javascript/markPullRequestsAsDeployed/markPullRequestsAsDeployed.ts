@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import core from '@actions/core';
 import {context} from '@actions/github';
 import * as ActionUtils from '../../../libs/ActionUtils';
