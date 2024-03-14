@@ -2759,6 +2759,7 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                     [policyCategory.newName]: {
                         ...policyCategoryToUpdate,
                         name: policyCategory.newName,
+                        unencodedName: encodeURIComponent(policyCategory.newName),
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                 },
@@ -2773,6 +2774,7 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                     [policyCategory.newName]: {
                         ...policyCategoryToUpdate,
                         name: policyCategory.newName,
+                        unencodedName: encodeURIComponent(policyCategory.newName),
                         errors: null,
                         pendingAction: null,
                     },
@@ -2788,6 +2790,7 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                     [policyCategory.oldName]: {
                         ...policyCategoryToUpdate,
                         name: policyCategory.oldName,
+                        unencodedName: encodeURIComponent(policyCategory.oldName),
                         errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.genericFailureMessage'),
                         pendingAction: null,
                     },
