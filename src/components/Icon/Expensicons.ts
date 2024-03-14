@@ -116,7 +116,7 @@ import Play from '@assets/images/play.svg';
 import Plus from '@assets/images/plus.svg';
 import Printer from '@assets/images/printer.svg';
 import Profile from '@assets/images/profile.svg';
-import QBORound from '@assets/images/qbo-icons/qbo-icon-round.svg'
+import QBORound from '@assets/images/qbo-icons/qbo-icon-round.svg';
 import QrCode from '@assets/images/qrcode.svg';
 import QuestionMark from '@assets/images/question-mark-circle.svg';
 import ReceiptSearch from '@assets/images/receipt-search.svg';
