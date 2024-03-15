@@ -985,20 +985,18 @@ const CONST = {
 
     TOOLTIP_MAX_LINES: 3,
 
-    TAX_DEFAULT_RATES: {
-        defaultExternalID: 'id_TAX_EXEMPT',
-        defaultValue: '0%',
-        foreignTaxDefault: 'id_TAX_EXEMPT',
-        name: 'Tax',
-        taxes: {
-            id_TAX_EXEMPT: {
-                name: 'Tax exempt',
-                value: '0%',
-            },
-            id_TAX_RATE_1: {
-                name: 'Tax Rate 1',
-                value: '5%',
-            },
+    TAXES: {
+        DEFAULT: {
+            EXTERNAL_ID: 'id_TAX_EXEMPT',
+            FOREIGN_ID: 'id_TAX_EXEMPT',
+            VALUE: '0%',
+            EXEMPT_ID: 'id_TAX_EXEMPT',
+            NAME: 'Tax',
+            EXEMPT_NAME: 'Tax exempt',
+            EXEMPT_VALUE: '0%',
+            TAX_RATE_1_ID: 'id_TAX_RATE_1',
+            TAX_RATE_1_NAME: 'Tax Rate 1',
+            TAX_RATE_1_VALUE: '5%',
         },
     },
 

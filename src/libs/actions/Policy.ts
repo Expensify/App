@@ -3421,7 +3421,24 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    taxRates: CONST.TAX_DEFAULT_RATES,
+                    taxRates: {
+                        defaultExternalID: CONST.TAXES.DEFAULT.EXTERNAL_ID,
+                        defaultValue: CONST.TAXES.DEFAULT.VALUE,
+                        foreignTaxDefault: CONST.TAXES.DEFAULT.FOREIGN_ID,
+                        name: CONST.TAXES.DEFAULT.NAME,
+                        taxes: {
+                            [CONST.TAXES.DEFAULT.EXEMPT_ID]: {
+                                name: CONST.TAXES.DEFAULT.EXEMPT_NAME,
+                                value: CONST.TAXES.DEFAULT.EXEMPT_VALUE,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                            [CONST.TAXES.DEFAULT.TAX_RATE_1_ID]: {
+                                name: CONST.TAXES.DEFAULT.TAX_RATE_1_NAME,
+                                value: CONST.TAXES.DEFAULT.TAX_RATE_1_VALUE,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        },
+                    },
                 },
             },
         ],
