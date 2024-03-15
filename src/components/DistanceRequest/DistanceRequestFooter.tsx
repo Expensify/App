@@ -96,7 +96,7 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
                         onPress={() => navigateToWaypointEditPage(Object.keys(transaction?.comment?.waypoints ?? {}).length)}
                         text={translate('distance.addStop')}
                         isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
-                        innerStyles={[styles.ph10]}
+                        innerStyles={[styles.pl10, styles.pr10]}
                     />
                 </View>
             )}

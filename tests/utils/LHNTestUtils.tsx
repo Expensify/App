@@ -293,7 +293,6 @@ function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
              *  */}
             <ReportIDsContextProvider currentReportIDForTests={currentReportID}>
                 <SidebarLinksData
-                    // @ts-expect-error TODO: Remove this once SidebarLinksData (https://github.com/Expensify/App/issues/25220) is migrated to TypeScript.
                     onLinkClick={() => {}}
                     insets={{
                         top: 0,
@@ -301,7 +300,7 @@ function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
                         right: 0,
                         bottom: 0,
                     }}
-                    isSmallScreenWidth={false}
+                    // @ts-expect-error - normally this comes from withCurrentReportID hoc, but here we are just mocking this
                     currentReportID={currentReportID}
                 />
             </ReportIDsContextProvider>

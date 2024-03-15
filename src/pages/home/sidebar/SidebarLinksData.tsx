@@ -1,67 +1,68 @@
+import {useIsFocused} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import networkPropTypes from '@components/networkPropTypes';
-import {withNetwork} from '@components/OnyxProvider';
+import type {EdgeInsets} from 'react-native-safe-area-context';
+import type {ValueOf} from 'type-fest';
+import type {CurrentReportIDContextValue} from '@components/withCurrentReportID';
 import withCurrentReportID from '@components/withCurrentReportID';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
-import withNavigationFocus from '@components/withNavigationFocus';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import {useReportIDs} from '@hooks/useReportIDs';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SidebarLinks, {basePropTypes} from './SidebarLinks';
+import type * as OnyxTypes from '@src/types/onyx';
+import SidebarLinks from './SidebarLinks';
 
-const propTypes = {
-    ...basePropTypes,
+type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatar'>;
 
-    /** Whether the reports are loading. When false it means they are ready to be used. */
-    isLoadingApp: PropTypes.bool,
+type SidebarLinksDataOnyxProps = {
+    /** Wheather the reports are loading. When false it means they are ready to be used. */
+    isLoadingApp: OnyxEntry<boolean>;
 
     /** The chat priority mode */
-    priorityMode: PropTypes.string,
+    priorityMode: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>;
 
-    network: networkPropTypes.isRequired,
-
-    // eslint-disable-next-line react/forbid-prop-types
-    policyMembers: PropTypes.object,
-
-    ...withCurrentUserPersonalDetailsPropTypes,
+    /** All policy members */
+    policyMembers: OnyxCollection<OnyxTypes.PolicyMembers>;
 };
 
-const defaultProps = {
-    isLoadingApp: true,
-    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
-    policyMembers: {},
-    ...withCurrentUserPersonalDetailsDefaultProps,
-};
+type SidebarLinksDataProps = CurrentReportIDContextValue &
+    SidebarLinksDataOnyxProps & {
+        /** Toggles the navigation menu open and closed */
+        onLinkClick: () => void;
 
-function SidebarLinksData({isFocused, currentReportID, insets, isLoadingApp, onLinkClick, priorityMode, network, policyMembers, currentUserPersonalDetails}) {
+        /** Safe area insets required for mobile devices margins */
+        insets: EdgeInsets;
+    };
+
+function SidebarLinksData({insets, isLoadingApp = true, onLinkClick, priorityMode = CONST.PRIORITY_MODE.DEFAULT, policyMembers, currentReportID}: SidebarLinksDataProps) {
+    const {accountID} = useCurrentUserPersonalDetails();
+    const network = useNetwork();
+    const isFocused = useIsFocused();
     const styles = useThemeStyles();
     const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
     const prevPriorityMode = usePrevious(priorityMode);
-
-    const policyMemberAccountIDs = getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, currentUserPersonalDetails.accountID);
-
+    const policyMemberAccountIDs = getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, accountID);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => Policy.openWorkspace(activeWorkspaceID, policyMemberAccountIDs), [activeWorkspaceID]);
+    useEffect(() => Policy.openWorkspace(activeWorkspaceID ?? '', policyMemberAccountIDs), [activeWorkspaceID]);
 
-    const orderedReportIDsRef = useRef(null);
+    const orderedReportIDsRef = useRef<string[] | null>(null);
     const isLoading = isLoadingApp;
     const {orderedReportIDs} = useReportIDs();
 
     const optionListItems = useMemo(() => {
         if (deepEqual(orderedReportIDsRef.current, orderedReportIDs)) {
-            return orderedReportIDsRef.current;
+            return orderedReportIDsRef.current ?? [];
         }
 
         // 1. We need to update existing reports only once while loading because they are updated several times during loading and causes this regression: https://github.com/Expensify/App/issues/24596#issuecomment-1681679531
@@ -75,7 +76,7 @@ function SidebarLinksData({isFocused, currentReportID, insets, isLoadingApp, onL
 
     const currentReportIDRef = useRef(currentReportID);
     currentReportIDRef.current = currentReportID;
-    const isActiveReport = useCallback((reportID) => currentReportIDRef.current === reportID, []);
+    const isActiveReport = useCallback((reportID: string): boolean => currentReportIDRef.current === reportID, []);
 
     return (
         <View
@@ -98,16 +99,10 @@ function SidebarLinksData({isFocused, currentReportID, insets, isLoadingApp, onL
     );
 }
 
-SidebarLinksData.propTypes = propTypes;
-SidebarLinksData.defaultProps = defaultProps;
 SidebarLinksData.displayName = 'SidebarLinksData';
 
-export default compose(
-    withCurrentReportID,
-    withCurrentUserPersonalDetails,
-    withNavigationFocus,
-    withNetwork(),
-    withOnyx({
+export default withCurrentReportID(
+    withOnyx<SidebarLinksDataProps, SidebarLinksDataOnyxProps>({
         isLoadingApp: {
             key: ONYXKEYS.IS_LOADING_APP,
         },
@@ -118,5 +113,7 @@ export default compose(
         policyMembers: {
             key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
         },
-    }),
-)(SidebarLinksData);
+    })(SidebarLinksData),
+);
+
+export type {PolicySelector};
