@@ -1,7 +1,7 @@
 import {randAvatar, randEmail, randWord} from '@ngneat/falso';
 import type {PersonalDetails} from '@src/types/onyx';
 
-export default function createPersonalDetails(index: number, shouldDetailsBeEmpty: boolean = false): PersonalDetails {
+export default function createPersonalDetails(index: number, shouldDetailsBeEmpty = false): PersonalDetails {
     if (shouldDetailsBeEmpty) {
         return {
             accountID: index,
