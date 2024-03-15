@@ -1,6 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import lodashIsEmpty from 'lodash/isEmpty';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -70,9 +69,6 @@ type ReportScreenOnyxProps = {
     /** Whether the composer is full size */
     isComposerFullSize: OnyxEntry<boolean>;
 
-    /** All the report actions stored in Onyx */
-    allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
-
     /** All the report actions for this report */
     reportActions: OnyxTypes.ReportAction[];
 
@@ -112,7 +108,6 @@ function ReportScreen({
         isLoadingNewerReportActions: false,
     },
     reportActions = [],
-    allReportActions = {},
     parentReportAction,
     accountManagerReportID,
     markReadyForHydration,
@@ -250,15 +245,6 @@ function ReportScreen({
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? null;
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
-    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {});
-    const transactionThreadReportActions = useMemo(() => {
-        if (transactionThreadReportID === '0') {
-            return [];
-        }
-
-        const actions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? [];
-        return ReportActionsUtils.getSortedReportActionsForDisplay(actions);
-    }, [allReportActions, transactionThreadReportID]);
 
     useEffect(() => {
         if (!report.reportID || shouldHideReport) {
@@ -533,11 +519,7 @@ function ReportScreen({
                             >
                                 {isReportReadyForDisplay && !isLoadingInitialReportActions && !isLoading && (
                                     <ReportActionsView
-                                        reportActions={
-                                            lodashIsEmpty(transactionThreadReportActions)
-                                                ? reportActions
-                                                : ReportActionsUtils.getCombinedReportActionsForDisplay(reportActions, transactionThreadReportActions)
-                                        }
+                                        reportActions={reportActions}
                                         report={report}
                                         parentReportAction={parentReportAction}
                                         isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
@@ -585,9 +567,6 @@ export default withViewportOffsetTop(
                     key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
                     canEvict: false,
                     selector: (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
-                },
-                allReportActions: {
-                    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                 },
                 report: {
                     key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
@@ -640,7 +619,6 @@ export default withViewportOffsetTop(
                 (prevProps, nextProps) =>
                     prevProps.isSidebarLoaded === nextProps.isSidebarLoaded &&
                     lodashIsEqual(prevProps.reportActions, nextProps.reportActions) &&
-                    lodashIsEqual(prevProps.allReportActions, nextProps.allReportActions) &&
                     lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
                     prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
                     lodashIsEqual(prevProps.betas, nextProps.betas) &&

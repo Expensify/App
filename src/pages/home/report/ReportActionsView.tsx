@@ -1,4 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
+import lodashIsEmpty from 'lodash/isEmpty';
 import lodashIsEqual from 'lodash/isEqual';
 import lodashThrottle from 'lodash/throttle';
 import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
@@ -28,6 +29,9 @@ import type {LoadNewerChats} from './ReportActionsList';
 type ReportActionsViewOnyxProps = {
     /** Session info for the currently logged in user. */
     session: OnyxEntry<OnyxTypes.Session>;
+
+    /** Array of report actions for the transaction thread report associated with the current report */
+    transactionThreadReportActions?: OnyxTypes.ReportAction[];
 };
 
 type ReportActionsViewProps = ReportActionsViewOnyxProps & {
@@ -55,6 +59,7 @@ function ReportActionsView({
     session,
     parentReportAction,
     reportActions = [],
+    transactionThreadReportActions = [],
     isLoadingInitialReportActions = false,
     isLoadingOlderReportActions = false,
     isLoadingNewerReportActions = false,
@@ -64,8 +69,11 @@ function ReportActionsView({
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
     const isFirstRender = useRef(true);
-    const hasCachedActions = useInitialValue(() => reportActions.length > 0);
-    const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActions), [reportActions]);
+    const combinedReportActions = useMemo(() => {
+        return lodashIsEmpty(transactionThreadReportActions) ? reportActions : ReportActionsUtils.getCombinedReportActionsForDisplay(reportActions, transactionThreadReportActions);
+    }, [reportActions, transactionThreadReportActions]);
+    const hasCachedActions = useInitialValue(() => combinedReportActions.length > 0);
+    const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(combinedReportActions), [combinedReportActions]);
     const network = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
     const prevNetworkRef = useRef(network);
@@ -75,7 +83,7 @@ function ReportActionsView({
 
     const isFocused = useIsFocused();
     const reportID = report.reportID;
-    const hasNewestReportAction = reportActions[0]?.isNewestReportAction;
+    const hasNewestReportAction = combinedReportActions[0]?.isNewestReportAction;
 
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
 
@@ -136,7 +144,7 @@ function ReportActionsView({
         // update ref with current state
         prevIsSmallScreenWidthRef.current = isSmallScreenWidth;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isSmallScreenWidth, reportActions, isReportFullyVisible]);
+    }, [isSmallScreenWidth, combinedReportActions, isReportFullyVisible]);
 
     useEffect(() => {
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
@@ -150,7 +158,7 @@ function ReportActionsView({
         }
     }, [report.pendingFields, didSubscribeToReportTypingEvents, reportID]);
 
-    const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
+    const oldestReportAction = useMemo(() => combinedReportActions?.at(-1), [combinedReportActions]);
 
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
@@ -222,7 +230,7 @@ function ReportActionsView({
     }, [hasCachedActions]);
 
     // Comments have not loaded at all yet do nothing
-    if (!reportActions.length) {
+    if (!combinedReportActions.length) {
         return null;
     }
 
@@ -232,7 +240,7 @@ function ReportActionsView({
                 report={report}
                 parentReportAction={parentReportAction}
                 onLayout={recordTimeToMeasureItemLayout}
-                sortedReportActions={reportActions}
+                sortedReportActions={combinedReportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
@@ -250,6 +258,10 @@ ReportActionsView.initMeasured = false;
 
 function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActionsViewProps): boolean {
     if (!lodashIsEqual(oldProps.reportActions, newProps.reportActions)) {
+        return false;
+    }
+
+    if (!lodashIsEqual(oldProps.transactionThreadReportActions, newProps.transactionThreadReportActions)) {
         return false;
     }
 
@@ -282,6 +294,14 @@ export default Performance.withRenderTrace({id: '<ReportActionsView> rendering'}
     withOnyx<ReportActionsViewProps, ReportActionsViewOnyxProps>({
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        transactionThreadReportActions: {
+            key: ({reportActions}) => {
+                const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportActions ?? []);
+                return `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`;
+            },
+            canEvict: false,
+            selector: (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
         },
     })(MemoizedReportActionsView),
 );

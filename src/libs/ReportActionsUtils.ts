@@ -213,7 +213,7 @@ function isTransactionThread(parentReportAction: OnyxEntry<ReportAction> | Empty
     );
 }
 
-function getOneTransactionThreadReportID(reportActions: OnyxEntry<ReportActions>): string {
+function getOneTransactionThreadReportID(reportActions: OnyxEntry<ReportActions> | ReportAction[]): string {
     const reportActionsArray = Object.values(reportActions ?? {});
 
     if (!reportActionsArray.length) {
