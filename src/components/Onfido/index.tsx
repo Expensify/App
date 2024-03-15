@@ -1,14 +1,14 @@
-import lodashGet from 'lodash/get';
 import React, {useEffect, useRef} from 'react';
 import BaseOnfidoWeb from './BaseOnfidoWeb';
-import onfidoPropTypes from './onfidoPropTypes';
+import type {OnfidoElement, OnfidoProps} from './types';
 
-function Onfido({sdkToken, onSuccess, onError, onUserExit}) {
-    const baseOnfidoRef = useRef(null);
+function Onfido({sdkToken, onSuccess, onError, onUserExit}: OnfidoProps) {
+    const baseOnfidoRef = useRef<OnfidoElement>(null);
 
     useEffect(
         () => () => {
-            const onfidoOut = lodashGet(baseOnfidoRef.current, 'onfidoOut');
+            const onfidoOut = baseOnfidoRef.current?.onfidoOut;
+
             if (!onfidoOut) {
                 return;
             }
@@ -29,7 +29,6 @@ function Onfido({sdkToken, onSuccess, onError, onUserExit}) {
     );
 }
 
-Onfido.propTypes = onfidoPropTypes;
 Onfido.displayName = 'Onfido';
 
 export default Onfido;
