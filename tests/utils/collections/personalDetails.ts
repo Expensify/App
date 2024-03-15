@@ -7,6 +7,7 @@ export default function createPersonalDetails(index: number, shouldDetailsBeEmpt
             accountID: index,
         };
     }
+
     return {
         accountID: index,
         avatar: randAvatar(),
