@@ -30,7 +30,8 @@ function WorkspaceTaxesSettingsForeignCurrency({
     const styles = useThemeStyles();
 
     const defaultTaxName =
-        (policy?.taxRates?.foreignTaxDefault && `${policy.taxRates.taxes[policy.taxRates?.foreignTaxDefault].name} (${policy.taxRates.taxes[policy.taxRates?.foreignTaxDefault].value})`) ??
+        (policy?.taxRates?.foreignTaxDefault &&
+            `${policy?.taxRates.taxes[policy?.taxRates?.foreignTaxDefault].name} (${policy?.taxRates.taxes[policy?.taxRates?.foreignTaxDefault].value}) • ${translate('common.default')}`) ??
         '';
 
     const submit = ({keyForList}: ListItem) => {
@@ -56,6 +57,7 @@ function WorkspaceTaxesSettingsForeignCurrency({
                                     taxRates={policy?.taxRates}
                                     insets={insets}
                                     onSubmit={submit}
+                                    defaultTaxKey={policy?.taxRates?.foreignTaxDefault}
                                 />
                             </View>
                         </>

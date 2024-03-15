@@ -24,9 +24,12 @@ type TaxPickerProps = {
 
     /** Callback to fire when a tax is pressed */
     onSubmit: (tax: ListItem) => void;
+
+    /** Default key of selectedtax */
+    defaultTaxKey?: string;
 };
 
-function TaxPicker({selectedTaxRate = '', taxRates, insets, onSubmit}: TaxPickerProps) {
+function TaxPicker({selectedTaxRate = '', taxRates, insets, onSubmit, defaultTaxKey}: TaxPickerProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
@@ -38,9 +41,9 @@ function TaxPicker({selectedTaxRate = '', taxRates, insets, onSubmit}: TaxPicker
     const taxRatesCount = TransactionUtils.getEnabledTaxRateCount(taxRates?.taxes);
     const isTaxRatesCountBelowThreshold = taxRatesCount < CONST.TAX_RATES_LIST_THRESHOLD;
 
-    const defaultTaxKey = taxRates.defaultExternalID;
+    const defaultSelectedTaxKey = defaultTaxKey ?? taxRates.defaultExternalID;
 
-    const getModifiedName = (data: TaxRate, code: string) => `${data.name} (${data.value})${defaultTaxKey === code ? ` • ${translate('common.default')}` : ''}`;
+    const getModifiedName = (data: TaxRate, code: string) => `${data.name} (${data.value})${defaultSelectedTaxKey === code ? ` • ${translate('common.default')}` : ''}`;
 
     const shouldShowTextInput = !isTaxRatesCountBelowThreshold;
 
