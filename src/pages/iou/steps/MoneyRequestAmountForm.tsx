@@ -333,6 +333,7 @@ function MoneyRequestAmountForm(
                     allowBubble={!isEditing}
                     pressOnEnter
                     medium={isExtraSmallScreenHeight}
+                    large={!isExtraSmallScreenHeight}
                     style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt3]}
                     onPress={submitAndNavigateToNextPage}
                     text={buttonText}

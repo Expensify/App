@@ -724,8 +724,8 @@ function isOpenExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean {
 /**
  * Checks if the supplied report has a common policy member with the array passed in params.
  */
-function hasParticipantInArray(report: Report, policyMemberAccountIDs: number[]) {
-    if (!report.participantAccountIDs) {
+function hasParticipantInArray(report: OnyxEntry<Report>, policyMemberAccountIDs: number[]) {
+    if (!report?.participantAccountIDs) {
         return false;
     }
 
@@ -945,9 +945,10 @@ function isConciergeChatReport(report: OnyxEntry<Report>): boolean {
  * Checks if the supplied report belongs to workspace based on the provided params. If the report's policyID is _FAKE_ or has no value, it means this report is a DM.
  * In this case report and workspace members must be compared to determine whether the report belongs to the workspace.
  */
-function doesReportBelongToWorkspace(report: Report, policyMemberAccountIDs: number[], policyID?: string) {
+function doesReportBelongToWorkspace(report: OnyxEntry<Report>, policyMemberAccountIDs: number[], policyID?: string) {
     return (
-        isConciergeChatReport(report) || (report.policyID === CONST.POLICY.ID_FAKE || !report.policyID ? hasParticipantInArray(report, policyMemberAccountIDs) : report.policyID === policyID)
+        isConciergeChatReport(report) ||
+        (report?.policyID === CONST.POLICY.ID_FAKE || !report?.policyID ? hasParticipantInArray(report, policyMemberAccountIDs) : report?.policyID === policyID)
     );
 }
 
