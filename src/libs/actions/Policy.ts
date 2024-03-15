@@ -3480,9 +3480,9 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                     tax: {
                         trackingEnabled: !enabled,
                     },
+                    taxRates: undefined,
                     pendingFields: {
                         tax: null,
-                        taxRates: null,
                     },
                 },
             },
