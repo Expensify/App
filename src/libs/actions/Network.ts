@@ -1,6 +1,10 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+function setIsBackendReachable(isBackendReachable: boolean) {
+    Onyx.merge(ONYXKEYS.NETWORK, {isBackendReachable});
+}
+
 function setIsOffline(isOffline: boolean) {
     Onyx.merge(ONYXKEYS.NETWORK, {isOffline});
 }
@@ -20,4 +24,4 @@ function setShouldFailAllRequests(shouldFailAllRequests: boolean) {
     Onyx.merge(ONYXKEYS.NETWORK, {shouldFailAllRequests});
 }
 
-export {setIsOffline, setShouldForceOffline, setShouldFailAllRequests, setTimeSkew};
+export {setIsBackendReachable, setIsOffline, setShouldForceOffline, setShouldFailAllRequests, setTimeSkew};

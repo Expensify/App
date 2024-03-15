@@ -256,6 +256,7 @@ export default {
         conciergeHelp: 'Por favor, contacta con Concierge para obtener ayuda.',
         maxParticipantsReached: ({count}: MaxParticipantsReachedParams) => `Has seleccionado el número máximo (${count}) de participantes.`,
         youAppearToBeOffline: 'Parece que estás desconectado.',
+        weMightHaveProblem: 'We might have a problem. Check out',
         thisFeatureRequiresInternet: 'Esta función requiere una conexión a Internet activa para ser utilizada.',
         areYouSure: '¿Estás seguro?',
         verify: 'Verifique',
