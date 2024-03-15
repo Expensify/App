@@ -39,7 +39,7 @@ function ProfileAvatarWithIndicator({isLoading = true, isSelected = false}: Prof
     );
 }
 
-ProfileAvatarWithIndicator.displayName = 'PressableAvatarWithIndicator';
+ProfileAvatarWithIndicator.displayName = 'ProfileAvatarWithIndicator';
 
 export default withOnyx<ProfileAvatarWithIndicatorProps, ProfileAvatarWithIndicatorOnyxProps>({
     isLoading: {
