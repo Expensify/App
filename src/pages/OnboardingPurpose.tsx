@@ -123,6 +123,7 @@ function OnboardingPurpose() {
             </ScrollView>
             <View style={[styles.pb5, paddingHorizontal]}>
                 <Button
+                    large
                     success
                     onPress={completeEngagement}
                     isDisabled={!selectedPurpose}

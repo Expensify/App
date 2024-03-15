@@ -132,6 +132,7 @@ function OnboardingWelcomeVideo() {
                         <Text style={styles.textSupporting}>{translate('onboarding.welcomeVideo.description')}</Text>
                     </View>
                     <Button
+                        large
                         success
                         pressOnEnter
                         onPress={closeModal}
