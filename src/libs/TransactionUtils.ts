@@ -4,17 +4,14 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {RecentWaypoint, Report, ReportAction, TaxRate, TaxRates, TaxRatesWithDefault, Transaction, TransactionViolation} from '@src/types/onyx';
-import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
+import type {RecentWaypoint, Report, TaxRate, TaxRates, TaxRatesWithDefault, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
 import {getCleanedTagName} from './PolicyUtils';
-import type {OptimisticIOUReportAction} from './ReportUtils';
 
 let allTransactions: OnyxCollection<Transaction> = {};
 
@@ -259,15 +256,6 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
     };
 
     return updatedTransaction;
-}
-
-/**
- * Retrieve the particular transaction object given its ID.
- *
- * @deprecated Use withOnyx() or Onyx.connect() instead
- */
-function getTransaction(transactionID: string): OnyxEntry<Transaction> | EmptyObject {
-    return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
 }
 
 /**
@@ -527,22 +515,6 @@ function hasRoute(transaction: OnyxEntry<Transaction>): boolean {
     return !!transaction?.routes?.route0?.geometry?.coordinates;
 }
 
-/**
- * Get the transactions related to a report preview with receipts
- * Get the details linked to the IOU reportAction
- *
- * @deprecated Use Onyx.connect() or withOnyx() instead
- */
-function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): Transaction | EmptyObject {
-    let transactionID = '';
-
-    if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
-        transactionID = (reportAction?.originalMessage as IOUMessage)?.IOUTransactionID ?? '';
-    }
-
-    return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
-}
-
 function getAllReportTransactions(reportID?: string): Transaction[] {
     // `reportID` from the `/CreateDistanceRequest` endpoint return's number instead of string for created `transaction`.
     // For reference, https://github.com/Expensify/App/pull/26536#issuecomment-1703573277.
@@ -671,7 +643,6 @@ export {
     getDefaultTaxName,
     getEnabledTaxRateCount,
     getUpdatedTransaction,
-    getTransaction,
     getDescription,
     getHeaderTitleTranslationKey,
     getRequestType,
@@ -694,7 +665,6 @@ export {
     getTagArrayFromName,
     getTagForDisplay,
     getTransactionViolations,
-    getLinkedTransaction,
     getAllReportTransactions,
     hasReceipt,
     hasEReceipt,
