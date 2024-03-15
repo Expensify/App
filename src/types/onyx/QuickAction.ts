@@ -3,10 +3,10 @@ import type CONST from '@src/CONST';
 
 type QuickAction = {
     /** The action to take */
-    action: ValueOf<typeof CONST.QUICK_ACTIONS>;
+    action?: ValueOf<typeof CONST.QUICK_ACTIONS>;
 
     /** ID of the report */
-    reportID: string;
+    reportID?: string;
 
     /** ID of the target account for task actions */
     targetAccountID?: number;
