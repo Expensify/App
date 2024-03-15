@@ -38,7 +38,7 @@ function EmojiPickerButton({isDisabled = false, id = '', emojiPickerID = '', shi
     const {translate} = useLocalize();
     const isFocused = useIsFocused();
 
-    const onPress = () => {
+    const openEmojiPicker = () => {
         if (!isFocused) {
             return;
         }
@@ -83,7 +83,7 @@ function EmojiPickerButton({isDisabled = false, id = '', emojiPickerID = '', shi
                 ref={emojiPopoverAnchor}
                 style={({hovered, pressed}) => [styles.chatItemEmojiButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
                 disabled={isDisabled}
-                onPress={onPress}
+                onPress={openEmojiPicker}
                 id={id}
                 accessibilityLabel={translate('reportActionCompose.emoji')}
             >

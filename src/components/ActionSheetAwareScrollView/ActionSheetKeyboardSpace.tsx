@@ -15,6 +15,7 @@ const KeyboardState = {
     CLOSING: 3,
     CLOSED: 4,
 };
+
 const useAnimatedKeyboard = () => {
     const state = useSharedValue(KeyboardState.UNKNOWN);
     const height = useSharedValue(0);
@@ -61,6 +62,7 @@ const useAnimatedKeyboard = () => {
 
     return {state, height, heightWhenOpened, progress};
 };
+
 const setInitialValueAndRunAnimation = (value: number, animation: number) => {
     'worklet';
 
@@ -135,20 +137,15 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
 
         const invertedKeyboardHeight = keyboard.state.value === KeyboardState.CLOSED ? lastKeyboardHeight : 0;
 
-        let elementOffset = 0;
-
-        if (fy !== undefined && height !== undefined && popoverHeight !== undefined) {
-            elementOffset = fy + safeArea.top + height - (windowHeight - popoverHeight);
-        }
+        const elementOffset = fy !== undefined && height !== undefined && popoverHeight !== undefined ? fy + safeArea.top + height - (windowHeight - popoverHeight) : 0;
 
         // when the sate is not idle we know for sure we have previous state
         const previousPayload = previous.payload ?? {};
 
-        let previousElementOffset = 0;
-
-        if (previousPayload.fy !== undefined && previousPayload.height !== undefined && previousPayload.popoverHeight !== undefined) {
-            previousElementOffset = previousPayload.fy + safeArea.top + previousPayload.height - (windowHeight - previousPayload.popoverHeight);
-        }
+        const previousElementOffset =
+            previousPayload.fy !== undefined && previousPayload.height !== undefined && previousPayload.popoverHeight !== undefined
+                ? previousPayload.fy + safeArea.top + previousPayload.height - (windowHeight - previousPayload.popoverHeight)
+                : 0;
 
         // Depending on the current and sometimes previous state we can return
         // either animation or just a value

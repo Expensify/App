@@ -12,12 +12,14 @@ type MeasuredElements = {
     height?: number;
     composerHeight?: number;
 };
+
 type Context = {
     currentActionSheetState: SharedValue<State<MeasuredElements>>;
     transitionActionSheetState: (action: ActionWithPayload) => void;
     transitionActionSheetStateWorklet: (action: ActionWithPayload) => void;
     resetStateMachine: () => void;
 };
+
 const defaultValue: Context = {
     currentActionSheetState: {
         value: {
