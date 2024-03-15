@@ -2,6 +2,7 @@ export type {default as ActivatePhysicalExpensifyCardParams} from './ActivatePhy
 export type {default as AddNewContactMethodParams} from './AddNewContactMethodParams';
 export type {default as AddPaymentCardParams} from './AddPaymentCardParams';
 export type {default as AddPersonalBankAccountParams} from './AddPersonalBankAccountParams';
+export type {default as RestartBankAccountSetupParams} from './RestartBankAccountSetupParams';
 export type {default as AddSchoolPrincipalParams} from './AddSchoolPrincipalParams';
 export type {default as AuthenticatePusherParams} from './AuthenticatePusherParams';
 export type {default as BankAccountHandlePlaidErrorParams} from './BankAccountHandlePlaidErrorParams';
@@ -151,7 +152,9 @@ export type {default as UpdateWorkspaceDescriptionParams} from './UpdateWorkspac
 export type {default as UpdateWorkspaceMembersRoleParams} from './UpdateWorkspaceMembersRoleParams';
 export type {default as SetWorkspaceCategoriesEnabledParams} from './SetWorkspaceCategoriesEnabledParams';
 export type {default as CreateWorkspaceCategoriesParams} from './CreateWorkspaceCategoriesParams';
+export type {default as RenameWorkspaceCategoriesParams} from './RenameWorkspaceCategoriesParams';
 export type {default as SetWorkspaceRequiresCategoryParams} from './SetWorkspaceRequiresCategoryParams';
+export type {default as DeleteWorkspaceCategoriesParams} from './DeleteWorkspaceCategoriesParams';
 export type {default as SetWorkspaceAutoReportingParams} from './SetWorkspaceAutoReportingParams';
 export type {default as SetWorkspaceAutoReportingFrequencyParams} from './SetWorkspaceAutoReportingFrequencyParams';
 export type {default as SetWorkspaceAutoReportingMonthlyOffsetParams} from './SetWorkspaceAutoReportingMonthlyOffsetParams';
@@ -173,3 +176,6 @@ export type {default as DeclineJoinRequestParams} from './DeclineJoinRequest';
 export type {default as JoinPolicyInviteLinkParams} from './JoinPolicyInviteLink';
 export type {default as OpenPolicyWorkflowsPageParams} from './OpenPolicyWorkflowsPageParams';
 export type {default as OpenPolicyDistanceRatesPageParams} from './OpenPolicyDistanceRatesPageParams';
+export type {default as OpenPolicyTaxesPageParams} from './OpenPolicyTaxesPageParams';
+export type {default as OpenPolicyMoreFeaturesPageParams} from './OpenPolicyMoreFeaturesPageParams';
+export type {default as CreatePolicyTagsParams} from './CreatePolicyTagsParams';

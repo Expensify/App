@@ -149,14 +149,14 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
         sectionsArray.push({
             data: formattedAuthorizedPayer,
             shouldShow: true,
-            indexOffset: formattedPolicyAdmins.length,
+            indexOffset: 0,
         });
 
         sectionsArray.push({
             title: translate('workflowsPayerPage.admins'),
             data: formattedPolicyAdmins,
             shouldShow: true,
-            indexOffset: 0,
+            indexOffset: formattedAuthorizedPayer.length,
         });
         return sectionsArray;
     }, [formattedPolicyAdmins, formattedAuthorizedPayer, translate, searchTerm]);
@@ -170,13 +170,12 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
 
     const setPolicyAuthorizedPayer = (member: MemberOption) => {
         const authorizedPayerEmail = personalDetails?.[member.accountID]?.login ?? '';
-        if (policy?.reimburserEmail === authorizedPayerEmail) {
+
+        if (policy?.reimburserEmail === authorizedPayerEmail || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+            Navigation.goBack();
             return;
         }
 
-        if (policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-            return;
-        }
         const authorizedPayerAccountID = member.accountID;
         Policy.setWorkspacePayer(policy?.id ?? '', authorizedPayerEmail, authorizedPayerAccountID);
         Navigation.goBack();
