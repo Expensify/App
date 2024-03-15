@@ -61,7 +61,7 @@ function OfflineIndicator({style, containerStyles}: OfflineIndicatorProps) {
                                 href={CONST.STATUS_EXPENSIFY_URL}
                                 style={styles.link}
                             >
-                                {CONST.STATUS_EXPENSIFY_URL}
+                                {new URL(CONST.STATUS_EXPENSIFY_URL).host}
                             </TextLink>
                             .
                         </>
