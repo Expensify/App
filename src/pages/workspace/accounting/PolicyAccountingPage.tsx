@@ -1,4 +1,4 @@
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useMemo, useCallback, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -49,11 +49,12 @@ function PolicyAccountingPage() {
     const threeDotsMenuContainerRef = useRef<View>(null);
 
     // fake a QBO connection sync
-    const openQBOsync = () => {
+    const openQBOsync = useCallback(
+        () => {
         setIsSyncInProgress(true);
         setTimeout(() => setIsSyncInProgress(false), 5000);
         setPolicyIsConnectedToAccountingSystem(true);
-    };
+    }, []);
 
     const connectionIconSize = useMemo(() => ({iconHeight: variables.avatarSizeNormal, iconWidth: variables.avatarSizeNormal}), []);
     const connectionsMenuItems: WorkspaceMenuItem[] = useMemo(
