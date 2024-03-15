@@ -295,7 +295,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.TAG_EDIT]: {
                             path: ROUTES.WORKSPACE_TAG_EDIT.route,
                             parse: {
-                                tagName: (tagName: string) => decodeURI(tagName),
+                                tagName: (tagName: string) => decodeURIComponent(tagName),
                             },
                         },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {

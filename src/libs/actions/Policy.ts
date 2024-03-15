@@ -2855,7 +2855,6 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                 value: {
                     [tagListName]: {
                         tags: {
-                            [policyTag.oldName]: null,
                             [policyTag.newName]: {
                                 ...oldTag,
                                 name: policyTag.newName,
@@ -2877,9 +2876,7 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                             [policyTag.newName]: null,
                             [policyTag.oldName]: {
                                 ...oldTag,
-                                name: policyTag.oldName,
-                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.genericFailureMessage'),
-                                pendingAction: null,
+                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
                             },
                         },
                     },

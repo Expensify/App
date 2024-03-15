@@ -27,12 +27,12 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
 import type {PolicyTagList} from '@src/types/onyx';
 
-type WorkspaceEditTagPageOnyxProps = {
+type EditTagPageOnyxProps = {
     /** All policy tags */
     policyTags: OnyxEntry<PolicyTagList>;
 };
 
-type EditTagPageProps = WorkspaceEditTagPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_EDIT>;
+type EditTagPageProps = EditTagPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_EDIT>;
 
 function EditTagPage({route, policyTags}: EditTagPageProps) {
     const styles = useThemeStyles();
@@ -40,8 +40,8 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
 
     const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_CREATE_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_CREATE_FORM> = {};
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
             const tagName = values.tagName.trim();
             const {tags} = PolicyUtils.getTagList(policyTags, 0);
 
@@ -60,7 +60,7 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
     );
 
     const editTag = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_CREATE_FORM>) => {
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             Policy.renamePolicyTag(route.params.policyID, {oldName: route.params.tagName, newName: values.tagName.trim()});
             Keyboard.dismiss();
             Navigation.goBack(ROUTES.WORKSPACE_TAGS.getRoute(route.params.policyID));
@@ -82,7 +82,7 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
                         onBackButtonPress={Navigation.goBack}
                     />
                     <FormProvider
-                        formID={ONYXKEYS.FORMS.WORKSPACE_TAG_CREATE_FORM}
+                        formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}
                         onSubmit={editTag}
                         submitButtonText={translate('common.save')}
                         validate={validate}
@@ -107,7 +107,7 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
 
 EditTagPage.displayName = 'EditTagPage';
 
-export default withOnyx<EditTagPageProps, WorkspaceEditTagPageOnyxProps>({
+export default withOnyx<EditTagPageProps, EditTagPageOnyxProps>({
     policyTags: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`,
     },
