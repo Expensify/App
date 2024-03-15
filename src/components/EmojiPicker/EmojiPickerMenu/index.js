@@ -109,7 +109,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected, activeEmoji}) {
         initialFocusedIndex: -1,
         disableCyclicTraversal: true,
         onFocusedIndexChange,
-        disableHorizontalKeys: isFocused,
+        allowHorizontalArrowKeys: !isFocused,
         // We pass true without checking visibility of the component because if the popover is not visible this picker won't be mounted
         isActive: true,
         allowNegativeIndexes: true,
