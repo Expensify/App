@@ -1,17 +1,28 @@
-import lodashGet from 'lodash/get';
 import {Onfido as OnfidoSDK} from 'onfido-sdk-ui';
 import React, {forwardRef, useEffect} from 'react';
-import _ from 'underscore';
+import type {ForwardedRef} from 'react';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import Log from '@libs/Log';
+import type {ThemeColors} from '@styles/theme/types';
 import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import './index.css';
-import onfidoPropTypes from './onfidoPropTypes';
+import type {OnfidoElement, OnfidoProps} from './types';
 
-function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLocale, translate, theme}) {
+type InitializeOnfidoProps = OnfidoProps &
+    Pick<LocaleContextProps, 'translate' | 'preferredLocale'> & {
+        theme: ThemeColors;
+    };
+
+type OnfidoEvent = Event & {
+    detail?: Record<string, unknown>;
+};
+
+function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLocale, translate, theme}: InitializeOnfidoProps) {
     OnfidoSDK.init({
         token: sdkToken,
         containerId: CONST.ONFIDO.CONTAINER_ID,
@@ -20,7 +31,7 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             fontFamilySubtitle: `${FontUtils.fontFamily.platform.EXP_NEUE}, -apple-system, serif`,
             fontFamilyBody: `${FontUtils.fontFamily.platform.EXP_NEUE}, -apple-system, serif`,
             fontSizeTitle: `${variables.fontSizeLarge}px`,
-            fontWeightTitle: FontUtils.fontWeight.bold,
+            fontWeightTitle: Number(FontUtils.fontWeight.bold),
             fontWeightSubtitle: 400,
             fontSizeSubtitle: `${variables.fontSizeNormal}px`,
             colorContentTitle: theme.text,
@@ -45,10 +56,10 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             colorBorderLinkUnderline: theme.link,
             colorBackgroundLinkHover: theme.link,
             colorBackgroundLinkActive: theme.link,
-            authAccentColor: theme.link,
             colorBackgroundInfoPill: theme.link,
             colorBackgroundSelector: theme.appBG,
             colorBackgroundDocTypeButton: theme.success,
+            borderWidthSurfaceModal: '0px',
             colorBackgroundDocTypeButtonHover: theme.successHover,
             colorBackgroundButtonIconHover: theme.transparent,
             colorBackgroundButtonIconActive: theme.transparent,
@@ -57,11 +68,10 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             {
                 type: CONST.ONFIDO.TYPE.DOCUMENT,
                 options: {
-                    useLiveDocumentCapture: true,
                     forceCrossDevice: true,
                     hideCountrySelection: true,
-                    country: 'USA',
                     documentTypes: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
                         driving_licence: {
                             country: 'USA',
                         },
@@ -76,17 +86,15 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
                 },
             },
         ],
-        smsNumberCountryCode: CONST.ONFIDO.SMS_NUMBER_COUNTRY_CODE.US,
-        showCountrySelection: false,
         onComplete: (data) => {
-            if (_.isEmpty(data)) {
+            if (isEmptyObject(data)) {
                 Log.warn('Onfido completed with no data');
             }
             onSuccess(data);
         },
         onError: (error) => {
-            const errorType = lodashGet(error, 'type');
-            const errorMessage = lodashGet(error, 'message', CONST.ERROR.UNKNOWN_ERROR);
+            const errorType = error.type;
+            const errorMessage = error.message ?? CONST.ERROR.UNKNOWN_ERROR;
             Log.hmmm('Onfido error', {errorType, errorMessage});
             if (errorType === CONST.WALLET.ERROR.ONFIDO_USER_CONSENT_DENIED) {
                 onUserExit();
@@ -103,26 +111,27 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             // https://github.com/Expensify/App/issues/17244
             // https://documentation.onfido.com/sdk/web/#custom-languages
             phrases: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 'generic.back': translate('common.back'),
             },
         },
     });
 }
 
-function logOnFidoEvent(event) {
+function logOnFidoEvent(event: OnfidoEvent) {
     Log.hmmm('Receiving Onfido analytic event', event.detail);
 }
 
-const Onfido = forwardRef((props, ref) => {
+function Onfido({sdkToken, onSuccess, onError, onUserExit}: OnfidoProps, ref: ForwardedRef<OnfidoElement>) {
     const {preferredLocale, translate} = useLocalize();
     const theme = useTheme();
 
     useEffect(() => {
         initializeOnfido({
-            sdkToken: props.sdkToken,
-            onSuccess: props.onSuccess,
-            onError: props.onError,
-            onUserExit: props.onUserExit,
+            sdkToken,
+            onSuccess,
+            onError,
+            onUserExit,
             preferredLocale,
             translate,
             theme,
@@ -140,8 +149,8 @@ const Onfido = forwardRef((props, ref) => {
             ref={ref}
         />
     );
-});
+}
 
 Onfido.displayName = 'Onfido';
-Onfido.propTypes = onfidoPropTypes;
-export default Onfido;
+
+export default forwardRef(Onfido);
