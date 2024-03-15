@@ -19,7 +19,7 @@ import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
-import FeatureEnabledAccessOrRedirectWrapper from '@pages/workspace/FeatureEnabledAccessOrRedirectWrapper';
+import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
@@ -238,7 +238,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
             shouldSkipVBBACall
             isLoading={isLoading}
         >
-            <FeatureEnabledAccessOrRedirectWrapper
+            <FeatureEnabledAccessOrNotFoundWrapper
                 policyID={route.params.policyID}
                 featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
             >
@@ -258,7 +258,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                         </View>
                     </Section>
                 </View>
-            </FeatureEnabledAccessOrRedirectWrapper>
+            </FeatureEnabledAccessOrNotFoundWrapper>
         </WorkspacePageWithSections>
     );
 }

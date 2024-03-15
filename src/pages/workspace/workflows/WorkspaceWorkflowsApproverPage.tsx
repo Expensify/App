@@ -23,7 +23,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as UserUtils from '@libs/UserUtils';
-import FeatureEnabledAccessOrRedirectWrapper from '@pages/workspace/FeatureEnabledAccessOrRedirectWrapper';
+import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import * as Policy from '@userActions/Policy';
@@ -167,7 +167,7 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails,
     };
 
     return (
-        <FeatureEnabledAccessOrRedirectWrapper
+        <FeatureEnabledAccessOrNotFoundWrapper
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
@@ -198,7 +198,7 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails,
                     />
                 </FullPageNotFoundView>
             </ScreenWrapper>
-        </FeatureEnabledAccessOrRedirectWrapper>
+        </FeatureEnabledAccessOrNotFoundWrapper>
     );
 }
 

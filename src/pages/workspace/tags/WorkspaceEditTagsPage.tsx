@@ -16,7 +16,7 @@ import * as Policy from '@libs/actions/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import FeatureEnabledAccessOrRedirectWrapper from '@pages/workspace/FeatureEnabledAccessOrRedirectWrapper';
+import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -53,7 +53,7 @@ function WorkspaceEditTagsPage({route, policyTags}: WorkspaceEditTagsPageProps) 
     );
 
     return (
-        <FeatureEnabledAccessOrRedirectWrapper
+        <FeatureEnabledAccessOrNotFoundWrapper
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
         >
@@ -84,7 +84,7 @@ function WorkspaceEditTagsPage({route, policyTags}: WorkspaceEditTagsPageProps) 
                     </View>
                 </FormProvider>
             </ScreenWrapper>
-        </FeatureEnabledAccessOrRedirectWrapper>
+        </FeatureEnabledAccessOrNotFoundWrapper>
     );
 }
 
