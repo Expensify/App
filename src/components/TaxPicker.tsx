@@ -24,12 +24,9 @@ type TaxPickerProps = {
 
     /** Callback to fire when a tax is pressed */
     onSubmit: (tax: ListItem) => void;
-
-    /** Default key of selectedtax */
-    defaultTaxKey?: string;
 };
 
-function TaxPicker({selectedTaxRate = '', taxRates, insets, onSubmit, defaultTaxKey}: TaxPickerProps) {
+function TaxPicker({selectedTaxRate = '', taxRates, insets, onSubmit}: TaxPickerProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
@@ -41,14 +38,12 @@ function TaxPicker({selectedTaxRate = '', taxRates, insets, onSubmit, defaultTax
     const taxRatesCount = TransactionUtils.getEnabledTaxRateCount(taxRates?.taxes);
     const isTaxRatesCountBelowThreshold = taxRatesCount < CONST.TAX_RATES_LIST_THRESHOLD;
 
-    const defaultSelectedTaxKey = defaultTaxKey ?? taxRates.defaultExternalID;
-
-    const getModifiedName = (data: TaxRate, code: string) => `${data.name} (${data.value})${defaultSelectedTaxKey === code ? ` • ${translate('common.default')}` : ''}`;
+    const getModifiedName = (data: TaxRate, code: string) => `${data.name} (${data.value})${selectedTaxRate === code ? ` • ${translate('common.default')}` : ''}`;
 
     const shouldShowTextInput = !isTaxRatesCountBelowThreshold;
 
     const section = Object.entries(taxRates.taxes ?? {}).map(([key, item]) => ({text: getModifiedName(item, key), keyForList: key}));
-    const selectedOptionKey = section.find((taxRate) => taxRate.text === selectedTaxRate)?.keyForList;
+    const selectedOptionKey = section.find((taxRate) => taxRate.keyForList === selectedTaxRate)?.keyForList;
 
     return (
         <SelectionList

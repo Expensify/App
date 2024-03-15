@@ -15,7 +15,7 @@ Onyx.connect({
 
 function setPolicyCustomTaxName(policyID: string, customTaxName: string) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    const originalCustomTaxName = policy?.taxRates?.defaultValue;
+    const originalCustomTaxName = policy?.taxRates?.name;
     const onyxData: OnyxData = {
         optimisticData: [
             {

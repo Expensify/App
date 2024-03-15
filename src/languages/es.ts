@@ -1879,7 +1879,7 @@ export default {
             addRate: 'Añadir tasa',
             workspaceDefault: 'Moneda por defecto del espacio de trabajo',
             foreignDefault: 'Moneda extranjera por defecto',
-            customTaxName: 'Nombre del impuesto personalizado',
+            customTaxName: 'Nombre del impuesto',
         },
         emptyWorkspace: {
             title: 'Crea un espacio de trabajo',

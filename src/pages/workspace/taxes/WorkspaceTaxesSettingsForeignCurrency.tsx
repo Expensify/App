@@ -29,10 +29,6 @@ function WorkspaceTaxesSettingsForeignCurrency({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const defaultTax = policy?.taxRates?.taxes[policy?.taxRates?.foreignTaxDefault];
-
-    const defaultTaxName = (policy?.taxRates?.foreignTaxDefault && `${defaultTax?.name} (${defaultTax?.value}) • ${translate('common.default')}`) ?? '';
-
     const submit = ({keyForList}: ListItem) => {
         setForeignCurrencyDefault(policyID, keyForList ?? '');
         Navigation.goBack(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID));
@@ -52,11 +48,10 @@ function WorkspaceTaxesSettingsForeignCurrency({
 
                             <View style={[styles.mb4, styles.flex1]}>
                                 <TaxPicker
-                                    selectedTaxRate={defaultTaxName}
+                                    selectedTaxRate={policy?.taxRates?.foreignTaxDefault}
                                     taxRates={policy?.taxRates}
                                     insets={insets}
                                     onSubmit={submit}
-                                    defaultTaxKey={policy?.taxRates?.foreignTaxDefault}
                                 />
                             </View>
                         </>
