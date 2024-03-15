@@ -44,10 +44,16 @@ function PolicyAccountingPage() {
 
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const [policyIsConnectedToAccountingSystem, setPolicyIsConnectedToAccountingSystem] = useState(false);
+    const [isSyncInProgress, setIsSyncInProgress] = useState(false);
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const threeDotsMenuContainerRef = useRef<View>(null);
 
-    const isSyncInProgress = false;
+    // fake a QBO connection sync
+    const openQBOsync = () => {
+        setIsSyncInProgress(true);
+        setTimeout(() => setIsSyncInProgress(false), 5000);
+        setPolicyIsConnectedToAccountingSystem(true);
+    };
 
     const connectionIconSize = useMemo(() => ({iconHeight: variables.avatarSizeNormal, iconWidth: variables.avatarSizeNormal}), []);
     const connectionsMenuItems: WorkspaceMenuItem[] = useMemo(
@@ -56,7 +62,7 @@ function PolicyAccountingPage() {
                 translationKey: 'workspace.accounting.qbo',
                 icon: Expensicons.QBORound,
                 interactive: false,
-                onButtonPress: () => setPolicyIsConnectedToAccountingSystem(true),
+                onButtonPress: openQBOsync,
                 ...connectionIconSize,
             },
             {
