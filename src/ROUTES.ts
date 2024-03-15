@@ -598,11 +598,11 @@ const ROUTES = {
         getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/members/${accountID}/role-selection`, backTo),
     },
     WORKSPACE_TAXES_NEW: {
-        route: 'workspace/:policyID/taxes/new',
+        route: 'settings/workspaces/:policyID/taxes/new',
         getRoute: (policyID: string) => `workspace/${policyID}/taxes/new` as const,
     },
     WORKSPACE_DISTANCE_RATES: {
-        route: 'workspace/:policyID/distance-rates',
+        route: 'settings/workspaces/:policyID/distance-rates',
         getRoute: (policyID: string) => `workspace/${policyID}/distance-rates` as const,
     },
     // Referral program promotion

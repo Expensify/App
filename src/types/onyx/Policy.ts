@@ -32,7 +32,7 @@ type DisabledFields = {
     reimbursable?: boolean;
 };
 
-type TaxRate = {
+type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Name of the a tax rate. */
     name: string;
 
@@ -48,12 +48,9 @@ type TaxRate = {
     /** Indicates if the tax rate is disabled. */
     isDisabled?: boolean;
 
-    /** The type of action that's pending  */
-    pendingAction?: OnyxCommon.PendingAction;
-
     /** An error message to display to the user */
     errors?: OnyxCommon.Errors;
-};
+}>;
 
 type TaxRates = Record<string, TaxRate>;
 

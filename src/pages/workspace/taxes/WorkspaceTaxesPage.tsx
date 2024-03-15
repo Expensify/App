@@ -92,7 +92,7 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
                     ),
                 }))
                 .sort((a, b) => a.text.localeCompare(b.text)),
-        [policy?.taxRates?.taxes, textForDefault, selectedTaxesIDs, defaultExternalID, styles, translate, theme.icon],
+        [policy?.taxRates?.taxes, textForDefault, defaultExternalID, selectedTaxesIDs, styles, theme.icon, translate],
     );
 
     const isLoading = !isOffline && taxesList === undefined;
@@ -134,7 +134,7 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
             <Button
                 medium
                 success
-                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_NEW.getRoute(policy?.id ?? ''))}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_NEW.getRoute(route.params.policyID))}
                 icon={Expensicons.Plus}
                 text={translate('workspace.taxes.addRate')}
                 style={[styles.mr3, isSmallScreenWidth && styles.w50]}
