@@ -678,7 +678,7 @@ function setParentReportID(parentReportID: string) {
 /**
  * Clears out the task info from the store and navigates to the NewTaskDetails page
  */
-function clearOutTaskInfoAndNavigate(reportID?: string) {
+function clearOutTaskInfoAndNavigate(reportID: string) {
     clearOutTaskInfo();
     if (reportID && reportID !== '0') {
         setParentReportID(reportID);
