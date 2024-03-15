@@ -22,7 +22,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
     const updatePlaybackSpeed = useCallback(
         (speed: PlaybackSpeed) => {
             setCurrentPlaybackSpeed(speed);
-            currentVideoPlayerRef.current?.setStatusAsync({rate: speed});
+            currentVideoPlayerRef?.current?.setStatusAsync?.({rate: speed});
         },
         [currentVideoPlayerRef],
     );
