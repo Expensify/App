@@ -36,8 +36,7 @@ function OfflineIndicator({style, containerStyles}: OfflineIndicatorProps) {
         return isSmallScreenWidth ? styles.offlineIndicatorMobile : styles.offlineIndicator;
     }, [containerStyles, isSmallScreenWidth, styles.offlineIndicatorMobile, styles.offlineIndicator]);
 
-    // Truthy isBackendReachable implies both online and normal backend reachability
-    if (isBackendReachable) {
+    if (!isOffline && isBackendReachable) {
         return null;
     }
 
@@ -59,7 +58,7 @@ function OfflineIndicator({style, containerStyles}: OfflineIndicatorProps) {
                             {translate('common.weMightHaveProblem')}
                             <TextLink
                                 href={CONST.STATUS_EXPENSIFY_URL}
-                                style={styles.link}
+                                style={[styles.chatItemComposeSecondaryRowSubText, styles.link]}
                             >
                                 {new URL(CONST.STATUS_EXPENSIFY_URL).host}
                             </TextLink>

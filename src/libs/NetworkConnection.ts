@@ -2,6 +2,7 @@ import NetInfo from '@react-native-community/netinfo';
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as NetworkActions from './actions/Network';
 import AppStateMonitor from './AppStateMonitor';
@@ -77,15 +78,12 @@ function subscribeToNetInfo() {
     // Note: We are disabling the reachability check when using the local web API since requests can get stuck in a 'Pending' state and are not reliable indicators for "offline".
     // If you need to test the "recheck" feature then switch to the production API proxy server.
     if (!CONFIG.IS_USING_LOCAL_WEB) {
-        // Set interval to (re)checks current state every 15 seconds
-        const BACKEND_REACHABILITY_CHECK_INTERVAL = 15000;
-
+        // Set interval to (re)check current state every 60 seconds
         backendReachabilityCheckInterval = setInterval(() => {
             // Offline status also implies backend unreachability
             if (isOffline) {
                 return;
             }
-            // When App is served locally (or from Electron)  is always reachable - even offline
             // Using the API url ensures reachability is tested over internet
             fetch(`${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api?command=Ping`, {
                 method: 'GET',
@@ -100,8 +98,9 @@ function subscribeToNetInfo() {
                         .then((json) => Promise.resolve(json.jsonCode === 200))
                         .catch(() => Promise.resolve(false));
                 })
-                .then(NetworkActions.setIsBackendReachable);
-        }, BACKEND_REACHABILITY_CHECK_INTERVAL);
+                .then(NetworkActions.setIsBackendReachable)
+                .catch(() => NetworkActions.setIsBackendReachable(false));
+        }, CONST.NETWORK.REACHABILITY_TIMEOUT_MS);
     }
 
     // Subscribe to the state change event via NetInfo so we can update
