@@ -349,6 +349,9 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.JOIN_POLICY_VIA_INVITE_LINK]: Parameters.JoinPolicyInviteLinkParams;
     [WRITE_COMMANDS.ACCEPT_JOIN_REQUEST]: Parameters.AcceptJoinRequestParams;
     [WRITE_COMMANDS.DECLINE_JOIN_REQUEST]: Parameters.DeclineJoinRequestParams;
+    [WRITE_COMMANDS.SET_POLICY_TAXES_CURRENCY_DEFAULT]: Parameters.SetPolicyCurrencyDefaultParams;
+    [WRITE_COMMANDS.SET_POLICY_CUSTOM_TAX_NAME]: Parameters.SetPolicyCustomTaxNameParams;
+    [WRITE_COMMANDS.SET_POLICY_TAXES_FOREIGN_CURRENCY_DEFAULT]: Parameters.SetPolicyForeignCurrencyDefaultParams;
 };
 
 const READ_COMMANDS = {
