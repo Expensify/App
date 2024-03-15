@@ -56,6 +56,8 @@ function SuggestionMention(
         shouldExcludeTextAreaNodes: false,
     });
 
+    const suggestionInsertionRef = useRef(false);
+
     // Used to decide whether to block the suggestions list from showing to prevent flickering
     const shouldBlockCalc = useRef(false);
 
@@ -89,6 +91,8 @@ function SuggestionMention(
             const commentAfterMention = value.slice(suggestionValues.atSignIndex + suggestionValues.mentionPrefix.length + 1);
 
             updateComment(`${commentBeforeAtSign}${mentionCode} ${SuggestionsUtils.trimLeadingSpace(commentAfterMention)}`, true);
+            suggestionInsertionRef.current = true;
+
             setSelection({
                 start: suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH,
                 end: suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH,
@@ -132,6 +136,8 @@ function SuggestionMention(
 
                 return true;
             }
+
+            suggestionInsertionRef.current = false;
         },
         [highlightedMentionIndex, insertSelectedMention, resetSuggestions, suggestionValues.suggestedMentions.length],
     );
@@ -165,15 +171,6 @@ function SuggestionMention(
                 const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(detail);
                 const displayText = displayName === formatPhoneNumber(detail.login) ? displayName : `${displayName} ${detail.login}`;
                 if (searchValue && !displayText.toLowerCase().includes(searchValue.toLowerCase())) {
-                    return false;
-                }
-
-                // Given a match, we need to check if the user is in the same private domain as the current user
-                // If the emails are in the same domain, we need to check if the mention code generated (with a space)
-                // is equal to the search value. If it is, we should not show the suggestion
-                // See https://github.com/Expensify/App/issues/38358 for more context
-                const mentionCode = formatLoginPrivateDomain(detail?.login, detail?.login);
-                if (`${mentionCode} ` === searchValue) {
                     return false;
                 }
 
@@ -310,7 +307,10 @@ function SuggestionMention(
         [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
     );
 
-    if (!isMentionSuggestionsMenuVisible) {
+    // Given the mention is inserted by user, we don't want to show the mention options unless user
+    // uses presses any key again.
+    // See https://github.com/Expensify/App/issues/38358 for more context
+    if (!isMentionSuggestionsMenuVisible || suggestionInsertionRef.current) {
         return null;
     }
 
