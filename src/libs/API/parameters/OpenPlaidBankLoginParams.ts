@@ -1,6 +1,6 @@
 type OpenPlaidBankLoginParams = {
     redirectURI: string | undefined;
-    androidPackage?: string,
+    androidPackage?: string;
     allowDebit: boolean;
     bankAccountID: number;
 };
