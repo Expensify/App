@@ -5,16 +5,11 @@ import {Document} from 'react-pdf';
 import {VariableSizeList as List} from 'react-window';
 import _ from 'underscore';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import Text from '@components/Text';
 import stylePropTypes from '@styles/stylePropTypes';
 import CONST from '@src/CONST';
 import PageRenderer from './WebPDFPageRenderer';
 
 const propTypes = {
-    /** Index of the PDF page to be displayed passed by VariableSizeList */
-    errorLabelStyles: stylePropTypes,
-    /** Returns translated string for given locale and phrase */
-    translate: PropTypes.func.isRequired,
     /** The source URL from which to load PDF file to be displayed */
     sourceURL: PropTypes.string.isRequired,
     /** Callback invoked when the PDF document is loaded successfully */
@@ -53,7 +48,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    errorLabelStyles: [],
     numPages: null,
     listStyle: undefined,
     password: undefined,
@@ -61,8 +55,6 @@ const defaultProps = {
 
 const WebPDFDocument = memo(
     ({
-        errorLabelStyles,
-        translate,
         sourceURL,
         onDocumentLoadSuccess,
         pageViewportsLength,
@@ -78,6 +70,7 @@ const WebPDFDocument = memo(
         listStyle,
         initiatePasswordChallenge,
         password,
+        onError,
     }) => {
         const onPassword = useCallback(
             (callback, reason) => {

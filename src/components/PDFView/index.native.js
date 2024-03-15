@@ -1,5 +1,5 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View } from 'react-native';
 import PDF from 'react-native-pdf';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import PDFPasswordForm from './PDFPasswordForm';
-import {defaultProps, propTypes as pdfViewPropTypes} from './pdfViewPropTypes';
+import { defaultProps, propTypes as pdfViewPropTypes } from './pdfViewPropTypes';
 
 const propTypes = {
     ...pdfViewPropTypes,
@@ -35,7 +35,7 @@ const propTypes = {
 const LOADING_THUMBNAIL_HEIGHT = 250;
 const LOADING_THUMBNAIL_WIDTH = 250;
 
-function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused, onScaleChanged, sourceURL, onError, isUsedAsChatAttachment}) {
+function PDFView({ onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused, onScaleChanged, sourceURL, onError, isUsedAsChatAttachment }) {
     const [shouldRequestPassword, setShouldRequestPassword] = useState(false);
     const [shouldAttemptPDFLoad, setShouldAttemptPDFLoad] = useState(true);
     const [shouldShowLoadingIndicator, setShouldShowLoadingIndicator] = useState(true);
@@ -43,10 +43,10 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     const [failedToLoadPDF, setFailedToLoadPDF] = useState(false);
     const [successToLoadPDF, setSuccessToLoadPDF] = useState(false);
     const [password, setPassword] = useState('');
-    const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
-    const {translate} = useLocalize();
+    const { windowWidth, windowHeight, isSmallScreenWidth } = useWindowDimensions();
+    const { translate } = useLocalize();
     const themeStyles = useThemeStyles();
-    const {isKeyboardShown} = useKeyboardState();
+    const { isKeyboardShown } = useKeyboardState();
     const StyleUtils = useStyleUtils();
 
     useEffect(() => {
@@ -130,7 +130,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
             pdfStyles.push(themeStyles.invisible);
         }
         const containerStyles =
-            (shouldRequestPassword && isSmallScreenWidth) || isUsedAsChatAttachment ? [themeStyles.w100, themeStyles.flex1] : [themeStyles.alignItemsCenter, themeStyles.flex1];
+            isUsedAsChatAttachment || (shouldRequestPassword && isSmallScreenWidth) ? [themeStyles.w100, themeStyles.flex1] : [themeStyles.alignItemsCenter, themeStyles.flex1];
         const loadingIndicatorStyles = isUsedAsChatAttachment ? [themeStyles.chatItemPDFAttachmentLoading, StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT)] : [];
 
         return (
@@ -140,7 +140,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
                         fitPolicy={0}
                         trustAllCerts={false}
                         renderActivityIndicator={() => <FullScreenLoadingIndicator style={loadingIndicatorStyles} />}
-                        source={{uri: sourceURL}}
+                        source={{ uri: sourceURL, cache: true, expiration: 864000 }}
                         style={pdfStyles}
                         onError={handleFailureToLoadPDF}
                         password={password}

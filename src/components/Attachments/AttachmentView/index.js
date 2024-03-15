@@ -188,7 +188,7 @@ function AttachmentView({
                     errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [styles.cursorAuto]}
                     style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
                     isUsedInCarousel={isUsedInCarousel}
-                    isUsedAsChatAttachment={!(isUsedInAttachmentModal || isUsedInCarousel)}
+                    isUsedAsChatAttachment={!isUsedInAttachmentModal && !isUsedInCarousel}
                     onError={() => {
                         setIsPdfFailedToLoad(true);
                     }}
