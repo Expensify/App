@@ -109,7 +109,7 @@ class GithubUtils {
             return this.internalOctokit.rest;
         }
         this.initOctokit();
-        // @ts-expect-error -- TODO: Fix this
+        // @ts-expect-error -- by running this.initOctokit() above we can be sure that this.internalOctokit is defined
         return this.internalOctokit.rest as RestEndpointMethods;
     }
 
@@ -124,7 +124,7 @@ class GithubUtils {
             return this.internalOctokit.graphql;
         }
         this.initOctokit();
-        // @ts-expect-error -- TODO: Fix this
+        // @ts-expect-error -- by running this.initOctokit() above we can be sure that this.internalOctokit is defined
         return this.internalOctokit.graphql as graphql;
     }
 
@@ -140,7 +140,7 @@ class GithubUtils {
             return this.internalOctokit.paginate;
         }
         this.initOctokit();
-        // @ts-expect-error -- TODO: Fix this
+        // @ts-expect-error -- by running this.initOctokit() above we can be sure that this.internalOctokit is defined
         return this.internalOctokit.paginate as PaginateInterface;
     }
 
@@ -160,15 +160,11 @@ class GithubUtils {
             .then(({data}: ListForRepoResult) => {
                 if (!data.length) {
                     const error = new Error(`Unable to find ${CONST.LABELS.STAGING_DEPLOY} issue.`);
-                    // @ts-expect-error -- TODO: Fix this
-                    error.code = 404;
                     throw error;
                 }
 
                 if (data.length > 1) {
                     const error = new Error(`Found more than one ${CONST.LABELS.STAGING_DEPLOY} issue.`);
-                    // @ts-expect-error -- TODO: Fix this
-                    error.code = 500;
                     throw error;
                 }
 
