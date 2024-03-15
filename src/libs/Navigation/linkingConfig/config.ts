@@ -286,7 +286,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.CATEGORY_EDIT]: {
                             path: ROUTES.WORKSPACE_CATEGORY_EDIT.route,
                             parse: {
-                                categoryName: (categoryName: string) => decodeURI(categoryName),
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
                             },
                         },
                         [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
