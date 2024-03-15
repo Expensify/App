@@ -185,6 +185,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.TAG_SETTINGS]: {
+        policyID: string;
+        tagName: string;
+    };
     [SCREENS.WORKSPACE.TAGS_EDIT]: {
         policyID: string;
         tagName: string;
@@ -198,6 +202,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
         accountID: string;
         backTo: Routes;
+    };
+    [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
+        policyID: string;
     };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
@@ -543,7 +550,7 @@ type WorkspacesCentralPaneNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.TAGS]: {
         policyID: string;
-        categoryName: string;
+        tagName: string;
     };
     [SCREENS.WORKSPACE.TAXES]: {
         policyID: string;
