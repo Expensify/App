@@ -230,6 +230,7 @@ function ExpensifyCardPage({
                     {physicalCard?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED && (
                         <Button
                             success
+                            large
                             style={[styles.w100, styles.p5]}
                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(domain))}
                             text={translate('activateCardPage.activatePhysicalCard')}
@@ -238,6 +239,7 @@ function ExpensifyCardPage({
                     {physicalCard?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED && (
                         <Button
                             success
+                            large
                             text={translate('cardPage.getPhysicalCard')}
                             pressOnEnter
                             onPress={goToGetPhysicalCardFlow}

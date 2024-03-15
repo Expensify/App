@@ -977,7 +977,17 @@ function getCategoryListSections(
     }
 
     if (searchInputValue) {
-        const searchCategories = enabledCategories.filter((category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
+        const searchCategories: Category[] = [];
+
+        enabledCategories.forEach((category) => {
+            if (!category.name.toLowerCase().includes(searchInputValue.toLowerCase())) {
+                return;
+            }
+            searchCategories.push({
+                ...category,
+                isSelected: selectedOptions.some((selectedOption) => selectedOption.name === category.name),
+            });
+        });
 
         categorySections.push({
             // "Search" section
@@ -985,22 +995,6 @@ function getCategoryListSections(
             shouldShow: true,
             indexOffset,
             data: getCategoryOptionTree(searchCategories, true),
-        });
-
-        return categorySections;
-    }
-
-    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
-    const enabledAndSelectedCategories = [...selectedOptions, ...sortedCategories.filter((category) => category.enabled && !selectedOptionNames.includes(category.name))];
-    const numberOfVisibleCategories = enabledAndSelectedCategories.length;
-
-    if (numberOfVisibleCategories < CONST.CATEGORY_LIST_THRESHOLD) {
-        categorySections.push({
-            // "All" section when items amount less than the threshold
-            title: '',
-            shouldShow: false,
-            indexOffset,
-            data: getCategoryOptionTree(enabledAndSelectedCategories),
         });
 
         return categorySections;
@@ -1016,6 +1010,22 @@ function getCategoryListSections(
         });
 
         indexOffset += selectedOptions.length;
+    }
+
+    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
+    const enabledWithoutSelectedCategories = sortedCategories.filter((category) => category.enabled && !selectedOptionNames.includes(category.name));
+    const numberOfVisibleCategories = enabledWithoutSelectedCategories.length + selectedOptions.length;
+
+    if (numberOfVisibleCategories < CONST.CATEGORY_LIST_THRESHOLD) {
+        categorySections.push({
+            // "All" section when items amount less than the threshold
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getCategoryOptionTree(enabledWithoutSelectedCategories),
+        });
+
+        return categorySections;
     }
 
     const filteredRecentlyUsedCategories = recentlyUsedCategories

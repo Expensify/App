@@ -81,6 +81,7 @@ function ExitSurveyConfirmPage({exitReason, isLoading, route, navigation}: ExitS
             <FixedFooter>
                 <Button
                     success
+                    large
                     text={translate('exitSurvey.goToExpensifyClassic')}
                     onPress={() => {
                         ExitSurvey.switchToOldDot();

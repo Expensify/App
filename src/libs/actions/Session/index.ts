@@ -191,7 +191,7 @@ function hasAuthToken(): boolean {
     return !!session.authToken;
 }
 
-function signOutAndRedirectToSignIn(shouldReplaceCurrentScreen?: boolean, shouldStashSession?: boolean) {
+function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
     if (!isAnonymousUser()) {
@@ -240,11 +240,10 @@ function signOutAndRedirectToSignIn(shouldReplaceCurrentScreen?: boolean, should
         if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
             return;
         }
-        if (shouldReplaceCurrentScreen) {
-            Navigation.navigate(ROUTES.SIGN_IN_MODAL, CONST.NAVIGATION.TYPE.UP);
-        } else {
-            Navigation.navigate(ROUTES.SIGN_IN_MODAL);
+        if (shouldResetToHome) {
+            Navigation.resetToHome();
         }
+        Navigation.navigate(ROUTES.SIGN_IN_MODAL);
         Linking.getInitialURL().then((url) => {
             const reportID = ReportUtils.getReportIDFromLink(url);
             if (reportID) {
