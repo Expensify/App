@@ -50,7 +50,7 @@ function WorkspaceTaxesSettingsForeignCurrency({
                         <>
                             <HeaderWithBackButton title={translate('workspace.taxes.foreignDefault')} />
 
-                            <View style={styles.mb4}>
+                            <View style={[styles.mb4, styles.flex1]}>
                                 <TaxPicker
                                     selectedTaxRate={defaultTaxName}
                                     taxRates={policy?.taxRates}
