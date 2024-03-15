@@ -1674,7 +1674,7 @@ function createSplitsAndOnyxData(
     tag: string,
     existingSplitChatReportID = '',
     billable = false,
-    iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
+    iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
 ): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -2041,7 +2041,7 @@ function splitBill(
     tag: string,
     existingSplitChatReportID = '',
     billable = false,
-    iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
+    iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
 ) {
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
@@ -2099,7 +2099,7 @@ function splitBillAndOpenReport(
     category: string,
     tag: string,
     billable: boolean,
-    iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
+    iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
 ) {
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
