@@ -9,6 +9,6 @@ const ELECTRON_EVENTS = {
     KEYBOARD_SHORTCUTS_PAGE: 'keyboard-shortcuts-page',
     START_UPDATE: 'start-update',
     UPDATE_DOWNLOADED: 'update-downloaded',
-};
+} as const;
 
-module.exports = ELECTRON_EVENTS;
+export default ELECTRON_EVENTS;
