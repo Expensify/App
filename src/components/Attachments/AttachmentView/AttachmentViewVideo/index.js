@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import VideoPlayer from '@components/VideoPlayer';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 const propTypes = {

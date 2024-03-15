@@ -13,7 +13,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Clipboard from '@libs/Clipboard';
 import localFileDownload from '@libs/localFileDownload';
 import type {BackToParams} from '@libs/Navigation/types';
