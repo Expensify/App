@@ -12,7 +12,7 @@ export {setBankAccountFormValidationErrors, setPersonalBankAccountFormValidation
  * - CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL to ask them to enter their accountNumber and routingNumber
  * - CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID to ask them to login to their bank via Plaid
  *
- * @param {String} subStep
+ * @param {String | null} subStep
  * @returns {Promise<void>}
  */
 function setBankAccountSubStep(subStep) {

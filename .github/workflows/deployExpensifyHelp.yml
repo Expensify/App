@@ -51,12 +51,14 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: helpdot
           directory: ./docs/_site
+        # Add the conditional on this step to prevent execution for pull requests from forks
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
 
       - name: Setup Cloudflare CLI
-        run: pip3 install cloudflare
+        run: pip3 install cloudflare==2.19.0
 
       - name: Purge Cloudflare cache
-        run: /home/runner/.local/bin/cli4 --delete hosts=["help.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
+        run: /home/runner/.local/bin/cli4 --verbose --delete hosts=["help.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 
@@ -66,7 +68,7 @@ jobs:
         with:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           body: ${{ format('A preview of your ExpensifyHelp changes have been deployed to {0} ⚡️', steps.deploy.outputs.alias) }}
-      
+
       - name: Reindex google search
         if: ${{ github.event_name == 'push' }}
         run : |

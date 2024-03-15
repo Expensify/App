@@ -1,5 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Report} from '@src/types/onyx';
+import localeCompare from './LocaleCompare';
 import * as ReportUtils from './ReportUtils';
 
 /**
@@ -11,7 +12,7 @@ function getGroupChatName(report: OnyxEntry<Report>): string | undefined {
 
     return participants
         .map((participant) => ReportUtils.getDisplayNameForParticipant(participant, isMultipleParticipantReport))
-        .sort((first, second) => first?.localeCompare(second ?? '') ?? 0)
+        .sort((first, second) => localeCompare(first ?? '', second ?? ''))
         .filter(Boolean)
         .join(', ');
 }

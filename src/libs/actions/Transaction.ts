@@ -1,6 +1,7 @@
 import {isEqual} from 'lodash';
 import lodashClone from 'lodash/clone';
 import lodashHas from 'lodash/has';
+import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {GetRouteForDraftParams, GetRouteParams} from '@libs/API/parameters';
@@ -106,7 +107,7 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
     }
 }
 
-function removeWaypoint(transaction: Transaction, currentIndex: string, isDraft: boolean): Promise<void> {
+function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: string, isDraft?: boolean): Promise<void> {
     // Index comes from the route params and is a string
     const index = Number(currentIndex);
     const existingWaypoints = transaction?.comment?.waypoints ?? {};
@@ -134,9 +135,10 @@ function removeWaypoint(transaction: Transaction, currentIndex: string, isDraft:
     // to remove nested keys while also preserving other object keys
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
     let newTransaction: Transaction = {
-        ...transaction,
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        ...(transaction as Transaction),
         comment: {
-            ...transaction.comment,
+            ...transaction?.comment,
             waypoints: reIndexedWaypoints,
         },
         // We want to reset the amount only for draft transactions (when creating the request).
@@ -164,9 +166,9 @@ function removeWaypoint(transaction: Transaction, currentIndex: string, isDraft:
         };
     }
     if (isDraft) {
-        return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
+        return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
     }
-    return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, newTransaction);
+    return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, newTransaction);
 }
 
 function getOnyxDataForRouteRequest(transactionID: string, isDraft = false): OnyxData {

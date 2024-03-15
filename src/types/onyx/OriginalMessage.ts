@@ -11,6 +11,8 @@ type OriginalMessageActionName =
     | 'CHRONOSOOOLIST'
     | 'CLOSED'
     | 'CREATED'
+    | 'HOLD'
+    | 'UNHOLD'
     | 'IOU'
     | 'MODIFIEDEXPENSE'
     | 'REIMBURSEMENTQUEUED'
@@ -21,6 +23,7 @@ type OriginalMessageActionName =
     | 'TASKCOMPLETED'
     | 'TASKEDITED'
     | 'TASKREOPENED'
+    | 'ACTIONABLEJOINREQUEST'
     | 'ACTIONABLEMENTIONWHISPER'
     | ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
 type OriginalMessageApproved = {
@@ -28,6 +31,16 @@ type OriginalMessageApproved = {
     originalMessage: unknown;
 };
 type OriginalMessageSource = 'Chronos' | 'email' | 'ios' | 'android' | 'web' | '';
+
+type OriginalMessageHold = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.HOLD;
+    originalMessage: unknown;
+};
+
+type OriginalMessageUnHold = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.UNHOLD;
+    originalMessage: unknown;
+};
 
 type IOUDetails = {
     amount: number;
@@ -39,15 +52,24 @@ type IOUMessage = {
     /** The ID of the iou transaction */
     IOUTransactionID?: string;
     IOUReportID?: string;
+    expenseReportID?: string;
     amount: number;
     comment?: string;
     currency: string;
     lastModified?: string;
     participantAccountIDs?: number[];
     type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
+    cancellationReason?: string;
     paymentType?: PaymentMethodType;
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
+};
+
+type ReimbursementDeQueuedMessage = {
+    cancellationReason: string;
+    expenseReportID?: string;
+    amount: number;
+    currency: string;
 };
 
 type OriginalMessageIOU = {
@@ -139,6 +161,11 @@ type OriginalMessageCreated = {
     originalMessage?: unknown;
 };
 
+type OriginalMessageMarkedReimbursed = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED;
+    originalMessage?: unknown;
+};
+
 type OriginalMessageRenamed = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.RENAMED;
     originalMessage: {
@@ -193,6 +220,17 @@ type OriginalMessagePolicyChangeLog = {
     originalMessage: ChangeLog;
 };
 
+type OriginalMessageJoinPolicyChangeLog = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLEJOINREQUEST;
+    originalMessage: {
+        choice: string;
+        email: string;
+        inviterEmail: string;
+        lastModified: string;
+        policyID: string;
+    };
+};
+
 type OriginalMessageRoomChangeLog = {
     actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG>;
     originalMessage: ChangeLog;
@@ -232,7 +270,9 @@ type OriginalMessageModifiedExpense = {
 
 type OriginalMessageReimbursementQueued = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED;
-    originalMessage: unknown;
+    originalMessage: {
+        paymentType: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+    };
 };
 
 type OriginalMessageReimbursementDequeued = {
@@ -260,16 +300,20 @@ type OriginalMessage =
     | OriginalMessageSubmitted
     | OriginalMessageClosed
     | OriginalMessageCreated
+    | OriginalMessageHold
+    | OriginalMessageUnHold
     | OriginalMessageRenamed
     | OriginalMessageChronosOOOList
     | OriginalMessageReportPreview
     | OriginalMessageRoomChangeLog
     | OriginalMessagePolicyChangeLog
     | OriginalMessagePolicyTask
+    | OriginalMessageJoinPolicyChangeLog
     | OriginalMessageModifiedExpense
     | OriginalMessageReimbursementQueued
     | OriginalMessageReimbursementDequeued
-    | OriginalMessageMoved;
+    | OriginalMessageMoved
+    | OriginalMessageMarkedReimbursed;
 
 export default OriginalMessage;
 export type {
@@ -278,6 +322,7 @@ export type {
     Reaction,
     ActionName,
     IOUMessage,
+    ReimbursementDeQueuedMessage,
     Closed,
     OriginalMessageActionName,
     ChangeLog,
@@ -285,6 +330,8 @@ export type {
     OriginalMessageCreated,
     OriginalMessageRenamed,
     OriginalMessageAddComment,
+    OriginalMessageJoinPolicyChangeLog,
+    OriginalMessageActionableMentionWhisper,
     OriginalMessageChronosOOOList,
     OriginalMessageSource,
     OriginalMessageReimbursementDequeued,

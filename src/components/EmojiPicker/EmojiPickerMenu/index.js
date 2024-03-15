@@ -109,6 +109,10 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected, activeEmoji}) {
         initialFocusedIndex: -1,
         disableCyclicTraversal: true,
         onFocusedIndexChange,
+        disableHorizontalKeys: isFocused,
+        // We pass true without checking visibility of the component because if the popover is not visible this picker won't be mounted
+        isActive: true,
+        allowNegativeIndexes: true,
     });
 
     const filterEmojis = _.throttle((searchTerm) => {
@@ -331,12 +335,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected, activeEmoji}) {
                 isFiltered={isListFiltered}
                 headerEmojis={headerEmojis}
                 scrollToHeader={scrollToHeader}
-                listWrapperStyle={[
-                    listStyle,
-                    // Set scrollPaddingTop to consider sticky headers while scrolling
-                    {scrollPaddingTop: isListFiltered ? 0 : CONST.EMOJI_PICKER_ITEM_HEIGHT},
-                    styles.flexShrink1,
-                ]}
+                listWrapperStyle={[listStyle, styles.flexShrink1]}
                 ref={emojiListRef}
                 data={filteredEmojis}
                 renderItem={renderItem}

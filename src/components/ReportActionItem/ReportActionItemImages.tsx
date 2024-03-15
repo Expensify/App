@@ -58,16 +58,13 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
         heightStyle = StyleUtils.getHeight(variables.reportActionImagesMultipleImageHeight);
     }
 
-    // The icon size varies depending on the number of images we are displaying.
-    const iconSize = numberOfShownImages > 2 ? 'small' : 'medium';
-
     const hoverStyle = isHovered ? styles.reportPreviewBoxHoverBorder : undefined;
 
     const triangleWidth = variables.reportActionItemImagesMoreCornerTriangleWidth;
 
     return (
         <View style={[styles.reportActionItemImages, hoverStyle, heightStyle]}>
-            {shownImages.map(({thumbnail, image, transaction, isLocalFile}, index) => {
+            {shownImages.map(({thumbnail, image, transaction, isLocalFile, filename}, index) => {
                 const isLastImage = index === numberOfShownImages - 1;
 
                 // Show a border to separate multiple images. Shown to the right for each except the last.
@@ -82,8 +79,9 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
                             thumbnail={thumbnail}
                             image={image}
                             isLocalFile={isLocalFile}
+                            filename={filename}
                             transaction={transaction}
-                            iconSize={iconSize}
+                            isSingleImage={numberOfShownImages === 1}
                         />
                         {isLastImage && remaining > 0 && (
                             <View style={[styles.reportActionItemImagesMoreContainer]}>
@@ -111,3 +109,4 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
 ReportActionItemImages.displayName = 'ReportActionItemImages';
 
 export default ReportActionItemImages;
+export type {ReportActionItemImagesProps};

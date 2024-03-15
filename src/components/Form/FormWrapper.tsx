@@ -1,21 +1,22 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import type {RefObject} from 'react';
-import type {StyleProp, View, ViewStyle} from 'react-native';
-import {Keyboard, ScrollView} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView, StyleProp, View, ViewStyle} from 'react-native';
+import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormElement from '@components/FormElement';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import type {SafeAreaChildrenProps} from '@components/SafeAreaConsumer/types';
+import ScrollView from '@components/ScrollView';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import type {Form} from '@src/types/onyx';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {Form} from '@src/types/form';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {FormProps, InputRefs} from './types';
+import type {FormInputErrors, FormProps, InputRefs} from './types';
 
 type FormWrapperOnyxProps = {
     /** Contains the form state that must be accessed outside the component */
@@ -28,8 +29,11 @@ type FormWrapperProps = ChildrenProps &
         /** Submit button styles */
         submitButtonStyles?: StyleProp<ViewStyle>;
 
+        /** Whether to apply flex to the submit button */
+        submitFlexEnabled?: boolean;
+
         /** Server side errors keyed by microtime */
-        errors: Errors;
+        errors: FormInputErrors;
 
         /** Assuming refs are React refs */
         inputRefs: RefObject<InputRefs>;
@@ -49,6 +53,7 @@ function FormWrapper({
     isSubmitButtonVisible = true,
     style,
     submitButtonStyles,
+    submitFlexEnabled = true,
     enabledWhenOffline,
     isSubmitActionDangerous = false,
     formID,
@@ -57,7 +62,7 @@ function FormWrapper({
     disablePressOnEnter = true,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
-    const formRef = useRef<ScrollView>(null);
+    const formRef = useRef<RNScrollView>(null);
     const formContentRef = useRef<View>(null);
     const errorMessage = useMemo(() => (formState ? ErrorUtils.getLatestErrorMessage(formState) : undefined), [formState]);
 
@@ -105,11 +110,11 @@ function FormWrapper({
                         buttonText={submitButtonText}
                         isAlertVisible={((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage}
                         isLoading={!!formState?.isLoading}
-                        message={isEmptyObject(formState?.errorFields) ? errorMessage : undefined}
+                        message={typeof errorMessage === 'string' && isEmptyObject(formState?.errorFields) ? errorMessage : undefined}
                         onSubmit={onSubmit}
                         footerContent={footerContent}
                         onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
-                        containerStyles={[styles.mh0, styles.mt5, styles.flex1, submitButtonStyles]}
+                        containerStyles={[styles.mh0, styles.mt5, submitFlexEnabled ? styles.flex1 : {}, submitButtonStyles]}
                         enabledWhenOffline={enabledWhenOffline}
                         isSubmitActionDangerous={isSubmitActionDangerous}
                         disablePressOnEnter={disablePressOnEnter}
@@ -134,6 +139,7 @@ function FormWrapper({
             styles.mh0,
             styles.mt5,
             submitButtonStyles,
+            submitFlexEnabled,
             submitButtonText,
             shouldHideFixErrorsAlert,
             onFixTheErrorsLinkPressed,

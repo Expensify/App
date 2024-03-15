@@ -1,23 +1,20 @@
-import React, {useRef} from 'react';
-import {ScrollView, View} from 'react-native';
+import React, {useMemo, useRef} from 'react';
+import {View} from 'react-native';
 import type {ImageSourcePropType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
 import type QRShareWithDownloadHandle from '@components/QRShare/QRShareWithDownload/types';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Section from '@components/Section';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import ScrollView from '@components/ScrollView';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Clipboard from '@libs/Clipboard';
 import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
@@ -26,28 +23,25 @@ import * as Url from '@libs/Url';
 import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Report, Session} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 
-type ShareCodePageOnyxProps = WithCurrentUserPersonalDetailsProps & {
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<Session>;
-
+type ShareCodePageOnyxProps = {
     /** The report currently being looked at */
     report?: OnyxEntry<Report>;
 };
 
 type ShareCodePageProps = ShareCodePageOnyxProps;
 
-function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodePageProps) {
+function ShareCodePage({report}: ShareCodePageProps) {
     const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const qrCodeRef = useRef<QRShareWithDownloadHandle>(null);
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const isReport = !!report?.reportID;
 
-    const getSubtitle = () => {
+    const subtitle = useMemo(() => {
         if (isReport) {
             if (ReportUtils.isExpenseReport(report)) {
                 return ReportUtils.getPolicyName(report);
@@ -62,81 +56,64 @@ function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodeP
             return ReportUtils.getParentNavigationSubtitle(report).workspaceName ?? ReportUtils.getChatRoomSubtitle(report);
         }
 
-        return session?.email;
-    };
+        return currentUserPersonalDetails.login;
+    }, [report, currentUserPersonalDetails, isReport]);
 
     const title = isReport ? ReportUtils.getReportName(report) : currentUserPersonalDetails.displayName ?? '';
-    const subtitle = getSubtitle();
     const urlWithTrailingSlash = Url.addTrailingForwardSlash(environmentURL);
-    const url = isReport ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}` : `${urlWithTrailingSlash}${ROUTES.PROFILE.getRoute(session?.accountID ?? '')}`;
+    const url = isReport
+        ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`
+        : `${urlWithTrailingSlash}${ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID ?? '')}`;
     const platform = getPlatform();
     const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
 
     return (
-        <ScreenWrapper
-            testID={ShareCodePage.displayName}
-            shouldShowOfflineIndicatorInWideScreen={!isReport}
-        >
+        <ScreenWrapper testID={ShareCodePage.displayName}>
             <HeaderWithBackButton
                 title={translate('common.shareCode')}
                 onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID) : undefined)}
-                shouldShowBackButton={isReport || isSmallScreenWidth}
-                icon={Illustrations.QrCode}
+                shouldShowBackButton
             />
             <ScrollView style={[themeStyles.flex1, themeStyles.pt3]}>
-                <View style={[themeStyles.flex1, isSmallScreenWidth ? themeStyles.workspaceSectionMobile : themeStyles.workspaceSection]}>
-                    <Section
-                        title={translate('shareCodePage.title')}
-                        subtitle={translate('shareCodePage.subtitle')}
-                        isCentralPane
-                        subtitleMuted
-                        childrenStyles={themeStyles.pt5}
-                        titleStyles={themeStyles.accountSettingsSectionTitle}
-                    >
-                        <View style={[isSmallScreenWidth ? themeStyles.workspaceSectionMobile : themeStyles.qrShareSection]}>
-                            <QRShareWithDownload
-                                ref={qrCodeRef}
-                                url={url}
-                                title={title}
-                                subtitle={subtitle}
-                                logo={isReport ? expensifyLogo : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType)}
-                                logoRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO : CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
-                                logoMarginRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO : CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
-                            />
-                        </View>
+                <View style={[themeStyles.workspaceSectionMobile, themeStyles.ph5]}>
+                    <QRShareWithDownload
+                        ref={qrCodeRef}
+                        url={url}
+                        title={title}
+                        subtitle={subtitle}
+                        logo={isReport ? expensifyLogo : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType)}
+                        logoRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO : CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
+                        logoMarginRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO : CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
+                    />
+                </View>
 
-                        <View style={{marginTop: 36}}>
-                            <ContextMenuItem
-                                isAnonymousAction
-                                text={translate('qrCodes.copy')}
-                                icon={Expensicons.Copy}
-                                successIcon={Expensicons.Checkmark}
-                                successText={translate('qrCodes.copied')}
-                                onPress={() => Clipboard.setString(url)}
-                                shouldLimitWidth={false}
-                                wrapperStyle={themeStyles.sectionMenuItemTopDescription}
-                            />
+                <View style={themeStyles.mt9}>
+                    <ContextMenuItem
+                        isAnonymousAction
+                        text={translate('qrCodes.copy')}
+                        icon={Expensicons.Copy}
+                        successIcon={Expensicons.Checkmark}
+                        successText={translate('qrCodes.copied')}
+                        onPress={() => Clipboard.setString(url)}
+                        shouldLimitWidth={false}
+                    />
 
-                            {isNative && (
-                                <MenuItem
-                                    isAnonymousAction
-                                    title={translate('common.download')}
-                                    icon={Expensicons.Download}
-                                    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                                    onPress={() => qrCodeRef.current?.download?.()}
-                                    wrapperStyle={themeStyles.sectionMenuItemTopDescription}
-                                />
-                            )}
+                    {isNative && (
+                        <MenuItem
+                            isAnonymousAction
+                            title={translate('common.download')}
+                            icon={Expensicons.Download}
+                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                            onPress={() => qrCodeRef.current?.download?.()}
+                        />
+                    )}
 
-                            <MenuItem
-                                title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText1`)}
-                                icon={Expensicons.Cash}
-                                onPress={() => Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE))}
-                                wrapperStyle={themeStyles.sectionMenuItemTopDescription}
-                                shouldShowRightIcon
-                            />
-                        </View>
-                    </Section>
+                    <MenuItem
+                        title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText1`)}
+                        icon={Expensicons.Cash}
+                        onPress={() => Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE, Navigation.getActiveRouteWithoutParams()))}
+                        shouldShowRightIcon
+                    />
                 </View>
             </ScrollView>
         </ScreenWrapper>
@@ -145,4 +122,4 @@ function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodeP
 
 ShareCodePage.displayName = 'ShareCodePage';
 
-export default withCurrentUserPersonalDetails(ShareCodePage);
+export default ShareCodePage;

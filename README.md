@@ -16,6 +16,7 @@
 * [Debugging](#debugging)
 * [App Structure and Conventions](#app-structure-and-conventions)
 * [Philosophy](#Philosophy)
+* [Security](#Security)
 * [Internationalization](#Internationalization)
 * [Deploying](#deploying)
 
@@ -68,6 +69,8 @@ For an M1 Mac, read this [SO](https://stackoverflow.com/questions/64901180/how-t
 * If you are an Expensify employee and want to point the emulator to your local VM, follow [this](https://stackoverflow.com/c/expensify/questions/7699)
 * To run a on a **Development Simulator**: `npm run ios`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
+
+If you want to run the app on an actual physical iOS device, please follow the instructions [here](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_BUILD_APP_ON_PHYSICAL_IOS_DEVICE.md).
 
 ## Running the Android app 🤖
 * Before installing Android dependencies, you need to obtain a token from Mapbox to download their SDKs. Please run `npm run configure-mapbox` and follow the instructions. If you already did this step for iOS, there is no need to repeat this step.
@@ -183,6 +186,79 @@ Our React Native Android app now uses the `Hermes` JS engine which requires your
 ## Web
 
 To make it easier to test things in web, we expose the Onyx object to the window, so you can easily do `Onyx.set('bla', 1)`.
+
+----
+
+# Release Profiler
+Often, performance issue debugging occurs in debug builds, which can introduce errors from elements such as JS Garbage Collection, Hermes debug markers, or LLDB pauses.
+
+`react-native-release-profiler` facilitates profiling within release builds for accurate local problem-solving and broad performance analysis in production to spot regressions or collect extensive device data. Therefore, we will utilize the production build version
+
+### Getting Started with Source Maps
+To accurately profile your application, generating source maps for Android and iOS is crucial. Here's how to enable them:
+1. Enable source maps on Android 
+Ensure the following is set in your app's `android/app/build.gradle` file.
+
+    ```jsx
+    project.ext.react = [
+        enableHermes: true,
+        hermesFlagsRelease: ["-O", "-output-source-map"], // <-- here, plus whichever flag was required to set this away from default
+    ]
+    ```
+    
+2. Enable source maps on IOS 
+Within Xcode head to the build phase - `Bundle React Native code and images`.
+    
+    ```jsx
+    export SOURCEMAP_FILE="$(pwd)/../main.jsbundle.map" // <-- here;
+    
+    export NODE_BINARY=node
+    ../node_modules/react-native/scripts/react-native-xcode.sh
+    ```
+3. Install the necessary packages and CocoaPods dependencies:
+    ```jsx
+    npm i && npm run pod-install
+    ```
+7. Depending on the platform you are targeting, run your Android/iOS app in production mode.
+8. Upon completion, the generated source map can be found at:
+  Android: `android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map` 
+  IOS: `main.jsbundle.map` 
+
+### Recording a Trace:
+1. Ensure you have generated the source map as outlined above.
+2. Launch the app in production mode.
+2. Navigate to the feature you wish to profile.
+3. Initiate the profiling session by tapping with four fingers to open the menu and selecting **`Use Profiling`**.
+4. Close the menu and interact with the app.
+5. After completing your interactions, tap with four fingers again and select to stop profiling.
+6. You will be presented with a **`Share`** option to export the trace, which includes a trace file (`Profile<app version>.cpuprofile`) and build info (`AppInfo<app version>.json`).
+
+Build info:
+```jsx
+{
+    appVersion: "1.0.0",
+    environment: "production",
+    platform: "IOS",
+    totalMemory: "3GB",
+    usedMemory: "300MB"
+}
+```
+
+### How to symbolicate trace record:
+1. You have two files: `AppInfo<app version>.json` and `Profile<app version>.cpuprofile`
+2. Place the `Profile<app version>.cpuprofile` file at the root of your project.
+3. If you have already generated a source map from the steps above for this branch, you can skip to the next step. Otherwise, obtain the app version from `AppInfo<app version>.json` switch to that branch and generate the source map as described.
+
+`IMPORTANT:` You should generate the source map from the same branch as the trace was recorded.
+
+4. Use the following commands to symbolicate the trace for Android and iOS, respectively:
+Android: `npm run symbolicate-release:android`
+IOS: `npm run symbolicate-release:ios` 
+5. A new file named `Profile_trace_for_<app version>-converted.json` will appear in your project's root folder.
+6. Open this file in your tool of choice:
+    - SpeedScope ([https://www.speedscope.app](https://www.speedscope.app/))
+    - Perfetto UI (https://ui.perfetto.dev/)
+    - Google Chrome's Tracing UI (chrome://tracing)
 
 ---
 
@@ -392,6 +468,117 @@ This application is built with the following principles.
     1. If the reason you can't write cross-platform code is because there is a bug in ReactNative that is preventing it from working, the correct action is to fix RN and submit a PR upstream -- not to hack around RN bugs with platform-specific code paths.
     1. If there is a feature that simply doesn't exist on all platforms and thus doesn't exist in RN, rather than doing if (platform=iOS) { }, instead write a "shim" library that is implemented with NOOPs on the other platforms.  For example, rather than injecting platform-specific multi-tab code (which can only work on browsers, because it's the only platform with multiple tabs), write a TabManager class that just is NOOP for non-browser platforms.  This encapsulates the platform-specific code into a platform library, rather than sprinkling through the business logic.
     1. Put all platform specific code in dedicated files and folders, like /platform, and reject any PR that attempts to put platform-specific code anywhere else.  This maintains a strict separation between business logic and platform code.
+
+----
+
+# Security
+Updated rules for managing members across all types of chats in New Expensify.
+
+- **Nobody can leave or be removed from something they were automatically added to. For example:**
+
+    - DM members can't leave or be removed from their DMs
+    - Members can't leave or be removed from their own workspace chats
+    - Admins can't leave or be removed from workspace chats
+    - Members can't leave or be removed from the #announce room
+    - Admins can't leave or be removed from #admins
+    - Domain members can't leave or be removed from their domain chat
+    - Report submitters can't leave or be removed from their reports 
+    - Report managers can't leave or be removed from their reports 
+    - Group owners cannot be removed from their groups - they need to transfer ownership first
+- **Excepting the above, admins can remove anyone. For example:**
+    - Group admins can remove other group admins, as well as group members
+    - Workspace admins can remove other workspace admins, as well as workspace members, and invited guests
+- **Excepting the above, members can remove guests. For example:**
+    - Workspace members can remove non-workspace guests.
+- **Excepting the above, anybody can remove themselves from any object**
+
+1. ### DM
+    |  | Member
+    | :---: | :---: 
+    | **Invite** | ❌ 
+    | **Remove** | ❌ 
+    | **Leave**  | ❌ 
+    | **Can be removed**  | ❌
+- DM always has two participants. None of the participant can leave or be removed from the DM. Also no additional member can be invited to the chat.
+
+2. ### Workspace
+    1. #### Workspace
+        |   |  Creator  |  Member(Employee/User) | Admin |  Auditor?
+        | :---: | :---:  |  :---: | :---: | :---: 
+        | **Invite** | ✅ |  ❌ |  ✅ | ❌
+        | **Remove** | ✅ |  ❌ |  ✅ | ❌
+        | **Leave**  | ❌ |  ✅ |  ❌ | ✅
+        | **Can be removed**  | ❌ |  ✅ | ✅ | ✅
+
+        - Creator can't leave or be removed from their own workspace
+        - Admins can't leave from the workspace
+        - Admins can remove other workspace admins, as well as workspace members, and invited guests
+        - Creator can remove other workspace admins, as well as workspace members, and invited guests
+        - Members and Auditors cannot invite or remove anyone from the workspace
+
+    2. #### Workspace #announce room
+        |   |  Member(Employee/User) | Admin |  Auditor?
+        | :---: | :---:  |  :---: | :---: 
+        | **Invite** | ❌ |  ❌ |  ❌
+        | **Remove** | ❌ |  ❌ |  ❌
+        | **Leave**  | ❌ |  ❌ |  ❌
+        | **Can be removed**  | ❌ |  ❌ |  ❌ |
+
+       - No one can leave or be removed from the #announce room
+
+    3. #### Workspace #admin room
+        |   |  Admin |
+        | :---: | :---: 
+        | **Invite** | ❌  
+        | **Remove** | ❌   
+        | **Leave**  | ❌ 
+        | **Can be removed**  | ❌
+
+        - Admins can't leave or be removed from #admins
+    
+    4. #### Workspace rooms
+        |   |  Creator | Member | Guest(outside of the workspace)
+        | :---: | :---:  |  :---: | :---:
+        | **Invite** | ✅ | ✅ | ✅
+        | **Remove** | ✅ | ✅ | ❌
+        | **Leave**  | ✅ | ✅ | ✅
+        | **Can be removed**  | ✅ | ✅ | ✅
+
+        - Everyone can be removed/can leave from the room including creator
+        - Guests are not able to remove anyone from the room
+
+    4. #### Workspace chats
+        |   |  Admin | Member(default) | Member(invited)  
+        | :---: | :---:  |  :---:  |  :---:
+        | **Invite** | ✅ |  ✅ | ❌
+        | **Remove** | ✅ |  ✅ | ❌  
+        | **Leave**  | ❌ |  ❌  | ✅
+        | **Can be removed**  | ❌ | ❌ | ✅
+
+        - Admins are not able to leave/be removed from the workspace chat
+        - Default members(automatically invited) are not able to leave/be removed from the workspace chat
+        - Invited members(invited by members) are not able to invite or remove from the workspace chat
+        - Invited members(invited by members) are able to leave the workspace chat
+        - Default members and admins are able to remove invited members
+
+3. ### Domain chat
+    |   |  Member
+    | :---: | :---:  
+    | **Remove** | ❌ 
+    | **Leave**  | ❌ 
+    | **Can be removed**  | ❌ 
+
+- Domain members can't leave or be removed from their domain chat
+
+4. ### Reports
+    |   |  Submitter | Manager
+    | :---: | :---:  | :---:  
+    | **Remove** | ❌ | ❌
+    | **Leave**  | ❌ | ❌
+    | **Can be removed**  | ❌ | ❌
+
+- Report submitters can't leave or be removed from their reports (eg, if they are the report.accountID)
+- Report managers can't leave or be removed from their reports (eg, if they are the report.managerID)
 
 ----
 
