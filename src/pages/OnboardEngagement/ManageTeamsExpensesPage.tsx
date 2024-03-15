@@ -10,12 +10,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 const menuIcons = {
     [CONST.MANAGE_TEAMS_CHOICE.MULTI_LEVEL]: Expensicons.Task,

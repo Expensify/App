@@ -12,6 +12,7 @@ import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
@@ -27,7 +28,6 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Card} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 type ActivatePhysicalCardPageOnyxProps = {
     /** Card list propTypes */

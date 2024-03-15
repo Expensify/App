@@ -15,7 +15,7 @@ type ResponsiveLayoutResult = {
 /**
  * Hook to determine if we are on mobile devices or in the Modal Navigator.
  * Use "shouldUseNarrowLayout" for "on mobile or in RHP/LHP", "isSmallScreenWidth" for "on mobile", "isInModal" for "in RHP/LHP".
- * Note: Don't use "shouldUseNarrowLayout" in popovers and "alert-style" modals. 
+ * Note: Don't use "shouldUseNarrowLayout" in popovers and "alert-style" modals.
  */
 export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const {isSmallScreenWidth, isExtraSmallScreenHeight, isExtraSmallScreenWidth, isMediumScreenWidth, isLargeScreenWidth, isSmallScreen} = useWindowDimensions();

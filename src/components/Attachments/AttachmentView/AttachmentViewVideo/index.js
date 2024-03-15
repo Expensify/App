@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import VideoPlayer from '@components/VideoPlayer';
-import useThemeStyles from '@hooks/useThemeStyles';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 const propTypes = {
     /** Video file source URL */
