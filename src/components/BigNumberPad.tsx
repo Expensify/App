@@ -2,9 +2,9 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import ControlSelection from '@libs/ControlSelection';
 import Button from './Button';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 type BigNumberPadProps = {
     /** Callback to inform parent modal with key pressed */
@@ -32,7 +32,7 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
 
     const styles = useThemeStyles();
     const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
-    const {isExtraSmallScreenHeight} = useWindowDimensions();
+    const {isExtraSmallScreenHeight} = useResponsiveLayout();
 
     /**
      * Handle long press key on number pad.

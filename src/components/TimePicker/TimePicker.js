@@ -13,11 +13,11 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import setCursorPosition from './setCursorPosition';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 const propTypes = {
     /** Refs forwarded to the TextInputWithCurrencySymbol */
@@ -111,7 +111,7 @@ function clearSelectedValue(value, selection, setValue, setSelection) {
 
 function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
     const {numberFormat, translate} = useLocalize();
-    const {isExtraSmallScreenHeight} = useWindowDimensions();
+    const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const value = DateUtils.extractTime12Hour(defaultValue);

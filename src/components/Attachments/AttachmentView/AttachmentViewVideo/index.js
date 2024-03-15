@@ -3,6 +3,7 @@ import React from 'react';
 import VideoPlayer from '@components/VideoPlayer';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 const propTypes = {
     /** Video file source URL */
@@ -23,7 +24,7 @@ const defaultProps = {
 };
 
 function AttachmentViewVideo({source, isHovered, shouldUseSharedVideoElement, videoDuration}) {
-    const {isSmallScreen} = useWindowDimensions();
+    const {isSmallScreen} = useResponsiveLayout();
     const styles = useThemeStyles();
 
     return (

@@ -24,6 +24,7 @@ import * as Session from '@userActions/Session';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 type CodesStepProps = BaseTwoFactorAuthFormOnyxProps & BackToParams;
 
@@ -31,7 +32,7 @@ function CodesStep({account, backTo}: CodesStepProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isExtraSmallScreenWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [error, setError] = useState('');
 
     const {setStep} = useTwoFactorAuthContext();

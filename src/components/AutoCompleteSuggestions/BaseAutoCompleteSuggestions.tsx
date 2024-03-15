@@ -14,6 +14,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import viewForwardedRef from '@src/types/utils/viewForwardedRef';
 import type {AutoCompleteSuggestionsProps, RenderSuggestionMenuItemProps} from './types';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 const measureHeightOfSuggestionRows = (numRows: number, isSuggestionPickerLarge: boolean): number => {
     if (isSuggestionPickerLarge) {
@@ -42,7 +43,8 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
     }: AutoCompleteSuggestionsProps<TSuggestion>,
     ref: ForwardedRef<View | HTMLDivElement>,
 ) {
-    const {windowWidth, isLargeScreenWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const rowHeight = useSharedValue(0);

@@ -11,11 +11,11 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 const menuIcons = {
     [CONST.MANAGE_TEAMS_CHOICE.MULTI_LEVEL]: Expensicons.Task,
@@ -38,7 +38,7 @@ const messageCopy =
 function ManageTeamsExpensesModal() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isExtraSmallScreenHeight} = useWindowDimensions();
+    const {isExtraSmallScreenHeight} = useResponsiveLayout();
 
     const menuItems: MenuItemProps[] = useMemo(
         () =>
