@@ -188,7 +188,7 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        onDismissError={(item) => item.keyForList && clearTaxRateError(policy?.id ?? '', item.keyForList, item.pendingAction)}
+                        onDismissError={(item) => item.keyForList && clearTaxRateError(route.params.policyID, item.keyForList, item.pendingAction)}
                     />
                 </ScreenWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
