@@ -112,6 +112,10 @@ const registerListener = (session: Session, options: Options, callback: (error: 
                 callback(null, item);
             }
         });
+
+        if (typeof options.onStarted === 'function') {
+            options.onStarted(item);
+        }
     };
 
     session.on('will-download', listener);

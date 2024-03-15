@@ -10,7 +10,7 @@ const ELECTRON_EVENTS = {
     START_UPDATE: 'start-update',
     UPDATE_DOWNLOADED: 'update-downloaded',
     DOWNLOAD: 'download',
-    DOWNLOAD_COMPLETED: 'download-completed',
+    DOWNLOAD_STARTED: 'download-started',
     DOWNLOAD_CANCELLED: 'download-cancelled',
 };
 

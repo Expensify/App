@@ -51,6 +51,9 @@ const createDownloadQueue = () => {
             ...item,
             options: {
                 ...item.options,
+                onStarted: () => {
+                    item.win.webContents.send(ELECTRON_EVENTS.DOWNLOAD_STARTED, {url: item.url});
+                },
                 onCompleted: () => {
                     shiftDownloadItem();
                     item.win.webContents.send(ELECTRON_EVENTS.DOWNLOAD_COMPLETED, {url: item.url});

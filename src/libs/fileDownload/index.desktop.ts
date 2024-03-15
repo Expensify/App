@@ -13,7 +13,7 @@ const fileDownload: FileDownload = (url, fileName) => {
     window.electron.send(ELECTRON_EVENTS.DOWNLOAD, {url, options});
 
     return new Promise((resolve) => {
-        window.electron.on(ELECTRON_EVENTS.DOWNLOAD_COMPLETED, (args) => {
+        window.electron.on(ELECTRON_EVENTS.DOWNLOAD_STARTED, (args) => {
             if (args.url !== url) {
                 return;
             }

@@ -62,6 +62,12 @@ type Options = {
     readonly errorMessage?: string;
 
     /**
+    Optional callback that receives the [download item](https://electronjs.org/docs/api/download-item).
+    You can use this for advanced handling such as canceling the item like `item.cancel()`.
+    */
+    readonly onStarted?: (item: DownloadItem) => void;
+
+    /**
     Optional callback that receives the [download item](https://electronjs.org/docs/api/download-item) for which the download has been cancelled.
     */
     readonly onCancel?: (item: DownloadItem) => void;
