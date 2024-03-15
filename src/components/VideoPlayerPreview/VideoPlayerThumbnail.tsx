@@ -14,8 +14,13 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 type VideoPlayerThumbnailProps = {
-    thumbnailUrl: string | undefined;
+    /** Url of thumbnail image. */
+    thumbnailUrl?: string;
+
+    /** Callback executed on thumbnail press. */
     onPress: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
+
+    /** Accessibility label for the thumbnail. */
     accessibilityLabel: string;
 };
 
