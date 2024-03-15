@@ -510,7 +510,7 @@ function buildOnyxDataForMoneyRequest(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: transaction,
         },
-    isNewChatReport
+        isNewChatReport
             ? {
                   onyxMethod: Onyx.METHOD.SET,
                   key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
@@ -568,7 +568,7 @@ function buildOnyxDataForMoneyRequest(
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-            value:{
+            value: {
                 action: newQuickAction,
                 reportID: chatReport?.reportID,
                 isFirstQuickAction: isEmptyObject(quickAction),
@@ -1741,7 +1741,7 @@ function createSplitsAndOnyxData(
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-            value:{
+            value: {
                 action: iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ? CONST.QUICK_ACTIONS.SPLIT_DISTANCE : CONST.QUICK_ACTIONS.SPLIT_MANUAL,
                 reportID: splitChatReport.reportID,
                 isFirstQuickAction: isEmptyObject(quickAction),
@@ -2102,7 +2102,21 @@ function splitBillAndOpenReport(
     iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
 ) {
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
-    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, currentCreated, category, tag, '', billable, iouRequestType);
+    const {splitData, splits, onyxData} = createSplitsAndOnyxData(
+        participants,
+        currentUserLogin,
+        currentUserAccountID,
+        amount,
+        comment,
+        currency,
+        merchant,
+        currentCreated,
+        category,
+        tag,
+        '',
+        billable,
+        iouRequestType,
+    );
 
     const parameters: SplitBillParams = {
         reportID: splitData.chatReportID,
@@ -2213,7 +2227,7 @@ function startSplitBill(
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-            value:{
+            value: {
                 action: CONST.QUICK_ACTIONS.SPLIT_SCAN,
                 reportID: splitChatReport.reportID,
                 isFirstQuickAction: isEmptyObject(quickAction),

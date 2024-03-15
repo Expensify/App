@@ -228,18 +228,16 @@ function createTaskAndNavigate(
     );
 
     // FOR QUICK ACTION NVP
-    optimisticData.push(
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-            value:{
-                action: CONST.QUICK_ACTIONS.ASSIGN_TASK,
-                reportID: parentReportID,
-                isFirstQuickAction: isEmptyObject(quickAction),
-                targetAccountID: assigneeAccountID,
-            },
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+        value: {
+            action: CONST.QUICK_ACTIONS.ASSIGN_TASK,
+            reportID: parentReportID,
+            isFirstQuickAction: isEmptyObject(quickAction),
+            targetAccountID: assigneeAccountID,
         },
-    );
+    });
 
     // If needed, update optimistic data for parent report action of the parent report.
     const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(parentReportID, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
