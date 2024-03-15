@@ -199,6 +199,9 @@ type SettingsNavigatorParamList = {
         accountID: string;
         backTo: Routes;
     };
+    [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
+        policyID: string;
+    };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };

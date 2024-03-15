@@ -605,6 +605,10 @@ const ROUTES = {
         route: 'workspace/:policyID/distance-rates',
         getRoute: (policyID: string) => `workspace/${policyID}/distance-rates` as const,
     },
+    WORKSPACE_CREATE_DISTANCE_RATE: {
+        route: 'workspace/:policyID/distance-rates/new',
+        getRoute: (policyID: string) => `workspace/${policyID}/distance-rates/new` as const,
+    },
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {
         route: 'referral/:contentType',

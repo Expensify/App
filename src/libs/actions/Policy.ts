@@ -10,6 +10,7 @@ import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {
     AddMembersToWorkspaceParams,
+    CreatePolicyDistanceRateParams,
     CreateWorkspaceFromIOUPaymentParams,
     CreateWorkspaceParams,
     DeleteMembersFromWorkspaceParams,
@@ -3620,6 +3621,83 @@ function openPolicyMoreFeaturesPage(policyID: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_MORE_FEATURES_PAGE, params);
 }
 
+function createPolicyDistanceRate(policyID: string, customUnitID: string, customUnitRate: Rate) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnitID]: {
+                        rates: {
+                            [customUnitRate.customUnitRateID ?? '']: {
+                                ...customUnitRate,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnitID]: {
+                        rates: {
+                            [customUnitRate.customUnitRateID ?? '']: {
+                                pendingAction: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnitID]: {
+                        rates: {
+                            [customUnitRate.customUnitRateID ?? '']: {
+                                errors: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const params: CreatePolicyDistanceRateParams = {
+        policyID,
+        customUnitID,
+        customUnitRate: JSON.stringify(customUnitRate),
+    };
+
+    API.write(WRITE_COMMANDS.CREATE_POLICY_DISTANCE_RATE, params, {optimisticData, successData, failureData});
+}
+
+function clearCreateDistanceRateItemAndError(policyID: string, customUnitID: string, customUnitRateIDToClear: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        customUnits: {
+            [customUnitID]: {
+                rates: {
+                    [customUnitRateIDToClear]: null,
+                },
+            },
+        },
+    });
+}
+
 export {
     removeMembers,
     updateWorkspaceMembersRole,
@@ -3692,6 +3770,9 @@ export {
     enablePolicyWorkflows,
     openPolicyDistanceRatesPage,
     openPolicyMoreFeaturesPage,
+    generateCustomUnitID,
+    createPolicyDistanceRate,
+    clearCreateDistanceRateItemAndError,
     createPolicyTag,
     clearPolicyTagErrors,
     clearWorkspaceReimbursementErrors,
