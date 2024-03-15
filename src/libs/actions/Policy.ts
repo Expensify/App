@@ -3456,7 +3456,6 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                     },
                     pendingFields: {
                         tax: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        taxRates: shouldAddDefaultTaxRatesData ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null,
                     },
                 },
             },
