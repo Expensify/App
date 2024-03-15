@@ -79,6 +79,8 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                         text: value.name,
                         keyForList: value.name,
                         isSelected: !!selectedTags[value.name],
+                        pendingAction: value.pendingAction,
+                        errors: value.errors ?? undefined,
                         rightElement: (
                             <View style={styles.flexRow}>
                                 <Text style={[styles.textSupporting, styles.alignSelfCenter, styles.pl2, styles.label]}>
@@ -198,6 +200,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                             ListItem={TableListItem}
                             customListHeader={getCustomListHeader()}
                             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                            onDismissError={(item) => Policy.clearPolicyTagErrors(route.params.policyID, item.value)}
                         />
                     )}
                 </ScreenWrapper>
