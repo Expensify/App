@@ -6,6 +6,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setPolicyCustomTaxName} from '@libs/actions/TaxRate';
@@ -32,6 +33,7 @@ function WorkspaceTaxesSettingsCustomTaxName({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [name, setName] = useState(policy?.taxRates?.name ?? '');
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const submit = () => {
         setPolicyCustomTaxName(policyID, name);
@@ -59,14 +61,15 @@ function WorkspaceTaxesSettingsCustomTaxName({
                         <View style={styles.mb4}>
                             <InputWrapper
                                 InputComponent={TextInput}
+                                role={CONST.ROLE.PRESENTATION}
                                 inputID={INPUT_IDS.NAME}
                                 label={translate('workspace.editor.nameInputLabel')}
                                 accessibilityLabel={translate('workspace.editor.nameInputLabel')}
                                 value={name}
                                 maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
-                                autoFocus
                                 onChangeText={setName}
-                                autoGrowHeight
+                                multiline={false}
+                                ref={inputCallbackRef}
                             />
                         </View>
                     </FormProvider>
