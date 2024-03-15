@@ -3175,7 +3175,6 @@ function navigateWhenEnableFeature(policyID: string, featureRoute: Route) {
 
     if (isNarrowLayout) {
         Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
-
         return;
     }
 
