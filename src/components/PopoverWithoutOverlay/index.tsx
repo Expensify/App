@@ -11,6 +11,7 @@ import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import viewRef from '@src/types/utils/viewRef';
 import type PopoverWithoutOverlayProps from './types';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 function PopoverWithoutOverlay(
     {
@@ -31,6 +32,7 @@ function PopoverWithoutOverlay(
     const StyleUtils = useStyleUtils();
     const {onOpen, close} = useContext(PopoverContext);
     const {windowWidth, windowHeight} = useWindowDimensions();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const insets = useSafeAreaInsets();
 
     const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} =
@@ -39,8 +41,8 @@ function PopoverWithoutOverlay(
             {
                 windowWidth,
                 windowHeight,
+                isSmallScreenWidth
             },
-            false,
             anchorPosition,
             innerContainerStyle,
             outerStyle,
