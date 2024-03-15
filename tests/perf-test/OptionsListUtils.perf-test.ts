@@ -59,7 +59,7 @@ describe('OptionsListUtils', () => {
     });
 
     /* Testing getFilteredOptions */
-    test('[OptionsListUtils] getFilteredOptions with test value', async () => {
+    test('[OptionsListUtils] getFilteredOptions with search value', async () => {
         await waitForBatchedUpdates();
         await measureFunction(() => OptionsListUtils.getFilteredOptions(reports, personalDetails, mockedBetas, SEARCH_VALUE));
     });
