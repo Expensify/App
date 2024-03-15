@@ -3468,7 +3468,6 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                 value: {
                     pendingFields: {
                         tax: null,
-                        taxRates: null,
                     },
                 },
             },
