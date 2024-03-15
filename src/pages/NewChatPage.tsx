@@ -47,11 +47,7 @@ type NewChatPageProps = NewChatPageWithOnyxProps & {
 const excludedGroupEmails = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
 
 function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingForReports, dismissedReferralBanners}: NewChatPageProps) {
-    const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
     const {translate} = useLocalize();
-    const {options, areOptionsInitialized} = useOptionsList({
-        shouldInitialize: isScreenTransitionEnd,
-    });
 
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
@@ -61,6 +57,10 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+    const {options, areOptionsInitialized} = useOptionsList({
+        shouldInitialize: didScreenTransitionEnd,
+    });
 
     const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
@@ -212,7 +212,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
 
     useEffect(() => {
         const interactionTask = doInteractionTask(() => {
-            setIsScreenTransitionEnd(true);
+            setDidScreenTransitionEnd(true);
         });
 
         return () => {
@@ -225,11 +225,11 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
     }, []);
 
     useEffect(() => {
-        if (!isScreenTransitionEnd) {
+        if (!didScreenTransitionEnd) {
             return;
         }
         updateOptions();
-    }, [isScreenTransitionEnd, updateOptions]);
+    }, [didScreenTransitionEnd, updateOptions]);
 
     const {inputCallbackRef} = useAutoFocusInput();
 
@@ -265,7 +265,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
                             headerMessage={headerMessage}
                             boldStyle
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                            shouldShowOptions={areOptionsInitialized && isScreenTransitionEnd}
+                            shouldShowOptions={areOptionsInitialized && didScreenTransitionEnd}
                             shouldShowConfirmButton
                             shouldShowReferralCTA={!dismissedReferralBanners[CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]}
                             referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}

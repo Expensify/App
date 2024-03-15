@@ -15,7 +15,6 @@ const [withReportCommentDrafts, ReportCommentDraftsProvider] = createOnyxContext
 const [withPreferredTheme, PreferredThemeProvider, PreferredThemeContext] = createOnyxContext(ONYXKEYS.PREFERRED_THEME);
 const [withFrequentlyUsedEmojis, FrequentlyUsedEmojisProvider, , useFrequentlyUsedEmojis] = createOnyxContext(ONYXKEYS.FREQUENTLY_USED_EMOJIS);
 const [withPreferredEmojiSkinTone, PreferredEmojiSkinToneProvider, PreferredEmojiSkinToneContext] = createOnyxContext(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
-const [withReports, ReportsProvider, ReportsContext, useReports] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT);
 const [, SessionProvider, , useSession] = createOnyxContext(ONYXKEYS.SESSION);
 
 type OnyxProviderProps = {
@@ -38,7 +37,6 @@ function OnyxProvider(props: OnyxProviderProps) {
                 FrequentlyUsedEmojisProvider,
                 PreferredEmojiSkinToneProvider,
                 SessionProvider,
-                ReportsProvider,
             ]}
         >
             {props.children}
@@ -71,7 +69,4 @@ export {
     useBlockedFromConcierge,
     useReportActionsDrafts,
     useSession,
-    withReports,
-    ReportsContext,
-    useReports,
 };

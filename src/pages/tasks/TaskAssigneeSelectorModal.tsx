@@ -41,12 +41,10 @@ type TaskAssigneeSelectorModalOnyxProps = {
 type TaskAssigneeSelectorModalProps = TaskAssigneeSelectorModalOnyxProps & WithCurrentUserPersonalDetailsProps;
 
 function useOptions() {
-    const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
     const betas = useBetas();
+    const [isLoading, setIsLoading] = useState(true);
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const {options: optionsList, areOptionsInitialized} = useOptionsList({
-        shouldInitialize: isScreenTransitionEnd,
-    });
+    const {options: optionsList, areOptionsInitialized} = useOptionsList();
 
     const options = useMemo(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getFilteredOptions(
@@ -73,6 +71,10 @@ function useOptions() {
             debouncedSearchValue,
         );
 
+        if (isLoading) {
+            setIsLoading(false);
+        }
+
         return {
             userToInvite,
             recentReports,
@@ -80,9 +82,9 @@ function useOptions() {
             currentUserOption,
             headerMessage,
         };
-    }, [optionsList.reports, optionsList.personalDetails, betas, debouncedSearchValue]);
+    }, [optionsList.reports, optionsList.personalDetails, betas, debouncedSearchValue, isLoading]);
 
-    return {...options, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized, setIsScreenTransitionEnd};
+    return {...options, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized};
 }
 
 function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalProps) {
@@ -91,7 +93,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
     const {translate} = useLocalize();
     const session = useSession();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {userToInvite, recentReports, personalDetails, currentUserOption, searchValue, setSearchValue, headerMessage, areOptionsInitialized, setIsScreenTransitionEnd} = useOptions();
+    const {userToInvite, recentReports, personalDetails, currentUserOption, searchValue, setSearchValue, headerMessage, areOptionsInitialized} = useOptions();
 
     const onChangeText = (newSearchTerm = '') => {
         setSearchValue(newSearchTerm);
@@ -206,7 +208,6 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             testID={TaskAssigneeSelectorModal.displayName}
-            onEntryTransitionEnd={() => setIsScreenTransitionEnd(true)}
         >
             {({didScreenTransitionEnd}) => (
                 <FullPageNotFoundView shouldShow={isTaskNonEditable}>

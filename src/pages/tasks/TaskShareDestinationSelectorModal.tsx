@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -48,14 +48,11 @@ const reportFilter = (reportOptions: Array<OptionsListUtils.SearchOption<Report>
     }, []);
 
 function TaskShareDestinationSelectorModal({isSearchingForReports}: TaskShareDestinationSelectorModalProps) {
-    const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {options: optionList, areOptionsInitialized} = useOptionsList({
-        shouldInitialize: isScreenTransitionEnd,
-    });
+    const {options: optionList, areOptionsInitialized} = useOptionsList();
 
     const textInputHint = useMemo(() => (isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''), [isOffline, translate]);
 
@@ -101,7 +98,6 @@ function TaskShareDestinationSelectorModal({isSearchingForReports}: TaskShareDes
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             testID="TaskShareDestinationSelectorModal"
-            onEntryTransitionEnd={() => setIsScreenTransitionEnd(true)}
         >
             {({didScreenTransitionEnd}) => (
                 <>
