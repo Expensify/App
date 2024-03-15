@@ -2870,7 +2870,6 @@ function createPolicyTag(policyID: string, tagName: string) {
                         tags: {
                             [tagName]: {
                                 errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
-                                pendingAction: null,
                             },
                         },
                     },
@@ -2894,15 +2893,24 @@ function clearPolicyTagErrors(policyID: string, tagName: string) {
         return;
     }
 
+    if (tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
+            [tagListName]: {
+                tags: {
+                    [tagName]: null,
+                },
+            },
+        });
+        return;
+    }
+
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
         [tagListName]: {
             tags: {
-                [tagName]:
-                    tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
-                        ? null
-                        : {
-                              errors: null,
-                          },
+                [tagName]: {
+                    errors: null,
+                    pendingAction: null,
+                },
             },
         },
     });
