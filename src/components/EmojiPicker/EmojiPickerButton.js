@@ -43,7 +43,7 @@ function EmojiPickerButton(props) {
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
 
-    const onPress = () => {
+    const openEmojiPicker = () => {
         if (!props.isFocused) {
             return;
         }
@@ -88,7 +88,7 @@ function EmojiPickerButton(props) {
                 ref={emojiPopoverAnchor}
                 style={({hovered, pressed}) => [styles.chatItemEmojiButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
                 disabled={props.isDisabled}
-                onPress={onPress}
+                onPress={openEmojiPicker}
                 id={props.id}
                 accessibilityLabel={props.translate('reportActionCompose.emoji')}
             >
