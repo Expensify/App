@@ -1,20 +1,20 @@
-import PropTypes from 'prop-types';
+import {useIsFocused} from '@react-navigation/native';
+import type {ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FloatingActionButton from '@components/FloatingActionButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
-import withNavigation from '@components/withNavigation';
-import withNavigationFocus from '@components/withNavigationFocus';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
+import type {PolicySelector} from '@pages/home/sidebar/SidebarLinksData';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
@@ -22,74 +22,54 @@ import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type * as OnyxTypes from '@src/types/onyx';
 
-/**
- * @param {Object} [policy]
- * @returns {Object|undefined}
- */
-const policySelector = (policy) =>
-    policy && {
-        type: policy.type,
-        role: policy.role,
-        isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
-        pendingAction: policy.pendingAction,
-    };
+type FloatingActionButtonAndPopoverOnyxProps = {
+    /** The list of policies the user has access to. */
+    allPolicies: OnyxCollection<PolicySelector>;
 
-const propTypes = {
-    ...windowDimensionsPropTypes,
+    /** Whether app is in loading state */
+    isLoading: OnyxEntry<boolean>;
+};
 
+type FloatingActionButtonAndPopoverProps = FloatingActionButtonAndPopoverOnyxProps & {
     /* Callback function when the menu is shown */
-    onShowCreateMenu: PropTypes.func,
+    onShowCreateMenu?: () => void;
 
     /* Callback function before the menu is hidden */
-    onHideCreateMenu: PropTypes.func,
-
-    /** The list of policies the user has access to. */
-    allPolicies: PropTypes.shape({
-        /** The policy name */
-        name: PropTypes.string,
-    }),
-
-    /** Indicated whether the report data is loading */
-    isLoading: PropTypes.bool,
-
-    /** Forwarded ref to FloatingActionButtonAndPopover */
-    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+    onHideCreateMenu?: () => void;
 };
-const defaultProps = {
-    onHideCreateMenu: () => {},
-    onShowCreateMenu: () => {},
-    allPolicies: {},
-    isLoading: false,
-    innerRef: null,
+
+type FloatingActionButtonAndPopoverRef = {
+    hideCreateMenu: () => void;
 };
 
 /**
  * Responsible for rendering the {@link PopoverMenu}, and the accompanying
  * FAB that can open or close the menu.
- * @param {Object} props
- * @returns {JSX.Element}
  */
-function FloatingActionButtonAndPopover(props) {
+function FloatingActionButtonAndPopover(
+    {onHideCreateMenu, onShowCreateMenu, isLoading, allPolicies}: FloatingActionButtonAndPopoverProps,
+    ref: ForwardedRef<FloatingActionButtonAndPopoverRef>,
+) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
-    const fabRef = useRef(null);
+    const fabRef = useRef<HTMLDivElement>(null);
+    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
+    const isFocused = useIsFocused();
 
-    const prevIsFocused = usePrevious(props.isFocused);
+    const prevIsFocused = usePrevious(isFocused);
 
     /**
      * Check if LHN status changed from active to inactive.
      * Used to close already opened FAB menu when open any other pages (i.e. Press Command + K on web).
-     *
-     * @param {Object} prevProps
-     * @return {Boolean}
      */
     const didScreenBecomeInactive = useCallback(
         () =>
             // When any other page is opened over LHN
-            !props.isFocused && prevIsFocused,
-        [props.isFocused, prevIsFocused],
+            !isFocused && prevIsFocused,
+        [isFocused, prevIsFocused],
     );
 
     /**
@@ -97,14 +77,14 @@ function FloatingActionButtonAndPopover(props) {
      */
     const showCreateMenu = useCallback(
         () => {
-            if (!props.isFocused && props.isSmallScreenWidth) {
+            if (!isFocused && isSmallScreenWidth) {
                 return;
             }
             setIsCreateMenuActive(true);
-            props.onShowCreateMenu();
+            onShowCreateMenu?.();
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [props.isFocused, props.isSmallScreenWidth],
+        [isFocused, isSmallScreenWidth],
     );
 
     /**
@@ -118,7 +98,7 @@ function FloatingActionButtonAndPopover(props) {
                 return;
             }
             setIsCreateMenuActive(false);
-            props.onHideCreateMenu();
+            onHideCreateMenu?.();
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [isCreateMenuActive],
@@ -133,7 +113,7 @@ function FloatingActionButtonAndPopover(props) {
         hideCreateMenu();
     }, [didScreenBecomeInactive, hideCreateMenu]);
 
-    useImperativeHandle(props.innerRef, () => ({
+    useImperativeHandle(ref, () => ({
         hideCreateMenu() {
             hideCreateMenu();
         },
@@ -151,10 +131,10 @@ function FloatingActionButtonAndPopover(props) {
         <View style={styles.flexGrow1}>
             <PopoverMenu
                 onClose={hideCreateMenu}
-                isVisible={isCreateMenuActive && (!props.isSmallScreenWidth || props.isFocused)}
-                anchorPosition={styles.createMenuPositionSidebar(props.windowHeight)}
+                isVisible={isCreateMenuActive && (!isSmallScreenWidth || isFocused)}
+                anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
                 onItemSelected={hideCreateMenu}
-                fromSidebarMediumScreen={!props.isSmallScreenWidth}
+                fromSidebarMediumScreen={!isSmallScreenWidth}
                 menuItems={[
                     {
                         icon: Expensicons.ChatBubble,
@@ -191,11 +171,11 @@ function FloatingActionButtonAndPopover(props) {
                         text: translate('sidebarScreen.saveTheWorld'),
                         onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TEACHERS_UNITE)),
                     },
-                    ...(!props.isLoading && !Policy.hasActiveFreePolicy(props.allPolicies)
+                    ...(!isLoading && !Policy.hasActiveFreePolicy(allPolicies as OnyxEntry<Record<string, OnyxTypes.Policy>>)
                         ? [
                               {
                                   displayInDefaultIconColor: true,
-                                  contentFit: 'contain',
+                                  contentFit: 'contain' as const,
                                   icon: Expensicons.NewWorkspace,
                                   iconWidth: 46,
                                   iconHeight: 40,
@@ -220,31 +200,25 @@ function FloatingActionButtonAndPopover(props) {
     );
 }
 
-FloatingActionButtonAndPopover.propTypes = propTypes;
-FloatingActionButtonAndPopover.defaultProps = defaultProps;
 FloatingActionButtonAndPopover.displayName = 'FloatingActionButtonAndPopover';
 
-const FloatingActionButtonAndPopoverWithRef = forwardRef((props, ref) => (
-    <FloatingActionButtonAndPopover
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        innerRef={ref}
-    />
-));
+const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>) =>
+    policy
+        ? {
+              type: policy.type,
+              role: policy.role,
+              isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
+              pendingAction: policy.pendingAction,
+          }
+        : null;
 
-FloatingActionButtonAndPopoverWithRef.displayName = 'FloatingActionButtonAndPopoverWithRef';
-
-export default compose(
-    withNavigation,
-    withNavigationFocus,
-    withWindowDimensions,
-    withOnyx({
-        allPolicies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-            selector: policySelector,
-        },
-        isLoading: {
-            key: ONYXKEYS.IS_LOADING_APP,
-        },
-    }),
-)(FloatingActionButtonAndPopoverWithRef);
+export default withOnyx<FloatingActionButtonAndPopoverProps & RefAttributes<FloatingActionButtonAndPopoverRef>, FloatingActionButtonAndPopoverOnyxProps>({
+    allPolicies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
+        // This assertion is needed because the selector in withOnyx expects that the return type will be the same as type in ONYXKEYS but for collection keys the selector is executed for each collection item. This is a bug in withOnyx typings that we don't have a solution yet, when useOnyx hook is introduced it will be fixed.
+        selector: policySelector as unknown as (policy: OnyxEntry<OnyxTypes.Policy>) => OnyxCollection<PolicySelector>,
+    },
+    isLoading: {
+        key: ONYXKEYS.IS_LOADING_APP,
+    },
+})(forwardRef(FloatingActionButtonAndPopover));
