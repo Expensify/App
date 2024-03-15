@@ -492,7 +492,7 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
     // "reportActions_5134363522480668" -> "5134363522480668"
     const reportID = reportActionsOnly
         .map((value) => value.key.split('_')[1])
-        .find((reportID) => reportID === Navigation.getTopmostReportId() && Visibility.isVisible() && Visibility.hasFocus());
+        .find((reportKey) => reportKey === Navigation.getTopmostReportId() && Visibility.isVisible() && Visibility.hasFocus());
 
     if (!reportID) {
         return;
