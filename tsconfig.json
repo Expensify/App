@@ -31,7 +31,6 @@
         "moduleResolution": "node",
         "resolveJsonModule": true,
         "allowSyntheticDefaultImports": true,
-        "esModuleInterop": true,
         "skipLibCheck": true,
         "incremental": true,
         "baseUrl": ".",
