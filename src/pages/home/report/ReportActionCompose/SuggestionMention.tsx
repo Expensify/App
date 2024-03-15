@@ -56,7 +56,15 @@ function SuggestionMention(
         shouldExcludeTextAreaNodes: false,
     });
 
-    const suggestionInsertionRef = useRef(false);
+    // Used to store the selection index of the last inserted mention
+    const suggestionInsertionIndexRef = useRef<number | null>(null);
+
+    // Used to detect if the selection has changed since the last suggestion calculation
+    // If so, we reset the suggestionInsertionIndexRef
+    const hasSelectionChanged = !(selection.end === selection.start && selection.start === suggestionInsertionIndexRef.current);
+    if (hasSelectionChanged) {
+        suggestionInsertionIndexRef.current = null;
+    }
 
     // Used to decide whether to block the suggestions list from showing to prevent flickering
     const shouldBlockCalc = useRef(false);
@@ -91,12 +99,12 @@ function SuggestionMention(
             const commentAfterMention = value.slice(suggestionValues.atSignIndex + suggestionValues.mentionPrefix.length + 1);
 
             updateComment(`${commentBeforeAtSign}${mentionCode} ${SuggestionsUtils.trimLeadingSpace(commentAfterMention)}`, true);
-            suggestionInsertionRef.current = true;
-
+            const selectionPosition = suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH;
             setSelection({
-                start: suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH,
-                end: suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH,
+                start: selectionPosition,
+                end: selectionPosition,
             });
+            suggestionInsertionIndexRef.current = selectionPosition;
             setSuggestionValues((prevState) => ({
                 ...prevState,
                 suggestedMentions: [],
@@ -136,8 +144,6 @@ function SuggestionMention(
 
                 return true;
             }
-
-            suggestionInsertionRef.current = false;
         },
         [highlightedMentionIndex, insertSelectedMention, resetSuggestions, suggestionValues.suggestedMentions.length],
     );
@@ -177,7 +183,7 @@ function SuggestionMention(
                 // Given the mention is inserted by user, we don't want to show the mention options unless user
                 // uses presses any key again.
                 // See https://github.com/Expensify/App/issues/38358 for more context
-                if (suggestionInsertionRef.current) {
+                if (suggestionInsertionIndexRef.current) {
                     return false;
                 }
 
