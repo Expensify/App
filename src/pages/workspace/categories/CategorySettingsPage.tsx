@@ -13,12 +13,14 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setWorkspaceCategoryEnabled} from '@libs/actions/Policy';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -41,6 +43,10 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
 
     const updateWorkspaceRequiresCategory = (value: boolean) => {
         setWorkspaceCategoryEnabled(route.params.policyID, {[policyCategory.name]: {name: policyCategory.name, enabled: value}});
+    };
+
+    const navigateToEditCategory = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_EDIT.getRoute(route.params.policyID, policyCategory.name));
     };
 
     return (
@@ -73,6 +79,7 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
                         <MenuItemWithTopDescription
                             title={policyCategory.name}
                             description={translate(`workspace.categories.categoryName`)}
+                            onPress={navigateToEditCategory}
                         />
                     </View>
                 </ScreenWrapper>
