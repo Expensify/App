@@ -180,8 +180,8 @@ function SuggestionMention(
                     return false;
                 }
 
-                // Given the mention is inserted by user, we don't want to show the mention options unless user
-                // uses presses any key again.
+                // Given the mention is inserted by user, we don't want to show the mention options unless the
+                // selection index changes. In that case, suggestionInsertionIndexRef.current will be null.
                 // See https://github.com/Expensify/App/issues/38358 for more context
                 if (suggestionInsertionIndexRef.current) {
                     return false;
