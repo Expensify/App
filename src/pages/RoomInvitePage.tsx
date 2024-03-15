@@ -116,8 +116,8 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
                 const isOptionInPersonalDetails = invitePersonalDetails.some((personalDetail) => accountID && personalDetail?.accountID === accountID);
                 const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchTerm)));
                 const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number ? parsedPhoneNumber.number.e164 : searchTerm.toLowerCase();
-                const isPartOfSearchTerm = option.text?.toLowerCase().includes(searchValue) ?? option.login?.toLowerCase().includes(searchValue);
-                return isPartOfSearchTerm ?? isOptionInPersonalDetails;
+                const isPartOfSearchTerm = (option.text?.toLowerCase() ?? '').includes(searchValue) || (option.login?.toLowerCase() ?? '').includes(searchValue);
+                return isPartOfSearchTerm || isOptionInPersonalDetails;
             });
         }
         const filterSelectedOptionsFormatted = filterSelectedOptions.map((selectedOption) => OptionsListUtils.formatMemberForList(selectedOption));

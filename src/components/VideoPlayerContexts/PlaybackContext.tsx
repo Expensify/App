@@ -15,15 +15,15 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     const {currentReportID} = useCurrentReportID() ?? {};
 
     const pauseVideo = useCallback(() => {
-        currentVideoPlayerRef.current?.setStatusAsync({shouldPlay: false});
+        currentVideoPlayerRef.current?.setStatusAsync?.({shouldPlay: false});
     }, [currentVideoPlayerRef]);
 
     const stopVideo = useCallback(() => {
-        currentVideoPlayerRef.current?.stopAsync();
+        currentVideoPlayerRef.current?.stopAsync?.();
     }, [currentVideoPlayerRef]);
 
     const playVideo = useCallback(() => {
-        currentVideoPlayerRef.current?.getStatusAsync().then((status) => {
+        currentVideoPlayerRef.current?.getStatusAsync?.().then((status) => {
             const newStatus: AVPlaybackStatusToSet = {shouldPlay: true};
             if ('durationMillis' in status && status.durationMillis === status.positionMillis) {
                 newStatus.positionMillis = 0;
@@ -33,7 +33,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     }, [currentVideoPlayerRef]);
 
     const unloadVideo = useCallback(() => {
-        currentVideoPlayerRef.current?.unloadAsync();
+        currentVideoPlayerRef.current?.unloadAsync?.();
     }, [currentVideoPlayerRef]);
 
     const updateCurrentlyPlayingURL = useCallback(
@@ -61,7 +61,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
 
     const checkVideoPlaying = useCallback(
         (statusCallback: StatusCallback) => {
-            currentVideoPlayerRef.current?.getStatusAsync().then((status) => {
+            currentVideoPlayerRef.current?.getStatusAsync?.().then((status) => {
                 statusCallback('isPlaying' in status && status.isPlaying);
             });
         },
