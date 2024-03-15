@@ -26,7 +26,6 @@ import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
-import DefaultAttachmentView from './AttachmentViewPdf/DefaultAttachmentView';
 import AttachmentViewVideo from './AttachmentViewVideo';
 import {attachmentViewDefaultProps, attachmentViewPropTypes} from './propTypes';
 
@@ -159,7 +158,7 @@ function AttachmentView({
 
     // Check both source and file.name since PDFs dragged into the text field
     // will appear with a source that is a blob
-    if ((_.isString(source) && Str.isPDF(source)) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename')))) {
+    if (!isPdfFailedToLoad && ((_.isString(source) && Str.isPDF(source)) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename'))))) {
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source) : source;
 
         const onPDFLoadComplete = (path) => {
@@ -171,17 +170,6 @@ function AttachmentView({
                 setLoadComplete(true);
             }
         };
-
-        if (isPdfFailedToLoad) {
-            return (
-                <DefaultAttachmentView
-                    file={file}
-                    shouldShowDownloadIcon={shouldShowDownloadIcon}
-                    shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
-                    containerStyles={containerStyles}
-                />
-            );
-        }
 
         // We need the following View component on android native
         // So that the event will propagate properly and
