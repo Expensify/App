@@ -86,9 +86,10 @@ const Performance: PerformanceModule = {
 };
 
 if (Metrics.canCapturePerformanceMetrics()) {
-    const perfModule = require('react-native-performance');
-    perfModule.setResourceLoggingEnabled(true);
-    rnPerformance = perfModule.default;
+    const perfModule = require('isomorphic-performance');
+    // TODO: check that it doesn't break mobile - change to perfModule.performance?
+    perfModule.setResourceLoggingEnabled?.(true);
+    rnPerformance = perfModule.performance;
 
     Performance.measureFailSafe = (measureName: string, startOrMeasureOptions: string, endMark?: string) => {
         try {

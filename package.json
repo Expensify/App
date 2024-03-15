@@ -111,6 +111,7 @@
     "expo-image-manipulator": "11.8.0",
     "htmlparser2": "^7.2.0",
     "idb-keyval": "^6.2.1",
+    "isomorphic-performance": "^5.1.1",
     "jest-expo": "50.0.1",
     "jest-when": "^3.5.2",
     "lodash": "4.17.21",
