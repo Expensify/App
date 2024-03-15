@@ -34,7 +34,7 @@ import Visibility from '@libs/Visibility';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BlockedFromConcierge, FrequentlyUsedEmoji, Policy} from '@src/types/onyx';
+import type {BlockedFromConcierge, CustomStatusDraft, FrequentlyUsedEmoji, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
@@ -583,21 +583,8 @@ function subscribeToUserEvents() {
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID.toString(), (pushJSON) => {
-        // The data for this push event comes in two different formats:
-        // 1. Original format - this is what was sent before the RELIABLE_UPDATES project and will go away once RELIABLE_UPDATES is fully complete
-        //     - The data is an array of objects, where each object is an onyx update
-        //       Example: [{onyxMethod: 'whatever', key: 'foo', value: 'bar'}]
-        // 1. Reliable updates format - this is what was sent with the RELIABLE_UPDATES project and will be the format from now on
-        //     - The data is an object, containing updateIDs from the server and an array of onyx updates (this array is the same format as the original format above)
-        //       Example: {lastUpdateID: 1, previousUpdateID: 0, updates: [{onyxMethod: 'whatever', key: 'foo', value: 'bar'}]}
-        if (Array.isArray(pushJSON)) {
-            Log.warn('Received pusher event with array format');
-            pushJSON.forEach((multipleEvent) => {
-                PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
-            });
-            return;
-        }
-
+        // The data for the update is an object, containing updateIDs from the server and an array of onyx updates (this array is the same format as the original format above)
+        // Example: {lastUpdateID: 1, previousUpdateID: 0, updates: [{onyxMethod: 'whatever', key: 'foo', value: 'bar'}]}
         const updates = {
             type: CONST.ONYX_UPDATE_TYPES.PUSHER,
             lastUpdateID: Number(pushJSON.lastUpdateID || 0),
@@ -963,7 +950,7 @@ function clearCustomStatus() {
  * @param status.emojiCode
  * @param status.clearAfter - ISO 8601 format string, which represents the time when the status should be cleared
  */
-function updateDraftCustomStatus(status: Status) {
+function updateDraftCustomStatus(status: CustomStatusDraft) {
     Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, status);
 }
 

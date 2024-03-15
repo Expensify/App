@@ -100,7 +100,7 @@ function createTaskAndNavigate(
     assigneeEmail: string,
     assigneeAccountID = 0,
     assigneeChatReport: OnyxEntry<OnyxTypes.Report> = null,
-    policyID = CONST.POLICY.OWNER_EMAIL_FAKE,
+    policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
 ) {
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, assigneeAccountID, parentReportID, title, description, policyID);
 
@@ -262,6 +262,7 @@ function createTaskAndNavigate(
     API.write(WRITE_COMMANDS.CREATE_TASK, parameters, {optimisticData, successData, failureData});
 
     Navigation.dismissModal(parentReportID);
+    Report.notifyNewAction(parentReportID, currentUserAccountID);
 }
 
 /**
@@ -399,7 +400,7 @@ function reopenTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
 
 function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task) {
     // Create the EditedReportAction on the task
-    const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(currentUserEmail);
+    const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskFieldReportAction({title, description});
 
     // Sometimes title or description is undefined, so we need to check for that, and we provide it to multiple functions
     const reportName = (title ?? report?.reportName)?.trim();
@@ -429,6 +430,11 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
     ];
 
     const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+            value: {[editTaskReportAction.reportActionID]: {pendingAction: null}},
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
@@ -467,16 +473,22 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
     API.write(WRITE_COMMANDS.EDIT_TASK, parameters, {optimisticData, successData, failureData});
 }
 
-function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assigneeEmail: string, assigneeAccountID = 0, assigneeChatReport: OnyxEntry<OnyxTypes.Report> = null) {
+function editTaskAssignee(
+    report: OnyxTypes.Report,
+    ownerAccountID: number,
+    assigneeEmail: string,
+    assigneeAccountID: number | null = 0,
+    assigneeChatReport: OnyxEntry<OnyxTypes.Report> = null,
+) {
     // Create the EditedReportAction on the task
-    const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(currentUserEmail);
+    const editTaskReportAction = ReportUtils.buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID ?? 0);
     const reportName = report.reportName?.trim();
 
     let assigneeChatReportOnyxData;
     const assigneeChatReportID = assigneeChatReport ? assigneeChatReport.reportID : '0';
     const optimisticReport: OptimisticReport = {
         reportName,
-        managerID: assigneeAccountID || report.managerID,
+        managerID: assigneeAccountID ?? report.managerID,
         pendingFields: {
             ...(assigneeAccountID && {managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         },
@@ -499,6 +511,11 @@ function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assi
     ];
 
     const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+            value: {[editTaskReportAction.reportActionID]: {pendingAction: null}},
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
@@ -661,7 +678,7 @@ function setParentReportID(parentReportID: string) {
 /**
  * Clears out the task info from the store and navigates to the NewTaskDetails page
  */
-function clearOutTaskInfoAndNavigate(reportID: string) {
+function clearOutTaskInfoAndNavigate(reportID?: string) {
     clearOutTaskInfo();
     if (reportID && reportID !== '0') {
         setParentReportID(reportID);
@@ -672,8 +689,8 @@ function clearOutTaskInfoAndNavigate(reportID: string) {
 /**
  * Get the assignee data
  */
-function getAssignee(assigneeAccountID: number, personalDetails: OnyxTypes.PersonalDetailsList): Assignee {
-    const details = personalDetails[assigneeAccountID];
+function getAssignee(assigneeAccountID: number, personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>): Assignee {
+    const details = personalDetails?.[assigneeAccountID];
 
     if (!details) {
         return {
@@ -693,7 +710,7 @@ function getAssignee(assigneeAccountID: number, personalDetails: OnyxTypes.Perso
 /**
  * Get the share destination data
  * */
-function getShareDestination(reportID: string, reports: OnyxCollection<OnyxTypes.Report>, personalDetails: OnyxTypes.PersonalDetailsList): ShareDestination {
+function getShareDestination(reportID: string, reports: OnyxCollection<OnyxTypes.Report>, personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>): ShareDestination {
     const report = reports?.[`report_${reportID}`] ?? null;
 
     const participantAccountIDs = report?.participantAccountIDs ?? [];
@@ -704,8 +721,8 @@ function getShareDestination(reportID: string, reports: OnyxCollection<OnyxTypes
     if (ReportUtils.isChatReport(report) && ReportUtils.isDM(report) && ReportUtils.hasSingleParticipant(report)) {
         const participantAccountID = report?.participantAccountIDs?.[0] ?? -1;
 
-        const displayName = personalDetails[participantAccountID]?.displayName ?? '';
-        const login = personalDetails[participantAccountID]?.login ?? '';
+        const displayName = personalDetails?.[participantAccountID]?.displayName ?? '';
+        const login = personalDetails?.[participantAccountID]?.login ?? '';
         subtitle = LocalePhoneNumber.formatPhoneNumber(login || displayName);
     } else {
         subtitle = ReportUtils.getChatRoomSubtitle(report) ?? '';
@@ -964,4 +981,4 @@ export {
     canModifyTask,
 };
 
-export type {PolicyValue};
+export type {PolicyValue, Assignee, ShareDestination};

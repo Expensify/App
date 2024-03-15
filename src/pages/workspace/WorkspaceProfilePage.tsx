@@ -1,15 +1,17 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import type {ImageStyle, StyleProp} from 'react-native';
-import {Image, ScrollView, StyleSheet, View} from 'react-native';
+import {Image, StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -74,6 +76,19 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
         [policy?.avatar, policyName, styles.alignSelfCenter, styles.avatarXLarge],
     );
 
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+    const confirmDeleteAndHideModal = useCallback(() => {
+        if (!policy?.id || !policyName) {
+            return;
+        }
+
+        Policy.deleteWorkspace(policy?.id, policyName);
+
+        PolicyUtils.goBackFromInvalidPolicy();
+
+        setIsDeleteModalOpen(false);
+    }, [policy?.id, policyName]);
     return (
         <WorkspacePageWithSections
             headerText={translate('workspace.common.profile')}
@@ -87,7 +102,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
         >
             {(hasVBA?: boolean) => (
                 <ScrollView>
-                    <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <View style={[styles.flex1, styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <Section
                             isCentralPane
                             title=""
@@ -112,6 +127,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                     styles.alignItemsStart,
                                     styles.sectionMenuItemTopDescription,
                                 ]}
+                                editIconStyle={styles.smallEditIconWorkspace}
                                 isUsingDefaultAvatar={!policy?.avatar ?? null}
                                 onImageSelected={(file) => Policy.updateWorkspaceAvatar(policy?.id ?? '', file as File)}
                                 onImageRemoved={() => Policy.deleteWorkspaceAvatar(policy?.id ?? '')}
@@ -172,17 +188,35 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                 </View>
                             </OfflineWithFeedback>
                             {!readOnly && (
-                                <View style={[styles.flexRow, styles.mnw120]}>
+                                <View style={[styles.flexRow, styles.mt6, styles.mnw120]}>
                                     <Button
                                         accessibilityLabel={translate('common.share')}
-                                        style={styles.mt6}
                                         text={translate('common.share')}
                                         onPress={onPressShare}
                                         medium
+                                        icon={Expensicons.QrCode}
+                                    />
+                                    <Button
+                                        accessibilityLabel={translate('common.delete')}
+                                        text={translate('common.delete')}
+                                        style={[styles.ml2]}
+                                        onPress={() => setIsDeleteModalOpen(true)}
+                                        medium
+                                        icon={Expensicons.Trashcan}
                                     />
                                 </View>
                             )}
                         </Section>
+                        <ConfirmModal
+                            title={translate('common.delete')}
+                            isVisible={isDeleteModalOpen}
+                            onConfirm={confirmDeleteAndHideModal}
+                            onCancel={() => setIsDeleteModalOpen(false)}
+                            prompt={translate('workspace.common.deleteConfirmation')}
+                            confirmText={translate('common.delete')}
+                            cancelText={translate('common.cancel')}
+                            danger
+                        />
                     </View>
                 </ScrollView>
             )}

@@ -9,7 +9,6 @@ function SwipeableView({children, onSwipeDown}: SwipeableViewProps) {
     const panResponder = useRef(
         PanResponder.create({
             // The PanResponder gets focus only when the y-axis movement is over minimumPixelDistance & swipe direction is downwards
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             onMoveShouldSetPanResponderCapture: (_event, gestureState) => {
                 if (gestureState.dy - oldYRef.current > 0 && gestureState.dy > minimumPixelDistance) {
                     return true;
