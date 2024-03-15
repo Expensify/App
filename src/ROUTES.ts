@@ -562,8 +562,8 @@ const ROUTES = {
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/settings` as const,
     },
     WORKSPACE_MORE_FEATURES: {
-        route: 'workspace/:policyID/more-features',
-        getRoute: (policyID: string) => `workspace/${policyID}/more-features` as const,
+        route: 'settings/workspaces/:policyID/more-features',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/more-features` as const,
     },
     WORKSPACE_CATEGORY_CREATE: {
         route: 'settings/workspaces/:policyID/categories/new',
@@ -604,6 +604,10 @@ const ROUTES = {
     WORKSPACE_DISTANCE_RATES: {
         route: 'workspace/:policyID/distance-rates',
         getRoute: (policyID: string) => `workspace/${policyID}/distance-rates` as const,
+    },
+    WORKSPACE_CREATE_DISTANCE_RATE: {
+        route: 'workspace/:policyID/distance-rates/new',
+        getRoute: (policyID: string) => `workspace/${policyID}/distance-rates/new` as const,
     },
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {

@@ -289,6 +289,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 categoryName: (categoryName: string) => decodeURI(categoryName),
                             },
                         },
+                        [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
+                            path: ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.route,
+                        },
                         [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
                             path: ROUTES.WORKSPACE_TAGS_SETTINGS.route,
                         },
