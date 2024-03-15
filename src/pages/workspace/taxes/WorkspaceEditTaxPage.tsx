@@ -12,7 +12,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
+import {clearTaxRateFieldError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -22,7 +22,6 @@ import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAcce
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
-import * as Policy from '@userActions/Policy';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -87,10 +86,10 @@ function WorkspaceEditTaxPage({
                                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                             />
                             <OfflineWithFeedback
-                                errors={ErrorUtils.getLatestErrorMessageField(currentTaxRate)}
-                                pendingAction={currentTaxRate?.pendingFields?.enabled}
+                                errors={ErrorUtils.getLatestErrorField(currentTaxRate, 'isDisabled')}
+                                pendingAction={currentTaxRate?.pendingFields?.isDisabled}
                                 errorRowStyles={styles.mh5}
-                                onClose={() => {}}
+                                onClose={() => clearTaxRateFieldError(policyID, taxID, 'isDisabled')}
                             >
                                 <View style={[styles.mt2, styles.mh5]}>
                                     <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
@@ -103,22 +102,36 @@ function WorkspaceEditTaxPage({
                                     </View>
                                 </View>
                             </OfflineWithFeedback>
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={currentTaxRate?.name}
-                                description={translate('common.name')}
-                                style={[styles.moneyRequestMenuItem]}
-                                titleStyle={styles.flex1}
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_NAME.getRoute(`${policy?.id}`, taxID))}
-                            />
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={currentTaxRate?.value}
-                                description={translate('workspace.taxes.value')}
-                                style={[styles.moneyRequestMenuItem]}
-                                titleStyle={styles.flex1}
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_VALUE.getRoute(`${policy?.id}`, taxID))}
-                            />
+                            <OfflineWithFeedback
+                                errors={ErrorUtils.getLatestErrorField(currentTaxRate, 'name')}
+                                pendingAction={currentTaxRate?.pendingFields?.name}
+                                errorRowStyles={styles.mh5}
+                                onClose={() => clearTaxRateFieldError(policyID, taxID, 'name')}
+                            >
+                                <MenuItemWithTopDescription
+                                    shouldShowRightIcon
+                                    title={currentTaxRate?.name}
+                                    description={translate('common.name')}
+                                    style={[styles.moneyRequestMenuItem]}
+                                    titleStyle={styles.flex1}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_NAME.getRoute(`${policy?.id}`, taxID))}
+                                />
+                            </OfflineWithFeedback>
+                            <OfflineWithFeedback
+                                errors={ErrorUtils.getLatestErrorField(currentTaxRate, 'value')}
+                                pendingAction={currentTaxRate?.pendingFields?.value}
+                                errorRowStyles={styles.mh5}
+                                onClose={() => clearTaxRateFieldError(policyID, taxID, 'value')}
+                            >
+                                <MenuItemWithTopDescription
+                                    shouldShowRightIcon
+                                    title={currentTaxRate?.value}
+                                    description={translate('workspace.taxes.value')}
+                                    style={[styles.moneyRequestMenuItem]}
+                                    titleStyle={styles.flex1}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_VALUE.getRoute(`${policy?.id}`, taxID))}
+                                />
+                            </OfflineWithFeedback>
                         </View>
                     </View>
                     <ConfirmModal

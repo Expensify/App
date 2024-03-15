@@ -20,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {openPolicyTaxesPage} from '@libs/actions/Policy';
 import {clearTaxRateError} from '@libs/actions/TaxRate';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
@@ -78,7 +79,7 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
                     isSelected: !!selectedTaxesIDs.includes(key),
                     isDisabledCheckbox: key === defaultExternalID,
                     pendingAction: value.pendingAction,
-                    errors: value.errors,
+                    errors: value.errors ?? ErrorUtils.getLatestErrorFieldForAnyField(value),
                     rightElement: (
                         <View style={styles.flexRow}>
                             <Text style={[styles.disabledText, styles.alignSelfCenter]}>

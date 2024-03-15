@@ -34,7 +34,7 @@ function hasPolicyMemberError(policyMembers: OnyxEntry<PolicyMembers>): boolean 
  *  Check if the policy has any tax rate errors.
  */
 function hasTaxRateError(policy: OnyxEntry<Policy>): boolean {
-    return Object.values(policy?.taxRates?.taxes ?? {}).some((taxRate) => Object.keys(taxRate?.errors ?? {}).length > 0);
+    return Object.values(policy?.taxRates?.taxes ?? {}).some((taxRate) => Object.keys(taxRate?.errors ?? {}).length > 0 || Object.keys(taxRate?.errorFields ?? {}).length > 0);
 }
 
 /**
