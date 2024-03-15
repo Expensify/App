@@ -24,6 +24,7 @@ import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -347,7 +348,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
             >
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
-                    shouldShowBackButton={isLessThanMediumScreen}
+                    shouldShowBackButton={isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack()}
                 >
                     <Button
@@ -355,7 +356,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                         success
                         medium
                         text={translate('workspace.new.newWorkspace')}
-                        onPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
+                        onPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
                     />
                 </HeaderWithBackButton>
                 <ScrollView contentContainerStyle={styles.pt3}>
@@ -366,7 +367,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                             subtitle={translate('workspace.emptyWorkspace.subtitle')}
                             ctaText={translate('workspace.new.newWorkspace')}
                             ctaAccessibilityLabel={translate('workspace.new.newWorkspace')}
-                            onCtaPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
+                            onCtaPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
                             illustration={LottieAnimations.WorkspacePlanet}
                             // We use this style to vertically center the illustration, as the original illustration is not centered
                             illustrationStyle={styles.emptyWorkspaceIllustrationStyle}
@@ -386,7 +387,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
             <View style={styles.flex1}>
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
-                    shouldShowBackButton={isLessThanMediumScreen}
+                    shouldShowBackButton={isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack()}
                 >
                     <Button
@@ -394,7 +395,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                         success
                         medium
                         text={translate('workspace.new.newWorkspace')}
-                        onPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
+                        onPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
                     />
                 </HeaderWithBackButton>
                 <FlatList

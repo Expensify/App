@@ -163,7 +163,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
             <View style={[styles.pl0]}>
                 <HeaderWithBackButton
                     shouldShowBorderBottom={!isScanning && !isPending && !isOnHold}
-                    shouldShowAvatarWithDisplay
+                    shouldShowReportAvatarWithDisplay
                     shouldShowPinButton={false}
                     shouldShowThreeDotsButton
                     threeDotsMenuItems={threeDotsMenuItems}

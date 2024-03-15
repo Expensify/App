@@ -22,6 +22,7 @@ const SCREENS = {
     VALIDATE_LOGIN: 'ValidateLogin',
     UNLINK_LOGIN: 'UnlinkLogin',
     SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
+    WORKSPACES_CENTRAL_PANE: 'WorkspacesCentralPane',
     SETTINGS: {
         ROOT: 'Settings_Root',
         SHARE_CODE: 'Settings_Share_Code',
@@ -218,6 +219,9 @@ const SCREENS = {
         TAGS: 'Workspace_Tags',
         TAGS_SETTINGS: 'Tags_Settings',
         TAGS_EDIT: 'Tags_Edit',
+        TAXES: 'Workspace_Taxes',
+        TAG_CREATE: 'Tag_Create',
+        TAG_SETTINGS: 'Tag_Settings',
         CURRENCY: 'Workspace_Profile_Currency',
         WORKFLOWS: 'Workspace_Workflows',
         WORKFLOWS_PAYER: 'Workspace_Workflows_Payer',
@@ -228,12 +232,14 @@ const SCREENS = {
         SHARE: 'Workspace_Profile_Share',
         NAME: 'Workspace_Profile_Name',
         CATEGORY_CREATE: 'Category_Create',
+        CATEGORY_EDIT: 'Category_Edit',
         CATEGORY_SETTINGS: 'Category_Settings',
         CATEGORIES_SETTINGS: 'Categories_Settings',
         MORE_FEATURES: 'Workspace_More_Features',
         MEMBER_DETAILS: 'Workspace_Member_Details',
         MEMBER_DETAILS_ROLE_SELECTION: 'Workspace_Member_Details_Role_Selection',
         DISTANCE_RATES: 'Distance_Rates',
+        CREATE_DISTANCE_RATE: 'Create_Distance_Rate',
     },
 
     EDIT_REQUEST: {
