@@ -521,7 +521,7 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
  */
 function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, hasMultipleParticipants: boolean) {
     return hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID
-        ? lastActorDetails.firstName ?? PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)
+        ? lastActorDetails.firstName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)
         : '';
 }
 
