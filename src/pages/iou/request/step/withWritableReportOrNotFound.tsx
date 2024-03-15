@@ -1,5 +1,5 @@
 import type {RouteProp} from '@react-navigation/core';
-import type {ComponentType, ForwardedRef} from 'react';
+import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -17,14 +17,19 @@ type WithWritableReportOrNotFoundOnyxProps = {
     report: OnyxEntry<Report>;
 };
 
-type WithWritableReportOrNotFoundProps = WithWritableReportOrNotFoundOnyxProps & {route: RouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT>};
+type Route = RouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT>;
 
-export default function <TRef, TProps extends WithWritableReportOrNotFoundProps>(WrappedComponent: ComponentType<TProps>) {
+type WithWritableReportOrNotFoundProps = WithWritableReportOrNotFoundOnyxProps & {route: Route};
+
+export default function <TProps extends WithWritableReportOrNotFoundProps, TRef>(
+    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
+): React.ComponentType<Omit<TProps & RefAttributes<TRef>, keyof WithWritableReportOrNotFoundOnyxProps>> {
     // eslint-disable-next-line rulesdir/no-negated-variables
     function WithWritableReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
-        const {report = {reportID: ''}, route} = props;
-        const iouTypeParamIsInvalid = !Object.values<string>(CONST.IOU.TYPE).includes(route.params?.iouType ?? '');
+        const {report, route} = props;
+        const iouTypeParamIsInvalid = !Object.values(CONST.IOU.TYPE).includes(route.params?.iouType);
         const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
+
         if (iouTypeParamIsInvalid || !canUserPerformWriteAction) {
             return <FullPageNotFoundView shouldShow />;
         }
@@ -40,9 +45,9 @@ export default function <TRef, TProps extends WithWritableReportOrNotFoundProps>
 
     WithWritableReportOrNotFound.displayName = `withWritableReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-    return withOnyx<TProps, WithWritableReportOrNotFoundOnyxProps>({
+    return withOnyx<TProps & RefAttributes<TRef>, WithWritableReportOrNotFoundOnyxProps>({
         report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params && 'reportID' in route.params ? route.params.reportID : '0'}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID ?? '0'}`,
         },
     })(forwardRef(WithWritableReportOrNotFound));
 }
