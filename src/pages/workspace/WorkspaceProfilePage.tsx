@@ -106,7 +106,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
         >
             {(hasVBA?: boolean) => (
                 <ScrollView>
-                    <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <View style={[styles.flex1, styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <Section
                             isCentralPane
                             title=""
@@ -131,6 +131,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                     styles.alignItemsStart,
                                     styles.sectionMenuItemTopDescription,
                                 ]}
+                                editIconStyle={styles.smallEditIconWorkspace}
                                 isUsingDefaultAvatar={!policy?.avatar ?? null}
                                 onImageSelected={(file) => Policy.updateWorkspaceAvatar(policy?.id ?? '', file as File)}
                                 onImageRemoved={() => Policy.deleteWorkspaceAvatar(policy?.id ?? '')}
@@ -211,6 +212,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                         text={translate('common.share')}
                                         onPress={onPressShare}
                                         medium
+                                        icon={Expensicons.QrCode}
                                     />
                                     <Button
                                         accessibilityLabel={translate('common.delete')}
@@ -218,6 +220,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                         style={[styles.ml2]}
                                         onPress={() => setIsDeleteModalOpen(true)}
                                         medium
+                                        icon={Expensicons.Trashcan}
                                     />
                                 </View>
                             )}

@@ -20,7 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import type {CentralPaneNavigatorParamList} from '@navigation/types';
+import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
@@ -43,7 +43,7 @@ type WorkspaceTagsOnyxProps = {
     policyTags: OnyxEntry<OnyxTypes.PolicyTagList>;
 };
 
-type WorkspaceTagsPageProps = WorkspaceTagsOnyxProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
+type WorkspaceTagsPageProps = WorkspaceTagsOnyxProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
 
 function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -73,6 +73,8 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                         text: value.name,
                         keyForList: value.name,
                         isSelected: !!selectedTags[value.name],
+                        pendingAction: value.pendingAction,
+                        errors: value.errors ?? undefined,
                         rightElement: (
                             <View style={styles.flexRow}>
                                 <Text style={[styles.textSupporting, styles.alignSelfCenter, styles.pl2, styles.label]}>
@@ -115,18 +117,31 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
         Navigation.navigate(ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route.params.policyID));
     };
 
+    const navigateToCreateTagPage = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_TAG_CREATE.getRoute(route.params.policyID));
+    };
+
     const isLoading = !isOffline && policyTags === undefined;
 
-    const settingsButton = (
+    const headerButtons = (
         <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
             <Button
                 medium
-                onPress={navigateToTagsSettings}
-                icon={Expensicons.Gear}
-                iconStyles={[styles.mr2]}
-                text={translate('common.settings')}
-                style={[isSmallScreenWidth && styles.w50]}
+                success
+                onPress={navigateToCreateTagPage}
+                icon={Expensicons.Plus}
+                text={translate('workspace.tags.addTag')}
+                style={[styles.mr3, isSmallScreenWidth && styles.w50]}
             />
+            {policyTags && (
+                <Button
+                    medium
+                    onPress={navigateToTagsSettings}
+                    icon={Expensicons.Gear}
+                    text={translate('common.settings')}
+                    style={[isSmallScreenWidth && styles.w50]}
+                />
+            )}
         </View>
     );
 
@@ -144,9 +159,9 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                         title={translate('workspace.common.tags')}
                         shouldShowBackButton={isSmallScreenWidth}
                     >
-                        {!isSmallScreenWidth && policyTags && settingsButton}
+                        {!isSmallScreenWidth && headerButtons}
                     </HeaderWithBackButton>
-                    {isSmallScreenWidth && policyTags && <View style={[styles.pl5, styles.pr5]}>{settingsButton}</View>}
+                    {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
                     </View>
@@ -175,6 +190,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                             ListItem={TableListItem}
                             customListHeader={getCustomListHeader()}
                             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                            onDismissError={(item) => Policy.clearPolicyTagErrors(route.params.policyID, item.value)}
                         />
                     )}
                 </ScreenWrapper>
