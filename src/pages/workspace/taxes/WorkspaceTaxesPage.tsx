@@ -70,6 +70,7 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
                     text: value.name,
                     alternateText: textForDefault(key),
                     keyForList: key,
+                    pendingAction: value.pendingAction,
                     isSelected: !!selectedTaxesIDs.includes(key),
                     isDisabledCheckbox: key === defaultExternalID,
                     rightElement: (
