@@ -46,7 +46,6 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             if (currentlyPlayingURL && url !== currentlyPlayingURL) {
                 pauseVideo();
             }
-            console.log('SETTING', url);
             setCurrentlyPlayingURL(url);
         },
         [currentlyPlayingURL, pauseVideo],
@@ -79,7 +78,6 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     );
 
     const resetVideoPlayerData = useCallback(() => {
-        console.log('XDDD');
         stopVideo();
         setCurrentlyPlayingURL(null);
         setSharedElement(null);
@@ -123,4 +121,4 @@ function usePlaybackContext() {
 
 PlaybackContextProvider.displayName = 'PlaybackContextProvider';
 
-export {PlaybackContext, PlaybackContextProvider, usePlaybackContext};
+export {Context as PlaybackContext, PlaybackContextProvider, usePlaybackContext};

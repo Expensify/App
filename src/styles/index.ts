@@ -4586,6 +4586,8 @@ const styles = (theme: ThemeColors) =>
             fontWeight: '700',
             lineHeight: 16,
             color: theme.white,
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
         },
 
         volumeSliderContainer: {

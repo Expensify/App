@@ -1,34 +1,34 @@
-import {last} from 'lodash';
-import PropTypes from 'prop-types';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import useCurrentReportID from '@hooks/useCurrentReportID';
+import React, {useCallback, useContext, useMemo, useRef} from 'react';
+import type WindowDimensions from '@hooks/useWindowDimensions/types';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type {FullScreenContext} from './types';
 
-const FullScreenContext = React.createContext(null);
+const Context = React.createContext<FullScreenContext | null>(null);
 
-function FullScreenContextProvider({children}) {
+function FullScreenContextProvider({children}: ChildrenProps) {
     const isFullscreen = useRef(false);
-    const lastWindowDimensions = useRef(null);
+    const lockedWindowDimensions = useRef<WindowDimensions | null>(null);
 
-    const update = useCallback((obj: any) => {
-        lastWindowDimensions.current = obj;
+    const lockWindowDimensions = useCallback((newWindowDimensions: WindowDimensions) => {
+        lockedWindowDimensions.current = newWindowDimensions;
     }, []);
 
-    const contextValue = useMemo(() => ({isFullscreen, lastWindowDimensions, update}), []);
-    return <FullScreenContext.Provider value={contextValue}>{children}</FullScreenContext.Provider>;
+    const unlockWindowDimensions = useCallback(() => {
+        lockedWindowDimensions.current = null;
+    }, []);
+
+    const contextValue = useMemo(() => ({isFullscreen, lockedWindowDimensions, lockWindowDimensions, unlockWindowDimensions}), [unlockWindowDimensions, lockWindowDimensions]);
+    return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }
 
 function useFullScreenContext() {
-    const context = useContext(FullScreenContext);
+    const context = useContext(Context);
     if (context === undefined) {
-        throw new Error('usePlaybackContext must be used within a PlaybackContextProvider');
+        throw new Error('usePlaybackContext must be used within a FullScreenContextProvider');
     }
     return context;
 }
 
-FullScreenContextProvider.displayName = 'PlaybackContextProvider';
-FullScreenContextProvider.propTypes = {
-    /** Actual content wrapped by this component */
-    children: PropTypes.node.isRequired,
-};
+FullScreenContextProvider.displayName = 'FullScreenContextProvider';
 
-export {FullScreenContext, FullScreenContextProvider, useFullScreenContext};
+export {Context as FullScreenContext, FullScreenContextProvider, useFullScreenContext};

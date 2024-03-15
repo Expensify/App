@@ -62,7 +62,6 @@ function BaseVideoPlayer({
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = _.some(CONST.ATTACHMENT_LOCAL_URL_PREFIX, (prefix) => url.startsWith(prefix));
-    const shouldUseSharedVideoElementRef = useRef(shouldUseSharedVideoElement);
 
     const togglePlayCurrentVideo = useCallback(() => {
         videoResumeTryNumber.current = 0;
@@ -122,12 +121,6 @@ function BaseVideoPlayer({
 
     const handleFullscreenUpdate = useCallback(
         (e) => {
-            if (e.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_PRESENT) {
-                isFullscreen.current = true;
-            } else if (e.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
-                isFullscreen.current = false;
-            }
-
             onFullscreenUpdate(e);
 
             // fix for iOS native and mWeb: when switching to fullscreen and then exiting
@@ -135,6 +128,7 @@ function BaseVideoPlayer({
             if (e.fullscreenUpdate !== VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
                 return;
             }
+            isFullscreen.current = false;
 
             if (isMobileSafari) {
                 pauseVideo();
@@ -156,29 +150,13 @@ function BaseVideoPlayer({
     }, [currentVideoPlayerRef, handleFullscreenUpdate, handlePlaybackStatusUpdate]);
 
     useEffect(() => {
-        if (!isUploading) {
+        if (!isUploading || !videoPlayerRef.current) {
             return;
         }
 
         // If we are uploading a new video, we want to immediately set the video player ref.
         currentVideoPlayerRef.current = videoPlayerRef.current;
     }, [url, currentVideoPlayerRef, isUploading]);
-
-    useEffect(() => {
-        shouldUseSharedVideoElementRef.current = shouldUseSharedVideoElement;
-    }, [shouldUseSharedVideoElement]);
-
-    useEffect(
-        () => () => {
-            if (shouldUseSharedVideoElementRef.current) {
-                return;
-            }
-
-            // If it's not a shared video player, clear the video player ref.
-            currentVideoPlayerRef.current = null;
-        },
-        [currentVideoPlayerRef],
-    );
 
     // update shared video elements
     useEffect(() => {
@@ -193,7 +171,6 @@ function BaseVideoPlayer({
         if (url !== currentlyPlayingURL || !sharedElement || !shouldUseSharedVideoElement || isFullscreen.current) {
             return;
         }
-        alert(shouldUseSharedVideoElement);
 
         const newParentRef = sharedVideoPlayerParentRef.current;
         videoPlayerRef.current = currentVideoPlayerRef.current;

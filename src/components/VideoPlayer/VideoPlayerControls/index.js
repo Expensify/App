@@ -7,6 +7,7 @@ import refPropTypes from '@components/refPropTypes';
 import Text from '@components/Text';
 import IconButton from '@components/VideoPlayer/IconButton';
 import convertMillisecondsToTime from '@components/VideoPlayer/utils';
+import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -42,6 +43,7 @@ const defaultProps = {
 };
 
 function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying, small, style, showPopoverMenu, togglePlayCurrentVideo}) {
+    const {isFullscreen} = useFullScreenContext();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {updateCurrentlyPlayingURL} = usePlaybackContext();
@@ -53,9 +55,10 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying
     };
 
     const enterFullScreenMode = useCallback(() => {
+        isFullscreen.current = true;
         updateCurrentlyPlayingURL(url);
         videoPlayerRef.current.presentFullscreenPlayer();
-    }, [updateCurrentlyPlayingURL, url, videoPlayerRef]);
+    }, [isFullscreen, updateCurrentlyPlayingURL, url, videoPlayerRef]);
 
     const seekPosition = useCallback(
         (newPosition) => {
