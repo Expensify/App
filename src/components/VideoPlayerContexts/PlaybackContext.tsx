@@ -13,6 +13,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     const [originalParent, setOriginalParent] = useState<View | null>(null);
     const currentVideoPlayerRef = useRef<Video | null>(null);
     const {currentReportID} = useCurrentReportID() ?? {};
+    const isFullscreen = useRef(false);
 
     const pauseVideo = useCallback(() => {
         currentVideoPlayerRef.current?.setStatusAsync?.({shouldPlay: false});
@@ -37,17 +38,26 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     }, [currentVideoPlayerRef]);
 
     const updateCurrentlyPlayingURL = useCallback(
-        (url: string) => {
+        (url) => {
+            if (!url) {
+                return;
+            }
+
             if (currentlyPlayingURL && url !== currentlyPlayingURL) {
                 pauseVideo();
             }
+            console.log('SETTING', url);
             setCurrentlyPlayingURL(url);
         },
         [currentlyPlayingURL, pauseVideo],
     );
 
     const shareVideoPlayerElements = useCallback(
-        (ref: Video, parent: View, child: View, isUploading: boolean) => {
+        (ref, parent, child, isUploading) => {
+            if (!ref) {
+                return;
+            }
+
             currentVideoPlayerRef.current = ref;
             setOriginalParent(parent);
             setSharedElement(child);
@@ -69,6 +79,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     );
 
     const resetVideoPlayerData = useCallback(() => {
+        console.log('XDDD');
         stopVideo();
         setCurrentlyPlayingURL(null);
         setSharedElement(null);
@@ -95,6 +106,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             playVideo,
             pauseVideo,
             checkVideoPlaying,
+            isFullscreen,
         }),
         [updateCurrentlyPlayingURL, currentlyPlayingURL, originalParent, sharedElement, shareVideoPlayerElements, playVideo, pauseVideo, checkVideoPlaying],
     );
@@ -111,4 +123,4 @@ function usePlaybackContext() {
 
 PlaybackContextProvider.displayName = 'PlaybackContextProvider';
 
-export {PlaybackContextProvider, usePlaybackContext};
+export {PlaybackContext, PlaybackContextProvider, usePlaybackContext};

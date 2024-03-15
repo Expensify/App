@@ -6,6 +6,7 @@ import _ from 'underscore';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Hoverable from '@components/Hoverable';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -44,6 +45,7 @@ function BaseVideoPlayer({
     const styles = useThemeStyles();
     const {pauseVideo, playVideo, currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, shareVideoPlayerElements, currentVideoPlayerRef, updateCurrentlyPlayingURL} =
         usePlaybackContext();
+    const {isFullscreen} = useFullScreenContext();
     const [duration, setDuration] = useState(videoDuration * 1000);
     const [position, setPosition] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -120,11 +122,17 @@ function BaseVideoPlayer({
 
     const handleFullscreenUpdate = useCallback(
         (e) => {
+            if (e.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_PRESENT) {
+                isFullscreen.current = true;
+            } else if (e.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
+                isFullscreen.current = false;
+            }
+
             onFullscreenUpdate(e);
 
             // fix for iOS native and mWeb: when switching to fullscreen and then exiting
             // the fullscreen mode while playing, the video pauses
-            if (!isPlaying || e.fullscreenUpdate !== VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
+            if (e.fullscreenUpdate !== VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
                 return;
             }
 
@@ -134,7 +142,7 @@ function BaseVideoPlayer({
             playVideo();
             videoResumeTryNumber.current = 3;
         },
-        [isPlaying, onFullscreenUpdate, pauseVideo, playVideo],
+        [isFullscreen, onFullscreenUpdate, pauseVideo, playVideo],
     );
 
     const bindFunctions = useCallback(() => {
@@ -174,17 +182,18 @@ function BaseVideoPlayer({
 
     // update shared video elements
     useEffect(() => {
-        if (shouldUseSharedVideoElement || url !== currentlyPlayingURL) {
+        if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || isFullscreen.current) {
             return;
         }
         shareVideoPlayerElements(videoPlayerRef.current, videoPlayerElementParentRef.current, videoPlayerElementRef.current, isUploading);
-    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, updateSharedElements, url, isUploading]);
+    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, updateSharedElements, url, isUploading, isFullscreen]);
 
     // append shared video element to new parent (used for example in attachment modal)
     useEffect(() => {
-        if (url !== currentlyPlayingURL || !sharedElement || !shouldUseSharedVideoElement) {
+        if (url !== currentlyPlayingURL || !sharedElement || !shouldUseSharedVideoElement || isFullscreen.current) {
             return;
         }
+        alert(shouldUseSharedVideoElement);
 
         const newParentRef = sharedVideoPlayerParentRef.current;
         videoPlayerRef.current = currentVideoPlayerRef.current;
@@ -198,7 +207,7 @@ function BaseVideoPlayer({
             }
             originalParent.appendChild(sharedElement);
         };
-    }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
+    }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isFullscreen, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
 
     return (
         <>
