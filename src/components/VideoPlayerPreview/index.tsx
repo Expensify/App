@@ -19,11 +19,22 @@ type VideoDimensions = {
 };
 
 type VideoPlayerPreviewProps = {
+    /** Url to a video. */
     videoUrl: string;
+
+    /** Dimension of a video. */
     videoDimensions: VideoDimensions;
+
+    /** Duration of a video. */
     videoDuration: number;
+
+    /** Url to a thumbnail image. */
     thumbnailUrl?: string;
+
+    /** Name of a video file. */
     fileName: string;
+
+    /** Callback executed when modal is pressed. */
     onShowModalPress: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 };
 
@@ -38,7 +49,6 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions =
 
     // `onVideoLoaded` is passed to VideoPlayerPreview's `Video` element which is displayed only on web.
     // VideoReadyForDisplayEvent type is lacking srcElement, that's why it's added here
-
     const onVideoLoaded = (event: VideoReadyForDisplayEvent & {srcElement: HTMLVideoElement}) => {
         setMeasuredDimensions({width: event.srcElement.videoWidth, height: event.srcElement.videoHeight});
     };

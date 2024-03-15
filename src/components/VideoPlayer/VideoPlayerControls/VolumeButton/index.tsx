@@ -13,7 +13,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as NumberUtils from '@libs/NumberUtils';
 
 type VolumeButtonProps = {
-    style: StyleProp<ViewStyle>;
+    /** Style for the volume button. */
+    style?: StyleProp<ViewStyle>;
+
+    /** Is button icon small. */
     small?: boolean;
 };
 

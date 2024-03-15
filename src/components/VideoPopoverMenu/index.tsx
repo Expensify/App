@@ -6,8 +6,13 @@ import {useVideoPopoverMenuContext} from '@components/VideoPlayerContexts/VideoP
 import type {AnchorPosition} from '@styles/index';
 
 type VideoPopoverMenuProps = {
+    /** Whether  popover menu is visible. */
     isPopoverVisible: boolean;
+
+    /** Callback executed to hide popover when an item is selected. */
     hidePopover: (selectedItem?: PopoverMenuItem, index?: number) => void;
+
+    /** The horizontal and vertical anchors points for the popover.  */
     anchorPosition: AnchorPosition;
 };
 
