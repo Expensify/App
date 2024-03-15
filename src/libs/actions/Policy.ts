@@ -3575,7 +3575,7 @@ function createPolicyDistanceRate(policyID: string, customUnitID: string, custom
     ];
 
     const params: CreatePolicyDistanceRateParams = {
-        policyID: `${policyID}1`,
+        policyID,
         customUnitID,
         customUnitRate: JSON.stringify(customUnitRate),
     };
