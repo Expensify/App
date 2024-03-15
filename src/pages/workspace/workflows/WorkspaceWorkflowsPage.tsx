@@ -224,7 +224,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
 
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
-    const isLoading = reimbursementAccount?.isLoading ?? true;
+    const isLoading = reimbursementAccount?.isLoading && reimbursementAccount?.achData === undefined;
 
     return (
         <WorkspacePageWithSections
