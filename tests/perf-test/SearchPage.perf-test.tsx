@@ -114,11 +114,8 @@ afterEach(() => {
 
 type SearchPageProps = {
     betas?: string[];
-
     reports?: Report;
-
     isSearchingForReports?: boolean;
-
     navigation: Record<string, unknown>;
 };
 
