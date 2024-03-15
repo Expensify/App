@@ -64,7 +64,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const {windowWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const isOnHold = TransactionUtils.isOnHold(transaction);
 
     // Only the requestor can take delete the request, admins can only edit it.
@@ -139,14 +139,14 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
             return;
         }
 
-        if (shouldUseNarrowLayout) {
+        if (isSmallScreenWidth) {
             if (Navigation.getActiveRoute().slice(1) === ROUTES.PROCESS_MONEY_REQUEST_HOLD) {
                 Navigation.goBack();
             }
         } else {
             Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD);
         }
-    }, [shouldUseNarrowLayout, shouldShowHoldMenu]);
+    }, [isSmallScreenWidth, shouldShowHoldMenu]);
 
     const handleHoldRequestClose = () => {
         IOU.setShownHoldUseExplanation();

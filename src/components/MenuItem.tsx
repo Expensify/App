@@ -312,7 +312,7 @@ function MenuItem(
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const combinedStyle = [style, styles.popoverMenuItem];
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const [html, setHtml] = useState('');
     const titleRef = useRef('');
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
@@ -408,7 +408,7 @@ function MenuItem(
             {(isHovered) => (
                 <PressableWithSecondaryInteraction
                     onPress={shouldCheckActionAllowedOnPress ? Session.checkIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
-                    onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                    onPressIn={() => shouldBlockSelection && isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={ControlSelection.unblock}
                     onSecondaryInteraction={onSecondaryInteraction}
                     style={({pressed}) =>

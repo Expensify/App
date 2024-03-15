@@ -144,8 +144,8 @@ function BaseModal(
                 {
                     windowWidth,
                     windowHeight,
+                    isSmallScreenWidth,
                 },
-                isSmallScreenWidth,
                 popoverAnchorPosition,
                 innerContainerStyle,
                 outerStyle,

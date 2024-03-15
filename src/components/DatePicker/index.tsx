@@ -70,7 +70,7 @@ function DatePicker(
     const {translate} = useLocalize();
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const onSelected = (newValue: string) => {
         onTouched?.();
@@ -93,7 +93,7 @@ function DatePicker(
 
     return (
         <View style={styles.datePickerRoot}>
-            <View style={[shouldUseNarrowLayout ? styles.flex2 : {}, styles.pointerEventsNone]}>
+            <View style={[isSmallScreenWidth ? styles.flex2 : {}, styles.pointerEventsNone]}>
                 <TextInput
                     ref={ref}
                     inputID={inputID}

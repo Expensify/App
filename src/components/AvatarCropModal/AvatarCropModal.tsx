@@ -64,7 +64,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
     const isPressableEnabled = useSharedValue(true);
 
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     // Check if image cropping, saving or uploading is in progress
     const isLoading = useSharedValue(false);
@@ -349,7 +349,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                 includeSafeAreaPaddingBottom={false}
                 testID={AvatarCropModal.displayName}
             >
-                {shouldUseNarrowLayout && <HeaderGap />}
+                {isSmallScreenWidth && <HeaderGap />}
                 <HeaderWithBackButton
                     title={translate('avatarCropModal.title')}
                     onBackButtonPress={onClose}

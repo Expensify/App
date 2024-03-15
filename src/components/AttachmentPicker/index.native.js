@@ -121,7 +121,7 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
     const onCanceled = useRef();
 
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     /**
      * A generic handling when we don't know the exact reason for an error
@@ -341,7 +341,7 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
                 anchorPosition={styles.createMenuPosition}
                 onModalHide={onModalHide.current}
             >
-                <View style={!shouldUseNarrowLayout && styles.createMenuContainer}>
+                <View style={!isSmallScreenWidth && styles.createMenuContainer}>
                     {_.map(menuItemData, (item, menuIndex) => (
                         <MenuItem
                             key={item.textTranslationKey}

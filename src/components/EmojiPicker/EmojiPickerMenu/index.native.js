@@ -22,7 +22,7 @@ const propTypes = emojiPickerMenuPropTypes;
 function EmojiPickerMenu({onEmojiSelected, activeEmoji}) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {singleExecution} = useSingleExecution();
     const {
@@ -111,7 +111,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}) {
     );
 
     return (
-        <View style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(shouldUseNarrowLayout)]}>
+        <View style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(isSmallScreenWidth)]}>
             <View style={[styles.ph4, styles.pb1, styles.pt2]}>
                 <TextInput
                     label={translate('common.search')}

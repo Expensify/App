@@ -24,15 +24,15 @@ function OfflineIndicator({style, containerStyles}: OfflineIndicatorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const computedStyles = useMemo((): StyleProp<ViewStyle> => {
         if (containerStyles) {
             return containerStyles;
         }
 
-        return shouldUseNarrowLayout ? styles.offlineIndicatorMobile : styles.offlineIndicator;
-    }, [containerStyles, shouldUseNarrowLayout, styles.offlineIndicatorMobile, styles.offlineIndicator]);
+        return isSmallScreenWidth ? styles.offlineIndicatorMobile : styles.offlineIndicator;
+    }, [containerStyles, isSmallScreenWidth, styles.offlineIndicatorMobile, styles.offlineIndicator]);
 
     if (!isOffline) {
         return null;

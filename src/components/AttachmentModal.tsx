@@ -188,7 +188,7 @@ function AttachmentModal({
     const [confirmButtonFadeAnimation] = useState(() => new Animated.Value(1));
     const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = React.useState(true);
     const {windowWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const nope = useSharedValue(false);
     const isOverlayModalVisible = (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && isAttachmentInvalid);
 
@@ -503,14 +503,14 @@ function AttachmentModal({
                 propagateSwipe
             >
                 <GestureHandlerRootView style={styles.flex1}>
-                    {shouldUseNarrowLayout && <HeaderGap />}
+                    {isSmallScreenWidth && <HeaderGap />}
                     <HeaderWithBackButton
                         title={headerTitleNew}
                         shouldShowBorderBottom
                         shouldShowDownloadButton={shouldShowDownloadButton}
                         onDownloadButtonPress={() => downloadAttachment()}
-                        shouldShowCloseButton={!shouldUseNarrowLayout}
-                        shouldShowBackButton={shouldUseNarrowLayout}
+                        shouldShowCloseButton={!isSmallScreenWidth}
+                        shouldShowBackButton={isSmallScreenWidth}
                         onBackButtonPress={closeModal}
                         onCloseButtonPress={closeModal}
                         shouldShowThreeDotsButton={shouldShowThreeDotsButton}
@@ -572,7 +572,7 @@ function AttachmentModal({
                                     <Button
                                         success
                                         large
-                                        style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}
+                                        style={[styles.buttonConfirm, isSmallScreenWidth ? {} : styles.attachmentButtonBigScreen]}
                                         textStyles={[styles.buttonConfirmText]}
                                         text={translate('common.send')}
                                         onPress={submitAndClose}

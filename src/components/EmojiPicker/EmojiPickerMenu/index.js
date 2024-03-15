@@ -40,7 +40,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected, activeEmoji}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {singleExecution} = useSingleExecution();
     const {
@@ -256,7 +256,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected, activeEmoji}) {
 
             if (item.header) {
                 return (
-                    <View style={[styles.emojiHeaderContainer, target === 'StickyHeader' ? styles.stickyHeaderEmoji(shouldUseNarrowLayout, windowWidth) : undefined]}>
+                    <View style={[styles.emojiHeaderContainer, target === 'StickyHeader' ? styles.stickyHeaderEmoji(isSmallScreenWidth, windowWidth) : undefined]}>
                         <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}`)}</Text>
                     </View>
                 );
@@ -295,7 +295,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected, activeEmoji}) {
             highlightFirstEmoji,
             singleExecution,
             styles,
-            shouldUseNarrowLayout,
+            isSmallScreenWidth,
             windowWidth,
             translate,
             onEmojiSelected,
@@ -308,7 +308,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected, activeEmoji}) {
         <View
             style={[
                 styles.emojiPickerContainer,
-                StyleUtils.getEmojiPickerStyle(shouldUseNarrowLayout),
+                StyleUtils.getEmojiPickerStyle(isSmallScreenWidth),
                 // Disable pointer events so that onHover doesn't get triggered when the items move while we're scrolling
                 arePointerEventsDisabled ? styles.pointerEventsNone : styles.pointerEventsAuto,
             ]}
