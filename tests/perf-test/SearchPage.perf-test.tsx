@@ -5,6 +5,7 @@ import type {TextMatch} from '@testing-library/react-native/build/matches';
 import React from 'react';
 import type {ComponentType} from 'react';
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {measurePerformance} from 'reassure';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
@@ -15,7 +16,7 @@ import OnyxProvider from '@src/components/OnyxProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetails, Report} from '@src/types/onyx';
+import type {Beta, PersonalDetails, Report} from '@src/types/onyx';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomReport from '../utils/collections/reports';
@@ -116,9 +117,9 @@ afterEach(() => {
 });
 
 type SearchPageProps = StackScreenProps<RootStackParamList, typeof SCREENS.SEARCH_ROOT> & {
-    betas?: string[];
-    reports?: Report;
-    isSearchingForReports?: boolean;
+    betas: OnyxEntry<Beta[]>;
+    reports: OnyxCollection<Report>;
+    isSearchingForReports: OnyxEntry<boolean>;
 };
 
 function SearchPageWrapper(args: SearchPageProps) {
