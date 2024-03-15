@@ -7,12 +7,12 @@ const INPUT_IDS = {
 
 type InputID = ValueOf<typeof INPUT_IDS>;
 
-type WorkspaceCategoryCreateForm = Form<
+type WorkspaceCategoryForm = Form<
     InputID,
     {
         [INPUT_IDS.CATEGORY_NAME]: string;
     }
 >;
 
-export type {WorkspaceCategoryCreateForm};
+export type {WorkspaceCategoryForm};
 export default INPUT_IDS;
