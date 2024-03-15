@@ -236,6 +236,7 @@ function createTaskAndNavigate(
                 action: CONST.QUICK_ACTIONS.ASSIGN_TASK,
                 reportID: parentReportID,
                 isFirstQuickAction: isEmptyObject(quickAction),
+                targetAccountID: assigneeAccountID,
             },
         },
     );

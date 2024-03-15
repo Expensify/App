@@ -9,7 +9,7 @@ type QuickAction = {
     reportID: string;
 
     /** ID of the target account for task actions */
-    accountID?: number;
+    targetAccountID?: number;
 
     /** True if it is the first quick action we store for this user */
     isFirstQuickAction?: boolean;
