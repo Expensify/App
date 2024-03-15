@@ -93,7 +93,7 @@ function IOURequestStepCategory({
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplitBill) {
-            IOU.setDraftSplitTransaction(transaction.transactionID, {category: category.searchText});
+            IOU.setDraftSplitTransaction(transaction.transactionID, {category: updatedCategory});
             navigateBack();
             return;
         }

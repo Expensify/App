@@ -143,7 +143,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
             setTwoFactorAuthCode(text);
         }
         if (key === 'recoveryCode') {
-            setRecoveryCode(text);
+            setRecoveryCode(text.trim());
         }
 
         setFormError((prevError) => ({...prevError, [key]: undefined}));
@@ -290,7 +290,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
                             accessibilityLabel={translate('recoveryCodeForm.recoveryCode')}
                             value={recoveryCode}
                             onChangeText={(text) => onTextInput(text, 'recoveryCode')}
-                            maxLength={CONST.RECOVERY_CODE_LENGTH}
+                            maxLength={CONST.FORM_CHARACTER_LIMIT}
                             label={translate('recoveryCodeForm.recoveryCode')}
                             errorText={formError?.recoveryCode ?? ''}
                             hasError={hasError}
