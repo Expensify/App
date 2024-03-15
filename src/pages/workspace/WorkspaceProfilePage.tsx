@@ -50,7 +50,8 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
     const currencySymbol = currencyList?.[outputCurrency]?.symbol ?? '';
     const formattedCurrency = !isEmptyObject(policy) && !isEmptyObject(currencyList) ? `${outputCurrency} - ${currencySymbol}` : '';
 
-    const formattedAddress = 'abc';
+    const formattedAddress =
+        !isEmptyObject(policy) && !isEmptyObject(policy.address) ? `${policy.address.street}, ${policy.address.city}, ${policy.address.state} ${policy.address.zip}` : '';
 
     const onPressCurrency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_CURRENCY.getRoute(policy?.id ?? '')), [policy?.id]);
     const onPressAddress = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(policy?.id ?? '')), [policy?.id]);
@@ -195,7 +196,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                         title={formattedAddress}
                                         description={translate('workspace.editor.addressInputLabel')}
                                         shouldShowRightIcon={!readOnly}
-                                        disabled={hasVBA ? true : readOnly}
+                                        disabled={readOnly}
                                         wrapperStyle={styles.sectionMenuItemTopDescription}
                                         onPress={onPressAddress}
                                         shouldGreyOutWhenDisabled={false}

@@ -72,7 +72,7 @@ import type {
 } from '@src/types/onyx';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OriginalMessageJoinPolicyChangeLog} from '@src/types/onyx/OriginalMessage';
-import type {Attributes, CustomUnit, Rate, Unit} from '@src/types/onyx/Policy';
+import type {Attributes, CompanyAddress, CustomUnit, Rate, Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -1364,6 +1364,12 @@ function hideWorkspaceAlertMessage(policyID: string) {
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {alertMessage: ''});
+}
+
+function updateAddress(policyID: string, newAddress: CompanyAddress) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        address: newAddress,
+    });
 }
 
 function updateWorkspaceCustomUnitAndRate(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: NewCustomUnit, lastModified?: string) {
@@ -3247,6 +3253,7 @@ export {
     clearCustomUnitErrors,
     hideWorkspaceAlertMessage,
     deleteWorkspace,
+    updateAddress,
     updateWorkspaceCustomUnitAndRate,
     updateLastAccessedWorkspace,
     clearDeleteMemberError,

@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
 type Unit = 'mi' | 'km';
@@ -26,6 +27,15 @@ type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<{
     enabled?: boolean;
     errors?: OnyxCommon.Errors;
 }>;
+
+type CompanyAddress = {
+    street: string;
+    street2?: string;
+    city: string;
+    state: string;
+    zip: string;
+    country: Country | '';
+};
 
 type DisabledFields = {
     defaultBillable?: boolean;
@@ -208,6 +218,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The output currency for the policy */
         outputCurrency: string;
 
+        /** The address of the company */
+        address?: CompanyAddress;
+
         /** The URL for the policy avatar */
         avatar?: string;
 
@@ -353,4 +366,4 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
 export default Policy;
 
-export type {Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault, PendingJoinRequestPolicy};
+export type {Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault, PendingJoinRequestPolicy, CompanyAddress};
