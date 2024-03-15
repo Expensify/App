@@ -720,7 +720,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 <MenuItemWithTopDescription
                     key={translate('common.distance')}
                     shouldShowRightIcon={!isReadOnly && canEditDistance}
-                    title={iouMerchant}
+                    title={isMerchantEmpty ? '' : iouMerchant}
                     description={translate('common.distance')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}

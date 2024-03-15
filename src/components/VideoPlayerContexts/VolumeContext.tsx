@@ -1,16 +1,17 @@
-import PropTypes from 'prop-types';
 import React, {useCallback, useContext, useEffect, useMemo} from 'react';
 import {useSharedValue} from 'react-native-reanimated';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {usePlaybackContext} from './PlaybackContext';
+import type {VolumeContext} from './types';
 
-const VolumeContext = React.createContext(null);
+const Context = React.createContext<VolumeContext | null>(null);
 
-function VolumeContextProvider({children}) {
+function VolumeContextProvider({children}: ChildrenProps) {
     const {currentVideoPlayerRef, originalParent} = usePlaybackContext();
     const volume = useSharedValue(0);
 
     const updateVolume = useCallback(
-        (newVolume) => {
+        (newVolume: number) => {
             if (!currentVideoPlayerRef.current) {
                 return;
             }
@@ -30,21 +31,17 @@ function VolumeContextProvider({children}) {
     }, [originalParent, updateVolume, volume.value]);
 
     const contextValue = useMemo(() => ({updateVolume, volume}), [updateVolume, volume]);
-    return <VolumeContext.Provider value={contextValue}>{children}</VolumeContext.Provider>;
+    return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }
 
 function useVolumeContext() {
-    const context = useContext(VolumeContext);
-    if (context === undefined) {
+    const volumeContext = useContext(Context);
+    if (!volumeContext) {
         throw new Error('useVolumeContext must be used within a VolumeContextProvider');
     }
-    return context;
+    return volumeContext;
 }
 
 VolumeContextProvider.displayName = 'VolumeContextProvider';
-VolumeContextProvider.propTypes = {
-    /** Actual content wrapped by this component */
-    children: PropTypes.node.isRequired,
-};
 
 export {VolumeContextProvider, useVolumeContext};
