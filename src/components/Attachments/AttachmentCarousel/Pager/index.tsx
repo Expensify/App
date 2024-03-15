@@ -8,7 +8,7 @@ import type {PagerViewProps} from 'react-native-pager-view';
 import PagerView from 'react-native-pager-view';
 import Animated, {useAnimatedProps, useSharedValue} from 'react-native-reanimated';
 import CarouselItem from '@components/Attachments/AttachmentCarousel/CarouselItem';
-import type {Attachment} from '@components/Attachments/types';
+import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 import usePageScrollHandler from './usePageScrollHandler';
@@ -27,7 +27,7 @@ type AttachmentCarouselPagerProps = {
     items: Attachment[];
 
     /** The source (URL) of the currently active attachment. */
-    activeSource: string;
+    activeSource: AttachmentSource;
 
     /** The index of the initial page to be rendered. */
     initialPage: number;
@@ -150,7 +150,8 @@ function AttachmentCarouselPager(
 
     const carouselItems = items.map((item, index) => (
         <View
-            key={typeof item.source === 'string' || typeof item.source === 'number' ? item.source : item.reportActionID ?? index}
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            key={typeof item.source === 'string' || typeof item.source === 'number' ? item.source : item.reportActionID || index}
             style={styles.flex1}
         >
             <CarouselItem

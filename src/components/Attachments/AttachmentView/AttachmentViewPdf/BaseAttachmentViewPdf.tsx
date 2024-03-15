@@ -109,4 +109,4 @@ function BaseAttachmentViewPdf({
 BaseAttachmentViewPdf.displayName = 'BaseAttachmentViewPdf';
 
 export default memo(BaseAttachmentViewPdf);
-export type {AttachmentViewPdfProps as BaseAttachmentViewPdfProps};
+export type {AttachmentViewPdfProps};

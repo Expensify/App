@@ -116,7 +116,7 @@ function AttachmentView({
         if (!isFocused && !(file && isUsedInAttachmentModal)) {
             return;
         }
-        updateCurrentlyPlayingURL(isVideo ? (source as string) : null);
+        updateCurrentlyPlayingURL(isVideo && typeof source === 'string' ? source : null);
     }, [file, isFocused, isUsedInAttachmentModal, isVideo, source, updateCurrentlyPlayingURL]);
 
     const [imageError, setImageError] = useState(false);
@@ -217,7 +217,7 @@ function AttachmentView({
         );
     }
 
-    if (isVideo ?? (file?.name && Str.isVideo(file.name))) {
+    if ((isVideo ?? (file?.name && Str.isVideo(file.name))) && typeof source === 'string') {
         return (
             <AttachmentViewVideo
                 source={source}

@@ -17,32 +17,20 @@ import AttachmentCarouselPager from './Pager';
 import type {AttachmentCaraouselOnyxProps, AttachmentCarouselProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
 
-function AttachmentCarousel({
-    report,
-    reportActions,
-    parentReportActions,
-    source,
-    onNavigate = () => {},
-    setDownloadButtonVisibility = () => {},
-    onClose = () => {},
-}: AttachmentCarouselProps) {
+function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, onClose}: AttachmentCarouselProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const pagerRef = useRef<AttachmentCarouselPagerHandle>(null);
     const [page, setPage] = useState<number>();
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
-    const [activeSource, setActiveSource] = useState<AttachmentSource | undefined | null>(source);
+    const [activeSource, setActiveSource] = useState<AttachmentSource>(source);
 
     const compareImage = useCallback((attachment: Attachment) => attachment.source === source, [source]);
 
     useEffect(() => {
-        if (!report.parentReportActionID || !parentReportActions || !reportActions) {
-            Navigation.dismissModal();
-            return;
-        }
-        const parentReportAction = parentReportActions[report.parentReportActionID];
-        const attachmentsFromReport = extractAttachmentsFromReport(parentReportAction, reportActions);
+        const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : undefined;
+        const attachmentsFromReport = extractAttachmentsFromReport(parentReportAction, reportActions ?? undefined);
 
         const initialPage = attachmentsFromReport.findIndex(compareImage);
 
@@ -54,10 +42,12 @@ function AttachmentCarousel({
             setAttachments(attachmentsFromReport);
 
             // Update the download button visibility in the parent modal
-            setDownloadButtonVisibility(initialPage !== -1);
+            if (setDownloadButtonVisibility) {
+                setDownloadButtonVisibility(initialPage !== -1);
+            }
 
             // Update the parent modal's state with the source and name from the mapped attachments
-            if (attachmentsFromReport[initialPage] !== undefined) {
+            if (attachmentsFromReport[initialPage] !== undefined && onNavigate) {
                 onNavigate(attachmentsFromReport[initialPage]);
             }
         }
@@ -75,7 +65,9 @@ function AttachmentCarousel({
             setPage(newPageIndex);
             setActiveSource(item.source);
 
-            onNavigate(item);
+            if (onNavigate) {
+                onNavigate(item);
+            }
         },
         [setShouldShowArrows, attachments, onNavigate],
     );
@@ -86,12 +78,12 @@ function AttachmentCarousel({
      */
     const cycleThroughAttachments = useCallback(
         (deltaSlide: number) => {
-            const nextPageIndex = (page ?? 0) + deltaSlide;
-            updatePage(nextPageIndex);
-            if (!pagerRef.current) {
+            if (!page) {
                 return;
             }
-            pagerRef.current.setPage(nextPageIndex);
+            const nextPageIndex = page + deltaSlide;
+            updatePage(nextPageIndex);
+            pagerRef.current?.setPage(nextPageIndex);
 
             autoHideArrows();
         },
@@ -103,15 +95,15 @@ function AttachmentCarousel({
      * @param {Boolean} showArrows if showArrows is passed, it will set the visibility to the passed value
      */
     const toggleArrows = useCallback(
-        (showArrows: boolean | undefined) => {
+        (showArrows?: boolean) => {
             if (showArrows === undefined) {
-                setShouldShowArrows(!shouldShowArrows);
+                setShouldShowArrows((prevShouldShowArrows) => !prevShouldShowArrows);
                 return;
             }
 
             setShouldShowArrows(showArrows);
         },
-        [setShouldShowArrows, shouldShowArrows],
+        [setShouldShowArrows],
     );
 
     const containerStyles = [styles.flex1, styles.attachmentCarouselContainer];
@@ -148,7 +140,7 @@ function AttachmentCarousel({
                     <AttachmentCarouselPager
                         items={attachments}
                         initialPage={page}
-                        activeSource={activeSource as string}
+                        activeSource={activeSource}
                         onRequestToggleArrows={toggleArrows}
                         onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
                         onClose={onClose}
@@ -164,7 +156,7 @@ AttachmentCarousel.displayName = 'AttachmentCarousel';
 
 export default withOnyx<AttachmentCarouselProps, AttachmentCaraouselOnyxProps>({
     parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
         canEvict: false,
     },
     reportActions: {

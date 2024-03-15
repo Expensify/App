@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, Keyboard, PixelRatio, View} from 'react-native';
@@ -27,7 +28,7 @@ const viewabilityConfig = {
     itemVisiblePercentThreshold: 95,
 };
 
-function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate = () => {}, setDownloadButtonVisibility = () => {}}: AttachmentCarouselProps) {
+function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility}: AttachmentCarouselProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -38,18 +39,18 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     const [containerWidth, setContainerWidth] = useState(0);
     const [page, setPage] = useState(0);
     const [attachments, setAttachments] = useState<Attachment[]>([]);
-    const [activeSource, setActiveSource] = useState<AttachmentSource | undefined | null>(source);
+    const [activeSource, setActiveSource] = useState<AttachmentSource | null>(source);
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
 
     const compareImage = useCallback((attachment: Attachment) => attachment.source === source, [source]);
 
     useEffect(() => {
-        if (!report.parentReportActionID || !parentReportActions || !reportActions) {
-            Navigation.dismissModal();
+        const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : undefined;
+        const attachmentsFromReport = extractAttachmentsFromReport(parentReportAction, reportActions ?? undefined);
+
+        if (_.isEqual(attachments, attachmentsFromReport)) {
             return;
         }
-        const parentReportAction = parentReportActions[report.parentReportActionID];
-        const attachmentsFromReport = extractAttachmentsFromReport(parentReportAction, reportActions);
 
         const initialPage = attachmentsFromReport.findIndex(compareImage);
 
@@ -61,15 +62,16 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             setAttachments(attachmentsFromReport);
 
             // Update the download button visibility in the parent modal
-            setDownloadButtonVisibility(initialPage !== -1);
+            if (setDownloadButtonVisibility) {
+                setDownloadButtonVisibility(initialPage !== -1);
+            }
 
             // Update the parent modal's state with the source and name from the mapped attachments
-            if (attachmentsFromReport[initialPage] !== undefined) {
+            if (attachmentsFromReport[initialPage] !== undefined && onNavigate) {
                 onNavigate(attachmentsFromReport[initialPage]);
             }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportActions, parentReportActions, compareImage]);
+    }, [reportActions, parentReportActions, compareImage, report.parentReportActionID, attachments, setDownloadButtonVisibility, onNavigate]);
 
     /** Updates the page state when the user navigates between attachments */
     const updatePage = useCallback(
@@ -78,18 +80,20 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
             // Since we can have only one item in view at a time, we can use the first item in the array
             // to get the index of the current page
-            const entry = viewableItems?.[0];
+            const entry = viewableItems[0];
             if (!entry) {
                 setActiveSource(null);
                 return;
             }
 
-            if (entry.index) {
+            if (entry.index !== null) {
                 setPage(entry.index);
                 setActiveSource(entry.item.source);
             }
 
-            onNavigate(entry.item);
+            if (onNavigate) {
+                onNavigate(entry.item);
+            }
         },
         [onNavigate],
     );
@@ -125,13 +129,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             <CarouselItem
                 item={item}
                 isFocused={activeSource === item.source}
-                onPress={
-                    canUseTouchScreen
-                        ? () => {
-                              setShouldShowArrows((oldState: boolean) => !oldState);
-                          }
-                        : undefined
-                }
+                onPress={canUseTouchScreen ? () => setShouldShowArrows((oldState: boolean) => !oldState) : undefined}
                 isModalHovered={shouldShowArrows}
             />
         ),
@@ -190,7 +188,8 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                             CellRendererComponent={AttachmentCarouselCellRenderer}
                             renderItem={renderItem}
                             getItemLayout={getItemLayout}
-                            keyExtractor={(item) => item.source as string}
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            keyExtractor={(item, index) => (typeof item.source === 'string' || typeof item.source === 'number' ? String(item.source) : item.reportActionID || String(index))}
                             viewabilityConfig={viewabilityConfig}
                             onViewableItemsChanged={updatePage}
                         />
@@ -207,7 +206,7 @@ AttachmentCarousel.displayName = 'AttachmentCarousel';
 
 export default withOnyx<AttachmentCarouselProps, AttachmentCaraouselOnyxProps>({
     parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
         canEvict: false,
     },
     reportActions: {

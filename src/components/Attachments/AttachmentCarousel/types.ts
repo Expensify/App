@@ -17,7 +17,7 @@ type AttachmentCaraouselOnyxProps = {
 
 type AttachmentCarouselProps = AttachmentCaraouselOnyxProps & {
     /** source is used to determine the starting index in the array of attachments */
-    source?: AttachmentSource;
+    source: AttachmentSource;
 
     /** Callback to update the parent modal's state with a source and name from the attachments array */
     onNavigate?: (attachment: Attachment) => void;

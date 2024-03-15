@@ -7,8 +7,8 @@ import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 
 /** Constructs the initial component state from report actions */
-function extractAttachmentsFromReport(parentReportAction: ReportAction, reportActions: ReportActions) {
-    const actions = [parentReportAction, ...ReportActionsUtils.getSortedReportActions(Object.values(reportActions))];
+function extractAttachmentsFromReport(parentReportAction?: ReportAction, reportActions?: ReportActions) {
+    const actions = [parentReportAction, ...ReportActionsUtils.getSortedReportActions(Object.values(reportActions ?? {}))];
     const attachments: Attachment[] = [];
 
     const htmlParser = new HtmlParser({
@@ -16,7 +16,6 @@ function extractAttachmentsFromReport(parentReportAction: ReportAction, reportAc
             if (name === 'video') {
                 const splittedUrl = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE].split('/');
                 attachments.unshift({
-                    reportActionID: undefined,
                     source: tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
                     isAuthTokenRequired: Boolean(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
                     file: {name: splittedUrl[splittedUrl.length - 1]},
@@ -47,7 +46,7 @@ function extractAttachmentsFromReport(parentReportAction: ReportAction, reportAc
     });
 
     actions.forEach((action, key) => {
-        if (!ReportActionsUtils.shouldReportActionBeVisible(action, key) || ReportActionsUtils.isMoneyRequestAction(action)) {
+        if (!action || !ReportActionsUtils.shouldReportActionBeVisible(action, key) || ReportActionsUtils.isMoneyRequestAction(action)) {
             return;
         }
 
