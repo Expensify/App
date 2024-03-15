@@ -1674,6 +1674,7 @@ function createSplitsAndOnyxData(
     tag: string,
     existingSplitChatReportID = '',
     billable = false,
+    iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
 ): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -1729,7 +1730,6 @@ function createSplitsAndOnyxData(
         };
     }
 
-    console.log('here');
     const optimisticData: OnyxUpdate[] = [
         {
             // Use set for new reports because it doesn't exist yet, is faster,
@@ -1742,7 +1742,7 @@ function createSplitsAndOnyxData(
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
             value:{
-                action: TransactionUtils.isDistanceRequest(splitTransaction) ? CONST.QUICK_ACTIONS.SPLIT_DISTANCE : CONST.QUICK_ACTIONS.SPLIT_MANUAL,
+                action: iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ? CONST.QUICK_ACTIONS.SPLIT_DISTANCE : CONST.QUICK_ACTIONS.SPLIT_MANUAL,
                 reportID: splitChatReport.reportID,
                 isFirstQuickAction: isEmptyObject(quickAction),
             },
@@ -2041,6 +2041,7 @@ function splitBill(
     tag: string,
     existingSplitChatReportID = '',
     billable = false,
+    iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
 ) {
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
@@ -2056,6 +2057,7 @@ function splitBill(
         tag,
         existingSplitChatReportID,
         billable,
+        iouRequestType,
     );
 
     const parameters: SplitBillParams = {
@@ -2097,9 +2099,10 @@ function splitBillAndOpenReport(
     category: string,
     tag: string,
     billable: boolean,
+    iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
 ) {
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
-    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, currentCreated, category, tag);
+    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, currentCreated, category, tag, '', billable, iouRequestType);
 
     const parameters: SplitBillParams = {
         reportID: splitData.chatReportID,
