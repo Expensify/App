@@ -6,6 +6,7 @@ import CONFIG from '@src/CONFIG';
 import createModalCardStyleInterpolator from './createModalCardStyleInterpolator';
 import getRightModalNavigatorOptions from './getRightModalNavigatorOptions';
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
+import leftModalNavigatorOptions from './leftModalNavigatorOptions';
 import transition from './transition';
 
 type ScreenOptions = Record<string, StackNavigationOptions>;
@@ -33,9 +34,8 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
         },
         leftModalNavigator: {
             ...commonScreenOptions,
+            ...leftModalNavigatorOptions,
             cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
-            animation: 'slide_from_left',
-            customAnimationOnGesture: true,
 
             // We want pop in LHP since there are some flows that would work weird otherwise
             animationTypeForReplace: 'pop',
