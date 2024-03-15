@@ -56,6 +56,7 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
 
     const removeCategory = () => {
         Policy.deleteWorkspaceCategories(route.params.policyID, [route.params.categoryName]);
+        setRemoveCategoryConfirmModalVisible(false);
         Navigation.dismissModal();
     };
 
