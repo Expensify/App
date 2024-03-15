@@ -1,3 +1,5 @@
+/* eslint-disable rulesdir/onyx-props-must-have-default */
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -7,18 +9,24 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import PressableAvatarWithIndicator from './PressableAvatarWithIndicator';
 
-type AvatarWithOptionalStatusProps = {
+const propTypes = {
     /** Emoji status */
-    emojiStatus?: string;
+    emojiStatus: PropTypes.string,
 
     /** Whether the avatar is selected */
-    isSelected?: boolean;
+    isSelected: PropTypes.bool,
 
     /** Callback called when the avatar or status icon is pressed */
-    onPress?: () => void;
+    onPress: PropTypes.func,
 };
 
-function AvatarWithOptionalStatus({emojiStatus = '', isSelected = false, onPress}: AvatarWithOptionalStatusProps) {
+const defaultProps = {
+    emojiStatus: '',
+    isSelected: false,
+    onPress: () => {},
+};
+
+function AvatarWithOptionalStatus({emojiStatus, isSelected, onPress}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -45,5 +53,7 @@ function AvatarWithOptionalStatus({emojiStatus = '', isSelected = false, onPress
     );
 }
 
+AvatarWithOptionalStatus.propTypes = propTypes;
+AvatarWithOptionalStatus.defaultProps = defaultProps;
 AvatarWithOptionalStatus.displayName = 'AvatarWithOptionalStatus';
 export default AvatarWithOptionalStatus;
