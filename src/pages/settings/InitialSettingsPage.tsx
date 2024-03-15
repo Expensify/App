@@ -471,18 +471,19 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
 
     return (
         <ScreenWrapper
-            style={[styles.w100, styles.pt4]}
+            style={[styles.w100, styles.pb0]}
+            includePaddingTop={false}
             includeSafeAreaPaddingBottom={false}
             testID={InitialSettingsPage.displayName}
         >
             <ScrollView
+                ref={scrollViewRef}
+                onLayout={onLayout}
+                onScroll={onScroll}
+                scrollEventThrottle={16}
                 // We use marginTop to prevent glitching on the initial frame that renders before scrollTo.
                 contentContainerStyle={[!isAfterOnLayout && !!scrollOffset && {marginTop: -scrollOffset}]}
-                ref={scrollViewRef}
-                style={styles.w100}
-                onLayout={onLayout}
-                scrollEventThrottle={16}
-                onScroll={onScroll}
+                style={[styles.w100, styles.pt4]}
             >
                 {headerContent}
                 {accountMenuItems}
