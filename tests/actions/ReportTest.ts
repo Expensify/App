@@ -533,6 +533,8 @@ describe('actions/Report', () => {
                         value: {
                             1: REPORT_ACTION,
                         },
+                        // @ts-expect-error -- it's necessary for the test
+                        shouldNotify: true,
                     },
                 ]);
                 return SequentialQueue.getCurrentRequest().then(waitForBatchedUpdates);
