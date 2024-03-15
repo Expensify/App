@@ -9,6 +9,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {
+    AddBillingCardAndRequestWorkspaceOwnerChangeParams,
     AddMembersToWorkspaceParams,
     CreateWorkspaceFromIOUPaymentParams,
     CreateWorkspaceParams,
@@ -1039,9 +1040,10 @@ function addBillingCardAndRequestPolicyOwnerChange(
         cardCVV: string;
         addressName: string;
         addressZip: string;
+        currency: string;
     },
 ) {
-    const {cardNumber, cardYear, cardMonth, cardCVV, addressName, addressZip} = cardData;
+    const {cardNumber, cardYear, cardMonth, cardCVV, addressName, addressZip, currency} = cardData;
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1096,7 +1098,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
         },
     ];
 
-    const params = {
+    const params: AddBillingCardAndRequestWorkspaceOwnerChangeParams = {
         policyID,
         cardNumber,
         cardYear,
@@ -1104,6 +1106,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
         cardCVV,
         addressName,
         addressZip,
+        currency,
     };
 
     API.write(WRITE_COMMANDS.ADD_BILLING_CARD_AND_REQUEST_WORKSPACE_OWNER_CHANGE, params, {optimisticData, successData, failureData});
