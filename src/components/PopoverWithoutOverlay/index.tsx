@@ -7,11 +7,11 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import viewRef from '@src/types/utils/viewRef';
 import type PopoverWithoutOverlayProps from './types';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 function PopoverWithoutOverlay(
     {

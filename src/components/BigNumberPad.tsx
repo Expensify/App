@@ -2,9 +2,9 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import ControlSelection from '@libs/ControlSelection';
 import Button from './Button';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 type BigNumberPadProps = {
     /** Callback to inform parent modal with key pressed */

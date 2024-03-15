@@ -10,11 +10,11 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import viewForwardedRef from '@src/types/utils/viewForwardedRef';
 import type {AutoCompleteSuggestionsProps, RenderSuggestionMenuItemProps} from './types';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 const measureHeightOfSuggestionRows = (numRows: number, isSuggestionPickerLarge: boolean): number => {
     if (isSuggestionPickerLarge) {
