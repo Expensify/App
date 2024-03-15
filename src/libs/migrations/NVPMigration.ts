@@ -63,11 +63,11 @@ export default function () {
                 }).then(resolveWhenDone);
             },
         });
-        const connectionIDRecentlyUsedTags = Onyx.connect({
-            key: ONYXKEYS.COLLECTION.OLD_POLICY_RECENTLY_USED_TAGS,
+        const connectionIDRecentlyUsedCategories = Onyx.connect({
+            key: ONYXKEYS.COLLECTION.OLD_POLICY_RECENTLY_USED_CATEGORIES,
             waitForCollectionCallback: true,
             callback: (value) => {
-                Onyx.disconnect(connectionIDRecentlyUsedTags);
+                Onyx.disconnect(connectionIDRecentlyUsedCategories);
                 if (!value) {
                     resolveWhenDone();
                     return;
