@@ -27,7 +27,7 @@ type EditCategoryPageProps = WorkspaceEditCategoryPageOnyxProps & StackScreenPro
 function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const currentCategoryName = decodeURIComponent(route.params.categoryName);
+    const currentCategoryName = route.params.categoryName;
 
     const editCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
