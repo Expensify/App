@@ -296,10 +296,10 @@ const ONYXKEYS = {
         POLICY_MEMBERS_DRAFTS: 'policyMembersDrafts_',
         POLICY_JOIN_MEMBER: 'policyJoinMember_',
         POLICY_CATEGORIES: 'policyCategories_',
-        OLD_POLICY_RECENTLY_USED_CATEGORIES: 'policyRecentlyUsedCategories_',
-        POLICY_RECENTLY_USED_CATEGORIES: 'nvp_policyRecentlyUsedCategories_',
+        POLICY_RECENTLY_USED_CATEGORIES: 'policyRecentlyUsedCategories_',
         POLICY_TAGS: 'policyTags_',
         POLICY_RECENTLY_USED_TAGS: 'nvp_policyRecentlyUsedTags_',
+        OLD_POLICY_RECENTLY_USED_TAGS: 'policyRecentlyUsedTags_',
         POLICY_REPORT_FIELDS: 'policyReportFields_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         WORKSPACE_INVITE_MESSAGE_DRAFT: 'workspaceInviteMessageDraft_',
@@ -482,7 +482,6 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.POLICY_MEMBERS]: OnyxTypes.PolicyMembers;
     [ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS]: OnyxTypes.PolicyMember;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES]: OnyxTypes.RecentlyUsedCategories;
-    [ONYXKEYS.COLLECTION.OLD_POLICY_RECENTLY_USED_CATEGORIES]: OnyxTypes.RecentlyUsedCategories;
     [ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS]: OnyxTypes.PolicyReportFields;
     [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyMembers;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: OnyxTypes.InvitedEmailsToAccountIDs;
@@ -503,6 +502,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: OnyxTypes.TransactionViolations;
     [ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS]: OnyxTypes.RecentlyUsedTags;
+    [ONYXKEYS.COLLECTION.OLD_POLICY_RECENTLY_USED_TAGS]: OnyxTypes.RecentlyUsedTags;
     [ONYXKEYS.COLLECTION.SELECTED_TAB]: string;
     [ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT]: string;
     [ONYXKEYS.COLLECTION.NEXT_STEP]: OnyxTypes.ReportNextStep;
