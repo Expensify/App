@@ -471,7 +471,7 @@ function buildOnyxDataForMoneyRequest(
     const outstandingChildRequest = getOutstandingChildRequest(policy ?? {}, iouReport);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const optimisticData: OnyxUpdate[] = [];
-    let newQuickAction: ValueOf<typeof CONST.REPORT.CHAT_TYPE> = isScanRequest ? CONST.QUICK_ACTIONS.REQUEST_SCAN : CONST.QUICK_ACTIONS.REQUEST_MANUAL;
+    let newQuickAction: ValueOf<typeof CONST.QUICK_ACTIONS> = isScanRequest ? CONST.QUICK_ACTIONS.REQUEST_SCAN : CONST.QUICK_ACTIONS.REQUEST_MANUAL;
     if (TransactionUtils.isDistanceRequest(transaction)) {
         newQuickAction = CONST.QUICK_ACTIONS.REQUEST_DISTANCE;
     }
