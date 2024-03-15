@@ -60,12 +60,12 @@ function WorkspaceNewTaxPage({
             const taxRate = {
                 ...values,
                 value: getTaxValueWithPercentage(value),
-                code: getNextTaxID(values[INPUT_IDS.NAME]),
+                code: getNextTaxID(values[INPUT_IDS.NAME], policy?.taxRates?.taxes),
             } satisfies TaxRate;
             createWorkspaceTax(policyID, taxRate);
             Navigation.goBack();
         },
-        [policyID],
+        [policy?.taxRates?.taxes, policyID],
     );
 
     return (

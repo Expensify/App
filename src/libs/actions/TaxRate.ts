@@ -5,7 +5,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import * as ErrorUtils from '@src/libs/ErrorUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {TaxRate} from '@src/types/onyx';
+import type {TaxRate, TaxRates} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
 
@@ -16,11 +16,29 @@ function getTaxValueWithPercentage(value: string): string {
     return `${value}%`;
 }
 
-/**
- * Get new tax object
- */
-function getNextTaxID(name: string): string {
+function covertTaxNameToID(name: string) {
     return `id_${name.toUpperCase().replaceAll(' ', '_')}`;
+}
+
+/**
+ * Get new tax ID
+ */
+function getNextTaxID(name: string, taxRates?: TaxRates): string {
+    const newID = covertTaxNameToID(name);
+    if (!taxRates?.[newID]) {
+        return newID;
+    }
+
+    // If the tax ID already exists, we need to find a unique ID
+    let nextID = 1;
+    while (nextID < 100) {
+        const newNameCandidate = covertTaxNameToID(`${name}_${nextID}`);
+        if (!taxRates?.[newNameCandidate]) {
+            return newNameCandidate;
+        }
+        nextID++;
+    }
+    throw new Error('Could not find a unique tax ID');
 }
 
 function createWorkspaceTax(policyID: string, taxRate: TaxRate) {
@@ -78,14 +96,12 @@ function createWorkspaceTax(policyID: string, taxRate: TaxRate) {
 
     const parameters = {
         policyID,
-        taxFields: JSON.stringify([
-            {
-                name: taxRate.name,
-                value: taxRate.value,
-                enabled: true,
-                taxCode: taxRate.code,
-            },
-        ]),
+        taxFields: JSON.stringify({
+            name: taxRate.name,
+            value: taxRate.value,
+            enabled: true,
+            taxCode: taxRate.code,
+        }),
     } satisfies CreatePolicyTaxParams;
 
     API.write(WRITE_COMMANDS.CREATE_POLICY_TAX, parameters, onyxData);
