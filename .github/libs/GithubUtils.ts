@@ -251,11 +251,6 @@ class GithubUtils {
         return deployBlockers.sort((a, b) => (a.number > b.number ? 1 : b.number > a.number ? -1 : 0));
     }
 
-    static test(): ListForRepoMethod {
-        const x = this.octokit.issues.listForRepo;
-        return x;
-    }
-
     /**
      * Parse InternalQA section of the StagingDeployCash issue body.
      *
