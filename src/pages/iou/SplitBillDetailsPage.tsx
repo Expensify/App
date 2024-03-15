@@ -21,6 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -61,7 +62,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
 
     // In case this is workspace split bill, we manually add the workspace as the second participant of the split bill
     // because we don't save any accountID in the report action's originalMessage other than the payee's accountID
-    let participants;
+    let participants: Array<Participant | ReportUtils.OptionData>;
     if (ReportUtils.isPolicyExpenseChat(report)) {
         participants = [
             OptionsListUtils.getParticipantsOption({accountID: participantAccountIDs[0], selected: true, reportID: ''}, personalDetails),
@@ -110,7 +111,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                             hasMultipleParticipants
                             payeePersonalDetails={payeePersonalDetails}
                             selectedParticipants={participantsExcludingPayee}
-                            iouAmount={splitAmount}
+                            iouAmount={splitAmount ?? 0}
                             iouCurrencyCode={splitCurrency}
                             iouComment={splitComment}
                             iouCreated={splitCreated}
@@ -123,7 +124,6 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                             shouldShowSmartScanFields
                             receiptPath={transaction?.receipt?.source}
                             receiptFilename={transaction?.filename}
-                            shouldShowFooter={false}
                             isEditingSplitBill={isEditingSplitBill}
                             hasSmartScanFailed={hasSmartScanFailed}
                             reportID={reportID}
@@ -131,7 +131,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                             transaction={isEditingSplitBill ? draftTransaction ?? transaction : transaction}
                             onConfirm={onConfirm}
                             isPolicyExpenseChat={ReportUtils.isPolicyExpenseChat(report)}
-                            policyID={ReportUtils.isPolicyExpenseChat(report) ? report?.policyID : null}
+                            policyID={ReportUtils.isPolicyExpenseChat(report) ? report?.policyID : undefined}
                         />
                     )}
                 </View>

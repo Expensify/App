@@ -9,7 +9,7 @@ import ReceiptSVG from '@assets/images/receipt-svg.png';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
-import type {ReceiptError} from '@src/types/onyx/Transaction';
+import type {ReceiptError, ReceiptSource} from '@src/types/onyx/Transaction';
 import * as FileUtils from './fileDownload/FileUtils';
 import * as TransactionUtils from './TransactionUtils';
 
@@ -33,7 +33,7 @@ type FileNameAndExtension = {
  * @param receiptPath
  * @param receiptFileName
  */
-function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPath: string | null = null, receiptFileName: string | null = null): ThumbnailAndImageURI {
+function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPath: ReceiptSource | null = null, receiptFileName: string | null = null): ThumbnailAndImageURI {
     if (TransactionUtils.isFetchingWaypointsFromServer(transaction)) {
         return {thumbnail: null, image: ReceiptGeneric, isLocalFile: true};
     }
