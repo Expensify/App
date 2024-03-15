@@ -7,15 +7,19 @@ type SuggestionsContextProviderProps = {
 };
 
 type SuggestionsContextProps = {
+    activeID: string | null;
     currentActiveSuggestionsRef: MutableRefObject<SuggestionsRef | null>;
     updateCurrentActiveSuggestionsRef: (ref: SuggestionsRef | null, id: string) => void;
     clearActiveSuggestionsRef: () => void;
+    isActiveSuggestions: (id: string) => boolean;
 };
 
 const SuggestionsContext = createContext<SuggestionsContextProps>({
+    activeID: null,
     currentActiveSuggestionsRef: {current: null},
     updateCurrentActiveSuggestionsRef: () => {},
     clearActiveSuggestionsRef: () => {},
+    isActiveSuggestions: () => false,
 });
 
 function SuggestionsContextProvider({children}: SuggestionsContextProviderProps) {
@@ -32,9 +36,11 @@ function SuggestionsContextProvider({children}: SuggestionsContextProviderProps)
         setActiveID(null);
     }, []);
 
+    const isActiveSuggestions = useCallback((id: string) => id === activeID, [activeID]);
+
     const contextValue = useMemo(
-        () => ({activeID, currentActiveSuggestionsRef, updateCurrentActiveSuggestionsRef, clearActiveSuggestionsRef}),
-        [activeID, currentActiveSuggestionsRef, updateCurrentActiveSuggestionsRef, clearActiveSuggestionsRef],
+        () => ({activeID, currentActiveSuggestionsRef, updateCurrentActiveSuggestionsRef, clearActiveSuggestionsRef, isActiveSuggestions}),
+        [activeID, currentActiveSuggestionsRef, updateCurrentActiveSuggestionsRef, clearActiveSuggestionsRef, isActiveSuggestions],
     );
 
     return <SuggestionsContext.Provider value={contextValue}>{children}</SuggestionsContext.Provider>;

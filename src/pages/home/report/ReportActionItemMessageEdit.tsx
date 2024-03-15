@@ -83,7 +83,7 @@ function ReportActionItemMessageEdit(
     const {translate, preferredLocale} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {updateCurrentActiveSuggestionsRef, clearActiveSuggestionsRef} = useSuggestionsContext();
+    const {updateCurrentActiveSuggestionsRef, clearActiveSuggestionsRef, isActiveSuggestions} = useSuggestionsContext();
 
     const getInitialDraft = () => {
         if (draftMessage === action?.message?.[0].html) {
@@ -211,6 +211,9 @@ function ReportActionItemMessageEdit(
             }
             if (ReportActionContextMenu.isActiveReportAction(action.reportActionID)) {
                 ReportActionContextMenu.clearActiveReportAction();
+            }
+            if (isActiveSuggestions(action.reportActionID)) {
+                clearActiveSuggestionsRef();
             }
 
             // Show the main composer when the focused message is deleted from another client
