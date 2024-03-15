@@ -31,7 +31,10 @@ type ReportActionsViewOnyxProps = {
     session: OnyxEntry<OnyxTypes.Session>;
 
     /** Array of report actions for the transaction thread report associated with the current report */
-    transactionThreadReportActions?: OnyxTypes.ReportAction[];
+    transactionThreadReportActions: OnyxTypes.ReportAction[];
+
+    /** The transaction thread report associated with the current report, if any */
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
 };
 
 type ReportActionsViewProps = ReportActionsViewOnyxProps & {
@@ -56,6 +59,7 @@ type ReportActionsViewProps = ReportActionsViewOnyxProps & {
 
 function ReportActionsView({
     report,
+    transactionThreadReport,
     session,
     parentReportAction,
     reportActions = [],
@@ -238,6 +242,8 @@ function ReportActionsView({
         <>
             <ReportActionsList
                 report={report}
+                transactionThreadReport={transactionThreadReport}
+                reportActions={reportActions}
                 parentReportAction={parentReportAction}
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={combinedReportActions}
@@ -302,6 +308,12 @@ export default Performance.withRenderTrace({id: '<ReportActionsView> rendering'}
             },
             canEvict: false,
             selector: (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
+        },
+        transactionThreadReport: {
+            key: ({reportActions}) => {
+                const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportActions ?? []);
+                return `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`;
+            },
         },
     })(MemoizedReportActionsView),
 );

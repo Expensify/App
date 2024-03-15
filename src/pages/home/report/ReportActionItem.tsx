@@ -90,9 +90,6 @@ type ReportActionItemOnyxProps = {
     /** Stores user's preferred skin tone */
     preferredSkinTone: OnyxEntry<string | number>;
 
-    /** All reports shared with the user */
-    reports: OnyxCollection<OnyxTypes.Report>;
-
     /** IOU report for this action, if any */
     iouReport: OnyxEntry<OnyxTypes.Report>;
 
@@ -107,16 +104,19 @@ type ReportActionItemOnyxProps = {
     /** The policy which the user has access to and which the report is tied to */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
-    /** Array of report actions for this report */
-    reportActions: OnyxEntry<OnyxTypes.ReportActions>;
-
-    /** All the transactions shared with the user */
-    transactions: OnyxCollection<OnyxTypes.Transaction>;
+    /** Transaction associated with this report, if any */
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
 };
 
 type ReportActionItemProps = {
     /** Report for this action */
     report: OnyxTypes.Report;
+
+    /** The transaction thread report associated with the report for this action, if any */
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+
+    /** Array of report actions for the report for this action */
+    reportActions: OnyxTypes.ReportAction[];
 
     /** Report action belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
@@ -154,7 +154,7 @@ const isIOUReport = (actionObj: OnyxEntry<OnyxTypes.ReportAction>): actionObj is
 function ReportActionItem({
     action,
     report,
-    reports,
+    transactionThreadReport,
     linkedReportActionID,
     displayAsGroup,
     emojiReactions,
@@ -169,8 +169,7 @@ function ReportActionItem({
     shouldShowSubscriptAvatar = false,
     policyReportFields,
     policy,
-    reportActions,
-    transactions,
+    transaction,
     onPress = undefined,
 }: ReportActionItemProps) {
     const {translate} = useLocalize();
@@ -196,18 +195,6 @@ function ReportActionItem({
     const originalReportID = ReportUtils.getOriginalReportID(report.reportID, action);
     const originalReport = report.reportID === originalReportID ? report : ReportUtils.getReport(originalReportID);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
-    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportActions);
-    const transactionThreadReport = useMemo(() => reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`], [reports, transactionThreadReportID]);
-
-    // Get the transaction associated with the report
-    const transaction = useMemo(() => {
-        const reportAction = reportActions?.[transactionThreadReport?.parentReportActionID ?? ''];
-        const transactionID = (reportAction as OnyxTypes.OriginalMessageIOU)?.originalMessage.IOUTransactionID
-            ? (reportAction as OnyxTypes.OriginalMessageIOU).originalMessage.IOUTransactionID
-            : 0;
-        return transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    }, [transactionThreadReport, reportActions, transactions]);
-
     const transactionCurrency = !lodashIsEmpty(transaction?.modifiedCurrency) ? transaction?.modifiedCurrency : transaction?.currency;
     const reportScrollManager = useReportScrollManager();
 
@@ -917,9 +904,6 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
         key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
         initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE,
     },
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
     iouReport: {
         key: ({action}) => {
             const iouReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(action);
@@ -942,12 +926,15 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
     userWallet: {
         key: ONYXKEYS.USER_WALLET,
     },
-    reportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID || 0}`,
-        canEvict: false,
-    },
-    transactions: {
-        key: ONYXKEYS.COLLECTION.TRANSACTION,
+    transaction: {
+        key: ({transactionThreadReport, reportActions}) => {
+            const parentReportActionID = lodashIsEmpty(transactionThreadReport) ? '0' : transactionThreadReport.parentReportActionID;
+            const reportAction = reportActions?.find((reportAction) => reportAction.reportActionID === parentReportActionID ?? '0');
+            const transactionID = (reportAction as OnyxTypes.OriginalMessageIOU)?.originalMessage.IOUTransactionID
+                ? (reportAction as OnyxTypes.OriginalMessageIOU).originalMessage.IOUTransactionID
+                : 0;
+            return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+        },
     },
 })(
     memo(ReportActionItem, (prevProps, nextProps) => {
@@ -957,7 +944,6 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
             prevProps.displayAsGroup === nextProps.displayAsGroup &&
             prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction &&
             prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
-            lodashIsEqual(prevProps.reports, nextProps.reports) &&
             lodashIsEqual(prevProps.emojiReactions, nextProps.emojiReactions) &&
             lodashIsEqual(prevProps.action, nextProps.action) &&
             lodashIsEqual(prevProps.iouReport, nextProps.iouReport) &&
@@ -982,8 +968,9 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
             lodashIsEqual(prevProps.policyReportFields, nextProps.policyReportFields) &&
             lodashIsEqual(prevProps.report.reportFields, nextProps.report.reportFields) &&
             lodashIsEqual(prevProps.policy, nextProps.policy) &&
+            lodashIsEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&
             lodashIsEqual(prevProps.reportActions, nextProps.reportActions) &&
-            lodashIsEqual(prevProps.transactions, nextProps.transactions) &&
+            lodashIsEqual(prevProps.transaction, nextProps.transaction) &&
             lodashIsEqual(prevParentReportAction, nextParentReportAction)
         );
     }),
