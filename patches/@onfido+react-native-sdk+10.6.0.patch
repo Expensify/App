@@ -1217,7 +1217,7 @@ index db35471..8bb6a57 100644
        console.log(error);
        throw error;
 -    });
-+    }) as Promise<OnfidoResult | OnfidoError>;
++    }) as Promise<OnfidoResult>;
    },
  
    addCustomMediaCallback(callback: (result: OnfidoMediaResult) => OnfidoMediaResult) {
