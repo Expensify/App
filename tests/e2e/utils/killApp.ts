@@ -1,5 +1,5 @@
 import config from '../config';
-import {getBrowser, setBrowser} from './browser';
+import {getPage, setPage} from './browser';
 import execAsync from './execAsync';
 import type {PromiseWithAbort} from './execAsync';
 
@@ -9,12 +9,12 @@ const killApp = function (platform = 'android', packageName = config.MAIN_APP_PA
     }
 
     if (platform === 'web') {
-        const browser = getBrowser();
+        const page = getPage(packageName);
 
-        if (browser) {
-            setBrowser(null);
-            // TODO: can `browser` be `null` here? theoretically not, but it's better to check :)
-            return browser.close();
+        if (page) {
+            setPage(null, packageName);
+            // TODO: can `page` be `null` here? theoretically not, but it's better to check :)
+            return page.close();
         }
 
         return Promise.resolve();

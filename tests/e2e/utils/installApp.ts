@@ -1,4 +1,6 @@
 import type {ExecException} from 'child_process';
+import {chromium} from 'playwright';
+import {getBrowser, setBrowser, setContext} from './browser';
 import execAsync from './execAsync';
 import type {PromiseWithAbort} from './execAsync';
 import * as Logger from './logger';
@@ -13,8 +15,18 @@ export default function (packageName: string, path: string, platform = 'android'
     }
 
     if (platform === 'web') {
-        // do nothing since on web we don't actually install apps and instead simply open page in browser
-        return Promise.resolve();
+        return (async () => {
+            // close browser first
+            await getBrowser(packageName)?.close();
+            // launch browser to persist cookies across page sessions
+            // providing additional config we can use firefox or webkit (safari)
+            const browser = await chromium.launch({headless: false});
+            setBrowser(browser, packageName);
+            const context = await browser.newContext();
+            setContext(context, packageName);
+
+            await context.newPage();
+        })();
     }
 
     // Uninstall first, then install

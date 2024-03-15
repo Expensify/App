@@ -1,11 +1,45 @@
-import type {Browser} from 'playwright';
+import type {Browser, BrowserContext, Page} from 'playwright';
 
-let browser: Browser | null = null;
+type Instance = {
+    browser: Browser | null;
+    page: Page | null;
+    context: BrowserContext | null;
+};
+type Browsers = Record<string, Instance>;
 
-const setBrowser = (instance: Browser | null) => {
-    browser = instance;
+const browsers: Browsers = {};
+
+const initIfNeeded = (id: string) => {
+    if (browsers[id]) {
+        return;
+    }
+
+    browsers[id] = {
+        browser: null,
+        page: null,
+        context: null,
+    };
 };
 
-const getBrowser = () => browser;
+const setBrowser = (instance: Browser | null, id: string) => {
+    initIfNeeded(id);
+    browsers[id].browser = instance;
+};
 
-export {setBrowser, getBrowser};
+const getBrowser = (id: string) => browsers[id]?.browser;
+
+const setPage = (instance: Page | null, id: string) => {
+    initIfNeeded(id);
+    browsers[id].page = instance;
+};
+
+const getPage = (id: string) => browsers[id]?.page;
+
+const setContext = (instance: BrowserContext | null, id: string) => {
+    initIfNeeded(id);
+    browsers[id].context = instance;
+};
+
+const getContext = (id: string) => browsers[id]?.context;
+
+export {setBrowser, getBrowser, setPage, getPage, setContext, getContext};

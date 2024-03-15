@@ -1,6 +1,5 @@
-import {chromium} from 'playwright';
 import config from '../config';
-import {setBrowser} from './browser';
+import {getContext, setPage} from './browser';
 import execAsync from './execAsync';
 
 const launchApp = (platform = 'android', packageName = config.MAIN_APP_PACKAGE, activityPath = config.ACTIVITY_PATH, launchArgs: Record<string, boolean> = {}) => {
@@ -10,11 +9,14 @@ const launchApp = (platform = 'android', packageName = config.MAIN_APP_PACKAGE, 
 
     if (platform === 'web') {
         return (async () => {
-            // providing additional config we can use firefox or webkit (safari)
-            const browser = await chromium.launch({headless: false});
-            setBrowser(browser);
+            const context = getContext(packageName);
 
-            const page = await browser.newPage();
+            if (!context) {
+                throw new Error('Context is supposed to exist before launching the app! Did you start a browser and instantiated a new context?');
+            }
+
+            const page = await context.newPage();
+            setPage(page, packageName);
 
             // Execute JavaScript before navigating to your page
             await page.addInitScript((args) => {
