@@ -1,6 +1,8 @@
 import lodashGet from 'lodash/get';
+import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker';
 import React, {useCallback, useContext, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
+import {pdfjs} from 'react-pdf';
 import Hand from '@assets/images/hand.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import Shutter from '@assets/images/shutter.svg';
@@ -32,6 +34,10 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import NavigationAwareCamera from './NavigationAwareCamera';
+
+if (!pdfjs.GlobalWorkerOptions.workerSrc) {
+    pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
+}
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -91,24 +97,36 @@ function IOURequestStepScan({
         setAttachmentValidReason(reason);
     };
 
+    const isValidPdfFile = (file) =>
+        new Promise((resolve) => {
+            pdfjs
+                .getDocument(file.uri || '')
+                .promise.then(() => resolve(true))
+                .catch(() => resolve(false));
+        });
+
     function validateReceipt(file) {
-        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
-        if (!CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(fileExtension.toLowerCase())) {
-            setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
-            return false;
-        }
-
-        if (lodashGet(file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-            setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceeded');
-            return false;
-        }
-
-        if (lodashGet(file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-            setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
-            return false;
-        }
-
-        return true;
+        isValidPdfFile(file).then((isValid) => {
+            if (!isValid) {
+                setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
+                return false;
+            }
+            const fileName = lodashGet(file, 'name', '');
+            const {fileExtension} = FileUtils.splitExtensionFromFileName(fileName);
+            if (!CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(fileExtension.toLowerCase())) {
+                setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
+                return false;
+            }
+            if (lodashGet(file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceeded');
+                return false;
+            }
+            if (lodashGet(file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+                setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
+                return false;
+            }
+            return true;
+        });
     }
 
     const navigateBack = () => {

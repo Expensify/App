@@ -5,6 +5,7 @@ import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import {useCameraDevices} from 'react-native-vision-camera';
+import {pdfjs} from 'react-pdf';
 import Hand from '@assets/images/hand.svg';
 import Shutter from '@assets/images/shutter.svg';
 import AttachmentPicker from '@components/AttachmentPicker';
@@ -32,6 +33,8 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import * as CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
+
+console.log('pdfjs', pdfjs);
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -154,6 +157,12 @@ function IOURequestStepScan({
 
     const validateReceipt = (file) => {
         const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
+
+        if (!pdfjs.isPdfFile(file.name)) {
+            Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
+            return false;
+        }
+
         if (!CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(fileExtension.toLowerCase())) {
             Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
             return false;
