@@ -133,7 +133,7 @@ function ReportPreview({
 
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
-    const hasErrors = hasMissingSmartscanFields || (canUseViolations && ReportUtils.hasViolations(iouReportID, transactionViolations));
+    const hasErrors = hasMissingSmartscanFields || (canUseViolations && ReportUtils.hasViolations(iouReportID, transactionViolations)) || ReportUtils.hasActionsWithErrors(iouReportID);
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
 

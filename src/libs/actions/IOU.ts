@@ -717,31 +717,6 @@ function buildOnyxDataForMoneyRequest(
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
-            value: {
-                ...(isNewChatReport
-                    ? {
-                          [chatCreatedAction.reportActionID]: {
-                              // Disabling this line since transaction.filename can be an empty string
-                              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                              errors: getReceiptError(transaction?.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest),
-                          },
-                          [reportPreviewAction.reportActionID]: {
-                              errors: ErrorUtils.getMicroSecondOnyxError(null),
-                          },
-                      }
-                    : {
-                          [reportPreviewAction.reportActionID]: {
-                              created: reportPreviewAction.created,
-                              // Disabling this line since transaction.filename can be an empty string
-                              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                              errors: getReceiptError(transaction?.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest),
-                          },
-                      }),
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
                 ...(shouldCreateNewMoneyRequestReport
