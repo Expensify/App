@@ -71,7 +71,10 @@ function WorkspaceNewTaxPage({
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <ScreenWrapper testID={WorkspaceNewTaxPage.displayName}>
+                <ScreenWrapper
+                    testID={WorkspaceNewTaxPage.displayName}
+                    includeSafeAreaPaddingBottom={false}
+                >
                     <View style={[styles.h100, styles.flex1, styles.justifyContentBetween]}>
                         <HeaderWithBackButton title={translate('workspace.taxes.addRate')} />
                         <FormProvider

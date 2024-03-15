@@ -24,9 +24,8 @@ type AmountSelectorModalProps = {
     onValueSelected?: (value: string) => void;
 
     /** Function to call when the user closes the modal */
-    onClose?: () => void;
-} & Pick<MenuItemBaseProps, 'description'> &
-    AmountFormProps;
+    onClose: () => void;
+} & Pick<MenuItemBaseProps, 'description'>;
 
 type AmountPickerProps = {
     /** Item to display */

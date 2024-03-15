@@ -21,7 +21,7 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
         <Modal
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isVisible}
-            onClose={() => onClose?.()}
+            onClose={onClose}
             onModalHide={onClose}
             hideModalContentWhileAnimating
             useNativeDriver
@@ -47,6 +47,7 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
                     </View>
                     <Button
                         success
+                        large
                         pressOnEnter
                         text={translate('common.save')}
                         onPress={() => onValueSelected?.(currentValue ?? '')}
