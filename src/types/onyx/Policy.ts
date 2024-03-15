@@ -183,6 +183,13 @@ type Connections = {
     quickbooksOnline: Connection<QBOConnectionData, QBOConnectionConfig>;
 };
 
+type ACHAccount = {
+    bankAccountID: number;
+    accountNumber: string;
+    routingNumber: string;
+    addressName: string;
+};
+
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
 type PolicyReportFieldType = 'text' | 'date' | 'dropdown' | 'formula';
@@ -417,6 +424,8 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the Connections feature is enabled */
         areConnectionsEnabled?: boolean;
+
+        achAccount?: ACHAccount;
     } & Partial<PendingJoinRequestPolicy>,
     'generalSettings' | 'addWorkspaceRoom'
 >;
