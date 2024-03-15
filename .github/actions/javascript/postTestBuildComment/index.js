@@ -4,111 +4,6 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 2052:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const _ = __nccwpck_require__(5067);
-const core = __nccwpck_require__(2186);
-const {context} = __nccwpck_require__(5438);
-const CONST = __nccwpck_require__(4097);
-const GithubUtils = __nccwpck_require__(7999);
-
-/**
- * @returns {String}
- */
-function getTestBuildMessage() {
-    console.log('Input for android', core.getInput('ANDROID', {required: true}));
-    const androidSuccess = core.getInput('ANDROID', {required: true}) === 'success';
-    const desktopSuccess = core.getInput('DESKTOP', {required: true}) === 'success';
-    const iOSSuccess = core.getInput('IOS', {required: true}) === 'success';
-    const webSuccess = core.getInput('WEB', {required: true}) === 'success';
-
-    const androidLink = androidSuccess ? core.getInput('ANDROID_LINK') : '❌ FAILED ❌';
-    const desktopLink = desktopSuccess ? core.getInput('DESKTOP_LINK') : '❌ FAILED ❌';
-    const iOSLink = iOSSuccess ? core.getInput('IOS_LINK') : '❌ FAILED ❌';
-    const webLink = webSuccess ? core.getInput('WEB_LINK') : '❌ FAILED ❌';
-
-    const androidQRCode = androidSuccess
-        ? `![Android](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${androidLink})`
-        : "The QR code can't be generated, because the android build failed";
-    const desktopQRCode = desktopSuccess
-        ? `![Desktop](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${desktopLink})`
-        : "The QR code can't be generated, because the Desktop build failed";
-    const iOSQRCode = iOSSuccess ? `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${iOSLink})` : "The QR code can't be generated, because the iOS build failed";
-    const webQRCode = webSuccess ? `![Web](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${webLink})` : "The QR code can't be generated, because the web build failed";
-
-    const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, Desktop, and Web. Happy testing! :test_tube::test_tube:
-| Android :robot:  | iOS :apple: |
-| ------------- | ------------- |
-| ${androidLink}  | ${iOSLink}  |
-| ${androidQRCode}  | ${iOSQRCode}  |
-| Desktop :computer: | Web :spider_web: |
-| ${desktopLink}  | ${webLink}  |
-| ${desktopQRCode}  | ${webQRCode}  |
-
----
-
-:eyes: [View the workflow run that generated this build](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) :eyes:
-`;
-
-    return message;
-}
-
-/**
- * Comment on a single PR
- *
- * @param {Number} PR
- * @param {String} message
- * @returns {Promise<void>}
- */
-async function commentPR(PR, message) {
-    console.log(`Posting test build comment on #${PR}`);
-    try {
-        await GithubUtils.createComment(context.repo.repo, PR, message);
-        console.log(`Comment created on #${PR} successfully 🎉`);
-    } catch (err) {
-        console.log(`Unable to write comment on #${PR} 😞`);
-        core.setFailed(err.message);
-    }
-}
-
-async function run() {
-    const PR_NUMBER = core.getInput('PR_NUMBER', {required: true});
-    const comments = await GithubUtils.paginate(
-        GithubUtils.octokit.issues.listComments,
-        {
-            owner: CONST.GITHUB_OWNER,
-            repo: CONST.APP_REPO,
-            issue_number: PR_NUMBER,
-            per_page: 100,
-        },
-        (response) => response.data,
-    );
-    const testBuildComment = _.find(comments, (comment) => comment.body.startsWith(':test_tube::test_tube: Use the links below to test this adhoc build'));
-    if (testBuildComment) {
-        console.log('Found previous build comment, hiding it', testBuildComment);
-        await GithubUtils.graphql(`
-            mutation {
-              minimizeComment(input: {classifier: OUTDATED, subjectId: "${testBuildComment.node_id}"}) {
-                minimizedComment {
-                  minimizedReason
-                }
-              }
-            }
-        `);
-    }
-    await commentPR(PR_NUMBER, getTestBuildMessage());
-}
-
-if (require.main === require.cache[eval('__filename')]) {
-    run();
-}
-
-module.exports = run;
-
-
-/***/ }),
-
 /***/ 4097:
 /***/ ((module) => {
 
@@ -13750,6 +13645,125 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 3580:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(2186));
+const github_1 = __nccwpck_require__(5438);
+const CONST_1 = __importDefault(__nccwpck_require__(4097));
+const GithubUtils_1 = __importDefault(__nccwpck_require__(7999));
+function getTestBuildMessage() {
+    console.log('Input for android', core.getInput('ANDROID', { required: true }));
+    const androidSuccess = core.getInput('ANDROID', { required: true }) === 'success';
+    const desktopSuccess = core.getInput('DESKTOP', { required: true }) === 'success';
+    const iOSSuccess = core.getInput('IOS', { required: true }) === 'success';
+    const webSuccess = core.getInput('WEB', { required: true }) === 'success';
+    const androidLink = androidSuccess ? core.getInput('ANDROID_LINK') : '❌ FAILED ❌';
+    const desktopLink = desktopSuccess ? core.getInput('DESKTOP_LINK') : '❌ FAILED ❌';
+    const iOSLink = iOSSuccess ? core.getInput('IOS_LINK') : '❌ FAILED ❌';
+    const webLink = webSuccess ? core.getInput('WEB_LINK') : '❌ FAILED ❌';
+    const androidQRCode = androidSuccess
+        ? `![Android](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${androidLink})`
+        : "The QR code can't be generated, because the android build failed";
+    const desktopQRCode = desktopSuccess
+        ? `![Desktop](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${desktopLink})`
+        : "The QR code can't be generated, because the Desktop build failed";
+    const iOSQRCode = iOSSuccess ? `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${iOSLink})` : "The QR code can't be generated, because the iOS build failed";
+    const webQRCode = webSuccess ? `![Web](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${webLink})` : "The QR code can't be generated, because the web build failed";
+    const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, Desktop, and Web. Happy testing! :test_tube::test_tube:
+| Android :robot:  | iOS :apple: |
+| ------------- | ------------- |
+| ${androidLink}  | ${iOSLink}  |
+| ${androidQRCode}  | ${iOSQRCode}  |
+| Desktop :computer: | Web :spider_web: |
+| ${desktopLink}  | ${webLink}  |
+| ${desktopQRCode}  | ${webQRCode}  |
+
+---
+
+:eyes: [View the workflow run that generated this build](https://github.com/${github_1.context.repo.owner}/${github_1.context.repo.repo}/actions/runs/${github_1.context.runId}) :eyes:
+`;
+    return message;
+}
+/** Comment on a single PR */
+async function commentPR(PR, message) {
+    console.log(`Posting test build comment on #${PR}`);
+    try {
+        await GithubUtils_1.default.createComment(github_1.context.repo.repo, PR, message);
+        console.log(`Comment created on #${PR} successfully 🎉`);
+    }
+    catch (err) {
+        console.log(`Unable to write comment on #${PR} 😞`);
+        core.setFailed(err.message);
+    }
+}
+async function run() {
+    const PR_NUMBER = core.getInput('PR_NUMBER', { required: true });
+    const comments = await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.issues.listComments, {
+        owner: CONST_1.default.GITHUB_OWNER,
+        repo: CONST_1.default.APP_REPO,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        issue_number: PR_NUMBER,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        per_page: 100,
+    }, 
+    // @ts-expect-error TODO: Remove this once GithubUtils (https://github.com/Expensify/App/issues/25382) is migrated to TypeScript.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    (response) => response.data);
+    // @ts-expect-error TODO: Remove this once GithubUtils (https://github.com/Expensify/App/issues/25382) is migrated to TypeScript.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    const testBuildComment = comments.find((comment) => comment.body.startsWith(':test_tube::test_tube: Use the links below to test this adhoc build'));
+    if (testBuildComment) {
+        console.log('Found previous build comment, hiding it', testBuildComment);
+        await GithubUtils_1.default.graphql(`
+            mutation {
+              minimizeComment(input: {classifier: OUTDATED, subjectId: "${testBuildComment.node_id}"}) {
+                minimizedComment {
+                  minimizedReason
+                }
+              }
+            }
+        `);
+    }
+    await commentPR(Number(PR_NUMBER), getTestBuildMessage());
+}
+if (require.main === require.cache[eval('__filename')]) {
+    run();
+}
+exports["default"] = run;
+
+
+/***/ }),
+
 /***/ 2877:
 /***/ ((module) => {
 
@@ -16111,7 +16125,7 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(2052);
+/******/ 	var __webpack_exports__ = __nccwpck_require__(3580);
 /******/ 	module.exports = __webpack_exports__;
 /******/ 	
 /******/ })()

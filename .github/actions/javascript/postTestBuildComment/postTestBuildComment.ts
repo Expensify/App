@@ -1,13 +1,9 @@
-const _ = require('underscore');
-const core = require('@actions/core');
-const {context} = require('@actions/github');
-const CONST = require('../../../libs/CONST');
-const GithubUtils = require('../../../libs/GithubUtils');
+import * as core from '@actions/core';
+import {context} from '@actions/github';
+import CONST from '../../../libs/CONST';
+import GithubUtils from '../../../libs/GithubUtils';
 
-/**
- * @returns {String}
- */
-function getTestBuildMessage() {
+function getTestBuildMessage(): string {
     console.log('Input for android', core.getInput('ANDROID', {required: true}));
     const androidSuccess = core.getInput('ANDROID', {required: true}) === 'success';
     const desktopSuccess = core.getInput('DESKTOP', {required: true}) === 'success';
@@ -45,21 +41,15 @@ function getTestBuildMessage() {
     return message;
 }
 
-/**
- * Comment on a single PR
- *
- * @param {Number} PR
- * @param {String} message
- * @returns {Promise<void>}
- */
-async function commentPR(PR, message) {
+/** Comment on a single PR */
+async function commentPR(PR: number, message: string) {
     console.log(`Posting test build comment on #${PR}`);
     try {
         await GithubUtils.createComment(context.repo.repo, PR, message);
         console.log(`Comment created on #${PR} successfully 🎉`);
     } catch (err) {
         console.log(`Unable to write comment on #${PR} 😞`);
-        core.setFailed(err.message);
+        core.setFailed((err as Error).message);
     }
 }
 
@@ -70,12 +60,18 @@ async function run() {
         {
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             issue_number: PR_NUMBER,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             per_page: 100,
         },
+        // @ts-expect-error TODO: Remove this once GithubUtils (https://github.com/Expensify/App/issues/25382) is migrated to TypeScript.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         (response) => response.data,
     );
-    const testBuildComment = _.find(comments, (comment) => comment.body.startsWith(':test_tube::test_tube: Use the links below to test this adhoc build'));
+    // @ts-expect-error TODO: Remove this once GithubUtils (https://github.com/Expensify/App/issues/25382) is migrated to TypeScript.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    const testBuildComment = comments.find((comment) => comment.body.startsWith(':test_tube::test_tube: Use the links below to test this adhoc build'));
     if (testBuildComment) {
         console.log('Found previous build comment, hiding it', testBuildComment);
         await GithubUtils.graphql(`
@@ -88,11 +84,11 @@ async function run() {
             }
         `);
     }
-    await commentPR(PR_NUMBER, getTestBuildMessage());
+    await commentPR(Number(PR_NUMBER), getTestBuildMessage());
 }
 
 if (require.main === module) {
     run();
 }
 
-module.exports = run;
+export default run;
