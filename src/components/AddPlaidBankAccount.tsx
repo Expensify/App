@@ -187,7 +187,7 @@ function AddPlaidBankAccount({
         onInputChange(plaidAccountID);
     };
 
-    const onError = useCallback((error: ErrorEvent | null) => {
+    const handlePlaidError = useCallback((error: ErrorEvent | null) => {
         Log.hmmm('[PlaidLink] Error: ', error?.message);
     }, []);
 
@@ -208,7 +208,7 @@ function AddPlaidBankAccount({
                         Log.info('[PlaidLink] Success!');
                         BankAccounts.openPlaidBankAccountSelector(publicToken, metadata?.institution?.name ?? '', allowDebit, bankAccountID);
                     }}
-                    onError={onError}
+                    onError={handlePlaidError}
                     onEvent={(event, metadata) => {
                         BankAccounts.setPlaidEvent(event);
                         // Handle Plaid login errors (will potentially reset plaid token and item depending on the error)
