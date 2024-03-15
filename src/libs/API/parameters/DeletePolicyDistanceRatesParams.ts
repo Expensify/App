@@ -1,7 +1,7 @@
 type DeletePolicyDistanceRatesParams = {
     policyID: string;
     customUnitID: string;
-    customUnitRateIDs: string[];
+    customUnitRateID: string[];
 };
 
 export default DeletePolicyDistanceRatesParams;

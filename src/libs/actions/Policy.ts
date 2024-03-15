@@ -3964,17 +3964,13 @@ function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit,
 function deletePolicyDistanceRates(policyID: string, customUnit: CustomUnit, rateIDsToDelete: string[]) {
     const currentRates = customUnit.rates;
     const optimisticRates: Record<string, Rate> = {};
-    const successRates: Record<string, Rate> = {};
+    const successRates: Record<string, Rate> | null = {};
 
     Object.keys(customUnit.rates).forEach((rateID) => {
         if (rateIDsToDelete.includes(rateID)) {
             optimisticRates[rateID] = {
                 ...customUnit.rates[rateID],
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            };
-            successRates[rateID] = {
-                ...customUnit.rates[rateID],
-                pendingAction: null,
             };
         } else {
             optimisticRates[rateID] = customUnit.rates[rateID];
@@ -4028,7 +4024,7 @@ function deletePolicyDistanceRates(policyID: string, customUnit: CustomUnit, rat
     const params: DeletePolicyDistanceRatesParams = {
         policyID,
         customUnitID: customUnit.customUnitID,
-        customUnitRateIDs: rateIDsToDelete,
+        customUnitRateID: rateIDsToDelete,
     };
 
     API.write(WRITE_COMMANDS.DELETE_POLICY_DISTANCE_RATES, params, {optimisticData, successData, failureData});

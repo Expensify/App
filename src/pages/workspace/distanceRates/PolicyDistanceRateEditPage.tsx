@@ -15,6 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
@@ -64,6 +65,7 @@ function PolicyDistanceRateEditPage({policy, route}: PolicyDistanceRateEditPageP
     };
 
     const deleteRate = () => {
+        Navigation.goBack();
         Policy.deletePolicyDistanceRates(policyID, customUnit, [rateID]);
         setIsDeleteModalVisible(false);
     };

@@ -52,6 +52,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const dropdownButtonRef = useRef(null);
+    const canSelectOrDisableRate = selectedDistanceRates.length !== Object.values(customUnitRates).length;
     const policyID = route.params.policyID;
 
     const customUnit: CustomUnit | undefined = useMemo(
@@ -158,6 +159,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                 customUnit,
                 selectedDistanceRates.map((rate) => rate.customUnitRateID ?? ''),
             );
+            setSelectedDistanceRates([]);
             setIsDeleteModalVisible(false);
             return;
         }
