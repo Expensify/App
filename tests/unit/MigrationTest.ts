@@ -7,6 +7,7 @@ import KeyReportActionsDraftByReportActionID from '@src/libs/migrations/KeyRepor
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActionsDraftCollectionDataSet} from '@src/types/onyx/ReportActionsDrafts';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
+import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/getPlatform');
@@ -224,14 +225,12 @@ describe('Migrations', () => {
         });
 
         it('Should skip if no valid reportActions', () => {
-            const setQueries = {
+            const setQueries: CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: null,
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: {},
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]: {},
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4`]: null,
             };
-
-            // @ts-expect-error preset null values
             return Onyx.multiSet(setQueries)
                 .then(CheckForPreviousReportActionID)
                 .then(() => {
