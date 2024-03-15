@@ -135,7 +135,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
         Policy.deleteWorkspace(policyIDToDelete, policyNameToDelete);
         setIsDeleteModalOpen(false);
 
-        // If the workspace being deleted is the active workspace, switch to the All Workspaces view
+        // If the workspace being deleted is the active workspace, switch to the "All Workspaces" view
         if (activeWorkspaceID === policyIDToDelete) {
             setActiveWorkspaceID(undefined);
             Navigation.navigateWithSwitchPolicyID({policyID: undefined});
