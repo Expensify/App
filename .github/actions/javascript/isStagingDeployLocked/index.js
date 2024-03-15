@@ -4,36 +4,6 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 8441:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const _ = __nccwpck_require__(5067);
-const core = __nccwpck_require__(2186);
-const GithubUtils = __nccwpck_require__(7999);
-
-const run = function () {
-    return GithubUtils.getStagingDeployCash()
-        .then(({labels, number}) => {
-            console.log(`Found StagingDeployCash with labels: ${_.pluck(labels, 'name')}`);
-            core.setOutput('IS_LOCKED', _.contains(_.pluck(labels, 'name'), '🔐 LockCashDeploys 🔐'));
-            core.setOutput('NUMBER', number);
-        })
-        .catch((err) => {
-            console.warn('No open StagingDeployCash found, continuing...', err);
-            core.setOutput('IS_LOCKED', false);
-            core.setOutput('NUMBER', 0);
-        });
-};
-
-if (require.main === require.cache[eval('__filename')]) {
-    run();
-}
-
-module.exports = run;
-
-
-/***/ }),
-
 /***/ 4097:
 /***/ ((module) => {
 
@@ -13631,6 +13601,64 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 2137:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(2186));
+const GithubUtils_1 = __importDefault(__nccwpck_require__(7999));
+const run = function () {
+    return GithubUtils_1.default.getStagingDeployCash()
+        .then(({ labels, number }) => {
+        // @ts-expect-error TODO: Remove this once GithubUtils (https://github.com/Expensify/App/issues/25382) is migrated to TypeScript.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        const labelsNames = labels.map((label) => label.name);
+        console.log(`Found StagingDeployCash with labels: ${labelsNames}`);
+        core.setOutput('IS_LOCKED', labelsNames.includes('🔐 LockCashDeploys 🔐'));
+        core.setOutput('NUMBER', number);
+    })
+        .catch((err) => {
+        console.warn('No open StagingDeployCash found, continuing...', err);
+        core.setOutput('IS_LOCKED', false);
+        core.setOutput('NUMBER', 0);
+    });
+};
+if (require.main === require.cache[eval('__filename')]) {
+    run();
+}
+exports["default"] = run;
+
+
+/***/ }),
+
 /***/ 2877:
 /***/ ((module) => {
 
@@ -15992,7 +16020,7 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(8441);
+/******/ 	var __webpack_exports__ = __nccwpck_require__(2137);
 /******/ 	module.exports = __webpack_exports__;
 /******/ 	
 /******/ })()

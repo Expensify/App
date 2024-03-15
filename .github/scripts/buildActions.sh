@@ -17,7 +17,7 @@ declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/getPreviousVersion/getPreviousVersion.js"
     "$ACTIONS_DIR/getPullRequestDetails/getPullRequestDetails.js"
     "$ACTIONS_DIR/getReleaseBody/getReleaseBody.js"
-    "$ACTIONS_DIR/isStagingDeployLocked/isStagingDeployLocked.js"
+    "$ACTIONS_DIR/isStagingDeployLocked/isStagingDeployLocked.ts"
     "$ACTIONS_DIR/markPullRequestsAsDeployed/markPullRequestsAsDeployed.js"
     "$ACTIONS_DIR/postTestBuildComment/postTestBuildComment.ts"
     "$ACTIONS_DIR/reopenIssueWithComment/reopenIssueWithComment.ts"
