@@ -50,6 +50,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     const {translate} = useLocalize();
     const [selectedDistanceRates, setSelectedDistanceRates] = useState<Rate[]>([]);
     const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
+    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const dropdownButtonRef = useRef(null);
     const policyID = route.params.policyID;
 
@@ -157,6 +158,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                 customUnit,
                 selectedDistanceRates.map((rate) => rate.customUnitRateID ?? ''),
             );
+            setIsDeleteModalVisible(false);
             return;
         }
 
@@ -189,17 +191,17 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     const getBulkActionsButtonOptions = () => {
         const options: Array<DropdownOption<WorkspaceDistanceRatesBulkActionType>> = [
             {
-                text: translate(`workspace.distanceRates.${selectedDistanceRates.length <= 1 ? 'deleteRate' : 'deleteRates'}`),
+                text: translate('workspace.distanceRates.deleteRates', {count: selectedDistanceRates.length}),
                 value: CONST.POLICY.DISTANCE_RATES_BULK_ACTION_TYPES.DELETE,
                 icon: Expensicons.Trashcan,
-                onSelected: deleteRates,
+                onSelected: () => setIsDeleteModalVisible(true),
             },
         ];
 
         const enabledRates = selectedDistanceRates.filter((rate) => rate.enabled);
         if (enabledRates.length > 0) {
             options.push({
-                text: translate(`workspace.distanceRates.${enabledRates.length <= 1 ? 'disableRate' : 'disableRates'}`),
+                text: translate('workspace.distanceRates.disableRates', {count: enabledRates.length}),
                 value: CONST.POLICY.DISTANCE_RATES_BULK_ACTION_TYPES.DISABLE,
                 icon: Expensicons.DocumentSlash,
                 onSelected: disableRates,
@@ -209,7 +211,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
         const disabledRates = selectedDistanceRates.filter((rate) => !rate.enabled);
         if (disabledRates.length > 0) {
             options.push({
-                text: translate(`workspace.distanceRates.${disabledRates.length <= 1 ? 'enableRate' : 'enableRates'}`),
+                text: translate('workspace.distanceRates.enableRates', {count: disabledRates.length}),
                 value: CONST.POLICY.DISTANCE_RATES_BULK_ACTION_TYPES.ENABLE,
                 icon: Expensicons.DocumentSlash,
                 onSelected: enableRates,
@@ -306,6 +308,16 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                         prompt={translate('workspace.distanceRates.workspaceNeeds')}
                         confirmText={translate('common.buttonConfirm')}
                         shouldShowCancelButton={false}
+                    />
+                    <ConfirmModal
+                        title={translate('workspace.distanceRates.deleteDistanceRate')}
+                        isVisible={isDeleteModalVisible}
+                        onConfirm={deleteRates}
+                        onCancel={() => setIsDeleteModalVisible(false)}
+                        prompt={translate('workspace.distanceRates.areYouSureDelete', {count: selectedDistanceRates.length})}
+                        confirmText={translate('common.delete')}
+                        cancelText={translate('common.cancel')}
+                        danger
                     />
                 </ScreenWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>

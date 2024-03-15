@@ -124,7 +124,7 @@ function PolicyDistanceRateEditPage({policy, route}: PolicyDistanceRateEditPageP
                         isVisible={isDeleteModalVisible}
                         onConfirm={deleteRate}
                         onCancel={() => setIsDeleteModalVisible(false)}
-                        prompt={translate('workspace.distanceRates.areYouSureDelete')}
+                        prompt={translate('workspace.distanceRates.areYouSureDelete', {count: 1})}
                         confirmText={translate('common.delete')}
                         cancelText={translate('common.cancel')}
                         danger

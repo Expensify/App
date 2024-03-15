@@ -6,6 +6,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -39,6 +40,7 @@ type RateModalProps = {
 function RateModal({isVisible, currentRate = '', onRateSubmit, onClose, label, currency}: RateModalProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM> = {};
@@ -93,6 +95,7 @@ function RateModal({isVisible, currentRate = '', onRateSubmit, onClose, label, c
                         defaultValue={(parseFloat(currentRate) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toFixed(3)}
                         isCurrencyPressable={false}
                         currency={currency}
+                        ref={inputCallbackRef}
                     />
                 </FormProvider>
             </ScreenWrapper>
