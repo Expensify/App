@@ -238,6 +238,8 @@ const SCREENS = {
         MEMBER_DETAILS: 'Workspace_Member_Details',
         MEMBER_DETAILS_ROLE_SELECTION: 'Workspace_Member_Details_Role_Selection',
         DISTANCE_RATES: 'Distance_Rates',
+        ACCOUNTING: 'Policy_Accounting',
+        QUICKBOOKSONLINE_IMPORT: 'Policy_Accounting_QuickbooksOnline_Import',
     },
 
     EDIT_REQUEST: {

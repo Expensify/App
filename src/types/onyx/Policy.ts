@@ -151,6 +151,8 @@ type QBOConnectionConfig = {
     syncClasses: IntegrationEntityMap;
     syncCustomers: IntegrationEntityMap;
     syncLocations: IntegrationEntityMap;
+    syncAccounts: IntegrationEntityMap;
+    syncTaxes: IntegrationEntityMap;
     exportDate: string;
     lastConfigurationTime: number;
     syncTax: boolean;
@@ -357,4 +359,4 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
 export default Policy;
 
-export type {Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault, PendingJoinRequestPolicy};
+export type {Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault, PendingJoinRequestPolicy, IntegrationEntityMap};

@@ -615,6 +615,14 @@ const ROUTES = {
         route: 'r/:reportID/transaction/:transactionID/receipt',
         getRoute: (reportID: string, transactionID: string) => `r/${reportID}/transaction/${transactionID}/receipt` as const,
     },
+    POLICY_ACCOUNTING_QUICKBOOKSONLINE_IMPORT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import',
+        getRoute: (policyID: string) => `workspace/${policyID}/connections/quickbooks-online/import` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKSONLINE_OPTION: {
+        route: 'workspace/:policyID/accounting/quickbooks-online/import/:option',
+        getRoute: (policyID: string, option: string) => `workspace/${policyID}/connections/quickbooks-online/import/${option}` as const,
+    },
 } as const;
 
 /**

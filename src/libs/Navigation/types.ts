@@ -199,6 +199,9 @@ type SettingsNavigatorParamList = {
         accountID: string;
         backTo: Routes;
     };
+    [SCREENS.WORKSPACE.QUICKBOOKSONLINE_IMPORT]: {
+        policyID: string;
+    };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
@@ -548,6 +551,12 @@ type WorkspacesCentralPaneNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKSONLINE_IMPORT]: {
         policyID: string;
     };
 };
