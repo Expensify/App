@@ -40,10 +40,10 @@ function PolicyAccountingPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // const waitForNavigate = useWaitForNavigation();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
 
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
-    const [policyIsConnectedToAccountingSystem, setPolicyIsConnectedToAccountingSystem] = useState(true);
+    const [policyIsConnectedToAccountingSystem, setPolicyIsConnectedToAccountingSystem] = useState(false);
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const threeDotsMenuContainerRef = useRef<View>(null);
 
@@ -144,6 +144,21 @@ function PolicyAccountingPage() {
         },
     ];
 
+    const headerThreeDotsMenuItems = [
+        {
+            icon: Expensicons.Key,
+            shouldShowRightIcon: true,
+            iconRight: Expensicons.NewWindow,
+            text: translate('workspace.accounting.enterCredentials'),
+            onSelected: () => {},
+        },
+        {
+            icon: Expensicons.Trashcan,
+            text: translate('workspace.accounting.disconnect'),
+            onSelected: () => setIsDisconnectModalOpen(true),
+        },
+    ];
+
     return (
         <ScreenWrapper
             testID={PolicyAccountingPage.displayName}
@@ -156,6 +171,10 @@ function PolicyAccountingPage() {
                 shouldShowBackButton={isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack()}
                 icon={Illustrations.Accounting}
+                shouldShowThreeDotsButton
+                threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
+                threeDotsMenuItems={headerThreeDotsMenuItems}
+                shouldOverlayDots
             />
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
