@@ -17,22 +17,22 @@ import type SCREENS from '@src/SCREENS';
 import type {PolicyCategories} from '@src/types/onyx';
 import CategoryForm from './CategoryForm';
 
-type WorkspaceCreateCategoryPageOnyxProps = {
+type WorkspaceEditCategoryPageOnyxProps = {
     /** All policy categories */
     policyCategories: OnyxEntry<PolicyCategories>;
 };
 
-type CreateCategoryPageProps = WorkspaceCreateCategoryPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_CREATE>;
+type EditCategoryPageProps = WorkspaceEditCategoryPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_EDIT>;
 
-function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) {
+function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const createCategory = useCallback(
+    const editCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-            Policy.createPolicyCategory(route.params.policyID, values.categoryName.trim());
+            Policy.renamePolicyCategory(route.params.policyID, {oldName: route.params.categoryName, newName: values.categoryName});
         },
-        [route.params.policyID],
+        [route.params.categoryName, route.params.policyID],
     );
 
     return (
@@ -41,15 +41,16 @@ function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) 
                 <ScreenWrapper
                     includeSafeAreaPaddingBottom={false}
                     style={[styles.defaultModalContainer]}
-                    testID={CreateCategoryPage.displayName}
+                    testID={EditCategoryPage.displayName}
                     shouldEnableMaxHeight
                 >
                     <HeaderWithBackButton
-                        title={translate('workspace.categories.addCategory')}
+                        title={translate('workspace.categories.editCategory')}
                         onBackButtonPress={Navigation.goBack}
                     />
                     <CategoryForm
-                        onSubmit={createCategory}
+                        onSubmit={editCategory}
+                        categoryName={route.params.categoryName}
                         policyCategories={policyCategories}
                     />
                 </ScreenWrapper>
@@ -58,10 +59,10 @@ function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) 
     );
 }
 
-CreateCategoryPage.displayName = 'CreateCategoryPage';
+EditCategoryPage.displayName = 'EditCategoryPage';
 
-export default withOnyx<CreateCategoryPageProps, WorkspaceCreateCategoryPageOnyxProps>({
+export default withOnyx<EditCategoryPageProps, WorkspaceEditCategoryPageOnyxProps>({
     policyCategories: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route?.params?.policyID}`,
     },
-})(CreateCategoryPage);
+})(EditCategoryPage);
