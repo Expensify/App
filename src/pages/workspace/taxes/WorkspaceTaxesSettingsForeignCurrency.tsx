@@ -29,10 +29,9 @@ function WorkspaceTaxesSettingsForeignCurrency({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const defaultTaxName =
-        (policy?.taxRates?.foreignTaxDefault &&
-            `${policy?.taxRates.taxes[policy?.taxRates?.foreignTaxDefault].name} (${policy?.taxRates.taxes[policy?.taxRates?.foreignTaxDefault].value}) • ${translate('common.default')}`) ??
-        '';
+    const defaultTax = policy?.taxRates?.taxes[policy?.taxRates?.foreignTaxDefault];
+
+    const defaultTaxName = (policy?.taxRates?.foreignTaxDefault && `${defaultTax?.name} (${defaultTax?.value}) • ${translate('common.default')}`) ?? '';
 
     const submit = ({keyForList}: ListItem) => {
         setForeignCurrencyDefault(policyID, keyForList ?? '');

@@ -53,6 +53,7 @@ function WorkspaceTaxesSettingsCustomTaxName({
                         submitButtonText={translate('workspace.editor.save')}
                         style={[styles.flexGrow1, styles.ph5]}
                         scrollContextEnabled
+                        enabledWhenOffline
                         onSubmit={submit}
                     >
                         <View style={styles.mb4}>

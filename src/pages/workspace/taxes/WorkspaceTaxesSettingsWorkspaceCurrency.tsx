@@ -29,10 +29,9 @@ function WorkspaceTaxesSettingsWorkspaceCurrency({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const defaultTaxName =
-        (policy?.taxRates?.defaultExternalID &&
-            `${policy?.taxRates.taxes[policy?.taxRates?.defaultExternalID].name} (${policy?.taxRates.taxes[policy?.taxRates?.defaultExternalID].value}) • ${translate('common.default')}`) ??
-        '';
+    const defaultTax = policy?.taxRates?.taxes[policy?.taxRates?.defaultExternalID];
+
+    const defaultTaxName = (policy?.taxRates?.defaultExternalID && `${defaultTax?.name} (${defaultTax?.value}) • ${translate('common.default')}`) ?? '';
 
     const submit = ({keyForList}: ListItem) => {
         setWorkspaceCurrencyDefault(policyID, keyForList ?? '');

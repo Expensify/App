@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -27,23 +27,26 @@ function WorkspaceTaxesSettingsPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const menuItems = [
-        {
-            title: policy?.taxRates?.name,
-            description: translate('workspace.taxes.customTaxName'),
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS_CUSTOM_TAX_NAME.getRoute(policyID)),
-        },
-        {
-            title: policy?.taxRates?.taxes[policy?.taxRates?.defaultExternalID]?.name,
-            description: translate('workspace.taxes.workspaceDefault'),
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT.getRoute(policyID)),
-        },
-        {
-            title: policy?.taxRates?.taxes[policy?.taxRates?.foreignTaxDefault]?.name,
-            description: translate('workspace.taxes.foreignDefault'),
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT.getRoute(policyID)),
-        },
-    ];
+    const menuItems = useMemo(
+        () => [
+            {
+                title: policy?.taxRates?.name,
+                description: translate('workspace.taxes.customTaxName'),
+                action: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS_CUSTOM_TAX_NAME.getRoute(policyID)),
+            },
+            {
+                title: policy?.taxRates?.taxes[policy?.taxRates?.defaultExternalID]?.name,
+                description: translate('workspace.taxes.workspaceDefault'),
+                action: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT.getRoute(policyID)),
+            },
+            {
+                title: policy?.taxRates?.taxes[policy?.taxRates?.foreignTaxDefault]?.name,
+                description: translate('workspace.taxes.foreignDefault'),
+                action: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT.getRoute(policyID)),
+            },
+        ],
+        [policy?.taxRates, policyID, translate],
+    );
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
