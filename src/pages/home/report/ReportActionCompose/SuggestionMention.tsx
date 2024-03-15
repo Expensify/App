@@ -174,6 +174,13 @@ function SuggestionMention(
                     return false;
                 }
 
+                // Given the mention is inserted by user, we don't want to show the mention options unless user
+                // uses presses any key again.
+                // See https://github.com/Expensify/App/issues/38358 for more context
+                if (suggestionInsertionRef.current) {
+                    return false;
+                }
+
                 return true;
             });
 
@@ -307,10 +314,7 @@ function SuggestionMention(
         [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
     );
 
-    // Given the mention is inserted by user, we don't want to show the mention options unless user
-    // uses presses any key again.
-    // See https://github.com/Expensify/App/issues/38358 for more context
-    if (!isMentionSuggestionsMenuVisible || suggestionInsertionRef.current) {
+    if (!isMentionSuggestionsMenuVisible) {
         return null;
     }
 
