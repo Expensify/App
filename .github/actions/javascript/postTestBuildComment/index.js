@@ -13718,6 +13718,7 @@ function getTestBuildMessage() {
 async function commentPR(PR, message) {
     console.log(`Posting test build comment on #${PR}`);
     try {
+        // @ts-expect-error TODO: Remove this once GithubUtils (https://github.com/Expensify/App/issues/25382) is migrated to TypeScript.
         await GithubUtils_1.default.createComment(github_1.context.repo.repo, PR, message);
         console.log(`Comment created on #${PR} successfully 🎉`);
     }
@@ -13754,7 +13755,7 @@ async function run() {
             }
         `);
     }
-    await commentPR(Number(PR_NUMBER), getTestBuildMessage());
+    await commentPR(PR_NUMBER, getTestBuildMessage());
 }
 if (require.main === require.cache[eval('__filename')]) {
     run();
