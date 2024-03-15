@@ -271,6 +271,10 @@ function goBackFromInvalidPolicy() {
 }
 
 function isPolicyFeatureEnabled(policy: OnyxEntry<Policy> | EmptyObject, featureName: PolicyFeatureName): boolean {
+    if (featureName === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) {
+        return Boolean(policy?.tax?.trackingEnabled);
+    }
+
     return Boolean(policy?.[featureName]);
 }
 
