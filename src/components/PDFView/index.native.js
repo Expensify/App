@@ -32,8 +32,8 @@ const propTypes = {
  * is (temporarily) rendered.
  */
 
-const THUMBNAIL_HEIGHT = 250;
-const THUMBNAIL_WIDTH = 250;
+const LOADING_THUMBNAIL_HEIGHT = 250;
+const LOADING_THUMBNAIL_WIDTH = 250;
 
 function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused, onScaleChanged, sourceURL, onError, isUsedAsChatAttachment}) {
     const [shouldRequestPassword, setShouldRequestPassword] = useState(false);
@@ -118,8 +118,8 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     };
 
     function renderPDFView() {
-        const pdfHeight = isUsedAsChatAttachment ? THUMBNAIL_HEIGHT : windowHeight;
-        const pdfWeight = isUsedAsChatAttachment ? THUMBNAIL_WIDTH : windowWidth;
+        const pdfHeight = isUsedAsChatAttachment ? LOADING_THUMBNAIL_HEIGHT : windowHeight;
+        const pdfWeight = isUsedAsChatAttachment ? LOADING_THUMBNAIL_WIDTH : windowWidth;
         const pdfStyles = [StyleUtils.getWidthAndHeightStyle(pdfWeight, pdfHeight), themeStyles.imageModalPDF];
 
         // If we haven't yet successfully validated the password and loaded the PDF,
@@ -131,7 +131,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         }
         const containerStyles =
             (shouldRequestPassword && isSmallScreenWidth) || isUsedAsChatAttachment ? [themeStyles.w100, themeStyles.flex1] : [themeStyles.alignItemsCenter, themeStyles.flex1];
-        const loadingIndicatorStyles = isUsedAsChatAttachment ? [themeStyles.chatItemPDFAttachmentLoading, StyleUtils.getWidthAndHeightStyle(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT)] : [];
+        const loadingIndicatorStyles = isUsedAsChatAttachment ? [themeStyles.chatItemPDFAttachmentLoading, StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT)] : [];
 
         return (
             <View style={containerStyles}>
