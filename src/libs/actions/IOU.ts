@@ -1259,7 +1259,7 @@ function getUpdateMoneyRequestParams(
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.parentReportID}`,
             value: {
                 hasOutstandingChildRequest:
-                    iouReport && needsToBeManuallySubmitted(iouReport) && updatedMoneyRequestReport.managerID === userAccountID && updatedMoneyRequestReport.total !== 0,
+                    ((iouReport && needsToBeManuallySubmitted(iouReport)) || updatedMoneyRequestReport.managerID === userAccountID) && updatedMoneyRequestReport.total !== 0,
             },
         },
     );
@@ -3030,7 +3030,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
             value: {
-                hasOutstandingChildRequest: iouReport && needsToBeManuallySubmitted(iouReport) && updatedIOUReport?.managerID === userAccountID && updatedIOUReport.total !== 0,
+                hasOutstandingChildRequest: ((iouReport && needsToBeManuallySubmitted(iouReport)) || updatedIOUReport?.managerID === userAccountID) && updatedIOUReport?.total !== 0,
             },
         },
     );
