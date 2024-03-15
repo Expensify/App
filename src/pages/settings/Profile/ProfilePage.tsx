@@ -1,10 +1,8 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
-import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemGroup from '@components/MenuItemGroup';
@@ -12,63 +10,36 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import compose from '@libs/compose';
-import {translatableTextPropTypes} from '@libs/Localize';
+import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as App from '@userActions/App';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {LoginList, PersonalDetails, PrivatePersonalDetails} from '@src/types/onyx';
 
-const propTypes = {
-    /* Onyx Props */
-
-    /** Login list for the user that is signed in */
-    loginList: PropTypes.objectOf(
-        PropTypes.shape({
-            /** Date login was validated, used to show brickroad info status */
-            validatedDate: PropTypes.string,
-
-            /** Field-specific server side errors keyed by microtime */
-            errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
-        }),
-    ),
-
+type ProfilePageOnyxProps = {
+    loginList: OnyxEntry<LoginList>;
     /** User's private personal details */
-    privatePersonalDetails: PropTypes.shape({
-        legalFirstName: PropTypes.string,
-        legalLastName: PropTypes.string,
-        dob: PropTypes.string,
-
-        /** User's home address */
-        address: PropTypes.shape({
-            street: PropTypes.string,
-            city: PropTypes.string,
-            state: PropTypes.string,
-            zip: PropTypes.string,
-            country: PropTypes.string,
-        }),
-    }),
-
-    ...withLocalizePropTypes,
-    ...windowDimensionsPropTypes,
-    ...withCurrentUserPersonalDetailsPropTypes,
+    privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
 };
 
-const defaultProps = {
-    loginList: {},
-    ...withCurrentUserPersonalDetailsDefaultProps,
-    privatePersonalDetails: {
+type ProfilePageProps = ProfilePageOnyxProps & WithCurrentUserPersonalDetailsProps;
+
+function ProfilePage({
+    loginList,
+    privatePersonalDetails = {
         legalFirstName: '',
         legalLastName: '',
         dob: '',
@@ -81,79 +52,73 @@ const defaultProps = {
             country: '',
         },
     },
-};
-
-function ProfilePage(props) {
+    currentUserPersonalDetails,
+}: ProfilePageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const getPronouns = () => {
-        let pronounsKey = lodashGet(props.currentUserPersonalDetails, 'pronouns', '');
-        if (pronounsKey.startsWith(CONST.PRONOUNS.PREFIX)) {
-            pronounsKey = pronounsKey.slice(CONST.PRONOUNS.PREFIX.length);
-        }
-
-        if (!pronounsKey) {
-            return props.translate('profilePage.selectYourPronouns');
-        }
-        return props.translate(`pronouns.${pronounsKey}`);
-    };
-    const currentUserDetails = props.currentUserPersonalDetails || {};
-    const contactMethodBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(props.loginList);
-    const emojiCode = lodashGet(props, 'currentUserPersonalDetails.status.emojiCode', '');
+    const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
+
+    const getPronouns = (): string => {
+        const pronounsKey = currentUserPersonalDetails?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
+        return pronounsKey ? translate(`pronouns.${pronounsKey}` as TranslationPaths) : translate('profilePage.selectYourPronouns');
+    };
+
+    const contactMethodBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(loginList);
+    const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     usePrivatePersonalDetails();
-    const privateDetails = props.privatePersonalDetails || {};
-    const legalName = `${privateDetails.legalFirstName || ''} ${privateDetails.legalLastName || ''}`.trim();
-    const isLoadingPersonalDetails = lodashGet(props.privatePersonalDetails, 'isLoading', true);
+    const privateDetails = privatePersonalDetails ?? {};
+    const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
+    const isLoadingPersonalDetails = privatePersonalDetails?.isLoading ?? true;
 
     const publicOptions = [
         {
-            description: props.translate('displayNamePage.headerTitle'),
-            title: lodashGet(currentUserDetails, 'displayName', ''),
+            description: translate('displayNamePage.headerTitle'),
+            title: currentUserPersonalDetails?.displayName ?? '',
             pageRoute: ROUTES.SETTINGS_DISPLAY_NAME,
         },
         {
-            description: props.translate('contacts.contactMethod'),
-            title: props.formatPhoneNumber(lodashGet(currentUserDetails, 'login', '')),
+            description: translate('contacts.contactMethod'),
+            title: LocalePhoneNumber.formatPhoneNumber(currentUserPersonalDetails?.login ?? ''),
             pageRoute: ROUTES.SETTINGS_CONTACT_METHODS.route,
             brickRoadIndicator: contactMethodBrickRoadIndicator,
         },
         {
-            description: props.translate('statusPage.status'),
-            title: emojiCode ? `${emojiCode} ${lodashGet(props, 'currentUserPersonalDetails.status.text', '')}` : '',
+            description: translate('statusPage.status'),
+            title: emojiCode ? `${emojiCode} ${currentUserPersonalDetails?.status?.text ?? ''}` : '',
             pageRoute: ROUTES.SETTINGS_STATUS,
         },
         {
-            description: props.translate('pronounsPage.pronouns'),
+            description: translate('pronounsPage.pronouns'),
             title: getPronouns(),
             pageRoute: ROUTES.SETTINGS_PRONOUNS,
         },
         {
-            description: props.translate('timezonePage.timezone'),
-            title: `${lodashGet(currentUserDetails, 'timezone.selected', '')}`,
+            description: translate('timezonePage.timezone'),
+            title: currentUserPersonalDetails?.timezone?.selected ?? '',
             pageRoute: ROUTES.SETTINGS_TIMEZONE,
         },
     ];
 
     useEffect(() => {
-        App.openProfile(props.currentUserPersonalDetails);
-    }, [props.currentUserPersonalDetails]);
+        App.openProfile(currentUserPersonalDetails as PersonalDetails);
+    }, [currentUserPersonalDetails]);
 
     const privateOptions = [
         {
-            description: props.translate('privatePersonalDetails.legalName'),
+            description: translate('privatePersonalDetails.legalName'),
             title: legalName,
             pageRoute: ROUTES.SETTINGS_LEGAL_NAME,
         },
         {
-            description: props.translate('common.dob'),
-            title: privateDetails.dob || '',
+            description: translate('common.dob'),
+            title: privateDetails.dob ?? '',
             pageRoute: ROUTES.SETTINGS_DATE_OF_BIRTH,
         },
         {
-            description: props.translate('privatePersonalDetails.address'),
-            title: PersonalDetailsUtils.getFormattedAddress(props.privatePersonalDetails),
+            description: translate('privatePersonalDetails.address'),
+            title: PersonalDetailsUtils.getFormattedAddress(privateDetails),
             pageRoute: ROUTES.SETTINGS_ADDRESS,
         },
     ];
@@ -165,24 +130,25 @@ function ProfilePage(props) {
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
-                title={props.translate('common.profile')}
+                title={translate('common.profile')}
                 onBackButtonPress={() => Navigation.goBack()}
-                shouldShowBackButton={props.isSmallScreenWidth}
+                shouldShowBackButton={isSmallScreenWidth}
                 icon={Illustrations.Profile}
             />
             <ScrollView style={styles.pt3}>
                 <MenuItemGroup>
                     <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <Section
-                            title={props.translate('profilePage.publicSection.title')}
-                            subtitle={props.translate('profilePage.publicSection.subtitle')}
+                            title={translate('profilePage.publicSection.title')}
+                            subtitle={translate('profilePage.publicSection.subtitle')}
                             isCentralPane
                             subtitleMuted
                             childrenStyles={styles.pt5}
                             titleStyles={styles.accountSettingsSectionTitle}
                         >
-                            {_.map(publicOptions, (detail, index) => (
+                            {publicOptions.map((detail, index) => (
                                 <MenuItemWithTopDescription
+                                    // eslint-disable-next-line react/no-array-index-key
                                     key={`${detail.title}_${index}`}
                                     shouldShowRightIcon
                                     title={detail.title}
@@ -194,19 +160,20 @@ function ProfilePage(props) {
                             ))}
                         </Section>
                         <Section
-                            title={props.translate('profilePage.privateSection.title')}
-                            subtitle={props.translate('profilePage.privateSection.subtitle')}
+                            title={translate('profilePage.privateSection.title')}
+                            subtitle={translate('profilePage.privateSection.subtitle')}
                             isCentralPane
                             subtitleMuted
                             childrenStyles={styles.pt3}
                             titleStyles={styles.accountSettingsSectionTitle}
                         >
                             {isLoadingPersonalDetails ? (
-                                <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]} />
+                                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]} />
                             ) : (
                                 <>
-                                    {_.map(privateOptions, (detail, index) => (
+                                    {privateOptions.map((detail, index) => (
                                         <MenuItemWithTopDescription
+                                            // eslint-disable-next-line react/no-array-index-key
                                             key={`${detail.title}_${index}`}
                                             shouldShowRightIcon
                                             title={detail.title}
@@ -225,23 +192,15 @@ function ProfilePage(props) {
     );
 }
 
-ProfilePage.propTypes = propTypes;
-ProfilePage.defaultProps = defaultProps;
 ProfilePage.displayName = 'ProfilePage';
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-    withCurrentUserPersonalDetails,
-    withOnyx({
+export default withCurrentUserPersonalDetails(
+    withOnyx<ProfilePageProps, ProfilePageOnyxProps>({
         loginList: {
             key: ONYXKEYS.LOGIN_LIST,
         },
         privatePersonalDetails: {
             key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
         },
-        user: {
-            key: ONYXKEYS.USER,
-        },
-    }),
-)(ProfilePage);
+    })(ProfilePage),
+);

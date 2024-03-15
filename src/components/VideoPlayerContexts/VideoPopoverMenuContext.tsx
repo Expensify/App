@@ -1,38 +1,42 @@
-import PropTypes from 'prop-types';
 import React, {useCallback, useContext, useMemo, useState} from 'react';
-import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import fileDownload from '@libs/fileDownload';
 import CONST from '@src/CONST';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {usePlaybackContext} from './PlaybackContext';
+import type {PlaybackSpeed, VideoPopoverMenuContext} from './types';
 
-const VideoPopoverMenuContext = React.createContext(null);
+const Context = React.createContext<VideoPopoverMenuContext | null>(null);
 
-function VideoPopoverMenuContextProvider({children}) {
+function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
     const {currentVideoPlayerRef, currentlyPlayingURL} = usePlaybackContext();
     const {translate} = useLocalize();
-    const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[2]);
+    const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState<PlaybackSpeed>(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[2]);
     const {isOffline} = useNetwork();
-    const isLocalFile = currentlyPlayingURL && _.some(CONST.ATTACHMENT_LOCAL_URL_PREFIX, (prefix) => currentlyPlayingURL.startsWith(prefix));
+    const isLocalFile = currentlyPlayingURL && CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => currentlyPlayingURL.startsWith(prefix));
 
     const updatePlaybackSpeed = useCallback(
-        (speed) => {
+        (speed: PlaybackSpeed) => {
             setCurrentPlaybackSpeed(speed);
-            currentVideoPlayerRef.current.setStatusAsync({rate: speed});
+            currentVideoPlayerRef.current?.setStatusAsync?.({rate: speed});
         },
         [currentVideoPlayerRef],
     );
 
     const downloadAttachment = useCallback(() => {
+        if (currentlyPlayingURL === null) {
+            return;
+        }
         const sourceURI = addEncryptedAuthTokenToURL(currentlyPlayingURL);
         fileDownload(sourceURI);
     }, [currentlyPlayingURL]);
 
     const menuItems = useMemo(() => {
-        const items = [];
+        const items: PopoverMenuItem[] = [];
 
         if (!isOffline && !isLocalFile) {
             items.push({
@@ -47,37 +51,30 @@ function VideoPopoverMenuContextProvider({children}) {
         items.push({
             icon: Expensicons.Meter,
             text: translate('videoPlayer.playbackSpeed'),
-            subMenuItems: [
-                ..._.map(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS, (speed) => ({
-                    icon: currentPlaybackSpeed === speed ? Expensicons.Checkmark : null,
-                    text: speed.toString(),
-                    onSelected: () => {
-                        updatePlaybackSpeed(speed);
-                    },
-                    shouldPutLeftPaddingWhenNoIcon: true,
-                })),
-            ],
+            subMenuItems: CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS.map((speed) => ({
+                icon: currentPlaybackSpeed === speed ? Expensicons.Checkmark : undefined,
+                text: speed.toString(),
+                onSelected: () => {
+                    updatePlaybackSpeed(speed);
+                },
+                shouldPutLeftPaddingWhenNoIcon: true,
+            })),
         });
-
         return items;
     }, [currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline, isLocalFile]);
 
     const contextValue = useMemo(() => ({menuItems, updatePlaybackSpeed}), [menuItems, updatePlaybackSpeed]);
-    return <VideoPopoverMenuContext.Provider value={contextValue}>{children}</VideoPopoverMenuContext.Provider>;
+    return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }
 
 function useVideoPopoverMenuContext() {
-    const context = useContext(VideoPopoverMenuContext);
-    if (context === undefined) {
+    const videoPopooverMenuContext = useContext(Context);
+    if (!videoPopooverMenuContext) {
         throw new Error('useVideoPopoverMenuContext must be used within a VideoPopoverMenuContext');
     }
-    return context;
+    return videoPopooverMenuContext;
 }
 
 VideoPopoverMenuContextProvider.displayName = 'VideoPopoverMenuContextProvider';
-VideoPopoverMenuContextProvider.propTypes = {
-    /** Actual content wrapped by this component */
-    children: PropTypes.node.isRequired,
-};
 
 export {VideoPopoverMenuContextProvider, useVideoPopoverMenuContext};
