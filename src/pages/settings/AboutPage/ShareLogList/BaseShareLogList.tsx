@@ -23,13 +23,11 @@ function BaseShareLogList({betas, onAttachLogToReport}: BaseShareLogListProps) {
         personalDetails: [],
         userToInvite: null,
     });
-    console.log({searchOptions});
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isMounted = useRef(false);
     const {options, areOptionsInitialized} = useOptionsList();
-    console.log({options});
     const updateOptions = useCallback(() => {
         const {
             recentReports: localRecentReports,
