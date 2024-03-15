@@ -101,10 +101,21 @@ Additionally if you want to discuss an idea with the open source community witho
     - Do not leave more than one proposal.
     - Do not make extensive changes to your current proposal until after it has been reviewed.
     - If you want to make an entirely new proposal or update an existing proposal, please go back and edit your original proposal, then post a new comment to the issue in this format to alert everyone that it has been updated:
+
     ```
     ## Proposal
     [Updated](link to proposal)
+
+    <!-- Insert a very short, but truthful and accurate summary of the update. -->
     ```
+
+    - Take your time when writing the summary
+        - Don't be tempted to write something meaningless, like "Updated some stuff".
+        - If you updated your proposal based on another proposal, **mention that**.
+    - Keep the number of proposal changes reasonably low!
+        - If you edit your proposal unreasonably many times, it can be dismissed **solely based on that reason**.
+        - If you regularly edit your proposals in the mentioned way, you may receive an official warning
+    - If you regurarly update your proposals without posting "Proposal Updated", you may receive an official warning
 7. If your proposal is accepted by the Expensify engineer assigned to the issue, Expensify will hire you on Upwork and assign the GitHub issue to you.
 8. Once hired, post a comment in the Github issue stating when you expect to have your PR ready for review.
 
