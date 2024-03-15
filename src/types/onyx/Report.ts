@@ -30,11 +30,6 @@ type Participant = {
 
 type Participants = Record<number, Participant>;
 
-type PendingAccount = {
-    errors?: OnyxCommon.Errors;
-    pendingAction?: OnyxCommon.PendingAction;
-};
-
 type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** The URL of the Group Chat report custom avatar */
