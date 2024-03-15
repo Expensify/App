@@ -3174,7 +3174,7 @@ function navigateWhenEnableFeature(policyID: string, featureRoute: Route) {
     const isNarrowLayout = getIsNarrowLayout();
 
     if (isNarrowLayout) {
-        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID), CONST.NAVIGATION.TYPE.FORCED_UP);
+        Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
 
         return;
     }
