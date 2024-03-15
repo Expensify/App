@@ -63,8 +63,7 @@ describe('getViolationsOnyxData', () => {
     describe('policyRequiresCategories', () => {
         beforeEach(() => {
             policyRequiresCategories = true;
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            policyCategories = {Food: {name: 'Food', enabled: true, areCommentsRequired: false, 'GL Code': '1234', externalID: '1234', origin: '12345'}};
+            policyCategories = {Food: {name: 'Food', enabled: true, areCommentsRequired: false, externalID: '1234', origin: '12345'}};
             transaction.category = 'Food';
         });
 
@@ -131,10 +130,8 @@ describe('getViolationsOnyxData', () => {
                     name: 'Meals',
                     required: true,
                     tags: {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        Lunch: {name: 'Lunch', enabled: true, 'GL Code': ''},
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        Dinner: {name: 'Dinner', enabled: true, 'GL Code': ''},
+                        Lunch: {name: 'Lunch', enabled: true},
+                        Dinner: {name: 'Dinner', enabled: true},
                     },
                     orderWeight: 1,
                 },
@@ -211,8 +208,6 @@ describe('getViolationsOnyxData', () => {
                         Accounting: {
                             name: 'Accounting',
                             enabled: true,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            'GL Code': '',
                         },
                     },
                     required: true,
@@ -224,12 +219,10 @@ describe('getViolationsOnyxData', () => {
                         Africa: {
                             name: 'Africa',
                             enabled: true,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            'GL Code': '',
                         },
                     },
                     required: true,
-                    orderWeight: 1,
+                    orderWeight: 2,
                 },
                 Project: {
                     name: 'Project',
@@ -237,12 +230,10 @@ describe('getViolationsOnyxData', () => {
                         Project1: {
                             name: 'Project1',
                             enabled: true,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            'GL Code': '',
                         },
                     },
                     required: true,
-                    orderWeight: 1,
+                    orderWeight: 3,
                 },
             };
         });

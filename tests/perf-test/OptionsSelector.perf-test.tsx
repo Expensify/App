@@ -38,12 +38,11 @@ jest.mock('@src/components/withNavigationFocus', () => (Component: ComponentType
     return WithNavigationFocus;
 });
 
-type GenerateSectionsProps = Array<{numItems: number; indexOffset: number; shouldShow?: boolean}>;
+type GenerateSectionsProps = Array<{numberOfItems: number; indexOffset: number; shouldShow?: boolean}>;
 
-const generateSections = (sectionConfigs: GenerateSectionsProps) =>
-    sectionConfigs.map(({numItems, indexOffset, shouldShow = true}) => ({
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        data: Array.from({length: numItems}, (_v, i) => ({
+const generateSections = (sections: GenerateSectionsProps) =>
+    sections.map(({numberOfItems, indexOffset, shouldShow = true}) => ({
+        data: Array.from({length: numberOfItems}, (v, i) => ({
             text: `Item ${i + indexOffset}`,
             keyForList: `item-${i + indexOffset}`,
         })),
@@ -51,15 +50,15 @@ const generateSections = (sectionConfigs: GenerateSectionsProps) =>
         shouldShow,
     }));
 
-const singleSectionSConfig = [{numItems: 1000, indexOffset: 0}];
+const singleSectionsConfig = [{numberOfItems: 1000, indexOffset: 0}];
 
 const mutlipleSectionsConfig = [
-    {numItems: 1000, indexOffset: 0},
-    {numItems: 100, indexOffset: 70},
+    {numberOfItems: 1000, indexOffset: 0},
+    {numberOfItems: 100, indexOffset: 70},
 ];
 // @ts-expect-error TODO: Remove this once OptionsSelector is migrated to TypeScript.
 function OptionsSelectorWrapper(args) {
-    const sections = generateSections(singleSectionSConfig);
+    const sections = generateSections(singleSectionsConfig);
     return (
         <OptionsSelector
             value="test"
@@ -103,10 +102,10 @@ test('[OptionsSelector] should press a list items', () => {
 test('[OptionsSelector] should scroll and press few items', () => {
     const sections = generateSections(mutlipleSectionsConfig);
 
-    const generateEventData = (numOptions: number, optionRowHeight: number) => ({
+    const generateEventData = (numberOfOptions: number, optionRowHeight: number) => ({
         nativeEvent: {
             contentOffset: {
-                y: optionRowHeight * numOptions,
+                y: optionRowHeight * numberOfOptions,
             },
             contentSize: {
                 height: optionRowHeight * 10,

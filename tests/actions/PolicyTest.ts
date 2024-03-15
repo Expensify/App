@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Policy from '@src/libs/actions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyMembers, Policy as PolicyType, Report, ReportActions} from '@src/types/onyx';
+import type {PolicyMembers, Policy as PolicyType, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -122,10 +122,10 @@ describe('actions/Policy', () => {
             });
 
             // Each of the three reports should have a a `CREATED` action.
-            let adminReportActions = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminReportID}`] ?? {});
-            let announceReportActions = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceReportID}`] ?? {});
-            let expenseReportActions = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`] ?? {});
-            let workspaceReportActions = adminReportActions.concat(announceReportActions, expenseReportActions);
+            let adminReportActions: ReportAction[] = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminReportID}`] ?? {});
+            let announceReportActions: ReportAction[] = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceReportID}`] ?? {});
+            let expenseReportActions: ReportAction[] = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`] ?? {});
+            let workspaceReportActions: ReportAction[] = adminReportActions.concat(announceReportActions, expenseReportActions);
             [adminReportActions, announceReportActions, expenseReportActions].forEach((actions) => {
                 expect(actions.length).toBe(1);
             });
@@ -167,6 +167,10 @@ describe('actions/Policy', () => {
 
             // Check if the report pending action and fields were cleared
             Object.values(allReports ?? {}).forEach((report) => {
+                if (typeof report === 'undefined') {
+                    return;
+                }
+
                 expect(report?.pendingAction).toBeFalsy();
                 expect(report?.pendingFields?.addWorkspaceRoom).toBeFalsy();
             });

@@ -136,7 +136,7 @@ type CreateAddListenerMock = {
     addListener?: () => Record<string, unknown>;
 };
 
-test.skip('[Search Page] should interact when text input changes', async () => {
+test('[Search Page] should interact when text input changes', async () => {
     const {addListener}: CreateAddListenerMock = TestHelper.createAddListenerMock();
 
     const scenario = async () => {
