@@ -1,34 +1,49 @@
+/* eslint-disable rulesdir/onyx-props-must-have-default */
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import AvatarWithIndicator from '@components/AvatarWithIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import compose from '@libs/compose';
 import * as UserUtils from '@libs/UserUtils';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type PressableAvatarWithIndicatorOnyxProps = {
-    /** Indicates whether the app is loading initial data */
-    isLoading: OnyxEntry<boolean>;
-};
+const propTypes = {
+    /** The personal details of the person who is logged in */
+    currentUserPersonalDetails: personalDetailsPropType,
 
-type PressableAvatarWithIndicatorProps = PressableAvatarWithIndicatorOnyxProps & {
+    /** Indicates whether the app is loading initial data */
+    isLoading: PropTypes.bool,
+
     /** Whether the avatar is selected */
-    isSelected: boolean;
+    isSelected: PropTypes.bool,
 
     /** Callback called when the avatar is pressed */
-    onPress?: () => void;
+    onPress: PropTypes.func,
 };
 
-function PressableAvatarWithIndicator({isLoading = true, isSelected = false, onPress}: PressableAvatarWithIndicatorProps) {
+const defaultProps = {
+    currentUserPersonalDetails: {
+        pendingFields: {avatar: ''},
+        accountID: '',
+        avatar: '',
+    },
+    isLoading: true,
+    isSelected: false,
+    onPress: () => {},
+};
+
+function PressableAvatarWithIndicator({currentUserPersonalDetails, isLoading, isSelected, onPress}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     return (
         <PressableWithoutFeedback
@@ -36,13 +51,13 @@ function PressableAvatarWithIndicator({isLoading = true, isSelected = false, onP
             role={CONST.ROLE.BUTTON}
             onPress={onPress}
         >
-            <OfflineWithFeedback pendingAction={currentUserPersonalDetails.pendingFields?.avatar ?? null}>
+            <OfflineWithFeedback pendingAction={lodashGet(currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                 <View style={[isSelected && styles.selectedAvatarBorder]}>
                     <AvatarWithIndicator
                         source={UserUtils.getAvatar(currentUserPersonalDetails.avatar, currentUserPersonalDetails.accountID)}
                         tooltipText={translate('profilePage.profile')}
                         fallbackIcon={currentUserPersonalDetails.fallbackIcon}
-                        isLoading={!!isLoading && !currentUserPersonalDetails.avatar}
+                        isLoading={isLoading && !currentUserPersonalDetails.avatar}
                     />
                 </View>
             </OfflineWithFeedback>
@@ -50,10 +65,14 @@ function PressableAvatarWithIndicator({isLoading = true, isSelected = false, onP
     );
 }
 
+PressableAvatarWithIndicator.propTypes = propTypes;
+PressableAvatarWithIndicator.defaultProps = defaultProps;
 PressableAvatarWithIndicator.displayName = 'PressableAvatarWithIndicator';
-
-export default withOnyx<PressableAvatarWithIndicatorProps, PressableAvatarWithIndicatorOnyxProps>({
-    isLoading: {
-        key: ONYXKEYS.IS_LOADING_APP,
-    },
-})(PressableAvatarWithIndicator);
+export default compose(
+    withCurrentUserPersonalDetails,
+    withOnyx({
+        isLoading: {
+            key: ONYXKEYS.IS_LOADING_APP,
+        },
+    }),
+)(PressableAvatarWithIndicator);
