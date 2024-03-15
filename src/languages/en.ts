@@ -1776,6 +1776,7 @@ export default {
         },
         categories: {
             deleteCategories: 'Delete categories',
+            deleteCategory: 'Delete category',
             disableCategories: 'Disable categories',
             enableCategories: 'Enable categories',
             deleteFailureMessage: 'An error occurred while deleting the category, please try again.',

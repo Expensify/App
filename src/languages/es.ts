@@ -1800,6 +1800,7 @@ export default {
         },
         categories: {
             deleteCategories: 'Eliminar categorías',
+            deleteCategory: 'Eliminar categoría',
             disableCategories: 'Desactivar categorías',
             enableCategories: 'Activar categorías',
             deleteFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
