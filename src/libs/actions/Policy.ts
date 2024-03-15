@@ -3415,6 +3415,19 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
 }
 
 function enablePolicyTaxes(policyID: string, enabled: boolean) {
+    const taxRatesData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: CONST.TAX_DEFAULT_RATES,
+                },
+            },
+        ],
+    };
+    const policy = ReportUtils.getPolicy(policyID);
+    const shouldAddDefaultTaxRatesData = isEmptyObject(policy.taxRates) && enabled;
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -3426,9 +3439,11 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                     },
                     pendingFields: {
                         tax: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        taxRates: shouldAddDefaultTaxRatesData ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null,
                     },
                 },
             },
+            ...(shouldAddDefaultTaxRatesData ? taxRatesData.optimisticData ?? [] : []),
         ],
         successData: [
             {
@@ -3437,6 +3452,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                 value: {
                     pendingFields: {
                         tax: null,
+                        taxRates: null,
                     },
                 },
             },
@@ -3451,6 +3467,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                     },
                     pendingFields: {
                         tax: null,
+                        taxRates: null,
                     },
                 },
             },
