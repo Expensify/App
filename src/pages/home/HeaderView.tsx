@@ -63,11 +63,14 @@ type HeaderViewProps = HeaderViewOnyxProps & {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
 
+    /** The report action the transaction is tied to from the parent report */
+    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
+
     /** The reportID of the request */
     reportID: string;
 };
 
-function HeaderView({report, personalDetails, parentReport, policy, session, reportID, guideCalendarLink, onNavigationMenuButtonClicked}: HeaderViewProps) {
+function HeaderView({report, personalDetails, parentReport, parentReportAction, policy, session, reportID, guideCalendarLink, onNavigationMenuButtonClicked}: HeaderViewProps) {
     const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = React.useState(false);
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
@@ -90,7 +93,6 @@ function HeaderView({report, personalDetails, parentReport, policy, session, rep
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const isConcierge = ReportUtils.hasSingleParticipant(report) && participants.includes(CONST.ACCOUNT_ID.CONCIERGE);
-    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(report, parentReportAction);
     const isWhisperAction = ReportActionsUtils.isWhisperAction(parentReportAction);
     const isUserCreatedPolicyRoom = ReportUtils.isUserCreatedPolicyRoom(report);

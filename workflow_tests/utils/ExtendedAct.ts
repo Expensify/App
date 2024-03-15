@@ -4,31 +4,41 @@ import type {RunOpts, Workflow} from '@kie/act-js';
 import * as kieActJs from '@kie/act-js';
 import path from 'path';
 import {JobMocker} from './JobMocker';
-import type {MockJob} from './JobMocker';
+import type {MockJobs} from './JobMocker';
 
-type ExtendedActOpts = RunOpts & {actor?: string; workflowFile?: string; mockJobs?: Record<string, MockJob>};
+type ExtendedActOpts = RunOpts & {actor?: string; workflowFile?: string; mockJobs?: MockJobs};
+
+type ActOptions = {
+    cwd: string | undefined;
+    actArguments: string[];
+    proxy: unknown;
+};
 
 // @ts-expect-error Override shouldn't be done on private methods wait until https://github.com/kiegroup/act-js/issues/77 is resolved or try to create a params workaround
 class ExtendedAct extends kieActJs.Act {
-    async parseRunOpts(opts?: ExtendedActOpts) {
+    async parseRunOpts(opts?: ExtendedActOpts): Promise<ActOptions> {
         const {cwd, actArguments, proxy} = await super['parseRunOpts'](opts);
+
         if (opts?.actor) {
             actArguments.push('--actor', opts.actor);
         }
+
         return {cwd, actArguments, proxy};
     }
 
-    async runEvent(event: string, opts?: ExtendedActOpts) {
+    async runEvent(event: string, opts?: ExtendedActOpts): Promise<kieActJs.Step[]> {
         const {mockJobs, ...vanillaOpts} = opts ?? {};
 
         if (mockJobs) {
             await this.handleJobMocking((workflow) => workflow.events.includes(event), {mockJobs, workflowFile: opts?.workflowFile, cwd: opts?.cwd});
         }
+
         return super.runEvent(event, vanillaOpts);
     }
 
-    async handleJobMocking(filter: (workflow: Workflow) => boolean, opts?: ExtendedActOpts) {
+    async handleJobMocking(filter: (workflow: Workflow) => boolean, opts?: ExtendedActOpts): Promise<void[]> {
         let workflowFiles: string[];
+
         if (opts?.workflowFile) {
             workflowFiles = [path.basename(opts.workflowFile)];
         } else if (this['workflowFile'] !== this['cwd']) {
@@ -37,6 +47,7 @@ class ExtendedAct extends kieActJs.Act {
             const availableWorkflows = await this.list(undefined, opts?.cwd, opts?.workflowFile);
             workflowFiles = availableWorkflows.filter(filter).map((workflow: Workflow) => workflow.workflowFile);
         }
+
         return Promise.all(
             workflowFiles.map((workflowFile) => {
                 const jobMocker = new JobMocker(workflowFile, opts?.cwd ?? this['cwd']);

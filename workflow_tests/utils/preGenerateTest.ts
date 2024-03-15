@@ -107,7 +107,8 @@ const ${stepMockName} = utils.createMockStep(
     ${step.envs ? JSON.stringify(step.envs).replaceAll('"', "'") : 'null'},
     // add outputs if needed
 );`;
-const stepAssertionTemplate = (stepName: string, jobId: string, stepMessage: string, inputs: string[] = [], envs: string[] = []) => {
+
+const stepAssertionTemplate = (stepName: string, jobId: string, stepMessage: string, inputs: string[] = [], envs: string[] = []): string => {
     const inputsString = inputs.map((input) => `{key: '${input}', value: '[FILL_IN]'}`).join(',');
     const envsString = envs.map((env) => `{key: '${env}', value: '[FILL_IN]'}`).join(',');
 
@@ -123,7 +124,7 @@ const stepAssertionTemplate = (stepName: string, jobId: string, stepMessage: str
         ),`;
 };
 
-const jobMocksTemplate = (jobMocksName: string, stepMocks: string[]) => {
+const jobMocksTemplate = (jobMocksName: string, stepMocks: string[]): string => {
     const stepMocksString = stepMocks.map((stepMock) => `${stepMock}`).join(',');
 
     return `const ${jobMocksName} = [${stepMocksString}\n];`;
@@ -142,13 +143,13 @@ const ${jobAssertionName} = (workflowResult, didExecute = true) => {
     }
 };`;
 
-const mocksExportsTemplate = (jobMocks: string[]) => {
+const mocksExportsTemplate = (jobMocks: string[]): string => {
     const jobMocksString = jobMocks.map((jobMock) => `  ${jobMock}: ${jobMock}`).join(',\n');
 
     return `module.exports = {\n${jobMocksString}\n};\n`;
 };
 
-const assertionsExportsTemplate = (jobAssertions: string[]) => {
+const assertionsExportsTemplate = (jobAssertions: string[]): string => {
     const assertionsString = jobAssertions.map((assertion) => `  ${assertion}: ${assertion}`).join(',\n');
 
     return `module.exports = {\n${assertionsString}\n};\n`;
@@ -213,7 +214,7 @@ const parseWorkflowFile = (workflow: YamlWorkflow) => {
     });
     return workflowJobs;
 };
-const getMockFileContent = (workflowName: string, jobs: Record<string, YamlMockJob>) => {
+const getMockFileContent = (workflowName: string, jobs: Record<string, YamlMockJob>): string => {
     let content = '';
     const jobMocks: string[] = [];
     Object.entries(jobs).forEach(([jobId, job]) => {
@@ -236,7 +237,7 @@ const getMockFileContent = (workflowName: string, jobs: Record<string, YamlMockJ
     });
     return mockFileTemplate(content, mocksExportsTemplate(jobMocks));
 };
-const getAssertionsFileContent = (jobs: Record<string, YamlMockJob>) => {
+const getAssertionsFileContent = (jobs: Record<string, YamlMockJob>): string => {
     let content = '';
     const jobAssertions: string[] = [];
     Object.entries(jobs).forEach(([jobId, job]) => {
@@ -250,7 +251,7 @@ const getAssertionsFileContent = (jobs: Record<string, YamlMockJob>) => {
     });
     return assertionFileTemplate(content, assertionsExportsTemplate(jobAssertions));
 };
-const getTestFileContent = (workflowName: string) => testFileTemplate(workflowName);
+const getTestFileContent = (workflowName: string): string => testFileTemplate(workflowName);
 
 const callArgs = process.argv.slice(2);
 checkArguments(callArgs);
