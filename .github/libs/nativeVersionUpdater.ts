@@ -42,8 +42,7 @@ function generateAndroidVersionCode(npmVersion: string | SemVer) {
         padToTwoDigits(getMajorVersion(npmVersion) ?? 0),
         padToTwoDigits(getMinorVersion(npmVersion) ?? 0),
         padToTwoDigits(getPatchVersion(npmVersion) ?? 0),
-        // @ts-expect-error -- TODO: Fix this
-        padToTwoDigits(getBuildVersion(npmVersion) ?? 0),
+        padToTwoDigits(Number(getBuildVersion(npmVersion)) ?? 0),
     );
 }
 
