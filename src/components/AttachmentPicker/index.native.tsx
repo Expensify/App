@@ -3,7 +3,7 @@ import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Alert, Image as RNImage, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import RNDocumentPicker from 'react-native-document-picker';
-import type {DocumentPickerResponse} from 'react-native-document-picker';
+import type {DocumentPickerOptions, DocumentPickerResponse} from 'react-native-document-picker';
 import {launchImageLibrary} from 'react-native-image-picker';
 import type {Asset, Callback, CameraOptions, ImagePickerResponse} from 'react-native-image-picker';
 import type {FileObject} from '@components/AttachmentModal';
@@ -31,11 +31,6 @@ type Item = {
     icon: IconAsset;
     textTranslationKey: TranslationPaths;
     pickAttachment: () => Promise<Asset[] | void | DocumentPickerResponse[]>;
-};
-
-type DocumentPickerOptionsParams = {
-    type: string[];
-    copyTo: 'cachesDirectory' | 'documentDirectory';
 };
 
 /**
@@ -67,7 +62,7 @@ const getImagePickerOptions = (type: string): CameraOptions => {
  * @returns {Object}
  */
 
-const getDocumentPickerOptions = (type: string): DocumentPickerOptionsParams => {
+const getDocumentPickerOptions = (type: string): DocumentPickerOptions<'ios' | 'android'> => {
     if (type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
         return {
             type: [RNDocumentPicker.types.images],
@@ -91,8 +86,10 @@ const getDataForUpload = (fileData: Asset & DocumentPickerResponse): Promise<Fil
         type: fileData.type,
         width: fileData.width,
         height: fileData.height,
-        uri: fileData.fileCopyUri ?? fileData.uri,
-        size: fileData.fileSize ?? fileData.size,
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        uri: fileData.fileCopyUri || fileData.uri,
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        size: fileData.fileSize || fileData.size,
     };
 
     if (fileResult.size) {
@@ -197,7 +194,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
             },
         ];
         if (!shouldHideCameraOption) {
-            data.push({
+            data.unshift({
                 icon: Expensicons.Camera,
                 textTranslationKey: 'attachmentPicker.takePhoto',
                 pickAttachment: () => showImagePicker(launchCamera),
@@ -271,7 +268,8 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                 return Promise.resolve();
             }
             if (fileData.fileName && Str.isImage(fileData.fileName ?? fileData.name)) {
-                RNImage.getSize(fileData.fileCopyUri ?? fileData.uri, (width, height) => {
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                RNImage.getSize(fileData.fileCopyUri || fileData.uri, (width, height) => {
                     fileData.width = width;
                     fileData.height = height;
                     validateAndCompleteAttachmentSelection(fileData);
@@ -337,7 +335,6 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                 }}
                 isVisible={isVisible}
                 anchorRef={popoverRef}
-                // anchorPosition={styles.createMenuPosition}
                 onModalHide={onModalHide.current}
             >
                 <View style={!isSmallScreenWidth && styles.createMenuContainer}>

@@ -86,5 +86,6 @@ function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE}: 
         </>
     );
 }
+AttachmentPicker.displayName = 'AttachmentPicker';
 
 export default AttachmentPicker;
