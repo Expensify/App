@@ -1935,6 +1935,7 @@ export default {
             disconnectTitle: 'Disconnect integration',
             disconnectPrompt: 'Are you sure you want to disconnect this integration?',
             importing: 'Importing customers',
+            enterCredentials: 'Enter your credentials',
         },
         bills: {
             manageYourBills: 'Manage your bills',
