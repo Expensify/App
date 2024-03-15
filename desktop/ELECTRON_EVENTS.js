@@ -11,7 +11,6 @@ const ELECTRON_EVENTS = {
     UPDATE_DOWNLOADED: 'update-downloaded',
     DOWNLOAD: 'download',
     DOWNLOAD_STARTED: 'download-started',
-    DOWNLOAD_CANCELLED: 'download-cancelled',
 };
 
 module.exports = ELECTRON_EVENTS;

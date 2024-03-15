@@ -19,13 +19,6 @@ const fileDownload: FileDownload = (url, fileName) => {
             }
             resolve();
         });
-
-        window.electron.on(ELECTRON_EVENTS.DOWNLOAD_CANCELLED, (args) => {
-            if (args.url !== url) {
-                return;
-            }
-            resolve();
-        });
     });
 };
 

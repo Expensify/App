@@ -56,11 +56,9 @@ const createDownloadQueue = () => {
                 },
                 onCompleted: () => {
                     shiftDownloadItem();
-                    item.win.webContents.send(ELECTRON_EVENTS.DOWNLOAD_COMPLETED, {url: item.url});
                 },
                 onCancel: () => {
                     shiftDownloadItem();
-                    item.win.webContents.send(ELECTRON_EVENTS.DOWNLOAD_CANCELLED, {url: item.url});
                 },
             },
         };
