@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/onyx-props-must-have-default */
 import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
