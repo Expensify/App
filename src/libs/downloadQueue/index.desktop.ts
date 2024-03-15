@@ -1,7 +1,7 @@
 import type {BrowserWindow} from 'electron';
 import ELECTRON_EVENTS from '@desktop/ELECTRON_EVENTS';
-import electronDownload from './electronDownloadManager';
-import type {Options} from './electronDownloadManagerType';
+import electronDownload from '@desktop/electronDownloadManager';
+import type {Options} from '@desktop/electronDownloadManagerType';
 
 type DownloadItem = {
     // The window where the download will be initiated

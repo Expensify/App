@@ -1,5 +1,5 @@
 import ELECTRON_EVENTS from '@desktop/ELECTRON_EVENTS';
-import type {Options} from '@libs/downloadQueue/electronDownloadManagerType';
+import type {Options} from '@desktop/electronDownloadManagerType';
 import type {FileDownload} from './types';
 
 /**
