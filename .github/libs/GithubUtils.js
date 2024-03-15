@@ -1,10 +1,12 @@
+// eslint-disable-next-line import/no-import-module-exports
+import CONST from './CONST';
+
 const _ = require('underscore');
 const lodashGet = require('lodash/get');
 const core = require('@actions/core');
 const {GitHub, getOctokitOptions} = require('@actions/github/lib/utils');
 const {throttling} = require('@octokit/plugin-throttling');
 const {paginateRest} = require('@octokit/plugin-paginate-rest');
-const CONST = require('./CONST');
 
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
 const PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`);

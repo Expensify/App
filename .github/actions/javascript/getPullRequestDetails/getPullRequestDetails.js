@@ -1,6 +1,7 @@
+import CONST from '../../../libs/CONST';
+
 const _ = require('underscore');
 const core = require('@actions/core');
-const CONST = require('../../../libs/CONST');
 const ActionUtils = require('../../../libs/ActionUtils');
 const GithubUtils = require('../../../libs/GithubUtils');
 

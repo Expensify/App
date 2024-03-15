@@ -1,5 +1,7 @@
+// eslint-disable-next-line import/no-import-module-exports
+import CONST from '../../../libs/CONST';
+
 const _ = require('underscore');
-const CONST = require('../../../libs/CONST');
 const ActionUtils = require('../../../libs/ActionUtils');
 const GitHubUtils = require('../../../libs/GithubUtils');
 const {promiseDoWhile} = require('../../../libs/promiseWhile');

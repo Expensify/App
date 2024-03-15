@@ -1,8 +1,10 @@
+// eslint-disable-next-line import/no-import-module-exports
+import CONST from '../../../libs/CONST';
+
 const fs = require('fs');
 const format = require('date-fns/format');
 const _ = require('underscore');
 const core = require('@actions/core');
-const CONST = require('../../../libs/CONST');
 const GithubUtils = require('../../../libs/GithubUtils');
 const GitUtils = require('../../../libs/GitUtils').default;
 

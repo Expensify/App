@@ -1,5 +1,6 @@
+import CONST from '../../../libs/CONST';
+
 const core = require('@actions/core');
-const CONST = require('../../../libs/CONST');
 const GithubUtils = require('../../../libs/GithubUtils');
 
 const issueNumber = core.getInput('ISSUE_NUMBER', {required: true});
