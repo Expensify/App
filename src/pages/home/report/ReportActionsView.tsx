@@ -73,9 +73,10 @@ function ReportActionsView({
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
     const isFirstRender = useRef(true);
-    const combinedReportActions = useMemo(() => {
-        return lodashIsEmpty(transactionThreadReportActions) ? reportActions : ReportActionsUtils.getCombinedReportActionsForDisplay(reportActions, transactionThreadReportActions);
-    }, [reportActions, transactionThreadReportActions]);
+    const combinedReportActions = useMemo(
+        () => (lodashIsEmpty(transactionThreadReportActions) ? reportActions : ReportActionsUtils.getCombinedReportActionsForDisplay(reportActions, transactionThreadReportActions)),
+        [reportActions, transactionThreadReportActions],
+    );
     const hasCachedActions = useInitialValue(() => combinedReportActions.length > 0);
     const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(combinedReportActions), [combinedReportActions]);
     const network = useNetwork();

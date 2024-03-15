@@ -929,10 +929,8 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
     transaction: {
         key: ({transactionThreadReport, reportActions}) => {
             const parentReportActionID = lodashIsEmpty(transactionThreadReport) ? '0' : transactionThreadReport.parentReportActionID;
-            const reportAction = reportActions?.find((reportAction) => reportAction.reportActionID === parentReportActionID ?? '0');
-            const transactionID = (reportAction as OnyxTypes.OriginalMessageIOU)?.originalMessage.IOUTransactionID
-                ? (reportAction as OnyxTypes.OriginalMessageIOU).originalMessage.IOUTransactionID
-                : 0;
+            const action = reportActions?.find((reportAction) => reportAction.reportActionID === parentReportActionID);
+            const transactionID = (action as OnyxTypes.OriginalMessageIOU)?.originalMessage.IOUTransactionID ? (action as OnyxTypes.OriginalMessageIOU).originalMessage.IOUTransactionID : 0;
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
         },
     },

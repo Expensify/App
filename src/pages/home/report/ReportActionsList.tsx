@@ -486,7 +486,17 @@ function ReportActionsList({
                 shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
             />
         ),
-        [report, linkedReportActionID, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker, parentReportAction],
+        [
+            report,
+            linkedReportActionID,
+            sortedReportActions,
+            mostRecentIOUReportActionID,
+            shouldHideThreadDividerLine,
+            shouldDisplayNewMarker,
+            parentReportAction,
+            reportActions,
+            transactionThreadReport,
+        ],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
