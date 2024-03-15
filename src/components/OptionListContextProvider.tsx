@@ -109,9 +109,6 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     const {shouldInitialize = true} = options ?? {};
     const {initializeOptions, options: optionsList, areOptionsInitialized} = useOptionsListContext();
 
-    // freeze the options, so they won't update when the context updates and the screen is open
-    const optionsRef = useRef(optionsList);
-
     useEffect(() => {
         if (!shouldInitialize || areOptionsInitialized) {
             return;
@@ -120,18 +117,9 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
         initializeOptions();
     }, [shouldInitialize, initializeOptions, areOptionsInitialized]);
 
-    useEffect(() => {
-        if (!areOptionsInitialized) {
-            return;
-        }
-
-        optionsRef.current = optionsList;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [areOptionsInitialized]);
-
     return {
         initializeOptions,
-        options: optionsRef.current,
+        options: optionsList,
         areOptionsInitialized,
     };
 };

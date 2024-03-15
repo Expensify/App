@@ -631,8 +631,10 @@ function createOption(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     report: OnyxEntry<Report>,
     reportActions: ReportActions,
-    {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig,
+    config?: PreviewConfig,
 ): ReportUtils.OptionData {
+    const {showChatPreviewLine = false, forcePolicyNamePreview = false} = config ?? {};
+
     const result: ReportUtils.OptionData = {
         text: undefined,
         alternateText: null,
@@ -725,6 +727,7 @@ function createOption(
         if (showChatPreviewLine || forcePolicyNamePreview) {
             result.alternateText = getAlternateTextOption(result, {showChatPreviewLine, forcePolicyNamePreview, lastMessageTextFromReport});
         }
+
         reportName = ReportUtils.getReportName(report);
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -765,16 +768,7 @@ function createOption(
 function getPolicyExpenseReportOption(report: Report): ReportUtils.OptionData {
     const expenseReport = policyExpenseReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
 
-    const option = createOption(
-        expenseReport?.visibleChatMemberAccountIDs ?? [],
-        allPersonalDetails ?? {},
-        expenseReport ?? null,
-        {},
-        {
-            showChatPreviewLine: false,
-            forcePolicyNamePreview: false,
-        },
-    );
+    const option = createOption(expenseReport?.visibleChatMemberAccountIDs ?? [], allPersonalDetails ?? {}, expenseReport ?? null, {});
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     option.text = ReportUtils.getPolicyName(expenseReport);
@@ -1405,32 +1399,14 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
 
             allReportOptions.push({
                 item: report,
-                ...createOption(
-                    accountIDs,
-                    personalDetails,
-                    report,
-                    {},
-                    {
-                        showChatPreviewLine: false,
-                        forcePolicyNamePreview: false,
-                    },
-                ),
+                ...createOption(accountIDs, personalDetails, report, {}),
             });
         });
     }
 
     const allPersonalDetailsOptions = Object.values(personalDetails ?? {}).map((personalDetail) => ({
         item: personalDetail,
-        ...createOption(
-            [personalDetail?.accountID ?? -1],
-            personalDetails,
-            reportMapForAccountIDs[personalDetail?.accountID ?? -1],
-            {},
-            {
-                showChatPreviewLine: false,
-                forcePolicyNamePreview: false,
-            },
-        ),
+        ...createOption([personalDetail?.accountID ?? -1], personalDetails, reportMapForAccountIDs[personalDetail?.accountID ?? -1], {}),
     }));
 
     return {
@@ -1444,16 +1420,7 @@ function createOptionFromReport(report: Report, personalDetails: OnyxEntry<Perso
 
     return {
         item: report,
-        ...createOption(
-            accountIDs,
-            personalDetails,
-            report,
-            {},
-            {
-                showChatPreviewLine: false,
-                forcePolicyNamePreview: false,
-            },
-        ),
+        ...createOption(accountIDs, personalDetails, report, {}),
     };
 }
 
