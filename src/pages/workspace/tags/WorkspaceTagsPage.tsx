@@ -73,6 +73,8 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                         text: value.name,
                         keyForList: value.name,
                         isSelected: !!selectedTags[value.name],
+                        pendingAction: value.pendingAction,
+                        errors: value.errors ?? undefined,
                         rightElement: (
                             <View style={styles.flexRow}>
                                 <Text style={[styles.textSupporting, styles.alignSelfCenter, styles.pl2, styles.label]}>
@@ -129,14 +131,13 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                 onPress={navigateToCreateTagPage}
                 icon={Expensicons.Plus}
                 text={translate('workspace.tags.addTag')}
-                style={[styles.pr2, isSmallScreenWidth && styles.w50]}
+                style={[styles.mr3, isSmallScreenWidth && styles.w50]}
             />
             {policyTags && (
                 <Button
                     medium
                     onPress={navigateToTagsSettings}
                     icon={Expensicons.Gear}
-                    iconStyles={[styles.mr2]}
                     text={translate('common.settings')}
                     style={[isSmallScreenWidth && styles.w50]}
                 />
@@ -189,6 +190,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                             ListItem={TableListItem}
                             customListHeader={getCustomListHeader()}
                             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                            onDismissError={(item) => Policy.clearPolicyTagErrors(route.params.policyID, item.value)}
                         />
                     )}
                 </ScreenWrapper>
