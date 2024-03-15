@@ -48,7 +48,6 @@ import DateUtils from '@libs/DateUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import LocalNotification from '@libs/Notification/LocalNotification';
@@ -56,6 +55,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import getPolicyMemberAccountIDs from '@libs/PolicyMembersUtils';
 import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
+import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -72,7 +72,7 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {PersonalDetails, PersonalDetailsList, PolicyReportField, RecentlyUsedReportFields, ReportActionReactions, ReportMetadata, ReportUserIsTyping} from '@src/types/onyx';
 import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
-import type {NotificationPreference, PendingAccount, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
+import type {NotificationPreference, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -194,27 +194,7 @@ const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 
 let reportIDDeeplinkedFromOldDot: string | undefined;
 Linking.getInitialURL().then((url) => {
-    const isWeb = ([CONST.PLATFORM.WEB] as unknown as string).includes(getPlatform());
-    const currentParams = new URLSearchParams(url ?? '');
-    const currentExitToRoute = currentParams.get('exitTo') ?? '';
-    const {reportID: currentReportID} = ReportUtils.parseReportRouteParams(currentExitToRoute);
-
-    if (!isWeb) {
-        reportIDDeeplinkedFromOldDot = currentReportID;
-
-        return;
-    }
-
-    const prevUrl = sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.INITIAL_URL);
-    const prevParams = new URLSearchParams(prevUrl ?? '');
-    const prevExitToRoute = prevParams.get('exitTo') ?? '';
-    const {reportID: prevReportID} = ReportUtils.parseReportRouteParams(prevExitToRoute);
-
-    reportIDDeeplinkedFromOldDot = currentReportID || prevReportID;
-
-    if (currentReportID && url) {
-        sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.INITIAL_URL, url);
-    }
+    reportIDDeeplinkedFromOldDot = processReportIDDeeplink(url ?? '');
 });
 
 let lastVisitedPath: string | undefined;
@@ -447,7 +427,6 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
         file,
-        shouldAllowActionableMentionWhispers: true,
         clientCreatedTime: file ? attachmentAction?.created : reportCommentAction?.created,
     };
 
@@ -1858,7 +1837,7 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
     };
 
     API.write(WRITE_COMMANDS.ADD_WORKSPACE_ROOM, parameters, {optimisticData, successData, failureData});
-    Navigation.dismissModal(policyReport.reportID);
+    Navigation.dismissModalWithReport(policyReport);
 }
 
 /** Deletes a report, along with its reportActions, any linked reports, and any linked IOU report. */
@@ -2230,10 +2209,10 @@ function toggleEmojiReaction(
     addEmojiReaction(originalReportID, reportAction.reportActionID, emoji, skinTone);
 }
 
-function openReportFromDeepLink(url: string, isAuthenticated: boolean) {
+function openReportFromDeepLink(url: string) {
     const reportID = ReportUtils.getReportIDFromLink(url);
 
-    if (reportID && !isAuthenticated) {
+    if (reportID && !Session.hasAuthToken()) {
         // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
         openReport(reportID, [], {}, '0', true);
 
@@ -2252,7 +2231,7 @@ function openReportFromDeepLink(url: string, isAuthenticated: boolean) {
             Navigation.waitForProtectedRoutes().then(() => {
                 const route = ReportUtils.getRouteFromLink(url);
 
-                if (route && Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(route)) {
+                if (route && Session.isAnonymousUser() && !Session.canAnonymousUserAccessRoute(route)) {
                     Session.signOutAndRedirectToSignIn(true);
                     return;
                 }
@@ -2416,18 +2395,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
 
     const logins = inviteeEmails.map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, inviteeAccountIDs);
-
-    const optimisticPendingAccounts: Record<string, PendingAccount> = {};
-    const successPendingAccounts: Record<string, NullishDeep<PendingAccount>> = {};
-    const failurePendingAccounts: Record<string, PendingAccount> = {};
-
-    inviteeAccountIDs.forEach((accountID) => {
-        optimisticPendingAccounts[accountID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
-        successPendingAccounts[accountID] = {pendingAction: null};
-        failurePendingAccounts[accountID] = {
-            errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericAdd'),
-        };
-    });
+    const pendingChatMembers = ReportUtils.getPendingChatMembers(inviteeAccountIDs, report?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2436,7 +2404,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
             value: {
                 participantAccountIDs: participantAccountIDsAfterInvitation,
                 visibleChatMemberAccountIDs: visibleMemberAccountIDsAfterInvitation,
-                pendingAccounts: optimisticPendingAccounts,
+                pendingChatMembers,
             },
         },
         ...newPersonalDetailsOnyxData.optimisticData,
@@ -2447,18 +2415,19 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                pendingAccounts: successPendingAccounts,
+                pendingChatMembers: report?.pendingChatMembers ?? null,
             },
         },
         ...newPersonalDetailsOnyxData.finallyData,
     ];
-
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                pendingAccounts: failurePendingAccounts,
+                participantAccountIDs: report.participantAccountIDs,
+                visibleChatMemberAccountIDs: report.visibleChatMemberAccountIDs,
+                pendingChatMembers: report?.pendingChatMembers ?? null,
             },
         },
         ...newPersonalDetailsOnyxData.finallyData,
@@ -2480,25 +2449,16 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
 
     const participantAccountIDsAfterRemoval = report?.participantAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
     const visibleChatMemberAccountIDsAfterRemoval = report?.visibleChatMemberAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
-
-    const optimisticPendingAccounts: Record<string, PendingAccount> = {};
-    const successPendingAccounts: Record<string, NullishDeep<PendingAccount>> = {};
-    const failurePendingAccounts: Record<string, PendingAccount> = {};
-
-    targetAccountIDs.forEach((accountID) => {
-        optimisticPendingAccounts[accountID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
-        successPendingAccounts[accountID] = {pendingAction: null};
-        failurePendingAccounts[accountID] = {
-            errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove'),
-        };
-    });
+    const pendingChatMembers = ReportUtils.getPendingChatMembers(targetAccountIDs, report?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                pendingAccounts: optimisticPendingAccounts,
+                participantAccountIDs: participantAccountIDsAfterRemoval,
+                visibleChatMemberAccountIDs: visibleChatMemberAccountIDsAfterRemoval,
+                pendingChatMembers,
             },
         },
     ];
@@ -2508,7 +2468,9 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                pendingAccounts: failurePendingAccounts,
+                participantAccountIDs: report?.participantAccountIDs,
+                visibleChatMemberAccountIDs: report?.visibleChatMemberAccountIDs,
+                pendingChatMembers: report?.pendingChatMembers ?? null,
             },
         },
     ];
@@ -2522,7 +2484,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             value: {
                 participantAccountIDs: participantAccountIDsAfterRemoval,
                 visibleChatMemberAccountIDs: visibleChatMemberAccountIDsAfterRemoval,
-                pendingAccounts: successPendingAccounts,
+                pendingChatMembers: report?.pendingChatMembers ?? null,
             },
         },
     ];
@@ -2970,34 +2932,6 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
     API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER, parameters, {optimisticData, failureData});
 }
 
-/**
- * Removes an error after trying to delete a member
- */
-function clearDeleteMemberError(reportID: string, accountID: number) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        pendingAccounts: {
-            [accountID]: null,
-        },
-    });
-}
-
-/**
- * Removes an error after trying to add a member
- */
-function clearAddMemberError(reportID: string, accountID: number) {
-    const report = currentReportData?.[reportID];
-    const participantAccountIDs = report?.participantAccountIDs?.filter((id: number) => id !== accountID);
-    const visibleChatMemberAccountIDs = report?.visibleChatMemberAccountIDs?.filter((id: number) => id !== accountID);
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        pendingAccounts: {
-            [accountID]: null,
-        },
-        participantAccountIDs,
-        visibleChatMemberAccountIDs,
-    });
-}
-
 export {
     searchInServer,
     addComment,
@@ -3067,7 +3001,5 @@ export {
     updateReportField,
     updateReportName,
     resolveActionableMentionWhisper,
-    clearDeleteMemberError,
-    clearAddMemberError,
     updateRoomVisibility,
 };

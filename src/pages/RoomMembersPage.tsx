@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -35,6 +36,7 @@ import type {Session} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
+import SearchInputManager from './workspace/SearchInputManager';
 
 type RoomMembersPageOnyxProps = {
     session: OnyxEntry<Session>;
@@ -53,6 +55,19 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const [searchValue, setSearchValue] = useState('');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+
+    const isFocusedScreen = useIsFocused();
+
+    useEffect(() => {
+        setSearchValue(SearchInputManager.searchInput);
+    }, [isFocusedScreen]);
+
+    useEffect(
+        () => () => {
+            SearchInputManager.searchInput = '';
+        },
+        [],
+    );
 
     /**
      * Get members for the current room
@@ -151,7 +166,6 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
 
     const getMemberOptions = (): ListItem[] => {
         let result: ListItem[] = [];
-        const pendingAccounts = report.pendingAccounts;
 
         report?.visibleChatMemberAccountIDs?.forEach((accountID) => {
             const details = personalDetails[accountID];
@@ -184,6 +198,8 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                     return;
                 }
             }
+            const pendingChatMember = report?.pendingChatMembers?.find((member) => member.accountID === accountID.toString());
+
             result.push({
                 keyForList: String(accountID),
                 accountID,
@@ -199,32 +215,14 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                         id: Number(accountID),
                     },
                 ],
-                pendingAction: pendingAccounts?.[accountID]?.pendingAction,
-                errors: pendingAccounts?.[accountID]?.errors,
+                pendingAction: pendingChatMember?.pendingAction,
             });
         });
 
-        result = result.sort((value1, value2) => localeCompare(value1.text, value2.text));
+        result = result.sort((value1, value2) => localeCompare(value1.text ?? '', value2.text ?? ''));
 
         return result;
     };
-
-    /**
-     * Dismisses the errors on one item
-     */
-    const dismissError = useCallback(
-        (item: ListItem) => {
-            if (!item.accountID) {
-                return;
-            }
-            if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                Report.clearDeleteMemberError(report.reportID, item.accountID);
-            } else {
-                Report.clearAddMemberError(report.reportID, item.accountID);
-            }
-        },
-        [report.reportID],
-    );
 
     const isPolicyMember = useMemo(() => {
         if (!report?.policyID || policies === null) {
@@ -241,7 +239,9 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
             testID={RoomMembersPage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={isEmptyObject(report) || !isPolicyMember}
+                shouldShow={
+                    isEmptyObject(report) || (!ReportUtils.isChatThread(report) && ((ReportUtils.isUserCreatedPolicyRoom(report) && !isPolicyMember) || ReportUtils.isDefaultRoom(report)))
+                }
                 subtitleKey={isEmptyObject(report) ? undefined : 'roomMembersPage.notAuthorized'}
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
@@ -289,14 +289,16 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                             textInputLabel={translate('optionsSelector.findMember')}
                             disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             textInputValue={searchValue}
-                            onChangeText={setSearchValue}
+                            onChangeText={(value) => {
+                                SearchInputManager.searchInput = value;
+                                setSearchValue(value);
+                            }}
                             headerMessage={headerMessage}
                             onSelectRow={(item) => toggleUser(item)}
                             onSelectAll={() => toggleAllUsers(data)}
                             showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers}
                             showScrollIndicator
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                            onDismissError={dismissError}
                             ListItem={UserListItem}
                         />
                     </View>

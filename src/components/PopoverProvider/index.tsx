@@ -1,6 +1,7 @@
 import type {RefObject} from 'react';
 import React, {createContext, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {Text, View} from 'react-native';
 import type {AnchorRef, PopoverContextProps, PopoverContextValue} from './types';
 
 const PopoverContext = createContext<PopoverContextValue>({
@@ -10,7 +11,7 @@ const PopoverContext = createContext<PopoverContextValue>({
     isOpen: false,
 });
 
-function elementContains(ref: RefObject<View | HTMLElement> | undefined, target: EventTarget | null) {
+function elementContains(ref: RefObject<View | HTMLElement | Text> | undefined, target: EventTarget | null) {
     if (ref?.current && 'contains' in ref.current && ref?.current?.contains(target as Node)) {
         return true;
     }
@@ -21,7 +22,7 @@ function PopoverContextProvider(props: PopoverContextProps) {
     const [isOpen, setIsOpen] = useState(false);
     const activePopoverRef = useRef<AnchorRef | null>(null);
 
-    const closePopover = useCallback((anchorRef?: RefObject<View | HTMLElement>): boolean => {
+    const closePopover = useCallback((anchorRef?: RefObject<View | HTMLElement | Text>): boolean => {
         if (!activePopoverRef.current || (anchorRef && anchorRef !== activePopoverRef.current.anchorRef)) {
             return false;
         }

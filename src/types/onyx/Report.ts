@@ -17,6 +17,12 @@ type Note = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errors?: OnyxCommon.Errors;
 }>;
 
+/** The pending member of report */
+type PendingChatMember = {
+    accountID: string;
+    pendingAction: OnyxCommon.PendingAction;
+};
+
 type Participant = {
     hidden: boolean;
     role?: 'admin' | 'member';
@@ -31,6 +37,9 @@ type PendingAccount = {
 
 type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
+        /** The URL of the Group Chat report custom avatar */
+        avatarUrl?: string;
+
         /** The specific type of chat */
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
@@ -175,10 +184,11 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         isLoadingPrivateNotes?: boolean;
         selected?: boolean;
 
+        /** Pending members of the report */
+        pendingChatMembers?: PendingChatMember[];
+
         /** If the report contains reportFields, save the field id and its value */
         reportFields?: Record<string, PolicyReportField>;
-
-        pendingAccounts?: Record<string, PendingAccount>;
     },
     PolicyReportField['fieldID']
 >;
@@ -187,4 +197,4 @@ type ReportCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPO
 
 export default Report;
 
-export type {NotificationPreference, RoomVisibility, WriteCapability, Note, ReportCollectionDataSet, PendingAccount};
+export type {NotificationPreference, RoomVisibility, WriteCapability, Note, PendingChatMember, ReportCollectionDataSet};

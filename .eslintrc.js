@@ -1,13 +1,14 @@
 const restrictedImportPaths = [
     {
         name: 'react-native',
-        importNames: ['useWindowDimensions', 'StatusBar', 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'Pressable', 'Text'],
+        importNames: ['useWindowDimensions', 'StatusBar', 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'Pressable', 'Text', 'ScrollView'],
         message: [
             '',
             "For 'useWindowDimensions', please use 'src/hooks/useWindowDimensions' instead.",
             "For 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'Pressable', please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from 'src/components/Pressable' instead.",
             "For 'StatusBar', please use 'src/libs/StatusBar' instead.",
             "For 'Text', please use '@components/Text' instead.",
+            "For 'ScrollView', please use '@components/ScrollView' instead.",
         ].join('\n'),
     },
     {
@@ -193,6 +194,7 @@ module.exports = {
                     {
                         selector: ['parameter', 'method'],
                         format: ['camelCase', 'PascalCase'],
+                        leadingUnderscore: 'allow',
                     },
                 ],
                 '@typescript-eslint/ban-types': [
