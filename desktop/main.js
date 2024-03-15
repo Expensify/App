@@ -11,6 +11,7 @@ const CONFIG = require('../src/CONFIG').default;
 const CONST = require('../src/CONST').default;
 const Localize = require('../src/libs/Localize');
 const createDownloadQueue = require('./createDownloadQueue').default;
+
 const port = process.env.PORT || 8082;
 const {DESKTOP_SHORTCUT_ACCELERATOR, LOCALES} = CONST;
 
@@ -604,7 +605,7 @@ const mainWindow = () => {
                         ...downloadData,
                         win: browserWindow,
                     };
-                    downloadQueue.pushDownloadItem(downloadItem);
+                    downloadQueue.enqueueDownloadItem(downloadItem);
                 });
 
                 return browserWindow;

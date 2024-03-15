@@ -1,7 +1,8 @@
 import type {BrowserWindow} from 'electron';
-import ELECTRON_EVENTS from '@desktop/ELECTRON_EVENTS';
-import electronDownload from '@desktop/electronDownloadManager';
-import type {Options} from '@desktop/electronDownloadManagerType';
+import createQueue from '@libs/Queue/Queue';
+import ELECTRON_EVENTS from './ELECTRON_EVENTS';
+import electronDownload from './electronDownloadManager';
+import type {Options} from './electronDownloadManagerType';
 
 type DownloadItem = {
     // The window where the download will be initiated
@@ -15,32 +16,11 @@ type DownloadItem = {
 };
 
 /**
- * Represents a queue of download items.
- */
-type DownloadQueue = DownloadItem[];
-
-/**
  * Creates a download queue.
- * @returns An object with methods to push and shift download items from the queue.
+ * @returns An object with methods to enqueue and dequeue download items from the queue.
  */
 const createDownloadQueue = () => {
-    const queue: DownloadQueue = [];
-
-    /**
-     * Shifts and returns the first item from the download queue.
-     * If the queue is not empty, it triggers the download of the next item.
-     * @returns The shifted DownloadItem or undefined if the queue is empty.
-     */
-    const shiftDownloadItem = (): DownloadItem | undefined => {
-        const item = queue.shift();
-        if (queue.length > 0) {
-            // This code block contains a cyclic dependency between functions,
-            // so one of them should have the eslint-disable-next-line comment
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            downloadItem(queue[0]);
-        }
-        return item;
-    };
+    const queue = createQueue<DownloadItem>();
 
     /**
      * Downloads the specified item.
@@ -55,10 +35,26 @@ const createDownloadQueue = () => {
                     item.win.webContents.send(ELECTRON_EVENTS.DOWNLOAD_STARTED, {url: item.url});
                 },
                 onCompleted: () => {
-                    shiftDownloadItem();
+                    queue.dequeue();
+                    if (queue.isEmpty()) {
+                        return;
+                    }
+
+                    const nextItem = queue.peek();
+                    if (nextItem !== undefined) {
+                        downloadItem(nextItem);
+                    }
                 },
                 onCancel: () => {
-                    shiftDownloadItem();
+                    queue.dequeue();
+                    if (queue.isEmpty()) {
+                        return;
+                    }
+
+                    const nextItem = queue.peek();
+                    if (nextItem !== undefined) {
+                        downloadItem(nextItem);
+                    }
                 },
             },
         };
@@ -67,20 +63,23 @@ const createDownloadQueue = () => {
     };
 
     /**
-     * Pushes a download item to the queue and returns the new length of the queue.
-     * If the queue was empty before pushing the item, it will immediately start downloading the item.
-     * @param item The download item to be pushed to the queue.
-     * @returns The new length of the queue after pushing the item.
+     * Enqueues a download item to the queue and returns the new length of the queue.
+     * If the queue was empty before enqueuing the item, it will immediately start downloading the item.
+     * @param item The download item to be enqueued to the queue.
+     * @returns The new length of the queue after enqueuing the item.
      */
-    const pushDownloadItem = (item: DownloadItem): number => {
-        const len = queue.push(item);
-        if (queue.length === 1) {
-            downloadItem(queue[0]);
+    const enqueueDownloadItem = (item: DownloadItem): number => {
+        queue.enqueue(item);
+        if (queue.size() === 1) {
+            const peekItem = queue.peek();
+            if (peekItem !== undefined) {
+                downloadItem(peekItem);
+            }
         }
-        return len;
+        return queue.size();
     };
 
-    return {pushDownloadItem, shiftDownloadItem};
+    return {enqueueDownloadItem, dequeueDownloadItem: queue.dequeue};
 };
 
 export default createDownloadQueue;
