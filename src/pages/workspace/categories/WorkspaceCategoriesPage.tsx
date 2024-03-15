@@ -6,6 +6,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -58,6 +59,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
     const {translate} = useLocalize();
     const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
     const dropdownButtonRef = useRef(null);
+    const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
 
     function fetchCategories() {
         Policy.openPolicyCategoriesPage(route.params.policyID);
@@ -154,6 +156,11 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
 
     const selectedCategoriesArray = Object.keys(selectedCategories).filter((key) => selectedCategories[key]);
 
+    const handleDeleteCategories = () => {
+        setSelectedCategories({});
+        deleteWorkspaceCategories(route.params.policyID, selectedCategoriesArray);
+    };
+
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES>>> = [];
 
@@ -162,10 +169,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                 icon: Expensicons.Trashcan,
                 text: translate('workspace.categories.deleteCategories'),
                 value: CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES.DELETE,
-                onSelected: () => {
-                    setSelectedCategories({});
-                    deleteWorkspaceCategories(route.params.policyID, selectedCategoriesArray);
-                },
+                onSelected: () => setDeleteCategoriesConfirmModalVisible(true),
             });
 
             const enabledCategories = selectedCategoriesArray.filter((categoryName) => policyCategories?.[categoryName].enabled);
@@ -252,7 +256,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
 
     const isLoading = !isOffline && policyCategories === undefined;
 
-    const shouldShowEmptyState = categoryList.filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === 0 && !isLoading;
+    const shouldShowEmptyState = !categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) && !isLoading;
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
@@ -270,6 +274,16 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                     >
                         {!isSmallScreenWidth && getHeaderButtons()}
                     </HeaderWithBackButton>
+                    <ConfirmModal
+                        isVisible={deleteCategoriesConfirmModalVisible}
+                        onConfirm={handleDeleteCategories}
+                        onCancel={() => setDeleteCategoriesConfirmModalVisible(false)}
+                        title={translate(selectedCategoriesArray.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories')}
+                        prompt={translate(selectedCategoriesArray.length === 1 ? 'workspace.categories.deleteCategoryPrompt' : 'workspace.categories.deleteCategoriesPrompt')}
+                        confirmText={translate('common.delete')}
+                        cancelText={translate('common.cancel')}
+                        danger
+                    />
                     {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                     <View style={[styles.ph5, styles.pb5, styles.pt3]}>
                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>

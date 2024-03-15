@@ -38,7 +38,7 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
-    const [removeCategoryConfirmModalVisible, setRemoveCategoryConfirmModalVisible] = useState(false);
+    const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
 
     const policyCategory = policyCategories?.[route.params.categoryName];
 
@@ -54,9 +54,9 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
         Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_EDIT.getRoute(route.params.policyID, policyCategory.name));
     };
 
-    const removeCategory = () => {
+    const deleteCategory = () => {
         Policy.deleteWorkspaceCategories(route.params.policyID, [route.params.categoryName]);
-        setRemoveCategoryConfirmModalVisible(false);
+        setDeleteCategoryConfirmModalVisible(false);
         Navigation.dismissModal();
     };
 
@@ -64,7 +64,7 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
         {
             icon: Expensicons.Trashcan,
             text: translate('workspace.categories.deleteCategory'),
-            onSelected: () => setRemoveCategoryConfirmModalVisible(true),
+            onSelected: () => setDeleteCategoryConfirmModalVisible(true),
         },
     ];
 
@@ -83,9 +83,9 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
                         threeDotsMenuItems={threeDotsMenuItems}
                     />
                     <ConfirmModal
-                        isVisible={removeCategoryConfirmModalVisible}
-                        onConfirm={removeCategory}
-                        onCancel={() => setRemoveCategoryConfirmModalVisible(false)}
+                        isVisible={deleteCategoryConfirmModalVisible}
+                        onConfirm={deleteCategory}
+                        onCancel={() => setDeleteCategoryConfirmModalVisible(false)}
                         title={translate('workspace.categories.deleteCategory')}
                         prompt={translate('workspace.categories.deleteCategoryPrompt')}
                         confirmText={translate('common.delete')}

@@ -1776,6 +1776,7 @@ export default {
         },
         categories: {
             deleteCategories: 'Delete categories',
+            deleteCategoriesPrompt: 'Are you sure you want to delete these categories?',
             deleteCategory: 'Delete category',
             deleteCategoryPrompt: 'Are you sure you want to delete this category?',
             disableCategories: 'Disable categories',
@@ -1790,6 +1791,7 @@ export default {
                 subtitle: 'Add a category to organize your spend.',
             },
             genericFailureMessage: 'An error occurred while updating the category, please try again.',
+            createFailureMessage: 'An error occurred while creating the category, please try again.',
             addCategory: 'Add category',
             editCategory: 'Edit category',
             categoryRequiredError: 'Category name is required.',

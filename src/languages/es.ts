@@ -1800,6 +1800,7 @@ export default {
         },
         categories: {
             deleteCategories: 'Eliminar categorías',
+            deleteCategoriesPrompt: '¿Estás seguro de que quieres eliminar estas categorías?',
             deleteCategory: 'Eliminar categoría',
             deleteCategoryPrompt: '¿Estás seguro de que quieres eliminar esta categoría?',
             disableCategories: 'Desactivar categorías',
@@ -1814,6 +1815,7 @@ export default {
                 subtitle: 'Añade una categoría para organizar tu gasto.',
             },
             genericFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
+            createFailureMessage: 'Se ha producido un error al intentar crear la categoría. Por favor, inténtalo más tarde.',
             addCategory: 'Añadir categoría',
             editCategory: 'Editar categoría',
             categoryRequiredError: 'Lo nombre de la categoría es obligatorio.',
