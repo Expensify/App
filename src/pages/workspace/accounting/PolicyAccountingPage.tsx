@@ -74,7 +74,7 @@ function PolicyAccountingPage() {
                 ...connectionIconSize,
             },
         ],
-        [setPolicyIsConnectedToAccountingSystem, connectionIconSize],
+        [openQBOsync, connectionIconSize],
     );
 
     const qboConnectionOptionsMenuItems: WorkspaceMenuItem[] = useMemo(
