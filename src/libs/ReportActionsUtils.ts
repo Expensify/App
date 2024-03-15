@@ -135,7 +135,7 @@ function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction>): boolean
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
 }
 
-function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
+function isWhisperAction(reportAction: OnyxEntry<ReportAction> | EmptyObject): boolean {
     return (reportAction?.whisperedToAccountIDs ?? []).length > 0;
 }
 
@@ -205,7 +205,7 @@ function isSentMoneyReportAction(reportAction: OnyxEntry<ReportAction | Optimist
  * Returns whether the thread is a transaction thread, which is any thread with IOU parent
  * report action from requesting money (type - create) or from sending money (type - pay with IOUDetails field)
  */
-function isTransactionThread(parentReportAction: OnyxEntry<ReportAction>): boolean {
+function isTransactionThread(parentReportAction: OnyxEntry<ReportAction> | EmptyObject): boolean {
     return (
         parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
         (parentReportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
@@ -482,8 +482,8 @@ function getLastVisibleAction(reportID: string, actionsToMerge: OnyxCollection<R
     return sortedReportActions[0];
 }
 
-function getLastVisibleMessage(reportID: string, actionsToMerge: OnyxCollection<ReportAction> = {}): LastVisibleMessage {
-    const lastVisibleAction = getLastVisibleAction(reportID, actionsToMerge);
+function getLastVisibleMessage(reportID: string, actionsToMerge: OnyxCollection<ReportAction> = {}, reportAction: OnyxEntry<ReportAction> | undefined = undefined): LastVisibleMessage {
+    const lastVisibleAction = reportAction ?? getLastVisibleAction(reportID, actionsToMerge);
     const message = lastVisibleAction?.message?.[0];
 
     if (message && isReportMessageAttachment(message)) {
@@ -808,6 +808,47 @@ function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): 
     };
 }
 
+function isOldDotReportAction(action: ReportAction): boolean {
+    return [
+        CONST.REPORT.ACTIONS.TYPE.CHANGEFIELD,
+        CONST.REPORT.ACTIONS.TYPE.CHANGEPOLICY,
+        CONST.REPORT.ACTIONS.TYPE.CHANGETYPE,
+        CONST.REPORT.ACTIONS.TYPE.DELEGATESUBMIT,
+        CONST.REPORT.ACTIONS.TYPE.DELETEDACCOUNT,
+        CONST.REPORT.ACTIONS.TYPE.DONATION,
+        CONST.REPORT.ACTIONS.TYPE.EXPORTEDTOCSV,
+        CONST.REPORT.ACTIONS.TYPE.EXPORTEDTOINTEGRATION,
+        CONST.REPORT.ACTIONS.TYPE.EXPORTEDTOQUICKBOOKS,
+        CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+        CONST.REPORT.ACTIONS.TYPE.INTEGRATIONSMESSAGE,
+        CONST.REPORT.ACTIONS.TYPE.MANAGERATTACHRECEIPT,
+        CONST.REPORT.ACTIONS.TYPE.MANAGERDETACHRECEIPT,
+        CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED,
+        CONST.REPORT.ACTIONS.TYPE.MARKREIMBURSEDFROMINTEGRATION,
+        CONST.REPORT.ACTIONS.TYPE.OUTDATEDBANKACCOUNT,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTACHBOUNCE,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTACHCANCELLED,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTACCOUNTCHANGED,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDELAYED,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTREQUESTED,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTSETUP,
+        CONST.REPORT.ACTIONS.TYPE.SELECTEDFORRANDOMAUDIT,
+        CONST.REPORT.ACTIONS.TYPE.SHARE,
+        CONST.REPORT.ACTIONS.TYPE.STRIPEPAID,
+        CONST.REPORT.ACTIONS.TYPE.TAKECONTROL,
+        CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
+        CONST.REPORT.ACTIONS.TYPE.UNSHARE,
+    ].some((oldDotActionName) => oldDotActionName === action.actionName);
+}
+
+/**
+ * Helper method to format message of OldDot Actions.
+ * For now, we just concat all of the text elements of the message to create the full message.
+ */
+function getMessageOfOldDotReportAction(reportAction: OnyxEntry<ReportAction>): string {
+    return reportAction?.message?.map((element) => element.text).join('') ?? '';
+}
+
 function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
     const messageElements = getMemberChangeMessageElements(reportAction);
     return messageElements.map((element) => element.content).join('');
@@ -969,6 +1010,8 @@ export {
     getFirstVisibleReportActionID,
     isMemberChangeAction,
     getMemberChangeMessageFragment,
+    isOldDotReportAction,
+    getMessageOfOldDotReportAction,
     getMemberChangeMessagePlainText,
     isReimbursementDeQueuedAction,
     isActionableMentionWhisper,

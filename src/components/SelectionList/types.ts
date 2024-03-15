@@ -1,5 +1,8 @@
-import type {ReactElement, ReactNode} from 'react';
-import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {MutableRefObject, ReactElement, ReactNode} from 'react';
+import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+import type {MaybePhraseKey} from '@libs/Localize';
+import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -12,7 +15,7 @@ type CommonListItemProps<TItem> = {
     isFocused?: boolean;
 
     /** Whether this item is disabled */
-    isDisabled?: boolean;
+    isDisabled?: boolean | null;
 
     /** Whether this item should show Tooltip */
     showTooltip: boolean;
@@ -32,6 +35,9 @@ type CommonListItemProps<TItem> = {
     /** Component to display on the right side */
     rightHandSideComponent?: ((item: TItem) => ReactElement<TItem>) | ReactElement | null;
 
+    /** Direction of checkmark to show */
+    checkmarkPosition?: ValueOf<typeof CONST.DIRECTION>;
+
     /** Styles for the pressable component */
     pressableStyle?: StyleProp<ViewStyle>;
 
@@ -47,19 +53,22 @@ type CommonListItemProps<TItem> = {
 
 type ListItem = {
     /** Text to display */
-    text: string;
+    text?: string;
 
     /** Alternate text to display */
     alternateText?: string | null;
 
     /** Key used internally by React */
-    keyForList: string;
+    keyForList?: string | null;
 
     /** Whether this option is selected */
     isSelected?: boolean;
 
+    /** Whether the checkbox should be disabled */
+    isDisabledCheckbox?: boolean;
+
     /** Whether this option is disabled for selection */
-    isDisabled?: boolean;
+    isDisabled?: boolean | null;
 
     /** List title is bold by default. Use this props to customize it */
     isBold?: boolean;
@@ -90,6 +99,9 @@ type ListItem = {
     /** Represents the index of the option within the section it came from */
     index?: number;
 
+    /** ID of the report */
+    reportID?: string;
+
     /** Whether this option should show subscript */
     shouldShowSubscript?: boolean | null;
 
@@ -117,7 +129,7 @@ type ListItemProps = CommonListItemProps<ListItem> & {
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;
     shouldPreventDefaultFocusOnSelectRow?: boolean;
-    keyForList?: string;
+    keyForList?: string | null;
     errors?: Errors | ReceiptErrors | null;
     pendingAction?: PendingAction | null;
     FooterComponent?: ReactElement;
@@ -160,7 +172,7 @@ type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {
 
 type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
-    sections: Array<SectionListData<TItem, Section<TItem>>>;
+    sections: Array<SectionListData<TItem, Section<TItem>>> | typeof CONST.EMPTY_ARRAY;
 
     /** Default renderer for every item in the list */
     ListItem: typeof RadioListItem | typeof UserListItem | typeof TableListItem;
@@ -187,7 +199,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     textInputPlaceholder?: string;
 
     /** Hint for the text input */
-    textInputHint?: string;
+    textInputHint?: MaybePhraseKey;
 
     /** Value for the text input */
     textInputValue?: string;
@@ -264,6 +276,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Component to display on the right side of each child */
     rightHandSideComponent?: ((item: ListItem) => ReactElement<ListItem>) | ReactElement | null;
 
+    /** Direction of checkmark to show */
+    checkmarkPosition?: ValueOf<typeof CONST.DIRECTION>;
+
     /** Whether to show the loading indicator for new options */
     isLoadingNewOptions?: boolean;
 
@@ -276,8 +291,18 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Styles for the list header wrapper */
     listHeaderWrapperStyle?: StyleProp<ViewStyle>;
 
+    /**  Whether to auto focus the Search Input */
+    autoFocus?: boolean;
+
     /** Whether to wrap long text up to 2 lines */
     isRowMultilineSupported?: boolean;
+
+    /** Ref for textInput */
+    textInputRef?: MutableRefObject<TextInput | null>;
+};
+
+type SelectionListHandle = {
+    scrollAndHighlightItem?: (items: string[], timeout: number) => void;
 };
 
 type ItemLayout = {
@@ -312,4 +337,5 @@ export type {
     ItemLayout,
     ButtonOrCheckBoxRoles,
     SectionListDataType,
+    SelectionListHandle,
 };
