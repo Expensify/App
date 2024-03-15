@@ -18,6 +18,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import * as Policy from '@userActions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyTagList} from '@src/types/onyx';
@@ -32,9 +33,9 @@ type TagSettingsPageProps = TagSettingsPageOnyxProps & StackScreenProps<Settings
 function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyTag = useMemo(() => PolicyUtils.getTagLists(policyTags)?.[0] ?? {}, [policyTags]);
+    const policyTag = useMemo(() => PolicyUtils.getTagList(policyTags, 0), [policyTags]);
 
-    const currentPolicyTag = policyTag.tags[route.params.tagName];
+    const currentPolicyTag = policyTag.tags[decodeURIComponent(route.params.tagName)];
 
     if (!currentPolicyTag) {
         return <NotFoundPage />;
@@ -58,7 +59,7 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
                             errors={ErrorUtils.getLatestErrorMessageField(currentPolicyTag)}
                             pendingAction={currentPolicyTag.pendingFields?.enabled}
                             errorRowStyles={styles.mh5}
-                            onClose={() => {}}
+                            onClose={() => Policy.clearPolicyTagErrors(route.params.policyID, route.params.tagName)}
                         >
                             <View style={[styles.mt2, styles.mh5]}>
                                 <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>

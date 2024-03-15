@@ -2940,7 +2940,6 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                             ...Object.keys(tagsToUpdate).reduce<PolicyTags>((acc, key) => {
                                 acc[key] = {
                                     ...policyTag.tags[key],
-                                    ...tagsToUpdate[key],
                                     errors: null,
                                     pendingFields: {
                                         enabled: null,
