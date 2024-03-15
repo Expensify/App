@@ -167,10 +167,6 @@ describe('actions/Policy', () => {
 
             // Check if the report pending action and fields were cleared
             Object.values(allReports ?? {}).forEach((report) => {
-                if (typeof report === 'undefined') {
-                    return;
-                }
-
                 expect(report?.pendingAction).toBeFalsy();
                 expect(report?.pendingFields?.addWorkspaceRoom).toBeFalsy();
             });
