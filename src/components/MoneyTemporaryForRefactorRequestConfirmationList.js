@@ -1,6 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import {format} from 'date-fns';
 import Str from 'expensify-common/lib/str';
+import {isUndefined} from 'lodash';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useReducer, useRef, useState} from 'react';
@@ -245,11 +246,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
-    const {canUseViolations} = usePermissions();
+    const {canUseP2PDistanceRequests, canUseViolations} = usePermissions();
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.REQUEST;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
+    const canEditDistance = isTypeRequest || (canUseP2PDistanceRequests && isTypeSplit);
 
     const {unit, rate, currency} = mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
@@ -490,6 +492,31 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         IOU.setMoneyRequestMerchant(transaction.transactionID, distanceMerchant, true);
     }, [isDistanceRequestWithPendingRoute, hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transaction]);
 
+    // Auto select the category if there is only one enabled category and it is required
+    useEffect(() => {
+        const enabledCategories = _.filter(policyCategories, (category) => category.enabled);
+        if (iouCategory || !shouldShowCategories || enabledCategories.length !== 1 || !isCategoryRequired) {
+            return;
+        }
+        IOU.setMoneyRequestCategory(transaction.transactionID, enabledCategories[0].name);
+    }, [iouCategory, shouldShowCategories, policyCategories, transaction, isCategoryRequired]);
+
+    // Auto select the tag if there is only one enabled tag and it is required
+    useEffect(() => {
+        let updatedTagsString = TransactionUtils.getTag(transaction);
+        policyTagLists.forEach((tagList, index) => {
+            const enabledTags = _.filter(tagList.tags, (tag) => tag.enabled);
+            const isTagListRequired = isUndefined(tagList.required) ? false : tagList.required && canUseViolations;
+            if (!isTagListRequired || enabledTags.length !== 1 || TransactionUtils.getTag(transaction, index)) {
+                return;
+            }
+            updatedTagsString = IOUUtils.insertTagIntoTransactionTagsString(updatedTagsString, enabledTags[0] ? enabledTags[0].name : '', index);
+        });
+        if (updatedTagsString !== TransactionUtils.getTag(transaction) && updatedTagsString) {
+            IOU.setMoneyRequestTag(transaction.transactionID, updatedTagsString);
+        }
+    }, [policyTagLists, transaction, policyTags, isTagRequired, canUseViolations]);
+
     /**
      * @param {Object} option
      */
@@ -689,13 +716,14 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.distance')}
-                    shouldShowRightIcon={!isReadOnly && isTypeRequest}
-                    title={iouMerchant}
+                    shouldShowRightIcon={!isReadOnly && canEditDistance}
+                    title={isMerchantEmpty ? '' : iouMerchant}
                     description={translate('common.distance')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
-                    disabled={didConfirm || !isTypeRequest}
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    disabled={didConfirm || !canEditDistance}
                     interactive={!isReadOnly}
                 />
             ),
