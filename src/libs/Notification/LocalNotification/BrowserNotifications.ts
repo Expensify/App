@@ -18,14 +18,16 @@ function canUseBrowserNotifications(): Promise<boolean> {
     return new Promise((resolve) => {
         // They have no browser notifications so we can't use this feature
         if (!window.Notification) {
-            return resolve(false);
+            resolve(false);
+            return;
         }
 
         // Check if they previously granted or denied us access to send a notification
         const permissionGranted = Notification.permission === 'granted';
 
         if (permissionGranted || Notification.permission === 'denied') {
-            return resolve(permissionGranted);
+            resolve(permissionGranted);
+            return;
         }
 
         // Check their global preferences for browser notifications and ask permission if they have none
@@ -42,7 +44,15 @@ function canUseBrowserNotifications(): Promise<boolean> {
  * @param icon Path to icon
  * @param data extra data to attach to the notification
  */
-function push(title: string, body = '', icon: string | ImageSourcePropType = '', data: LocalNotificationData = {}, onClick: LocalNotificationClickHandler = () => {}, silent = false) {
+function push(
+    title: string,
+    body = '',
+    icon: string | ImageSourcePropType = '',
+    data: LocalNotificationData = {},
+    onClick: LocalNotificationClickHandler = () => {},
+    silent = false,
+    tag = '',
+) {
     canUseBrowserNotifications().then((canUseNotifications) => {
         if (!canUseNotifications) {
             return;
@@ -55,6 +65,7 @@ function push(title: string, body = '', icon: string | ImageSourcePropType = '',
             icon: String(icon),
             data,
             silent,
+            tag,
         });
         notificationCache[notificationID].onclick = () => {
             onClick();
@@ -122,9 +133,17 @@ export default {
      * Create a notification to indicate that an update is available.
      */
     pushUpdateAvailableNotification() {
-        push('Update available', 'A new version of this app is available!', '', {}, () => {
-            AppUpdate.triggerUpdateAvailable();
-        });
+        push(
+            'Update available',
+            'A new version of this app is available!',
+            '',
+            {},
+            () => {
+                AppUpdate.triggerUpdateAvailable();
+            },
+            false,
+            'UpdateAvailable',
+        );
     },
 
     /**

@@ -1,6 +1,5 @@
 import type {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import React, {useMemo} from 'react';
-import {ScrollView} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
@@ -8,6 +7,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
@@ -46,6 +46,17 @@ const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACC
 
     return errors;
 };
+
+function ConfirmCompanyLabel() {
+    const {translate} = useLocalize();
+
+    return (
+        <Text>
+            {`${translate('businessInfoStep.confirmCompanyIsNot')} `}
+            <TextLink href={CONST.LIST_OF_RESTRICTED_BUSINESSES}>{`${translate('businessInfoStep.listOfRestrictedBusinesses')}.`}</TextLink>
+        </Text>
+    );
+}
 
 function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, onNext, onMove}: ConfirmationBusinessProps) {
     const {translate} = useLocalize();
@@ -138,12 +149,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                     aria-label={`${translate('businessInfoStep.confirmCompanyIsNot')} ${translate('businessInfoStep.listOfRestrictedBusinesses')}`}
                     inputID={BUSINESS_INFO_STEP_KEYS.HAS_NO_CONNECTION_TO_CANNABIS}
                     defaultValue={defaultCheckboxState}
-                    LabelComponent={() => (
-                        <Text>
-                            {`${translate('businessInfoStep.confirmCompanyIsNot')} `}
-                            <TextLink href={CONST.LIST_OF_RESTRICTED_BUSINESSES}>{`${translate('businessInfoStep.listOfRestrictedBusinesses')}.`}</TextLink>
-                        </Text>
-                    )}
+                    LabelComponent={ConfirmCompanyLabel}
                     style={[styles.mt3]}
                     shouldSaveDraft
                 />

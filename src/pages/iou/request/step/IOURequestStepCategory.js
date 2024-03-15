@@ -1,4 +1,5 @@
 import lodashGet from 'lodash/get';
+import lodashIsEmpty from 'lodash/isEmpty';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
@@ -72,7 +73,7 @@ function IOURequestStepCategory({
     const {translate} = useLocalize();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
-    const {category: transactionCategory} = ReportUtils.getTransactionDetails(isEditingSplitBill ? splitDraftTransaction : transaction);
+    const {category: transactionCategory} = ReportUtils.getTransactionDetails(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction);
 
     const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -92,7 +93,7 @@ function IOURequestStepCategory({
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplitBill) {
-            IOU.setDraftSplitTransaction(transaction.transactionID, {category: category.searchText});
+            IOU.setDraftSplitTransaction(transaction.transactionID, {category: updatedCategory});
             navigateBack();
             return;
         }
