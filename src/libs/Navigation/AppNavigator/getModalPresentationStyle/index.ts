@@ -1,5 +1,5 @@
 function getModalPresentationStyle(): 'transparentModal' {
-  return 'transparentModal';
+    return 'transparentModal';
 }
 
 export default getModalPresentationStyle;

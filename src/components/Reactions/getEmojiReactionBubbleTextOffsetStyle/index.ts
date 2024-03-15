@@ -1,5 +1,5 @@
 function getEmojiReactionBubbleTextOffsetStyle() {
-  return {transform: [{translateY: 0}]};
+    return {transform: [{translateY: 0}]};
 }
 
 export default getEmojiReactionBubbleTextOffsetStyle;
