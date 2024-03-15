@@ -102,7 +102,7 @@ function OnboardingPurpose() {
     });
 
     return (
-        <View style={[styles.h100, styles.defaultModalContainer, !shouldUseNarrowLayout && styles.pt8]}>
+        <View style={[styles.h100, styles.defaultModalContainer]}>
             <View style={shouldUseNarrowLayout && styles.mh3}>
                 <HeaderWithBackButton
                     shouldShowBackButton

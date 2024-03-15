@@ -65,7 +65,7 @@ function OnboardingPersonalDetails({currentUserPersonalDetails}: OnboardingPerso
     };
 
     return (
-        <View style={[styles.h100, styles.defaultModalContainer, !shouldUseNarrowLayout && styles.pt8]}>
+        <View style={[styles.h100, styles.defaultModalContainer]}>
             <HeaderWithBackButton
                 shouldShowBackButton={false}
                 iconFill={theme.iconColorfulBackground}
