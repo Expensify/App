@@ -1,4 +1,5 @@
 import type * as NativeNavigation from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import {fireEvent, screen, waitFor} from '@testing-library/react-native';
 import type {TextMatch} from '@testing-library/react-native/build/matches';
 import React from 'react';
@@ -7,11 +8,13 @@ import Onyx from 'react-native-onyx';
 import {measurePerformance} from 'reassure';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
+import type {RootStackParamList} from '@libs/Navigation/types';
 import SearchPage from '@pages/SearchPage';
 import ComposeProviders from '@src/components/ComposeProviders';
 import OnyxProvider from '@src/components/OnyxProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
@@ -112,11 +115,10 @@ afterEach(() => {
     PusherHelper.teardown();
 });
 
-type SearchPageProps = {
+type SearchPageProps = StackScreenProps<RootStackParamList, typeof SCREENS.SEARCH_ROOT> & {
     betas?: string[];
     reports?: Report;
     isSearchingForReports?: boolean;
-    navigation: Record<string, unknown>;
 };
 
 function SearchPageWrapper(args: SearchPageProps) {
@@ -131,13 +133,9 @@ function SearchPageWrapper(args: SearchPageProps) {
     );
 }
 
-type CreateAddListenerMock = {
-    triggerTransitionEnd?: () => void;
-    addListener?: () => Record<string, unknown>;
-};
-
 test('[Search Page] should interact when text input changes', async () => {
-    const {addListener}: CreateAddListenerMock = TestHelper.createAddListenerMock();
+    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+    const {addListener} = TestHelper.createAddListenerMock();
 
     const scenario = async () => {
         await screen.findByTestId('SearchPage');
@@ -150,20 +148,24 @@ test('[Search Page] should interact when text input changes', async () => {
 
     const navigation = {addListener};
 
-    return waitForBatchedUpdates()
-        .then(() =>
-            Onyx.multiSet({
-                ...mockedReports,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
-                [ONYXKEYS.BETAS]: mockedBetas,
-                [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
-            }),
-        )
-        .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario}));
+    return (
+        waitForBatchedUpdates()
+            .then(() =>
+                Onyx.multiSet({
+                    ...mockedReports,
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                    [ONYXKEYS.BETAS]: mockedBetas,
+                    [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
+                }),
+            )
+            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+            .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario}))
+    );
 });
 
 test('[Search Page] should render selection list', async () => {
-    const {triggerTransitionEnd, addListener}: CreateAddListenerMock = TestHelper.createAddListenerMock();
+    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+    const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
     const smallMockedPersonalDetails = getMockedPersonalDetails(5);
 
     const scenario = async () => {
@@ -176,20 +178,24 @@ test('[Search Page] should render selection list', async () => {
 
     const navigation = {addListener};
 
-    return waitForBatchedUpdates()
-        .then(() =>
-            Onyx.multiSet({
-                ...mockedReports,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: smallMockedPersonalDetails,
-                [ONYXKEYS.BETAS]: mockedBetas,
-                [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
-            }),
-        )
-        .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario}));
+    return (
+        waitForBatchedUpdates()
+            .then(() =>
+                Onyx.multiSet({
+                    ...mockedReports,
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: smallMockedPersonalDetails,
+                    [ONYXKEYS.BETAS]: mockedBetas,
+                    [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
+                }),
+            )
+            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+            .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario}))
+    );
 });
 
 test('[Search Page] should search in selection list', async () => {
-    const {triggerTransitionEnd, addListener}: CreateAddListenerMock = TestHelper.createAddListenerMock();
+    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+    const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
 
     const scenario = async () => {
         await screen.findByTestId('SearchPage');
@@ -204,20 +210,24 @@ test('[Search Page] should search in selection list', async () => {
 
     const navigation = {addListener};
 
-    return waitForBatchedUpdates()
-        .then(() =>
-            Onyx.multiSet({
-                ...mockedReports,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
-                [ONYXKEYS.BETAS]: mockedBetas,
-                [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
-            }),
-        )
-        .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario}));
+    return (
+        waitForBatchedUpdates()
+            .then(() =>
+                Onyx.multiSet({
+                    ...mockedReports,
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                    [ONYXKEYS.BETAS]: mockedBetas,
+                    [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
+                }),
+            )
+            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+            .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario}))
+    );
 });
 
 test('[Search Page] should click on list item', async () => {
-    const {triggerTransitionEnd, addListener}: CreateAddListenerMock = TestHelper.createAddListenerMock();
+    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+    const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
 
     const scenario = async () => {
         await screen.findByTestId('SearchPage');
@@ -232,14 +242,17 @@ test('[Search Page] should click on list item', async () => {
     };
 
     const navigation = {addListener};
-    return waitForBatchedUpdates()
-        .then(() =>
-            Onyx.multiSet({
-                ...mockedReports,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
-                [ONYXKEYS.BETAS]: mockedBetas,
-                [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
-            }),
-        )
-        .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario}));
+    return (
+        waitForBatchedUpdates()
+            .then(() =>
+                Onyx.multiSet({
+                    ...mockedReports,
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                    [ONYXKEYS.BETAS]: mockedBetas,
+                    [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
+                }),
+            )
+            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+            .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario}))
+    );
 });

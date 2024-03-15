@@ -63,7 +63,7 @@ describe('getViolationsOnyxData', () => {
     describe('policyRequiresCategories', () => {
         beforeEach(() => {
             policyRequiresCategories = true;
-            policyCategories = {Food: {name: 'Food', enabled: true, areCommentsRequired: false, externalID: '1234', origin: '12345'}};
+            policyCategories = {Food: {name: 'Food', unencodedName: '', enabled: true, areCommentsRequired: false, externalID: '1234', origin: '12345'}};
             transaction.category = 'Food';
         });
 
