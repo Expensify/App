@@ -9,8 +9,7 @@ type RateValueForm = typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM | typeof
 
 function validateRateValue(values: FormOnyxValues<RateValueForm>, currency: string, toLocaleDigit: (arg: string) => string): FormInputErrors<RateValueForm> {
     const errors: FormInputErrors<RateValueForm> = {};
-    const rate = values.rate;
-    const parsedRate = MoneyRequestUtils.replaceAllDigits(rate, toLocaleDigit);
+    const parsedRate = MoneyRequestUtils.replaceAllDigits(values.rate, toLocaleDigit);
     const decimalSeparator = toLocaleDigit('.');
 
     // Allow one more decimal place for accuracy
