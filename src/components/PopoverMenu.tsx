@@ -50,6 +50,9 @@ type PopoverMenuItem = {
     /** Determines whether an icon should be displayed on the right side of the menu item. */
     shouldShowRightIcon?: boolean;
 
+    /** Icon to display - overrides default icon*/
+    iconRight?: IconAsset;
+
     /** Adds padding to the left of the text when there is no icon. */
     shouldPutLeftPaddingWhenNoIcon?: boolean;
 };
@@ -232,6 +235,7 @@ function PopoverMenu({
                         focused={focusedIndex === menuIndex}
                         displayInDefaultIconColor={item.displayInDefaultIconColor}
                         shouldShowRightIcon={item.shouldShowRightIcon}
+                        iconRight={item.iconRight}
                         shouldPutLeftPaddingWhenNoIcon={item.shouldPutLeftPaddingWhenNoIcon}
                     />
                 ))}
