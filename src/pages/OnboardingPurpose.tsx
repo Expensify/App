@@ -43,7 +43,7 @@ function OnboardingPurpose() {
     const paddingHorizontal = shouldUseNarrowLayout ? styles.ph8 : styles.ph5;
 
     const handleGoBack = useCallback(() => {
-        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
+        Navigation.goBack();
     }, []);
 
     const selectedCheckboxIcon = useMemo(
@@ -102,7 +102,7 @@ function OnboardingPurpose() {
     });
 
     return (
-        <View style={[styles.h100, styles.defaultModalContainer, !shouldUseNarrowLayout && styles.pt8]}>
+        <View style={[styles.h100, styles.defaultModalContainer, shouldUseNarrowLayout ? styles.pt5 : styles.pt8]}>
             <View style={shouldUseNarrowLayout && styles.mh3}>
                 <HeaderWithBackButton
                     shouldShowBackButton
