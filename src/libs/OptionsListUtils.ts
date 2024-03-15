@@ -1720,10 +1720,6 @@ function getOptions(
         );
     }
 
-    // console.log('recentReportOptions: ', recentReportOptions);
-    console.log('userToInvite: ', userToInvite);
-    console.log('currentUserOption: ', currentUserOption);
-
     return {
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
@@ -1833,6 +1829,11 @@ function getFilteredOptions(
     taxRates: TaxRatesWithDefault = {} as TaxRatesWithDefault,
     includeSelfDM = false,
 ) {
+    // console.log('personalDetails: ', personalDetails);
+    // console.log('selectedOptions: ', selectedOptions);
+    // console.log('tags: ', tags);
+    // console.log('taxRates: ', taxRates);
+
     return getOptions(reports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
