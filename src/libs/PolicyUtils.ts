@@ -273,10 +273,7 @@ function getPolicyMembersByIdWithoutCurrentUser(policyMembers: OnyxCollection<Po
 }
 
 function goBackFromInvalidPolicy() {
-    Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
-
-    // Needed when workspace with given policyID does not exist
-    Navigation.navigateWithSwitchPolicyID({route: ROUTES.ALL_SETTINGS});
+    Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
 }
 
 /** Get a tax with given ID from policy */
