@@ -62,7 +62,7 @@ Onyx.connect({
             setOfflineStatus(true);
         } else {
             // If we are no longer forcing offline fetch the NetInfo to set isOffline appropriately
-            NetInfo.fetch().then((state) => setOfflineStatus(state.isInternetReachable === false));
+            NetInfo.fetch().then((state) => setOfflineStatus((state.isInternetReachable ?? false) === false));
         }
     },
 });
@@ -106,7 +106,7 @@ function subscribeToNetInfo(): void {
             Log.info('[NetworkConnection] Not setting offline status because shouldForceOffline = true');
             return;
         }
-        setOfflineStatus(state.isInternetReachable === false);
+        setOfflineStatus((state.isInternetReachable ?? false) === false);
     });
 }
 
