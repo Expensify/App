@@ -27,7 +27,7 @@
     "desktop": "scripts/set-pusher-suffix.sh && ts-node desktop/start.js",
     "desktop-build": "scripts/build-desktop.sh production",
     "desktop-build-staging": "scripts/build-desktop.sh staging",
-    "createDocsRoutes": "ts-node .github/scripts/createDocsRoutes.js",
+    "createDocsRoutes": "ts-node .github/scripts/createDocsRoutes.ts",
     "desktop-build-adhoc": "scripts/build-desktop.sh adhoc",
     "ios-build": "fastlane ios build",
     "android-build": "fastlane android build",
