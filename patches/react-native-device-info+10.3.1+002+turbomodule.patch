@@ -1918,7 +1918,7 @@ index 0000000..398bc04
 +@end
 diff --git a/node_modules/react-native-device-info/lib/commonjs/fabric/NativeDeviceInfoModule.js b/node_modules/react-native-device-info/lib/commonjs/fabric/NativeDeviceInfoModule.js
 new file mode 100644
-index 0000000..66f1433
+index 0000000..f5d7b6c
 --- /dev/null
 +++ b/node_modules/react-native-device-info/lib/commonjs/fabric/NativeDeviceInfoModule.js
 @@ -0,0 +1,13 @@
@@ -1931,7 +1931,7 @@ index 0000000..66f1433
 +
 +var _reactNative = require("react-native");
 +
-+var _default = _reactNative.TurboModuleRegistry.getEnforcing('RNDeviceInfo');
++var _default = _reactNative.TurboModuleRegistry.get('RNDeviceInfo');
 +
 +exports.default = _default;
 +//# sourceMappingURL=NativeDeviceInfoModule.js.map
@@ -2234,22 +2234,22 @@ index 1dfb0e4..733e774 100644
 +{"version":3,"sources":["asyncHookWrappers.ts"],"names":["useOnMount","asyncGetter","initialResult","response","setResponse","loading","result","getAsync","deviceInfoEmitter","NativeEventEmitter","RNDeviceInfo","useOnEvent","eventName","initialValueAsyncGetter","defaultValue","setResult","subscription","addListener","remove"],"mappings":";;;;;;;;;AAAA;;AACA;;AACA;;;;AAGA;AACA;AACA;AACA;AACA;AACO,SAASA,UAAT,CAAuBC,WAAvB,EAAsDC,aAAtD,EAA4F;AACjG,QAAM,CAACC,QAAD,EAAWC,WAAX,IAA0B,qBAA6B;AAC3DC,IAAAA,OAAO,EAAE,IADkD;AAE3DC,IAAAA,MAAM,EAAEJ;AAFmD,GAA7B,CAAhC;AAKA,wBAAU,MAAM;AACd;AACA,UAAMK,QAAQ,GAAG,YAAY;AAC3B,YAAMD,MAAM,GAAG,MAAML,WAAW,EAAhC;AACAG,MAAAA,WAAW,CAAC;AAAEC,QAAAA,OAAO,EAAE,KAAX;AAAkBC,QAAAA;AAAlB,OAAD,CAAX;AACD,KAHD;;AAKAC,IAAAA,QAAQ;AACT,GARD,EAQG,CAACN,WAAD,CARH;AAUA,SAAOE,QAAP;AACD;;AAEM,MAAMK,iBAAiB,GAAG,IAAIC,+BAAJ,CAAuBC,wBAAvB,CAA1B;AAEP;AACA;AACA;AACA;AACA;AACA;;;;AACO,SAASC,UAAT,CACLC,SADK,EAELC,uBAFK,EAGLC,YAHK,EAIe;AACpB,QAAM;AAAET,IAAAA,OAAF;AAAWC,IAAAA,MAAM,EAAEJ;AAAnB,MAAqCF,UAAU,CAACa,uBAAD,EAA0BC,YAA1B,CAArD;AACA,QAAM,CAACR,MAAD,EAASS,SAAT,IAAsB,qBAAYD,YAAZ,CAA5B,CAFoB,CAIpB;;AACA,wBAAU,MAAM;AACdC,IAAAA,SAAS,CAACb,aAAD,CAAT;AACD,GAFD,EAEG,CAACA,aAAD,CAFH,EALoB,CASpB;AACA;;AACA,wBAAU,MAAM;AACd,UAAMc,YAAY,GAAGR,iBAAiB,CAACS,WAAlB,CAA8BL,SAA9B,EAAyCG,SAAzC,CAArB;AACA,WAAO,MAAMC,YAAY,CAACE,MAAb,EAAb;AACD,GAHD,EAGG,CAACN,SAAD,CAHH,EAXoB,CAgBpB;;AACA,SAAO;AAAEP,IAAAA,OAAF;AAAWC,IAAAA;AAAX,GAAP;AACD","sourcesContent":["import { useState, useEffect } from 'react';\nimport { NativeEventEmitter } from 'react-native';\nimport RNDeviceInfo from './nativeInterface';\nimport type { AsyncHookResult } from './types';\n\n/**\n * simple hook wrapper for async functions for 'on-mount / componentDidMount' that only need to fired once\n * @param asyncGetter async function that 'gets' something\n * @param initialResult -1 | false | 'unknown'\n */\nexport function useOnMount<T>(asyncGetter: () => Promise<T>, initialResult: T): AsyncHookResult<T> {\n  const [response, setResponse] = useState<AsyncHookResult<T>>({\n    loading: true,\n    result: initialResult,\n  });\n\n  useEffect(() => {\n    // async function cuz react complains if useEffect's effect param is an async function\n    const getAsync = async () => {\n      const result = await asyncGetter();\n      setResponse({ loading: false, result });\n    };\n\n    getAsync();\n  }, [asyncGetter]);\n\n  return response;\n}\n\nexport const deviceInfoEmitter = new NativeEventEmitter(RNDeviceInfo);\n\n/**\n * simple hook wrapper for handling events\n * @param eventName\n * @param initialValueAsyncGetter\n * @param defaultValue\n */\nexport function useOnEvent<T>(\n  eventName: string,\n  initialValueAsyncGetter: () => Promise<T>,\n  defaultValue: T\n): AsyncHookResult<T> {\n  const { loading, result: initialResult } = useOnMount(initialValueAsyncGetter, defaultValue);\n  const [result, setResult] = useState<T>(defaultValue);\n\n  // sets the result to what the intial value is on mount\n  useEffect(() => {\n    setResult(initialResult);\n  }, [initialResult]);\n\n  // - set up the event listener to set the result\n  // - set up the clean up function to remove subscription on unmount\n  useEffect(() => {\n    const subscription = deviceInfoEmitter.addListener(eventName, setResult);\n    return () => subscription.remove();\n  }, [eventName]);\n\n  // loading will only be true while getting the inital value. After that, it will always be false, but a new result may occur\n  return { loading, result };\n}\n"]}
 \ No newline at end of file
 diff --git a/node_modules/react-native-device-info/lib/commonjs/internal/nativeInterface.js b/node_modules/react-native-device-info/lib/commonjs/internal/nativeInterface.js
-index f00bade..e4e803f 100644
+index f00bade..155dc1c 100644
 --- a/node_modules/react-native-device-info/lib/commonjs/internal/nativeInterface.js
 +++ b/node_modules/react-native-device-info/lib/commonjs/internal/nativeInterface.js
-@@ -7,7 +7,11 @@ exports.default = void 0;
+@@ -7,11 +7,7 @@ exports.default = void 0;
  
  var _reactNative = require("react-native");
  
 -let RNDeviceInfo = _reactNative.NativeModules.RNDeviceInfo; // @ts-ignore
-+var _NativeDeviceInfoModule = _interopRequireDefault(require("../fabric/NativeDeviceInfoModule"));
-+
-+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-+
-+let RNDeviceInfo = _NativeDeviceInfoModule.default; // @ts-ignore
+-
+-if (_reactNative.Platform.OS === 'web' || _reactNative.Platform.OS === 'dom') {
+-  RNDeviceInfo = require('../web');
+-}
++let RNDeviceInfo = require('../web');
  
- if (_reactNative.Platform.OS === 'web' || _reactNative.Platform.OS === 'dom') {
-   RNDeviceInfo = require('../web');
+ if (!RNDeviceInfo) {
+   // Produce an error if we don't have the native module
 diff --git a/node_modules/react-native-device-info/lib/commonjs/internal/nativeInterface.js.map b/node_modules/react-native-device-info/lib/commonjs/internal/nativeInterface.js.map
 index ef378b6..d6ccc7f 100644
 --- a/node_modules/react-native-device-info/lib/commonjs/internal/nativeInterface.js.map
@@ -2258,6 +2258,31 @@ index ef378b6..d6ccc7f 100644
 -{"version":3,"sources":["nativeInterface.ts"],"names":["RNDeviceInfo","NativeModules","Platform","OS","require","Error"],"mappings":";;;;;;;AAAA;;AAGA,IAAIA,YAAgD,GAAGC,2BAAcD,YAArE,C,CAEA;;AACA,IAAIE,sBAASC,EAAT,KAAgB,KAAhB,IAAyBD,sBAASC,EAAT,KAAgB,KAA7C,EAAoD;AAClDH,EAAAA,YAAY,GAAGI,OAAO,CAAC,QAAD,CAAtB;AACD;;AAED,IAAI,CAACJ,YAAL,EAAmB;AACjB;AACA,MACEE,sBAASC,EAAT,KAAgB,SAAhB,IACAD,sBAASC,EAAT,KAAgB,KADhB,IAEAD,sBAASC,EAAT,KAAgB,KAFhB,IAGA;AACAD,wBAASC,EAAT,KAAgB,KALlB,EAME;AACA,UAAM,IAAIE,KAAJ,CAAW;AACrB;AACA;AACA;AACA,sJAJU,CAAN;AAKD;AACF;;eAEcL,Y","sourcesContent":["import { Platform, NativeModules } from 'react-native';\nimport { DeviceInfoNativeModule } from './privateTypes';\n\nlet RNDeviceInfo: DeviceInfoNativeModule | undefined = NativeModules.RNDeviceInfo;\n\n// @ts-ignore\nif (Platform.OS === 'web' || Platform.OS === 'dom') {\n  RNDeviceInfo = require('../web');\n}\n\nif (!RNDeviceInfo) {\n  // Produce an error if we don't have the native module\n  if (\n    Platform.OS === 'android' ||\n    Platform.OS === 'ios' ||\n    Platform.OS === 'web' ||\n    // @ts-ignore\n    Platform.OS === 'dom'\n  ) {\n    throw new Error(`react-native-device-info: NativeModule.RNDeviceInfo is null. To fix this issue try these steps:\n  • For react-native <= 0.59: Run \\`react-native link react-native-device-info\\` in the project root.\n  • Rebuild and re-run the app.\n  • If you are using CocoaPods on iOS, run \\`pod install\\` in the \\`ios\\` directory and then rebuild and re-run the app. You may also need to re-open Xcode to get the new pods.\n  If none of these fix the issue, please open an issue on the Github repository: https://github.com/react-native-device-info/react-native-device-info`);\n  }\n}\n\nexport default RNDeviceInfo as DeviceInfoNativeModule;\n"]}
 \ No newline at end of file
 +{"version":3,"sources":["nativeInterface.ts"],"names":["RNDeviceInfo","RNDeviceInfoModule","Platform","OS","require","Error"],"mappings":";;;;;;;AAAA;;AACA;;;;AAEA,IAAIA,YAAY,GAAGC,+BAAnB,C,CAEA;;AACA,IAAIC,sBAASC,EAAT,KAAgB,KAAhB,IAAyBD,sBAASC,EAAT,KAAgB,KAA7C,EAAoD;AAClDH,EAAAA,YAAY,GAAGI,OAAO,CAAC,QAAD,CAAtB;AACD;;AAED,IAAI,CAACJ,YAAL,EAAmB;AACjB;AACA,MACEE,sBAASC,EAAT,KAAgB,SAAhB,IACAD,sBAASC,EAAT,KAAgB,KADhB,IAEAD,sBAASC,EAAT,KAAgB,KAFhB,IAGA;AACAD,wBAASC,EAAT,KAAgB,KALlB,EAME;AACA,UAAM,IAAIE,KAAJ,CAAW;AACrB;AACA;AACA;AACA,sJAJU,CAAN;AAKD;AACF;;eAEcL,Y","sourcesContent":["import { Platform } from 'react-native';\nimport RNDeviceInfoModule from '../fabric/NativeDeviceInfoModule';\n\nlet RNDeviceInfo = RNDeviceInfoModule;\n\n// @ts-ignore\nif (Platform.OS === 'web' || Platform.OS === 'dom') {\n  RNDeviceInfo = require('../web');\n}\n\nif (!RNDeviceInfo) {\n  // Produce an error if we don't have the native module\n  if (\n    Platform.OS === 'android' ||\n    Platform.OS === 'ios' ||\n    Platform.OS === 'web' ||\n    // @ts-ignore\n    Platform.OS === 'dom'\n  ) {\n    throw new Error(`react-native-device-info: NativeModule.RNDeviceInfo is null. To fix this issue try these steps:\n  • For react-native <= 0.59: Run \\`react-native link react-native-device-info\\` in the project root.\n  • Rebuild and re-run the app.\n  • If you are using CocoaPods on iOS, run \\`pod install\\` in the \\`ios\\` directory and then rebuild and re-run the app. You may also need to re-open Xcode to get the new pods.\n  If none of these fix the issue, please open an issue on the Github repository: https://github.com/react-native-device-info/react-native-device-info`);\n  }\n}\n\nexport default RNDeviceInfo;\n"]}
+\ No newline at end of file
+diff --git a/node_modules/react-native-device-info/lib/commonjs/internal/nativeInterface.native.js b/node_modules/react-native-device-info/lib/commonjs/internal/nativeInterface.native.js
+new file mode 100644
+index 0000000..6e8494e
+--- /dev/null
++++ b/node_modules/react-native-device-info/lib/commonjs/internal/nativeInterface.native.js
+@@ -0,0 +1,18 @@
++"use strict";
++
++Object.defineProperty(exports, "__esModule", {
++  value: true
++});
++exports.default = void 0;
++
++var _reactNative = require("react-native");
++
++var _NativeDeviceInfoModule = _interopRequireDefault(require("../fabric/NativeDeviceInfoModule"));
++
++function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
++
++let RNDeviceInfo = _NativeDeviceInfoModule.default; // @ts-ignore
++
++var _default = RNDeviceInfo;
++exports.default = _default;
++//# sourceMappingURL=nativeInterface.js.map
 \ No newline at end of file
 diff --git a/node_modules/react-native-device-info/lib/commonjs/internal/supported-platform-info.js b/node_modules/react-native-device-info/lib/commonjs/internal/supported-platform-info.js
 index 3053d7f..bb43c78 100644
@@ -2399,12 +2424,12 @@ index 7c4991f..a0e32de 100644
 \ No newline at end of file
 diff --git a/node_modules/react-native-device-info/lib/module/fabric/NativeDeviceInfoModule.js b/node_modules/react-native-device-info/lib/module/fabric/NativeDeviceInfoModule.js
 new file mode 100644
-index 0000000..2c63c6f
+index 0000000..9455226
 --- /dev/null
 +++ b/node_modules/react-native-device-info/lib/module/fabric/NativeDeviceInfoModule.js
 @@ -0,0 +1,3 @@
 +import { TurboModuleRegistry } from 'react-native';
-+export default TurboModuleRegistry.getEnforcing('RNDeviceInfo');
++export default TurboModuleRegistry.get('RNDeviceInfo');
 +//# sourceMappingURL=NativeDeviceInfoModule.js.map
 \ No newline at end of file
 diff --git a/node_modules/react-native-device-info/lib/module/fabric/NativeDeviceInfoModule.js.map b/node_modules/react-native-device-info/lib/module/fabric/NativeDeviceInfoModule.js.map
@@ -2628,18 +2653,21 @@ index 87af78b..9705ec1 100644
 +{"version":3,"sources":["asyncHookWrappers.ts"],"names":["useState","useEffect","NativeEventEmitter","RNDeviceInfo","useOnMount","asyncGetter","initialResult","response","setResponse","loading","result","getAsync","deviceInfoEmitter","useOnEvent","eventName","initialValueAsyncGetter","defaultValue","setResult","subscription","addListener","remove"],"mappings":"AAAA,SAASA,QAAT,EAAmBC,SAAnB,QAAoC,OAApC;AACA,SAASC,kBAAT,QAAmC,cAAnC;AACA,OAAOC,YAAP,MAAyB,mBAAzB;;AAGA;AACA;AACA;AACA;AACA;AACA,OAAO,SAASC,UAAT,CAAuBC,WAAvB,EAAsDC,aAAtD,EAA4F;AACjG,QAAM,CAACC,QAAD,EAAWC,WAAX,IAA0BR,QAAQ,CAAqB;AAC3DS,IAAAA,OAAO,EAAE,IADkD;AAE3DC,IAAAA,MAAM,EAAEJ;AAFmD,GAArB,CAAxC;AAKAL,EAAAA,SAAS,CAAC,MAAM;AACd;AACA,UAAMU,QAAQ,GAAG,YAAY;AAC3B,YAAMD,MAAM,GAAG,MAAML,WAAW,EAAhC;AACAG,MAAAA,WAAW,CAAC;AAAEC,QAAAA,OAAO,EAAE,KAAX;AAAkBC,QAAAA;AAAlB,OAAD,CAAX;AACD,KAHD;;AAKAC,IAAAA,QAAQ;AACT,GARQ,EAQN,CAACN,WAAD,CARM,CAAT;AAUA,SAAOE,QAAP;AACD;AAED,OAAO,MAAMK,iBAAiB,GAAG,IAAIV,kBAAJ,CAAuBC,YAAvB,CAA1B;AAEP;AACA;AACA;AACA;AACA;AACA;;AACA,OAAO,SAASU,UAAT,CACLC,SADK,EAELC,uBAFK,EAGLC,YAHK,EAIe;AACpB,QAAM;AAAEP,IAAAA,OAAF;AAAWC,IAAAA,MAAM,EAAEJ;AAAnB,MAAqCF,UAAU,CAACW,uBAAD,EAA0BC,YAA1B,CAArD;AACA,QAAM,CAACN,MAAD,EAASO,SAAT,IAAsBjB,QAAQ,CAAIgB,YAAJ,CAApC,CAFoB,CAIpB;;AACAf,EAAAA,SAAS,CAAC,MAAM;AACdgB,IAAAA,SAAS,CAACX,aAAD,CAAT;AACD,GAFQ,EAEN,CAACA,aAAD,CAFM,CAAT,CALoB,CASpB;AACA;;AACAL,EAAAA,SAAS,CAAC,MAAM;AACd,UAAMiB,YAAY,GAAGN,iBAAiB,CAACO,WAAlB,CAA8BL,SAA9B,EAAyCG,SAAzC,CAArB;AACA,WAAO,MAAMC,YAAY,CAACE,MAAb,EAAb;AACD,GAHQ,EAGN,CAACN,SAAD,CAHM,CAAT,CAXoB,CAgBpB;;AACA,SAAO;AAAEL,IAAAA,OAAF;AAAWC,IAAAA;AAAX,GAAP;AACD","sourcesContent":["import { useState, useEffect } from 'react';\nimport { NativeEventEmitter } from 'react-native';\nimport RNDeviceInfo from './nativeInterface';\nimport type { AsyncHookResult } from './types';\n\n/**\n * simple hook wrapper for async functions for 'on-mount / componentDidMount' that only need to fired once\n * @param asyncGetter async function that 'gets' something\n * @param initialResult -1 | false | 'unknown'\n */\nexport function useOnMount<T>(asyncGetter: () => Promise<T>, initialResult: T): AsyncHookResult<T> {\n  const [response, setResponse] = useState<AsyncHookResult<T>>({\n    loading: true,\n    result: initialResult,\n  });\n\n  useEffect(() => {\n    // async function cuz react complains if useEffect's effect param is an async function\n    const getAsync = async () => {\n      const result = await asyncGetter();\n      setResponse({ loading: false, result });\n    };\n\n    getAsync();\n  }, [asyncGetter]);\n\n  return response;\n}\n\nexport const deviceInfoEmitter = new NativeEventEmitter(RNDeviceInfo);\n\n/**\n * simple hook wrapper for handling events\n * @param eventName\n * @param initialValueAsyncGetter\n * @param defaultValue\n */\nexport function useOnEvent<T>(\n  eventName: string,\n  initialValueAsyncGetter: () => Promise<T>,\n  defaultValue: T\n): AsyncHookResult<T> {\n  const { loading, result: initialResult } = useOnMount(initialValueAsyncGetter, defaultValue);\n  const [result, setResult] = useState<T>(defaultValue);\n\n  // sets the result to what the intial value is on mount\n  useEffect(() => {\n    setResult(initialResult);\n  }, [initialResult]);\n\n  // - set up the event listener to set the result\n  // - set up the clean up function to remove subscription on unmount\n  useEffect(() => {\n    const subscription = deviceInfoEmitter.addListener(eventName, setResult);\n    return () => subscription.remove();\n  }, [eventName]);\n\n  // loading will only be true while getting the inital value. After that, it will always be false, but a new result may occur\n  return { loading, result };\n}\n"]}
 \ No newline at end of file
 diff --git a/node_modules/react-native-device-info/lib/module/internal/nativeInterface.js b/node_modules/react-native-device-info/lib/module/internal/nativeInterface.js
-index 6b443c3..8f25af7 100644
+index 6b443c3..a6a0640 100644
 --- a/node_modules/react-native-device-info/lib/module/internal/nativeInterface.js
 +++ b/node_modules/react-native-device-info/lib/module/internal/nativeInterface.js
-@@ -1,5 +1,6 @@
+@@ -1,9 +1,5 @@
 -import { Platform, NativeModules } from 'react-native';
 -let RNDeviceInfo = NativeModules.RNDeviceInfo; // @ts-ignore
+-
+-if (Platform.OS === 'web' || Platform.OS === 'dom') {
+-  RNDeviceInfo = require('../web');
+-}
 +import { Platform } from 'react-native';
-+import RNDeviceInfoModule from '../fabric/NativeDeviceInfoModule';
-+let RNDeviceInfo = RNDeviceInfoModule; // @ts-ignore
++let RNDeviceInfo = require('../web');
  
- if (Platform.OS === 'web' || Platform.OS === 'dom') {
-   RNDeviceInfo = require('../web');
+ if (!RNDeviceInfo) {
+   // Produce an error if we don't have the native module
 diff --git a/node_modules/react-native-device-info/lib/module/internal/nativeInterface.js.map b/node_modules/react-native-device-info/lib/module/internal/nativeInterface.js.map
 index 0cd28c5..bd0d8fa 100644
 --- a/node_modules/react-native-device-info/lib/module/internal/nativeInterface.js.map
@@ -2648,6 +2676,19 @@ index 0cd28c5..bd0d8fa 100644
 -{"version":3,"sources":["nativeInterface.ts"],"names":["Platform","NativeModules","RNDeviceInfo","OS","require","Error"],"mappings":"AAAA,SAASA,QAAT,EAAmBC,aAAnB,QAAwC,cAAxC;AAGA,IAAIC,YAAgD,GAAGD,aAAa,CAACC,YAArE,C,CAEA;;AACA,IAAIF,QAAQ,CAACG,EAAT,KAAgB,KAAhB,IAAyBH,QAAQ,CAACG,EAAT,KAAgB,KAA7C,EAAoD;AAClDD,EAAAA,YAAY,GAAGE,OAAO,CAAC,QAAD,CAAtB;AACD;;AAED,IAAI,CAACF,YAAL,EAAmB;AACjB;AACA,MACEF,QAAQ,CAACG,EAAT,KAAgB,SAAhB,IACAH,QAAQ,CAACG,EAAT,KAAgB,KADhB,IAEAH,QAAQ,CAACG,EAAT,KAAgB,KAFhB,IAGA;AACAH,EAAAA,QAAQ,CAACG,EAAT,KAAgB,KALlB,EAME;AACA,UAAM,IAAIE,KAAJ,CAAW;AACrB;AACA;AACA;AACA,sJAJU,CAAN;AAKD;AACF;;AAED,eAAeH,YAAf","sourcesContent":["import { Platform, NativeModules } from 'react-native';\nimport { DeviceInfoNativeModule } from './privateTypes';\n\nlet RNDeviceInfo: DeviceInfoNativeModule | undefined = NativeModules.RNDeviceInfo;\n\n// @ts-ignore\nif (Platform.OS === 'web' || Platform.OS === 'dom') {\n  RNDeviceInfo = require('../web');\n}\n\nif (!RNDeviceInfo) {\n  // Produce an error if we don't have the native module\n  if (\n    Platform.OS === 'android' ||\n    Platform.OS === 'ios' ||\n    Platform.OS === 'web' ||\n    // @ts-ignore\n    Platform.OS === 'dom'\n  ) {\n    throw new Error(`react-native-device-info: NativeModule.RNDeviceInfo is null. To fix this issue try these steps:\n  • For react-native <= 0.59: Run \\`react-native link react-native-device-info\\` in the project root.\n  • Rebuild and re-run the app.\n  • If you are using CocoaPods on iOS, run \\`pod install\\` in the \\`ios\\` directory and then rebuild and re-run the app. You may also need to re-open Xcode to get the new pods.\n  If none of these fix the issue, please open an issue on the Github repository: https://github.com/react-native-device-info/react-native-device-info`);\n  }\n}\n\nexport default RNDeviceInfo as DeviceInfoNativeModule;\n"]}
 \ No newline at end of file
 +{"version":3,"sources":["nativeInterface.ts"],"names":["Platform","RNDeviceInfoModule","RNDeviceInfo","OS","require","Error"],"mappings":"AAAA,SAASA,QAAT,QAAyB,cAAzB;AACA,OAAOC,kBAAP,MAA+B,kCAA/B;AAEA,IAAIC,YAAY,GAAGD,kBAAnB,C,CAEA;;AACA,IAAID,QAAQ,CAACG,EAAT,KAAgB,KAAhB,IAAyBH,QAAQ,CAACG,EAAT,KAAgB,KAA7C,EAAoD;AAClDD,EAAAA,YAAY,GAAGE,OAAO,CAAC,QAAD,CAAtB;AACD;;AAED,IAAI,CAACF,YAAL,EAAmB;AACjB;AACA,MACEF,QAAQ,CAACG,EAAT,KAAgB,SAAhB,IACAH,QAAQ,CAACG,EAAT,KAAgB,KADhB,IAEAH,QAAQ,CAACG,EAAT,KAAgB,KAFhB,IAGA;AACAH,EAAAA,QAAQ,CAACG,EAAT,KAAgB,KALlB,EAME;AACA,UAAM,IAAIE,KAAJ,CAAW;AACrB;AACA;AACA;AACA,sJAJU,CAAN;AAKD;AACF;;AAED,eAAeH,YAAf","sourcesContent":["import { Platform } from 'react-native';\nimport RNDeviceInfoModule from '../fabric/NativeDeviceInfoModule';\n\nlet RNDeviceInfo = RNDeviceInfoModule;\n\n// @ts-ignore\nif (Platform.OS === 'web' || Platform.OS === 'dom') {\n  RNDeviceInfo = require('../web');\n}\n\nif (!RNDeviceInfo) {\n  // Produce an error if we don't have the native module\n  if (\n    Platform.OS === 'android' ||\n    Platform.OS === 'ios' ||\n    Platform.OS === 'web' ||\n    // @ts-ignore\n    Platform.OS === 'dom'\n  ) {\n    throw new Error(`react-native-device-info: NativeModule.RNDeviceInfo is null. To fix this issue try these steps:\n  • For react-native <= 0.59: Run \\`react-native link react-native-device-info\\` in the project root.\n  • Rebuild and re-run the app.\n  • If you are using CocoaPods on iOS, run \\`pod install\\` in the \\`ios\\` directory and then rebuild and re-run the app. You may also need to re-open Xcode to get the new pods.\n  If none of these fix the issue, please open an issue on the Github repository: https://github.com/react-native-device-info/react-native-device-info`);\n  }\n}\n\nexport default RNDeviceInfo;\n"]}
+\ No newline at end of file
+diff --git a/node_modules/react-native-device-info/lib/module/internal/nativeInterface.native.js b/node_modules/react-native-device-info/lib/module/internal/nativeInterface.native.js
+new file mode 100644
+index 0000000..fdb1e56
+--- /dev/null
++++ b/node_modules/react-native-device-info/lib/module/internal/nativeInterface.native.js
+@@ -0,0 +1,6 @@
++import { Platform } from 'react-native';
++import RNDeviceInfoModule from '../fabric/NativeDeviceInfoModule';
++let RNDeviceInfo = RNDeviceInfoModule; // @ts-ignore
++
++export default RNDeviceInfo;
++//# sourceMappingURL=nativeInterface.js.map
 \ No newline at end of file
 diff --git a/node_modules/react-native-device-info/lib/module/internal/supported-platform-info.js b/node_modules/react-native-device-info/lib/module/internal/supported-platform-info.js
 index 159dece..7af2eda 100644
@@ -3003,7 +3044,7 @@ index f15e34f..8afd532 100644
  }
 diff --git a/node_modules/react-native-device-info/src/fabric/NativeDeviceInfoModule.ts b/node_modules/react-native-device-info/src/fabric/NativeDeviceInfoModule.ts
 new file mode 100644
-index 0000000..e6e0302
+index 0000000..0dce963
 --- /dev/null
 +++ b/node_modules/react-native-device-info/src/fabric/NativeDeviceInfoModule.ts
 @@ -0,0 +1,152 @@
@@ -3158,7 +3199,7 @@ index 0000000..e6e0302
 +  };
 +}
 +
-+export default TurboModuleRegistry.getEnforcing<Spec>('RNDeviceInfo');
++export default TurboModuleRegistry.get<Spec>('RNDeviceInfo');
 diff --git a/node_modules/react-native-device-info/src/index.js.flow b/node_modules/react-native-device-info/src/index.js.flow
 index 02fbb10..fdb85b0 100644
 --- a/node_modules/react-native-device-info/src/index.js.flow
@@ -3394,22 +3435,35 @@ index 2f39850..aa69cd1 100644
  
  /**
   * simple hook wrapper for handling events
+diff --git a/node_modules/react-native-device-info/src/internal/nativeInterface.native.ts b/node_modules/react-native-device-info/src/internal/nativeInterface.native.ts
+new file mode 100644
+index 0000000..6408740
+--- /dev/null
++++ b/node_modules/react-native-device-info/src/internal/nativeInterface.native.ts
+@@ -0,0 +1,3 @@
++import RNDeviceInfoModule from '../fabric/NativeDeviceInfoModule';
++
++export default RNDeviceInfoModule;
 diff --git a/node_modules/react-native-device-info/src/internal/nativeInterface.ts b/node_modules/react-native-device-info/src/internal/nativeInterface.ts
-index 0e47d75..d397a2e 100644
+index 0e47d75..0ce6bc1 100644
 --- a/node_modules/react-native-device-info/src/internal/nativeInterface.ts
 +++ b/node_modules/react-native-device-info/src/internal/nativeInterface.ts
-@@ -1,7 +1,7 @@
+@@ -1,12 +1,6 @@
 -import { Platform, NativeModules } from 'react-native';
 -import { DeviceInfoNativeModule } from './privateTypes';
 +import { Platform } from 'react-native';
-+import RNDeviceInfoModule from '../fabric/NativeDeviceInfoModule';
  
 -let RNDeviceInfo: DeviceInfoNativeModule | undefined = NativeModules.RNDeviceInfo;
-+let RNDeviceInfo = RNDeviceInfoModule;
+-
+-// @ts-ignore
+-if (Platform.OS === 'web' || Platform.OS === 'dom') {
+-  RNDeviceInfo = require('../web');
+-}
++let RNDeviceInfo = require('../web');
  
- // @ts-ignore
- if (Platform.OS === 'web' || Platform.OS === 'dom') {
-@@ -25,4 +25,4 @@ if (!RNDeviceInfo) {
+ if (!RNDeviceInfo) {
+   // Produce an error if we don't have the native module
+@@ -25,4 +19,4 @@ if (!RNDeviceInfo) {
    }
  }
  
