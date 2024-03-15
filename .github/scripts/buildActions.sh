@@ -43,7 +43,7 @@ for ((i=0; i < ${#GITHUB_ACTIONS[@]}; i++)); do
   ACTION_DIR=$(dirname "$ACTION")
 
   # Build the action in the background
-  ncc build "$ACTION" -o "$ACTION_DIR" &
+  ncc build "$ACTION" -t -o "$ACTION_DIR" &
   ASYNC_BUILDS[i]=$!
 done
 
