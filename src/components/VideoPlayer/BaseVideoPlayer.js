@@ -257,12 +257,7 @@ function BaseVideoPlayer({
                                             useNativeControls={false}
                                             resizeMode={resizeMode}
                                             isLooping={isLooping}
-                                            onReadyForDisplay={(e) => {
-                                                if (isCurrentlyURLSet && !isUploading) {
-                                                    playVideo();
-                                                }
-                                                onVideoLoaded(e);
-                                            }}
+                                            onReadyForDisplay={onVideoLoaded}
                                             onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
                                             onFullscreenUpdate={handleFullscreenUpdate}
                                         />
