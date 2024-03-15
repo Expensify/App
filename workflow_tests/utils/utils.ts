@@ -8,6 +8,14 @@ type EventOptions = {
     action?: string;
 };
 
+type StepAssertionInputEntry = {key: string; value: string};
+
+type StepAssertion = {
+    name: string;
+    status: number;
+    output: string;
+};
+
 function setUpActParams(
     act: ExtendedAct,
     event: string | null = null,
@@ -16,7 +24,7 @@ function setUpActParams(
     githubToken: string | null = null,
     envVars: Record<string, string> | null = null,
     inputs: Record<string, string> | null = null,
-) {
+): ExtendedAct {
     let updatedAct = act;
 
     if (event && eventOptions) {
@@ -64,7 +72,7 @@ function createMockStep(
     outputs: Record<string, string> | null = null,
     outEnvs: Record<string, string> | null = null,
     isSuccessful = true,
-    id = null,
+    id: string | null = null,
 ): StepIdentifier {
     const mockStepName = name;
     let mockWithCommand = 'echo [MOCK]';
@@ -112,16 +120,16 @@ function createMockStep(
 function createStepAssertion(
     name: string,
     isSuccessful = true,
-    expectedOutput = null,
+    expectedOutput: string | null = null,
     jobId: string | null = null,
     message: string | null = null,
-    inputs: Array<{key: string; value: string}> | null = null,
-    envs: Array<{key: string; value: string}> | null = null,
-) {
+    inputs: StepAssertionInputEntry[] | null = null,
+    envs: StepAssertionInputEntry[] | null = null,
+): StepAssertion {
     const stepName = `Main ${name}`;
     const stepStatus = isSuccessful ? 0 : 1;
     let stepOutput: string;
-    if (expectedOutput !== undefined && expectedOutput !== null) {
+    if (expectedOutput !== null) {
         stepOutput = expectedOutput;
     } else {
         stepOutput = '[MOCK]';
@@ -149,7 +157,7 @@ function createStepAssertion(
     };
 }
 
-function setJobRunners(act: ExtendedAct, jobs: Record<string, string>, workflowPath: string) {
+function setJobRunners(act: ExtendedAct, jobs: Record<string, string>, workflowPath: string): ExtendedAct {
     if (!act || !jobs || !workflowPath) {
         return act;
     }
@@ -164,11 +172,10 @@ function setJobRunners(act: ExtendedAct, jobs: Record<string, string>, workflowP
 }
 
 function deepCopy<TObject>(originalObject: TObject): TObject {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return JSON.parse(JSON.stringify(originalObject));
+    return JSON.parse(JSON.stringify(originalObject)) as TObject;
 }
 
-function getLogFilePath(workflowName: string, testName: string | undefined) {
+function getLogFilePath(workflowName: string, testName: string | undefined): string {
     if (!testName) {
         throw new Error();
     }
