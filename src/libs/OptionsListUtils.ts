@@ -1365,19 +1365,7 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
     const allReportOptions: Array<SearchOption<Report>> = [];
 
     if (reports) {
-        // Sorting the reports works like this:
-        // - Order everything by the last message timestamp (descending)
-        // - All archived reports should remain at the bottom
-        const orderedReports = lodashSortBy(reports, (report) => {
-            if (ReportUtils.isArchivedRoom(report)) {
-                return CONST.DATE.UNIX_EPOCH;
-            }
-
-            return report?.lastVisibleActionCreated;
-        });
-        orderedReports.reverse();
-
-        orderedReports.forEach((report) => {
+        Object.values(reports).forEach((report) => {
             if (!report) {
                 return;
             }
