@@ -187,6 +187,7 @@ const runTests = async (): Promise<void> => {
         // We run each test multiple time to average out the results
         for (let testIteration = 0; testIteration < config.RUNS; testIteration++) {
             const onError = (e: Error) => {
+                console.log(1111, e);
                 errorCountRef.errorCount += 1;
                 if (testIteration === 0 || errorCountRef.errorCount === errorCountRef.allowedExceptions) {
                     Logger.error("There was an error running the test and we've reached the maximum number of allowed exceptions. Stopping the test run.");
@@ -206,13 +207,17 @@ const runTests = async (): Promise<void> => {
             const iterationText = `Test '${test.name}' [${testIndex + 1}/${tests.length}], iteration [${testIteration + 1}/${config.RUNS}]`;
             const mainIterationText = `[MAIN] ${iterationText}`;
             const deltaIterationText = `[DELTA] ${iterationText}`;
+            console.log(22222, launchArgs);
             try {
                 // Run the test on the main app:
                 await runTestIteration(config.MAIN_APP_PACKAGE, mainIterationText, launchArgs);
-
+                // await new Promise((resolve) => setTimeout(resolve, 5000));
                 // Run the test on the delta app:
                 await runTestIteration(config.DELTA_APP_PACKAGE, deltaIterationText, launchArgs);
+
+                // await new Promise((resolve) => setTimeout(resolve, 5000));
             } catch (e) {
+                console.log(33333, e);
                 onError(e as Error);
             }
         }
