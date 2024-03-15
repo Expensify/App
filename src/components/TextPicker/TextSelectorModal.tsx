@@ -21,7 +21,7 @@ function TextSelectorModal({value, description = '', onValueSelected, isVisible,
         <Modal
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isVisible}
-            onClose={() => onClose?.()}
+            onClose={onClose}
             onModalHide={onClose}
             hideModalContentWhileAnimating
             useNativeDriver

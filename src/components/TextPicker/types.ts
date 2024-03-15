@@ -26,7 +26,7 @@ type TextSelectorModalProps = {
     onValueSelected?: (value: string) => void;
 
     /** Function to call when the user closes the modal */
-    onClose?: () => void;
+    onClose: () => void;
 
     /** Whether to show the toolip text */
     shouldShowTooltips?: boolean;
