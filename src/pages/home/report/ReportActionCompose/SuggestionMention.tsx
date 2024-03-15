@@ -59,7 +59,7 @@ function SuggestionMention(
     // Used to store the selection index of the last inserted mention
     const suggestionInsertionIndexRef = useRef<number | null>(null);
 
-    // Used to detect if the selection has changed since the last suggestion calculation
+    // Used to detect if the selection has changed since the last suggestion insertion
     // If so, we reset the suggestionInsertionIndexRef
     const hasSelectionChanged = !(selection.end === selection.start && selection.start === suggestionInsertionIndexRef.current);
     if (hasSelectionChanged) {
