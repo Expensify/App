@@ -1777,6 +1777,7 @@ export default {
         categories: {
             deleteCategories: 'Delete categories',
             deleteCategory: 'Delete category',
+            deleteCategoryPrompt: 'Are you sure you want to delete this category?',
             disableCategories: 'Disable categories',
             enableCategories: 'Enable categories',
             deleteFailureMessage: 'An error occurred while deleting the category, please try again.',

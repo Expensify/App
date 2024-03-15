@@ -1,8 +1,9 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -37,6 +38,7 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
+    const [removeCategoryConfirmModalVisible, setRemoveCategoryConfirmModalVisible] = useState(false);
 
     const policyCategory = policyCategories?.[route.params.categoryName];
 
@@ -52,14 +54,16 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
         Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_EDIT.getRoute(route.params.policyID, policyCategory.name));
     };
 
+    const removeCategory = () => {
+        Policy.deleteWorkspaceCategories(route.params.policyID, [route.params.categoryName]);
+        Navigation.dismissModal();
+    };
+
     const threeDotsMenuItems = [
         {
             icon: Expensicons.Trashcan,
             text: translate('workspace.categories.deleteCategory'),
-            onSelected: () => {
-                Policy.deleteWorkspaceCategories(route.params.policyID, [route.params.categoryName]);
-                Navigation.dismissModal();
-            },
+            onSelected: () => setRemoveCategoryConfirmModalVisible(true),
         },
     ];
 
@@ -76,6 +80,16 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
                         title={route.params.categoryName}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                         threeDotsMenuItems={threeDotsMenuItems}
+                    />
+                    <ConfirmModal
+                        isVisible={removeCategoryConfirmModalVisible}
+                        onConfirm={removeCategory}
+                        onCancel={() => setRemoveCategoryConfirmModalVisible(false)}
+                        title={translate('workspace.categories.deleteCategory')}
+                        prompt={translate('workspace.categories.deleteCategoryPrompt')}
+                        confirmText={translate('common.delete')}
+                        cancelText={translate('common.cancel')}
+                        danger
                     />
                     <View style={styles.flexGrow1}>
                         <OfflineWithFeedback

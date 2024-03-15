@@ -1801,6 +1801,7 @@ export default {
         categories: {
             deleteCategories: 'Eliminar categorías',
             deleteCategory: 'Eliminar categoría',
+            deleteCategoryPrompt: '¿Estás seguro de que quieres eliminar esta categoría?',
             disableCategories: 'Desactivar categorías',
             enableCategories: 'Activar categorías',
             deleteFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
