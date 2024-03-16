@@ -402,25 +402,11 @@ function getReceiptError(receipt?: Receipt, filename?: string, isScanRequest = t
         : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: receipt.source?.toString() ?? '', filename: filename ?? ''});
 }
 
-function needsToBeManuallySubmitted(iouReport: OnyxTypes.Report) {
-    const isPolicyExpenseChat = ReportUtils.isExpenseReport(iouReport);
-
-    if (isPolicyExpenseChat) {
-        const policy = ReportUtils.getPolicy(iouReport.policyID);
-        const isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy);
-
-        // If the scheduled submit is turned off on the policy, user needs to manually submit the report which is indicated by GBR in LHN
-        return isFromPaidPolicy && !policy.harvesting?.enabled;
-    }
-
-    return true;
-}
-
 /**
  * Return the object to update hasOutstandingChildRequest
  */
 function getOutstandingChildRequest(policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject, iouReport: OnyxTypes.Report): OutstandingChildRequest {
-    if (!needsToBeManuallySubmitted(iouReport)) {
+    if (!ReportUtils.needsToBeManuallySubmitted(iouReport)) {
         return {
             hasOutstandingChildRequest: false,
         };
@@ -1248,7 +1234,7 @@ function getUpdateMoneyRequestParams(
     }
     updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, transactionDetails?.currency);
 
-    const canChatRequireAttention = (!!iouReport && needsToBeManuallySubmitted(iouReport)) || updatedMoneyRequestReport.managerID === userAccountID;
+    const canChatRequireAttention = (!!iouReport && ReportUtils.needsToBeManuallySubmitted(iouReport)) || updatedMoneyRequestReport.managerID === userAccountID;
 
     optimisticData.push(
         {
@@ -3009,7 +2995,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         );
     }
 
-    const canChatRequireAttention = (!!iouReport && needsToBeManuallySubmitted(iouReport)) || updatedIOUReport?.managerID === userAccountID;
+    const canChatRequireAttention = (!!iouReport && ReportUtils.needsToBeManuallySubmitted(iouReport)) || updatedIOUReport?.managerID === userAccountID;
 
     optimisticData.push(
         {

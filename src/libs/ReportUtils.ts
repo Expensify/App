@@ -5314,6 +5314,18 @@ function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxEntry<Report> 
     return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddOrDeleteTransactions(existingIOUReport);
 }
 
+function needsToBeManuallySubmitted(iouReport: Report) {
+    if (isPolicyExpenseChat(iouReport)) {
+        const policy = getPolicy(iouReport.policyID);
+        const isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy);
+
+        // If the scheduled submit is turned off on the policy, user needs to manually submit the report which is indicated by GBR in LHN
+        return isFromPaidPolicy && !policy.harvesting?.enabled;
+    }
+
+    return true;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -5524,6 +5536,7 @@ export {
     isJoinRequestInAdminRoom,
     canAddOrDeleteTransactions,
     shouldCreateNewMoneyRequestReport,
+    needsToBeManuallySubmitted,
 };
 
 export type {
