@@ -348,7 +348,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
             >
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
-                    shouldShowBackButton={isLessThanMediumScreen}
+                    shouldShowBackButton={isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack()}
                 >
                     <Button
@@ -387,7 +387,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
             <View style={styles.flex1}>
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
-                    shouldShowBackButton={isLessThanMediumScreen}
+                    shouldShowBackButton={isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack()}
                 >
                     <Button
