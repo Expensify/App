@@ -55,6 +55,9 @@ function updatePolicyConnectionConfig({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                pendingFields: {
+                    [updatedField]: null,
+                },
                 errorFields: {
                     [updatedField]: ErrorUtils.getMicroSecondOnyxError('workspace.connection.error.genericUpdate'),
                 },
