@@ -103,6 +103,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the request is billable */
         billable?: boolean;
 
+        /** Whether the user input should be kept */
+        shouldShowOriginalAmount?: boolean;
+
         /** The category name */
         category?: string;
 

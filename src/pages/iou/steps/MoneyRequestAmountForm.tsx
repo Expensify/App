@@ -28,6 +28,9 @@ type MoneyRequestAmountFormProps = {
     /** Calculated tax amount based on selected tax rate */
     taxAmount?: number;
 
+    /** Whether the user input should be kept or not */
+    shouldKeepUserInput?: boolean;
+
     /** Currency chosen by user or saved in Onyx */
     currency?: string;
 
@@ -74,6 +77,7 @@ function MoneyRequestAmountForm(
         onCurrencyButtonPress,
         onSubmitButtonPress,
         selectedTab = CONST.TAB_REQUEST.MANUAL,
+        shouldKeepUserInput = false,
     }: MoneyRequestAmountFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
@@ -83,7 +87,6 @@ function MoneyRequestAmountForm(
 
     const textInput = useRef<BaseTextInputRef | null>(null);
     const isTaxAmountForm = Navigation.getActiveRoute().includes('taxAmount');
-    const isEditAmountForm = Navigation.getActiveRoute().includes('amount');
     const decimals = CurrencyUtils.getCurrencyDecimals(currency);
     const selectedAmountAsString = CurrencyUtils.convertToFrontendAmountAsString(amount);
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
@@ -127,13 +130,13 @@ function MoneyRequestAmountForm(
     }, []);
 
     useEffect(() => {
-        if (!currency || typeof amount !== 'number' || !isEditAmountForm) {
+        if (!currency || typeof amount !== 'number' || shouldKeepUserInput) {
             return;
         }
         initializeAmount(amount);
         // we want to re-initialize the state only when the selected tab or amount changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedTab, amount]);
+    }, [selectedTab, amount, shouldKeepUserInput]);
 
     /**
      * Sets the selection and the amount accordingly to the value passed to the input
@@ -235,7 +238,7 @@ function MoneyRequestAmountForm(
         }
 
         onSubmitButtonPress({amount: currentAmount, currency});
-    }, [onSubmitButtonPress, currentAmount, taxAmount, currency, isTaxAmountForm, formattedTaxAmount]);
+    }, [currentAmount, taxAmount, isTaxAmountForm, onSubmitButtonPress, currency, formattedTaxAmount]);
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
