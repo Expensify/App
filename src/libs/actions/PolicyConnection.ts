@@ -1,11 +1,12 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
+import type UpdateConnectionConfigParams from '@libs/API/parameters/UpdateConnectionConfig';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {QBOConnectionConfig} from '@src/types/onyx/Policy';
+import type {ConnectionConfig, ConnectionName} from '@src/types/onyx/Policy';
 
 function updatePolicyConnectionConfig({
     policyID,
@@ -15,10 +16,10 @@ function updatePolicyConnectionConfig({
     originalPartialConfig,
 }: {
     policyID: string;
-    connectionName: string;
+    connectionName: ConnectionName;
     updatedField: string;
-    updatedPartialConfig: Partial<QBOConnectionConfig>;
-    originalPartialConfig: Partial<QBOConnectionConfig>;
+    updatedPartialConfig: Partial<ConnectionConfig>;
+    originalPartialConfig: Partial<ConnectionConfig>;
 }) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -68,16 +69,14 @@ function updatePolicyConnectionConfig({
         },
     ];
 
-    API.write(
-        WRITE_COMMANDS.UPDATE_CONNECTION_CONFIG,
-        {
-            policyId: policyID,
-            connectionName,
-            config: updatedPartialConfig,
-            idempotencyKey: updatedField,
-        },
-        {optimisticData, successData, failureData},
-    );
+    const parameters: UpdateConnectionConfigParams = {
+        policyId: policyID,
+        connectionName,
+        config: updatedPartialConfig,
+        idempotencyKey: updatedField,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_CONNECTION_CONFIG, parameters, {optimisticData, successData, failureData});
 }
 
 export default {updatePolicyConnectionConfig};
