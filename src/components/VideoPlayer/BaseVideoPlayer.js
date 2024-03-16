@@ -115,7 +115,7 @@ function BaseVideoPlayer({
 
             onPlaybackStatusUpdate(e);
         },
-        [onPlaybackStatusUpdate, preventPausingWhenExitingFullscreen, videoDuration],
+        [onPlaybackStatusUpdate, preventPausingWhenExitingFullscreen, videoDuration, isPlaying],
     );
 
     const handleFullscreenUpdate = useCallback(
