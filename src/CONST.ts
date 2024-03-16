@@ -6,6 +6,12 @@ import * as KeyCommand from 'react-native-key-command';
 import * as Url from './libs/Url';
 import SCREENS from './SCREENS';
 
+type RateAndUnit = {
+    unit: string;
+    rate: number;
+};
+type CurrencyDefaultMileageRate = Record<string, RateAndUnit>;
+
 // Creating a default array and object this way because objects ({}) and arrays ([]) are not stable types.
 // Freezing the array ensures that it cannot be unintentionally modified.
 const EMPTY_ARRAY = Object.freeze([]);
@@ -75,6 +81,11 @@ const CONST = {
         FAILED: 'failed',
     },
 
+    AUTH_TOKEN_TYPES: {
+        ANONYMOUS: 'anonymousAccount',
+        SUPPORT: 'support',
+    },
+
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
 
     AVATAR_ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'],
@@ -86,6 +97,8 @@ const CONST = {
     // Maximum width and height size in px for a selected image
     AVATAR_MAX_WIDTH_PX: 4096,
     AVATAR_MAX_HEIGHT_PX: 4096,
+
+    LOGO_MAX_SCALE: 1.5,
 
     BREADCRUMB_TYPE: {
         ROOT: 'root',
@@ -178,6 +191,7 @@ const CONST = {
     DATE: {
         SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
+        FNS_DATE_TIME_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss',
         LOCAL_TIME_FORMAT: 'h:mm a',
         YEAR_MONTH_FORMAT: 'yyyyMM',
         MONTH_FORMAT: 'MMMM',
@@ -307,6 +321,8 @@ const CONST = {
         BETA_COMMENT_LINKING: 'commentLinking',
         VIOLATIONS: 'violations',
         REPORT_FIELDS: 'reportFields',
+        P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
+        WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -559,27 +575,57 @@ const CONST = {
         SPLIT_REPORTID: '-2',
         ACTIONS: {
             LIMIT: 50,
+            // OldDot Actions render getMessage from Web-Expensify/lib/Report/Action PHP files via getMessageOfOldDotReportAction in ReportActionsUtils.ts
             TYPE: {
+                ACTIONABLEMENTIONWHISPER: 'ACTIONABLEMENTIONWHISPER',
                 ADDCOMMENT: 'ADDCOMMENT',
+                ACTIONABLEJOINREQUEST: 'ACTIONABLEJOINREQUEST',
                 APPROVED: 'APPROVED',
+                CHANGEFIELD: 'CHANGEFIELD', // OldDot Action
+                CHANGEPOLICY: 'CHANGEPOLICY', // OldDot Action
+                CHANGETYPE: 'CHANGETYPE', // OldDot Action
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
+                DELEGATESUBMIT: 'DELEGATESUBMIT', // OldDot Action
+                DELETEDACCOUNT: 'DELETEDACCOUNT', // OldDot Action
+                DONATION: 'DONATION', // OldDot Action
+                EXPORTEDTOCSV: 'EXPORTEDTOCSV', // OldDot Action
+                EXPORTEDTOINTEGRATION: 'EXPORTEDTOINTEGRATION', // OldDot Action
+                EXPORTEDTOQUICKBOOKS: 'EXPORTEDTOQUICKBOOKS', // OldDot Action
+                FORWARDED: 'FORWARDED', // OldDot Action
                 HOLD: 'HOLD',
                 IOU: 'IOU',
-                MARKEDREIMBURSED: 'MARKEDREIMBURSED',
+                INTEGRATIONSMESSAGE: 'INTEGRATIONSMESSAGE', // OldDot Action
+                MANAGERATTACHRECEIPT: 'MANAGERATTACHRECEIPT', // OldDot Action
+                MANAGERDETACHRECEIPT: 'MANAGERDETACHRECEIPT', // OldDot Action
+                MARKEDREIMBURSED: 'MARKEDREIMBURSED', // OldDot Action
+                MARKREIMBURSEDFROMINTEGRATION: 'MARKREIMBURSEDFROMINTEGRATION', // OldDot Action
                 MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
                 MOVED: 'MOVED',
+                OUTDATEDBANKACCOUNT: 'OUTDATEDBANKACCOUNT', // OldDot Action
+                REIMBURSEMENTACHBOUNCE: 'REIMBURSEMENTACHBOUNCE', // OldDot Action
+                REIMBURSEMENTACHCANCELLED: 'REIMBURSEMENTACHCANCELLED', // OldDot Action
+                REIMBURSEMENTACCOUNTCHANGED: 'REIMBURSEMENTACCOUNTCHANGED', // OldDot Action
+                REIMBURSEMENTDELAYED: 'REIMBURSEMENTDELAYED', // OldDot Action
                 REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
                 REIMBURSEMENTDEQUEUED: 'REIMBURSEMENTDEQUEUED',
+                REIMBURSEMENTREQUESTED: 'REIMBURSEMENTREQUESTED', // OldDot Action
+                REIMBURSEMENTSETUP: 'REIMBURSEMENTSETUP', // OldDot Action
                 RENAMED: 'RENAMED',
                 REPORTPREVIEW: 'REPORTPREVIEW',
+                SELECTEDFORRANDOMAUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
+                SHARE: 'SHARE', // OldDot Action
+                STRIPEPAID: 'STRIPEPAID', // OldDot Action
                 SUBMITTED: 'SUBMITTED',
+                TAKECONTROL: 'TAKECONTROL', // OldDot Action
                 TASKCANCELLED: 'TASKCANCELLED',
                 TASKCOMPLETED: 'TASKCOMPLETED',
                 TASKEDITED: 'TASKEDITED',
                 TASKREOPENED: 'TASKREOPENED',
-                ACTIONABLEMENTIONWHISPER: 'ACTIONABLEMENTIONWHISPER',
+                UNAPPROVED: 'UNAPPROVED', // OldDot Action
+                UNHOLD: 'UNHOLD',
+                UNSHARE: 'UNSHARE', // OldDot Action
                 POLICYCHANGELOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_BUDGET: 'POLICYCHANGELOG_ADD_BUDGET',
@@ -653,7 +699,6 @@ const CONST = {
                     LEAVE_ROOM: 'LEAVEROOM',
                     UPDATE_ROOM_DESCRIPTION: 'UPDATEROOMDESCRIPTION',
                 },
-                UNHOLD: 'UNHOLD',
             },
             THREAD_DISABLED: ['CREATED'],
         },
@@ -663,6 +708,10 @@ const CONST = {
         ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
             INVITE: 'invited',
             NOTHING: 'nothing',
+        },
+        ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION: {
+            ACCEPT: 'accept',
+            DECLINE: 'decline',
         },
         ARCHIVE_REASON: {
             DEFAULT: 'default',
@@ -689,6 +738,7 @@ const CONST = {
             DOMAIN_ALL: 'domainAll',
             POLICY_ROOM: 'policyRoom',
             POLICY_EXPENSE_CHAT: 'policyExpenseChat',
+            SELF_DM: 'selfDM',
         },
         WORKSPACE_CHAT_ROOMS: {
             ANNOUNCE: '#announce',
@@ -971,8 +1021,6 @@ const CONST = {
     MAGIC_CODE_LENGTH: 6,
     MAGIC_CODE_EMPTY_CHAR: ' ',
 
-    RECOVERY_CODE_LENGTH: 8,
-
     KEYBOARD_TYPE: {
         VISIBLE_PASSWORD: 'visible-password',
         ASCII_CAPABLE: 'ascii-capable',
@@ -1013,6 +1061,12 @@ const CONST = {
         FILE: 'file',
         IMAGE: 'image',
         VIDEO: 'video',
+    },
+
+    IMAGE_FILE_FORMAT: {
+        PNG: 'image/png',
+        WEBP: 'image/webp',
+        JPEG: 'image/jpeg',
     },
 
     FILE_TYPE_REGEX: {
@@ -1149,6 +1203,7 @@ const CONST = {
             MISSING_FIELD: 'Missing required additional details fields',
             WRONG_ANSWERS: 'Wrong answers',
             ONFIDO_FIXABLE_ERROR: 'Onfido returned a fixable error',
+            ONFIDO_USER_CONSENT_DENIED: 'user_consent_denied',
 
             // KBA stands for Knowledge Based Answers (requiring us to show Idology questions)
             KBA_NEEDED: 'KBA needed',
@@ -1380,12 +1435,27 @@ const CONST = {
         OWNER_EMAIL_FAKE: '_FAKE_',
         OWNER_ACCOUNT_ID_FAKE: 0,
         REIMBURSEMENT_CHOICES: {
-            REIMBURSEMENT_YES: 'reimburseYes',
-            REIMBURSEMENT_NO: 'reimburseNo',
-            REIMBURSEMENT_MANUAL: 'reimburseManual',
+            REIMBURSEMENT_YES: 'reimburseYes', // Direct
+            REIMBURSEMENT_NO: 'reimburseNo', // None
+            REIMBURSEMENT_MANUAL: 'reimburseManual', // Indirect
         },
         ID_FAKE: '_FAKE_',
         EMPTY: 'EMPTY',
+        MEMBERS_BULK_ACTION_TYPES: {
+            REMOVE: 'remove',
+            MAKE_MEMBER: 'makeMember',
+            MAKE_ADMIN: 'makeAdmin',
+        },
+        CATEGORIES_BULK_ACTION_TYPES: {
+            DELETE: 'delete',
+            DISABLE: 'disable',
+            ENABLE: 'enable',
+        },
+        DISTANCE_RATES_BULK_ACTION_TYPES: {
+            DELETE: 'delete',
+            DISABLE: 'disable',
+            ENABLE: 'enable',
+        },
     },
 
     CUSTOM_UNITS: {
@@ -1395,6 +1465,7 @@ const CONST = {
         MILEAGE_IRS_RATE: 0.655,
         DEFAULT_RATE: 'Default Rate',
         RATE_DECIMALS: 3,
+        FAKE_P2P_ID: '_FAKE_P2P_ID_',
     },
 
     TERMS: {
@@ -1542,6 +1613,8 @@ const CONST = {
         PATH_WITHOUT_POLICY_ID: /\/w\/[a-zA-Z0-9]+(\/|$)/,
 
         POLICY_ID_FROM_PATH: /\/w\/([a-zA-Z0-9]+)(\/|$)/,
+
+        SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#]+(?:\\.[\\w\\-\\'\\+]+)*`, 'gim'),
     },
 
     PRONOUNS: {
@@ -1623,6 +1696,9 @@ const CONST = {
     FORM_CHARACTER_LIMIT: 50,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
     LOGIN_CHARACTER_LIMIT: 254,
+    CATEGORY_NAME_LIMIT: 256,
+
+    TAG_NAME_LIMIT: 256,
 
     TITLE_CHARACTER_LIMIT: 100,
     DESCRIPTION_LIMIT: 500,
@@ -1703,6 +1779,7 @@ const CONST = {
     MAX_64BIT_LEFT_PART: 92233,
     MAX_64BIT_MIDDLE_PART: 7203685,
     MAX_64BIT_RIGHT_PART: 4775807,
+    INVALID_CATEGORY_NAME: '###',
 
     // When generating a random value to fit in 7 digits (for the `middle` or `right` parts above), this is the maximum value to multiply by Math.random().
     MAX_INT_FOR_RANDOM_7_DIGIT_VALUE: 10000000,
@@ -3085,6 +3162,7 @@ const CONST = {
     ONYX_UPDATE_TYPES: {
         HTTPS: 'https',
         PUSHER: 'pusher',
+        AIRSHIP: 'airship',
     },
     EVENTS: {
         SCROLLING: 'scrolling',
@@ -3123,7 +3201,7 @@ const CONST = {
             SHARE_CODE: 'shareCode',
         },
         REVENUE: 250,
-        LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/get-paid-back/Referral-Program',
+        LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/expenses/Referral-Program',
         LINK: 'https://join.my.expensify.com',
     },
 
@@ -3276,6 +3354,12 @@ const CONST = {
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 
+    /** Dimensions for illustration shown in Confirmation Modal */
+    CONFIRM_CONTENT_SVG_SIZE: {
+        HEIGHT: 220,
+        WIDTH: 130,
+    },
+
     DEBUG_CONSOLE: {
         LEVELS: {
             INFO: 'INFO',
@@ -3311,6 +3395,664 @@ const CONST = {
             ADDRESS: 3,
         },
     },
+    CURRENCY_TO_DEFAULT_MILEAGE_RATE: JSON.parse(`{
+        "AED": {
+            "rate": 396,
+            "unit": "km"
+        },
+        "AFN": {
+            "rate": 8369,
+            "unit": "km"
+        },
+        "ALL": {
+            "rate": 11104,
+            "unit": "km"
+        },
+        "AMD": {
+            "rate": 56842,
+            "unit": "km"
+        },
+        "ANG": {
+            "rate": 193,
+            "unit": "km"
+        },
+        "AOA": {
+            "rate": 67518,
+            "unit": "km"
+        },
+        "ARS": {
+            "rate": 9873,
+            "unit": "km"
+        },
+        "AUD": {
+            "rate": 85,
+            "unit": "km"
+        },
+        "AWG": {
+            "rate": 195,
+            "unit": "km"
+        },
+        "AZN": {
+            "rate": 183,
+            "unit": "km"
+        },
+        "BAM": {
+            "rate": 177,
+            "unit": "km"
+        },
+        "BBD": {
+            "rate": 216,
+            "unit": "km"
+        },
+        "BDT": {
+            "rate": 9130,
+            "unit": "km"
+        },
+        "BGN": {
+            "rate": 177,
+            "unit": "km"
+        },
+        "BHD": {
+            "rate": 40,
+            "unit": "km"
+        },
+        "BIF": {
+            "rate": 210824,
+            "unit": "km"
+        },
+        "BMD": {
+            "rate": 108,
+            "unit": "km"
+        },
+        "BND": {
+            "rate": 145,
+            "unit": "km"
+        },
+        "BOB": {
+            "rate": 745,
+            "unit": "km"
+        },
+        "BRL": {
+            "rate": 594,
+            "unit": "km"
+        },
+        "BSD": {
+            "rate": 108,
+            "unit": "km"
+        },
+        "BTN": {
+            "rate": 7796,
+            "unit": "km"
+        },
+        "BWP": {
+            "rate": 1180,
+            "unit": "km"
+        },
+        "BYN": {
+            "rate": 280,
+            "unit": "km"
+        },
+        "BYR": {
+            "rate": 2159418,
+            "unit": "km"
+        },
+        "BZD": {
+            "rate": 217,
+            "unit": "km"
+        },
+        "CAD": {
+            "rate": 70,
+            "unit": "km"
+        },
+        "CDF": {
+            "rate": 213674,
+            "unit": "km"
+        },
+        "CHF": {
+            "rate": 100,
+            "unit": "km"
+        },
+        "CLP": {
+            "rate": 77249,
+            "unit": "km"
+        },
+        "CNY": {
+            "rate": 702,
+            "unit": "km"
+        },
+        "COP": {
+            "rate": 383668,
+            "unit": "km"
+        },
+        "CRC": {
+            "rate": 65899,
+            "unit": "km"
+        },
+        "CUC": {
+            "rate": 108,
+            "unit": "km"
+        },
+        "CUP": {
+            "rate": 2776,
+            "unit": "km"
+        },
+        "CVE": {
+            "rate": 6112,
+            "unit": "km"
+        },
+        "CZK": {
+            "rate": 2356,
+            "unit": "km"
+        },
+        "DJF": {
+            "rate": 19151,
+            "unit": "km"
+        },
+        "DKK": {
+            "rate": 673,
+            "unit": "km"
+        },
+        "DOP": {
+            "rate": 6144,
+            "unit": "km"
+        },
+        "DZD": {
+            "rate": 14375,
+            "unit": "km"
+        },
+        "EEK": {
+            "rate": 1576,
+            "unit": "km"
+        },
+        "EGP": {
+            "rate": 1696,
+            "unit": "km"
+        },
+        "ERN": {
+            "rate": 1617,
+            "unit": "km"
+        },
+        "ETB": {
+            "rate": 4382,
+            "unit": "km"
+        },
+        "EUR": {
+            "rate": 3,
+            "unit": "km"
+        },
+        "FJD": {
+            "rate": 220,
+            "unit": "km"
+        },
+        "FKP": {
+            "rate": 77,
+            "unit": "km"
+        },
+        "GBP": {
+            "rate": 45,
+            "unit": "mi"
+        },
+        "GEL": {
+            "rate": 359,
+            "unit": "km"
+        },
+        "GHS": {
+            "rate": 620,
+            "unit": "km"
+        },
+        "GIP": {
+            "rate": 77,
+            "unit": "km"
+        },
+        "GMD": {
+            "rate": 5526,
+            "unit": "km"
+        },
+        "GNF": {
+            "rate": 1081319,
+            "unit": "km"
+        },
+        "GTQ": {
+            "rate": 832,
+            "unit": "km"
+        },
+        "GYD": {
+            "rate": 22537,
+            "unit": "km"
+        },
+        "HKD": {
+            "rate": 837,
+            "unit": "km"
+        },
+        "HNL": {
+            "rate": 2606,
+            "unit": "km"
+        },
+        "HRK": {
+            "rate": 684,
+            "unit": "km"
+        },
+        "HTG": {
+            "rate": 8563,
+            "unit": "km"
+        },
+        "HUF": {
+            "rate": 33091,
+            "unit": "km"
+        },
+        "IDR": {
+            "rate": 1555279,
+            "unit": "km"
+        },
+        "ILS": {
+            "rate": 356,
+            "unit": "km"
+        },
+        "INR": {
+            "rate": 7805,
+            "unit": "km"
+        },
+        "IQD": {
+            "rate": 157394,
+            "unit": "km"
+        },
+        "IRR": {
+            "rate": 4539961,
+            "unit": "km"
+        },
+        "ISK": {
+            "rate": 13518,
+            "unit": "km"
+        },
+        "JMD": {
+            "rate": 15794,
+            "unit": "km"
+        },
+        "JOD": {
+            "rate": 77,
+            "unit": "km"
+        },
+        "JPY": {
+            "rate": 11748,
+            "unit": "km"
+        },
+        "KES": {
+            "rate": 11845,
+            "unit": "km"
+        },
+        "KGS": {
+            "rate": 9144,
+            "unit": "km"
+        },
+        "KHR": {
+            "rate": 437658,
+            "unit": "km"
+        },
+        "KMF": {
+            "rate": 44418,
+            "unit": "km"
+        },
+        "KPW": {
+            "rate": 97043,
+            "unit": "km"
+        },
+        "KRW": {
+            "rate": 121345,
+            "unit": "km"
+        },
+        "KWD": {
+            "rate": 32,
+            "unit": "km"
+        },
+        "KYD": {
+            "rate": 90,
+            "unit": "km"
+        },
+        "KZT": {
+            "rate": 45396,
+            "unit": "km"
+        },
+        "LAK": {
+            "rate": 1010829,
+            "unit": "km"
+        },
+        "LBP": {
+            "rate": 164153,
+            "unit": "km"
+        },
+        "LKR": {
+            "rate": 21377,
+            "unit": "km"
+        },
+        "LRD": {
+            "rate": 18709,
+            "unit": "km"
+        },
+        "LSL": {
+            "rate": 1587,
+            "unit": "km"
+        },
+        "LTL": {
+            "rate": 348,
+            "unit": "km"
+        },
+        "LVL": {
+            "rate": 71,
+            "unit": "km"
+        },
+        "LYD": {
+            "rate": 486,
+            "unit": "km"
+        },
+        "MAD": {
+            "rate": 967,
+            "unit": "km"
+        },
+        "MDL": {
+            "rate": 1910,
+            "unit": "km"
+        },
+        "MGA": {
+            "rate": 406520,
+            "unit": "km"
+        },
+        "MKD": {
+            "rate": 5570,
+            "unit": "km"
+        },
+        "MMK": {
+            "rate": 152083,
+            "unit": "km"
+        },
+        "MNT": {
+            "rate": 306788,
+            "unit": "km"
+        },
+        "MOP": {
+            "rate": 863,
+            "unit": "km"
+        },
+        "MRO": {
+            "rate": 38463,
+            "unit": "km"
+        },
+        "MRU": {
+            "rate": 3862,
+            "unit": "km"
+        },
+        "MUR": {
+            "rate": 4340,
+            "unit": "km"
+        },
+        "MVR": {
+            "rate": 1667,
+            "unit": "km"
+        },
+        "MWK": {
+            "rate": 84643,
+            "unit": "km"
+        },
+        "MXN": {
+            "rate": 2219,
+            "unit": "km"
+        },
+        "MYR": {
+            "rate": 444,
+            "unit": "km"
+        },
+        "MZN": {
+            "rate": 7772,
+            "unit": "km"
+        },
+        "NAD": {
+            "rate": 1587,
+            "unit": "km"
+        },
+        "NGN": {
+            "rate": 42688,
+            "unit": "km"
+        },
+        "NIO": {
+            "rate": 3772,
+            "unit": "km"
+        },
+        "NOK": {
+            "rate": 917,
+            "unit": "km"
+        },
+        "NPR": {
+            "rate": 12474,
+            "unit": "km"
+        },
+        "NZD": {
+            "rate": 151,
+            "unit": "km"
+        },
+        "OMR": {
+            "rate": 42,
+            "unit": "km"
+        },
+        "PAB": {
+            "rate": 108,
+            "unit": "km"
+        },
+        "PEN": {
+            "rate": 401,
+            "unit": "km"
+        },
+        "PGK": {
+            "rate": 380,
+            "unit": "km"
+        },
+        "PHP": {
+            "rate": 5234,
+            "unit": "km"
+        },
+        "PKR": {
+            "rate": 16785,
+            "unit": "km"
+        },
+        "PLN": {
+            "rate": 415,
+            "unit": "km"
+        },
+        "PYG": {
+            "rate": 704732,
+            "unit": "km"
+        },
+        "QAR": {
+            "rate": 393,
+            "unit": "km"
+        },
+        "RON": {
+            "rate": 443,
+            "unit": "km"
+        },
+        "RSD": {
+            "rate": 10630,
+            "unit": "km"
+        },
+        "RUB": {
+            "rate": 8074,
+            "unit": "km"
+        },
+        "RWF": {
+            "rate": 107182,
+            "unit": "km"
+        },
+        "SAR": {
+            "rate": 404,
+            "unit": "km"
+        },
+        "SBD": {
+            "rate": 859,
+            "unit": "km"
+        },
+        "SCR": {
+            "rate": 2287,
+            "unit": "km"
+        },
+        "SDG": {
+            "rate": 41029,
+            "unit": "km"
+        },
+        "SEK": {
+            "rate": 917,
+            "unit": "km"
+        },
+        "SGD": {
+            "rate": 145,
+            "unit": "km"
+        },
+        "SHP": {
+            "rate": 77,
+            "unit": "km"
+        },
+        "SLL": {
+            "rate": 1102723,
+            "unit": "km"
+        },
+        "SOS": {
+            "rate": 62604,
+            "unit": "km"
+        },
+        "SRD": {
+            "rate": 1526,
+            "unit": "km"
+        },
+        "STD": {
+            "rate": 2223309,
+            "unit": "km"
+        },
+        "STN": {
+            "rate": 2232,
+            "unit": "km"
+        },
+        "SVC": {
+            "rate": 943,
+            "unit": "km"
+        },
+        "SYP": {
+            "rate": 82077,
+            "unit": "km"
+        },
+        "SZL": {
+            "rate": 1585,
+            "unit": "km"
+        },
+        "THB": {
+            "rate": 3328,
+            "unit": "km"
+        },
+        "TJS": {
+            "rate": 1230,
+            "unit": "km"
+        },
+        "TMT": {
+            "rate": 378,
+            "unit": "km"
+        },
+        "TND": {
+            "rate": 295,
+            "unit": "km"
+        },
+        "TOP": {
+            "rate": 245,
+            "unit": "km"
+        },
+        "TRY": {
+            "rate": 845,
+            "unit": "km"
+        },
+        "TTD": {
+            "rate": 732,
+            "unit": "km"
+        },
+        "TWD": {
+            "rate": 3055,
+            "unit": "km"
+        },
+        "TZS": {
+            "rate": 250116,
+            "unit": "km"
+        },
+        "UAH": {
+            "rate": 2985,
+            "unit": "km"
+        },
+        "UGX": {
+            "rate": 395255,
+            "unit": "km"
+        },
+        "USD": {
+            "rate": 67,
+            "unit": "mi"
+        },
+        "UYU": {
+            "rate": 4777,
+            "unit": "km"
+        },
+        "UZS": {
+            "rate": 1131331,
+            "unit": "km"
+        },
+        "VEB": {
+            "rate": 679346,
+            "unit": "km"
+        },
+        "VEF": {
+            "rate": 26793449,
+            "unit": "km"
+        },
+        "VES": {
+            "rate": 194381905,
+            "unit": "km"
+        },
+        "VND": {
+            "rate": 2487242,
+            "unit": "km"
+        },
+        "VUV": {
+            "rate": 11748,
+            "unit": "km"
+        },
+        "WST": {
+            "rate": 272,
+            "unit": "km"
+        },
+        "XAF": {
+            "rate": 59224,
+            "unit": "km"
+        },
+        "XCD": {
+            "rate": 291,
+            "unit": "km"
+        },
+        "XOF": {
+            "rate": 59224,
+            "unit": "km"
+        },
+        "XPF": {
+            "rate": 10783,
+            "unit": "km"
+        },
+        "YER": {
+            "rate": 27037,
+            "unit": "km"
+        },
+        "ZAR": {
+            "rate": 1588,
+            "unit": "km"
+        },
+        "ZMK": {
+            "rate": 566489,
+            "unit": "km"
+        },
+        "ZMW": {
+            "rate": 2377,
+            "unit": "km"
+        }
+    }`) as CurrencyDefaultMileageRate,
 
     EXIT_SURVEY: {
         REASONS: {
@@ -3318,6 +4060,10 @@ const CONST = {
             DONT_UNDERSTAND: 'dontUnderstand',
             PREFER_CLASSIC: 'preferClassic',
         },
+    },
+
+    SESSION_STORAGE_KEYS: {
+        INITIAL_URL: 'INITIAL_URL',
     },
 } as const;
 

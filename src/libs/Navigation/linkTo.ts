@@ -6,7 +6,6 @@ import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import getActionsFromPartialDiff from './AppNavigator/getActionsFromPartialDiff';
 import getPartialStateDiff from './AppNavigator/getPartialStateDiff';
 import dismissModal from './dismissModal';
@@ -119,7 +118,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     if (!navigation) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }
-
     let root: NavigationRoot = navigation;
     let current: NavigationRoot | undefined;
 
@@ -137,9 +135,9 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     const policyIDFromState = getPolicyIDFromState(rootState);
     const policyID = extractedPolicyID ?? policyIDFromState;
 
-    const isWorkspaceSettingsOpened = getTopmostBottomTabRoute(rootState as State<RootStackParamList>)?.name === SCREENS.WORKSPACE.INITIAL && path.includes('workspace');
+    const isFullScreenOnTop = rootState.routes?.at(-1)?.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR;
 
-    if (policyID && !isWorkspaceSettingsOpened) {
+    if (policyID && !isFullScreenOnTop) {
         // The stateFromPath doesn't include proper path if there is a policy passed with /w/id.
         // We need to replace the path in the state with the proper one.
         // To avoid this hacky solution we may want to create custom getActionFromState function in the future.

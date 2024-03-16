@@ -223,6 +223,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
             />
             <Button
                 success
+                large
                 text={translate('footer.learnMore')}
                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
                 style={[styles.mh5, styles.mb5]}
@@ -266,7 +267,6 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                                     ref={inputCallbackRef}
                                     inputID={INPUT_IDS.ROOM_NAME}
                                     isFocused={isFocused}
-                                    // @ts-expect-error TODO: Remove this once RoomNameInput (https://github.com/Expensify/App/issues/25090) is migrated to TypeScript.
                                     shouldDelayFocus
                                     autoFocus
                                 />

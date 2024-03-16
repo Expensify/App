@@ -1,19 +1,21 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import type {ImageStyle, StyleProp} from 'react-native';
-import {Image, ScrollView, StyleSheet, View} from 'react-native';
+import {Image, StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import WorkspaceProfile from '@assets/images/workspace-profile.png';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,7 +27,7 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CurrencyList} from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
@@ -33,7 +35,7 @@ import WorkspacePageWithSections from './WorkspacePageWithSections';
 
 type WorkSpaceProfilePageOnyxProps = {
     /** Constant, list of available currencies */
-    currencyList: OnyxEntry<CurrencyList>;
+    currencyList: OnyxEntry<OnyxTypes.CurrencyList>;
 };
 
 type WorkSpaceProfilePageProps = WithPolicyProps & WorkSpaceProfilePageOnyxProps;
@@ -42,6 +44,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const illustrations = useThemeIllustrations();
 
     const outputCurrency = policy?.outputCurrency ?? '';
     const currencySymbol = currencyList?.[outputCurrency]?.symbol ?? '';
@@ -55,8 +58,37 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
     const policyName = policy?.name ?? '';
     const policyDescription = policy?.description ?? '';
     const readOnly = !PolicyUtils.isPolicyAdmin(policy);
-    const imageStyle: StyleProp<ImageStyle> = isSmallScreenWidth ? [styles.mhv12, styles.mhn5] : [styles.mhv8, styles.mhn8];
+    const imageStyle: StyleProp<ImageStyle> = isSmallScreenWidth ? [styles.mhv12, styles.mhn5, styles.mbn5] : [styles.mhv8, styles.mhn8, styles.mbn5];
 
+    const DefaultAvatar = useCallback(
+        () => (
+            <Avatar
+                containerStyles={styles.avatarXLarge}
+                imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
+                source={policy?.avatar || ReportUtils.getDefaultWorkspaceAvatar(policyName)}
+                fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+                size={CONST.AVATAR_SIZE.XLARGE}
+                name={policyName}
+                type={CONST.ICON_TYPE_WORKSPACE}
+            />
+        ),
+        [policy?.avatar, policyName, styles.alignSelfCenter, styles.avatarXLarge],
+    );
+
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+    const confirmDeleteAndHideModal = useCallback(() => {
+        if (!policy?.id || !policyName) {
+            return;
+        }
+
+        Policy.deleteWorkspace(policy?.id, policyName);
+
+        PolicyUtils.goBackFromInvalidPolicy();
+
+        setIsDeleteModalOpen(false);
+    }, [policy?.id, policyName]);
     return (
         <WorkspacePageWithSections
             headerText={translate('workspace.common.profile')}
@@ -70,14 +102,14 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
         >
             {(hasVBA?: boolean) => (
                 <ScrollView>
-                    <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <View style={[styles.flex1, styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <Section
                             isCentralPane
                             title=""
                         >
                             <Image
-                                style={StyleSheet.flatten([styles.br4, styles.wAuto, styles.h68, imageStyle])}
-                                source={WorkspaceProfile}
+                                style={StyleSheet.flatten([styles.wAuto, styles.h68, imageStyle])}
+                                source={illustrations.WorkspaceProfile}
                                 resizeMode="cover"
                             />
                             <AvatarWithImagePicker
@@ -86,20 +118,16 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                 size={CONST.AVATAR_SIZE.XLARGE}
                                 avatarStyle={styles.avatarXLarge}
                                 enablePreview
-                                DefaultAvatar={() => (
-                                    <Avatar
-                                        containerStyles={styles.avatarXLarge}
-                                        imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
-                                        source={policy?.avatar ? policy?.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
-                                        fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
-                                        size={CONST.AVATAR_SIZE.XLARGE}
-                                        name={policyName}
-                                        type={CONST.ICON_TYPE_WORKSPACE}
-                                    />
-                                )}
+                                DefaultAvatar={DefaultAvatar}
                                 type={CONST.ICON_TYPE_WORKSPACE}
                                 fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
-                                style={[styles.mb3, isSmallScreenWidth ? styles.mtn17 : styles.mtn20, styles.alignItemsStart, styles.sectionMenuItemTopDescription]}
+                                style={[
+                                    isSmallScreenWidth ? styles.mb1 : styles.mb3,
+                                    isSmallScreenWidth ? styles.mtn17 : styles.mtn20,
+                                    styles.alignItemsStart,
+                                    styles.sectionMenuItemTopDescription,
+                                ]}
+                                editIconStyle={styles.smallEditIconWorkspace}
                                 isUsingDefaultAvatar={!policy?.avatar ?? null}
                                 onImageSelected={(file) => Policy.updateWorkspaceAvatar(policy?.id ?? '', file as File)}
                                 onImageRemoved={() => Policy.deleteWorkspaceAvatar(policy?.id ?? '')}
@@ -148,7 +176,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                         title={formattedCurrency}
                                         description={translate('workspace.editor.currencyInputLabel')}
                                         shouldShowRightIcon={!readOnly}
-                                        disabled={hasVBA ?? readOnly}
+                                        disabled={hasVBA ? true : readOnly}
                                         wrapperStyle={styles.sectionMenuItemTopDescription}
                                         onPress={onPressCurrency}
                                         shouldGreyOutWhenDisabled={false}
@@ -160,17 +188,35 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                 </View>
                             </OfflineWithFeedback>
                             {!readOnly && (
-                                <View style={[styles.flexRow, styles.mnw120]}>
+                                <View style={[styles.flexRow, styles.mt6, styles.mnw120]}>
                                     <Button
                                         accessibilityLabel={translate('common.share')}
-                                        style={styles.mt6}
                                         text={translate('common.share')}
                                         onPress={onPressShare}
                                         medium
+                                        icon={Expensicons.QrCode}
+                                    />
+                                    <Button
+                                        accessibilityLabel={translate('common.delete')}
+                                        text={translate('common.delete')}
+                                        style={[styles.ml2]}
+                                        onPress={() => setIsDeleteModalOpen(true)}
+                                        medium
+                                        icon={Expensicons.Trashcan}
                                     />
                                 </View>
                             )}
                         </Section>
+                        <ConfirmModal
+                            title={translate('common.delete')}
+                            isVisible={isDeleteModalOpen}
+                            onConfirm={confirmDeleteAndHideModal}
+                            onCancel={() => setIsDeleteModalOpen(false)}
+                            prompt={translate('workspace.common.deleteConfirmation')}
+                            confirmText={translate('common.delete')}
+                            cancelText={translate('common.cancel')}
+                            danger
+                        />
                     </View>
                 </ScrollView>
             )}

@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -54,6 +54,9 @@ type AvatarWithImagePickerProps = {
     /** Additional style props for disabled picker */
     disabledStyle?: StyleProp<ViewStyle>;
 
+    /** Additional style props for the edit icon */
+    editIconStyle?: StyleProp<ViewStyle>;
+
     /** Executed once an image has been selected */
     onImageSelected?: (file: File | CustomRNImageManipulatorResult) => void;
 
@@ -103,7 +106,7 @@ type AvatarWithImagePickerProps = {
     isFocused: boolean;
 
     /** Style applied to the avatar */
-    avatarStyle: StyleProp<ViewStyle>;
+    avatarStyle: StyleProp<ViewStyle & ImageStyle>;
 
     /** Indicates if picker feature should be disabled */
     disabled?: boolean;
@@ -120,6 +123,7 @@ function AvatarWithImagePicker({
     DefaultAvatar = () => null,
     style,
     disabledStyle,
+    editIconStyle,
     pendingAction,
     errors,
     errorRowStyles,
@@ -220,7 +224,7 @@ function AvatarWithImagePicker({
             setError(null, {});
             setIsMenuVisible(false);
             setImageData({
-                uri: image.uri,
+                uri: image.uri ?? '',
                 name: image.name,
                 type: image.type,
             });
@@ -279,8 +283,6 @@ function AvatarWithImagePicker({
                 vertical: y + height + variables.spacing2,
             });
         });
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isMenuVisible, windowWidth]);
 
     return (
@@ -325,7 +327,7 @@ function AvatarWithImagePicker({
                                 )}
                             </View>
                             {!disabled && (
-                                <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
+                                <View style={StyleSheet.flatten([styles.smallEditIcon, styles.smallAvatarEditIcon, editIconStyle])}>
                                     <Icon
                                         src={Expensicons.Pencil}
                                         width={variables.iconSizeSmall}
