@@ -355,7 +355,7 @@ describe('GithubUtils', () => {
             },
             {
                 number: 6,
-                title: '[Internal QA] Test Internal QA PR',
+                title: '[Internal QA] Another Test Internal QA PR',
                 html_url: 'https://github.com/Expensify/App/pull/6',
                 user: {login: 'testUser'},
                 labels: [
@@ -368,14 +368,7 @@ describe('GithubUtils', () => {
                         color: 'f29513',
                     },
                 ],
-                assignees: [
-                    {
-                        login: 'octocat',
-                    },
-                    {
-                        login: 'hubot',
-                    },
-                ],
+                assignees: [],
             },
             {
                 number: 7,
@@ -393,9 +386,11 @@ describe('GithubUtils', () => {
                     },
                 ],
                 assignees: [],
-                merged_by: {login: 'hubot'},
             },
         ];
+        const mockInternalQaPR = {
+            merged_by: {login: 'octocat'},
+        };
         const mockGithub = jest.fn(() => ({
             getOctokit: () => ({
                 rest: {
@@ -404,6 +399,7 @@ describe('GithubUtils', () => {
                     },
                     pulls: {
                         list: jest.fn().mockResolvedValue({data: mockPRs}),
+                        get: jest.fn().mockResolvedValue({data: mockInternalQaPR}),
                     },
                 },
                 paginate: jest.fn().mockImplementation(<T>(objectMethod: () => Promise<ObjectMethodData<T>>) => objectMethod().then(({data}) => data)),
@@ -441,7 +437,6 @@ describe('GithubUtils', () => {
         const lineBreak = '\r\n';
         const lineBreakDouble = '\r\n\r\n';
         const assignOctocat = ' - @octocat';
-        const assignHubot = ' - @hubot';
         const deployerVerificationsHeader = '\r\n**Deployer verifications:**';
         // eslint-disable-next-line max-len
         const timingDashboardVerification =
@@ -581,14 +576,14 @@ describe('GithubUtils', () => {
                         `${lineBreak}${closedCheckbox}${basePRList[5]}` +
                         `${lineBreak}${internalQAHeader}` +
                         `${lineBreak}${openCheckbox}${internalQAPRList[0]}${assignOctocat}` +
-                        `${lineBreak}${openCheckbox}${internalQAPRList[1]}${assignHubot}` +
+                        `${lineBreak}${openCheckbox}${internalQAPRList[1]}${assignOctocat}` +
                         `${lineBreakDouble}${deployerVerificationsHeader}` +
                         `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                         `${lineBreak}${openCheckbox}${firebaseVerification}` +
                         `${lineBreak}${openCheckbox}${ghVerification}` +
                         `${lineBreakDouble}${ccApplauseLeads}`,
                 );
-                expect(issue.issueAssignees).toEqual(['octocat', 'hubot']);
+                expect(issue.issueAssignees).toEqual(['octocat']);
             });
         });
 
@@ -603,14 +598,14 @@ describe('GithubUtils', () => {
                         `${lineBreak}${closedCheckbox}${basePRList[5]}` +
                         `${lineBreak}${internalQAHeader}` +
                         `${lineBreak}${closedCheckbox}${internalQAPRList[0]}${assignOctocat}` +
-                        `${lineBreak}${openCheckbox}${internalQAPRList[1]}${assignHubot}` +
+                        `${lineBreak}${openCheckbox}${internalQAPRList[1]}${assignOctocat}` +
                         `${lineBreakDouble}${deployerVerificationsHeader}` +
                         `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                         `${lineBreak}${openCheckbox}${firebaseVerification}` +
                         `${lineBreak}${openCheckbox}${ghVerification}` +
                         `${lineBreakDouble}${ccApplauseLeads}`,
                 );
-                expect(issue.issueAssignees).toEqual(['octocat', 'hubot']);
+                expect(issue.issueAssignees).toEqual(['octocat']);
             });
         });
     });

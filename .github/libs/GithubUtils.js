@@ -248,93 +248,94 @@ class GithubUtils {
     ) {
         return this.fetchAllPullRequests(_.map(PRList, this.getPullRequestNumberFromURL))
             .then((data) => {
-                // The format of this map is following:
-                // {
-                //    'https://github.com/Expensify/App/pull/9641': 'PauloGasparSv',
-                //    'https://github.com/Expensify/App/pull/9642': 'mountiny'
-                // }
-                const internalQAPRMap = _.reduce(
-                    _.filter(data, (pr) => !_.isEmpty(_.findWhere(pr.labels, {name: CONST.LABELS.INTERNAL_QA}))),
-                    (map, pr) => {
-                        this.getPullRequestMergerLogin(pr.number).then((mergerLogin) => {
-                            // eslint-disable-next-line no-param-reassign
-                            map[pr.html_url] = mergerLogin;
-                            return map;
+                const internalQAPRs = data.filter((pr) => !_.isEmpty(_.findWhere(pr.labels, {name: CONST.LABELS.INTERNAL_QA})));
+                return Promise.all(
+                    internalQAPRs.map((pr) => {
+                        return this.getPullRequestMergerLogin(pr.number).then((mergerLogin) => {
+                            return {url: pr.html_url, mergerLogin};
                         });
-                    },
-                    {},
-                );
-                console.log('Found the following Internal QA PRs:', internalQAPRMap);
+                    }),
+                ).then((results) => {
+                    // The format of this map is following:
+                    // {
+                    //    'https://github.com/Expensify/App/pull/9641': 'PauloGasparSv',
+                    //    'https://github.com/Expensify/App/pull/9642': 'mountiny'
+                    // }
+                    const internalQAPRMap = results.reduce((map, {url, mergerLogin}) => {
+                        map[url] = mergerLogin;
+                        return map;
+                    }, {});
+                    console.log('Found the following Internal QA PRs:', internalQAPRMap);
 
-                const noQAPRs = _.pluck(
-                    _.filter(data, (PR) => /\[No\s?QA]/i.test(PR.title)),
-                    'html_url',
-                );
-                console.log('Found the following NO QA PRs:', noQAPRs);
-                const verifiedOrNoQAPRs = _.union(verifiedPRList, noQAPRs);
+                    const noQAPRs = _.pluck(
+                        _.filter(data, (PR) => /\[No\s?QA]/i.test(PR.title)),
+                        'html_url',
+                    );
+                    console.log('Found the following NO QA PRs:', noQAPRs);
+                    const verifiedOrNoQAPRs = _.union(verifiedPRList, noQAPRs);
 
-                const sortedPRList = _.chain(PRList).difference(_.keys(internalQAPRMap)).unique().sortBy(GithubUtils.getPullRequestNumberFromURL).value();
-                const sortedDeployBlockers = _.sortBy(_.unique(deployBlockers), GithubUtils.getIssueOrPullRequestNumberFromURL);
+                    const sortedPRList = _.chain(PRList).difference(_.keys(internalQAPRMap)).unique().sortBy(GithubUtils.getPullRequestNumberFromURL).value();
+                    const sortedDeployBlockers = _.sortBy(_.unique(deployBlockers), GithubUtils.getIssueOrPullRequestNumberFromURL);
 
-                // Tag version and comparison URL
-                // eslint-disable-next-line max-len
-                let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n`;
+                    // Tag version and comparison URL
+                    // eslint-disable-next-line max-len
+                    let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n`;
 
-                // PR list
-                if (!_.isEmpty(sortedPRList)) {
-                    issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
-                    _.each(sortedPRList, (URL) => {
-                        issueBody += _.contains(verifiedOrNoQAPRs, URL) ? '- [x]' : '- [ ]';
-                        issueBody += ` ${URL}\r\n`;
-                    });
-                    issueBody += '\r\n\r\n';
-                }
+                    // PR list
+                    if (!_.isEmpty(sortedPRList)) {
+                        issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
+                        _.each(sortedPRList, (URL) => {
+                            issueBody += _.contains(verifiedOrNoQAPRs, URL) ? '- [x]' : '- [ ]';
+                            issueBody += ` ${URL}\r\n`;
+                        });
+                        issueBody += '\r\n\r\n';
+                    }
 
-                // Internal QA PR list
-                if (!_.isEmpty(internalQAPRMap)) {
-                    console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
-                    issueBody += '**Internal QA:**\r\n';
-                    _.each(internalQAPRMap, (merger, URL) => {
-                        const mergerMention = `@${merger}`;
-                        issueBody += `${_.contains(resolvedInternalQAPRs, URL) ? '- [x]' : '- [ ]'} `;
-                        issueBody += `${URL}`;
-                        issueBody += ` - ${mergerMention}`;
-                        issueBody += '\r\n';
-                    });
-                    issueBody += '\r\n\r\n';
-                }
+                    // Internal QA PR list
+                    if (!_.isEmpty(internalQAPRMap)) {
+                        console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
+                        issueBody += '**Internal QA:**\r\n';
+                        _.each(internalQAPRMap, (merger, URL) => {
+                            const mergerMention = `@${merger}`;
+                            issueBody += `${_.contains(resolvedInternalQAPRs, URL) ? '- [x]' : '- [ ]'} `;
+                            issueBody += `${URL}`;
+                            issueBody += ` - ${mergerMention}`;
+                            issueBody += '\r\n';
+                        });
+                        issueBody += '\r\n\r\n';
+                    }
 
-                // Deploy blockers
-                if (!_.isEmpty(deployBlockers)) {
-                    issueBody += '**Deploy Blockers:**\r\n';
-                    _.each(sortedDeployBlockers, (URL) => {
-                        issueBody += _.contains(resolvedDeployBlockers, URL) ? '- [x] ' : '- [ ] ';
-                        issueBody += URL;
-                        issueBody += '\r\n';
-                    });
-                    issueBody += '\r\n\r\n';
-                }
+                    // Deploy blockers
+                    if (!_.isEmpty(deployBlockers)) {
+                        issueBody += '**Deploy Blockers:**\r\n';
+                        _.each(sortedDeployBlockers, (URL) => {
+                            issueBody += _.contains(resolvedDeployBlockers, URL) ? '- [x] ' : '- [ ] ';
+                            issueBody += URL;
+                            issueBody += '\r\n';
+                        });
+                        issueBody += '\r\n\r\n';
+                    }
 
-                issueBody += '**Deployer verifications:**';
-                // eslint-disable-next-line max-len
-                issueBody += `\r\n- [${
-                    isTimingDashboardChecked ? 'x' : ' '
-                }] I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.`;
-                // eslint-disable-next-line max-len
-                issueBody += `\r\n- [${
-                    isFirebaseChecked ? 'x' : ' '
-                }] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
-                // eslint-disable-next-line max-len
-                issueBody += `\r\n- [${isGHStatusChecked ? 'x' : ' '}] I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.`;
+                    issueBody += '**Deployer verifications:**';
+                    // eslint-disable-next-line max-len
+                    issueBody += `\r\n- [${
+                        isTimingDashboardChecked ? 'x' : ' '
+                    }] I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.`;
+                    // eslint-disable-next-line max-len
+                    issueBody += `\r\n- [${
+                        isFirebaseChecked ? 'x' : ' '
+                    }] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
+                    // eslint-disable-next-line max-len
+                    issueBody += `\r\n- [${isGHStatusChecked ? 'x' : ' '}] I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.`;
 
-                issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';
-                const issueAssignees = _.values(internalQAPRMap);
-                const issue = {issueBody, issueAssignees};
-                return issue;
+                    issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';
+                    const issueAssignees = _.uniq(_.values(internalQAPRMap));
+                    const issue = {issueBody, issueAssignees};
+                    return issue;
+                });
             })
             .catch((err) => console.warn('Error generating StagingDeployCash issue body! Continuing...', err));
     }
-
     /**
      * Fetch all pull requests given a list of PR numbers.
      *
