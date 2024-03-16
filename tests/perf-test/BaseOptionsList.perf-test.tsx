@@ -1,37 +1,53 @@
-import {fireEvent, RenderResult} from '@testing-library/react-native';
+import {fireEvent} from '@testing-library/react-native';
+import type {RenderResult} from '@testing-library/react-native';
 import React, {useState} from 'react';
 import {measurePerformance} from 'reassure';
 import BaseOptionsList from '@components/OptionsList/BaseOptionsList';
-import type {ListItem} from '@components/SelectionList/types';
+import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 
 type BaseOptionsListWrapperProps = {
     /** Whether this is a multi-select list */
-    canSelectMultiple?: boolean;
+    canSelectMultipleOptions?: boolean;
 };
 
-describe('[BaseOptionsList] Performance tests for BaseOptionsList', () => {
-    function BaseOptionsListWrapper({canSelectMultiple}: BaseOptionsListWrapperProps) {
+describe('[BaseOptionsList]', () => {
+    function BaseOptionsListWrapper({canSelectMultipleOptions = false}: BaseOptionsListWrapperProps) {
         const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
         const sections = [
             {
-                data: Array.from({length: 1000}, (element, index) => ({
+                data: Array.from({length: 10000}, (_, index) => ({
                     text: `Item ${index}`,
                     keyForList: `item-${index}`,
                     isSelected: selectedIds.includes(`item-${index}`),
+                    reportID: `report-${index}`,
                 })),
                 indexOffset: 0,
                 isDisabled: false,
+                shouldShow: true,
+                title: 'Section 1',
+            },
+            {
+                data: Array.from({length: 10000}, (_, index) => ({
+                    text: `Item ${index}`,
+                    keyForList: `item-${index}`,
+                    isSelected: selectedIds.includes(`item-${index}`),
+                    reportID: `report-${index}`,
+                })),
+                indexOffset: 0,
+                isDisabled: false,
+                shouldShow: true,
+                title: 'Section 2',
             },
         ];
 
-        const onSelectRow = (item: ListItem) => {
+        const onSelectRow = (item: OptionData) => {
             if (!item.keyForList) {
                 return;
             }
 
-            if (canSelectMultiple) {
+            if (canSelectMultipleOptions) {
                 if (selectedIds.includes(item.keyForList)) {
                     setSelectedIds(selectedIds.filter((selectedId) => selectedId === item.keyForList));
                 } else {
@@ -47,7 +63,7 @@ describe('[BaseOptionsList] Performance tests for BaseOptionsList', () => {
                 sections={sections}
                 headerMessage="Base Options List Header"
                 onSelectRow={onSelectRow}
-                canSelectMultiple={canSelectMultiple}
+                canSelectMultipleOptions={canSelectMultipleOptions}
             />
         );
     }
@@ -74,7 +90,7 @@ describe('[BaseOptionsList] Performance tests for BaseOptionsList', () => {
             fireEvent.press(screen.getByText('Item 4'));
         };
 
-        measurePerformance(<BaseOptionsListWrapper canSelectMultiple />, {scenario});
+        measurePerformance(<BaseOptionsListWrapper canSelectMultipleOptions />, {scenario});
     });
 
     test('Should scroll and select a few items', () => {
@@ -106,6 +122,6 @@ describe('[BaseOptionsList] Performance tests for BaseOptionsList', () => {
             fireEvent.press(screen.getByText('Item 15'));
         };
 
-        measurePerformance(<BaseOptionsListWrapper canSelectMultiple />, {scenario});
+        measurePerformance(<BaseOptionsListWrapper canSelectMultipleOptions />, {scenario});
     });
 });
