@@ -3009,6 +3009,8 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         );
     }
 
+    const canChatRequireAttention = (!!iouReport && needsToBeManuallySubmitted(iouReport)) || updatedIOUReport?.managerID === userAccountID;
+
     optimisticData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3031,7 +3033,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
             value: {
-                hasOutstandingChildRequest: ((!!iouReport && needsToBeManuallySubmitted(iouReport)) || updatedIOUReport?.managerID === userAccountID) && updatedIOUReport?.total !== 0,
+                hasOutstandingChildRequest: canChatRequireAttention && updatedIOUReport?.total !== 0,
             },
         },
     );
