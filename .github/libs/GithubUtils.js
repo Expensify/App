@@ -248,20 +248,15 @@ class GithubUtils {
     ) {
         return this.fetchAllPullRequests(_.map(PRList, this.getPullRequestNumberFromURL))
             .then((data) => {
-                const internalQAPRs = data.filter((pr) => !_.isEmpty(_.findWhere(pr.labels, {name: CONST.LABELS.INTERNAL_QA})));
-                return Promise.all(
-                    internalQAPRs.map((pr) => {
-                        return this.getPullRequestMergerLogin(pr.number).then((mergerLogin) => {
-                            return {url: pr.html_url, mergerLogin};
-                        });
-                    }),
-                ).then((results) => {
+                const internalQAPRs = _.filter(data, (pr) => !_.isEmpty(_.findWhere(pr.labels, {name: CONST.LABELS.INTERNAL_QA})));
+                return Promise.all(_.map(internalQAPRs, (pr) => this.getPullRequestMergerLogin(pr.number).then((mergerLogin) => ({url: pr.html_url, mergerLogin})))).then((results) => {
                     // The format of this map is following:
                     // {
                     //    'https://github.com/Expensify/App/pull/9641': 'PauloGasparSv',
                     //    'https://github.com/Expensify/App/pull/9642': 'mountiny'
                     // }
-                    const internalQAPRMap = results.reduce((map, {url, mergerLogin}) => {
+                    const internalQAPRMap = results.reduce((acc, {url, mergerLogin}) => {
+                        const map = {...acc};
                         map[url] = mergerLogin;
                         return map;
                     }, {});
