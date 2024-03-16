@@ -96,7 +96,7 @@ function IOURequestStepConfirmation({
     const transactionTaxCode = transaction.taxRate && transaction.taxRate.keyForList;
     const transactionTaxAmount = transaction.taxAmount;
     const requestType = TransactionUtils.getRequestType(transaction);
-    const headerTitle = () => {
+    const headerTitle = useMemo(() => {
         if (iouType === CONST.IOU.TYPE.SPLIT) {
             return translate('iou.split');
         }
@@ -104,7 +104,8 @@ function IOURequestStepConfirmation({
             return translate('common.send');
         }
         return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
-    };
+    }, [iouType, transaction, translate]);
+
     const participants = useMemo(
         () =>
             _.map(transaction.participants, (participant) => {
@@ -412,7 +413,7 @@ function IOURequestStepConfirmation({
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                     <HeaderWithBackButton
-                        title={headerTitle()}
+                        title={headerTitle}
                         onBackButtonPress={navigateBack}
                         shouldShowThreeDotsButton={requestType === CONST.IOU.REQUEST_TYPE.MANUAL && iouType === CONST.IOU.TYPE.REQUEST}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}

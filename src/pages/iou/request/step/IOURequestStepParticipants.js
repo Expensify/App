@@ -118,12 +118,12 @@ function IOURequestStepParticipants({
     const goToNextStep = useCallback(
         (selectedIouType) => {
             const isSplit = selectedIouType === CONST.IOU.TYPE.SPLIT;
-            let nextStepIOUType;
+            let nextStepIOUType = CONST.IOU.TYPE.REQUEST;
 
             if (isSplit && iouType !== CONST.IOU.TYPE.REQUEST) {
                 nextStepIOUType = CONST.IOU.TYPE.SPLIT;
-            } else {
-                nextStepIOUType = iouType === CONST.IOU.TYPE.SEND ? CONST.IOU.TYPE.SEND : CONST.IOU.TYPE.REQUEST;
+            } else if (iouType === CONST.IOU.TYPE.SEND) {
+                nextStepIOUType = CONST.IOU.TYPE.SEND;
             }
 
             IOU.setMoneyRequestTag(transactionID, '');
