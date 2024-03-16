@@ -3555,6 +3555,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
 }
 
 function enablePolicyWorkflows(policyID: string, enabled: boolean) {
+    const policy = ReportUtils.getPolicy(policyID);
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -3611,12 +3612,10 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                     areWorkflowsEnabled: !enabled,
                     ...(!enabled
                         ? {
-                              approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-                              autoReporting: false,
-                              harvesting: {
-                                  enabled: false,
-                              },
-                              reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                              approvalMode: policy.approvalMode,
+                              autoReporting: policy.autoReporting,
+                              harvesting: policy.harvesting,
+                              reimbursementChoice: policy.reimbursementChoice,
                           }
                         : {}),
                     pendingFields: {
