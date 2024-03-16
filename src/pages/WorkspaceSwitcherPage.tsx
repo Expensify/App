@@ -7,7 +7,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {MagnifyingGlass} from '@components/Icon/Expensicons';
 import OptionRow from '@components/OptionRow';
-import OptionsSelector from '@components/OptionsSelector';
+// import OptionsSelector from '@components/OptionsSelector';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -141,8 +141,9 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                 boldStyle: hasUnreadData(policy?.id),
                 keyForList: policy?.id,
                 isPolicyAdmin: PolicyUtils.isPolicyAdmin(policy),
+                isSelected: selectedOption?.policyID === policy?.id,
             }));
-    }, [policies, getIndicatorTypeForPolicy, hasUnreadData, isOffline]);
+    }, [policies, getIndicatorTypeForPolicy, hasUnreadData, isOffline, selectedOption?.policyID]);
 
     const filteredAndSortedUserWorkspaces = useMemo(
         () =>
@@ -263,21 +264,22 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                     /> */}
 
                         <SelectionList
-                            textInputPlaceholder={translate('workspace.switcher.placeholder')}
+                            textInputPlaceholder={translate('workspace.switcher.placeholder')} // In place of placeholder prop of OptionsSelector
+                            // ref={inputCallbackRef} Not required in SelectionList
                             sections={[usersWorkspacesSectionData]}
-                            textInputValue={searchTerm}
+                            textInputValue={searchTerm} // In place of value prop of OptionsSelector
                             shouldShowTextInput={usersWorkspaces.length >= CONST.WORKSPACE_SWITCHER.MINIMUM_WORKSPACES_TO_SHOW_SEARCH} // New prop added
                             onChangeText={setSearchTerm}
-                            // selectedOptions={selectedOption ? [selectedOption] : []} > Not in SelectionList
+                            // selectedOptions={selectedOption ? [selectedOption] : []} > Not in SelectionList > Not required > I added isSelected key to sections
                             onSelectRow={selectPolicy}
                             shouldPreventDefaultFocusOnSelectRow
                             headerMessage={headerMessage}
-                            // highlightSelectedOptions > Not in SelectionList
-                            // shouldShowOptions > Not in SelectionList
-                            // autoFocus={false} > Not in SelectionList
-                            canSelectMultiple={false}
-                            // shouldShowSubscript={false} > Not in SelectionList
-                            // showTitleTooltip={false} > Not in SelectionList
+                            // highlightSelectedOptions > To add checkmark to seleted option > Not in SelectionList > Not required > BaseListItem adds the checkmark by default if item has isSelected
+                            // shouldShowOptions > To show loader if false > Not in SelectionList > Not required since isLoading is false by default in SelectionList
+                            // autoFocus={false} > Not in SelectionList > Not required > SelectionList handles text input focus
+                            canSelectMultiple={false} // In place of canSelectMultipleOptions prop of OptionsSelector
+                            // shouldShowSubscript={false} > Not in SelectionList > Also removed from OptionsSelector so no change needed for this
+                            shouldShowTooltips={false} // In place of showTitleTooltip prop of OptionsSelector
                             contentContainerStyles={[styles.pt0, styles.mt0]} // New prop added
                             textInputIconLeft={MagnifyingGlass} // New prop added
                             initiallyFocusedOptionKey={activeWorkspaceID}
@@ -289,20 +291,7 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                 )}
             </>
         ),
-        [
-            setSearchTerm,
-            searchTerm,
-            selectPolicy,
-            selectedOption,
-            styles,
-            theme.textSupporting,
-            translate,
-            usersWorkspaces.length,
-            usersWorkspacesSectionData,
-            activeWorkspaceID,
-            theme.icon,
-            headerMessage,
-        ],
+        [setSearchTerm, searchTerm, selectPolicy, styles, theme.textSupporting, translate, usersWorkspaces.length, usersWorkspacesSectionData, activeWorkspaceID, theme.icon, headerMessage],
     );
 
     useEffect(() => {
