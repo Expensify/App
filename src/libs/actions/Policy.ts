@@ -2672,6 +2672,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
                             pendingFields: {
                                 enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             },
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         };
 
                         return acc;
@@ -2692,6 +2693,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
                             pendingFields: {
                                 enabled: null,
                             },
+                            pendingAction: null,
                         };
 
                         return acc;
@@ -2712,6 +2714,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
                             pendingFields: {
                                 enabled: null,
                             },
+                            pendingAction: null,
                         };
 
                         return acc;
@@ -2922,6 +2925,7 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                                     pendingFields: {
                                         enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                     },
+                                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 };
 
                                 return acc;
@@ -2946,6 +2950,7 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                                     pendingFields: {
                                         enabled: null,
                                     },
+                                    pendingAction: null,
                                 };
 
                                 return acc;
@@ -2970,6 +2975,7 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                                     pendingFields: {
                                         enabled: null,
                                     },
+                                    pendingAction: null,
                                 };
 
                                 return acc;
