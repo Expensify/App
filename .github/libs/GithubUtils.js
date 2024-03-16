@@ -256,14 +256,11 @@ class GithubUtils {
                 const internalQAPRMap = _.reduce(
                     _.filter(data, (pr) => !_.isEmpty(_.findWhere(pr.labels, {name: CONST.LABELS.INTERNAL_QA}))),
                     (map, pr) => {
-                        const {data: prData} = await GithubUtils.octokit.pulls.get({
-                            owner: CONST.GITHUB_OWNER,
-                            repo: CONST.APP_REPO,
-                            pull_number: pr.number,
+                        this.getPullRequestMergerLogin(pr.number).then((mergerLogin) => {
+                            // eslint-disable-next-line no-param-reassign
+                            map[pr.html_url] = mergerLogin;
+                            return map;
                         });
-                        // eslint-disable-next-line no-param-reassign
-                        map[pr.html_url] = prData.merged_by.login;
-                        return map;
                     },
                     {},
                 );
@@ -365,6 +362,20 @@ class GithubUtils {
         )
             .then((prList) => _.filter(prList, (pr) => _.contains(pullRequestNumbers, pr.number)))
             .catch((err) => console.error('Failed to get PR list', err));
+    }
+
+    /**
+     * @param {Number} pullRequestNumber
+     * @returns {Promise}
+     */
+    static getPullRequestMergerLogin(pullRequestNumber) {
+        return this.octokit.pulls
+            .get({
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                pull_number: pullRequestNumber,
+            })
+            .then(({data: pullRequest}) => pullRequest.merged_by.login);
     }
 
     /**
