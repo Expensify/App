@@ -570,8 +570,8 @@ const ROUTES = {
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/new` as const,
     },
     WORKSPACE_CATEGORY_EDIT: {
-        route: 'workspace/:policyID/categories/:categoryName/edit',
-        getRoute: (policyID: string, categoryName: string) => `workspace/${policyID}/categories/${encodeURIComponent(categoryName)}/edit` as const,
+        route: 'settings/workspaces/:policyID/categories/:categoryName/edit',
+        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/edit` as const,
     },
     WORKSPACE_TAGS: {
         route: 'settings/workspaces/:policyID/tags',
@@ -606,12 +606,12 @@ const ROUTES = {
         getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/members/${accountID}/role-selection`, backTo),
     },
     WORKSPACE_DISTANCE_RATES: {
-        route: 'workspace/:policyID/distance-rates',
-        getRoute: (policyID: string) => `workspace/${policyID}/distance-rates` as const,
+        route: 'settings/workspaces/:policyID/distance-rates',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/distance-rates` as const,
     },
     WORKSPACE_CREATE_DISTANCE_RATE: {
-        route: 'workspace/:policyID/distance-rates/new',
-        getRoute: (policyID: string) => `workspace/${policyID}/distance-rates/new` as const,
+        route: 'settings/workspaces/:policyID/distance-rates/new',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/distance-rates/new` as const,
     },
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {
