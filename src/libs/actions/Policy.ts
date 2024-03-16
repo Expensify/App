@@ -3577,6 +3577,7 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                         areWorkflowsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         ...(!enabled
                             ? {
+                                  approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                   autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                   harvesting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                   reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -3595,6 +3596,7 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                         areWorkflowsEnabled: null,
                         ...(!enabled
                             ? {
+                                  approvalMode: null,
                                   autoReporting: null,
                                   harvesting: null,
                                   reimbursementChoice: null,
@@ -3622,6 +3624,7 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                         areWorkflowsEnabled: null,
                         ...(!enabled
                             ? {
+                                  approvalMode: null,
                                   autoReporting: null,
                                   harvesting: null,
                                   reimbursementChoice: null,
