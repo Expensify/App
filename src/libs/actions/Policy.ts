@@ -3562,8 +3562,25 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     areWorkflowsEnabled: enabled,
+                    ...(!enabled
+                        ? {
+                              approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                              autoReporting: false,
+                              harvesting: {
+                                  enabled: false,
+                              },
+                              reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                          }
+                        : {}),
                     pendingFields: {
                         areWorkflowsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        ...(!enabled
+                            ? {
+                                  autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                  harvesting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                  reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                              }
+                            : {}),
                     },
                 },
             },
@@ -3575,6 +3592,13 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                 value: {
                     pendingFields: {
                         areWorkflowsEnabled: null,
+                        ...(!enabled
+                            ? {
+                                  autoReporting: null,
+                                  harvesting: null,
+                                  reimbursementChoice: null,
+                              }
+                            : {}),
                     },
                 },
             },
@@ -3585,8 +3609,25 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     areWorkflowsEnabled: !enabled,
+                    ...(!enabled
+                        ? {
+                              approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                              autoReporting: false,
+                              harvesting: {
+                                  enabled: false,
+                              },
+                              reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                          }
+                        : {}),
                     pendingFields: {
                         areWorkflowsEnabled: null,
+                        ...(!enabled
+                            ? {
+                                  autoReporting: null,
+                                  harvesting: null,
+                                  reimbursementChoice: null,
+                              }
+                            : {}),
                     },
                 },
             },
