@@ -256,8 +256,13 @@ class GithubUtils {
                 const internalQAPRMap = _.reduce(
                     _.filter(data, (pr) => !_.isEmpty(_.findWhere(pr.labels, {name: CONST.LABELS.INTERNAL_QA}))),
                     (map, pr) => {
+                        const {data: prData} = await GithubUtils.octokit.pulls.get({
+                            owner: CONST.GITHUB_OWNER,
+                            repo: CONST.APP_REPO,
+                            pull_number: pr.number,
+                        });
                         // eslint-disable-next-line no-param-reassign
-                        map[pr.html_url] = pr.merged_by.login;
+                        map[pr.html_url] = prData.merged_by.login;
                         return map;
                     },
                     {},
