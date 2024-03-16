@@ -22,15 +22,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
-import Log from '@libs/Log';
 import * as LoginUtils from '@libs/LoginUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import * as CloseAccount from '@userActions/CloseAccount';
-import * as MemoryOnlyKeys from '@userActions/MemoryOnlyKeys/MemoryOnlyKeys';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -150,12 +147,6 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
         }
 
         const loginTrim = login.trim();
-
-        // If the user has entered a guide email, then we are going to enable an experimental Onyx mode to help with performance
-        if (PolicyUtils.isExpensifyGuideTeam(loginTrim)) {
-            Log.info('Detected guide email in login field, setting memory only keys.');
-            MemoryOnlyKeys.enable();
-        }
 
         const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(loginTrim));
         const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
