@@ -3555,6 +3555,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
 }
 
 function enablePolicyWorkflows(policyID: string, enabled: boolean) {
+    const policy = ReportUtils.getPolicy(policyID);
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -3562,8 +3563,26 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     areWorkflowsEnabled: enabled,
+                    ...(!enabled
+                        ? {
+                              approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                              autoReporting: false,
+                              harvesting: {
+                                  enabled: false,
+                              },
+                              reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                          }
+                        : {}),
                     pendingFields: {
                         areWorkflowsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        ...(!enabled
+                            ? {
+                                  approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                  autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                  harvesting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                  reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                              }
+                            : {}),
                     },
                 },
             },
@@ -3575,6 +3594,14 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                 value: {
                     pendingFields: {
                         areWorkflowsEnabled: null,
+                        ...(!enabled
+                            ? {
+                                  approvalMode: null,
+                                  autoReporting: null,
+                                  harvesting: null,
+                                  reimbursementChoice: null,
+                              }
+                            : {}),
                     },
                 },
             },
@@ -3585,8 +3612,24 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     areWorkflowsEnabled: !enabled,
+                    ...(!enabled
+                        ? {
+                              approvalMode: policy.approvalMode,
+                              autoReporting: policy.autoReporting,
+                              harvesting: policy.harvesting,
+                              reimbursementChoice: policy.reimbursementChoice,
+                          }
+                        : {}),
                     pendingFields: {
                         areWorkflowsEnabled: null,
+                        ...(!enabled
+                            ? {
+                                  approvalMode: null,
+                                  autoReporting: null,
+                                  harvesting: null,
+                                  reimbursementChoice: null,
+                              }
+                            : {}),
                     },
                 },
             },
