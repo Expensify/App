@@ -11,7 +11,7 @@ describe('[PolicyUtils] Performance tests for getMemberAccountIDsForWorkspace', 
             (_, index) => `policyMembers_${index}`,
             () => createRandomPolicyMember(),
         );
-        const personalDetails = createCollection<PersonalDetails>((_, index: number) => `personalDetails_${index}`, createPersonalDetails);
+        const personalDetails = createCollection<PersonalDetails>((_, index) => `personalDetails_${index}`, createPersonalDetails);
 
         await measureFunction(() => getMemberAccountIDsForWorkspace(policyMembers, personalDetails));
     });
