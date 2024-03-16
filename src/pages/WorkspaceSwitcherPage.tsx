@@ -10,10 +10,11 @@ import OptionRow from '@components/OptionRow';
 import OptionsSelector from '@components/OptionsSelector';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -59,7 +60,6 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
     const {isOffline} = useNetwork();
     const [selectedOption, setSelectedOption] = useState<SimpleWorkspaceItem>();
     const [searchTerm, setSearchTerm] = useState('');
-    const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
 
@@ -237,7 +237,8 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                 </View>
 
                 {usersWorkspaces.length > 0 ? (
-                    <OptionsSelector
+                    <>
+                        {/* <OptionsSelector
                         // @ts-expect-error TODO: remove this comment once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TS
                         placeholder={translate('workspace.switcher.placeholder')}
                         ref={inputCallbackRef}
@@ -259,14 +260,36 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                         textIconLeft={MagnifyingGlass}
                         // Null is to avoid selecting unfocused option when Global selected, undefined is to focus selected workspace
                         initiallyFocusedOptionKey={!activeWorkspaceID ? null : undefined}
-                    />
+                    /> */}
+
+                        <SelectionList
+                            textInputPlaceholder={translate('workspace.switcher.placeholder')}
+                            sections={[usersWorkspacesSectionData]}
+                            textInputValue={searchTerm}
+                            shouldShowTextInput={usersWorkspaces.length >= CONST.WORKSPACE_SWITCHER.MINIMUM_WORKSPACES_TO_SHOW_SEARCH} // New prop added
+                            onChangeText={setSearchTerm}
+                            // selectedOptions={selectedOption ? [selectedOption] : []} > Not in SelectionList
+                            onSelectRow={selectPolicy}
+                            shouldPreventDefaultFocusOnSelectRow
+                            headerMessage={headerMessage}
+                            // highlightSelectedOptions > Not in SelectionList
+                            // shouldShowOptions > Not in SelectionList
+                            // autoFocus={false} > Not in SelectionList
+                            canSelectMultiple={false}
+                            // shouldShowSubscript={false} > Not in SelectionList
+                            // showTitleTooltip={false} > Not in SelectionList
+                            contentContainerStyles={[styles.pt0, styles.mt0]} // New prop added
+                            textInputIconLeft={MagnifyingGlass} // New prop added
+                            initiallyFocusedOptionKey={activeWorkspaceID}
+                            ListItem={UserListItem}
+                        />
+                    </>
                 ) : (
                     <WorkspaceCardCreateAWorkspace />
                 )}
             </>
         ),
         [
-            inputCallbackRef,
             setSearchTerm,
             searchTerm,
             selectPolicy,

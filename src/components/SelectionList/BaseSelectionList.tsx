@@ -68,6 +68,9 @@ function BaseSelectionList<TItem extends ListItem>(
         listHeaderWrapperStyle,
         isRowMultilineSupported = false,
         textInputRef,
+        shouldShowTextInput = true,
+        textInputIconLeft,
+        contentContainerStyles,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -76,7 +79,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const listRef = useRef<RNSectionList<TItem, Section<TItem>>>(null);
     const innerTextInputRef = useRef<RNTextInput | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const shouldShowTextInput = !!textInputLabel;
+    const showTextInput = !!textInputLabel || shouldShowTextInput;
     const shouldShowSelectAll = !!onSelectAll;
     const activeElementRole = useActiveElementRole();
     const isFocused = useIsFocused();
@@ -240,7 +243,7 @@ function BaseSelectionList<TItem extends ListItem>(
 
         onSelectRow(item);
 
-        if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
+        if (showTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
             innerTextInputRef.current.focus();
         }
     };
@@ -248,7 +251,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const selectAllRow = () => {
         onSelectAll?.();
 
-        if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
+        if (showTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
             innerTextInputRef.current.focus();
         }
     };
@@ -374,7 +377,7 @@ function BaseSelectionList<TItem extends ListItem>(
     /** Focuses the text input when the component comes into focus and after any navigation animations finish. */
     useFocusEffect(
         useCallback(() => {
-            if (shouldShowTextInput) {
+            if (showTextInput) {
                 focusTimeoutRef.current = setTimeout(() => {
                     if (!innerTextInputRef.current) {
                         return;
@@ -388,7 +391,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 }
                 clearTimeout(focusTimeoutRef.current);
             };
-        }, [shouldShowTextInput]),
+        }, [showTextInput]),
     );
 
     const prevTextInputValue = usePrevious(textInputValue);
@@ -470,7 +473,7 @@ function BaseSelectionList<TItem extends ListItem>(
             <SafeAreaConsumer>
                 {({safeAreaPaddingBottomStyle}) => (
                     <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
-                        {shouldShowTextInput && (
+                        {showTextInput && (
                             <View style={[styles.ph4, styles.pb3]}>
                                 <TextInput
                                     ref={(element) => {
@@ -498,6 +501,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                     blurOnSubmit={!!flattenedSections.allOptions.length}
                                     isLoading={isLoadingNewOptions}
                                     testID="selection-list-text-input"
+                                    iconLeft={textInputIconLeft}
                                 />
                             </View>
                         )}
@@ -549,6 +553,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                     onLayout={onSectionListLayout}
                                     style={(!maxToRenderPerBatch || isInitialSectionListRender) && styles.opacity0}
                                     ListFooterComponent={ShowMoreButtonInstance}
+                                    contentContainerStyle={contentContainerStyles}
                                 />
                                 {children}
                             </>

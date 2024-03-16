@@ -6,6 +6,7 @@ import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type IconAsset from '@src/types/utils/IconAsset';
 import type RadioListItem from './RadioListItem';
 import type TableListItem from './TableListItem';
 import type UserListItem from './UserListItem';
@@ -172,6 +173,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
     sections: Array<SectionListData<TItem, Section<TItem>>> | typeof CONST.EMPTY_ARRAY;
 
+    /** Content container styles for OptionsList */
+    contentContainerStyles?: StyleProp<ViewStyle> | undefined;
+
     /** Default renderer for every item in the list */
     ListItem: typeof RadioListItem | typeof UserListItem | typeof TableListItem;
 
@@ -297,6 +301,12 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Ref for textInput */
     textInputRef?: MutableRefObject<TextInput | null>;
+
+    /** Left icon to display in TextInput */
+    textInputIconLeft?: IconAsset | null;
+
+    /** If false, the text input will not be shown at all. Defaults to true */
+    shouldShowTextInput?: boolean;
 };
 
 type SelectionListHandle = {

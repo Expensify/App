@@ -173,7 +173,6 @@ class BaseOptionsSelector extends Component {
         const isNewFocusedIndex = newFocusedIndex !== this.state.focusedIndex;
         const prevFocusedOption = _.find(newOptions, (option) => this.focusedOption && option.keyForList === this.focusedOption.keyForList);
         const prevFocusedOptionIndex = prevFocusedOption ? _.findIndex(newOptions, (option) => this.focusedOption && option.keyForList === this.focusedOption.keyForList) : undefined;
-
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState(
             {
