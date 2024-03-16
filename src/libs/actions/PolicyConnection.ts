@@ -43,10 +43,8 @@ function updatePolicyConnectionConfig({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                connections: {
-                    [connectionName]: {
-                        config: updatedPartialConfig,
-                    },
+                pendingFields: {
+                    [updatedField]: null,
                 },
             },
         },
