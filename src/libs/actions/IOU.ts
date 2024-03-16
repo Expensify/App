@@ -1248,6 +1248,8 @@ function getUpdateMoneyRequestParams(
     }
     updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, transactionDetails?.currency);
 
+    const canChatRequireAttention = (!!iouReport && needsToBeManuallySubmitted(iouReport)) || updatedMoneyRequestReport.managerID === userAccountID;
+
     optimisticData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1258,8 +1260,7 @@ function getUpdateMoneyRequestParams(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.parentReportID}`,
             value: {
-                hasOutstandingChildRequest:
-                    ((!!iouReport && needsToBeManuallySubmitted(iouReport)) || updatedMoneyRequestReport.managerID === userAccountID) && updatedMoneyRequestReport.total !== 0,
+                hasOutstandingChildRequest: canChatRequireAttention && updatedMoneyRequestReport.total !== 0,
             },
         },
     );
