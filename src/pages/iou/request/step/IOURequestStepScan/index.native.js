@@ -60,8 +60,10 @@ function IOURequestStepScan({
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const devices = useCameraDevices('dual-wide-camera');
-    const device = devices.back;
+    // TODO: Use `useCameraDevice` api when upgrading to react-native-vision-camera v3+
+    const dualWideDevice = useCameraDevices('dual-wide-camera').back;
+    const wideDevice = useCameraDevices('wide-angle-camera').back;
+    const device = dualWideDevice || wideDevice;
 
     const camera = useRef(null);
     const [flash, setFlash] = useState(false);
