@@ -169,6 +169,12 @@ type Connections = {
     quickbooksOnline: Connection<QBOConnectionData, QBOConnectionConfig>;
 };
 
+type ConnectionConfig = {
+    [K in keyof Connections]: Connections[K]['config'];
+}[keyof Connections];
+
+type ConnectionName = keyof Connections;
+
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
 type PendingJoinRequestPolicy = {
@@ -357,4 +363,4 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
 export default Policy;
 
-export type {Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault, PendingJoinRequestPolicy, QBOConnectionConfig};
+export type {Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault, PendingJoinRequestPolicy, QBOConnectionConfig, Connections, ConnectionName, ConnectionConfig};
