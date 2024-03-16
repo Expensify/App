@@ -255,11 +255,14 @@ class GithubUtils {
                     //    'https://github.com/Expensify/App/pull/9641': 'PauloGasparSv',
                     //    'https://github.com/Expensify/App/pull/9642': 'mountiny'
                     // }
-                    const internalQAPRMap = results.reduce((acc, {url, mergerLogin}) => {
-                        const map = {...acc};
-                        map[url] = mergerLogin;
-                        return map;
-                    }, {});
+                    const internalQAPRMap = _.reduce(
+                        results,
+                        (acc, {url, mergerLogin}) => {
+                            acc[url] = mergerLogin;
+                            return acc;
+                        },
+                        {},
+                    );
                     console.log('Found the following Internal QA PRs:', internalQAPRMap);
 
                     const noQAPRs = _.pluck(
@@ -331,6 +334,7 @@ class GithubUtils {
             })
             .catch((err) => console.warn('Error generating StagingDeployCash issue body! Continuing...', err));
     }
+
     /**
      * Fetch all pull requests given a list of PR numbers.
      *
