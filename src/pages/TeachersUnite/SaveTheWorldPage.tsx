@@ -1,11 +1,11 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import ScrollView from '@components/ScrollView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
