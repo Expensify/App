@@ -182,21 +182,22 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
             }
 
             return (
-                <PressableWithoutFeedback
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel="row"
-                    style={[styles.mh5, styles.mb3]}
-                    disabled={item.disabled}
-                    onPress={item.action}
+                <OfflineWithFeedback
+                    key={`${item.title}_${index}`}
+                    pendingAction={item.pendingAction}
+                    errorRowStyles={styles.ph5}
+                    onClose={item.dismissError}
+                    errors={item.errors}
+                    style={styles.mb3}
                 >
-                    {({hovered}) => (
-                        <OfflineWithFeedback
-                            key={`${item.title}_${index}`}
-                            pendingAction={item.pendingAction}
-                            errorRowStyles={styles.ph5}
-                            onClose={item.dismissError}
-                            errors={item.errors}
-                        >
+                    <PressableWithoutFeedback
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel="row"
+                        style={[styles.mh5]}
+                        disabled={item.disabled}
+                        onPress={item.action}
+                    >
+                        {({hovered}) => (
                             <WorkspacesListRow
                                 title={item.title}
                                 menuItems={threeDotsMenuItems}
@@ -209,9 +210,9 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                                 brickRoadIndicator={item.brickRoadIndicator}
                                 shouldDisableThreeDotsMenu={item.disabled}
                             />
-                        </OfflineWithFeedback>
-                    )}
-                </PressableWithoutFeedback>
+                        )}
+                    </PressableWithoutFeedback>
+                </OfflineWithFeedback>
             );
         },
         [isLessThanMediumScreen, styles.mb3, styles.mh5, styles.ph5, styles.hoveredComponentBG, translate],

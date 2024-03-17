@@ -44,6 +44,9 @@ type CommonListItemProps<TItem> = {
     /** Styles for the wrapper view */
     wrapperStyle?: StyleProp<ViewStyle>;
 
+    /** Styles for the container view */
+    containerStyle?: StyleProp<ViewStyle>;
+
     /** Styles for the checkbox wrapper view if select multiple option is on */
     selectMultipleStyle?: StyleProp<ViewStyle>;
 
