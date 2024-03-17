@@ -4,6 +4,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import SelectCircle from '@components/SelectCircle';
 import useHover from '@hooks/useHover';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -23,6 +24,7 @@ function BaseListItem<TItem extends ListItem>({
     onCheckboxPress,
     onDismissError = () => {},
     rightHandSideComponent,
+    checkmarkPosition = CONST.DIRECTION.LEFT,
     keyForList,
     errors,
     pendingAction,
@@ -76,13 +78,14 @@ function BaseListItem<TItem extends ListItem>({
                 style={pressableStyle}
             >
                 <View style={wrapperStyle}>
-                    {canSelectMultiple && (
+                    {canSelectMultiple && checkmarkPosition === CONST.DIRECTION.LEFT && (
                         <PressableWithFeedback
                             accessibilityLabel={item.text ?? ''}
                             role={CONST.ROLE.BUTTON}
-                            disabled={isDisabled}
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            disabled={isDisabled || item.isDisabledCheckbox}
                             onPress={handleCheckboxPress}
-                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle()]}
+                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
                         >
                             <View style={selectMultipleStyle}>
                                 {item.isSelected && (
@@ -98,6 +101,21 @@ function BaseListItem<TItem extends ListItem>({
                     )}
 
                     {typeof children === 'function' ? children(hovered) : children}
+
+                    {canSelectMultiple && checkmarkPosition === CONST.DIRECTION.RIGHT && (
+                        <PressableWithFeedback
+                            onPress={handleCheckboxPress}
+                            disabled={isDisabled}
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={item.text ?? ''}
+                            style={[styles.ml2, styles.optionSelectCircle]}
+                        >
+                            <SelectCircle
+                                isChecked={item.isSelected ?? false}
+                                selectCircleStyles={styles.ml0}
+                            />
+                        </PressableWithFeedback>
+                    )}
 
                     {!canSelectMultiple && item.isSelected && !rightHandSideComponent && (
                         <View

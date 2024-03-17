@@ -1,11 +1,8 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {InteractionManager, StyleSheet, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import Breadcrumbs from '@components/Breadcrumbs';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import useLocalize from '@hooks/useLocalize';
@@ -43,11 +40,11 @@ const propTypes = {
     isActiveReport: PropTypes.func.isRequired,
 };
 
-function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport, isCreateMenuOpen, activePolicy}) {
+function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport, isCreateMenuOpen}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const modal = useRef({});
-    const {translate, updateLocale} = useLocalize();
+    const {updateLocale} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
 
     useEffect(() => {
@@ -129,22 +126,6 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
 
     return (
         <View style={[styles.flex1, styles.h100]}>
-            <Breadcrumbs
-                breadcrumbs={[
-                    activePolicy
-                        ? {
-                              type: CONST.BREADCRUMB_TYPE.STRONG,
-                              text: lodashGet(activePolicy, 'name', ''),
-                          }
-                        : {
-                              type: CONST.BREADCRUMB_TYPE.ROOT,
-                          },
-                    {
-                        text: translate('common.chats'),
-                    },
-                ]}
-                style={[styles.mb5, styles.ph5]}
-            />
             <View style={[styles.pRelative, styles.flex1]}>
                 <LHNOptionsList
                     style={styles.flex1}
@@ -168,9 +149,5 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
 SidebarLinks.propTypes = propTypes;
 SidebarLinks.displayName = 'SidebarLinks';
 
-export default withOnyx({
-    activePolicy: {
-        key: ({activeWorkspaceID}) => `${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID}`,
-    },
-})(SidebarLinks);
+export default SidebarLinks;
 export {basePropTypes};
