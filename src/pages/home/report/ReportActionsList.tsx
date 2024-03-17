@@ -539,7 +539,7 @@ function ReportActionsList({
                 isActive={isFloatingMessageCounterVisible && !!currentUnreadMarker}
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
-            <Animated.View style={[animatedStyles, styles.justifyContentEnd, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}>
+            <Animated.View style={[animatedStyles, styles.flexShrink1, styles.justifyContentEnd, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}>
                 <AnimatedEmptyStateBackground />
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
