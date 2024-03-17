@@ -29,6 +29,7 @@ jest.mock('react-native-reanimated', () => ({
     useSharedValue: jest.fn,
     useAnimatedStyle: jest.fn,
     useAnimatedRef: jest.fn,
+    useReducedMotion: jest.fn,
 }));
 
 jest.mock('../../src/components/ConfirmedRoute.tsx');
