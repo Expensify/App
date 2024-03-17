@@ -238,9 +238,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const shouldShowTax = isPolicyExpenseChat && (policy?.tax?.trackingEnabled ?? policy?.isTaxTrackingEnabled);
 
     // A flag for showing the billable field
-    const shouldShowBillable = !(policy?.disabledFields?.defaultBillable ?? true);
+    const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
 
-    const hasRoute = transaction ? TransactionUtils.hasRoute(transaction) : false;
+    const hasRoute = TransactionUtils.hasRoute(transaction);
     const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate);
     const formattedAmount = isDistanceRequestWithPendingRoute
         ? ''
@@ -279,8 +279,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const isMerchantEmpty = !iouMerchant || iouMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isMerchantRequired = isPolicyExpenseChat && !isScanRequest && shouldShowMerchant;
 
-    const isCategoryRequired = canUseViolations && (policy?.requiresCategory ?? false);
-    const isTagRequired = canUseViolations && (policy?.requiresTag ?? false);
+    const isCategoryRequired = canUseViolations && !!policy?.requiresCategory;
+    const isTagRequired = canUseViolations && !!policy?.requiresTag;
 
     useEffect(() => {
         if ((!isMerchantRequired && isMerchantEmpty) || !merchantError) {
