@@ -151,7 +151,7 @@ function MoneyRequestView({
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data']): boolean => !!canUseViolations && getViolationsForField(field, data).length > 0,
         [canUseViolations, getViolationsForField],
     );
-    const noteTypeViolations = transactionViolations?.filter((violation) => violation.type === 'note').map((v) => ViolationsUtils.getViolationTranslation(v, translate));
+    const noteTypeViolations = transactionViolations?.filter((violation) => violation.type === 'notice').map((v) => ViolationsUtils.getViolationTranslation(v, translate));
     const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && hasReceipt;
 
     let amountDescription = `${translate('iou.amount')}`;
