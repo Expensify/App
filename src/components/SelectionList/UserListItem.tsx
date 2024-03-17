@@ -2,6 +2,7 @@ import Str from 'expensify-common/lib/str';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import SelectCircle from '@components/SelectCircle';
