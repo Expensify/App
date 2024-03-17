@@ -137,6 +137,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
     );
 
     const navigateToCategorySettings = (category: PolicyOption) => {
+        setSelectedCategories({});
         Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, category.keyForList));
     };
 
@@ -236,14 +237,13 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                         onPress={navigateToCreateCategoryPage}
                         icon={Expensicons.Plus}
                         text={translate('workspace.categories.addCategory')}
-                        style={[styles.pr2, isSmallScreenWidth && styles.w50]}
+                        style={[styles.mr3, isSmallScreenWidth && styles.w50]}
                     />
                 )}
                 <Button
                     medium
                     onPress={navigateToCategoriesSettings}
                     icon={Expensicons.Gear}
-                    iconStyles={[styles.mr2]}
                     text={translate('common.settings')}
                     style={[isSmallScreenWidth && styles.w50]}
                 />

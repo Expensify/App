@@ -2,6 +2,7 @@ export type {default as ActivatePhysicalExpensifyCardParams} from './ActivatePhy
 export type {default as AddNewContactMethodParams} from './AddNewContactMethodParams';
 export type {default as AddPaymentCardParams} from './AddPaymentCardParams';
 export type {default as AddPersonalBankAccountParams} from './AddPersonalBankAccountParams';
+export type {default as RestartBankAccountSetupParams} from './RestartBankAccountSetupParams';
 export type {default as AddSchoolPrincipalParams} from './AddSchoolPrincipalParams';
 export type {default as AuthenticatePusherParams} from './AuthenticatePusherParams';
 export type {default as BankAccountHandlePlaidErrorParams} from './BankAccountHandlePlaidErrorParams';
@@ -151,6 +152,7 @@ export type {default as UpdateWorkspaceDescriptionParams} from './UpdateWorkspac
 export type {default as UpdateWorkspaceMembersRoleParams} from './UpdateWorkspaceMembersRoleParams';
 export type {default as SetWorkspaceCategoriesEnabledParams} from './SetWorkspaceCategoriesEnabledParams';
 export type {default as CreateWorkspaceCategoriesParams} from './CreateWorkspaceCategoriesParams';
+export type {default as RenameWorkspaceCategoriesParams} from './RenameWorkspaceCategoriesParams';
 export type {default as SetWorkspaceRequiresCategoryParams} from './SetWorkspaceRequiresCategoryParams';
 export type {default as DeleteWorkspaceCategoriesParams} from './DeleteWorkspaceCategoriesParams';
 export type {default as SetWorkspaceAutoReportingParams} from './SetWorkspaceAutoReportingParams';
@@ -166,7 +168,7 @@ export type {default as EnablePolicyCategoriesParams} from './EnablePolicyCatego
 export type {default as EnablePolicyConnectionsParams} from './EnablePolicyConnectionsParams';
 export type {default as EnablePolicyDistanceRatesParams} from './EnablePolicyDistanceRatesParams';
 export type {default as EnablePolicyTagsParams} from './EnablePolicyTagsParams';
-export type {default as EnablePolicyTaxesParams} from './EnablePolicyTaxesParams';
+export type {default as SetPolicyTagsEnabled} from './SetPolicyTagsEnabled';
 export type {default as EnablePolicyWorkflowsParams} from './EnablePolicyWorkflowsParams';
 export type {default as EnablePolicyReportFieldsParams} from './EnablePolicyReportFieldsParams';
 export type {default as AcceptJoinRequestParams} from './AcceptJoinRequest';
@@ -175,5 +177,7 @@ export type {default as JoinPolicyInviteLinkParams} from './JoinPolicyInviteLink
 export type {default as OpenPolicyWorkflowsPageParams} from './OpenPolicyWorkflowsPageParams';
 export type {default as OpenPolicyDistanceRatesPageParams} from './OpenPolicyDistanceRatesPageParams';
 export type {default as OpenPolicyTaxesPageParams} from './OpenPolicyTaxesPageParams';
+export type {default as EnablePolicyTaxesParams} from './EnablePolicyTaxesParams';
 export type {default as OpenPolicyMoreFeaturesPageParams} from './OpenPolicyMoreFeaturesPageParams';
+export type {default as CreatePolicyDistanceRateParams} from './CreatePolicyDistanceRateParams';
 export type {default as CreatePolicyTagsParams} from './CreatePolicyTagsParams';
