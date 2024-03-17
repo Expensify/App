@@ -224,8 +224,9 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
      * Retuns a list of menu items data for general section
      * @returns object with translationKey, style and items for the general section
      */
-    const generalMenuItemsData: Menu = useMemo(
-        () => ({
+    const generalMenuItemsData: Menu = useMemo(() => {
+        const signOutTranslationKey = Session.isSupportAuthToken() && Session.hasStashedSession() ? 'initialSettingsPage.restoreStashed' : 'initialSettingsPage.signOut';
+        const defaultMenu: Menu = {
             sectionStyle: {
                 ...styles.pt4,
             },
@@ -247,14 +248,18 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                     routeName: ROUTES.SETTINGS_ABOUT,
                 },
                 {
-                    translationKey: 'sidebarScreen.saveTheWorld',
-                    icon: Expensicons.Heart,
-                    routeName: ROUTES.SETTINGS_SAVE_THE_WORLD,
+                    translationKey: signOutTranslationKey,
+                    icon: Expensicons.Exit,
+                    action: () => {
+                        signOut(false);
+                    },
                 },
             ],
-        }),
-        [styles.pt4],
-    );
+        };
+
+        return defaultMenu;
+    }, [styles.pt4, signOut]);
+
 
     /**
      * Retuns JSX.Element with menu items

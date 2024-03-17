@@ -81,7 +81,6 @@ const ROUTES = {
     SETTINGS_SECURITY: 'settings/security',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
     SETTINGS_ABOUT: 'settings/about',
-    SETTINGS_SAVE_THE_WORLD: 'settings/teachersunite',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_WALLET: 'settings/wallet',
     SETTINGS_WALLET_DOMAINCARD: {
