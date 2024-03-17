@@ -7,7 +7,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportWelcomeText from '@components/ReportWelcomeText';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
@@ -16,7 +15,6 @@ import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
-import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 
 type ReportActionItemCreatedOnyxProps = {
     /** The report currently being looked at */
@@ -39,7 +37,6 @@ type ReportActionItemCreatedProps = ReportActionItemCreatedOnyxProps & {
 };
 function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
 
     const {translate} = useLocalize();
     const {isSmallScreenWidth, isLargeScreenWidth} = useWindowDimensions();
