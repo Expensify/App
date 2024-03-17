@@ -27,6 +27,7 @@ import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ListBoundaryLoader from './ListBoundaryLoader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
@@ -538,12 +539,13 @@ function ReportActionsList({
                 isActive={isFloatingMessageCounterVisible && !!currentUnreadMarker}
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
-            <Animated.View style={[animatedStyles, styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}>
+            <Animated.View style={[animatedStyles, styles.justifyContentEnd, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}>
+                <AnimatedEmptyStateBackground />
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
                     testID="report-actions-list"
-                    style={styles.overscrollBehaviorContain}
+                    style={[styles.overscrollBehaviorContain, styles.flexGrow0]}
                     data={sortedReportActions}
                     renderItem={renderItem}
                     contentContainerStyle={contentContainerStyle}
