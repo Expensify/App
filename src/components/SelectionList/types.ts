@@ -151,6 +151,8 @@ type RadioListItemProps = ListItemProps;
 
 type TableListItemProps = ListItemProps;
 
+type ValidListItem = typeof RadioListItem | typeof UserListItem | typeof TableListItem;
+
 type Section<TItem extends ListItem> = {
     /** Title of the section */
     title?: string;
@@ -173,7 +175,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     sections: Array<SectionListData<TItem, Section<TItem>>> | typeof CONST.EMPTY_ARRAY;
 
     /** Default renderer for every item in the list */
-    ListItem: typeof RadioListItem | typeof UserListItem | typeof TableListItem;
+    ListItem: ValidListItem;
 
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;
@@ -259,17 +261,11 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether keyboard shortcuts should be disabled */
     disableKeyboardShortcuts?: boolean;
 
-    /** Whether to disable initial styling for focused option */
-    disableInitialFocusOptionStyle?: boolean;
-
     /** Styles to apply to SelectionList container */
     containerStyle?: ViewStyle;
 
     /** Whether keyboard is visible on the screen */
     isKeyboardShown?: boolean;
-
-    /** Whether focus event should be delayed */
-    shouldDelayFocus?: boolean;
 
     /** Component to display on the right side of each child */
     rightHandSideComponent?: ((item: ListItem) => ReactElement<ListItem>) | ReactElement | null;
@@ -288,9 +284,6 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Styles for the list header wrapper */
     listHeaderWrapperStyle?: StyleProp<ViewStyle>;
-
-    /**  Whether to auto focus the Search Input */
-    autoFocus?: boolean;
 
     /** Whether to wrap long text up to 2 lines */
     isRowMultilineSupported?: boolean;
@@ -335,4 +328,5 @@ export type {
     ButtonOrCheckBoxRoles,
     SectionListDataType,
     SelectionListHandle,
+    ValidListItem,
 };

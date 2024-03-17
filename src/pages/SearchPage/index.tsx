@@ -169,7 +169,6 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchP
                             onChangeText={setSearchValue}
                             headerMessage={headerMessage}
                             onLayout={setPerformanceTimersEnd}
-                            autoFocus
                             onSelectRow={selectReport}
                             showLoadingPlaceholder={!didScreenTransitionEnd || !isOptionsDataReady}
                             footerContent={SearchPageFooterInstance}
