@@ -230,10 +230,10 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
             sectionStyle: {
                 ...styles.pt4,
             },
-            sectionTranslationKey: 'initialSettingsPage.general' as const,
+            sectionTranslationKey: 'initialSettingsPage.general',
             items: [
                 {
-                    translationKey: 'initialSettingsPage.help' as const,
+                    translationKey: 'initialSettingsPage.help',
                     icon: Expensicons.QuestionMark,
                     action: () => {
                         Link.openExternalLink(CONST.NEWHELP_URL);
@@ -243,9 +243,14 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                     link: CONST.NEWHELP_URL,
                 },
                 {
-                    translationKey: 'initialSettingsPage.about' as const,
+                    translationKey: 'initialSettingsPage.about',
                     icon: Expensicons.Info,
                     routeName: ROUTES.SETTINGS_ABOUT,
+                },
+                {
+                    translationKey: 'sidebarScreen.saveTheWorld',
+                    icon: Expensicons.Heart,
+                    routeName: ROUTES.SETTINGS_SAVE_THE_WORLD,
                 },
                 {
                     translationKey: signOutTranslationKey,

@@ -15,7 +15,7 @@ import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
@@ -59,6 +59,7 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
     [SCREENS.SETTINGS.ABOUT]: undefined;
     [SCREENS.SETTINGS.WORKSPACES]: undefined;
+    [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
 };
 
 type WorkspaceSwitcherNavigatorParamList = {
