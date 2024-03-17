@@ -51,6 +51,7 @@ function ChooseSSOOrMagicCode({account, isUsingRecoveryCode, setIsUsingRecoveryC
             <Button
                 isDisabled={isOffline}
                 success
+                large
                 style={[styles.mv3]}
                 text={translate('samlSignIn.useSingleSignOn')}
                 onPress={() => {

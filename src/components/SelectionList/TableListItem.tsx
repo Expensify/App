@@ -19,6 +19,7 @@ function TableListItem({
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
+    checkmarkPosition,
 }: TableListItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -42,6 +43,7 @@ function TableListItem({
             onDismissError={onDismissError}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             rightHandSideComponent={rightHandSideComponent}
+            checkmarkPosition={checkmarkPosition}
             errors={item.errors}
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}
@@ -62,7 +64,7 @@ function TableListItem({
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
-                            text={item.text}
+                            text={item.text ?? ''}
                             style={[
                                 styles.optionDisplayName,
                                 isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
