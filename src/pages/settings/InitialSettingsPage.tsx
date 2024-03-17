@@ -260,7 +260,6 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
         return defaultMenu;
     }, [styles.pt4, signOut]);
 
-
     /**
      * Retuns JSX.Element with menu items
      * @param menuItemsData list with menu items data
