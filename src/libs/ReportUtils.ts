@@ -1234,6 +1234,18 @@ function isIOURequest(report: OnyxEntry<Report>): boolean {
 }
 
 /**
+ * A Track Expense Report is a thread where the parent the parentReportAction is a transaction, and
+ * parentReportAction has type of track.
+ */
+function isTrackExpenseReport(report: OnyxEntry<Report>): boolean {
+    if (isThread(report)) {
+        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+        return !isEmptyObject(parentReportAction) && ReportActionsUtils.isTrackExpenseAction(parentReportAction);
+    }
+    return false;
+}
+
+/**
  * Checks if a report is an IOU or expense request.
  */
 function isMoneyRequest(reportOrID: OnyxEntry<Report> | string): boolean {
@@ -5565,6 +5577,7 @@ export {
     isJoinRequestInAdminRoom,
     canAddOrDeleteTransactions,
     shouldCreateNewMoneyRequestReport,
+    isTrackExpenseReport,
 };
 
 export type {
