@@ -236,6 +236,21 @@ export default compose(
         policyTags: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
         },
+        reportActions: {
+            key: ({
+                report,
+                route: {
+                    params: {action, iouType},
+                },
+            }) => {
+                let reportID = '0';
+                if (action === CONST.IOU.ACTION.EDIT) {
+                    reportID = iouType === CONST.IOU.TYPE.SPLIT ? report.reportID : report.parentReportID;
+                }
+                return `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
+            },
+            canEvict: false,
+        },
         session: {
             key: ONYXKEYS.SESSION,
         },
