@@ -4013,7 +4013,7 @@ function updatePolicyDistanceRateValue(policyID: string, customUnit: CustomUnit,
     const params: UpdatePolicyDistanceRateValueParams = {
         policyID,
         customUnitID: customUnit.customUnitID,
-        customUnitRateArray: JSON.stringify(customUnitRates),
+        customUnitRateArray: customUnitRates,
     };
 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE_VALUE, params, {optimisticData, successData, failureData});
@@ -4085,7 +4085,7 @@ function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit,
     const params: SetPolicyDistanceRatesEnabledParams = {
         policyID,
         customUnitID: customUnit.customUnitID,
-        customUnitRateArray: JSON.stringify(customUnitRates),
+        customUnitRateArray: customUnitRates,
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_ENABLED, params, {optimisticData, successData, failureData});

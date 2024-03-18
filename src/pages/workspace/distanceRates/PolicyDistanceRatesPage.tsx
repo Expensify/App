@@ -52,7 +52,6 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const dropdownButtonRef = useRef(null);
-    const canSelectOrDisableRate = selectedDistanceRates.length !== Object.values(customUnitRates).length;
     const policyID = route.params.policyID;
 
     const customUnit: CustomUnit | undefined = useMemo(
@@ -60,6 +59,10 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
         [policy?.customUnits],
     );
     const customUnitRates: Record<string, Rate> = useMemo(() => customUnit?.rates ?? {}, [customUnit]);
+    const canDeleteSelectedRates = selectedDistanceRates.length !== Object.values(customUnitRates).length;
+    const canDisableSelectedRates = Object.values(customUnitRates)
+        .filter((rate: Rate) => !selectedDistanceRates.includes(rate))
+        .some((rate) => rate.enabled);
 
     function fetchDistanceRates() {
         Policy.openPolicyDistanceRatesPage(policyID);
@@ -124,16 +127,11 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
             return;
         }
 
-        if (selectedDistanceRates.length !== Object.values(customUnitRates).length) {
-            Policy.setPolicyDistanceRatesEnabled(
-                policyID,
-                customUnit,
-                selectedDistanceRates.filter((rate) => rate.enabled),
-            );
-            return;
-        }
-
-        setIsWarningModalVisible(true);
+        Policy.setPolicyDistanceRatesEnabled(
+            policyID,
+            customUnit,
+            selectedDistanceRates.filter((rate) => rate.enabled),
+        );
     };
 
     const enableRates = () => {
@@ -161,10 +159,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
             );
             setSelectedDistanceRates([]);
             setIsDeleteModalVisible(false);
-            return;
         }
-
-        setIsWarningModalVisible(true);
     };
 
     const toggleRate = (rate: RateForList) => {
@@ -196,7 +191,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                 text: translate('workspace.distanceRates.deleteRates', {count: selectedDistanceRates.length}),
                 value: CONST.POLICY.DISTANCE_RATES_BULK_ACTION_TYPES.DELETE,
                 icon: Expensicons.Trashcan,
-                onSelected: () => setIsDeleteModalVisible(true),
+                onSelected: () => (canDeleteSelectedRates ? setIsDeleteModalVisible(true) : setIsWarningModalVisible(true)),
             },
         ];
 
@@ -206,7 +201,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                 text: translate('workspace.distanceRates.disableRates', {count: enabledRates.length}),
                 value: CONST.POLICY.DISTANCE_RATES_BULK_ACTION_TYPES.DISABLE,
                 icon: Expensicons.DocumentSlash,
-                onSelected: disableRates,
+                onSelected: () => (canDisableSelectedRates ? disableRates() : setIsWarningModalVisible(true)),
             });
         }
 
