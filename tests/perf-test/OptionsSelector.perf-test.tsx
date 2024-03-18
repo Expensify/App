@@ -51,10 +51,7 @@ const generateSections = (sections: GenerateSectionsProps) =>
 
 const singleSectionsConfig = [{numberOfItems: 1000}];
 
-const mutlipleSectionsConfig = [
-    {numberOfItems: 1000},
-    {numberOfItems: 100},
-];
+const mutlipleSectionsConfig = [{numberOfItems: 1000}, {numberOfItems: 100}];
 // @ts-expect-error TODO: Remove this once OptionsSelector is migrated to TypeScript.
 function OptionsSelectorWrapper(args) {
     const sections = generateSections(singleSectionsConfig);
