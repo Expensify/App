@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import escapeRegExp from 'lodash/escapeRegExp';
@@ -24,9 +25,7 @@ async function getChecklistCategoriesForPullRequest(): Promise<Set<string>> {
         const changedFiles = await GithubUtils.paginate(GithubUtils.octokit.pulls.listFiles, {
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             pull_number: prNumber,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             per_page: 100,
         });
         const possibleCategories = await Promise.all(
@@ -133,7 +132,6 @@ async function generateDynamicChecksAndCheckForCompletion() {
         await GithubUtils.octokit.pulls.update({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             pull_number: prNumber,
             body: newBody,
         });

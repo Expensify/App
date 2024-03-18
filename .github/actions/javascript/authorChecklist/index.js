@@ -16613,6 +16613,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+/* eslint-disable @typescript-eslint/naming-convention */
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const escapeRegExp_1 = __importDefault(__nccwpck_require__(8415));
@@ -16635,9 +16636,7 @@ async function getChecklistCategoriesForPullRequest() {
         const changedFiles = await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.pulls.listFiles, {
             owner: CONST_1.default.GITHUB_OWNER,
             repo: CONST_1.default.APP_REPO,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             pull_number: prNumber,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             per_page: 100,
         });
         const possibleCategories = await Promise.all(Object.values(CHECKLIST_CATEGORIES).map(async (category) => ({
@@ -16728,7 +16727,6 @@ async function generateDynamicChecksAndCheckForCompletion() {
         await GithubUtils_1.default.octokit.pulls.update({
             owner: CONST_1.default.GITHUB_OWNER,
             repo: CONST_1.default.APP_REPO,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             pull_number: prNumber,
             body: newBody,
         });
