@@ -4,11 +4,11 @@ import type {InputType, Selection} from './types';
 
 const setSelectionRange = shouldSetSelectionRange();
 
-const setTextInputSelection = (textInput: InputType, forceSetSelection: Selection) => {
+const setTextInputSelection = (textInput: InputType, forcedSelectionRange: Selection) => {
     if (setSelectionRange) {
-        (textInput as HTMLTextAreaElement).setSelectionRange(forceSetSelection.start, forceSetSelection.end);
+        (textInput as HTMLTextAreaElement).setSelectionRange(forcedSelectionRange.start, forcedSelectionRange.end);
     } else {
-        (textInput as TextInput).setSelection(forceSetSelection.start, forceSetSelection.end);
+        (textInput as TextInput).setSelection(forcedSelectionRange.start, forcedSelectionRange.end);
     }
 };
 

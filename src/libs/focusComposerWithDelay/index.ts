@@ -10,9 +10,9 @@ function focusComposerWithDelay(textInput: InputType | null): FocusComposerWithD
     /**
      * Focus the text input
      * @param [shouldDelay] Impose delay before focusing the text input
-     * @param [forceSetSelection] Force selection range of text input
+     * @param [forcedSelectionRange] Force selection range of text input
      */
-    return (shouldDelay = false, forceSetSelection = undefined) => {
+    return (shouldDelay = false, forcedSelectionRange = undefined) => {
         // There could be other animations running while we trigger manual focus.
         // This prevents focus from making those animations janky.
         if (!textInput || EmojiPickerAction.isEmojiPickerVisible()) {
@@ -21,8 +21,8 @@ function focusComposerWithDelay(textInput: InputType | null): FocusComposerWithD
 
         if (!shouldDelay) {
             textInput.focus();
-            if (forceSetSelection) {
-                setTextInputSelection(textInput, forceSetSelection);
+            if (forcedSelectionRange) {
+                setTextInputSelection(textInput, forcedSelectionRange);
             }
             return;
         }
@@ -31,8 +31,8 @@ function focusComposerWithDelay(textInput: InputType | null): FocusComposerWithD
                 return;
             }
             textInput.focus();
-            if (forceSetSelection) {
-                setTextInputSelection(textInput, forceSetSelection);
+            if (forcedSelectionRange) {
+                setTextInputSelection(textInput, forcedSelectionRange);
             }
         });
     };

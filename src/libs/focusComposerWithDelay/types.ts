@@ -5,7 +5,7 @@ type Selection = {
     end: number;
 };
 
-type FocusComposerWithDelay = (shouldDelay?: boolean, forceSetSelection?: Selection) => void;
+type FocusComposerWithDelay = (shouldDelay?: boolean, forcedSelectionRange?: Selection) => void;
 
 type InputType = TextInput | HTMLTextAreaElement;
 

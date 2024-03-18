@@ -69,6 +69,7 @@ const emojiButtonID = 'emojiButton';
 const messageEditInput = 'messageEditInput';
 
 const isMobileSafari = Browser.isMobileSafari();
+const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
 
 function ReportActionItemMessageEdit(
     {action, draftMessage, reportID, index, shouldDisableEmojiPicker = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE}: ReportActionItemMessageEditProps,
@@ -330,7 +331,6 @@ function ReportActionItemMessageEdit(
         deleteDraft();
     }, [action, debouncedSaveDraft, deleteDraft, draft, reportID]);
 
-    const shouldUseEmojiPickerSelectionRef = shouldUseEmojiPickerSelection();
     /**
      * @param emoji
      */
@@ -341,9 +341,9 @@ function ReportActionItemMessageEdit(
         };
         setSelection(newSelection);
 
-        if (shouldUseEmojiPickerSelectionRef) {
-            // immediately set the selection again on android and Chrome mobile after focusing the
-            // input which seems to change the cursor position for a brief moment
+        if (shouldUseForcedSelectionRange) {
+            // On Android and Chrome mobile, focusing the input sets the cursor position back to the start.
+            // To fix this, immediately set the selection again after focusing the input.
             emojiPickerSelectionRef.current = newSelection;
         }
         updateDraft(ComposerUtils.insertText(draft, selection, `${emoji} `));
@@ -460,10 +460,7 @@ function ReportActionItemMessageEdit(
                         <EmojiPickerButton
                             isDisabled={shouldDisableEmojiPicker}
                             onModalHide={() => {
-                                const emojiPickerSelection = emojiPickerSelectionRef.current ? {...emojiPickerSelectionRef.current} : undefined;
-                                emojiPickerSelectionRef.current = undefined;
-
-                                focus(true, emojiPickerSelection);
+                                focus(true, emojiPickerSelectionRef.current ? {...emojiPickerSelectionRef.current} : undefined);
                             }}
                             onEmojiSelected={addEmojiToTextBox}
                             id={emojiButtonID}
