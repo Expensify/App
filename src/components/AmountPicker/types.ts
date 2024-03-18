@@ -1,17 +1,6 @@
 import type {AmountFormProps} from '@components/AmountForm';
 import type {MenuItemBaseProps} from '@components/MenuItem';
-import type {ListItem} from '@components/SelectionList/types';
 import type {MaybePhraseKey} from '@libs/Localize';
-
-type AmountPickerListItem = ListItem & {
-    value?: string;
-};
-
-type AmountPickerItem = {
-    label?: string;
-    value?: string;
-    description?: string;
-};
 
 type AmountSelectorModalProps = {
     /** Whether the modal is visible */
@@ -48,4 +37,4 @@ type AmountPickerProps = {
 } & Pick<MenuItemBaseProps, 'rightLabel' | 'description'> &
     AmountFormProps;
 
-export type {AmountPickerItem, AmountSelectorModalProps, AmountPickerProps, AmountPickerListItem};
+export type {AmountSelectorModalProps, AmountPickerProps};

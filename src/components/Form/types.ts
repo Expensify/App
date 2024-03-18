@@ -15,6 +15,7 @@ import type RoomNameInput from '@components/RoomNameInput';
 import type SingleChoiceQuestion from '@components/SingleChoiceQuestion';
 import type StatePicker from '@components/StatePicker';
 import type TextInput from '@components/TextInput';
+import type TextPicker from '@components/TextPicker';
 import type ValuePicker from '@components/ValuePicker';
 import type {MaybePhraseKey} from '@libs/Localize';
 import type BusinessTypePicker from '@pages/ReimbursementAccount/BusinessInfo/substeps/TypeBusiness/BusinessTypePicker';
@@ -45,6 +46,7 @@ type ValidInputs =
     | typeof DatePicker
     | typeof RadioButtons
     | typeof AmountPicker
+    | typeof TextPicker
     | typeof AddPlaidBankAccount;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country';

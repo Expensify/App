@@ -1,17 +1,6 @@
 import type {MenuItemBaseProps} from '@components/MenuItem';
-import type {ListItem} from '@components/SelectionList/types';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 import type {MaybePhraseKey} from '@libs/Localize';
-
-type TextPickerListItem = ListItem & {
-    value?: string;
-};
-
-type TextPickerItem = {
-    label?: string;
-    value?: string;
-    description?: string;
-};
 
 type TextProps = Exclude<BaseTextInputProps, 'value' | 'onInputChange'>;
 
@@ -54,4 +43,4 @@ type TextPickerProps = {
 } & Pick<MenuItemBaseProps, 'rightLabel' | 'description'> &
     TextProps;
 
-export type {TextPickerItem, TextSelectorModalProps, TextPickerProps, TextPickerListItem};
+export type {TextSelectorModalProps, TextPickerProps};
