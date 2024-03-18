@@ -706,10 +706,6 @@ function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueO
             },
         },
     ];
-    let onyxFailureMessage = ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage');
-    if (!hasValidCurrencyForDirectReimbursement(policy.outputCurrency)) {
-        onyxFailureMessage = ErrorUtils.getMicroSecondOnyxError('workflowsPayerPage.unavailableCurrencyErrorMessage');
-    }
 
     const failureData: OnyxUpdate[] = [
         {
@@ -719,7 +715,7 @@ function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueO
                 reimbursementChoice: policy.reimbursementChoice,
                 reimburserAccountID: policy.reimburserAccountID,
                 reimburserEmail: policy.reimburserEmail,
-                errorFields: {reimbursementChoice: onyxFailureMessage},
+                errorFields: {reimbursementChoice: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
                 pendingFields: {reimbursementChoice: null},
             },
         },
@@ -1388,10 +1384,7 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 errorFields: {
-                    generalSettings:
-                        policy?.reimbursementChoice && !hasValidCurrencyForDirectReimbursement(policy.outputCurrency)
-                            ? ErrorUtils.getMicroSecondOnyxError('workflowsPayerPage.unavailableCurrencyErrorMessage')
-                            : ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
+                    generalSettings: ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
                 },
                 ...(distanceUnit?.customUnitID
                     ? {
