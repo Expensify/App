@@ -1374,6 +1374,16 @@ function orderOptions(options: ReportUtils.OptionData[], searchValue: string | u
 }
 
 /**
+ * Checks if string is a valid phone number and it returns the formatted phone number if so
+ */
+function parsePhoneNumber(text: string) {
+    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(text)));
+    const output = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 : text.toLowerCase();
+
+    return output;
+}
+
+/**
  * Build the options
  */
 function getOptions(
@@ -1471,8 +1481,7 @@ function getOptions(
     let recentReportOptions = [];
     let personalDetailsOptions: ReportUtils.OptionData[] = [];
     const reportMapForAccountIDs: Record<number, Report> = {};
-    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
-    const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 : searchInputValue.toLowerCase();
+    const searchValue = parsePhoneNumber(searchInputValue);
 
     // Filter out all the reports that shouldn't be displayed
     const filteredReports = Object.values(reports ?? {}).filter((report) => {
@@ -2057,9 +2066,11 @@ function formatSectionsFromSearchTerm(
     };
 }
 
+/**
+ * Filters options based on the search input value
+ */
 function filterOptions(options: Partial<GetOptions>, searchInputValue: string): ReportUtils.OptionData[] {
-    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
-    const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 : searchInputValue.toLowerCase();
+    const searchValue = parsePhoneNumber(searchInputValue);
     const searchTerms = searchValue ? searchValue.split(' ') : [];
 
     const reportsByType = (options.recentReports ?? []).reduce<ReportTypesOptionData>(
