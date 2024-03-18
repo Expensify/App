@@ -10,7 +10,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import CONST from '@src/CONST';
 import VideoPlayerThumbnail from './VideoPlayerThumbnail';
 
 type VideoDimensions = {
@@ -38,7 +37,7 @@ type VideoPlayerPreviewProps = {
     onShowModalPress: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 };
 
-function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions = CONST.VIDEO_PLAYER.DEFAULT_VIDEO_DIMENSIONS, videoDuration = 0, onShowModalPress}: VideoPlayerPreviewProps) {
+function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, videoDuration, onShowModalPress}: VideoPlayerPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
