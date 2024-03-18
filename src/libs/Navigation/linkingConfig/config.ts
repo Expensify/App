@@ -286,7 +286,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.CATEGORY_EDIT]: {
                             path: ROUTES.WORKSPACE_CATEGORY_EDIT.route,
                             parse: {
-                                categoryName: (categoryName: string) => decodeURI(categoryName),
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
                             },
                         },
                         [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
@@ -306,6 +306,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.TAG_CREATE]: {
                             path: ROUTES.WORKSPACE_TAG_CREATE.route,
+                        },
+                        [SCREENS.WORKSPACE.TAG_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_TAG_SETTINGS.route,
+                            parse: {
+                                tagName: (tagName: string) => decodeURIComponent(tagName),
+                            },
                         },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,

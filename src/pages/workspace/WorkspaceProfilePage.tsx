@@ -14,6 +14,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -45,6 +46,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const illustrations = useThemeIllustrations();
+    const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
 
     const outputCurrency = policy?.outputCurrency ?? '';
     const currencySymbol = currencyList?.[outputCurrency]?.symbol ?? '';
@@ -84,11 +86,15 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
         }
 
         Policy.deleteWorkspace(policy?.id, policyName);
-
         PolicyUtils.goBackFromInvalidPolicy();
-
         setIsDeleteModalOpen(false);
-    }, [policy?.id, policyName]);
+
+        // If the workspace being deleted is the active workspace, switch to the "All Workspaces" view
+        if (activeWorkspaceID === policy?.id) {
+            setActiveWorkspaceID(undefined);
+            Navigation.navigateWithSwitchPolicyID({policyID: undefined});
+        }
+    }, [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID]);
     return (
         <WorkspacePageWithSections
             headerText={translate('workspace.common.profile')}

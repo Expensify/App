@@ -60,6 +60,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -75,6 +76,7 @@ import type {
     PolicyCategory,
     PolicyMember,
     PolicyTagList,
+    PolicyTags,
     RecentlyUsedCategories,
     RecentlyUsedTags,
     ReimbursementAccount,
@@ -255,8 +257,8 @@ function updateLastAccessedWorkspace(policyID: OnyxEntry<string>) {
 /**
  * Check if the user has any active free policies (aka workspaces)
  */
-function hasActiveFreePolicy(policies: OnyxEntry<Policy[] | PoliciesRecord>): boolean {
-    const adminFreePolicies = Object.values(policies ?? {}).filter((policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN);
+function hasActiveFreePolicy(policies: Array<OnyxEntry<Policy>> | PoliciesRecord): boolean {
+    const adminFreePolicies = Object.values(policies).filter((policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN);
 
     if (adminFreePolicies.length === 0) {
         return false;
@@ -2906,6 +2908,92 @@ function createPolicyTag(policyID: string, tagName: string) {
     API.write(WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, onyxData);
 }
 
+function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {name: string; enabled: boolean}>) {
+    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[0] ?? {};
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [policyTag.name]: {
+                        tags: {
+                            ...Object.keys(tagsToUpdate).reduce<PolicyTags>((acc, key) => {
+                                acc[key] = {
+                                    ...policyTag.tags[key],
+                                    ...tagsToUpdate[key],
+                                    errors: null,
+                                    pendingFields: {
+                                        enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                    },
+                                };
+
+                                return acc;
+                            }, {}),
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [policyTag.name]: {
+                        tags: {
+                            ...Object.keys(tagsToUpdate).reduce<PolicyTags>((acc, key) => {
+                                acc[key] = {
+                                    ...policyTag.tags[key],
+                                    ...tagsToUpdate[key],
+                                    errors: null,
+                                    pendingFields: {
+                                        enabled: null,
+                                    },
+                                };
+
+                                return acc;
+                            }, {}),
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [policyTag.name]: {
+                        tags: {
+                            ...Object.keys(tagsToUpdate).reduce<PolicyTags>((acc, key) => {
+                                acc[key] = {
+                                    ...policyTag.tags[key],
+                                    ...tagsToUpdate[key],
+                                    errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                                    pendingFields: {
+                                        enabled: null,
+                                    },
+                                };
+
+                                return acc;
+                            }, {}),
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        tags: JSON.stringify(Object.keys(tagsToUpdate).map((key) => tagsToUpdate[key])),
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_TAGS_ENABLED, parameters, onyxData);
+}
+
 function clearPolicyTagErrors(policyID: string, tagName: string) {
     const tagListName = Object.keys(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})[0];
     const tag = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[tagListName].tags?.[tagName];
@@ -3180,8 +3268,7 @@ function navigateWhenEnableFeature(policyID: string, featureRoute: Route) {
     const isNarrowLayout = getIsNarrowLayout();
 
     if (isNarrowLayout) {
-        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID), CONST.NAVIGATION.TYPE.FORCED_UP);
-
+        Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
         return;
     }
 
@@ -3473,6 +3560,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
 }
 
 function enablePolicyWorkflows(policyID: string, enabled: boolean) {
+    const policy = ReportUtils.getPolicy(policyID);
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -3480,8 +3568,26 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     areWorkflowsEnabled: enabled,
+                    ...(!enabled
+                        ? {
+                              approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                              autoReporting: false,
+                              harvesting: {
+                                  enabled: false,
+                              },
+                              reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                          }
+                        : {}),
                     pendingFields: {
                         areWorkflowsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        ...(!enabled
+                            ? {
+                                  approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                  autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                  harvesting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                  reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                              }
+                            : {}),
                     },
                 },
             },
@@ -3493,6 +3599,14 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                 value: {
                     pendingFields: {
                         areWorkflowsEnabled: null,
+                        ...(!enabled
+                            ? {
+                                  approvalMode: null,
+                                  autoReporting: null,
+                                  harvesting: null,
+                                  reimbursementChoice: null,
+                              }
+                            : {}),
                     },
                 },
             },
@@ -3503,8 +3617,24 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     areWorkflowsEnabled: !enabled,
+                    ...(!enabled
+                        ? {
+                              approvalMode: policy.approvalMode,
+                              autoReporting: policy.autoReporting,
+                              harvesting: policy.harvesting,
+                              reimbursementChoice: policy.reimbursementChoice,
+                          }
+                        : {}),
                     pendingFields: {
                         areWorkflowsEnabled: null,
+                        ...(!enabled
+                            ? {
+                                  approvalMode: null,
+                                  autoReporting: null,
+                                  harvesting: null,
+                                  reimbursementChoice: null,
+                              }
+                            : {}),
                     },
                 },
             },
@@ -4111,6 +4241,7 @@ export {
     clearPolicyTagErrors,
     clearWorkspaceReimbursementErrors,
     deleteWorkspaceCategories,
+    setWorkspaceTagEnabled,
     updatePolicyDistanceRateValue,
     setPolicyDistanceRatesEnabled,
     deletePolicyDistanceRates,
