@@ -2708,7 +2708,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
                         acc[key] = {
                             ...policyCategories[key],
                             ...categoriesToUpdate[key],
-                            errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.genericFailureMessage'),
+                            errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.updateFailureMessage'),
                             pendingFields: {
                                 enabled: null,
                             },
@@ -2824,7 +2824,7 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                         ...policyCategoryToUpdate,
                         name: policyCategory.oldName,
                         unencodedName: decodeURIComponent(policyCategory.oldName),
-                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.genericFailureMessage'),
+                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.updateFailureMessage'),
                         pendingAction: null,
                     },
                 },
@@ -3056,7 +3056,7 @@ function setWorkspaceRequiresCategory(policyID: string, requiresCategory: boolea
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     requiresCategory: !requiresCategory,
-                    errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.genericFailureMessage'),
+                    errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.updateFailureMessage'),
                     pendingFields: {
                         requiresCategory: null,
                     },

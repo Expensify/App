@@ -1790,7 +1790,7 @@ export default {
                 title: "You haven't created any categories",
                 subtitle: 'Add a category to organize your spend.',
             },
-            genericFailureMessage: 'An error occurred while updating the category, please try again.',
+            updateFailureMessage: 'An error occurred while updating the category, please try again.',
             createFailureMessage: 'An error occurred while creating the category, please try again.',
             addCategory: 'Add category',
             editCategory: 'Edit category',
