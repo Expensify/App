@@ -610,7 +610,8 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
         policyID,
         value: JSON.stringify({
             ...value,
-            isAutoApprovalEnabled: approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC,
+            // This property should now be set to false for all Collect policies
+            isAutoApprovalEnabled: false,
         }),
     };
     API.write(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, params, {optimisticData, failureData, successData});
