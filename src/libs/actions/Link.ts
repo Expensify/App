@@ -5,12 +5,12 @@ import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Environment from '@libs/Environment/Environment';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Url from '@libs/Url';
+import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import * as Session from '@userActions/Session';
 
 let isNetworkOffline = false;
 Onyx.connect({
@@ -104,7 +104,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
     if (internalNewExpensifyPath && hasSameOrigin) {
         if (Session.isAnonymousUser() && !Session.canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
-            Session.signOutAndRedirectToSignIn()
+            Session.signOutAndRedirectToSignIn();
             return;
         }
         Navigation.navigate(internalNewExpensifyPath as Route);
