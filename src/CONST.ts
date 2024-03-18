@@ -578,28 +578,57 @@ const CONST = {
         SPLIT_REPORTID: '-2',
         ACTIONS: {
             LIMIT: 50,
+            // OldDot Actions render getMessage from Web-Expensify/lib/Report/Action PHP files via getMessageOfOldDotReportAction in ReportActionsUtils.ts
             TYPE: {
+                ACTIONABLEMENTIONWHISPER: 'ACTIONABLEMENTIONWHISPER',
                 ADDCOMMENT: 'ADDCOMMENT',
                 ACTIONABLEJOINREQUEST: 'ACTIONABLEJOINREQUEST',
                 APPROVED: 'APPROVED',
+                CHANGEFIELD: 'CHANGEFIELD', // OldDot Action
+                CHANGEPOLICY: 'CHANGEPOLICY', // OldDot Action
+                CHANGETYPE: 'CHANGETYPE', // OldDot Action
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
+                DELEGATESUBMIT: 'DELEGATESUBMIT', // OldDot Action
+                DELETEDACCOUNT: 'DELETEDACCOUNT', // OldDot Action
+                DONATION: 'DONATION', // OldDot Action
+                EXPORTEDTOCSV: 'EXPORTEDTOCSV', // OldDot Action
+                EXPORTEDTOINTEGRATION: 'EXPORTEDTOINTEGRATION', // OldDot Action
+                EXPORTEDTOQUICKBOOKS: 'EXPORTEDTOQUICKBOOKS', // OldDot Action
+                FORWARDED: 'FORWARDED', // OldDot Action
                 HOLD: 'HOLD',
                 IOU: 'IOU',
-                MARKEDREIMBURSED: 'MARKEDREIMBURSED',
+                INTEGRATIONSMESSAGE: 'INTEGRATIONSMESSAGE', // OldDot Action
+                MANAGERATTACHRECEIPT: 'MANAGERATTACHRECEIPT', // OldDot Action
+                MANAGERDETACHRECEIPT: 'MANAGERDETACHRECEIPT', // OldDot Action
+                MARKEDREIMBURSED: 'MARKEDREIMBURSED', // OldDot Action
+                MARKREIMBURSEDFROMINTEGRATION: 'MARKREIMBURSEDFROMINTEGRATION', // OldDot Action
                 MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
                 MOVED: 'MOVED',
+                OUTDATEDBANKACCOUNT: 'OUTDATEDBANKACCOUNT', // OldDot Action
+                REIMBURSEMENTACHBOUNCE: 'REIMBURSEMENTACHBOUNCE', // OldDot Action
+                REIMBURSEMENTACHCANCELLED: 'REIMBURSEMENTACHCANCELLED', // OldDot Action
+                REIMBURSEMENTACCOUNTCHANGED: 'REIMBURSEMENTACCOUNTCHANGED', // OldDot Action
+                REIMBURSEMENTDELAYED: 'REIMBURSEMENTDELAYED', // OldDot Action
                 REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
                 REIMBURSEMENTDEQUEUED: 'REIMBURSEMENTDEQUEUED',
+                REIMBURSEMENTREQUESTED: 'REIMBURSEMENTREQUESTED', // OldDot Action
+                REIMBURSEMENTSETUP: 'REIMBURSEMENTSETUP', // OldDot Action
                 RENAMED: 'RENAMED',
                 REPORTPREVIEW: 'REPORTPREVIEW',
+                SELECTEDFORRANDOMAUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
+                SHARE: 'SHARE', // OldDot Action
+                STRIPEPAID: 'STRIPEPAID', // OldDot Action
                 SUBMITTED: 'SUBMITTED',
+                TAKECONTROL: 'TAKECONTROL', // OldDot Action
                 TASKCANCELLED: 'TASKCANCELLED',
                 TASKCOMPLETED: 'TASKCOMPLETED',
                 TASKEDITED: 'TASKEDITED',
                 TASKREOPENED: 'TASKREOPENED',
-                ACTIONABLEMENTIONWHISPER: 'ACTIONABLEMENTIONWHISPER',
+                UNAPPROVED: 'UNAPPROVED', // OldDot Action
+                UNHOLD: 'UNHOLD',
+                UNSHARE: 'UNSHARE', // OldDot Action
                 POLICYCHANGELOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_BUDGET: 'POLICYCHANGELOG_ADD_BUDGET',
@@ -673,7 +702,6 @@ const CONST = {
                     LEAVE_ROOM: 'LEAVEROOM',
                     UPDATE_ROOM_DESCRIPTION: 'UPDATEROOMDESCRIPTION',
                 },
-                UNHOLD: 'UNHOLD',
             },
             THREAD_DISABLED: ['CREATED'],
         },
@@ -1036,6 +1064,12 @@ const CONST = {
         FILE: 'file',
         IMAGE: 'image',
         VIDEO: 'video',
+    },
+
+    IMAGE_FILE_FORMAT: {
+        PNG: 'image/png',
+        WEBP: 'image/webp',
+        JPEG: 'image/jpeg',
     },
 
     FILE_TYPE_REGEX: {

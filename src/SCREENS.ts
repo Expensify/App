@@ -132,9 +132,6 @@ const SCREENS = {
     WORKSPACE_JOIN_USER: 'WorkspaceJoinUser',
 
     MONEY_REQUEST: {
-        MANUAL_TAB: 'manual',
-        SCAN_TAB: 'scan',
-        DISTANCE_TAB: 'distance',
         CREATE: 'Money_Request_Create',
         HOLD: 'Money_Request_Hold_Reason',
         STEP_CONFIRMATION: 'Money_Request_Step_Confirmation',
@@ -152,7 +149,6 @@ const SCREENS = {
         STEP_WAYPOINT: 'Money_Request_Step_Waypoint',
         STEP_TAX_AMOUNT: 'Money_Request_Step_Tax_Amount',
         STEP_TAX_RATE: 'Money_Request_Step_Tax_Rate',
-        ROOT: 'Money_Request',
         AMOUNT: 'Money_Request_Amount',
         PARTICIPANTS: 'Money_Request_Participants',
         CONFIRMATION: 'Money_Request_Confirmation',
@@ -225,6 +221,7 @@ const SCREENS = {
         TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT: 'Workspace_Taxes_Settings_WorkspaceCurrency',
         TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT: 'Workspace_Taxes_Settings_ForeignCurrency',
         TAG_CREATE: 'Tag_Create',
+        TAG_SETTINGS: 'Tag_Settings',
         CURRENCY: 'Workspace_Profile_Currency',
         WORKFLOWS: 'Workspace_Workflows',
         WORKFLOWS_PAYER: 'Workspace_Workflows_Payer',
@@ -242,6 +239,7 @@ const SCREENS = {
         MEMBER_DETAILS: 'Workspace_Member_Details',
         MEMBER_DETAILS_ROLE_SELECTION: 'Workspace_Member_Details_Role_Selection',
         DISTANCE_RATES: 'Distance_Rates',
+        CREATE_DISTANCE_RATE: 'Create_Distance_Rate',
     },
 
     EDIT_REQUEST: {
