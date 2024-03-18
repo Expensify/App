@@ -658,4 +658,4 @@ In order to compile a production desktop build, run `npm run desktop-build`, thi
 In order to compile a production iOS build, run `npm run ios-build`, this will generate a `Chat.ipa` in the root directory of this project.
 
 #### Local production build the Android app
-To build an APK to share run (e.g. via Slack), run `npm run android-build`, this will generate a new APK in the `android/app` folder.
+To build an APK to share run (e.g. via Slack), run `npm run android-build`, this will generate a new APK in the `android/app` folder

@@ -1,0 +1,8 @@
+[commit]
+    gpgsign = true
+[user]
+    email = nayabatir1@gmail.com
+    name = Atir Nayab
+    signingkey = 903E1241457B8625
+[gpg]
+    program = gpg
