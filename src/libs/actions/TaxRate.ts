@@ -23,7 +23,7 @@ function covertTaxNameToID(name: string) {
 /**
  * Get new tax ID
  */
-function getNextTaxID(name: string, taxRates?: TaxRates): string {
+function getNextTaxCode(name: string, taxRates?: TaxRates): string {
     const newID = covertTaxNameToID(name);
     if (!taxRates?.[newID]) {
         return newID;
@@ -38,6 +38,10 @@ function getNextTaxID(name: string, taxRates?: TaxRates): string {
 }
 
 function createWorkspaceTax(policyID: string, taxRate: TaxRate) {
+    if (!taxRate.code) {
+        throw new Error('Tax code is required when creating a new tax rate.');
+    }
+
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -122,4 +126,4 @@ function clearTaxRateError(policyID: string, taxID: string, pendingAction?: Pend
     });
 }
 
-export {createWorkspaceTax, clearTaxRateError, getNextTaxID, getTaxValueWithPercentage};
+export {createWorkspaceTax, clearTaxRateError, getNextTaxCode, getTaxValueWithPercentage};
