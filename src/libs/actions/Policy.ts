@@ -254,14 +254,9 @@ function updateLastAccessedWorkspace(policyID: OnyxEntry<string>) {
     Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID);
 }
 
-function hasValidCurrencyForReimbursement(currency: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>) {
-    if (reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-        return DIRECT_REIMBURSEMENT_CURRENCIES.includes(currency);
-    }
-
-    return true;
+function hasValidCurrencyForDirectReimbursement(currency: string) {
+    return DIRECT_REIMBURSEMENT_CURRENCIES.includes(currency);
 }
-
 /**
  * Check if the user has any active free policies (aka workspaces)
  */
@@ -712,7 +707,7 @@ function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueO
         },
     ];
     let onyxFailureMessage = ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage');
-    if (!hasValidCurrencyForReimbursement(policy.outputCurrency, reimbursementChoice)) {
+    if (!hasValidCurrencyForDirectReimbursement(policy.outputCurrency)) {
         onyxFailureMessage = ErrorUtils.getMicroSecondOnyxError('workflowsPayerPage.unavailableCurrencyErrorMessage');
     }
 
@@ -1394,7 +1389,7 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
             value: {
                 errorFields: {
                     generalSettings:
-                        policy?.reimbursementChoice && !hasValidCurrencyForReimbursement(policy.outputCurrency, policy.reimbursementChoice)
+                        policy?.reimbursementChoice && !hasValidCurrencyForDirectReimbursement(policy.outputCurrency)
                             ? ErrorUtils.getMicroSecondOnyxError('workflowsPayerPage.unavailableCurrencyErrorMessage')
                             : ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
                 },
@@ -3644,4 +3639,5 @@ export {
     clearWorkspaceAutoReportingFrequencyError,
     clearWorkspaceAutoReportingOffsetError,
     clearWorkspaceGeneralSettingError,
+    hasValidCurrencyForDirectReimbursement,
 };
