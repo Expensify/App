@@ -5,6 +5,7 @@ import {measurePerformance} from 'reassure';
 import _ from 'underscore';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import SearchPage from '@pages/SearchPage';
+import OptionListContextProvider from '@components/OptionListContextProvider';
 import ComposeProviders from '../../src/components/ComposeProviders';
 import OnyxProvider from '../../src/components/OnyxProvider';
 import CONST from '../../src/CONST';
@@ -110,7 +111,7 @@ afterEach(() => {
 
 function SearchPageWrapper(args) {
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, OptionListContextProvider]}>
             <SearchPage
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...args}
