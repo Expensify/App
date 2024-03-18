@@ -68,7 +68,6 @@ function UnitSelectorModal({isVisible, currentUnit, onUnitSelected, onClose, lab
                     initiallyFocusedOptionKey={currentUnit}
                     onSelectRow={onUnitSelected}
                     shouldStopPropagation
-                    shouldUseDynamicMaxToRenderPerBatch
                 />
             </ScreenWrapper>
         </Modal>
