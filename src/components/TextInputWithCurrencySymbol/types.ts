@@ -33,7 +33,7 @@ type TextInputWithCurrencySymbolProps = {
     /** Whether to hide the currency symbol */
     hideCurrencySymbol?: boolean;
 
-    /** Extra symbol to display next to the currency symbol */
+    /** Extra symbol to display */
     extraSymbol?: React.ReactNode;
 } & Pick<BaseTextInputProps, 'autoFocus'>;
 

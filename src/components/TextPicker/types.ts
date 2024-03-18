@@ -17,7 +17,7 @@ type TextSelectorModalProps = {
     /** Function to call when the user closes the modal */
     onClose: () => void;
 
-    /** Whether to show the toolip text */
+    /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
 } & Pick<MenuItemBaseProps, 'description'> &
     TextProps;
@@ -38,7 +38,7 @@ type TextPickerProps = {
     /** Text to display under the main menu item */
     furtherDetails?: string;
 
-    /** Whether to show the toolip text */
+    /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
 } & Pick<MenuItemBaseProps, 'rightLabel' | 'description'> &
     TextProps;

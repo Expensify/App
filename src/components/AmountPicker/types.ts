@@ -32,7 +32,7 @@ type AmountPickerProps = {
     /** Text to display under the main menu item */
     furtherDetails?: string;
 
-    /** Whether to show the toolip text */
+    /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
 } & Pick<MenuItemBaseProps, 'rightLabel' | 'description'> &
     AmountFormProps;
