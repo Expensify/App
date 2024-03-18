@@ -166,7 +166,7 @@ function Composer(
                 return true;
             }
 
-            if (textInput.current !== event.target) {
+            if (textInput.current !== event.target && !(document.activeElement?.nodeName === 'DIV' && document.activeElement?.hasAttribute('contenteditable'))) {
                 const eventTarget = event.target as HTMLInputElement | HTMLTextAreaElement | null;
 
                 // To make sure the composer does not capture paste events from other inputs, we check where the event originated
