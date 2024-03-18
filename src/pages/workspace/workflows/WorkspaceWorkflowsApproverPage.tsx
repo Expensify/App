@@ -115,7 +115,7 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails,
 
         if (searchTerm !== '') {
             const filteredOptions = [...formattedApprover, ...formattedPolicyMembers].filter((option) => {
-                const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(searchTerm);
+                const {output: searchValue} = OptionsListUtils.getSearchValueForPhoneOrEmail(searchTerm);
                 return !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
             });
             return [

@@ -134,7 +134,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
 
         if (searchTerm !== '') {
             const filteredOptions = [...formattedPolicyAdmins, ...formattedAuthorizedPayer].filter((option) => {
-                const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(searchTerm);
+                const {output: searchValue} = OptionsListUtils.getSearchValueForPhoneOrEmail(searchTerm);
                 return !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
             });
             return [

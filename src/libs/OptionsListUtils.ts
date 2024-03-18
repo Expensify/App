@@ -809,7 +809,12 @@ function getEnabledCategoriesCount(options: PolicyCategories): number {
 
 function getSearchValueForPhoneOrEmail(searchTerm: string) {
     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchTerm)));
-    return parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchTerm.toLowerCase();
+    const output = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchTerm.toLowerCase();
+
+    return {
+        output,
+        parsedPhoneNumber,
+    };
 }
 
 /**
@@ -1372,15 +1377,15 @@ function orderOptions(options: ReportUtils.OptionData[], searchValue: string | u
     );
 }
 
-/**
- * Checks if string is a valid phone number and it returns the formatted phone number if so
- */
-function parsePhoneNumber(text: string) {
-    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(text)));
-    const output = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 : text.toLowerCase();
+// /**
+//  * Checks if string is a valid phone number and it returns the formatted phone number if so
+//  */
+// function parsePhoneNumber(text: string) {
+//     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(text)));
+//     const output = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 : text.toLowerCase();
 
-    return {output, parsedPhoneNumber};
-}
+//     return {output, parsedPhoneNumber};
+// }
 
 /**
  * Build the options
@@ -1480,7 +1485,7 @@ function getOptions(
     let recentReportOptions = [];
     let personalDetailsOptions: ReportUtils.OptionData[] = [];
     const reportMapForAccountIDs: Record<number, Report> = {};
-    const {output: searchValue, parsedPhoneNumber} = parsePhoneNumber(searchInputValue);
+    const {output: searchValue, parsedPhoneNumber} = getSearchValueForPhoneOrEmail(searchInputValue);
 
     // Filter out all the reports that shouldn't be displayed
     const filteredReports = Object.values(reports ?? {}).filter((report) => {
@@ -2069,7 +2074,7 @@ function formatSectionsFromSearchTerm(
  * Filters options based on the search input value
  */
 function filterOptions(options: GetOptions, searchInputValue: string): GetOptions {
-    const {output: searchValue} = parsePhoneNumber(searchInputValue);
+    const {output: searchValue} = getSearchValueForPhoneOrEmail(searchInputValue);
     const searchTerms = searchValue ? searchValue.split(' ') : [];
 
     const createFilter = (items: ReportUtils.OptionData[], keys: ReadonlyArray<KeyOption<ReportUtils.OptionData>>, term: string) =>
