@@ -22,9 +22,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 
-type OnboardingPersonalDetailsProps = WithCurrentUserPersonalDetailsProps;
+type BaseOnboardingPersonalDetailsProps = {
+    /* Whether to use native styles tailored for native devices */
+    shouldUseNativeStyles: boolean;
+};
 
-function OnboardingPersonalDetails({currentUserPersonalDetails}: OnboardingPersonalDetailsProps) {
+function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles}: WithCurrentUserPersonalDetailsProps & BaseOnboardingPersonalDetailsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -65,7 +68,7 @@ function OnboardingPersonalDetails({currentUserPersonalDetails}: OnboardingPerso
     };
 
     return (
-        <View style={[styles.h100, styles.defaultModalContainer]}>
+        <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
             <HeaderWithBackButton
                 shouldShowBackButton={false}
                 iconFill={theme.iconColorfulBackground}
@@ -124,6 +127,8 @@ function OnboardingPersonalDetails({currentUserPersonalDetails}: OnboardingPerso
     );
 }
 
-OnboardingPersonalDetails.displayName = 'OnboardingPersonalDetails';
+BaseOnboardingPersonalDetails.displayName = 'BaseOnboardingPersonalDetails';
 
-export default withCurrentUserPersonalDetails(OnboardingPersonalDetails);
+export default withCurrentUserPersonalDetails(BaseOnboardingPersonalDetails);
+
+export type {BaseOnboardingPersonalDetailsProps};

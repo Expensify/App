@@ -32,7 +32,12 @@ const menuIcons = {
     [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: Illustrations.Binoculars,
 };
 
-function OnboardingPurpose() {
+type BaseOnboardingPurposeProps = {
+    /* Whether to use native styles tailored for native devices */
+    shouldUseNativeStyles: boolean;
+};
+
+function BaseOnboardingPurpose({shouldUseNativeStyles}: BaseOnboardingPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
@@ -102,7 +107,7 @@ function OnboardingPurpose() {
     });
 
     return (
-        <View style={[styles.h100, styles.defaultModalContainer]}>
+        <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
             <View style={shouldUseNarrowLayout && styles.mh3}>
                 <HeaderWithBackButton
                     shouldShowBackButton
@@ -134,5 +139,7 @@ function OnboardingPurpose() {
     );
 }
 
-OnboardingPurpose.displayName = 'OnboardingPurpose';
-export default OnboardingPurpose;
+BaseOnboardingPurpose.displayName = 'BaseOnboardingPurpose';
+export default BaseOnboardingPurpose;
+
+export type {BaseOnboardingPurposeProps};
