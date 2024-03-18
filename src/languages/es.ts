@@ -2021,8 +2021,8 @@ export default {
             status: 'Estado',
             enabled: 'Activada',
             disabled: 'Desactivada',
-            unit: 'Unit',
-            defaultCategory: 'Default category',
+            unit: 'Unidad',
+            defaultCategory: 'Categoría predeterminada',
             units: {
                 MI: 'Millas',
                 KM: 'Kilómetros',
