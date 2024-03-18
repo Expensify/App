@@ -1,10 +1,9 @@
-import React, {useEffect} from 'react';
-import {Keyboard, View} from 'react-native';
+import React from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import Text from '@components/Text';
-import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,20 +29,11 @@ type ChooseSSOOrMagicCodeProps = ChooseSSOOrMagicCodeOnyxProps & {
 
 function ChooseSSOOrMagicCode({account, isUsingRecoveryCode, setIsUsingRecoveryCode}: ChooseSSOOrMagicCodeProps) {
     const styles = useThemeStyles();
-    const {isKeyboardShown} = useKeyboardState();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
     const loginTextAfterMagicCode = isUsingRecoveryCode ? translate('validateCodeForm.enterRecoveryCode') : translate('validateCodeForm.enterAuthenticatorCode');
     const loginText = account?.requiresTwoFactorAuth ? loginTextAfterMagicCode : translate('samlSignIn.orContinueWithMagicCode');
-
-    // This view doesn't have a field for user input, so dismiss the device keyboard if shown
-    useEffect(() => {
-        if (!isKeyboardShown) {
-            return;
-        }
-        Keyboard.dismiss();
-    }, [isKeyboardShown]);
 
     return (
         <View>
