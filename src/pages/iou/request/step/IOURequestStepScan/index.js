@@ -182,7 +182,7 @@ function IOURequestStepScan({
         if (!cameraRef.current || !cameraRef.current.getScreenshot) {
             if (cameraPermissionState === 'prompt') {
                 navigator.mediaDevices
-                    .getUserMedia({video: true})
+                    .getUserMedia({video: {facingMode: {exact: 'environment'}}})
                     .then(() => {
                         setCameraPermissionState('granted');
                     })
