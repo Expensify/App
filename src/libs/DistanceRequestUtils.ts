@@ -147,3 +147,5 @@ function getDistanceRequestAmount(distance: number, unit: Unit, rate: number): n
 }
 
 export default {getDefaultMileageRate, getDistanceMerchant, getDistanceRequestAmount};
+
+export type {DefaultMileageRate};
