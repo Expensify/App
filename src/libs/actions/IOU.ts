@@ -3463,6 +3463,7 @@ function getSendMoneyParams(
             newIOUReportDetails,
             createdReportActionID: isNewChat ? optimisticCreatedActionForChat.reportActionID : '0',
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
+            createdIOUReportActionID: optimisticCreatedActionForIOUReport.reportActionID,
             transactionThreadReportID: optimisticTransactionThread.reportID,
             createdReportActionIDForThread: optimisticCreatedActionForTransactionThread.reportActionID,
         },
