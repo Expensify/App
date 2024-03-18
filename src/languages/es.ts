@@ -513,14 +513,15 @@ export default {
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'Esta sala de chat ha sido eliminada.',
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}: ReportArchiveReasonsClosedParams) =>
-            `Este chat de espacio de trabajo esta desactivado porque ${displayName} ha cerrado su cuenta.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}: ReportArchiveReasonsClosedParams) => `Este chat está desactivado porque ${displayName} ha cerrado su cuenta.`,
         [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}: ReportArchiveReasonsMergedParams) =>
-            `Este chat de espacio de trabajo esta desactivado porque ${oldDisplayName} ha combinado su cuenta con ${displayName}.`,
-        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName}: ReportArchiveReasonsRemovedFromPolicyParams) =>
-            `Este chat de espacio de trabajo esta desactivado porque ${displayName} ha dejado de ser miembro del espacio de trabajo ${policyName}.`,
+            `Este chat está desactivado porque ${oldDisplayName} ha combinado su cuenta con ${displayName}`,
+        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName, shouldUseYou = false}: ReportArchiveReasonsRemovedFromPolicyParams) =>
+            shouldUseYou
+                ? `Este chat ya no está activo porque <strong>tu</strong> ya no eres miembro del espacio de trabajo ${policyName}.`
+                : `Este chat está desactivado porque ${displayName} ha dejado de ser miembro del espacio de trabajo ${policyName}.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: ReportArchiveReasonsPolicyDeletedParams) =>
-            `Este chat de espacio de trabajo esta desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
+            `Este chat está desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
     },
     writeCapabilityPage: {
         label: 'Quién puede postear',
@@ -597,6 +598,8 @@ export default {
         routePending: 'Ruta pendiente...',
         receiptScanning: 'Escaneo en curso…',
         receiptMissingDetails: 'Recibo con campos vacíos',
+        missingAmount: 'Falta importe',
+        missingMerchant: 'Falta comerciante',
         receiptStatusTitle: 'Escaneando…',
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
         receiptScanningFailed: 'El escaneo de recibo ha fallado. Introduce los detalles manualmente.',
@@ -1064,6 +1067,11 @@ export default {
                 other: '.º',
             },
         },
+    },
+    workflowsPayerPage: {
+        title: 'Pagador autorizado',
+        genericErrorMessage: 'El pagador autorizado no se pudo cambiar. Por favor, inténtalo mas tarde.',
+        admins: 'Administradores',
     },
     reportFraudPage: {
         title: 'Reportar fraude con la tarjeta virtual',
@@ -1757,6 +1765,7 @@ export default {
             reimburse: 'Reembolsos',
             categories: 'Categorías',
             tags: 'Etiquetas',
+            taxes: 'Impuestos',
             bills: 'Pagar facturas',
             invoices: 'Enviar facturas',
             travel: 'Viajes',
@@ -1768,6 +1777,7 @@ export default {
             testTransactions: 'Transacciones de prueba',
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
+            selected: ({selectedNumber}) => `${selectedNumber} seleccionados`,
             settlementFrequency: 'Frecuencia de liquidación',
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
             unavailable: 'Espacio de trabajo no disponible',
@@ -1782,7 +1792,6 @@ export default {
             moreFeatures: 'Más características',
             requested: 'Solicitado',
             distanceRates: 'Tasas de distancia',
-            selected: ({selectedNumber}) => `${selectedNumber} seleccionados`,
         },
         type: {
             free: 'Gratis',
@@ -1790,16 +1799,26 @@ export default {
             collect: 'Recolectar',
         },
         categories: {
+            deleteCategories: 'Eliminar categorías',
+            deleteCategoriesPrompt: '¿Estás seguro de que quieres eliminar estas categorías?',
+            deleteCategory: 'Eliminar categoría',
+            deleteCategoryPrompt: '¿Estás seguro de que quieres eliminar esta categoría?',
+            disableCategories: 'Desactivar categorías',
+            disableCategory: 'Desactivar categoría',
+            enableCategories: 'Activar categorías',
+            enableCategory: 'Activar categoría',
+            deleteFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
             categoryName: 'Nombre de la categoría',
             requiresCategory: 'Los miembros deben categorizar todos los gastos',
-            enableCategory: 'Activar categoría',
             subtitle: 'Obtén una visión general de dónde te gastas el dinero. Utiliza las categorías predeterminadas o añade las tuyas propias.',
             emptyCategories: {
                 title: 'No has creado ninguna categoría',
                 subtitle: 'Añade una categoría para organizar tu gasto.',
             },
-            genericFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
+            updateFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
+            createFailureMessage: 'Se ha producido un error al intentar crear la categoría. Por favor, inténtalo más tarde.',
             addCategory: 'Añadir categoría',
+            editCategory: 'Editar categoría',
             categoryRequiredError: 'Lo nombre de la categoría es obligatorio.',
             existingCategoryError: 'Ya existe una categoría con este nombre.',
             invalidCategoryName: 'Lo nombre de la categoría es invalido.',
@@ -1847,12 +1866,34 @@ export default {
             },
         },
         tags: {
+            tagName: 'Nombre de etiqueta',
             requiresTag: 'Los miembros deben etiquetar todos los gastos',
+            customTagName: 'Nombre de etiqueta personalizada',
             enableTag: 'Habilitar etiqueta',
+            addTag: 'Añadir etiqueta',
             subtitle: 'Las etiquetas añaden formas más detalladas de clasificar los costos.',
             emptyTags: {
                 title: 'No has creado ninguna etiqueta',
                 subtitle: 'Añade una etiqueta para realizar el seguimiento de proyectos, ubicaciones, departamentos y otros.',
+            },
+            deleteTag: 'Eliminar etiqueta',
+            deleteTagConfirmation: '¿Estás seguro de que quieres eliminar esta etiqueta?',
+            deleteFailureMessage: 'Se ha producido un error al intentar eliminar la etiqueta. Por favor, inténtalo más tarde.',
+            tagRequiredError: 'Lo nombre de la etiqueta es obligatorio.',
+            existingTagError: 'Ya existe una etiqueta con este nombre.',
+            genericFailureMessage: 'Se produjo un error al actualizar la etiqueta, inténtelo nuevamente.',
+        },
+        taxes: {
+            subtitle: 'Añade nombres, tasas y establezca valores por defecto para los impuestos.',
+            addRate: 'Añadir tasa',
+            workspaceDefault: 'Moneda por defecto del espacio de trabajo',
+            foreignDefault: 'Moneda extranjera por defecto',
+            customTaxName: 'Nombre del impuesto',
+            value: 'Valor',
+            errors: {
+                taxRateAlreadyExists: 'Ya existe un impuesto con este nombre',
+                valuePercentageRange: 'Introduzca un porcentaje válido entre 0 y 100',
+                genericFailureMessage: 'Se produjo un error al actualizar el tipo impositivo, inténtelo nuevamente.',
             },
         },
         emptyWorkspace: {
