@@ -1,12 +1,16 @@
-const path = require('path');
-const kieMockGithub = require('@kie/mock-github');
-const utils = require('./utils/utils');
-const assertions = require('./assertions/testBuildAssertions');
-const mocks = require('./mocks/testBuildMocks');
-const eAct = require('./utils/ExtendedAct');
+/* eslint-disable @typescript-eslint/naming-convention */
+
+/* eslint-disable @typescript-eslint/require-await */
+import type {MockGithub} from '@kie/mock-github';
+import kieMockGithub from '@kie/mock-github';
+import path from 'path';
+import assertions from './assertions/testBuildAssertions';
+import mocks from './mocks/testBuildMocks';
+import * as eAct from './utils/ExtendedAct';
+import * as utils from './utils/utils';
 
 jest.setTimeout(90 * 1000);
-let mockGithub;
+let mockGithub: MockGithub;
 const FILES_TO_COPY_INTO_TEST_REPO = [
     ...utils.deepCopy(utils.FILES_TO_COPY_INTO_TEST_REPO),
     {
@@ -60,7 +64,7 @@ describe('test workflow testBuild', () => {
             PULL_REQUEST_NUMBER: '1234',
         };
         it('executes workflow', async () => {
-            const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
+            const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(act, event, {}, secrets, githubToken, {}, inputs);
@@ -91,7 +95,7 @@ describe('test workflow testBuild', () => {
         });
         describe('actor is not a team member', () => {
             it('stops the workflow after validation', async () => {
-                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, {}, secrets, githubToken, {}, inputs);
@@ -123,7 +127,7 @@ describe('test workflow testBuild', () => {
         });
         describe('PR does not have READY_TO_BUILD label', () => {
             it('stops the workflow after validation', async () => {
-                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, {}, secrets, githubToken, {}, inputs);
@@ -155,7 +159,7 @@ describe('test workflow testBuild', () => {
         });
         describe('actor is not a team member and PR does not have READY_TO_BUILD label', () => {
             it('stops the workflow after validation', async () => {
-                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, {}, secrets, githubToken, {}, inputs);
@@ -187,7 +191,7 @@ describe('test workflow testBuild', () => {
         });
         describe('android fails', () => {
             it('executes workflow, failure reflected', async () => {
-                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, {}, secrets, githubToken, {}, inputs);
@@ -220,7 +224,7 @@ describe('test workflow testBuild', () => {
         });
         describe('iOS fails', () => {
             it('executes workflow, failure reflected', async () => {
-                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, {}, secrets, githubToken, {}, inputs);
@@ -253,7 +257,7 @@ describe('test workflow testBuild', () => {
         });
         describe('desktop fails', () => {
             it('executes workflow, failure reflected', async () => {
-                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, {}, secrets, githubToken, {}, inputs);
@@ -295,7 +299,7 @@ describe('test workflow testBuild', () => {
         });
         describe('web fails', () => {
             it('executes workflow, failure reflected', async () => {
-                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, {}, secrets, githubToken, {}, inputs);
@@ -348,7 +352,7 @@ describe('test workflow testBuild', () => {
             },
         };
         it('executes workflow, without getBranchRef', async () => {
-            const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
+            const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(act, event, eventOptions, secrets, githubToken, {});
@@ -379,7 +383,7 @@ describe('test workflow testBuild', () => {
         });
         describe('actor is not a team member', () => {
             it('stops the workflow after validation', async () => {
-                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, eventOptions, secrets, githubToken, {});
@@ -411,7 +415,7 @@ describe('test workflow testBuild', () => {
         });
         describe('PR does not have READY_TO_BUILD label', () => {
             it('stops the workflow after validation', async () => {
-                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, eventOptions, secrets, githubToken, {});
@@ -443,7 +447,7 @@ describe('test workflow testBuild', () => {
         });
         describe('actor is not a team member and PR does not have READY_TO_BUILD label', () => {
             it('stops the workflow after validation', async () => {
-                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, eventOptions, secrets, githubToken, {});
@@ -486,7 +490,7 @@ describe('test workflow testBuild', () => {
             },
         };
         it('executes workflow, without getBranchRef', async () => {
-            const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
+            const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(act, event, eventOptions, secrets, githubToken, {});
@@ -517,7 +521,7 @@ describe('test workflow testBuild', () => {
         });
         describe('actor is not a team member', () => {
             it('stops the workflow after validation', async () => {
-                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, eventOptions, secrets, githubToken, {});
@@ -549,7 +553,7 @@ describe('test workflow testBuild', () => {
         });
         describe('PR does not have READY_TO_BUILD label', () => {
             it('stops the workflow after validation', async () => {
-                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, eventOptions, secrets, githubToken, {});
@@ -581,7 +585,7 @@ describe('test workflow testBuild', () => {
         });
         describe('actor is not a team member and PR does not have READY_TO_BUILD label', () => {
             it('stops the workflow after validation', async () => {
-                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, eventOptions, secrets, githubToken, {});
@@ -624,7 +628,7 @@ describe('test workflow testBuild', () => {
             },
         };
         it('executes workflow, withuout getBranchRef', async () => {
-            const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
+            const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(act, event, eventOptions, secrets, githubToken, {});
@@ -655,7 +659,7 @@ describe('test workflow testBuild', () => {
         });
         describe('actor is not a team member', () => {
             it('stops the workflow after validation', async () => {
-                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, eventOptions, secrets, githubToken, {});
@@ -687,7 +691,7 @@ describe('test workflow testBuild', () => {
         });
         describe('PR does not have READY_TO_BUILD label', () => {
             it('stops the workflow after validation', async () => {
-                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, eventOptions, secrets, githubToken, {});
@@ -719,7 +723,7 @@ describe('test workflow testBuild', () => {
         });
         describe('actor is not a team member and PR does not have READY_TO_BUILD label', () => {
             it('stops the workflow after validation', async () => {
-                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, eventOptions, secrets, githubToken, {});
