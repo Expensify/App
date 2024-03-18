@@ -224,7 +224,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     isReadOnly,
     isScanRequest,
     listStyles,
-    mileageRate,
+    mileageRates,
     onConfirm,
     onSelectParticipant,
     onSendMoney,
@@ -242,7 +242,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     session: {accountID},
     shouldShowSmartScanFields,
     transaction,
-    mileageRates,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -254,14 +253,19 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
     const canEditDistance = isTypeRequest || (canUseP2PDistanceRequests && isTypeSplit);
 
-    // TODO: uncomment after Splits and P2P are enabled https://github.com/Expensify/App/pull/37185, mileageRate prop should be be removed
-    // const mileageRate = transaction.comment.customUnit.customUnitRateID === '_FAKE_P2P_ID_' ? DistanceRequestUtils.getRateForP2P(policy.outputCurrency) : mileageRates[transaction.comment.customUnit.customUnitRateID];
-    const {unit, rate, currency} = mileageRate;
+    const personalPolicy = policyID === CONST.POLICY.ID_FAKE ? PolicyUtils.getPersonalPolicy() : policy;
+    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
+        ? DistanceRequestUtils.getRateForP2P(personalPolicy.outputCurrency)
+        : mileageRates[transaction.comment.customUnit.customUnitRateID];
 
-    // will hardcoded rates will have a currency property? If not we have to get currency other way
+    const {unit, rate} = mileageRate || {
+        unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+        rate: CONST.CUSTOM_UNITS.MILEAGE_IRS_RATE * 100,
+    };
+
+    const currency = personalPolicy.outputCurrency;
 
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
-    const shouldCalculateDistanceAmount = isDistanceRequest && iouAmount === 0;
     const taxRates = lodashGet(policy, 'taxRates', {});
 
     // A flag for showing the categories field
@@ -292,7 +296,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const formattedAmount = isDistanceRequestWithPendingRoute
         ? ''
         : CurrencyUtils.convertToDisplayString(
-              shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : iouAmount,
+              isDistanceRequest && iouAmount === 0 ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : iouAmount,
               isDistanceRequest ? currency : iouCurrencyCode,
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction.taxAmount, iouCurrencyCode);
@@ -359,13 +363,13 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, isMerchantRequired, merchantError]);
 
     useEffect(() => {
-        if (!shouldCalculateDistanceAmount) {
+        if (!isDistanceRequest) {
             return;
         }
 
         const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate);
         IOU.setMoneyRequestAmount_temporaryForRefactor(transaction.transactionID, amount, currency);
-    }, [shouldCalculateDistanceAmount, distance, rate, unit, transaction, currency]);
+    }, [isDistanceRequest, distance, rate, unit, transaction, currency]);
 
     /**
      * Returns the participants with amount
@@ -757,7 +761,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.rate')}
-                    // TODO: add a condition for splits/request (not to show this for send type?)
                     shouldShowRightIcon={!isReadOnly && isPolicyExpenseChat}
                     title={DistanceRequestUtils.getRateForDisplay(hasRoute, unit, rate, currency, translate, toLocaleDigit)}
                     description={translate('common.rate')}

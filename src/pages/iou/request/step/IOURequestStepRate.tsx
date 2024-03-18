@@ -6,19 +6,21 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as IOU from '@libs/actions/IOU';
 import compose from '@libs/compose';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as IOU from '@libs/actions/IOU';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
+
 type Props = {
-    // eslint-disable-next-line react/no-unused-prop-types
-    lastSelectedDistanceRate: string;
+    /** Object of last selected rates for the policies */
+    lastSelectedDistanceRates: Record<string, string>;
 
     /** Policy details */
     policy: OnyxEntry<Policy>;
@@ -38,10 +40,13 @@ function IOURequestStepRate({
     route: {
         params: {backTo},
     },
+    lastSelectedDistanceRates = {},
 }: Props) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
     const rates = DistanceRequestUtils.getMileageRates(policy?.id);
+
+    const lastSelectedRate = lastSelectedDistanceRates[policy?.id ?? '0'] ?? '0';
 
     const data = Object.values(rates).map((rate) => ({
         text: rate.name ?? '',
@@ -50,9 +55,10 @@ function IOURequestStepRate({
         value: rate.customUnitRateID,
     }));
 
-    const selectDistanceRate = (customUnitRateID) => {
+    const initiallyFocusedOption = rates[lastSelectedRate]?.name ?? CONST.CUSTOM_UNITS.DEFAULT_RATE;
+
+    function selectDistanceRate(customUnitRateID = '0') {
         IOU.setLastSelectedDistanceRates(policy?.id ?? '', customUnitRateID);
-        // TODO: get a proper transaction ID
         IOU.updateDistanceRequestRate('1', customUnitRateID);
         Navigation.goBack(backTo);
     }
@@ -70,8 +76,7 @@ function IOURequestStepRate({
                 sections={[{data}]}
                 ListItem={RadioListItem}
                 onSelectRow={({value}) => selectDistanceRate(value)}
-                // TODO: change for lastSelectedDistanceRates
-                initiallyFocusedOptionKey="Default Rate"
+                initiallyFocusedOptionKey={initiallyFocusedOption}
             />
         </StepScreenWrapper>
     );
@@ -82,11 +87,14 @@ IOURequestStepRate.displayName = 'IOURequestStepRate';
 export default compose(
     withWritableReportOrNotFound,
     withOnyx({
+        // @ts-expect-error TODO: fix when withWritableReportOrNotFound will be migrated to TS
         policy: {
+            // @ts-expect-error TODO: fix when withWritableReportOrNotFound will be migrated to TS
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
         },
-        // lastSelectedDistanceRates: {
-        //     key: ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
-        // },
+        // @ts-expect-error TODO: fix when withWritableReportOrNotFound will be migrated to TS
+        lastSelectedDistanceRates: {
+            key: ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
+        },
     }),
 )(IOURequestStepRate);

@@ -1,16 +1,21 @@
 import {useNavigation} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyTemporaryForRefactorRequestParticipantsSelector';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
@@ -24,6 +29,9 @@ const propTypes = {
     /* Onyx Props */
     /** The transaction object being modified in Onyx */
     transaction: transactionPropTypes,
+
+    // eslint-disable-next-line
+    lastSelectedDistanceRates: PropTypes.object,
 };
 
 const defaultProps = {
@@ -36,6 +44,7 @@ function IOURequestStepParticipants({
     },
     transaction,
     transaction: {participants = []},
+    lastSelectedDistanceRates = {},
 }) {
     const {translate} = useLocalize();
     const navigation = useNavigation();
@@ -100,6 +109,22 @@ function IOURequestStepParticipants({
             }
 
             IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, val);
+
+            // change customUnitRateID when choosing
+            if (val[0].isPolicyExpenseChat && TransactionUtils.isCustomUnitRateIDForP2P(transaction)) {
+                let customUnitRateID = '';
+                if (val[0].policyID && lastSelectedDistanceRates[val[0].policyID]) {
+                    customUnitRateID = lastSelectedDistanceRates[val[0].policyID];
+                } else {
+                    const policy = ReportUtils.getPolicy(val[0].policyID);
+                    const defaultRate = DistanceRequestUtils.getDefaultMileageRate(policy);
+                    customUnitRateID = defaultRate ? defaultRate.customUnitRateID : '';
+                }
+                IOU.updateDistanceRequestRate(transactionID, customUnitRateID);
+            } else if (!TransactionUtils.isCustomUnitRateIDForP2P(transaction)) {
+                IOU.updateDistanceRequestRate(transactionID, CONST.CUSTOM_UNITS.FAKE_P2P_ID);
+            }
+
             numberOfParticipants.current = val.length;
 
             // When multiple participants are selected, the reportID is generated at the end of the confirmation step.
@@ -163,4 +188,12 @@ IOURequestStepParticipants.displayName = 'IOURequestStepParticipants';
 IOURequestStepParticipants.propTypes = propTypes;
 IOURequestStepParticipants.defaultProps = defaultProps;
 
-export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepParticipants);
+export default compose(
+    withWritableReportOrNotFound,
+    withFullTransactionOrNotFound,
+    withOnyx({
+        lastSelectedDistanceRates: {
+            key: ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
+        },
+    }),
+)(IOURequestStepParticipants);

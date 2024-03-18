@@ -252,42 +252,42 @@ function MoneyRequestView({
     );
 
     const distanceRequestFields = canUseP2PDistanceRequests ? (
-                <>
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
-                        <MenuItemWithTopDescription
-                            description={translate('common.distance')}
-                            title={distanceToDisplay}
-                            interactive={canEditDistance}
-                            shouldShowRightIcon={canEditDistance}
-                            titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DISTANCE))}
-                        />
-                    </OfflineWithFeedback>
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
-                        <MenuItemWithTopDescription
-                            description={translate('common.rate')}
-                            title={rateToDisplay}
-                            // TODO: make it interactive and show right icon when EditRatePage is ready
-                            interactive={false}
-                            shouldShowRightIcon={false}
-                            titleStyle={styles.flex1}
-                            // TODO: Add route for editing rate
-                            onPress={() => {}}
-                        />
-                    </OfflineWithFeedback>
-                </>
-            ) : (
-                <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
-                    <MenuItemWithTopDescription
-                        description={translate('common.distance')}
-                        title={transactionMerchant}
-                        interactive={canEditDistance}
-                        shouldShowRightIcon={canEditDistance}
-                        titleStyle={styles.flex1}
-                        onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DISTANCE))}
-                    />
-                </OfflineWithFeedback>
-            )
+        <>
+            <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
+                <MenuItemWithTopDescription
+                    description={translate('common.distance')}
+                    title={distanceToDisplay}
+                    interactive={canEditDistance}
+                    shouldShowRightIcon={canEditDistance}
+                    titleStyle={styles.flex1}
+                    onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DISTANCE))}
+                />
+            </OfflineWithFeedback>
+            <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
+                <MenuItemWithTopDescription
+                    description={translate('common.rate')}
+                    title={rateToDisplay}
+                    // TODO: https://github.com/Expensify/App/issues/36987 make it interactive and show right icon when EditRatePage is ready
+                    interactive={false}
+                    shouldShowRightIcon={false}
+                    titleStyle={styles.flex1}
+                    // TODO: https://github.com/Expensify/App/issues/36987 Add route for editing rate
+                    onPress={() => {}}
+                />
+            </OfflineWithFeedback>
+        </>
+    ) : (
+        <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
+            <MenuItemWithTopDescription
+                description={translate('common.distance')}
+                title={transactionMerchant}
+                interactive={canEditDistance}
+                shouldShowRightIcon={canEditDistance}
+                titleStyle={styles.flex1}
+                onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DISTANCE))}
+            />
+        </OfflineWithFeedback>
+    );
 
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>

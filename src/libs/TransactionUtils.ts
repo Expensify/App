@@ -584,6 +584,14 @@ function getEnabledTaxRateCount(options: TaxRates) {
     return Object.values(options).filter((option: TaxRate) => !option.isDisabled).length;
 }
 
+/**
+ * Check if the customUnitRateID has a value default for P2P distance requests
+ */
+
+function isCustomUnitRateIDForP2P(transaction: Transaction): boolean {
+    return transaction?.comment?.customUnit?.customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -633,6 +641,7 @@ export {
     waypointHasValidAddress,
     getRecentTransactions,
     hasViolation,
+    isCustomUnitRateIDForP2P,
 };
 
 export type {TransactionChanges};

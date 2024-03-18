@@ -91,8 +91,7 @@ function convertDistanceUnit(distanceInMeters: number, unit: Unit): number {
  */
 function getRoundedDistanceInUnits(distanceInMeters: number, unit: Unit): string {
     const convertedDistance = convertDistanceUnit(distanceInMeters, unit);
-    // TODO: add logic for currencies for which we need to round to 4 decimals
-    return convertedDistance.toFixed(3);
+    return convertedDistance.toFixed(2);
 }
 
 // TODO: I wonder if it would be better to refactor these functions to pass params in an object
