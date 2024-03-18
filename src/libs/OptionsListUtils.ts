@@ -1380,7 +1380,7 @@ function parsePhoneNumber(text: string) {
     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(text)));
     const output = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 : text.toLowerCase();
 
-    return output;
+    return {output, parsedPhoneNumber};
 }
 
 /**
@@ -1481,7 +1481,7 @@ function getOptions(
     let recentReportOptions = [];
     let personalDetailsOptions: ReportUtils.OptionData[] = [];
     const reportMapForAccountIDs: Record<number, Report> = {};
-    const searchValue = parsePhoneNumber(searchInputValue);
+    const {output: searchValue, parsedPhoneNumber} = parsePhoneNumber(searchInputValue);
 
     // Filter out all the reports that shouldn't be displayed
     const filteredReports = Object.values(reports ?? {}).filter((report) => {
@@ -2070,7 +2070,7 @@ function formatSectionsFromSearchTerm(
  * Filters options based on the search input value
  */
 function filterOptions(options: Partial<GetOptions>, searchInputValue: string): ReportUtils.OptionData[] {
-    const searchValue = parsePhoneNumber(searchInputValue);
+    const {output: searchValue} = parsePhoneNumber(searchInputValue);
     const searchTerms = searchValue ? searchValue.split(' ') : [];
 
     const reportsByType = (options.recentReports ?? []).reduce<ReportTypesOptionData>(
