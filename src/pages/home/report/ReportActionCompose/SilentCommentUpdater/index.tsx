@@ -16,17 +16,22 @@ function SilentCommentUpdater({comment, commentRef, reportID, value, updateComme
     const prevReportId = usePrevious(reportID);
     const {preferredLocale} = useLocalize();
     const prevPreferredLocale = usePrevious(preferredLocale);
+    const prevIsVisible = usePrevious(Visibility.isVisible());
+    console.log('old comment', prevCommentProp);
+    console.log('new comment', comment);
+    console.log('prev', prevIsVisible);
+    console.log('now', Visibility.isVisible());
 
-    useEffect(() => {
-        updateComment(comment ?? '');
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- We need to run this on mount
-    }, []);
+    // useEffect(() => {
+    //     updateComment(comment ?? '');
+    //     // eslint-disable-next-line react-hooks/exhaustive-deps -- We need to run this on mount
+    // }, []);
 
     useEffect(() => {
         // Value state does not have the same value as comment props when the comment gets changed from another tab.
         // In this case, we should synchronize the value between tabs.
 
-        const shouldSyncComment = prevCommentProp !== comment && value !== comment && !Visibility.hasFocus();
+        const shouldSyncComment = prevCommentProp !== comment && value !== comment;
 
         // As the report IDs change, make sure to update the composer comment as we need to make sure
         // we do not show incorrect data in there (ie. draft of message from other report).
