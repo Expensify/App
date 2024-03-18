@@ -51,7 +51,10 @@ function WorkspaceTaxesSettingsPage({
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <ScreenWrapper testID={WorkspaceTaxesSettingsPage.displayName}>
+                <ScreenWrapper
+                    testID={WorkspaceTaxesSettingsPage.displayName}
+                    style={styles.defaultModalContainer}
+                >
                     <ScrollView contentContainerStyle={styles.flexGrow1}>
                         <HeaderWithBackButton title={translate('common.settings')} />
                         <View style={styles.flex1}>

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -31,29 +31,37 @@ function TaxPicker({selectedTaxRate = '', taxRates, insets, onSubmit}: TaxPicker
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
-    if (!taxRates) {
-        return;
-    }
-
-    const taxRatesCount = TransactionUtils.getEnabledTaxRateCount(taxRates?.taxes);
+    const taxRatesCount = TransactionUtils.getEnabledTaxRateCount(taxRates?.taxes ?? {});
     const isTaxRatesCountBelowThreshold = taxRatesCount < CONST.TAX_RATES_LIST_THRESHOLD;
 
     const getModifiedName = (data: TaxRate, code: string) => `${data.name} (${data.value})${selectedTaxRate === code ? ` • ${translate('common.default')}` : ''}`;
 
     const shouldShowTextInput = !isTaxRatesCountBelowThreshold;
 
-    const section = Object.entries(taxRates.taxes ?? {}).map(([key, item]) => ({text: getModifiedName(item, key), keyForList: key}));
+    const section = Object.entries(taxRates?.taxes ?? {}).map(([key, item]) => ({text: getModifiedName(item, key), keyForList: key, isSelected: key === selectedTaxRate}));
     const selectedOptionKey = section.find((taxRate) => taxRate.keyForList === selectedTaxRate)?.keyForList;
+
+    const filteredTaxesList = useMemo(() => {
+        const trimmedSearch = searchValue.trim();
+
+        if (trimmedSearch.length === 0) {
+            return section;
+        }
+        return section.filter((tax) => tax.text.toLowerCase().indexOf(trimmedSearch.toLowerCase()) >= 0);
+    }, [searchValue, section]);
+
+    const headerMessage = searchValue.trim() && filteredTaxesList?.length === 0 ? translate('common.noResultsFound') : '';
 
     return (
         <SelectionList
             ListItem={RadioListItem}
             onSelectRow={onSubmit}
             initiallyFocusedOptionKey={selectedOptionKey ?? ''}
-            sections={[{data: section}]}
+            sections={[{data: filteredTaxesList}]}
             containerStyle={{paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}}
             textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
             isRowMultilineSupported
+            headerMessage={headerMessage}
             textInputValue={searchValue}
             onChangeText={setSearchValue}
         />

@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -21,6 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTaxCustomName';
+import type {WorkspaceTaxCustomName} from '@src/types/form/WorkspaceTaxCustomName';
 
 type WorkspaceTaxesSettingsCustomTaxNameProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES_SETTINGS_CUSTOM_TAX_NAME>;
 
@@ -32,11 +33,10 @@ function WorkspaceTaxesSettingsCustomTaxName({
 }: WorkspaceTaxesSettingsCustomTaxNameProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [name, setName] = useState(policy?.taxRates?.name ?? '');
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const submit = () => {
-        setPolicyCustomTaxName(policyID, name);
+    const submit = ({Name}: WorkspaceTaxCustomName) => {
+        setPolicyCustomTaxName(policyID, Name);
         Navigation.goBack(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID));
     };
 
@@ -47,6 +47,7 @@ function WorkspaceTaxesSettingsCustomTaxName({
                     includeSafeAreaPaddingBottom={false}
                     shouldEnableMaxHeight
                     testID={WorkspaceTaxesSettingsCustomTaxName.displayName}
+                    style={styles.defaultModalContainer}
                 >
                     <HeaderWithBackButton title={translate('workspace.taxes.customTaxName')} />
 
@@ -65,9 +66,8 @@ function WorkspaceTaxesSettingsCustomTaxName({
                                 inputID={INPUT_IDS.NAME}
                                 label={translate('workspace.editor.nameInputLabel')}
                                 accessibilityLabel={translate('workspace.editor.nameInputLabel')}
-                                value={name}
+                                defaultValue={policy?.taxRates?.name}
                                 maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
-                                onChangeText={setName}
                                 multiline={false}
                                 ref={inputCallbackRef}
                             />

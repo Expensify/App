@@ -41,6 +41,7 @@ function WorkspaceTaxesSettingsForeignCurrency({
                     includeSafeAreaPaddingBottom={false}
                     shouldEnableMaxHeight
                     testID={WorkspaceTaxesSettingsForeignCurrency.displayName}
+                    style={styles.defaultModalContainer}
                 >
                     {({insets}) => (
                         <>
