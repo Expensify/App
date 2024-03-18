@@ -128,13 +128,19 @@ function BaseVideoPlayer({
             if (e.fullscreenUpdate !== VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
                 return;
             }
+
             isFullscreen.current = false;
 
-            if (isMobileSafari) {
-                pauseVideo();
+            if (isMobileSafari && videoPlayerRef.current) {
+                videoPlayerRef.current.getStatusAsync().then((status) => {
+                    if (!status.isPlaying) {
+                        return;
+                    }
+                    pauseVideo();
+                    playVideo();
+                    videoResumeTryNumber.current = 3;
+                });
             }
-            playVideo();
-            videoResumeTryNumber.current = 3;
         },
         [isFullscreen, onFullscreenUpdate, pauseVideo, playVideo],
     );
