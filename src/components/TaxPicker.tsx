@@ -39,7 +39,6 @@ function TaxPicker({selectedTaxRate = '', taxRates, insets, onSubmit}: TaxPicker
     const shouldShowTextInput = !isTaxRatesCountBelowThreshold;
 
     const section = Object.entries(taxRates?.taxes ?? {}).map(([key, item]) => ({text: getModifiedName(item, key), keyForList: key, isSelected: key === selectedTaxRate}));
-    const selectedOptionKey = section.find((taxRate) => taxRate.keyForList === selectedTaxRate)?.keyForList;
 
     const filteredTaxesList = useMemo(() => {
         const trimmedSearch = searchValue.trim();
@@ -56,7 +55,7 @@ function TaxPicker({selectedTaxRate = '', taxRates, insets, onSubmit}: TaxPicker
         <SelectionList
             ListItem={RadioListItem}
             onSelectRow={onSubmit}
-            initiallyFocusedOptionKey={selectedOptionKey ?? ''}
+            initiallyFocusedOptionKey={selectedTaxRate}
             sections={[{data: filteredTaxesList}]}
             containerStyle={{paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}}
             textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
