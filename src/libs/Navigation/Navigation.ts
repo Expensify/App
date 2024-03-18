@@ -13,13 +13,14 @@ import type {Report} from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import originalDismissModal from './dismissModal';
 import originalDismissModalWithReport from './dismissModalWithReport';
+import getPolicyIDFromState from './getPolicyIDFromState';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import originalGetTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
 import linkTo from './linkTo';
 import navigationRef from './navigationRef';
 import switchPolicyID from './switchPolicyID';
-import type {NavigationStateRoute, State, StateOrRoute, SwitchPolicyIDParams} from './types';
+import type {NavigationStateRoute, RootStackParamList, State, StateOrRoute, SwitchPolicyIDParams} from './types';
 
 let resolveNavigationIsReadyPromise: () => void;
 const navigationIsReadyPromise = new Promise<void>((resolve) => {
@@ -359,6 +360,13 @@ function navigateWithSwitchPolicyID(params: SwitchPolicyIDParams) {
     return switchPolicyID(navigationRef.current, params);
 }
 
+/**
+ *  Returns the currently selected policy ID stored in the navigation state.
+ */
+function getPolicyIDFromNavigationState() {
+    return getPolicyIDFromState(navigationRef.getRootState() as State<RootStackParamList>);
+}
+
 export default {
     setShouldPopAllStateOnUP,
     navigate,
@@ -379,6 +387,7 @@ export default {
     closeFullScreen,
     navigateWithSwitchPolicyID,
     resetToHome,
+    getPolicyIDFromNavigationState,
 };
 
 export {navigationRef};
