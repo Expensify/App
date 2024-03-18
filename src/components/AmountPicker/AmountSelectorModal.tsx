@@ -36,7 +36,7 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
                     title={description}
                     onBackButtonPress={onClose}
                 />
-                <ScrollView contentContainerStyle={[styles.flex1, styles.mh5, styles.mb5]}>
+                <ScrollView contentContainerStyle={[styles.flex1, styles.mb5]}>
                     <View style={styles.flex1}>
                         <AmountForm
                             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -45,14 +45,15 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
                             value={currentValue}
                             onInputChange={setValue}
                         />
+                        <Button
+                            success
+                            large
+                            pressOnEnter
+                            text={translate('common.save')}
+                            onPress={() => onValueSelected?.(currentValue ?? '')}
+                            style={styles.mh5}
+                        />
                     </View>
-                    <Button
-                        success
-                        large
-                        pressOnEnter
-                        text={translate('common.save')}
-                        onPress={() => onValueSelected?.(currentValue ?? '')}
-                    />
                 </ScrollView>
             </ScreenWrapper>
         </Modal>
