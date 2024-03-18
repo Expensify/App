@@ -74,27 +74,31 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
         () =>
             policyTagLists
                 .map((policyTagList) =>
-                    Object.values(policyTagList.tags || []).map((value) => ({
-                        value: value.name,
-                        text: value.name,
-                        keyForList: value.name,
-                        isSelected: !!selectedTags[value.name],
-                        pendingAction: value.pendingAction,
-                        errors: value.errors ?? undefined,
-                        rightElement: (
-                            <View style={styles.flexRow}>
-                                <Text style={[styles.textSupporting, styles.alignSelfCenter, styles.pl2, styles.label]}>
-                                    {value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}
-                                </Text>
-                                <View style={[styles.p1, styles.pl2]}>
-                                    <Icon
-                                        src={Expensicons.ArrowRight}
-                                        fill={theme.icon}
-                                    />
+                    Object.values(policyTagList.tags || []).map((value) => {
+                        const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.values(value.pendingFields ?? {}).length > 0;
+                        return {
+                            value: value.name,
+                            text: value.name,
+                            keyForList: value.name,
+                            isSelected: !!selectedTags[value.name],
+                            pendingAction: value.pendingAction,
+                            errors: value.errors ?? undefined,
+                            isDisabled,
+                            rightElement: (
+                                <View style={styles.flexRow}>
+                                    <Text style={[styles.textSupporting, styles.alignSelfCenter, styles.pl2, styles.label]}>
+                                        {value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}
+                                    </Text>
+                                    <View style={[styles.p1, styles.pl2]}>
+                                        <Icon
+                                            src={Expensicons.ArrowRight}
+                                            fill={theme.icon}
+                                        />
+                                    </View>
                                 </View>
-                            </View>
-                        ),
-                    })),
+                            ),
+                        };
+                    }),
                 )
                 .flat(),
         [policyTagLists, selectedTags, styles.alignSelfCenter, styles.flexRow, styles.label, styles.p1, styles.pl2, styles.textSupporting, theme.icon, translate],
