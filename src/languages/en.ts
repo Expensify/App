@@ -1083,8 +1083,6 @@ export default {
     workflowsPayerPage: {
         title: 'Authorized payer',
         genericErrorMessage: 'The authorized payer could not be changed. Please try again.',
-        unavailableCurrencyErrorMessage:
-            'Direct reimbursement is only available in USD, AUD, GBP, EUR and CAD. Currently this policy is set to a currency that is not eligible for direct reimbursement. Please change policy currency in order to enable Direct Reimbursement.',
         admins: 'Admins',
     },
     reportFraudPage: {
