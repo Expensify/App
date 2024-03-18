@@ -1722,6 +1722,7 @@ export default {
         title: 'Book or manage your trips',
         subtitle: 'Use Expensify Travel to get the best travel offers and manage all your business expenses in a single place.',
         bookOrManage: 'Book or manage',
+        bookTravel: 'Book Travel',
         features: {
             saveMoney: 'Save money on your bookings',
             alerts: 'Get real time alerts if your travel plans change',

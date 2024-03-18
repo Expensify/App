@@ -137,6 +137,10 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                         name="ProcessMoneyRequestHold"
                         component={ModalStackNavigators.ProcessMoneyRequestHoldStackNavigator}
                     />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.TRAVEL}
+                        component={ModalStackNavigators.TravelModalStackNavigator}
+                    />
                 </Stack.Navigator>
             </View>
         </NoDropZone>

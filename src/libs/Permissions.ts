@@ -30,6 +30,10 @@ function canUseWorkflowsDelayedSubmission(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.WORKFLOWS_DELAYED_SUBMISSION) || canUseAllBetas(betas);
 }
 
+function canUseSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.SPOTNANA_TRAVEL) || canUseAllBetas(betas);
+}
+
 /**
  * Link previews are temporarily disabled.
  */
@@ -45,4 +49,5 @@ export default {
     canUseViolations,
     canUseReportFields,
     canUseWorkflowsDelayedSubmission,
+    canUseSpotnanaTravel,
 };

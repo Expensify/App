@@ -29,6 +29,7 @@ import type {
     SplitDetailsNavigatorParamList,
     TaskDetailsNavigatorParamList,
     TeachersUniteNavigatorParamList,
+    TravelNavigatorParamList,
     WalletStatementNavigatorParamList,
     WorkspaceSwitcherNavigatorParamList,
 } from '@navigation/types';
@@ -106,6 +107,10 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.WAYPOINT]: () => require('../../../pages/iou/MoneyRequestWaypointPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.DISTANCE]: () => require('../../../pages/iou/NewDistanceRequestPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.RECEIPT]: () => require('../../../pages/EditRequestReceiptPage').default as React.ComponentType,
+});
+
+const TravelModalStackNavigator = createModalStackNavigator<TravelNavigatorParamList>({
+    [SCREENS.TRAVEL.MY_TRIPS]: () => require('../../../pages/Travel/MyTripsPage').default as React.ComponentType,
 });
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator<SplitDetailsNavigatorParamList>({
@@ -336,4 +341,5 @@ export {
     TaskModalStackNavigator,
     WalletStatementStackNavigator,
     ProcessMoneyRequestHoldStackNavigator,
+    TravelModalStackNavigator,
 };

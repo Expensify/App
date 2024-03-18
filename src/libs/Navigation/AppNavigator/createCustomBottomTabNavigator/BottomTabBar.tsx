@@ -11,6 +11,7 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Session from '@libs/actions/Session';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -47,7 +48,8 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
             // When we are redirected to the Settings tab from the OldDot, we don't want to call the Welcome.show() method.
             // To prevent this, the value of the bottomTabRoute?.name is checked here
             bottomTabRoute?.name === SCREENS.WORKSPACE.INITIAL ||
-            (currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && currentRoute.name !== NAVIGATORS.CENTRAL_PANE_NAVIGATOR)
+            Boolean(currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && currentRoute.name !== NAVIGATORS.CENTRAL_PANE_NAVIGATOR) ||
+            Session.isAnonymousUser()
         ) {
             return;
         }
@@ -91,24 +93,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                     </View>
                 </PressableWithFeedback>
             </Tooltip>
-            <Tooltip text={translate('workspace.common.travel')}>
-                <PressableWithFeedback
-                    onPress={() => Navigation.navigate(ROUTES.TRAVEL_HOME)}
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('workspace.common.travel')}
-                    wrapperStyle={styles.flexGrow1}
-                    style={styles.bottomTabBarItem}
-                >
-                    <View>
-                        <Icon
-                            src={Expensicons.Suitcase}
-                            fill={currentTabName === SCREENS.TRAVEL.HOME ? theme.iconMenu : theme.icon}
-                            width={variables.iconBottomBar}
-                            height={variables.iconBottomBar}
-                        />
-                    </View>
-                </PressableWithFeedback>
-            </Tooltip>
+            <BottomTabBarFloatingActionButton />
             <Tooltip text={translate('common.settings')}>
                 <PressableWithFeedback
                     onPress={() =>
@@ -132,7 +117,6 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                     </View>
                 </PressableWithFeedback>
             </Tooltip>
-            <BottomTabBarFloatingActionButton />
         </View>
     );
 }

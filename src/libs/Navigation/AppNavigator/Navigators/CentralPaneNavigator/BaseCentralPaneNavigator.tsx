@@ -4,7 +4,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ReportScreenWrapper from '@libs/Navigation/AppNavigator/ReportScreenWrapper';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
-import MyTripsPage from '@pages/Travel/MyTripsPage';
 import SCREENS from '@src/SCREENS';
 
 const Stack = createStackNavigator<CentralPaneNavigatorParamList>();
@@ -43,10 +42,6 @@ function BaseCentralPaneNavigator() {
                 // We do it this way to avoid adding the url params to url
                 initialParams={{openOnAdminRoom: openOnAdminRoom === 'true' || undefined}}
                 component={ReportScreenWrapper}
-            />
-            <Stack.Screen
-                name={SCREENS.TRAVEL.MY_TRIPS}
-                component={MyTripsPage}
             />
             {Object.entries(workspaceSettingsScreens).map(([screenName, componentGetter]) => (
                 <Stack.Screen

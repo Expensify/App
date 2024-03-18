@@ -90,7 +90,6 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.CATEGORIES]: {
         policyID: string;
     };
-    [SCREENS.TRAVEL.MY_TRIPS]: undefined;
 };
 
 type WorkspaceSwitcherNavigatorParamList = {
@@ -495,6 +494,11 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.PROCESS_MONEY_REQUEST_HOLD]: NavigatorScreenParams<ProcessMoneyRequestHoldNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REFERRAL]: NavigatorScreenParams<ReferralDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: NavigatorScreenParams<PrivateNotesNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.TRAVEL]: NavigatorScreenParams<TravelNavigatorParamList>;
+};
+
+type TravelNavigatorParamList = {
+    [SCREENS.TRAVEL.MY_TRIPS]: undefined;
 };
 
 type SettingsCentralPaneNavigatorParamList = {
@@ -514,7 +518,6 @@ type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: undefined;
     [SCREENS.ALL_SETTINGS]: undefined;
     [SCREENS.WORKSPACE.INITIAL]: undefined;
-    [SCREENS.TRAVEL.HOME]: undefined;
 };
 
 type PublicScreensParamList = {
@@ -635,4 +638,5 @@ export type {
     WorkspaceSwitcherNavigatorParamList,
     OnboardEngagementNavigatorParamList,
     SwitchPolicyIDParams,
+    TravelNavigatorParamList,
 };

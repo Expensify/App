@@ -309,6 +309,7 @@ const CONST = {
         VIOLATIONS: 'violations',
         REPORT_FIELDS: 'reportFields',
         WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
+        SPOTNANA_TRAVEL: 'spotnanaTravel',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
