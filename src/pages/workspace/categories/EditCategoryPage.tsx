@@ -13,6 +13,7 @@ import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAcce
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyCategories} from '@src/types/onyx';
 import CategoryForm from './CategoryForm';
@@ -27,7 +28,7 @@ type EditCategoryPageProps = WorkspaceEditCategoryPageOnyxProps & StackScreenPro
 function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const currentCategoryName = decodeURIComponent(route.params.categoryName);
+    const currentCategoryName = route.params.categoryName;
 
     const editCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
@@ -47,7 +48,7 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
                 >
                     <HeaderWithBackButton
                         title={translate('workspace.categories.editCategory')}
-                        onBackButtonPress={Navigation.goBack}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName))}
                     />
                     <CategoryForm
                         onSubmit={editCategory}

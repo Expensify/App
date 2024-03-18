@@ -1,6 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import _ from 'underscore';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
@@ -43,7 +43,16 @@ function IOURequestStepParticipants({
     const numberOfParticipants = useRef(participants.length);
     const iouRequestType = TransactionUtils.getRequestType(transaction);
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
-    const headerTitle = isSplitRequest ? translate('iou.split') : translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
+    const headerTitle = useMemo(() => {
+        if (isSplitRequest) {
+            return translate('iou.split');
+        }
+        if (iouType === CONST.IOU.TYPE.SEND) {
+            return translate('common.send');
+        }
+        return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
+    }, [iouType, transaction, translate, isSplitRequest]);
+
     const receiptFilename = lodashGet(transaction, 'filename');
     const receiptPath = lodashGet(transaction, 'receipt.source');
     const receiptType = lodashGet(transaction, 'receipt.type');
@@ -109,7 +118,14 @@ function IOURequestStepParticipants({
     const goToNextStep = useCallback(
         (selectedIouType) => {
             const isSplit = selectedIouType === CONST.IOU.TYPE.SPLIT;
-            const nextStepIOUType = !isSplit && iouType !== CONST.IOU.TYPE.REQUEST ? CONST.IOU.TYPE.REQUEST : iouType;
+            let nextStepIOUType = CONST.IOU.TYPE.REQUEST;
+
+            if (isSplit && iouType !== CONST.IOU.TYPE.REQUEST) {
+                nextStepIOUType = CONST.IOU.TYPE.SPLIT;
+            } else if (iouType === CONST.IOU.TYPE.SEND) {
+                nextStepIOUType = CONST.IOU.TYPE.SEND;
+            }
+
             IOU.setMoneyRequestTag(transactionID, '');
             IOU.setMoneyRequestCategory(transactionID, '');
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(nextStepIOUType, transactionID, selectedReportID.current || reportID));
