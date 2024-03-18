@@ -53,7 +53,6 @@ function createPolicyTax(policyID: string, taxRate: TaxRate) {
                             [taxRate.code]: {
                                 ...taxRate,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                                errors: null,
                             },
                         },
                     },
@@ -69,6 +68,7 @@ function createPolicyTax(policyID: string, taxRate: TaxRate) {
                         taxes: {
                             [taxRate.code]: {
                                 errors: null,
+                                pendingAction: null,
                             },
                         },
                     },
