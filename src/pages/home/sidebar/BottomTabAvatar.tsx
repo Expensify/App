@@ -1,6 +1,7 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import React, {useCallback} from 'react';
 import {PressableWithFeedback} from '@components/Pressable';
+import Tooltip from '@components/Tooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -48,15 +49,17 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
     }
 
     return (
-        <PressableWithFeedback
-            onPress={showSettingsPage}
-            role={CONST.ROLE.BUTTON}
-            accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
-            wrapperStyle={styles.flex1}
-            style={styles.bottomTabBarItem}
-        >
-            {children}
-        </PressableWithFeedback>
+        <Tooltip text={translate('profilePage.profile')}>
+            <PressableWithFeedback
+                onPress={showSettingsPage}
+                role={CONST.ROLE.BUTTON}
+                accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
+                wrapperStyle={styles.flex1}
+                style={styles.bottomTabBarItem}
+            >
+                {children}
+            </PressableWithFeedback>
+        </Tooltip>
     );
 }
 

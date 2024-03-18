@@ -7,7 +7,6 @@ import {withOnyx} from 'react-native-onyx';
 import AvatarWithIndicator from '@components/AvatarWithIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as UserUtils from '@libs/UserUtils';
@@ -36,7 +35,6 @@ const defaultProps = {
 };
 
 function ProfileAvatarWithIndicator({currentUserPersonalDetails, isLoading, isSelected}) {
-    const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     return (
@@ -44,7 +42,6 @@ function ProfileAvatarWithIndicator({currentUserPersonalDetails, isLoading, isSe
             <View style={[isSelected && styles.selectedAvatarBorder]}>
                 <AvatarWithIndicator
                     source={UserUtils.getAvatar(currentUserPersonalDetails.avatar, currentUserPersonalDetails.accountID)}
-                    tooltipText={translate('profilePage.profile')}
                     fallbackIcon={currentUserPersonalDetails.fallbackIcon}
                     isLoading={isLoading && !currentUserPersonalDetails.avatar}
                 />
