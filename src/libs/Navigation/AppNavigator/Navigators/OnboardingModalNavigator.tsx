@@ -6,9 +6,9 @@ import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import OnboardingModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/OnboardingModalNavigatorScreenOptions';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
-import SCREENS from '@src/SCREENS';
-import OnboardingPurpose from '@pages/OnboardingPurpose';
 import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
+import OnboardingPurpose from '@pages/OnboardingPurpose';
+import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
 
 const Stack = createStackNavigator<OnboardingModalNavigatorParamList>();

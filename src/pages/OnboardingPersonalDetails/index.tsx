@@ -1,5 +1,5 @@
 import React from 'react';
-import type { BaseOnboardingPersonalDetailsProps } from './BaseOnboardingPersonalDetails';
+import type {BaseOnboardingPersonalDetailsProps} from './BaseOnboardingPersonalDetails';
 import BaseOnboardingPersonalDetails from './BaseOnboardingPersonalDetails';
 
 function OnboardingPersonalDetails({...rest}: Omit<BaseOnboardingPersonalDetailsProps, 'shouldUseNativeStyles'>) {
