@@ -5,12 +5,12 @@ import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Environment from '@libs/Environment/Environment';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Url from '@libs/Url';
-import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import * as Session from './Session';
 
 let isNetworkOffline = false;
 Onyx.connect({
