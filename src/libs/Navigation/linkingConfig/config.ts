@@ -286,8 +286,11 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.CATEGORY_EDIT]: {
                             path: ROUTES.WORKSPACE_CATEGORY_EDIT.route,
                             parse: {
-                                categoryName: (categoryName: string) => decodeURI(categoryName),
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
                             },
+                        },
+                        [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
+                            path: ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.route,
                         },
                         [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
                             path: ROUTES.WORKSPACE_TAGS_SETTINGS.route,
@@ -297,6 +300,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.TAG_CREATE]: {
                             path: ROUTES.WORKSPACE_TAG_CREATE.route,
+                        },
+                        [SCREENS.WORKSPACE.TAG_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_TAG_SETTINGS.route,
+                            parse: {
+                                tagName: (tagName: string) => decodeURIComponent(tagName),
+                            },
                         },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
@@ -462,24 +471,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STEP_SCAN]: ROUTES.MONEY_REQUEST_STEP_SCAN.route,
                         [SCREENS.MONEY_REQUEST.STEP_TAG]: ROUTES.MONEY_REQUEST_STEP_TAG.route,
                         [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: ROUTES.MONEY_REQUEST_STEP_WAYPOINT.route,
-                        [SCREENS.MONEY_REQUEST.ROOT]: {
-                            path: ROUTES.MONEY_REQUEST.route,
-                            exact: true,
-                            screens: {
-                                [SCREENS.MONEY_REQUEST.MANUAL_TAB]: {
-                                    path: ROUTES.MONEY_REQUEST_MANUAL_TAB,
-                                    exact: true,
-                                },
-                                [SCREENS.MONEY_REQUEST.SCAN_TAB]: {
-                                    path: ROUTES.MONEY_REQUEST_SCAN_TAB,
-                                    exact: true,
-                                },
-                                [SCREENS.MONEY_REQUEST.DISTANCE_TAB]: {
-                                    path: ROUTES.MONEY_REQUEST_DISTANCE_TAB.route,
-                                    exact: true,
-                                },
-                            },
-                        },
                         [SCREENS.MONEY_REQUEST.AMOUNT]: ROUTES.MONEY_REQUEST_AMOUNT.route,
                         [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.route,
                         [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: ROUTES.MONEY_REQUEST_STEP_TAX_RATE.route,
