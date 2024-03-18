@@ -226,6 +226,9 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
 
     const prevPolicy = usePrevious(policy);
 
+    const prevProtectedMenuItems = usePrevious(protectedCollectPolicyMenuItems);
+    const enabledItems = protectedCollectPolicyMenuItems.filter((curItem) => !prevProtectedMenuItems.some((prevItem) => curItem.translationKey === prevItem.translationKey));
+
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
         isEmptyObject(policy) ||
@@ -287,6 +290,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
                                     brickRoadIndicator={item.brickRoadIndicator}
                                     wrapperStyle={styles.sectionMenuItem}
                                     focused={!!(item.routeName && activeRoute?.startsWith(item.routeName))}
+                                    shouldFocusTemporarily={enabledItems.length === 1 && enabledItems[0].translationKey === item.translationKey}
                                     hoverAndPressStyle={styles.hoveredComponentBG}
                                     isPaneMenu
                                 />
