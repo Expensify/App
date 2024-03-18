@@ -99,6 +99,7 @@ function Composer(
     const [caretContent, setCaretContent] = useState('');
     const [valueBeforeCaret, setValueBeforeCaret] = useState('');
     const [textInputWidth, setTextInputWidth] = useState('');
+    const [isRendered, setIsRendered] = useState(false);
     const isScrollBarVisible = useIsScrollBarVisible(textInput, value ?? '');
 
     useEffect(() => {
@@ -125,7 +126,7 @@ function Composer(
     const addCursorPositionToSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
         const webEvent = event as BaseSyntheticEvent<TextInputSelectionChangeEventData>;
 
-        if (shouldCalculateCaretPosition && textInput.current) {
+        if (shouldCalculateCaretPosition && isRendered) {
             // we do flushSync to make sure that the valueBeforeCaret is updated before we calculate the caret position to receive a proper position otherwise we will calculate position for the previous state
             flushSync(() => {
                 setValueBeforeCaret(webEvent.target.value.slice(0, webEvent.nativeEvent.selection.start));
@@ -264,6 +265,7 @@ function Composer(
         if (typeof ref === 'function') {
             ref(textInput.current);
         }
+        setIsRendered(true);
 
         return () => {
             if (isReportActionCompose) {
