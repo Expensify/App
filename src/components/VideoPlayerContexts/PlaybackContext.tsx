@@ -13,7 +13,6 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     const [originalParent, setOriginalParent] = useState<View | null>(null);
     const currentVideoPlayerRef = useRef<Video | null>(null);
     const {currentReportID} = useCurrentReportID() ?? {};
-    const isFullscreen = useRef(false);
 
     const pauseVideo = useCallback(() => {
         currentVideoPlayerRef.current?.setStatusAsync?.({shouldPlay: false});
@@ -38,11 +37,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     }, [currentVideoPlayerRef]);
 
     const updateCurrentlyPlayingURL = useCallback(
-        (url) => {
-            if (!url) {
-                return;
-            }
-
+        (url: string) => {
             if (currentlyPlayingURL && url !== currentlyPlayingURL) {
                 pauseVideo();
             }
@@ -52,11 +47,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     );
 
     const shareVideoPlayerElements = useCallback(
-        (ref, parent, child, isUploading) => {
-            if (!ref) {
-                return;
-            }
-
+        (ref: Video, parent: View, child: View, isUploading: boolean) => {
             currentVideoPlayerRef.current = ref;
             setOriginalParent(parent);
             setSharedElement(child);
@@ -104,7 +95,6 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             playVideo,
             pauseVideo,
             checkVideoPlaying,
-            isFullscreen,
         }),
         [updateCurrentlyPlayingURL, currentlyPlayingURL, originalParent, sharedElement, shareVideoPlayerElements, playVideo, pauseVideo, checkVideoPlaying],
     );
