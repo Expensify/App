@@ -2,6 +2,8 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -24,6 +26,8 @@ function setPolicyCustomTaxName(policyID: string, customTaxName: string) {
                 value: {
                     taxRates: {
                         name: customTaxName,
+                        pendingFields: {name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                        errorFields: null,
                     },
                 },
             },
@@ -35,6 +39,8 @@ function setPolicyCustomTaxName(policyID: string, customTaxName: string) {
                 value: {
                     taxRates: {
                         name: customTaxName,
+                        pendingFields: {name: null},
+                        errorFields: null,
                     },
                 },
             },
@@ -46,6 +52,8 @@ function setPolicyCustomTaxName(policyID: string, customTaxName: string) {
                 value: {
                     taxRates: {
                         name: originalCustomTaxName,
+                        pendingFields: {name: null},
+                        errorFields: {name: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
                     },
                 },
             },
@@ -71,6 +79,8 @@ function setWorkspaceCurrencyDefault(policyID: string, taxCode: string) {
                 value: {
                     taxRates: {
                         defaultExternalID: taxCode,
+                        pendingFields: {defaultExternalID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                        errorFields: null,
                     },
                 },
             },
@@ -82,6 +92,8 @@ function setWorkspaceCurrencyDefault(policyID: string, taxCode: string) {
                 value: {
                     taxRates: {
                         defaultExternalID: taxCode,
+                        pendingFields: {defaultExternalID: null},
+                        errorFields: null,
                     },
                 },
             },
@@ -93,6 +105,8 @@ function setWorkspaceCurrencyDefault(policyID: string, taxCode: string) {
                 value: {
                     taxRates: {
                         defaultExternalID: originalDefaultExternalID,
+                        pendingFields: {defaultExternalID: null},
+                        errorFields: {defaultExternalID: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
                     },
                 },
             },
@@ -118,6 +132,8 @@ function setForeignCurrencyDefault(policyID: string, taxCode: string) {
                 value: {
                     taxRates: {
                         foreignTaxDefault: taxCode,
+                        pendingFields: {foreignTaxDefault: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                        errorFields: null,
                     },
                 },
             },
@@ -129,6 +145,8 @@ function setForeignCurrencyDefault(policyID: string, taxCode: string) {
                 value: {
                     taxRates: {
                         foreignTaxDefault: taxCode,
+                        pendingFields: {foreignTaxDefault: null},
+                        errorFields: null,
                     },
                 },
             },
@@ -140,6 +158,8 @@ function setForeignCurrencyDefault(policyID: string, taxCode: string) {
                 value: {
                     taxRates: {
                         foreignTaxDefault: originalDefaultForeignCurrencyID,
+                        pendingFields: {foreignTaxDefault: null},
+                        errorFields: {foreignTaxDefault: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
                     },
                 },
             },
