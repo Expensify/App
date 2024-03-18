@@ -1,5 +1,5 @@
 import React, {useEffect, useRef} from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import Button from '@components/Button';
@@ -8,6 +8,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import {useSession} from '@components/OnyxProvider';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import QRCode from '@components/QRCode';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
@@ -120,6 +121,7 @@ function VerifyStep({account}: VerifyStepProps) {
                 </View>
                 <Button
                     success
+                    large
                     text={translate('common.next')}
                     isLoading={account?.isLoading}
                     onPress={() => {

@@ -95,7 +95,7 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
     return (
         <IllustratedHeaderPageLayout
             title={translate('initialSettingsPage.aboutPage.troubleshoot')}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_ABOUT)}
+            onBackButtonPress={() => Navigation.goBack()}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.TROUBLESHOOT].backgroundColor}
             illustration={LottieAnimations.Desk}
             testID={TroubleshootPage.displayName}

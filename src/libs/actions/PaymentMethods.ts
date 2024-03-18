@@ -295,7 +295,7 @@ function saveWalletTransferMethodType(filterPaymentMethodType?: FilterMethodPaym
 
 function dismissSuccessfulTransferBalancePage() {
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowSuccess: false});
-    Navigation.goBack(ROUTES.SETTINGS_WALLET);
+    Navigation.goBack();
 }
 
 /**

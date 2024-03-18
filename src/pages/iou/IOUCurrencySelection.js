@@ -18,7 +18,6 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import {iouDefaultProps, iouPropTypes} from './propTypes';
 
 /**
@@ -72,9 +71,8 @@ function IOUCurrencySelection(props) {
     const [searchValue, setSearchValue] = useState('');
     const optionsSelectorRef = useRef();
     const selectedCurrencyCode = (lodashGet(props.route, 'params.currency', props.iou.currency) || CONST.CURRENCY.USD).toUpperCase();
-    const iouType = lodashGet(props.route, 'params.iouType', CONST.IOU.TYPE.REQUEST);
-    const reportID = lodashGet(props.route, 'params.reportID', '');
     const threadReportID = lodashGet(props.route, 'params.threadReportID', '');
+    const backTo = lodashGet(props.route, 'params.backTo', '');
 
     // Decides whether to allow or disallow editing a money request
     useEffect(() => {
@@ -99,7 +97,6 @@ function IOUCurrencySelection(props) {
 
     const confirmCurrencySelection = useCallback(
         (option) => {
-            const backTo = lodashGet(props.route, 'params.backTo', '');
             Keyboard.dismiss();
 
             // When we refresh the web, the money request route gets cleared from the navigation stack.
@@ -111,7 +108,7 @@ function IOUCurrencySelection(props) {
                 Navigation.navigate(`${props.route.params.backTo}?currency=${option.currencyCode}`);
             }
         },
-        [props.route, props.navigation],
+        [props.route, props.navigation, backTo],
     );
 
     const {translate, currencyList} = props;
@@ -162,7 +159,7 @@ function IOUCurrencySelection(props) {
                 <>
                     <HeaderWithBackButton
                         title={translate('common.selectCurrency')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID))}
+                        onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
                     <SelectionList
                         sections={sections}

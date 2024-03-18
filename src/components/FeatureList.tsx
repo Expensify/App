@@ -81,7 +81,6 @@ function FeatureList({
                                 icon={icon}
                                 iconWidth={variables.avatarSizeMedium}
                                 iconHeight={variables.avatarSizeMedium}
-                                iconStyles={styles.mr2}
                                 interactive={false}
                                 displayInDefaultIconColor
                                 wrapperStyle={[styles.p0, styles.cursorAuto]}
@@ -96,6 +95,7 @@ function FeatureList({
                     accessibilityLabel={ctaAccessibilityLabel}
                     style={styles.w100}
                     success
+                    large
                 />
             </View>
         </Section>

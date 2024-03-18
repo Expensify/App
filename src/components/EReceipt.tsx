@@ -105,3 +105,4 @@ export default withOnyx<EReceiptProps, EReceiptOnyxProps>({
         key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
     },
 })(EReceipt);
+export type {EReceiptProps, EReceiptOnyxProps};

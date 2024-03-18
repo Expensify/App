@@ -223,6 +223,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
             />
             <Button
                 success
+                large
                 text={translate('footer.learnMore')}
                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
                 style={[styles.mh5, styles.mb5]}

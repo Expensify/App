@@ -4,6 +4,7 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef} from 'react';
 import {View} from 'react-native';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
+import useAppState from '@hooks/useAppState';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -12,6 +13,7 @@ type Props = {
 } & Omit<LottieViewProps, 'source'>;
 
 function Lottie({source, webStyle, ...props}: Props, ref: ForwardedRef<LottieView>) {
+    const appState = useAppState();
     const styles = useThemeStyles();
     const [isError, setIsError] = React.useState(false);
 
@@ -19,8 +21,10 @@ function Lottie({source, webStyle, ...props}: Props, ref: ForwardedRef<LottieVie
 
     const aspectRatioStyle = styles.aspectRatioLottie(source);
 
-    // If the image fails to load, we'll just render an empty view
-    if (isError) {
+    // If the image fails to load or app is in background state, we'll just render an empty view
+    // using the fallback in case of a Lottie error or appState.isBackground to prevent
+    // memory leak, see issue: https://github.com/Expensify/App/issues/36645
+    if (isError || appState.isBackground) {
         return <View style={aspectRatioStyle} />;
     }
 

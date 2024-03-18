@@ -1,3 +1,4 @@
+import Str from 'expensify-common/lib/str';
 import cloneDeep from 'lodash/cloneDeep';
 import isEmpty from 'lodash/isEmpty';
 import React from 'react';
@@ -65,10 +66,11 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
         // We need to remove the LTR unicode and leading @ from data as it is not part of the login
         displayNameOrLogin = tnodeClone.data.replace(CONST.UNICODE.LTR, '').slice(1);
         // We need to replace tnode.data here because we will pass it to TNodeChildrenRenderer below
-        asMutable(tnodeClone).data = tnodeClone.data.replace(displayNameOrLogin, getMentionDisplayText(displayNameOrLogin, htmlAttributeAccountID));
+        asMutable(tnodeClone).data = tnodeClone.data.replace(displayNameOrLogin, Str.removeSMSDomain(getMentionDisplayText(displayNameOrLogin, htmlAttributeAccountID)));
 
         accountID = PersonalDetailsUtils.getAccountIDsByLogins([displayNameOrLogin])?.[0];
         navigationRoute = ROUTES.DETAILS.getRoute(displayNameOrLogin);
+        displayNameOrLogin = Str.removeSMSDomain(displayNameOrLogin);
     } else {
         // If neither an account ID or email is provided, don't render anything
         return null;

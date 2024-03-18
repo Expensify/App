@@ -114,3 +114,4 @@ export default withOnyx<EReceiptThumbnailProps, EReceiptThumbnailOnyxProps>({
         key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
     },
 })(EReceiptThumbnail);
+export type {EReceiptThumbnailProps, EReceiptThumbnailOnyxProps};

@@ -4,7 +4,7 @@ type TextWithTooltipProps = {
     /** The text to display */
     text: string;
 
-    /** Whether to show the toolip text */
+    /** Whether to show the tooltip text */
     shouldShowTooltip: boolean;
 
     /** Additional styles */

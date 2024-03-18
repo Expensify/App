@@ -13,7 +13,6 @@ function ReportScreenWrapper({route, navigation}: ReportScreenWrapperProps) {
     return (
         <>
             <ReportScreen
-                // @ts-expect-error Error will be resolved after ReportScreen migration to TypeScript
                 route={route}
                 navigation={navigation}
             />

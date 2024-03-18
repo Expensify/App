@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {ActivityIndicator, ScrollView, View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -7,6 +7,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
+import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -130,6 +131,7 @@ function CodesStep({account, backTo}: CodesStepProps) {
                     )}
                     <Button
                         success
+                        large
                         text={translate('common.next')}
                         onPress={() => {
                             if (!account?.codesAreCopied) {

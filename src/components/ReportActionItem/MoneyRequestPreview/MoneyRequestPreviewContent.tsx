@@ -24,7 +24,6 @@ import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as IOUUtils from '@libs/IOUUtils';
-import * as Localize from '@libs/Localize';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -152,12 +151,25 @@ function MoneyRequestPreviewContent({
         }
 
         let message = translate('iou.cash');
-        if (hasViolations && transaction) {
+        if (shouldShowRBR && transaction) {
             const violations = TransactionUtils.getTransactionViolations(transaction.transactionID, transactionViolations);
             if (violations?.[0]) {
                 const violationMessage = ViolationsUtils.getViolationTranslation(violations[0], translate);
-                const isTooLong = violations.filter((v) => v.type === 'violation').length > 1 || violationMessage.length > 15;
-                message += ` • ${isTooLong ? translate('violations.reviewRequired') : violationMessage}`;
+                const violationsCount = violations.filter((v) => v.type === 'violation').length;
+                const isTooLong = violationsCount > 1 || violationMessage.length > 15;
+                const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
+
+                return `${message} • ${isTooLong || hasViolationsAndFieldErrors ? translate('violations.reviewRequired') : violationMessage}`;
+            }
+
+            const isMerchantMissing = TransactionUtils.isMerchantMissing(transaction);
+            const isAmountMissing = TransactionUtils.isAmountMissing(transaction);
+            if (isAmountMissing && isMerchantMissing) {
+                message += ` • ${translate('violations.reviewRequired')}`;
+            } else if (isAmountMissing) {
+                message += ` • ${translate('iou.missingAmount')}`;
+            } else {
+                message += ` • ${translate('iou.missingMerchant')}`;
             }
         } else if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID)) {
             message += ` • ${translate('iou.approved')}`;
@@ -178,10 +190,6 @@ function MoneyRequestPreviewContent({
 
         if (isFetchingWaypointsFromServer && !requestAmount) {
             return translate('iou.routePending');
-        }
-
-        if (!isSettled && TransactionUtils.hasMissingSmartscanFields(transaction)) {
-            return Localize.translateLocal('iou.receiptMissingDetails');
         }
 
         return CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency);

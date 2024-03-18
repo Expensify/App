@@ -50,4 +50,6 @@ export default {
     success,
 };
 
+export type {GrowlRef};
+
 export {growlRef, setIsReady};

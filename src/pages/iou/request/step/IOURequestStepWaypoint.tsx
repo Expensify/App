@@ -131,13 +131,13 @@ function IOURequestStepWaypoint({
         }
 
         // Other flows will be handled by selecting a waypoint with selectWaypoint as this is mainly for the offline flow
-        Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transactionID, reportID));
     };
 
     const deleteStopAndHideModal = () => {
         Transaction.removeWaypoint(transaction, pageIndex, true);
         setIsDeleteStopModalOpen(false);
-        Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transactionID, reportID));
     };
 
     const selectWaypoint = (values: Waypoint) => {
@@ -168,7 +168,7 @@ function IOURequestStepWaypoint({
                     title={translate(waypointDescriptionKey)}
                     shouldShowBackButton
                     onBackButtonPress={() => {
-                        Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
+                        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transactionID, reportID));
                     }}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     shouldSetModalVisibility={false}

@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyMembers, ReimbursementAccount, Report} from '@src/types/onyx';
 import * as OptionsListUtils from './OptionsListUtils';
-import {hasCustomUnitsError, hasPolicyError, hasPolicyMemberError} from './PolicyUtils';
+import {hasCustomUnitsError, hasPolicyError, hasPolicyMemberError, hasTaxRateError} from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 
@@ -80,6 +80,7 @@ function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>, policyM
     const errorCheckingMethods: CheckingMethod[] = [
         () => Object.values(cleanPolicies).some(hasPolicyError),
         () => Object.values(cleanPolicies).some(hasCustomUnitsError),
+        () => Object.values(cleanPolicies).some(hasTaxRateError),
         () => Object.values(cleanAllPolicyMembers).some(hasPolicyMemberError),
         () => Object.keys(reimbursementAccount?.errors ?? {}).length > 0,
     ];

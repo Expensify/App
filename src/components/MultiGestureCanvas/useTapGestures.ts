@@ -121,7 +121,6 @@ const useTapGestures = ({
 
     const doubleTapGesture = Gesture.Tap()
         // The first argument is not used, but must be defined
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         .onTouchesDown((_evt, state) => {
             if (!shouldDisableTransformationGestures.value) {
                 return;
@@ -156,7 +155,6 @@ const useTapGestures = ({
         .onBegin(() => {
             stopAnimation();
         })
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         .onFinalize((_evt, success) => {
             if (!success || onTap === undefined) {
                 return;

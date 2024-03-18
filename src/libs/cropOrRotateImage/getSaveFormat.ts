@@ -1,7 +1,7 @@
 import {SaveFormat} from 'expo-image-manipulator';
 import CONST from '@src/CONST';
 
-function getSaveFormat(type: string) {
+function getSaveFormat(type: string): SaveFormat {
     switch (type) {
         case CONST.IMAGE_FILE_FORMAT.PNG:
             return SaveFormat.PNG;

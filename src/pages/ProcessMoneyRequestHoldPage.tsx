@@ -25,6 +25,7 @@ function ProcessMoneyRequestHoldPage() {
                 success
                 text={translate('common.buttonConfirm')}
                 onPress={onConfirm}
+                large
             />
         ),
         [onConfirm, translate],

@@ -17,7 +17,7 @@ export default function (packageName: string, path: string, platform = 'android'
         execAsync(`adb uninstall ${packageName}`)
             .catch((error: ExecException) => {
                 // Ignore errors
-                Logger.warn('Failed to uninstall app:', error);
+                Logger.warn('Failed to uninstall app:', error.message);
             })
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             .finally(() => execAsync(`adb install ${path}`))

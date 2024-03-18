@@ -190,7 +190,7 @@ const propTypes = {
     /** Custom content to display in the footer */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 
-    /** Whether to show the toolip text */
+    /** Whether to show the tooltip text */
     shouldShowTooltips: PropTypes.bool,
 
     /** Whether to use dynamic maxToRenderPerBatch depending on the visible number of elements */

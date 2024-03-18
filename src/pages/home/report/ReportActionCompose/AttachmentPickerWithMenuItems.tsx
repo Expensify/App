@@ -124,17 +124,17 @@ function AttachmentPickerWithMenuItems({
             [CONST.IOU.TYPE.SPLIT]: {
                 icon: Expensicons.Receipt,
                 text: translate('iou.splitBill'),
-                onSelected: () => IOU.startMoneyRequest_temporaryForRefactor(CONST.IOU.TYPE.SPLIT, report?.reportID ?? ''),
+                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? ''),
             },
             [CONST.IOU.TYPE.REQUEST]: {
                 icon: Expensicons.MoneyCircle,
                 text: translate('iou.requestMoney'),
-                onSelected: () => IOU.startMoneyRequest_temporaryForRefactor(CONST.IOU.TYPE.REQUEST, report?.reportID ?? ''),
+                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, report?.reportID ?? ''),
             },
             [CONST.IOU.TYPE.SEND]: {
                 icon: Expensicons.Send,
                 text: translate('iou.sendMoney'),
-                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND, report?.reportID),
+                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND, report?.reportID ?? ''),
             },
         };
 

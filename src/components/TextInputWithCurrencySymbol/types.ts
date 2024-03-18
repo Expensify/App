@@ -1,5 +1,6 @@
 import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import type {TextSelection} from '@components/Composer/types';
+import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 
 type TextInputWithCurrencySymbolProps = {
     /** Formatted amount in local currency  */
@@ -28,6 +29,12 @@ type TextInputWithCurrencySymbolProps = {
 
     /** Whether the currency symbol is pressable */
     isCurrencyPressable: boolean;
-};
+
+    /** Whether to hide the currency symbol */
+    hideCurrencySymbol?: boolean;
+
+    /** Extra symbol to display */
+    extraSymbol?: React.ReactNode;
+} & Pick<BaseTextInputProps, 'autoFocus'>;
 
 export default TextInputWithCurrencySymbolProps;

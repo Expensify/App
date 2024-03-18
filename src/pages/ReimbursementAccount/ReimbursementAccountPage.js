@@ -337,9 +337,9 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 BankAccounts.hideBankAccountErrors();
             }
 
-            const backTo = lodashGet(route.params, 'backTo');
             // eslint-disable-next-line no-shadow
             const policyID = lodashGet(route.params, 'policyID');
+            const backTo = lodashGet(route.params, 'backTo');
 
             Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyID, backTo));
         },

@@ -20,7 +20,7 @@ function ValidateLoginPage({
 }: ValidateLoginPageProps<ValidateLoginPageOnyxProps>) {
     const login = credentials?.login;
     const autoAuthState = session?.autoAuthState ?? CONST.AUTO_AUTH_STATE.NOT_STARTED;
-    const isSignedIn = !!session?.authToken;
+    const isSignedIn = !!session?.authToken && session?.authTokenType !== CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
     const is2FARequired = !!account?.requiresTwoFactorAuth;
     const cachedAccountID = credentials?.accountID;
 

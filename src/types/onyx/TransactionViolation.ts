@@ -26,6 +26,9 @@ type TransactionViolation = {
         isTransactionOlderThan7Days?: boolean;
         member?: string;
         taxName?: string;
+        tagListIndex?: number;
+        tagListName?: string;
+        errorIndexes?: number[];
     };
 };
 

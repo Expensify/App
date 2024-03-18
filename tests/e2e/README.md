@@ -117,7 +117,7 @@ components:
     - Orchestrates the test suite.
     - Runs the app with the tests on a device
     - Responsible for gathering and comparing results
-    - Located in `e2e/testRunner.js`.
+    - Located in `e2e/testRunner.ts`.
 
 - Test server:
   - A nodeJS application that starts an HTTP server.

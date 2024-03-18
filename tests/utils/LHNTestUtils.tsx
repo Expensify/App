@@ -260,7 +260,7 @@ function getFakePolicy(id = '1', name = 'Workspace-Test-001'): Policy {
             enabled: true,
         },
         autoReportingOffset: 1,
-        preventSelfApprovalEnabled: true,
+        preventSelfApproval: true,
         submitsTo: 123456,
         defaultBillable: false,
         disabledFields: {defaultBillable: true, reimbursable: false},

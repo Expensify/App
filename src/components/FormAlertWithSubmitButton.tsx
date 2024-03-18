@@ -96,6 +96,7 @@ function FormAlertWithSubmitButton({
                             style={style}
                             danger={isSubmitActionDangerous}
                             medium={useSmallerSubmitButtonSize}
+                            large={!useSmallerSubmitButtonSize}
                         />
                     ) : (
                         <Button
@@ -108,6 +109,7 @@ function FormAlertWithSubmitButton({
                             isLoading={isLoading}
                             danger={isSubmitActionDangerous}
                             medium={useSmallerSubmitButtonSize}
+                            large={!useSmallerSubmitButtonSize}
                         />
                     )}
                     {footerContent}
@@ -120,3 +122,5 @@ function FormAlertWithSubmitButton({
 FormAlertWithSubmitButton.displayName = 'FormAlertWithSubmitButton';
 
 export default FormAlertWithSubmitButton;
+
+export type {FormAlertWithSubmitButtonProps};

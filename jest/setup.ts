@@ -47,3 +47,7 @@ jest.mock('react-native-sound', () => {
 
     return SoundMock;
 });
+
+jest.mock('react-native-share', () => ({
+    default: jest.fn(),
+}));

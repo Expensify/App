@@ -47,6 +47,7 @@ function ConfirmationPage({animation = LottieAnimations.Fireworks, heading, desc
                 <FixedFooter>
                     <Button
                         success
+                        large
                         text={buttonText}
                         style={styles.mt6}
                         pressOnEnter

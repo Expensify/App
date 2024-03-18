@@ -12,7 +12,7 @@ function getValueUsingPixelRatio(defaultValue: number, maxValue: number): number
 }
 
 export default {
-    bottomTabHeight: 80,
+    bottomTabHeight: 72,
     contentHeaderHeight: getValueUsingPixelRatio(72, 100),
     contentHeaderDesktopHeight: getValueUsingPixelRatio(80, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
@@ -47,6 +47,7 @@ export default {
     avatarSizeSmallSubscript: 12,
     defaultAvatarPreviewSize: 360,
     fabBottom: 25,
+    breadcrumbsFontSize: getValueUsingPixelRatio(19, 32),
     fontSizeOnlyEmojis: 30,
     fontSizeOnlyEmojisHeight: 35,
     fontSizeSmall: getValueUsingPixelRatio(11, 17),
@@ -221,4 +222,5 @@ export default {
 
     mushroomTopHatWidth: 138,
     mushroomTopHatHeight: 128,
+    bankButtonMargin: 23,
 } as const;

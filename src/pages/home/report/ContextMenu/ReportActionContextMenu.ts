@@ -16,7 +16,7 @@ type OnCancel = () => void;
 
 type ContextMenuType = ValueOf<typeof CONST.CONTEXT_MENU_TYPES>;
 
-type ContextMenuAnchor = View | RNText | null | undefined;
+type ContextMenuAnchor = View | RNText | HTMLDivElement | null | undefined;
 
 type ShowContextMenu = (
     type: ContextMenuType,

@@ -8,7 +8,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import taxPropTypes from '@components/taxPropTypes';
 import {translatableTextPropTypes} from '@libs/Localize';
-import type {BottomTabNavigatorParamList, CentralPaneNavigatorParamList, SettingsNavigatorParamList} from '@navigation/types';
+import type {CentralPaneNavigatorParamList, FullScreenNavigatorParamList, SettingsNavigatorParamList, WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
 import policyMemberPropType from '@pages/policyMemberPropType';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -16,7 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type WorkspaceParamList = BottomTabNavigatorParamList & CentralPaneNavigatorParamList & SettingsNavigatorParamList;
+type WorkspaceParamList = WorkspacesCentralPaneNavigatorParamList & FullScreenNavigatorParamList & CentralPaneNavigatorParamList & SettingsNavigatorParamList;
 type PolicyRoute = RouteProp<WorkspaceParamList, ValueOf<typeof SCREENS.WORKSPACE>>;
 
 function getPolicyIDFromRoute(route: PolicyRoute): string {
@@ -148,5 +148,5 @@ export default function <TProps extends WithPolicyProps, TRef>(WrappedComponent:
     })(forwardRef(WithPolicy));
 }
 
-export {policyPropTypes, policyDefaultProps};
-export type {WithPolicyOnyxProps, WithPolicyProps, PolicyRoute};
+export {policyDefaultProps, policyPropTypes};
+export type {PolicyRoute, WithPolicyOnyxProps, WithPolicyProps};

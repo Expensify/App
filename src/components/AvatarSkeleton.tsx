@@ -1,21 +1,24 @@
 import React from 'react';
 import {Circle} from 'react-native-svg';
 import useTheme from '@hooks/useTheme';
+import variables from '@styles/variables';
 import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
 function AvatarSkeleton() {
     const theme = useTheme();
+    const skeletonCircleRadius = variables.componentSizeSmall / 2;
+
     return (
         <SkeletonViewContentLoader
             animate
-            height={40}
+            height={variables.componentSizeSmall}
             backgroundColor={theme.skeletonLHNIn}
             foregroundColor={theme.skeletonLHNOut}
         >
             <Circle
-                cx={20}
-                cy={20}
-                r={20}
+                cx={skeletonCircleRadius}
+                cy={skeletonCircleRadius}
+                r={skeletonCircleRadius}
             />
         </SkeletonViewContentLoader>
     );

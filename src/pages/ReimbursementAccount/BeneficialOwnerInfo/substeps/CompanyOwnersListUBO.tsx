@@ -1,11 +1,13 @@
 import React from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
+import SafeAreaConsumer from '@components/SafeAreaConsumer';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -102,48 +104,53 @@ function CompanyOwnersListUBO({
         });
 
     return (
-        <ScrollView
-            style={styles.pt0}
-            contentContainerStyle={[styles.flexGrow1, styles.ph0]}
-        >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('beneficialOwnerInfoStep.letsDoubleCheck')}</Text>
-            <Text style={[styles.p5, styles.textSupporting]}>{translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}</Text>
-            <View>
-                <Text style={[styles.textSupporting, styles.pv1, styles.ph5]}>{`${translate('beneficialOwnerInfoStep.owners')}:`}</Text>
-                {isUserUBO && (
-                    <MenuItem
-                        title={`${requestorData.firstName} ${requestorData.lastName}`}
-                        description={`${requestorData.requestorAddressStreet}, ${requestorData.requestorAddressCity}, ${requestorData.requestorAddressState} ${requestorData.requestorAddressZipCode}`}
-                        wrapperStyle={[styles.ph5]}
-                        icon={Expensicons.FallbackAvatar}
-                        iconWidth={40}
-                        iconHeight={40}
-                        interactive={false}
-                        shouldShowRightIcon={false}
-                        displayInDefaultIconColor
-                    />
-                )}
-                {extraBeneficialOwners}
-            </View>
+        <SafeAreaConsumer>
+            {({safeAreaPaddingBottomStyle}) => (
+                <ScrollView
+                    style={styles.pt0}
+                    contentContainerStyle={[styles.flexGrow1, styles.ph0, safeAreaPaddingBottomStyle]}
+                >
+                    <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('beneficialOwnerInfoStep.letsDoubleCheck')}</Text>
+                    <Text style={[styles.p5, styles.textSupporting]}>{translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}</Text>
+                    <View>
+                        <Text style={[styles.textSupporting, styles.pv1, styles.ph5]}>{`${translate('beneficialOwnerInfoStep.owners')}:`}</Text>
+                        {isUserUBO && (
+                            <MenuItem
+                                title={`${requestorData.firstName} ${requestorData.lastName}`}
+                                description={`${requestorData.requestorAddressStreet}, ${requestorData.requestorAddressCity}, ${requestorData.requestorAddressState} ${requestorData.requestorAddressZipCode}`}
+                                wrapperStyle={[styles.ph5]}
+                                icon={Expensicons.FallbackAvatar}
+                                iconWidth={40}
+                                iconHeight={40}
+                                interactive={false}
+                                shouldShowRightIcon={false}
+                                displayInDefaultIconColor
+                            />
+                        )}
+                        {extraBeneficialOwners}
+                    </View>
 
-            <View style={[styles.ph5, styles.mtAuto]}>
-                {error && error.length > 0 && (
-                    <DotIndicatorMessage
-                        textStyles={[styles.formError]}
-                        type="error"
-                        messages={{error}}
+                    <View style={[styles.ph5, styles.mtAuto]}>
+                        {error && error.length > 0 && (
+                            <DotIndicatorMessage
+                                textStyles={[styles.formError]}
+                                type="error"
+                                messages={{error}}
+                            />
+                        )}
+                    </View>
+                    <Button
+                        success
+                        large
+                        isLoading={isLoading}
+                        isDisabled={isOffline}
+                        style={[styles.w100, styles.mt2, styles.pb5, styles.ph5]}
+                        onPress={handleUBOsConfirmation}
+                        text={translate('common.confirm')}
                     />
-                )}
-            </View>
-            <Button
-                success
-                isLoading={isLoading}
-                isDisabled={isOffline}
-                style={[styles.w100, styles.mt2, styles.pb5, styles.ph5]}
-                onPress={handleUBOsConfirmation}
-                text={translate('common.confirm')}
-            />
-        </ScrollView>
+                </ScrollView>
+            )}
+        </SafeAreaConsumer>
     );
 }
 

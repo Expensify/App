@@ -234,6 +234,7 @@ function IOURequestStepDistance({
                         success
                         allowBubble
                         pressOnEnter
+                        large
                         style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                         onPress={submitWaypoints}
                         text={translate('common.next')}

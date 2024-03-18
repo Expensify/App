@@ -10,10 +10,12 @@ type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.
 
 type WorkspaceMemberBulkActionType = DeepValueOf<typeof CONST.POLICY.MEMBERS_BULK_ACTION_TYPES>;
 
+type WorkspaceDistanceRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.DISTANCE_RATES_BULK_ACTION_TYPES>;
+
 type DropdownOption<TValueType> = {
     value: TValueType;
     text: string;
-    icon: IconAsset;
+    icon?: IconAsset;
     iconWidth?: number;
     iconHeight?: number;
     iconDescription?: string;
@@ -56,7 +58,7 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     anchorAlignment?: AnchorAlignment;
 
     /* ref for the button */
-    buttonRef: RefObject<View>;
+    buttonRef?: RefObject<View>;
 
     /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
     enterKeyEventListenerPriority?: number;
@@ -66,6 +68,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Whether the dropdown menu should be shown even if it has only one option */
     shouldAlwaysShowDropdownMenu?: boolean;
+
+    /** Additional style to add to the wrapper */
+    wrapperStyle?: StyleProp<ViewStyle>;
 };
 
-export type {PaymentType, WorkspaceMemberBulkActionType, DropdownOption, ButtonWithDropdownMenuProps};
+export type {PaymentType, WorkspaceMemberBulkActionType, WorkspaceDistanceRatesBulkActionType, DropdownOption, ButtonWithDropdownMenuProps};

@@ -26,12 +26,17 @@ function setup() {
 
 function emitOnyxUpdate(args: OnyxUpdate[]) {
     const channel = Pusher.getChannel(CHANNEL_NAME);
-    channel?.emit(Pusher.TYPE.MULTIPLE_EVENTS, [
-        {
-            eventType: Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE,
-            data: args,
-        },
-    ]);
+    channel?.emit(Pusher.TYPE.MULTIPLE_EVENTS, {
+        type: 'pusher',
+        lastUpdateID: null,
+        previousUpdateID: null,
+        updates: [
+            {
+                eventType: Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE,
+                data: args,
+            },
+        ],
+    });
 }
 
 function teardown() {
