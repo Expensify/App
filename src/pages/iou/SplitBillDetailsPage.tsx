@@ -128,7 +128,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                             hasSmartScanFailed={hasSmartScanFailed}
                             reportID={reportID}
                             reportActionID={reportAction?.reportActionID}
-                            transaction={isEditingSplitBill ? draftTransaction ?? transaction : transaction}
+                            transaction={isEditingSplitBill && draftTransaction ? draftTransaction : transaction}
                             onConfirm={onConfirm}
                             isPolicyExpenseChat={ReportUtils.isPolicyExpenseChat(report)}
                             policyID={ReportUtils.isPolicyExpenseChat(report) ? report?.policyID : undefined}
