@@ -162,7 +162,6 @@ function useWorkletStateMachine<P>(stateMachine: StateMachine, initialState: Sta
         transitionWorklet,
         transition,
         reset,
-        resetWorklet,
     };
 }
 
