@@ -1,4 +1,4 @@
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, View} from 'react-native';
@@ -62,7 +62,6 @@ function IOURequestStepScan({
     const styles = useThemeStyles();
     const devices = useCameraDevices('wide-angle-camera');
     const device = devices.back;
-    const navigation = useNavigation();
 
     const camera = useRef(null);
     const [flash, setFlash] = useState(false);
@@ -70,15 +69,11 @@ function IOURequestStepScan({
     const askedForPermission = useRef(false);
 
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
-    useEffect(() => {
-        const unsubscribe = navigation.addListener('focus', () => {
+    useFocusEffect(
+        useCallback(() => {
             setDidCapturePhoto(false);
-        });
-
-        return () => {
-            unsubscribe();
-        };
-    }, [navigation]);
+        }, []),
+    );
 
     const {translate} = useLocalize();
 
