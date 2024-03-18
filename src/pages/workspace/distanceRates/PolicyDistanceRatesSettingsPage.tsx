@@ -7,6 +7,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -47,24 +49,32 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
     };
 
     return (
-        <ScreenWrapper testID={PolicyDistanceRatesSettingsPage.displayName}>
-            <HeaderWithBackButton title={translate('workspace.common.settings')} />
-            <UnitSelector
-                label={translate('workspace.distanceRates.unit')}
-                defaultValue={defaultUnit}
-                wrapperStyle={[styles.ph5, styles.mt3]}
-                setNewUnit={setNewUnit}
-            />
-            {policy?.areCategoriesEnabled && (
-                <CategorySelector
-                    policyCategories={policyCategories}
-                    label={translate('workspace.distanceRates.defaultCategory')}
-                    defaultValue={defaultCategory}
-                    wrapperStyle={[styles.ph5, styles.mt3]}
-                    setNewCategory={setNewCategory}
-                />
-            )}
-        </ScreenWrapper>
+        <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
+            <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
+                <ScreenWrapper
+                    includeSafeAreaPaddingBottom={false}
+                    style={[styles.defaultModalContainer]}
+                    testID={PolicyDistanceRatesSettingsPage.displayName}
+                >
+                    <HeaderWithBackButton title={translate('workspace.common.settings')} />
+                    <UnitSelector
+                        label={translate('workspace.distanceRates.unit')}
+                        defaultValue={defaultUnit}
+                        wrapperStyle={[styles.ph5, styles.mt3]}
+                        setNewUnit={setNewUnit}
+                    />
+                    {policy?.areCategoriesEnabled && (
+                        <CategorySelector
+                            policyCategories={policyCategories}
+                            label={translate('workspace.distanceRates.defaultCategory')}
+                            defaultValue={defaultCategory}
+                            wrapperStyle={[styles.ph5, styles.mt3]}
+                            setNewCategory={setNewCategory}
+                        />
+                    )}
+                </ScreenWrapper>
+            </PaidPolicyAccessOrNotFoundWrapper>
+        </AdminPolicyAccessOrNotFoundWrapper>
     );
 }
 
