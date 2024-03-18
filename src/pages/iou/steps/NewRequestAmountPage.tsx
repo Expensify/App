@@ -4,7 +4,6 @@ import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -21,7 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {IOU as IOUType, Report} from '@src/types/onyx';
+import type {IOU as IOUType, Report, SelectedTabRequest} from '@src/types/onyx';
 import MoneyRequestAmountForm from './MoneyRequestAmountForm';
 
 type NavigateToNextPageOptions = {amount: string};
@@ -34,7 +33,7 @@ type NewRequestAmountPageOnyxProps = {
     report: OnyxEntry<Report>;
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
-    selectedTab: OnyxEntry<ValueOf<typeof CONST.TAB_REQUEST>>;
+    selectedTab: OnyxEntry<SelectedTabRequest>;
 };
 
 type NewRequestAmountPageProps = NewRequestAmountPageOnyxProps & StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.AMOUNT>;
@@ -80,7 +79,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}: NewRequestAmoun
                 if (!iou?.id) {
                     return;
                 }
-                Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), true);
+                Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report?.reportID), true);
                 return;
             }
             const moneyRequestID = `${iouType}${reportID}`;
@@ -90,7 +89,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}: NewRequestAmoun
             }
 
             if (!isDistanceRequestTab && (!iou?.participants?.length || iou?.amount === 0 || shouldReset)) {
-                Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), true);
+                Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report?.reportID), true);
             }
         }
 

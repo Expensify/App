@@ -61,6 +61,7 @@ import type Request from './Request';
 import type Response from './Response';
 import type ScreenShareRequest from './ScreenShareRequest';
 import type SecurityGroup from './SecurityGroup';
+import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
 import type Task from './Task';
 import type Transaction from './Transaction';
@@ -135,6 +136,7 @@ export type {
     Response,
     ScreenShareRequest,
     SecurityGroup,
+    SelectedTabRequest,
     Session,
     Task,
     TaxRate,

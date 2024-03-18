@@ -24,7 +24,7 @@ type NewDistanceRequestPageProps = NewDistanceRequestPageOnyxProps & StackScreen
 // This component is responsible for getting the transactionID from the IOU key, or creating the transaction if it doesn't exist yet, and then passing the transactionID.
 // You can't use Onyx props in the withOnyx mapping, so we need to set up and access the transactionID here, and then pass it down so that DistanceRequest can subscribe to the transaction.
 function NewDistanceRequestPage({iou, report, route}: NewDistanceRequestPageProps) {
-    const iouType = route.params.iouType;
+    const iouType = route.params.iouType ?? 'request';
     const isEditingNewRequest = Navigation.getActiveRoute().includes('address');
 
     useEffect(() => {

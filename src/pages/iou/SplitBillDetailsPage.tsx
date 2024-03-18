@@ -96,7 +96,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
 
     return (
         <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
-            <FullPageNotFoundView shouldShow={isEmptyObject(reportID) || isEmptyObject(reportAction) || isEmptyObject(transaction)}>
+            <FullPageNotFoundView shouldShow={!!reportID || isEmptyObject(reportAction) || isEmptyObject(transaction)}>
                 <HeaderWithBackButton title={translate('common.details')} />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     {isScanning && (

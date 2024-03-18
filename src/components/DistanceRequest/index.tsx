@@ -20,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as MapboxToken from '@userActions/MapboxToken';
 import * as TransactionUserActions from '@userActions/Transaction';
@@ -27,6 +28,7 @@ import * as TransactionEdit from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -54,19 +56,7 @@ type DistanceRequestProps = DistanceRequestOnyxProps & {
     onSubmit: (waypoints?: WaypointCollection) => void;
 
     /** React Navigation route */
-    route: RouteProp<
-        /** Params from the route */
-        Record<
-            string,
-            | {
-                  /** The type of IOU report, i.e. bill, request, send */
-                  iouType: string;
-                  /** The report ID of the IOU */
-                  reportID: string;
-              }
-            | undefined
-        >
-    >;
+    route: RouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DISTANCE>;
 };
 
 function DistanceRequest({transactionID = '', report, transaction, route, isEditingRequest = false, isEditingNewRequest = false, onSubmit}: DistanceRequestProps) {
