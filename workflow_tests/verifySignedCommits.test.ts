@@ -1,12 +1,15 @@
-const path = require('path');
-const kieMockGithub = require('@kie/mock-github');
-const utils = require('./utils/utils');
-const assertions = require('./assertions/verifySignedCommitsAssertions');
-const mocks = require('./mocks/verifySignedCommitsMocks');
-const eAct = require('./utils/ExtendedAct');
+/* eslint-disable @typescript-eslint/require-await */
+import type {MockGithub} from '@kie/mock-github';
+import kieMockGithub from '@kie/mock-github';
+import path from 'path';
+import assertions from './assertions/verifySignedCommitsAssertions';
+import mocks from './mocks/verifySignedCommitsMocks';
+import * as eAct from './utils/ExtendedAct';
+import * as utils from './utils/utils';
 
 jest.setTimeout(90 * 1000);
-let mockGithub;
+let mockGithub: MockGithub;
+
 const FILES_TO_COPY_INTO_TEST_REPO = [
     ...utils.deepCopy(utils.FILES_TO_COPY_INTO_TEST_REPO),
     {
@@ -47,7 +50,7 @@ describe('test workflow verifySignedCommits', () => {
             action: 'opened',
         };
         it('test stub', async () => {
-            const repoPath = mockGithub.repo.getPath('testVerifySignedCommitsWorkflowRepo') || '';
+            const repoPath = mockGithub.repo.getPath('testVerifySignedCommitsWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'verifySignedCommits.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
@@ -70,7 +73,7 @@ describe('test workflow verifySignedCommits', () => {
             action: 'synchronize',
         };
         it('test stub', async () => {
-            const repoPath = mockGithub.repo.getPath('testVerifySignedCommitsWorkflowRepo') || '';
+            const repoPath = mockGithub.repo.getPath('testVerifySignedCommitsWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'verifySignedCommits.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
