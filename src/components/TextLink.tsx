@@ -79,4 +79,6 @@ function TextLink({href, onPress, children, style, onMouseDown = (event) => even
 
 TextLink.displayName = 'TextLink';
 
+export type {LinkProps, PressProps};
+
 export default forwardRef(TextLink);

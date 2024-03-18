@@ -11,10 +11,12 @@ import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/UserListItem';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
+import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Report from '@libs/actions/Report';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -25,6 +27,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
+
+    /** An object that holds data about which referral banners have been dismissed */
+    dismissedReferralBanners: PropTypes.objectOf(PropTypes.bool),
 
     /** Callback to request parent modal to go to next step, which should be split */
     onFinish: PropTypes.func.isRequired,
@@ -64,6 +69,7 @@ const defaultProps = {
     safeAreaPaddingBottomStyle: {},
     reports: {},
     betas: [],
+    dismissedReferralBanners: {},
     didScreenTransitionEnd: false,
 };
 
@@ -76,18 +82,21 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     safeAreaPaddingBottomStyle,
     iouType,
     iouRequestType,
+    dismissedReferralBanners,
     didScreenTransitionEnd,
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
-    const [shouldShowReferralCTA, setShouldShowReferralCTA] = useState(true);
+    const referralContentType = iouType === CONST.IOU.TYPE.SEND ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
+    const {canUseP2PDistanceRequests} = usePermissions();
 
-    const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
+    const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
+    const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -113,18 +122,14 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             // sees the option to request money from their admin on their own Workspace Chat.
             iouType === CONST.IOU.TYPE.REQUEST,
 
-            // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
-            iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
+            canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
             false,
             {},
             [],
             false,
             {},
             [],
-
-            // We don't want the user to be able to invite individuals when they are in the "Distance request" flow for now.
-            // This functionality is being built here: https://github.com/Expensify/App/issues/23291
-            iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
+            canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
             false,
         );
 
@@ -133,10 +138,12 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             participants,
             chatOptions.recentReports,
             chatOptions.personalDetails,
+            maxParticipantsReached,
+            indexOffset,
             personalDetails,
             true,
-            indexOffset,
         );
+
         newSections.push(formatResults.section);
         indexOffset = formatResults.newIndexOffset;
 
@@ -173,7 +180,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         }
 
         return [newSections, chatOptions];
-    }, [didScreenTransitionEnd, reports, personalDetails, betas, searchTerm, participants, iouType, iouRequestType, maxParticipantsReached, translate]);
+    }, [didScreenTransitionEnd, reports, personalDetails, betas, searchTerm, participants, iouType, iouRequestType, maxParticipantsReached, canUseP2PDistanceRequests, translate]);
 
     /**
      * Adds a single participant to the request
@@ -226,7 +233,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 ];
             }
 
-            onParticipantsAdded(newSelectedOptions);
+            onParticipantsAdded(newSelectedOptions, newSelectedOptions.length !== 0 ? CONST.IOU.TYPE.SPLIT : undefined);
         },
         [participants, onParticipantsAdded],
     );
@@ -234,7 +241,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const headerMessage = useMemo(
         () =>
             OptionsListUtils.getHeaderMessage(
-                _.get(newChatOptions, 'personalDetails.length', 0) + _.get(newChatOptions, 'recentReports.length', 0) !== 0,
+                _.get(newChatOptions, 'personalDetails', []).length + _.get(newChatOptions, 'recentReports', []).length !== 0,
                 Boolean(newChatOptions.userToInvite),
                 searchTerm.trim(),
                 maxParticipantsReached,
@@ -243,39 +250,27 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         [maxParticipantsReached, newChatOptions, participants, searchTerm],
     );
 
-    // When search term updates we will fetch any reports
-    const setSearchTermAndSearchInServer = useCallback((text = '') => {
-        if (text.length) {
-            Report.searchInServer(text);
-        }
-        setSearchTerm(text);
-    }, []);
-
     // Right now you can't split a request with a workspace and other additional participants
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
     // the app from crashing on native when you try to do this, we'll going to hide the button if you have a workspace and other participants
     const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
-    const isAllowedToSplit = iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE;
-    const referralContentType = iouType === CONST.IOU.TYPE.SEND ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
+    const isAllowedToSplit = (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && iouType !== CONST.IOU.TYPE.SEND;
 
     const handleConfirmSelection = useCallback(() => {
         if (shouldShowSplitBillErrorMessage) {
             return;
         }
 
-        onFinish();
+        onFinish(CONST.IOU.TYPE.SPLIT);
     }, [shouldShowSplitBillErrorMessage, onFinish]);
 
     const footerContent = useMemo(
         () => (
             <View>
-                {shouldShowReferralCTA && (
+                {!dismissedReferralBanners[referralContentType] && (
                     <View style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.pb5]}>
-                        <ReferralProgramCTA
-                            referralContentType={referralContentType}
-                            onCloseButtonPress={() => setShouldShowReferralCTA(false)}
-                        />
+                        <ReferralProgramCTA referralContentType={referralContentType} />
                     </View>
                 )}
 
@@ -293,12 +288,13 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                         text={translate('iou.addToSplit')}
                         onPress={handleConfirmSelection}
                         pressOnEnter
+                        large
                         isDisabled={shouldShowSplitBillErrorMessage}
                     />
                 )}
             </View>
         ),
-        [handleConfirmSelection, participants.length, referralContentType, shouldShowSplitBillErrorMessage, shouldShowReferralCTA, styles, translate],
+        [handleConfirmSelection, participants.length, dismissedReferralBanners, referralContentType, shouldShowSplitBillErrorMessage, styles, translate],
     );
 
     const itemRightSideComponent = useCallback(
@@ -313,9 +309,12 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                         disabled={item.isDisabled}
                         role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
                         accessibilityLabel={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.optionSelectCircle]}
                     >
-                        <SelectCircle isChecked={item.isSelected} />
+                        <SelectCircle
+                            isChecked={item.isSelected}
+                            selectCircleStyles={styles.ml0}
+                        />
                     </PressableWithFeedback>
                 );
             }
@@ -339,6 +338,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             <SelectionList
                 onConfirm={handleConfirmSelection}
                 sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
+                ListItem={UserListItem}
                 textInputValue={searchTerm}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 textInputHint={offlineMessage}
@@ -359,6 +359,10 @@ MoneyTemporaryForRefactorRequestParticipantsSelector.defaultProps = defaultProps
 MoneyTemporaryForRefactorRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelector';
 
 export default withOnyx({
+    dismissedReferralBanners: {
+        key: ONYXKEYS.ACCOUNT,
+        selector: (data) => data.dismissedReferralBanners || {},
+    },
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
     },

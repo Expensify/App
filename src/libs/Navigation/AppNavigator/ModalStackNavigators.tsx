@@ -12,14 +12,15 @@ import type {
     MoneyRequestNavigatorParamList,
     NewChatNavigatorParamList,
     NewTaskNavigatorParamList,
+    OnboardEngagementNavigatorParamList,
     ParticipantsNavigatorParamList,
     PrivateNotesNavigatorParamList,
     ProfileNavigatorParamList,
     ReferralDetailsNavigatorParamList,
     ReimbursementAccountNavigatorParamList,
+    ReportDescriptionNavigatorParamList,
     ReportDetailsNavigatorParamList,
     ReportSettingsNavigatorParamList,
-    ReportWelcomeMessageNavigatorParamList,
     RoomInviteNavigatorParamList,
     RoomMembersNavigatorParamList,
     SearchNavigatorParamList,
@@ -29,9 +30,11 @@ import type {
     TaskDetailsNavigatorParamList,
     TeachersUniteNavigatorParamList,
     WalletStatementNavigatorParamList,
+    WorkspaceSwitcherNavigatorParamList,
 } from '@navigation/types';
-import SCREENS from '@src/SCREENS';
+import type {ThemeStyles} from '@styles/index';
 import type {Screen} from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 
 type Screens = Partial<Record<Screen, () => React.ComponentType>>;
 
@@ -39,8 +42,9 @@ type Screens = Partial<Record<Screen, () => React.ComponentType>>;
  * Create a modal stack navigator with an array of sub-screens.
  *
  * @param screens key/value pairs where the key is the name of the screen and the value is a functon that returns the lazy-loaded component
+ * @param getScreenOptions optional function that returns the screen options, override the default options
  */
-function createModalStackNavigator<TStackParams extends ParamListBase>(screens: Screens): React.ComponentType {
+function createModalStackNavigator<TStackParams extends ParamListBase>(screens: Screens, getScreenOptions?: (styles: ThemeStyles) => StackNavigationOptions): React.ComponentType {
     const ModalStackNavigator = createStackNavigator<TStackParams>();
 
     function ModalStack() {
@@ -56,7 +60,7 @@ function createModalStackNavigator<TStackParams extends ParamListBase>(screens: 
         );
 
         return (
-            <ModalStackNavigator.Navigator screenOptions={defaultSubRouteOptions}>
+            <ModalStackNavigator.Navigator screenOptions={getScreenOptions?.(styles) ?? defaultSubRouteOptions}>
                 {Object.keys(screens as Required<Screens>).map((name) => (
                     <ModalStackNavigator.Screen
                         key={name}
@@ -90,15 +94,10 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.STEP_SCAN]: () => require('../../../pages/iou/request/step/IOURequestStepScan').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_TAG]: () => require('../../../pages/iou/request/step/IOURequestStepTag').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: () => require('../../../pages/iou/request/step/IOURequestStepWaypoint').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.ROOT]: () => require('../../../pages/iou/MoneyRequestSelectorPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.AMOUNT]: () => require('../../../pages/iou/steps/NewRequestAmountPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.PARTICIPANTS]: () => require('../../../pages/iou/steps/MoneyRequstParticipantsPage/MoneyRequestParticipantsPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.CURRENCY]: () => require('../../../pages/iou/IOUCurrencySelection').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.DATE]: () => require('../../../pages/iou/MoneyRequestDatePage').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.DESCRIPTION]: () => require('../../../pages/iou/MoneyRequestDescriptionPage').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.CATEGORY]: () => require('../../../pages/iou/MoneyRequestCategoryPage').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.TAG]: () => require('../../../pages/iou/MoneyRequestTagPage').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.MERCHANT]: () => require('../../../pages/iou/MoneyRequestMerchantPage').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.HOLD]: () => require('../../../pages/iou/HoldReasonPage').default as React.ComponentType,
     [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: () => require('../../../pages/AddPersonalBankAccountPage').default as React.ComponentType,
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: () => require('../../../pages/settings/Wallet/AddDebitCardPage').default as React.ComponentType,
     [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: () => require('../../../pages/EnablePayments/EnablePaymentsPage').default as React.ComponentType,
@@ -131,16 +130,16 @@ const ReportSettingsModalStackNavigator = createModalStackNavigator<ReportSettin
     [SCREENS.REPORT_SETTINGS.ROOM_NAME]: () => require('../../../pages/settings/Report/RoomNamePage').default as React.ComponentType,
     [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: () => require('../../../pages/settings/Report/NotificationPreferencePage').default as React.ComponentType,
     [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: () => require('../../../pages/settings/Report/WriteCapabilityPage').default as React.ComponentType,
+    [SCREENS.REPORT_SETTINGS.VISIBILITY]: () => require('../../../pages/settings/Report/VisibilityPage').default as React.ComponentType,
 });
 
 const TaskModalStackNavigator = createModalStackNavigator<TaskDetailsNavigatorParamList>({
     [SCREENS.TASK.TITLE]: () => require('../../../pages/tasks/TaskTitlePage').default as React.ComponentType,
-    [SCREENS.TASK.DESCRIPTION]: () => require('../../../pages/tasks/TaskDescriptionPage').default as React.ComponentType,
     [SCREENS.TASK.ASSIGNEE]: () => require('../../../pages/tasks/TaskAssigneeSelectorModal').default as React.ComponentType,
 });
 
-const ReportWelcomeMessageModalStackNavigator = createModalStackNavigator<ReportWelcomeMessageNavigatorParamList>({
-    [SCREENS.REPORT_WELCOME_MESSAGE_ROOT]: () => require('../../../pages/ReportWelcomeMessagePage').default as React.ComponentType,
+const ReportDescriptionModalStackNavigator = createModalStackNavigator<ReportDescriptionNavigatorParamList>({
+    [SCREENS.REPORT_DESCRIPTION_ROOT]: () => require('../../../pages/ReportDescriptionPage').default as React.ComponentType,
 });
 
 const ReportParticipantsModalStackNavigator = createModalStackNavigator<ParticipantsNavigatorParamList>({
@@ -172,6 +171,12 @@ const NewTaskModalStackNavigator = createModalStackNavigator<NewTaskNavigatorPar
     [SCREENS.NEW_TASK.DESCRIPTION]: () => require('../../../pages/tasks/NewTaskDescriptionPage').default as React.ComponentType,
 });
 
+const OnboardEngagementModalStackNavigator = createModalStackNavigator<OnboardEngagementNavigatorParamList>({
+    [SCREENS.ONBOARD_ENGAGEMENT.ROOT]: () => require('../../../pages/OnboardEngagement/PurposeForUsingExpensifyPage').default as React.ComponentType,
+    [SCREENS.ONBOARD_ENGAGEMENT.MANAGE_TEAMS_EXPENSES]: () => require('../../../pages/OnboardEngagement/ManageTeamsExpensesPage').default as React.ComponentType,
+    [SCREENS.ONBOARD_ENGAGEMENT.EXPENSIFY_CLASSIC]: () => require('../../../pages/OnboardEngagement/ExpensifyClassicPage').default as React.ComponentType,
+});
+
 const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigatorParamList>({
     [SCREENS.SAVE_THE_WORLD.ROOT]: () => require('../../../pages/TeachersUnite/SaveTheWorldPage').default as React.ComponentType,
     [SCREENS.I_KNOW_A_TEACHER]: () => require('../../../pages/TeachersUnite/KnowATeacherPage').default as React.ComponentType,
@@ -179,33 +184,50 @@ const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigat
     [SCREENS.I_AM_A_TEACHER]: () => require('../../../pages/TeachersUnite/ImTeacherPage').default as React.ComponentType,
 });
 
+const WorkspaceSettingsModalStackNavigator = createModalStackNavigator(
+    {
+        [SCREENS.WORKSPACE.PROFILE]: () => require('../../../pages/workspace/WorkspaceProfilePage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.CARD]: () => require('../../../pages/workspace/card/WorkspaceCardPage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.WORKFLOWS]: () => require('../../../pages/workspace/workflows/WorkspaceWorkflowsPage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.REIMBURSE]: () => require('../../../pages/workspace/reimburse/WorkspaceReimbursePage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.BILLS]: () => require('../../../pages/workspace/bills/WorkspaceBillsPage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.INVOICES]: () => require('../../../pages/workspace/invoices/WorkspaceInvoicesPage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.TRAVEL]: () => require('../../../pages/workspace/travel/WorkspaceTravelPage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.MEMBERS]: () => require('../../../pages/workspace/WorkspaceMembersPage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.CATEGORIES]: () => require('../../../pages/workspace/categories/WorkspaceCategoriesPage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.MORE_FEATURES]: () => require('../../../pages/workspace/WorkspaceMoreFeaturesPage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.TAGS]: () => require('../../../pages/workspace/tags/WorkspaceTagsPage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.TAXES]: () => require('../../../pages/workspace/taxes/WorkspaceTaxesPage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.DISTANCE_RATES]: () => require('../../../pages/workspace/distanceRates/PolicyDistanceRatesPage').default as React.ComponentType,
+    },
+    (styles) => ({cardStyle: styles.navigationScreenCardStyle, headerShown: false}),
+);
+
+const WorkspaceSwitcherModalStackNavigator = createModalStackNavigator<WorkspaceSwitcherNavigatorParamList>({
+    [SCREENS.WORKSPACE_SWITCHER.ROOT]: () => require('../../../pages/WorkspaceSwitcherPage').default as React.ComponentType,
+});
+
 const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorParamList>({
-    [SCREENS.SETTINGS.ROOT]: () => require('../../../pages/settings/InitialSettingsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.SHARE_CODE]: () => require('../../../pages/ShareCodePage').default as React.ComponentType,
-    [SCREENS.SETTINGS.WORKSPACES]: () => require('../../../pages/workspace/WorkspacesListPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PROFILE.ROOT]: () => require('../../../pages/settings/Profile/ProfilePage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.PRONOUNS]: () => require('../../../pages/settings/Profile/PronounsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.DISPLAY_NAME]: () => require('../../../pages/settings/Profile/DisplayNamePage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.TIMEZONE]: () => require('../../../pages/settings/Profile/TimezoneInitialPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.TIMEZONE_SELECT]: () => require('../../../pages/settings/Profile/TimezoneSelectPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.INITIAL]: () => require('../../../pages/settings/Profile/PersonalDetails/PersonalDetailsInitialPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.LEGAL_NAME]: () => require('../../../pages/settings/Profile/PersonalDetails/LegalNamePage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.DATE_OF_BIRTH]: () => require('../../../pages/settings/Profile/PersonalDetails/DateOfBirthPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.ADDRESS]: () => require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.ADDRESS_COUNTRY]: () => require('../../../pages/settings/Profile/PersonalDetails/CountrySelectionPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.LEGAL_NAME]: () => require('../../../pages/settings/Profile/PersonalDetails/LegalNamePage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH]: () => require('../../../pages/settings/Profile/PersonalDetails/DateOfBirthPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.ADDRESS]: () => require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY]: () => require('../../../pages/settings/Profile/PersonalDetails/CountrySelectionPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: () => require('../../../pages/settings/Profile/Contacts/ContactMethodsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: () => require('../../../pages/settings/Profile/Contacts/ContactMethodDetailsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: () => require('../../../pages/settings/Profile/Contacts/NewContactMethodPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require('../../../pages/settings/Preferences/PreferencesPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: () => require('../../../pages/settings/Preferences/PriorityModePage').default as React.ComponentType,
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: () => require('../../../pages/settings/Preferences/LanguagePage').default as React.ComponentType,
     [SCREENS.SETTINGS.PREFERENCES.THEME]: () => require('../../../pages/settings/Preferences/ThemePage').default as React.ComponentType,
     [SCREENS.SETTINGS.CLOSE]: () => require('../../../pages/settings/Security/CloseAccountPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.SECURITY]: () => require('../../../pages/settings/Security/SecuritySettingsPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.ABOUT]: () => require('../../../pages/settings/AboutPage/AboutPage').default as React.ComponentType,
     [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: () => require('../../../pages/settings/AppDownloadLinks').default as React.ComponentType,
-    [SCREENS.SETTINGS.LOUNGE_ACCESS]: () => require('../../../pages/settings/Profile/LoungeAccessPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.WALLET.ROOT]: () => require('../../../pages/settings/Wallet/WalletPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.TROUBLESHOOT]: () => require('../../../pages/settings/AboutPage/TroubleshootPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.CONSOLE]: () => require('../../../pages/settings/AboutPage/ConsolePage').default as React.ComponentType,
+    [SCREENS.SETTINGS.SHARE_LOG]: () => require('../../../pages/settings/AboutPage/ShareLogPage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: () => require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: () => require('../../../pages/settings/Wallet/ExpensifyCardPage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: () => require('../../../pages/settings/Wallet/ReportVirtualCardFraudPage').default as React.ComponentType,
@@ -223,23 +245,38 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: () => require('../../../pages/settings/Profile/CustomStatus/StatusClearAfterPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: () => require('../../../pages/settings/Profile/CustomStatus/SetDatePage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: () => require('../../../pages/settings/Profile/CustomStatus/SetTimePage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.INITIAL]: () => require('../../../pages/workspace/WorkspaceInitialPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.SETTINGS]: () => require('../../../pages/workspace/WorkspaceSettingsPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.CURRENCY]: () => require('../../../pages/workspace/WorkspaceSettingsCurrencyPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.CARD]: () => require('../../../pages/workspace/card/WorkspaceCardPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.REIMBURSE]: () => require('../../../pages/workspace/reimburse/WorkspaceReimbursePage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.RATE_AND_UNIT]: () => require('../../../pages/workspace/reimburse/WorkspaceRateAndUnitPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.BILLS]: () => require('../../../pages/workspace/bills/WorkspaceBillsPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.INVOICES]: () => require('../../../pages/workspace/invoices/WorkspaceInvoicesPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.TRAVEL]: () => require('../../../pages/workspace/travel/WorkspaceTravelPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.MEMBERS]: () => require('../../../pages/workspace/WorkspaceMembersPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.RATE_AND_UNIT]: () => require('../../../pages/workspace/reimburse/WorkspaceRateAndUnitPage/InitialPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.RATE_AND_UNIT_RATE]: () => require('../../../pages/workspace/reimburse/WorkspaceRateAndUnitPage/RatePage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.RATE_AND_UNIT_UNIT]: () => require('../../../pages/workspace/reimburse/WorkspaceRateAndUnitPage/UnitPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.INVITE]: () => require('../../../pages/workspace/WorkspaceInvitePage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVER]: () => require('../../../pages/workspace/workflows/WorkspaceWorkflowsApproverPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.INVITE_MESSAGE]: () => require('../../../pages/workspace/WorkspaceInviteMessagePage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: () => require('../../../pages/workspace/workflows/WorkspaceWorkflowsPayerPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.NAME]: () => require('../../../pages/workspace/WorkspaceNamePage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.DESCRIPTION]: () => require('../../../pages/workspace/WorkspaceProfileDescriptionPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.SHARE]: () => require('../../../pages/workspace/WorkspaceProfileSharePage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.CURRENCY]: () => require('../../../pages/workspace/WorkspaceProfileCurrencyPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: () => require('../../../pages/workspace/categories/CategorySettingsPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: () => require('../../../pages/workspace/categories/WorkspaceCategoriesSettingsPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.MEMBER_DETAILS]: () => require('../../../pages/workspace/members/WorkspaceMemberDetailsPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE_SELECTION]: () => require('../../../pages/workspace/members/WorkspaceMemberDetailsRoleSelectionPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.CATEGORY_CREATE]: () => require('../../../pages/workspace/categories/CreateCategoryPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.CATEGORY_EDIT]: () => require('../../../pages/workspace/categories/EditCategoryPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: () => require('@pages/workspace/distanceRates/CreateDistanceRatePage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.TAGS_SETTINGS]: () => require('../../../pages/workspace/tags/WorkspaceTagsSettingsPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.TAG_SETTINGS]: () => require('../../../pages/workspace/tags/TagSettingsPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.TAGS_EDIT]: () => require('../../../pages/workspace/tags/WorkspaceEditTagsPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.TAG_CREATE]: () => require('../../../pages/workspace/tags/WorkspaceCreateTagPage').default as React.ComponentType,
     [SCREENS.REIMBURSEMENT_ACCOUNT]: () => require('../../../pages/ReimbursementAccount/ReimbursementAccountPage').default as React.ComponentType,
     [SCREENS.GET_ASSISTANCE]: () => require('../../../pages/GetAssistancePage').default as React.ComponentType,
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: () => require('../../../pages/settings/Security/TwoFactorAuth/TwoFactorAuthPage').default as React.ComponentType,
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: () => require('../../../pages/settings/Wallet/ReportCardLostPage').default as React.ComponentType,
     [SCREENS.KEYBOARD_SHORTCUTS]: () => require('../../../pages/KeyboardShortcutsPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: () => require('../../../pages/settings/ExitSurvey/ExitSurveyReasonPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: () => require('../../../pages/settings/ExitSurvey/ExitSurveyResponsePage').default as React.ComponentType,
+    [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: () => require('../../../pages/settings/ExitSurvey/ExitSurveyConfirmPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: () => require('../../../pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: () => require('../../../pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage').default as React.ComponentType,
 });
 
 const EnablePaymentsStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
@@ -286,30 +323,33 @@ const ProcessMoneyRequestHoldStackNavigator = createModalStackNavigator({
 });
 
 export {
-    MoneyRequestModalStackNavigator,
-    SplitDetailsModalStackNavigator,
+    AddPersonalBankAccountModalStackNavigator,
     DetailsModalStackNavigator,
-    ProfileModalStackNavigator,
-    ReportDetailsModalStackNavigator,
-    TaskModalStackNavigator,
-    ReportSettingsModalStackNavigator,
-    ReportWelcomeMessageModalStackNavigator,
-    ReportParticipantsModalStackNavigator,
-    SearchModalStackNavigator,
+    OnboardEngagementModalStackNavigator,
+    EditRequestStackNavigator,
+    EnablePaymentsStackNavigator,
+    FlagCommentStackNavigator,
+    MoneyRequestModalStackNavigator,
     NewChatModalStackNavigator,
     NewTaskModalStackNavigator,
-    SettingsModalStackNavigator,
-    EnablePaymentsStackNavigator,
-    AddPersonalBankAccountModalStackNavigator,
-    ReimbursementAccountModalStackNavigator,
-    WalletStatementStackNavigator,
-    FlagCommentStackNavigator,
-    EditRequestStackNavigator,
-    PrivateNotesModalStackNavigator,
     NewTeachersUniteNavigator,
-    SignInModalStackNavigator,
-    RoomMembersModalStackNavigator,
-    RoomInviteModalStackNavigator,
+    PrivateNotesModalStackNavigator,
+    ProfileModalStackNavigator,
     ReferralModalStackNavigator,
+    WorkspaceSwitcherModalStackNavigator,
+    ReimbursementAccountModalStackNavigator,
+    ReportDetailsModalStackNavigator,
+    ReportParticipantsModalStackNavigator,
+    ReportSettingsModalStackNavigator,
+    ReportDescriptionModalStackNavigator,
+    RoomInviteModalStackNavigator,
+    RoomMembersModalStackNavigator,
+    SearchModalStackNavigator,
+    SettingsModalStackNavigator,
+    SignInModalStackNavigator,
+    SplitDetailsModalStackNavigator,
+    TaskModalStackNavigator,
+    WalletStatementStackNavigator,
     ProcessMoneyRequestHoldStackNavigator,
+    WorkspaceSettingsModalStackNavigator,
 };

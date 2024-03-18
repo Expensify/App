@@ -167,7 +167,9 @@ function getGlobalFetchMock() {
         if (!isPaused) {
             return Promise.resolve(getResponse());
         }
-        return new Promise((resolve) => queue.push(resolve));
+        return new Promise((resolve) => {
+            queue.push(resolve);
+        });
     });
 
     mockFetch.pause = () => (isPaused = true);
@@ -218,6 +220,8 @@ function assertFormDataMatchesObject(formData, obj) {
 
 /**
  * This is a helper function to create a mock for the addListener function of the react-navigation library.
+ * The reason we need this is because we need to trigger the transitionEnd event in our tests to simulate
+ * the transitionEnd event that is triggered when the screen transition animation is completed.
  *
  * @returns {Object} An object with two functions: triggerTransitionEnd and addListener
  */

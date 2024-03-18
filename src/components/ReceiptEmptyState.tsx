@@ -28,7 +28,7 @@ function ReceiptEmptyState({hasError = false, onPress = () => {}}: ReceiptEmptyS
         >
             <Icon
                 src={Expensicons.EmptyStateAttachReceipt}
-                width={variables.eReceiptIconWidth}
+                width={variables.eReceiptEmptyIconWidth}
                 height={variables.eReceiptIconHeight}
             />
         </PressableWithoutFeedback>

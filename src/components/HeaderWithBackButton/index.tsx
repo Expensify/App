@@ -1,5 +1,6 @@
 import React from 'react';
 import {Keyboard, StyleSheet, View} from 'react-native';
+import Avatar from '@components/Avatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
@@ -17,21 +18,23 @@ import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type HeaderWithBackButtonProps from './types';
 
 function HeaderWithBackButton({
+    icon,
     iconFill,
     guidesCallTaskID = '',
-    onBackButtonPress = () => Navigation.goBack(ROUTES.HOME),
+    onBackButtonPress = () => Navigation.goBack(),
     onCloseButtonPress = () => Navigation.dismissModal(),
     onDownloadButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
     report = null,
     policy,
-    personalDetails = null,
-    shouldShowAvatarWithDisplay = false,
+    policyAvatar,
+    shouldShowReportAvatarWithDisplay = false,
     shouldShowBackButton = true,
     shouldShowBorderBottom = false,
     shouldShowCloseButton = false,
@@ -57,6 +60,7 @@ function HeaderWithBackButton({
     shouldOverlay = false,
     singleExecution = (func) => func,
     shouldNavigateToTopMostReport = false,
+    style,
 }: HeaderWithBackButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -66,12 +70,22 @@ function HeaderWithBackButton({
     const {isKeyboardShown} = useKeyboardState();
     const waitForNavigate = useWaitForNavigation();
 
+    // If the icon is present, the header bar should be taller and use different font.
+    const isCentralPaneSettings = !!icon;
+
     return (
         <View
             // Hover on some part of close icons will not work on Electron if dragArea is true
             // https://github.com/Expensify/App/issues/29598
             dataSet={{dragArea: false}}
-            style={[styles.headerBar, shouldShowBorderBottom && styles.borderBottom, shouldShowBackButton && styles.pl0, shouldOverlay && StyleSheet.absoluteFillObject]}
+            style={[
+                styles.headerBar,
+                isCentralPaneSettings && styles.headerBarDesktopHeight,
+                shouldShowBorderBottom && styles.borderBottom,
+                shouldShowBackButton && styles.pl2,
+                shouldOverlay && StyleSheet.absoluteFillObject,
+                style,
+            ]}
         >
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
                 {shouldShowBackButton && (
@@ -88,7 +102,7 @@ function HeaderWithBackButton({
                                     onBackButtonPress();
                                 }
                             }}
-                            style={[styles.LHNToggle]}
+                            style={[styles.touchableButtonImage]}
                             role="button"
                             accessibilityLabel={translate('common.back')}
                             nativeID={CONST.BACK_BUTTON_NATIVE_ID}
@@ -100,18 +114,33 @@ function HeaderWithBackButton({
                         </PressableWithoutFeedback>
                     </Tooltip>
                 )}
-                {shouldShowAvatarWithDisplay ? (
+                {icon && (
+                    <Icon
+                        src={icon}
+                        width={variables.iconHeader}
+                        height={variables.iconHeader}
+                        additionalStyles={[styles.mr2]}
+                    />
+                )}
+                {policyAvatar && (
+                    <Avatar
+                        containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
+                        source={policyAvatar?.source}
+                        name={policyAvatar?.name}
+                        type={policyAvatar?.type}
+                    />
+                )}
+                {shouldShowReportAvatarWithDisplay ? (
                     <AvatarWithDisplayName
                         report={report}
                         policy={policy}
-                        personalDetails={personalDetails}
                         shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
                     />
                 ) : (
                     <Header
                         title={title}
                         subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
-                        textStyles={titleColor ? [StyleUtils.getTextColorStyle(titleColor)] : []}
+                        textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, isCentralPaneSettings && styles.textHeadlineH2]}
                     />
                 )}
                 <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter]}>

@@ -14,25 +14,30 @@ function ValidateLoginPage({
     account,
     credentials,
     route: {
-        params: {accountID, validateCode},
+        params: {accountID, validateCode, exitTo},
     },
     session,
 }: ValidateLoginPageProps<ValidateLoginPageOnyxProps>) {
     const login = credentials?.login;
     const autoAuthState = session?.autoAuthState ?? CONST.AUTO_AUTH_STATE.NOT_STARTED;
-    const isSignedIn = !!session?.authToken;
+    const isSignedIn = !!session?.authToken && session?.authTokenType !== CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
     const is2FARequired = !!account?.requiresTwoFactorAuth;
     const cachedAccountID = credentials?.accountID;
 
     useEffect(() => {
         if (!login && isSignedIn && (autoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN)) {
             // The user clicked the option to sign in the current tab
-            Navigation.navigate();
+            Navigation.isNavigationReady().then(() => {
+                Navigation.goBack();
+            });
             return;
         }
         Session.initAutoAuthState(autoAuthState);
 
-        if (isSignedIn || !login) {
+        if (isSignedIn || (!login && !exitTo)) {
+            if (exitTo) {
+                Session.handleExitToNavigation(exitTo);
+            }
             return;
         }
 
@@ -43,19 +48,24 @@ function ValidateLoginPage({
 
     useEffect(() => {
         if (!!login || !cachedAccountID || !is2FARequired) {
+            if (exitTo) {
+                Session.handleExitToNavigation(exitTo);
+            }
             return;
         }
 
         // The user clicked the option to sign in the current tab
-        Navigation.navigate();
-    }, [login, cachedAccountID, is2FARequired]);
+        Navigation.isNavigationReady().then(() => {
+            Navigation.goBack();
+        });
+    }, [login, cachedAccountID, is2FARequired, exitTo]);
 
     return (
         <>
             {autoAuthState === CONST.AUTO_AUTH_STATE.FAILED && <ExpiredValidateCodeModal />}
             {autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && is2FARequired && !isSignedIn && <JustSignedInModal is2FARequired />}
-            {autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isSignedIn && <JustSignedInModal is2FARequired={false} />}
-            {autoAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED && (
+            {autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isSignedIn && !exitTo && <JustSignedInModal is2FARequired={false} />}
+            {autoAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED && !exitTo && (
                 <ValidateCodeModal
                     accountID={Number(accountID)}
                     code={validateCode}

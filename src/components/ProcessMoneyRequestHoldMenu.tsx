@@ -1,13 +1,12 @@
-import type {RefObject} from 'react';
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import Button from './Button';
 import HoldMenuSectionList from './HoldMenuSectionList';
 import type {PopoverAnchorPosition} from './Modal/types';
 import Popover from './Popover';
-import type {AnchorAlignment} from './Popover/types';
 import Text from './Text';
 import TextPill from './TextPill';
 
@@ -25,22 +24,20 @@ type ProcessMoneyRequestHoldMenuProps = {
     anchorPosition?: PopoverAnchorPosition;
 
     /** The anchor alignment of the popover menu */
-    anchorAlignment: AnchorAlignment;
-
-    /** The anchor ref of the popover menu */
-    anchorRef: RefObject<View | HTMLDivElement>;
+    anchorAlignment?: AnchorAlignment;
 };
 
-function ProcessMoneyRequestHoldMenu({isVisible, onClose, onConfirm, anchorPosition, anchorAlignment, anchorRef}: ProcessMoneyRequestHoldMenuProps) {
+function ProcessMoneyRequestHoldMenu({isVisible, onClose, onConfirm, anchorPosition, anchorAlignment}: ProcessMoneyRequestHoldMenuProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const popoverRef = useRef(null);
 
     return (
         <Popover
             isVisible={isVisible}
             onClose={onClose}
             anchorPosition={anchorPosition}
-            anchorRef={anchorRef}
+            anchorRef={popoverRef}
             anchorAlignment={anchorAlignment}
             disableAnimation={false}
             withoutOverlay={false}
@@ -48,7 +45,7 @@ function ProcessMoneyRequestHoldMenu({isVisible, onClose, onConfirm, anchorPosit
             <View style={[styles.mh5, styles.mv5]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
                     <Text style={[styles.textHeadline, styles.mr2]}>{translate('iou.holdEducationalTitle')}</Text>
-                    <TextPill textStyles={styles.holdRequestInline}>{translate('iou.hold')}</TextPill>;
+                    <TextPill textStyles={styles.holdRequestInline}>{translate('iou.hold')}</TextPill>
                 </View>
                 <HoldMenuSectionList />
                 <Button
@@ -56,6 +53,7 @@ function ProcessMoneyRequestHoldMenu({isVisible, onClose, onConfirm, anchorPosit
                     style={[styles.mt5]}
                     text={translate('common.buttonConfirm')}
                     onPress={onConfirm}
+                    large
                 />
             </View>
         </Popover>

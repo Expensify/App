@@ -11,7 +11,6 @@ import {
     formatDistanceToNow,
     getDate,
     getDay,
-    getDayOfYear,
     isAfter,
     isBefore,
     isSameDay,
@@ -21,6 +20,7 @@ import {
     parse,
     set,
     setDefaultOptions,
+    startOfDay,
     startOfWeek,
     subDays,
     subMilliseconds,
@@ -256,7 +256,7 @@ function getZoneAbbreviation(datetime: string | Date, selectedTimezone: Selected
  *
  * @returns Sunday, July 9, 2023
  */
-function formatToLongDateWithWeekday(datetime: string): string {
+function formatToLongDateWithWeekday(datetime: string | Date): string {
     return format(new Date(datetime), CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY);
 }
 
@@ -265,7 +265,7 @@ function formatToLongDateWithWeekday(datetime: string): string {
  *
  * @returns Sunday
  */
-function formatToDayOfWeek(datetime: string): string {
+function formatToDayOfWeek(datetime: Date): string {
     return format(new Date(datetime), CONST.DATE.WEEKDAY_TIME_FORMAT);
 }
 
@@ -684,9 +684,8 @@ const getDayValidationErrorKey = (inputDate: Date): string => {
     if (!inputDate) {
         return '';
     }
-    const currentYear = getDayOfYear(new Date());
-    const inputYear = getDayOfYear(inputDate);
-    if (inputYear < currentYear) {
+
+    if (isAfter(startOfDay(new Date()), startOfDay(inputDate))) {
         return 'common.error.invalidDateShouldBeFuture';
     }
     return '';

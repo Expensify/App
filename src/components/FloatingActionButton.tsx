@@ -1,6 +1,7 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect, useRef} from 'react';
-import type {GestureResponderEvent, Role} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {GestureResponderEvent, Role, Text} from 'react-native';
 import {Platform, View} from 'react-native';
 import Animated, {createAnimatedPropAdapter, Easing, interpolateColor, processColor, useAnimatedProps, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
@@ -8,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import {PressableWithoutFeedback} from './Pressable';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import Tooltip from './Tooltip/PopoverAnchorTooltip';
 
@@ -57,12 +59,12 @@ type FloatingActionButtonProps = {
     role: Role;
 };
 
-function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: FloatingActionButtonProps, ref: ForwardedRef<HTMLDivElement | View>) {
+function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: FloatingActionButtonProps, ref: ForwardedRef<HTMLDivElement | View | Text>) {
     const {success, buttonDefaultBG, textLight, textDark} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
     const {translate} = useLocalize();
-    const fabPressable = useRef<HTMLDivElement | View | null>(null);
+    const fabPressable = useRef<HTMLDivElement | View | Text | null>(null);
     const sharedValue = useSharedValue(isActive ? 1 : 0);
     const buttonRef = ref;
 
@@ -95,40 +97,48 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
         Platform.OS === 'web' ? undefined : adapter,
     );
 
-    return (
-        <Tooltip text={translate('common.new')}>
-            <View style={styles.floatingActionButtonContainer}>
-                <AnimatedPressable
-                    ref={(el) => {
-                        fabPressable.current = el;
+    const toggleFabAction = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
+        // Drop focus to avoid blue focus ring.
+        fabPressable.current?.blur();
+        onPress(event);
+    };
 
-                        if (buttonRef && 'current' in buttonRef) {
-                            buttonRef.current = el;
-                        }
-                    }}
-                    accessibilityLabel={accessibilityLabel}
-                    role={role}
-                    pressDimmingValue={1}
-                    onPress={(e) => {
-                        // Drop focus to avoid blue focus ring.
-                        fabPressable.current?.blur();
-                        onPress(e);
-                    }}
-                    onLongPress={() => {}}
-                    style={[styles.floatingActionButton, animatedStyle]}
-                >
-                    <Svg
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
+    return (
+        <PressableWithoutFeedback
+            style={styles.h100}
+            accessibilityLabel={accessibilityLabel}
+            onPress={toggleFabAction}
+        >
+            <View style={styles.bottomTabBarItem}>
+                <Tooltip text={translate('common.create')}>
+                    <AnimatedPressable
+                        ref={(el) => {
+                            fabPressable.current = el ?? null;
+                            if (buttonRef && 'current' in buttonRef) {
+                                buttonRef.current = el ?? null;
+                            }
+                        }}
+                        accessibilityLabel={accessibilityLabel}
+                        role={role}
+                        pressDimmingValue={1}
+                        onPress={toggleFabAction}
+                        onLongPress={() => {}}
+                        shouldUseHapticsOnLongPress={false}
+                        style={[styles.floatingActionButton, animatedStyle]}
                     >
-                        <AnimatedPath
-                            d="M12,3c0-1.1-0.9-2-2-2C8.9,1,8,1.9,8,3v5H3c-1.1,0-2,0.9-2,2c0,1.1,0.9,2,2,2h5v5c0,1.1,0.9,2,2,2c1.1,0,2-0.9,2-2v-5h5c1.1,0,2-0.9,2-2c0-1.1-0.9-2-2-2h-5V3z"
-                            animatedProps={animatedProps}
-                        />
-                    </Svg>
-                </AnimatedPressable>
+                        <Svg
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                        >
+                            <AnimatedPath
+                                d="M12,3c0-1.1-0.9-2-2-2C8.9,1,8,1.9,8,3v5H3c-1.1,0-2,0.9-2,2c0,1.1,0.9,2,2,2h5v5c0,1.1,0.9,2,2,2c1.1,0,2-0.9,2-2v-5h5c1.1,0,2-0.9,2-2c0-1.1-0.9-2-2-2h-5V3z"
+                                animatedProps={animatedProps}
+                            />
+                        </Svg>
+                    </AnimatedPressable>
+                </Tooltip>
             </View>
-        </Tooltip>
+        </PressableWithoutFeedback>
     );
 }
 

@@ -636,6 +636,14 @@ class GithubUtils {
             .then((events) => _.filter(events, (event) => event.event === 'closed'))
             .then((closedEvents) => lodashGet(_.last(closedEvents), 'actor.login', ''));
     }
+
+    static getArtifactByName(artefactName) {
+        return this.paginate(this.octokit.actions.listArtifactsForRepo, {
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            per_page: 100,
+        }).then((artifacts) => _.findWhere(artifacts, {name: artefactName}));
+    }
 }
 
 module.exports = GithubUtils;

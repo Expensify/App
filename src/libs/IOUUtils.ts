@@ -53,14 +53,23 @@ function calculateAmount(numberOfParticipants: number, total: number, currency: 
  * If user1 requests $17 from user2, then we have: {ownerAccountID: user1, managerID: user2, total: $7 (still a positive amount, but now owed to user1)}
  *
  * @param isDeleting - whether the user is deleting the request
+ * @param isUpdating - whether the user is updating the request
  */
-function updateIOUOwnerAndTotal(iouReport: OnyxEntry<Report>, actorAccountID: number, amount: number, currency: string, isDeleting = false): OnyxEntry<Report> {
-    if (currency !== iouReport?.currency) {
+function updateIOUOwnerAndTotal<TReport extends OnyxEntry<Report>>(
+    iouReport: TReport,
+    actorAccountID: number,
+    amount: number,
+    currency: string,
+    isDeleting = false,
+    isUpdating = false,
+): TReport {
+    // For the update case, we have calculated the diff amount in the calculateDiffAmount function so there is no need to compare currencies here
+    if ((currency !== iouReport?.currency && !isUpdating) || !iouReport) {
         return iouReport;
     }
 
     // Make a copy so we don't mutate the original object
-    const iouReportUpdate: Report = {...iouReport};
+    const iouReportUpdate = {...iouReport};
 
     // Let us ensure a valid value before updating the total amount.
     iouReportUpdate.total = iouReportUpdate.total ?? 0;
@@ -99,4 +108,19 @@ function isValidMoneyRequestType(iouType: string): boolean {
     return moneyRequestType.includes(iouType);
 }
 
-export {calculateAmount, updateIOUOwnerAndTotal, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType, navigateToStartMoneyRequestStep};
+/**
+ * Inserts a newly selected tag into the already existing tags like a string
+ *
+ * @param transactionTags - currently selected tags for a report
+ * @param tag - a newly selected tag, that should be added to the transactionTags
+ * @param tagIndex - the index of a tag list
+ * @returns
+ */
+function insertTagIntoTransactionTagsString(transactionTags: string, tag: string, tagIndex: number): string {
+    const tagArray = TransactionUtils.getTagArrayFromName(transactionTags);
+    tagArray[tagIndex] = tag;
+
+    return tagArray.join(CONST.COLON).replace(/:*$/, '');
+}
+
+export {calculateAmount, updateIOUOwnerAndTotal, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType, navigateToStartMoneyRequestStep, insertTagIntoTransactionTagsString};

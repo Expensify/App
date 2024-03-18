@@ -90,6 +90,7 @@ type ReportArchiveReasonsMergedParams = {
 type ReportArchiveReasonsRemovedFromPolicyParams = {
     displayName: string;
     policyName: string;
+    shouldUseYou?: boolean;
 };
 
 type ReportArchiveReasonsPolicyDeletedParams = {
@@ -99,21 +100,22 @@ type ReportArchiveReasonsPolicyDeletedParams = {
 type RequestCountParams = {
     count: number;
     scanningReceipts: number;
+    pendingReceipts: number;
 };
 
 type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
 
-type RequestAmountParams = {amount: number};
+type RequestAmountParams = {amount: string};
 
 type RequestedAmountMessageParams = {formattedAmount: string; comment?: string};
 
-type SplitAmountParams = {amount: number};
+type SplitAmountParams = {amount: string};
 
 type DidSplitAmountMessageParams = {formattedAmount: string; comment: string};
 
-type AmountEachParams = {amount: number};
+type AmountEachParams = {amount: string};
 
 type PayerOwesAmountParams = {payer: string; amount: number | string};
 
@@ -135,6 +137,8 @@ type WaitingOnBankAccountParams = {submitterDisplayName: string};
 
 type CanceledRequestParams = {amount: string; submitterDisplayName: string};
 
+type AdminCanceledRequestParams = {manager: string; amount: string};
+
 type SettledAfterAddedBankAccountParams = {submitterDisplayName: string; amount: string};
 
 type PaidElsewhereWithAmountParams = {payer?: string; amount: string};
@@ -155,15 +159,13 @@ type EnterMagicCodeParams = {contactMethod: string};
 
 type TransferParams = {amount: string};
 
-type InstantSummaryParams = {rate: number; minAmount: number};
+type InstantSummaryParams = {rate: string; minAmount: string};
 
 type NotYouParams = {user: string};
 
 type DateShouldBeBeforeParams = {dateString: string};
 
 type DateShouldBeAfterParams = {dateString: string};
-
-type IncorrectZipFormatParams = {zipFormat?: string};
 
 type WeSentYouMagicSignInLinkParams = {login: string; loginType: string};
 
@@ -195,7 +197,7 @@ type OOOEventSummaryFullDayParams = {summary: string; dayCount: number; date: st
 
 type OOOEventSummaryPartialDayParams = {summary: string; timePeriod: string; date: string};
 
-type ParentNavigationSummaryParams = {rootReportName?: string; workspaceName?: string};
+type ParentNavigationSummaryParams = {reportName?: string; workspaceName?: string};
 
 type SetTheRequestParams = {valueName: string; newValueToDisplay: string};
 
@@ -215,7 +217,7 @@ type WalletProgramParams = {walletProgram: string};
 
 type ViolationsAutoReportedRejectedExpenseParams = {rejectedBy: string; rejectReason: string};
 
-type ViolationsCashExpenseWithNoReceiptParams = {amount: string};
+type ViolationsCashExpenseWithNoReceiptParams = {formattedLimit?: string};
 
 type ViolationsConversionSurchargeParams = {surcharge?: number};
 
@@ -225,15 +227,15 @@ type ViolationsMaxAgeParams = {maxAge: number};
 
 type ViolationsMissingTagParams = {tagName?: string};
 
-type ViolationsOverAutoApprovalLimitParams = {formattedLimitAmount: string};
+type ViolationsOverAutoApprovalLimitParams = {formattedLimit?: string};
 
-type ViolationsOverCategoryLimitParams = {categoryLimit: string};
+type ViolationsOverCategoryLimitParams = {formattedLimit?: string};
 
-type ViolationsOverLimitParams = {amount: string};
+type ViolationsOverLimitParams = {formattedLimit?: string};
 
-type ViolationsPerDayLimitParams = {limit: string};
+type ViolationsPerDayLimitParams = {formattedLimit?: string};
 
-type ViolationsReceiptRequiredParams = {amount: string; category?: string};
+type ViolationsReceiptRequiredParams = {formattedLimit?: string; category?: string};
 
 type ViolationsRterParams = {
     brokenBankConnection: boolean;
@@ -291,7 +293,12 @@ type TermsParams = {amount: string};
 
 type ElectronicFundsParams = {percentage: string; amount: string};
 
+type LogSizeParams = {size: number};
+
+type HeldRequestParams = {comment: string};
+
 export type {
+    AdminCanceledRequestParams,
     ApprovedAmountParams,
     AddressLineParams,
     AlreadySignedInParams,
@@ -315,7 +322,6 @@ export type {
     FormattedMaxLengthParams,
     GoBackMessageParams,
     GoToRoomParams,
-    IncorrectZipFormatParams,
     InstantSummaryParams,
     LocalTimeParams,
     LoggedInAsParams,
@@ -392,4 +398,6 @@ export type {
     WelcomeNoteParams,
     WelcomeToRoomParams,
     ZipCodeExampleFormatParams,
+    LogSizeParams,
+    HeldRequestParams,
 };

@@ -1,6 +1,7 @@
 import {isEqual} from 'lodash';
 import lodashClone from 'lodash/clone';
 import lodashHas from 'lodash/has';
+import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {GetRouteForDraftParams, GetRouteParams} from '@libs/API/parameters';
@@ -66,7 +67,9 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
                 [`waypoint${index}`]: waypoint,
             },
         },
-        amount: CONST.IOU.DEFAULT_AMOUNT,
+        // We want to reset the amount only for draft transactions (when creating the request).
+        // When modifying an existing transaction, the amount will be updated on the actual IOU update operation.
+        ...(isDraft && {amount: CONST.IOU.DEFAULT_AMOUNT}),
         // Empty out errors when we're saving a new waypoint as this indicates the user is updating their input
         errorFields: {
             route: null,
@@ -104,7 +107,7 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
     }
 }
 
-function removeWaypoint(transaction: Transaction, currentIndex: string, isDraft: boolean) {
+function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: string, isDraft?: boolean): Promise<void> {
     // Index comes from the route params and is a string
     const index = Number(currentIndex);
     const existingWaypoints = transaction?.comment?.waypoints ?? {};
@@ -113,7 +116,7 @@ function removeWaypoint(transaction: Transaction, currentIndex: string, isDraft:
     const waypointValues = Object.values(existingWaypoints);
     const removed = waypointValues.splice(index, 1);
     if (removed.length === 0) {
-        return;
+        return Promise.resolve();
     }
 
     const isRemovedWaypointEmpty = removed.length > 0 && !TransactionUtils.waypointHasValidAddress(removed[0] ?? {});
@@ -132,12 +135,15 @@ function removeWaypoint(transaction: Transaction, currentIndex: string, isDraft:
     // to remove nested keys while also preserving other object keys
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
     let newTransaction: Transaction = {
-        ...transaction,
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        ...(transaction as Transaction),
         comment: {
-            ...transaction.comment,
+            ...transaction?.comment,
             waypoints: reIndexedWaypoints,
         },
-        amount: CONST.IOU.DEFAULT_AMOUNT,
+        // We want to reset the amount only for draft transactions (when creating the request).
+        // When modifying an existing transaction, the amount will be updated on the actual IOU update operation.
+        ...(isDraft && {amount: CONST.IOU.DEFAULT_AMOUNT}),
     };
 
     if (!isRemovedWaypointEmpty) {
@@ -160,10 +166,9 @@ function removeWaypoint(transaction: Transaction, currentIndex: string, isDraft:
         };
     }
     if (isDraft) {
-        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
-        return;
+        return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
     }
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, newTransaction);
+    return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, newTransaction);
 }
 
 function getOnyxDataForRouteRequest(transactionID: string, isDraft = false): OnyxData {
@@ -247,7 +252,9 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
         comment: {
             waypoints,
         },
-        amount: CONST.IOU.DEFAULT_AMOUNT,
+        // We want to reset the amount only for draft transactions (when creating the request).
+        // When modifying an existing transaction, the amount will be updated on the actual IOU update operation.
+        ...(isDraft && {amount: CONST.IOU.DEFAULT_AMOUNT}),
         // Empty out errors when we're saving new waypoints as this indicates the user is updating their input
         errorFields: {
             route: null,

@@ -83,7 +83,7 @@ describe('Sidebar', () => {
                     .then(() => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Report (archived)');
+                        expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe('Report (archived)');
 
                         const hintMessagePreviewText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
                         const messagePreviewTexts = screen.queryAllByLabelText(hintMessagePreviewText);
@@ -127,13 +127,11 @@ describe('Sidebar', () => {
                     .then(() => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Report (archived)');
+                        expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe('Report (archived)');
 
                         const hintMessagePreviewText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
                         const messagePreviewTexts = screen.queryAllByLabelText(hintMessagePreviewText);
-                        expect(lodashGet(messagePreviewTexts, [0, 'props', 'children'])).toBe(
-                            'This workspace chat is no longer active because Vikings Policy is no longer an active workspace.',
-                        );
+                        expect(lodashGet(messagePreviewTexts, [0, 'props', 'children'])).toBe('This chat is no longer active because Vikings Policy is no longer an active workspace.');
                     })
             );
         });

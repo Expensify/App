@@ -2,8 +2,9 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {TextInput} from 'react-native';
 import {StyleSheet} from 'react-native';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import RNTextInput from '@components/RNTextInput';
+import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
+import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
+import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useResetComposerFocus from '@hooks/useResetComposerFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -30,9 +31,10 @@ function Composer(
     }: ComposerProps,
     ref: ForwardedRef<TextInput>,
 ) {
-    const textInput = useRef<AnimatedTextInputRef | null>(null);
+    const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
     const {isFocused, shouldResetFocus} = useResetComposerFocus(textInput);
     const theme = useTheme();
+    const markdownStyle = useMarkdownStyle();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -40,7 +42,7 @@ function Composer(
      * Set the TextInput Ref
      * @param {Element} el
      */
-    const setTextInputRef = useCallback((el: AnimatedTextInputRef) => {
+    const setTextInputRef = useCallback((el: AnimatedMarkdownTextInputRef) => {
         textInput.current = el;
         if (typeof ref !== 'function' || textInput.current === null) {
             return;
@@ -66,7 +68,7 @@ function Composer(
     const composerStyle = useMemo(() => StyleSheet.flatten(style), [style]);
 
     return (
-        <RNTextInput
+        <RNMarkdownTextInput
             multiline
             autoComplete="off"
             placeholderTextColor={theme.placeholderText}
@@ -76,6 +78,7 @@ function Composer(
             smartInsertDelete={false}
             textAlignVertical="center"
             style={[composerStyle, maxHeightStyle]}
+            markdownStyle={markdownStyle}
             autoFocus={autoFocus}
             isFullComposerAvailable={isFullComposerAvailable}
             /* eslint-disable-next-line react/jsx-props-no-spreading */

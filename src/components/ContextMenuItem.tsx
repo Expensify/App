@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useImperativeHandle} from 'react';
-import type {GestureResponderEvent} from 'react-native';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
@@ -38,6 +38,14 @@ type ContextMenuItemProps = {
 
     /** Whether the menu item is focused or not */
     isFocused?: boolean;
+
+    /** Whether the width should be limited */
+    shouldLimitWidth?: boolean;
+
+    /** Styles to apply to ManuItem wrapper */
+    wrapperStyle?: StyleProp<ViewStyle>;
+
+    shouldPreventDefaultFocusOnPress?: boolean;
 };
 
 type ContextMenuItemHandle = {
@@ -45,7 +53,20 @@ type ContextMenuItemHandle = {
 };
 
 function ContextMenuItem(
-    {onPress, successIcon, successText = '', icon, text, isMini = false, description = '', isAnonymousAction = false, isFocused = false}: ContextMenuItemProps,
+    {
+        onPress,
+        successIcon,
+        successText = '',
+        icon,
+        text,
+        isMini = false,
+        description = '',
+        isAnonymousAction = false,
+        isFocused = false,
+        shouldLimitWidth = true,
+        wrapperStyle,
+        shouldPreventDefaultFocusOnPress = true,
+    }: ContextMenuItemProps,
     ref: ForwardedRef<ContextMenuItemHandle>,
 ) {
     const styles = useThemeStyles();
@@ -76,6 +97,7 @@ function ContextMenuItem(
             tooltipText={itemText}
             onPress={triggerPressAndUpdateSuccess}
             isDelayButtonStateComplete={!isThrottledButtonActive}
+            shouldPreventDefaultFocusOnPress={shouldPreventDefaultFocusOnPress}
         >
             {({hovered, pressed}) => (
                 <Icon
@@ -90,11 +112,11 @@ function ContextMenuItem(
             title={itemText}
             icon={itemIcon}
             onPress={triggerPressAndUpdateSuccess}
-            wrapperStyle={styles.pr9}
+            wrapperStyle={[styles.pr9, wrapperStyle]}
             success={!isThrottledButtonActive}
             description={description}
             descriptionTextStyle={styles.breakWord}
-            style={StyleUtils.getContextMenuItemStyles(windowWidth)}
+            style={shouldLimitWidth && StyleUtils.getContextMenuItemStyles(windowWidth)}
             isAnonymousAction={isAnonymousAction}
             focused={isFocused}
             interactive={isThrottledButtonActive}
