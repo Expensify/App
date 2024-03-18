@@ -413,7 +413,6 @@ describe('Unread Indicators', () => {
                                 reportActionID: commentReportActionID,
                             },
                         },
-                        // @ts-expect-error -- it's necessary for the test
                         shouldNotify: true,
                     },
                     {
