@@ -1,4 +1,5 @@
 import {Parser as HtmlParser} from 'htmlparser2';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {Attachment} from '@components/Attachments/types';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -7,8 +8,8 @@ import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 
 /** Constructs the initial component state from report actions */
-function extractAttachmentsFromReport(parentReportAction?: ReportAction, reportActions?: ReportActions) {
-    const actions = [parentReportAction, ...ReportActionsUtils.getSortedReportActions(Object.values(reportActions ?? {}))];
+function extractAttachmentsFromReport(parentReportAction?: OnyxEntry<ReportAction>, reportActions?: OnyxEntry<ReportActions>) {
+    const actions = [...(parentReportAction ? [parentReportAction] : []), ...ReportActionsUtils.getSortedReportActions(Object.values(reportActions ?? {}))];
     const attachments: Attachment[] = [];
 
     const htmlParser = new HtmlParser({
@@ -46,7 +47,7 @@ function extractAttachmentsFromReport(parentReportAction?: ReportAction, reportA
     });
 
     actions.forEach((action, key) => {
-        if (!action || !ReportActionsUtils.shouldReportActionBeVisible(action, key) || ReportActionsUtils.isMoneyRequestAction(action)) {
+        if (!ReportActionsUtils.shouldReportActionBeVisible(action, key) || ReportActionsUtils.isMoneyRequestAction(action)) {
             return;
         }
 

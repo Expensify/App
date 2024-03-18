@@ -116,6 +116,12 @@ function AttachmentCarouselPager(
         onRequestToggleArrows();
     }, [isScrollEnabled.value, onRequestToggleArrows]);
 
+    const extractItemKey = useCallback(
+        (item: Attachment, index: number) =>
+            typeof item.source === 'string' || typeof item.source === 'number' ? `source-${item.source}` : `reportActionID-${item.reportActionID}` ?? `index-${index}`,
+        [],
+    );
+
     const contextValue = useMemo(
         () => ({
             pagerItems,
@@ -150,8 +156,7 @@ function AttachmentCarouselPager(
 
     const carouselItems = items.map((item, index) => (
         <View
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            key={typeof item.source === 'string' || typeof item.source === 'number' ? item.source : item.reportActionID || index}
+            key={extractItemKey(item, index)}
             style={styles.flex1}
         >
             <CarouselItem

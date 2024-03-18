@@ -78,7 +78,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
      */
     const cycleThroughAttachments = useCallback(
         (deltaSlide: number) => {
-            if (!page) {
+            if (page === undefined) {
                 return;
             }
             const nextPageIndex = page + deltaSlide;

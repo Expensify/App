@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import isEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, Keyboard, PixelRatio, View} from 'react-native';
@@ -48,7 +48,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : undefined;
         const attachmentsFromReport = extractAttachmentsFromReport(parentReportAction, reportActions ?? undefined);
 
-        if (_.isEqual(attachments, attachmentsFromReport)) {
+        if (isEqual(attachments, attachmentsFromReport)) {
             return;
         }
 
@@ -111,6 +111,12 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             scrollRef.current.scrollToIndex({index: nextIndex, animated: canUseTouchScreen});
         },
         [attachments, canUseTouchScreen, page],
+    );
+
+    const extractItemKey = useCallback(
+        (item: Attachment, index: number) =>
+            typeof item.source === 'string' || typeof item.source === 'number' ? `source-${item.source}` : `reportActionID-${item.reportActionID}` ?? `index-${index}`,
+        [],
     );
 
     /** Calculate items layout information to optimize scrolling performance */
@@ -188,8 +194,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                             CellRendererComponent={AttachmentCarouselCellRenderer}
                             renderItem={renderItem}
                             getItemLayout={getItemLayout}
-                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                            keyExtractor={(item, index) => (typeof item.source === 'string' || typeof item.source === 'number' ? String(item.source) : item.reportActionID || String(index))}
+                            keyExtractor={extractItemKey}
                             viewabilityConfig={viewabilityConfig}
                             onViewableItemsChanged={updatePage}
                         />
