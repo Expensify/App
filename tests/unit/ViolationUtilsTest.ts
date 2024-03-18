@@ -2,6 +2,7 @@ import {beforeEach} from '@jest/globals';
 import Onyx from 'react-native-onyx';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PolicyCategories, PolicyTagList, Transaction, TransactionViolation} from '@src/types/onyx';
 
 const categoryOutOfPolicyViolation = {
     name: 'categoryOutOfPolicy',
@@ -24,15 +25,15 @@ const missingTagViolation = {
 };
 
 describe('getViolationsOnyxData', () => {
-    let transaction;
-    let transactionViolations;
-    let policyRequiresTags;
-    let policyTags;
-    let policyRequiresCategories;
-    let policyCategories;
+    let transaction: Transaction;
+    let transactionViolations: TransactionViolation[];
+    let policyRequiresTags: boolean;
+    let policyTags: PolicyTagList;
+    let policyRequiresCategories: boolean;
+    let policyCategories: PolicyCategories;
 
     beforeEach(() => {
-        transaction = {transactionID: '123'};
+        transaction = {transactionID: '123', reportID: '1234', amount: 100, comment: {}, created: '2023-07-24 13:46:20', merchant: 'United Airlines', currency: 'USD'};
         transactionViolations = [];
         policyRequiresTags = false;
         policyTags = {};
@@ -62,12 +63,12 @@ describe('getViolationsOnyxData', () => {
     describe('policyRequiresCategories', () => {
         beforeEach(() => {
             policyRequiresCategories = true;
-            policyCategories = {Food: {enabled: true}};
+            policyCategories = {Food: {name: 'Food', unencodedName: '', enabled: true, areCommentsRequired: false, externalID: '1234', origin: '12345'}};
             transaction.category = 'Food';
         });
 
         it('should add missingCategory violation if no category is included', () => {
-            transaction.category = null;
+            transaction.category = undefined;
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
             expect(result.value).toEqual(expect.arrayContaining([missingCategoryViolation, ...transactionViolations]));
         });
@@ -132,6 +133,7 @@ describe('getViolationsOnyxData', () => {
                         Lunch: {name: 'Lunch', enabled: true},
                         Dinner: {name: 'Dinner', enabled: true},
                     },
+                    orderWeight: 1,
                 },
             };
             transaction.tag = 'Lunch';
@@ -209,6 +211,7 @@ describe('getViolationsOnyxData', () => {
                         },
                     },
                     required: true,
+                    orderWeight: 1,
                 },
                 Region: {
                     name: 'Region',
@@ -218,6 +221,8 @@ describe('getViolationsOnyxData', () => {
                             enabled: true,
                         },
                     },
+                    required: true,
+                    orderWeight: 2,
                 },
                 Project: {
                     name: 'Project',
@@ -228,6 +233,7 @@ describe('getViolationsOnyxData', () => {
                         },
                     },
                     required: true,
+                    orderWeight: 3,
                 },
             };
         });
