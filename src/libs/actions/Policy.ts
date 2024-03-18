@@ -3048,8 +3048,6 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                     [tagListName]: {
                         tags: {
                             [policyTag.newName]: {
-                                ...oldTag,
-                                name: policyTag.newName,
                                 errors: null,
                                 pendingAction: null,
                             },
