@@ -383,6 +383,14 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightSmall,
         },
 
+        textMicroBoldColor: {
+            color: theme.text,
+        },
+
+        textMicroBoldDangerColor: {
+            color: theme.textLight,
+        },
+
         textMicroSupporting: {
             color: theme.textSupporting,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
