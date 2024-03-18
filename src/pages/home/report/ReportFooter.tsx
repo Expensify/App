@@ -99,7 +99,7 @@ function ReportFooter({
             if (email) {
                 assignee = Object.values(allPersonalDetails).find((value) => value?.login === email) ?? {};
             }
-            Task.createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee.accountID, assignee.assigneeChatReport, report.policyID);
+            Task.createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee.accountID, undefined, report.policyID);
             return true;
         },
         [allPersonalDetails, report.policyID, report.reportID],
