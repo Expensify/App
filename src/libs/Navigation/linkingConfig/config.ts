@@ -331,7 +331,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route,
                         },
                         [SCREENS.WORKSPACE.TAXES_NEW]: {
-                            path: ROUTES.WORKSPACE_TAXES_NEW.route,
+                            path: ROUTES.WORKSPACE_TAX_CREATE.route,
                         },
                     },
                 },

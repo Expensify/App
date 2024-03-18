@@ -30,6 +30,7 @@ function TextSelectorModal({value, description = '', onValueSelected, isVisible,
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
                 testID={TextSelectorModal.displayName}
+                shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
                     title={description}

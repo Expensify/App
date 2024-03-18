@@ -30,6 +30,7 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
                 testID={AmountSelectorModal.displayName}
+                shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
                     title={description}

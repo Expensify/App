@@ -1882,7 +1882,7 @@ export default {
             foreignDefault: 'Moneda extranjera por defecto',
             value: 'Valor',
             errors: {
-                taxRatealreadyExists: 'Ya existe un impuesto con este nombre',
+                taxRateAlreadyExists: 'Ya existe un impuesto con este nombre',
                 valuePercentageRange: 'Introduzca un porcentaje válido entre 0 y 100',
                 genericFailureMessage: 'Se produjo un error al actualizar el tipo impositivo, inténtelo nuevamente.',
             },

@@ -134,7 +134,7 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
             <Button
                 medium
                 success
-                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_NEW.getRoute(route.params.policyID))}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_CREATE.getRoute(route.params.policyID))}
                 icon={Expensicons.Plus}
                 text={translate('workspace.taxes.addRate')}
                 style={[styles.mr3, isSmallScreenWidth && styles.w50]}

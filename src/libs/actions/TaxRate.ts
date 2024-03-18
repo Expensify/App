@@ -31,14 +31,10 @@ function getNextTaxID(name: string, taxRates?: TaxRates): string {
 
     // If the tax ID already exists, we need to find a unique ID
     let nextID = 1;
-    while (nextID < 100) {
-        const newNameCandidate = covertTaxNameToID(`${name}_${nextID}`);
-        if (!taxRates?.[newNameCandidate]) {
-            return newNameCandidate;
-        }
+    while (taxRates?.[covertTaxNameToID(`${name}_${nextID}`)]) {
         nextID++;
     }
-    throw new Error('Could not find a unique tax ID');
+    return covertTaxNameToID(`${name}_${nextID}`);
 }
 
 function createWorkspaceTax(policyID: string, taxRate: TaxRate) {
@@ -68,7 +64,6 @@ function createWorkspaceTax(policyID: string, taxRate: TaxRate) {
                     taxRates: {
                         taxes: {
                             [taxRate.code]: {
-                                pendingAction: null,
                                 errors: null,
                             },
                         },

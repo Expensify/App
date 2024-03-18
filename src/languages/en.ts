@@ -1858,8 +1858,8 @@ export default {
             foreignDefault: 'Foreign currency default',
             value: 'Value',
             errors: {
-                taxRatealreadyExists: 'A tax with this name already exists',
-                valuePercentageRange: 'Please enter a valid percentage between 0 and 100',
+                taxRateAlreadyExists: 'This tax name is already in use.',
+                valuePercentageRange: 'Please enter a valid percentage between 0 and 100.',
                 genericFailureMessage: 'An error occurred while updating the tax rate, please try again.',
             },
         },

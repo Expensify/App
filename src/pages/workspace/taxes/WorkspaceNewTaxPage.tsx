@@ -47,7 +47,7 @@ function WorkspaceNewTaxPage({
 
             const name = values[INPUT_IDS.NAME];
             if (policy?.taxRates?.taxes && ValidationUtils.isExistingTaxName(name, policy.taxRates.taxes)) {
-                errors[INPUT_IDS.NAME] = 'workspace.taxes.errors.taxRatealreadyExists';
+                errors[INPUT_IDS.NAME] = 'workspace.taxes.errors.taxRateAlreadyExists';
             }
 
             return errors;
@@ -74,6 +74,7 @@ function WorkspaceNewTaxPage({
                 <ScreenWrapper
                     testID={WorkspaceNewTaxPage.displayName}
                     includeSafeAreaPaddingBottom={false}
+                    style={[styles.defaultModalContainer]}
                 >
                     <View style={[styles.h100, styles.flex1, styles.justifyContentBetween]}>
                         <HeaderWithBackButton title={translate('workspace.taxes.addRate')} />

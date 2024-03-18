@@ -592,7 +592,7 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/members/:accountID/role-selection',
         getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/members/${accountID}/role-selection`, backTo),
     },
-    WORKSPACE_TAXES_NEW: {
+    WORKSPACE_TAX_CREATE: {
         route: 'settings/workspaces/:policyID/taxes/new',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/taxes/new` as const,
     },
