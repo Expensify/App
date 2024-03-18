@@ -1768,6 +1768,8 @@ export default {
             moreFeatures: 'More features',
             requested: 'Requested',
             distanceRates: 'Distance rates',
+            welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
+                `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
         },
         type: {
             free: 'Free',
@@ -1977,8 +1979,6 @@ export default {
             personalMessagePrompt: 'Message',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
             inviteNoMembersError: 'Please select at least one member to invite',
-            welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
-                `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
         },
         distanceRates: {
             oopsNotSoFast: 'Oops! Not so fast...',

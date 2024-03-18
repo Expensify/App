@@ -2163,7 +2163,7 @@ function setWorkspaceInviteMembersDraft(policyID: string, invitedEmailsToAccount
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, invitedEmailsToAccountIDs);
 }
 
-function setWorkspaceInviteMessageDraft(policyID: string, message: string) {
+function setWorkspaceInviteMessageDraft(policyID: string, message: string | null) {
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${policyID}`, message);
 }
 

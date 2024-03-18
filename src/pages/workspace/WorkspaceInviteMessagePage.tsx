@@ -64,7 +64,7 @@ function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsT
         // workspaceInviteMessageDraft can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         workspaceInviteMessageDraft ||
-        translate('workspace.inviteMessage.welcomeNote', {
+        translate('workspace.common.welcomeNote', {
             workspaceName: policy?.name ?? '',
         });
 
@@ -77,7 +77,7 @@ function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsT
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const debouncedSaveDraft = lodashDebounce((newDraft: string) => {
+    const debouncedSaveDraft = lodashDebounce((newDraft: string | null) => {
         Policy.setWorkspaceInviteMessageDraft(route.params.policyID, newDraft);
     });
 
@@ -85,6 +85,7 @@ function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsT
         Keyboard.dismiss();
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
         Policy.addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, welcomeNote ?? '', route.params.policyID);
+        debouncedSaveDraft(null);
         SearchInputManager.searchInput = '';
         // Pop the invite message page before navigating to the members page.
         Navigation.goBack();

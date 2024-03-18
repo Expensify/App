@@ -26,7 +26,14 @@ const parser = new ExpensiMark();
 function WorkspaceProfileDescriptionPage({policy}: Props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [description, setDescription] = useState(() => parser.htmlToMarkdown(policy?.description ?? ''));
+    const [description, setDescription] = useState(() =>
+        parser.htmlToMarkdown(
+            policy?.description ??
+                translate('workspace.common.welcomeNote', {
+                    workspaceName: policy?.name ?? '',
+                }),
+        ),
+    );
 
     /**
      * @param {Object} values - form input values passed by the Form component
