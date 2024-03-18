@@ -10,6 +10,7 @@ import CONST from '../../.github/libs/CONST';
 import GithubUtils from '../../.github/libs/GithubUtils';
 import GitUtils from '../../.github/libs/GitUtils';
 
+// TODO -- replace require with import once createOrUpdateStagingDeploy (https://github.com/Expensify/App/issues/25380) is migrated to TypeScript
 const run = require('../../.github/actions/javascript/createOrUpdateStagingDeploy/createOrUpdateStagingDeploy');
 
 const PATH_TO_PACKAGE_JSON = path.resolve(__dirname, '../../package.json');

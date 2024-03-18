@@ -19,7 +19,7 @@ const PLIST_PATH_NSE = './ios/NotificationServiceExtension/Info.plist';
  * @param value - Must be an integer.
  * @returns - A string representation of the number with length 2.
  */
-function padToTwoDigits(value: number) {
+function padToTwoDigits(value: number): string {
     if (value >= 10) {
         return value.toString();
     }
@@ -34,7 +34,7 @@ function padToTwoDigits(value: number) {
  * @param npmVersion
  * @returns
  */
-function generateAndroidVersionCode(npmVersion: string | SemVer) {
+function generateAndroidVersionCode(npmVersion: string | SemVer): string {
     // All Android versions will be prefixed with '10' due to previous versioning
     const prefix = '10';
     return ''.concat(
@@ -49,7 +49,7 @@ function generateAndroidVersionCode(npmVersion: string | SemVer) {
 /**
  * Update the Android app versionName and versionCode.
  */
-function updateAndroidVersion(versionName: string, versionCode: string) {
+function updateAndroidVersion(versionName: string, versionCode: string): Promise<void> {
     console.log('Updating android:', `versionName: ${versionName}`, `versionCode: ${versionCode}`);
     return fs
         .readFile(BUILD_GRADLE_PATH, {encoding: 'utf8'})
@@ -64,7 +64,7 @@ function updateAndroidVersion(versionName: string, versionCode: string) {
  * Update the iOS app version.
  * Updates the CFBundleShortVersionString and the CFBundleVersion.
  */
-function updateiOSVersion(version: string) {
+function updateiOSVersion(version: string): string {
     const shortVersion = version.split('-')[0];
     const cfVersion = version.includes('-') ? version.replace('-', '.') : `${version}.0`;
     console.log('Updating iOS', `CFBundleShortVersionString: ${shortVersion}`, `CFBundleVersion: ${cfVersion}`);

@@ -10,7 +10,7 @@ type PlatformResult = 'success' | 'cancelled' | 'skipped' | 'failure';
 /**
  * Return a nicely formatted message for the table based on the result of the GitHub action job
  */
-function getDeployTableMessage(platformResult: PlatformResult) {
+function getDeployTableMessage(platformResult: PlatformResult): string {
     switch (platformResult) {
         case 'success':
             return `${platformResult} ✅`;
@@ -49,19 +49,13 @@ async function run() {
     const iOSResult = getDeployTableMessage(core.getInput('IOS', {required: true}) as PlatformResult);
     const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}) as PlatformResult);
 
-    /**
-     * @param deployer
-     * @param deployVerb
-     * @param prTitle
-     * @returns
-     */
-    function getDeployMessage(deployer: string, deployVerb: string, prTitle?: string) {
+    function getDeployMessage(deployer: string, deployVerb: string, prTitle?: string): string {
         let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
         message += ` by https://github.com/${deployer} in version: ${version} 🚀`;
         message += `\n\nplatform | result\n---|---\n🤖 android 🤖|${androidResult}\n🖥 desktop 🖥|${desktopResult}`;
         message += `\n🍎 iOS 🍎|${iOSResult}\n🕸 web 🕸|${webResult}`;
 
-        if (prTitle && deployVerb === 'Cherry-picked' && !/no ?qa/gi.test(prTitle)) {
+        if (deployVerb === 'Cherry-picked' && !/no ?qa/gi.test(prTitle ?? '')) {
             // eslint-disable-next-line max-len
             message +=
                 '\n\n@Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.';
