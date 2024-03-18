@@ -1,11 +1,16 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import React, {useCallback} from 'react';
+import {PressableWithFeedback} from '@components/Pressable';
+import Tooltip from '@components/Tooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import AvatarWithOptionalStatus from './AvatarWithOptionalStatus';
-import PressableAvatarWithIndicator from './PressableAvatarWithIndicator';
+import ProfileAvatarWithIndicator from './ProfileAvatarWithIndicator';
 
 type BottomTabAvatarProps = {
     /** Whether the create menu is open or not */
@@ -16,6 +21,8 @@ type BottomTabAvatarProps = {
 };
 
 function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomTabAvatarProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const emojiStatus = currentUserPersonalDetails?.status?.emojiCode ?? '';
 
@@ -28,20 +35,31 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
         interceptAnonymousUser(() => Navigation.navigate(ROUTES.SETTINGS));
     }, [isCreateMenuOpen]);
 
+    let children;
+
     if (emojiStatus) {
-        return (
+        children = (
             <AvatarWithOptionalStatus
                 emojiStatus={emojiStatus}
                 isSelected={isSelected}
-                onPress={showSettingsPage}
             />
         );
+    } else {
+        children = <ProfileAvatarWithIndicator isSelected={isSelected} />;
     }
+
     return (
-        <PressableAvatarWithIndicator
-            isSelected={isSelected}
-            onPress={showSettingsPage}
-        />
+        <Tooltip text={translate('profilePage.profile')}>
+            <PressableWithFeedback
+                onPress={showSettingsPage}
+                role={CONST.ROLE.BUTTON}
+                accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
+                wrapperStyle={styles.flex1}
+                style={styles.bottomTabBarItem}
+            >
+                {children}
+            </PressableWithFeedback>
+        </Tooltip>
     );
 }
 
