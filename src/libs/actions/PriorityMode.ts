@@ -36,21 +36,12 @@ Onyx.connect({
 // eslint-disable-next-line @typescript-eslint/no-use-before-define
 const autoSwitchToFocusMode = debounce(tryFocusModeUpdate, 300, {leading: true});
 
-let allReports: OnyxCollection<Report> | undefined;
+let allReports: OnyxCollection<Report> | undefined = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (report, key) => {
-        if (!key || !report) {
-            return;
-        }
-
-        if (!allReports) {
-            allReports = {};
-        }
-
-        const reportID = CollectionUtils.extractCollectionItemID(key);
-
-        allReports[reportID] = report;
+    waitForCollectionCallback: true,
+    callback: (report) => {
+        allReports = report;
 
         // Each time a new report is added we will check to see if the user should be switched
         autoSwitchToFocusMode();

@@ -8,15 +8,12 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import * as CollectionUtils from './CollectionUtils';
 import * as Localize from './Localize';
 
-const allReports: Record<string, Report> = {};
+let allReports: Record<string, Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (report, key) => {
-        if (!key || !report) {
-            return;
-        }
-        const reportID = CollectionUtils.extractCollectionItemID(key);
-        allReports[reportID] = report;
+    waitForCollectionCallback: true,
+    callback: (report) => {
+        allReports = report;
     },
 });
 

@@ -248,14 +248,12 @@ Onyx.connect({
     },
 });
 
-const policyExpenseReports: OnyxCollection<Report> = {};
+let policyExpenseReports: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (report, key) => {
-        if (!ReportUtils.isPolicyExpenseChat(report)) {
-            return;
-        }
-        policyExpenseReports[key] = report;
+    waitForCollectionCallback: true,
+    callback: (report) => {
+        policyExpenseReports = report;
     },
 });
 
