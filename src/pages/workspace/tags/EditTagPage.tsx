@@ -12,7 +12,6 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -39,22 +38,15 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
     const currentTagName = route.params.tagName;
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
-            const tagName = values.tagName.trim();
-            const {tags} = PolicyUtils.getTagList(policyTags, 0);
+    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
+        const tagName = values.tagName.trim();
+        if (!ValidationUtils.isRequiredFulfilled(tagName)) {
+            errors.tagName = 'workspace.tags.tagRequiredError';
+        }
 
-            if (!ValidationUtils.isRequiredFulfilled(tagName)) {
-                errors.tagName = 'workspace.tags.tagRequiredError';
-            } else if (tags?.[tagName]) {
-                errors.tagName = 'workspace.tags.existingTagError';
-            }
-
-            return errors;
-        },
-        [policyTags],
-    );
+        return errors;
+    }, []);
 
     const editTag = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
@@ -75,7 +67,7 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
                     shouldEnableMaxHeight
                 >
                     <HeaderWithBackButton
-                        title={translate('workspace.tags.addTag')}
+                        title={translate('workspace.tags.editTag')}
                         onBackButtonPress={Navigation.goBack}
                     />
                     <FormProvider
