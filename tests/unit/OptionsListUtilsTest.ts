@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {Tag} from '@src/libs/OptionsListUtils';
@@ -627,7 +627,7 @@ describe('OptionsListUtils', () => {
 
     it('getShareDestinationsOptions()', () => {
         // Filter current REPORTS as we do in the component, before getting share destination options
-        const filteredReports = Object.entries(REPORTS).reduce<Record<string, Report | null>>((reports, [reportKey, report]) => {
+        const filteredReports = Object.entries(REPORTS).reduce<Record<string, OnyxEntry<Report>>>((reports, [reportKey, report]) => {
             if (!ReportUtils.canUserPerformWriteAction(report) || ReportUtils.isExpensifyOnlyParticipantInReport(report)) {
                 return reports;
             }
@@ -655,7 +655,7 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports.length).toBe(1);
 
         // Filter current REPORTS_WITH_WORKSPACE_ROOMS as we do in the component, before getting share destination options
-        const filteredReportsWithWorkspaceRooms = Object.entries(REPORTS_WITH_WORKSPACE_ROOMS).reduce<Record<string, Report | null>>((reports, [reportKey, report]) => {
+        const filteredReportsWithWorkspaceRooms = Object.entries(REPORTS_WITH_WORKSPACE_ROOMS).reduce<Record<string, OnyxEntry<Report>>>((reports, [reportKey, report]) => {
             if (!ReportUtils.canUserPerformWriteAction(report) || ReportUtils.isExpensifyOnlyParticipantInReport(report)) {
                 return reports;
             }
