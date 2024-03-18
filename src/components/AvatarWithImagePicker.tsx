@@ -54,6 +54,9 @@ type AvatarWithImagePickerProps = {
     /** Additional style props for disabled picker */
     disabledStyle?: StyleProp<ViewStyle>;
 
+    /** Additional style props for the edit icon */
+    editIconStyle?: StyleProp<ViewStyle>;
+
     /** Executed once an image has been selected */
     onImageSelected?: (file: File | CustomRNImageManipulatorResult) => void;
 
@@ -120,6 +123,7 @@ function AvatarWithImagePicker({
     DefaultAvatar = () => null,
     style,
     disabledStyle,
+    editIconStyle,
     pendingAction,
     errors,
     errorRowStyles,
@@ -325,7 +329,7 @@ function AvatarWithImagePicker({
                                 )}
                             </View>
                             {!disabled && (
-                                <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
+                                <View style={StyleSheet.flatten([styles.smallEditIcon, styles.smallAvatarEditIcon, editIconStyle])}>
                                     <Icon
                                         src={Expensicons.Pencil}
                                         width={variables.iconSizeSmall}
