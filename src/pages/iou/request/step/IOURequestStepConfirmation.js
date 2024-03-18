@@ -98,13 +98,17 @@ function IOURequestStepConfirmation({
     const requestType = TransactionUtils.getRequestType(transaction);
     const headerTitle = useMemo(() => {
         if (iouType === CONST.IOU.TYPE.SPLIT) {
-            return translate('iou.splitBill');
+            return translate('iou.split');
         }
         if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
             return translate('iou.trackExpense');
         }
+        if (iouType === CONST.IOU.TYPE.SEND) {
+            return translate('common.send');
+        }
         return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
     }, [iouType, transaction, translate]);
+
     const participants = useMemo(
         () =>
             _.map(transaction.participants, (participant) => {
@@ -452,7 +456,9 @@ function IOURequestStepConfirmation({
     const sendMoney = useCallback(
         (paymentMethodType) => {
             const currency = transaction.currency;
-            const trimmedComment = transaction.comment.trim();
+
+            const trimmedComment = transaction.comment && transaction.comment.comment ? transaction.comment.comment.trim() : '';
+
             const participant = participants[0];
 
             if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
@@ -464,8 +470,9 @@ function IOURequestStepConfirmation({
                 IOU.sendMoneyWithWallet(report, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant);
             }
         },
-        [transaction.amount, transaction.comment, participants, transaction.currency, currentUserPersonalDetails.accountID, report],
+        [transaction.amount, transaction.comment, transaction.currency, participants, currentUserPersonalDetails.accountID, report],
     );
+
     const addNewParticipant = (option) => {
         const newParticipants = _.map(transaction.participants, (participant) => {
             if (participant.accountID === option.accountID) {

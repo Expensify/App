@@ -347,6 +347,9 @@ const CONST = {
         INSTALLED: 'installed',
         NOT_INSTALLED: 'not-installed',
     },
+    TAX_RATES: {
+        NAME_MAX_LENGTH: 50,
+    },
     PLATFORM: {
         IOS: 'ios',
         ANDROID: 'android',
@@ -1062,6 +1065,12 @@ const CONST = {
         FILE: 'file',
         IMAGE: 'image',
         VIDEO: 'video',
+    },
+
+    IMAGE_FILE_FORMAT: {
+        PNG: 'image/png',
+        WEBP: 'image/webp',
+        JPEG: 'image/jpeg',
     },
 
     FILE_TYPE_REGEX: {

@@ -1866,6 +1866,7 @@ export default {
             },
         },
         tags: {
+            tagName: 'Nombre de etiqueta',
             requiresTag: 'Los miembros deben etiquetar todos los gastos',
             customTagName: 'Nombre de etiqueta personalizada',
             enableTag: 'Habilitar etiqueta',
@@ -1884,6 +1885,13 @@ export default {
             addRate: 'Añadir tasa',
             workspaceDefault: 'Moneda por defecto del espacio de trabajo',
             foreignDefault: 'Moneda extranjera por defecto',
+            customTaxName: 'Nombre del impuesto',
+            value: 'Valor',
+            errors: {
+                taxRateAlreadyExists: 'Ya existe un impuesto con este nombre',
+                valuePercentageRange: 'Introduzca un porcentaje válido entre 0 y 100',
+                genericFailureMessage: 'Se produjo un error al actualizar el tipo impositivo, inténtelo nuevamente.',
+            },
         },
         emptyWorkspace: {
             title: 'Crea un espacio de trabajo',
