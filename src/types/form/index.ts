@@ -40,5 +40,6 @@ export type {ReportPhysicalCardForm} from './ReportPhysicalCardForm';
 export type {WorkspaceDescriptionForm} from './WorkspaceDescriptionForm';
 export type {PolicyTagNameForm} from './PolicyTagNameForm';
 export type {WorkspaceTagForm} from './WorkspaceTagForm';
+export type {WorkspaceNewTaxForm} from './WorkspaceNewTaxForm';
 export type {PolicyCreateDistanceRateForm} from './PolicyCreateDistanceRateForm';
 export type {default as Form} from './Form';
