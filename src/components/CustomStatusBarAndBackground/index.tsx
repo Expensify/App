@@ -115,6 +115,10 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
     );
 
     useEffect(() => {
+        updateStatusBarAppearance({backgroundColor: theme.appBG});
+    }, []);
+
+    useEffect(() => {
         didForceUpdateStatusBarRef.current = false;
     }, [isRootStatusBarEnabled]);
 
