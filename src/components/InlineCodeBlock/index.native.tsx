@@ -1,13 +1,13 @@
 import React from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
-import removeEmojiTag from './removeEmojiTag';
+import getCurrentData from './getCurrentData';
 import type InlineCodeBlockProps from './types';
 import type {TTextOrTPhrasing} from './types';
 import WrappedText from './WrappedText';
 
 function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer, defaultRendererProps, textStyle, boxModelStyle}: InlineCodeBlockProps<TComponent>) {
     const styles = useThemeStyles();
-    const data = removeEmojiTag(defaultRendererProps);
+    const data = getCurrentData(defaultRendererProps);
 
     return (
         <TDefaultRenderer

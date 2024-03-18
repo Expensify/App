@@ -1,7 +1,7 @@
 import React from 'react';
 import {StyleSheet} from 'react-native';
 import Text from '@components/Text';
-import removeEmojiTag from './removeEmojiTag';
+import getCurrentData from './getCurrentData';
 import type InlineCodeBlockProps from './types';
 import type {TTextOrTPhrasing} from './types';
 
@@ -9,7 +9,7 @@ function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer,
     const flattenTextStyle = StyleSheet.flatten(textStyle);
     const {textDecorationLine, ...textStyles} = flattenTextStyle;
 
-    const data = removeEmojiTag(defaultRendererProps);
+    const data = getCurrentData(defaultRendererProps);
 
     return (
         <TDefaultRenderer

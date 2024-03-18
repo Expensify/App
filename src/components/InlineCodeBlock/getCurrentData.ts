@@ -3,7 +3,7 @@ import type {TTextOrTPhrasing} from './types';
 
 // Create a temporary solution to display when there are emojis in the inline code block
 // We can remove this after https://github.com/Expensify/App/issues/14676 is fixed
-export default function removeEmojiTag(defaultRendererProps: TDefaultRendererProps<TTextOrTPhrasing>): string {
+export default function getCurrentData(defaultRendererProps: TDefaultRendererProps<TTextOrTPhrasing>): string {
     if ('data' in defaultRendererProps.tnode) {
         return defaultRendererProps.tnode.data;
     }
