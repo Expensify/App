@@ -1,11 +1,11 @@
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
-import type {TaxRate, TaxRatesWithDefault} from '@src/types/onyx';
+import type {TaxRatesWithDefault} from '@src/types/onyx';
 import SelectionList from './SelectionList';
 import RadioListItem from './SelectionList/RadioListItem';
 import type {ListItem} from './SelectionList/types';
@@ -35,29 +35,37 @@ function TaxPicker({selectedTaxRate = '', taxRates, insets, onSubmit}: TaxPicker
     const taxRatesCount = TransactionUtils.getEnabledTaxRateCount(taxRates?.taxes ?? {});
     const isTaxRatesCountBelowThreshold = taxRatesCount < CONST.TAX_RATES_LIST_THRESHOLD;
 
-    const getModifiedName = (data: TaxRate, code: string) => `${data.name} (${data.value})${selectedTaxRate === code ? ` • ${translate('common.default')}` : ''}`;
-
     const shouldShowTextInput = !isTaxRatesCountBelowThreshold;
 
-    const section = Object.entries(taxRates?.taxes ?? {}).map(([key, item]) => ({text: getModifiedName(item, key), keyForList: key, isSelected: key === selectedTaxRate}));
+    const getTaxName = useCallback((key: string) => taxRates?.taxes[key].name, [taxRates?.taxes]);
 
-    const filteredTaxesList = useMemo(() => {
-        const trimmedSearch = searchValue.trim();
-
-        if (trimmedSearch.length === 0) {
-            return section;
+    const selectedOptions = useMemo(() => {
+        if (!selectedTaxRate) {
+            return [];
         }
-        return section.filter((tax) => tax.text.toLowerCase().indexOf(trimmedSearch.toLowerCase()) >= 0);
-    }, [searchValue, section]);
 
-    const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(filteredTaxesList.length > 0, searchValue);
+        return [
+            {
+                name: getTaxName(selectedTaxRate),
+                enabled: true,
+                accountID: null,
+            },
+        ];
+    }, [selectedTaxRate, getTaxName]);
+
+    const sections = useMemo(() => {
+        const taxRatesOptions = OptionsListUtils.getTaxRatesSection(taxRates, selectedOptions as OptionsListUtils.Category[], searchValue, selectedTaxRate);
+        return taxRatesOptions;
+    }, [taxRates, searchValue, selectedOptions, selectedTaxRate]);
+
+    const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(sections[0].data.length > 0, searchValue);
 
     return (
         <SelectionList
             ListItem={RadioListItem}
             onSelectRow={onSubmit}
             initiallyFocusedOptionKey={selectedTaxRate}
-            sections={[{data: filteredTaxesList}]}
+            sections={sections}
             containerStyle={{paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}}
             textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
             isRowMultilineSupported
