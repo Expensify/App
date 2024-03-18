@@ -1,8 +1,9 @@
 import {StyleSheet} from 'react-native';
-import type {Animated, ColorValue, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {AnimatableNumericValue, Animated, ColorValue, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
+import type ImageSVGProps from '@components/ImageSVG/types';
 import * as Browser from '@libs/Browser';
 import * as UserUtils from '@libs/UserUtils';
 // eslint-disable-next-line no-restricted-imports
@@ -14,6 +15,7 @@ import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import {defaultStyles} from '..';
 import type {ThemeStyles} from '..';
+import shouldPreventScrollOnAutoCompleteSuggestion from './autoCompleteSuggestion';
 import getCardStyles from './cardStyles';
 import containerComposeStyles from './containerComposeStyles';
 import FontUtils from './FontUtils';
@@ -452,11 +454,58 @@ function getBackgroundColorWithOpacityStyle(backgroundColor: string, opacity: nu
     return {};
 }
 
-function getWidthAndHeightStyle(width: number, height?: number): ViewStyle {
+function getWidthAndHeightStyle(width: number, height?: number): Pick<ViewStyle, 'height' | 'width'> {
     return {
         width,
         height: height ?? width,
     };
+}
+
+function getIconWidthAndHeightStyle(small: boolean, medium: boolean, large: boolean, width: number, height: number, hasText?: boolean): Pick<ImageSVGProps, 'width' | 'height'> {
+    switch (true) {
+        case small:
+            return {width: hasText ? variables.iconSizeExtraSmall : variables.iconSizeSmall, height: hasText ? variables.iconSizeExtraSmall : variables?.iconSizeSmall};
+        case medium:
+            return {width: hasText ? variables.iconSizeSmall : variables.iconSizeNormal, height: hasText ? variables.iconSizeSmall : variables.iconSizeNormal};
+        case large:
+            return {width: hasText ? variables.iconSizeNormal : variables.iconSizeLarge, height: hasText ? variables.iconSizeNormal : variables.iconSizeLarge};
+        default: {
+            return {width, height};
+        }
+    }
+}
+
+function getButtonStyleWithIcon(
+    styles: ThemeStyles,
+    small: boolean,
+    medium: boolean,
+    large: boolean,
+    hasIcon?: boolean,
+    hasText?: boolean,
+    shouldShowRightIcon?: boolean,
+): ViewStyle | undefined {
+    const useDefaultButtonStyles = Boolean(hasIcon && shouldShowRightIcon) || Boolean(!hasIcon && !shouldShowRightIcon);
+    switch (true) {
+        case small: {
+            const verticalStyle = hasIcon ? styles.pl2 : styles.pr2;
+            return useDefaultButtonStyles ? styles.buttonSmall : {...styles.buttonSmall, ...(hasText ? verticalStyle : styles.ph0)};
+        }
+        case medium: {
+            const verticalStyle = hasIcon ? styles.pl3 : styles.pr3;
+            return useDefaultButtonStyles ? styles.buttonMedium : {...styles.buttonMedium, ...(hasText ? verticalStyle : styles.ph0)};
+        }
+        case large: {
+            const verticalStyle = hasIcon ? styles.pl4 : styles.pr4;
+            return useDefaultButtonStyles ? styles.buttonLarge : {...styles.buttonLarge, ...(hasText ? verticalStyle : styles.ph0)};
+        }
+        default: {
+            if (hasIcon && !hasText) {
+                return {...styles.buttonMedium, ...styles.ph0};
+            }
+
+            return undefined;
+        }
+    }
 }
 
 /**
@@ -790,6 +839,8 @@ function getBaseAutoCompleteSuggestionContainerStyle({left, bottom, width}: GetB
     };
 }
 
+const shouldPreventScroll = shouldPreventScrollOnAutoCompleteSuggestion();
+
 /**
  * Gets the correct position for auto complete suggestion container
  */
@@ -797,13 +848,13 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle
     'worklet';
 
     const borderWidth = 2;
-    const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING;
+    const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + (shouldPreventScroll ? borderWidth : 0);
 
     // The suggester is positioned absolutely within the component that includes the input and RecipientLocalTime view (for non-expanded mode only). To position it correctly,
     // we need to shift it by the suggester's height plus its padding and, if applicable, the height of the RecipientLocalTime view.
     return {
         overflow: 'hidden',
-        top: -(height + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING + borderWidth),
+        top: -(height + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING + (shouldPreventScroll ? 0 : borderWidth)),
         height,
         minHeight: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT,
     };
@@ -820,6 +871,12 @@ function getEmojiReactionBubbleTextStyle(isContextMenu = false): TextStyle {
     return {
         fontSize: 15,
         lineHeight: 22,
+    };
+}
+
+function getTransformScaleStyle(scaleValue: AnimatableNumericValue): ViewStyle {
+    return {
+        transform: [{scale: scaleValue}],
     };
 }
 
@@ -1060,6 +1117,7 @@ const staticStyleUtils = {
     getEmojiPickerListHeight,
     getEmojiPickerStyle,
     getEmojiReactionBubbleTextStyle,
+    getTransformScaleStyle,
     getFontFamilyMonospace,
     getCodeFontSize,
     getFontSizeStyle,
@@ -1086,6 +1144,8 @@ const staticStyleUtils = {
     getOpacityStyle,
     getMultiGestureCanvasContainerStyle,
     getSignInBgStyles,
+    getIconWidthAndHeightStyle,
+    getButtonStyleWithIcon,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
@@ -1224,7 +1284,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Returns link styles based on whether the link is disabled or not
      */
-    getDisabledLinkStyles: (isDisabled = false): ViewStyle => {
+    getDisabledLinkStyles: (isDisabled = false): TextStyle => {
         const disabledLinkStyles = {
             color: theme.textSupporting,
             ...styles.cursorDisabled,
@@ -1474,6 +1534,25 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     },
 
     getFullscreenCenteredContentStyles: () => [StyleSheet.absoluteFill, styles.justifyContentCenter, styles.alignItemsCenter],
+
+    /**
+     * Returns the styles for the Tools modal
+     */
+    getTestToolsModalStyle: (windowWidth: number): ViewStyle[] => [styles.settingsPageBody, styles.p5, {width: windowWidth * 0.9}],
+
+    getMultiselectListStyles: (isSelected: boolean, isDisabled: boolean): ViewStyle => ({
+        ...styles.mr3,
+        ...(isSelected && styles.checkedContainer),
+        ...(isSelected && styles.borderColorFocus),
+        ...(isDisabled && styles.cursorDisabled),
+        ...(isDisabled && styles.buttonOpacityDisabled),
+    }),
+
+    // TODO: remove it when we'll implement the callback to handle this toggle in Expensify/Expensify#368335
+    getWorkspaceWorkflowsOfflineDescriptionStyle: (descriptionTextStyle: TextStyle | TextStyle[]): StyleProp<TextStyle> => ({
+        ...StyleSheet.flatten(descriptionTextStyle),
+        opacity: styles.opacitySemiTransparent.opacity,
+    }),
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;

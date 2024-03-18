@@ -1,20 +1,21 @@
-import type {ReactElement, ReactNode} from 'react';
-import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {MutableRefObject, ReactElement, ReactNode} from 'react';
+import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+import type {MaybePhraseKey} from '@libs/Localize';
+import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type RadioListItem from './RadioListItem';
+import type TableListItem from './TableListItem';
+import type UserListItem from './UserListItem';
 
 type CommonListItemProps<TItem> = {
     /** Whether this item is focused (for arrow key controls) */
     isFocused?: boolean;
 
-    /** Style to be applied to Text */
-    textStyles?: StyleProp<TextStyle>;
-
-    /** Style to be applied on the alternate text */
-    alternateTextStyles?: StyleProp<TextStyle>;
-
     /** Whether this item is disabled */
-    isDisabled?: boolean;
+    isDisabled?: boolean | null;
 
     /** Whether this item should show Tooltip */
     showTooltip: boolean;
@@ -25,34 +26,58 @@ type CommonListItemProps<TItem> = {
     /** Callback to fire when the item is pressed */
     onSelectRow: (item: TItem) => void;
 
+    /** Callback to fire when a checkbox is pressed */
+    onCheckboxPress?: (item: TItem) => void;
+
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
 
     /** Component to display on the right side */
     rightHandSideComponent?: ((item: TItem) => ReactElement<TItem>) | ReactElement | null;
+
+    /** Direction of checkmark to show */
+    checkmarkPosition?: ValueOf<typeof CONST.DIRECTION>;
+
+    /** Styles for the pressable component */
+    pressableStyle?: StyleProp<ViewStyle>;
+
+    /** Styles for the wrapper view */
+    wrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Styles for the checkbox wrapper view if select multiple option is on */
+    selectMultipleStyle?: StyleProp<ViewStyle>;
+
+    /** Whether to wrap long text up to 2 lines */
+    isMultilineSupported?: boolean;
 };
 
-type User = {
+type ListItem = {
     /** Text to display */
-    text: string;
+    text?: string;
 
     /** Alternate text to display */
-    alternateText?: string;
+    alternateText?: string | null;
 
     /** Key used internally by React */
-    keyForList: string;
+    keyForList?: string | null;
 
     /** Whether this option is selected */
     isSelected?: boolean;
 
+    /** Whether the checkbox should be disabled */
+    isDisabledCheckbox?: boolean;
+
     /** Whether this option is disabled for selection */
-    isDisabled?: boolean;
+    isDisabled?: boolean | null;
+
+    /** List title is bold by default. Use this props to customize it */
+    isBold?: boolean;
 
     /** User accountID */
-    accountID?: number;
+    accountID?: number | null;
 
     /** User login */
-    login?: string;
+    login?: string | null;
 
     /** Element to show on the right side of the item */
     rightElement?: ReactNode;
@@ -73,51 +98,60 @@ type User = {
 
     /** Represents the index of the option within the section it came from */
     index?: number;
+
+    /** ID of the report */
+    reportID?: string;
+
+    /** Whether this option should show subscript */
+    shouldShowSubscript?: boolean | null;
+
+    /** Whether to wrap long text up to 2 lines */
+    isMultilineSupported?: boolean;
 };
 
-type UserListItemProps = CommonListItemProps<User> & {
+type ListItemProps = CommonListItemProps<ListItem> & {
     /** The section list item */
-    item: User;
+    item: ListItem;
 
     /** Additional styles to apply to text */
     style?: StyleProp<TextStyle>;
-};
 
-type RadioItem = {
-    /** Text to display */
-    text: string;
+    /** Is item hovered */
+    isHovered?: boolean;
 
-    /** Alternate text to display */
-    alternateText?: string;
+    /** Whether the default focus should be prevented on row selection */
+    shouldPreventDefaultFocusOnSelectRow?: boolean;
 
     /** Key used internally by React */
-    keyForList: string;
-
-    /** Whether this option is selected */
-    isSelected?: boolean;
-
-    /** Whether this option is disabled for selection */
-    isDisabled?: boolean;
-
-    /** Represents the index of the section it came from  */
-    sectionIndex?: number;
-
-    /** Represents the index of the option within the section it came from */
-    index?: number;
-};
-
-type RadioListItemProps = CommonListItemProps<RadioItem> & {
-    /** The section list item */
-    item: RadioItem;
-};
-
-type BaseListItemProps<TItem extends User | RadioItem> = CommonListItemProps<TItem> & {
-    item: TItem;
-    shouldPreventDefaultFocusOnSelectRow?: boolean;
     keyForList?: string;
 };
 
-type Section<TItem extends User | RadioItem> = {
+type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
+    item: TItem;
+    shouldPreventDefaultFocusOnSelectRow?: boolean;
+    keyForList?: string | null;
+    errors?: Errors | ReceiptErrors | null;
+    pendingAction?: PendingAction | null;
+    FooterComponent?: ReactElement;
+    children?: ReactElement<ListItemProps> | ((hovered: boolean) => ReactElement<ListItemProps>);
+};
+
+type UserListItemProps = ListItemProps & {
+    /** Errors that this user may contain */
+    errors?: Errors | ReceiptErrors | null;
+
+    /** The type of action that's pending  */
+    pendingAction?: PendingAction | null;
+
+    /** The React element that will be shown as a footer */
+    FooterComponent?: ReactElement;
+};
+
+type RadioListItemProps = ListItemProps;
+
+type TableListItemProps = ListItemProps;
+
+type Section<TItem extends ListItem> = {
     /** Title of the section */
     title?: string;
 
@@ -134,9 +168,12 @@ type Section<TItem extends User | RadioItem> = {
     shouldShow?: boolean;
 };
 
-type BaseSelectionListProps<TItem extends User | RadioItem> = Partial<ChildrenProps> & {
+type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
-    sections: Array<SectionListData<TItem, Section<TItem>>>;
+    sections: Array<SectionListData<TItem, Section<TItem>>> | typeof CONST.EMPTY_ARRAY;
+
+    /** Default renderer for every item in the list */
+    ListItem: typeof RadioListItem | typeof UserListItem | typeof TableListItem;
 
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;
@@ -144,11 +181,14 @@ type BaseSelectionListProps<TItem extends User | RadioItem> = Partial<ChildrenPr
     /** Callback to fire when a row is pressed */
     onSelectRow: (item: TItem) => void;
 
+    /** Optional callback function triggered upon pressing a checkbox. If undefined and the list displays checkboxes, checkbox interactions are managed by onSelectRow, allowing for pressing anywhere on the list. */
+    onCheckboxPress?: (item: TItem) => void;
+
     /** Callback to fire when "Select All" checkbox is pressed. Only use along with `canSelectMultiple` */
     onSelectAll?: () => void;
 
     /** Callback to fire when an error is dismissed */
-    onDismissError?: () => void;
+    onDismissError?: (item: TItem) => void;
 
     /** Label for the text input */
     textInputLabel?: string;
@@ -157,7 +197,7 @@ type BaseSelectionListProps<TItem extends User | RadioItem> = Partial<ChildrenPr
     textInputPlaceholder?: string;
 
     /** Hint for the text input */
-    textInputHint?: string;
+    textInputHint?: MaybePhraseKey;
 
     /** Value for the text input */
     textInputValue?: string;
@@ -232,13 +272,35 @@ type BaseSelectionListProps<TItem extends User | RadioItem> = Partial<ChildrenPr
     shouldDelayFocus?: boolean;
 
     /** Component to display on the right side of each child */
-    rightHandSideComponent?: ((item: TItem) => ReactElement<TItem>) | ReactElement | null;
+    rightHandSideComponent?: ((item: ListItem) => ReactElement<ListItem>) | ReactElement | null;
+
+    /** Direction of checkmark to show */
+    checkmarkPosition?: ValueOf<typeof CONST.DIRECTION>;
 
     /** Whether to show the loading indicator for new options */
     isLoadingNewOptions?: boolean;
 
     /** Fired when the list is displayed with the items */
     onLayout?: (event: LayoutChangeEvent) => void;
+
+    /** Custom header to show right above list */
+    customListHeader?: ReactNode;
+
+    /** Styles for the list header wrapper */
+    listHeaderWrapperStyle?: StyleProp<ViewStyle>;
+
+    /**  Whether to auto focus the Search Input */
+    autoFocus?: boolean;
+
+    /** Whether to wrap long text up to 2 lines */
+    isRowMultilineSupported?: boolean;
+
+    /** Ref for textInput */
+    textInputRef?: MutableRefObject<TextInput | null>;
+};
+
+type SelectionListHandle = {
+    scrollAndHighlightItem?: (items: string[], timeout: number) => void;
 };
 
 type ItemLayout = {
@@ -246,7 +308,7 @@ type ItemLayout = {
     offset: number;
 };
 
-type FlattenedSectionsReturn<TItem extends User | RadioItem> = {
+type FlattenedSectionsReturn<TItem extends ListItem> = {
     allOptions: TItem[];
     selectedOptions: TItem[];
     disabledOptionsIndexes: number[];
@@ -256,19 +318,21 @@ type FlattenedSectionsReturn<TItem extends User | RadioItem> = {
 
 type ButtonOrCheckBoxRoles = 'button' | 'checkbox';
 
-type SectionListDataType<TItem extends User | RadioItem> = SectionListData<TItem, Section<TItem>>;
+type SectionListDataType<TItem extends ListItem> = SectionListData<TItem, Section<TItem>>;
 
 export type {
     BaseSelectionListProps,
     CommonListItemProps,
-    UserListItemProps,
     Section,
-    RadioListItemProps,
     BaseListItemProps,
-    User,
-    RadioItem,
+    UserListItemProps,
+    RadioListItemProps,
+    TableListItemProps,
+    ListItem,
+    ListItemProps,
     FlattenedSectionsReturn,
     ItemLayout,
     ButtonOrCheckBoxRoles,
     SectionListDataType,
+    SelectionListHandle,
 };

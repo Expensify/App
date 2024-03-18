@@ -1,11 +1,12 @@
 import {format, lastDayOfMonth, setDate} from 'date-fns';
 import Onyx from 'react-native-onyx';
+import DateUtils from '@libs/DateUtils';
+import * as NextStepUtils from '@libs/NextStepUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
-import DateUtils from '../../src/libs/DateUtils';
-import * as NextStepUtils from '../../src/libs/NextStepUtils';
-import * as ReportUtils from '../../src/libs/ReportUtils';
+import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 Onyx.init({keys: ONYXKEYS});
@@ -40,10 +41,10 @@ describe('libs/NextStepUtils', () => {
         const report = ReportUtils.buildOptimisticExpenseReport('fake-chat-report-id-1', policyID, 1, -500, CONST.CURRENCY.USD) as Report;
 
         beforeAll(() => {
-            // @ts-expect-error Preset necessary values
+            const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (item) => item.id);
+
             Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: policy,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
                     [strangeAccountID]: {
                         accountID: strangeAccountID,
@@ -51,6 +52,7 @@ describe('libs/NextStepUtils', () => {
                         avatar: '',
                     },
                 },
+                ...policyCollectionDataSet,
             }).then(waitForBatchedUpdates);
         });
 
@@ -340,7 +342,7 @@ describe('libs/NextStepUtils', () => {
 
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     submitsTo: currentUserAccountID,
-                    isPreventSelfApprovalEnabled: true,
+                    preventSelfApproval: true,
                 }).then(() => {
                     const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
@@ -364,7 +366,7 @@ describe('libs/NextStepUtils', () => {
                         text: ' to ',
                     },
                     {
-                        text: 'review',
+                        text: 'pay',
                         type: 'strong',
                     },
                     {
@@ -457,7 +459,7 @@ describe('libs/NextStepUtils', () => {
                         text: ' to ',
                     },
                     {
-                        text: 'review',
+                        text: 'pay',
                         type: 'strong',
                     },
                     {
@@ -472,10 +474,24 @@ describe('libs/NextStepUtils', () => {
 
             test('another owner', () => {
                 report.ownerAccountID = strangeAccountID;
-                optimisticNextStep.title = 'Finished!';
+                optimisticNextStep.title = 'Next Steps:';
                 optimisticNextStep.message = [
                     {
-                        text: 'No further action required!',
+                        text: 'Waiting for ',
+                    },
+                    {
+                        text: 'you',
+                        type: 'strong',
+                    },
+                    {
+                        text: ' to ',
+                    },
+                    {
+                        text: 'pay',
+                        type: 'strong',
+                    },
+                    {
+                        text: ' %expenses.',
                     },
                 ];
 
@@ -505,7 +521,7 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.REIMBURSED, {isPaidWithWallet: true});
+                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.REIMBURSED, {isPaidWithExpensify: true});
 
                 expect(result).toMatchObject(optimisticNextStep);
             });
@@ -532,7 +548,7 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.REIMBURSED, {isPaidWithWallet: false});
+                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.REIMBURSED, {isPaidWithExpensify: false});
 
                 expect(result).toMatchObject(optimisticNextStep);
             });

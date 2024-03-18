@@ -22,6 +22,7 @@ const SCREENS = {
     VALIDATE_LOGIN: 'ValidateLogin',
     UNLINK_LOGIN: 'UnlinkLogin',
     SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
+    WORKSPACES_CENTRAL_PANE: 'WorkspacesCentralPane',
     SETTINGS: {
         ROOT: 'Settings_Root',
         SHARE_CODE: 'Settings_Share_Code',
@@ -29,7 +30,6 @@ const SCREENS = {
         SECURITY: 'Settings_Security',
         ABOUT: 'Settings_About',
         APP_DOWNLOAD_LINKS: 'Settings_App_Download_Links',
-        LOUNGE_ACCESS: 'Settings_Lounge_Access',
         ADD_DEBIT_CARD: 'Settings_Add_Debit_Card',
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
         CLOSE: 'Settings_Close',
@@ -81,6 +81,12 @@ const SCREENS = {
             REPORT_VIRTUAL_CARD_FRAUD: 'Settings_Wallet_ReportVirtualCardFraud',
             CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
         },
+
+        EXIT_SURVEY: {
+            REASON: 'Settings_ExitSurvey_Reason',
+            RESPONSE: 'Settings_ExitSurvey_Response',
+            CONFIRM: 'Settings_ExitSurvey_Confirm',
+        },
     },
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
@@ -123,12 +129,14 @@ const SCREENS = {
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
     DESKTOP_SIGN_IN_REDIRECT: 'DesktopSignInRedirect',
     SAML_SIGN_IN: 'SAMLSignIn',
+    WORKSPACE_JOIN_USER: 'WorkspaceJoinUser',
 
     MONEY_REQUEST: {
         MANUAL_TAB: 'manual',
         SCAN_TAB: 'scan',
         DISTANCE_TAB: 'distance',
         CREATE: 'Money_Request_Create',
+        HOLD: 'Money_Request_Hold_Reason',
         STEP_CONFIRMATION: 'Money_Request_Step_Confirmation',
         START: 'Money_Request_Start',
         STEP_AMOUNT: 'Money_Request_Step_Amount',
@@ -149,7 +157,6 @@ const SCREENS = {
         PARTICIPANTS: 'Money_Request_Participants',
         CONFIRMATION: 'Money_Request_Confirmation',
         CURRENCY: 'Money_Request_Currency',
-        CATEGORY: 'Money_Request_Category',
         WAYPOINT: 'Money_Request_Waypoint',
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
         DISTANCE: 'Money_Request_Distance',
@@ -167,6 +174,7 @@ const SCREENS = {
         ROOM_NAME: 'Report_Settings_Room_Name',
         NOTIFICATION_PREFERENCES: 'Report_Settings_Notification_Preferences',
         WRITE_CAPABILITY: 'Report_Settings_Write_Capability',
+        VISIBILITY: 'Report_Settings_Visibility',
     },
 
     NEW_TASK: {
@@ -207,9 +215,31 @@ const SCREENS = {
         MEMBERS: 'Workspace_Members',
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
+        CATEGORIES: 'Workspace_Categories',
+        TAGS: 'Workspace_Tags',
+        TAGS_SETTINGS: 'Tags_Settings',
+        TAGS_EDIT: 'Tags_Edit',
+        TAXES: 'Workspace_Taxes',
+        TAG_CREATE: 'Tag_Create',
+        TAG_SETTINGS: 'Tag_Settings',
         CURRENCY: 'Workspace_Profile_Currency',
+        WORKFLOWS: 'Workspace_Workflows',
+        WORKFLOWS_PAYER: 'Workspace_Workflows_Payer',
+        WORKFLOWS_APPROVER: 'Workspace_Workflows_Approver',
+        WORKFLOWS_AUTO_REPORTING_FREQUENCY: 'Workspace_Workflows_Auto_Reporting_Frequency',
+        WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET: 'Workspace_Workflows_Auto_Reporting_Monthly_Offset',
         DESCRIPTION: 'Workspace_Profile_Description',
+        SHARE: 'Workspace_Profile_Share',
         NAME: 'Workspace_Profile_Name',
+        CATEGORY_CREATE: 'Category_Create',
+        CATEGORY_EDIT: 'Category_Edit',
+        CATEGORY_SETTINGS: 'Category_Settings',
+        CATEGORIES_SETTINGS: 'Categories_Settings',
+        MORE_FEATURES: 'Workspace_More_Features',
+        MEMBER_DETAILS: 'Workspace_Member_Details',
+        MEMBER_DETAILS_ROLE_SELECTION: 'Workspace_Member_Details_Role_Selection',
+        DISTANCE_RATES: 'Distance_Rates',
+        CREATE_DISTANCE_RATE: 'Create_Distance_Rate',
     },
 
     EDIT_REQUEST: {
@@ -257,6 +287,7 @@ const SCREENS = {
     GET_ASSISTANCE: 'GetAssistance',
     REFERRAL_DETAILS: 'Referral_Details',
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
+    TRANSACTION_RECEIPT: 'TransactionReceipt',
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;

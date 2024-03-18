@@ -337,9 +337,9 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 BankAccounts.hideBankAccountErrors();
             }
 
-            const backTo = lodashGet(route.params, 'backTo');
             // eslint-disable-next-line no-shadow
             const policyID = lodashGet(route.params, 'policyID');
+            const backTo = lodashGet(route.params, 'backTo');
 
             Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyID, backTo));
         },
@@ -442,7 +442,8 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
             <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
                 <FullPageNotFoundView
                     shouldShow
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                    onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
+                    onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
                     subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
                 />
             </ScreenWrapper>
@@ -468,7 +469,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 <HeaderWithBackButton
                     title={translate('workspace.common.connectBankAccount')}
                     subtitle={policyName}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                    onBackButtonPress={() => Navigation.goBack()}
                 />
                 <View style={[styles.m5, styles.mv3, styles.flex1]}>
                     <Text>{errorText}</Text>

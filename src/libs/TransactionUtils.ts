@@ -4,13 +4,13 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {RecentWaypoint, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
-import type {PolicyTaxRate, PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
-import type {Comment, Receipt, TransactionChanges, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import type {RecentWaypoint, Report, TaxRate, TaxRates, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
+import {getCleanedTagName} from './PolicyUtils';
 
 let allTransactions: OnyxCollection<Transaction> = {};
 
@@ -94,6 +94,7 @@ function buildOptimisticTransaction(
     category = '',
     tag = '',
     billable = false,
+    pendingFields: Partial<{[K in TransactionPendingFieldsKey]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}> | undefined = undefined,
 ): Transaction {
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
@@ -108,6 +109,7 @@ function buildOptimisticTransaction(
     }
 
     return {
+        ...(!isEmptyObject(pendingFields) ? {pendingFields} : {}),
         transactionID,
         amount,
         currency,
@@ -135,11 +137,11 @@ function hasReceipt(transaction: Transaction | undefined | null): boolean {
     return !!transaction?.receipt?.state || hasEReceipt(transaction);
 }
 
-function isMerchantMissing(transaction: Transaction) {
-    if (transaction.modifiedMerchant && transaction.modifiedMerchant !== '') {
+function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
+    if (transaction?.modifiedMerchant && transaction.modifiedMerchant !== '') {
         return transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     }
-    const isMerchantEmpty = transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.merchant === '';
+    const isMerchantEmpty = transaction?.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction?.merchant === '';
 
     return isMerchantEmpty;
 }
@@ -151,18 +153,20 @@ function isPartialMerchant(merchant: string): boolean {
     return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 }
 
-function isAmountMissing(transaction: Transaction) {
-    return transaction.amount === 0 && (!transaction.modifiedAmount || transaction.modifiedAmount === 0);
+function isAmountMissing(transaction: OnyxEntry<Transaction>) {
+    return transaction?.amount === 0 && (!transaction.modifiedAmount || transaction.modifiedAmount === 0);
 }
 
-function isCreatedMissing(transaction: Transaction) {
-    return transaction.created === '' && (!transaction.created || transaction.modifiedCreated === '');
+function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
+    return transaction?.created === '' && (!transaction.created || transaction.modifiedCreated === '');
 }
 
-function areRequiredFieldsEmpty(transaction: Transaction): boolean {
+function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>): boolean {
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
     const isFromExpenseReport = parentReport?.type === CONST.REPORT.TYPE.EXPENSE;
-    return (isFromExpenseReport && isMerchantMissing(transaction)) || isAmountMissing(transaction) || isCreatedMissing(transaction);
+    const isSplitPolicyExpenseChat = !!transaction?.comment?.splits?.some((participant) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`]?.isOwnPolicyExpenseChat);
+    const isMerchantRequired = isFromExpenseReport || isSplitPolicyExpenseChat;
+    return (isMerchantRequired && isMerchantMissing(transaction)) || isAmountMissing(transaction) || isCreatedMissing(transaction);
 }
 
 /**
@@ -239,15 +243,6 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
     };
 
     return updatedTransaction;
-}
-
-/**
- * Retrieve the particular transaction object given its ID.
- *
- * @deprecated Use withOnyx() or Onyx.connect() instead
- */
-function getTransaction(transactionID: string): OnyxEntry<Transaction> | EmptyObject {
-    return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
 }
 
 /**
@@ -365,15 +360,47 @@ function getBillable(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 /**
+ * Return a colon-delimited tag string as an array, considering escaped colons and double backslashes.
+ */
+function getTagArrayFromName(tagName: string): string[] {
+    // WAIT!!!!!!!!!!!!!!!!!!
+    // You need to keep this in sync with TransactionUtils.php
+
+    // We need to be able to preserve double backslashes in the original string
+    // and not have it interfere with splitting on a colon (:).
+    // So, let's replace it with something absurd to begin with, do our split, and
+    // then replace the double backslashes in the end.
+    const tagWithoutDoubleSlashes = tagName.replace(/\\\\/g, '☠');
+    const tagWithoutEscapedColons = tagWithoutDoubleSlashes.replace(/\\:/g, '☢');
+
+    // Do our split
+    const matches = tagWithoutEscapedColons.split(':');
+    const newMatches: string[] = [];
+
+    for (const item of matches) {
+        const tagWithEscapedColons = item.replace(/☢/g, '\\:');
+        const tagWithDoubleSlashes = tagWithEscapedColons.replace(/☠/g, '\\\\');
+        newMatches.push(tagWithDoubleSlashes);
+    }
+
+    return newMatches;
+}
+
+/**
  * Return the tag from the transaction. When the tagIndex is passed, return the tag based on the index.
  * This "tag" field has no "modified" complement.
  */
 function getTag(transaction: OnyxEntry<Transaction>, tagIndex?: number): string {
     if (tagIndex !== undefined) {
-        return transaction?.tag?.split(CONST.COLON)[tagIndex] ?? '';
+        const tagsArray = getTagArrayFromName(transaction?.tag ?? '');
+        return tagsArray[tagIndex] ?? '';
     }
 
     return transaction?.tag ?? '';
+}
+
+function getTagForDisplay(transaction: OnyxEntry<Transaction>, tagIndex?: number): string {
+    return getCleanedTagName(getTag(transaction, tagIndex));
 }
 
 /**
@@ -444,30 +471,14 @@ function isReceiptBeingScanned(transaction: OnyxEntry<Transaction>): boolean {
  * Check if the transaction has a non-smartscanning receipt and is missing required fields
  */
 function hasMissingSmartscanFields(transaction: OnyxEntry<Transaction>): boolean {
-    return Boolean(transaction && hasReceipt(transaction) && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && areRequiredFieldsEmpty(transaction));
+    return Boolean(transaction && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && areRequiredFieldsEmpty(transaction));
 }
 
 /**
  * Check if the transaction has a defined route
  */
-function hasRoute(transaction: Transaction): boolean {
+function hasRoute(transaction: OnyxEntry<Transaction>): boolean {
     return !!transaction?.routes?.route0?.geometry?.coordinates;
-}
-
-/**
- * Get the transactions related to a report preview with receipts
- * Get the details linked to the IOU reportAction
- *
- * @deprecated Use Onyx.connect() or withOnyx() instead
- */
-function getLinkedTransaction(reportAction: OnyxEntry<ReportAction>): Transaction | EmptyObject {
-    let transactionID = '';
-
-    if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
-        transactionID = reportAction.originalMessage?.IOUTransactionID ?? '';
-    }
-
-    return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
 }
 
 function getAllReportTransactions(reportID?: string): Transaction[] {
@@ -537,10 +548,25 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
 }
 
 /**
+ * Check if transaction is on hold
+ */
+function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
+    if (!transaction) {
+        return false;
+    }
+
+    return !!transaction.comment?.hold;
+}
+
+/**
  * Checks if any violations for the provided transaction are of type 'violation'
  */
 function hasViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
     return Boolean(transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === 'violation'));
+}
+
+function getTransactionViolations(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): TransactionViolation[] | null {
+    return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID] ?? null;
 }
 
 /**
@@ -554,8 +580,8 @@ function calculateTaxAmount(percentage: string, amount: number) {
 /**
  * Calculates count of all tax enabled options
  */
-function getEnabledTaxRateCount(options: PolicyTaxRates) {
-    return Object.values(options).filter((option: PolicyTaxRate) => !option.isDisabled).length;
+function getEnabledTaxRateCount(options: TaxRates) {
+    return Object.values(options).filter((option: TaxRate) => !option.isDisabled).length;
 }
 
 export {
@@ -563,7 +589,6 @@ export {
     calculateTaxAmount,
     getEnabledTaxRateCount,
     getUpdatedTransaction,
-    getTransaction,
     getDescription,
     getHeaderTitleTranslationKey,
     getRequestType,
@@ -581,7 +606,9 @@ export {
     getCategory,
     getBillable,
     getTag,
-    getLinkedTransaction,
+    getTagArrayFromName,
+    getTagForDisplay,
+    getTransactionViolations,
     getAllReportTransactions,
     hasReceipt,
     hasEReceipt,
@@ -594,6 +621,7 @@ export {
     isCardTransaction,
     isPending,
     isPosted,
+    isOnHold,
     getWaypoints,
     isAmountMissing,
     isMerchantMissing,

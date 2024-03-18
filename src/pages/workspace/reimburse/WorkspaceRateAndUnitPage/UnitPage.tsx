@@ -2,6 +2,7 @@ import React, {useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -90,6 +91,7 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
 
                     <SelectionList
                         sections={[{data: unitOptions}]}
+                        ListItem={RadioListItem}
                         onSelectRow={(unit: OptionRow) => updateUnit(unit.value)}
                         initiallyFocusedOptionKey={unitOptions.find((unit) => unit.isSelected)?.keyForList}
                     />
