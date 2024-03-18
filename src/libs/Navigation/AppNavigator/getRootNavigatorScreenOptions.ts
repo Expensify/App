@@ -15,8 +15,6 @@ const commonScreenOptions: StackNavigationOptions = {
     animationTypeForReplace: 'push',
 };
 
-const SLIDE_LEFT_OUTPUT_RANGE_MULTIPLIER = -1;
-
 type GetRootNavigatorScreenOptions = (isSmallScreenWidth: boolean, styles: ThemeStyles, StyleUtils: StyleUtilsType) => ScreenOptions;
 
 const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScreenWidth, themeStyles, StyleUtils) => {
@@ -41,8 +39,9 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
         },
         leftModalNavigator: {
             ...commonScreenOptions,
-            cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props, SLIDE_LEFT_OUTPUT_RANGE_MULTIPLIER),
+            cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
             presentation: 'transparentModal',
+            gestureDirection: 'horizontal-inverted',
 
             // We want pop in LHP since there are some flows that would work weird otherwise
             animationTypeForReplace: 'pop',
@@ -91,6 +90,20 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
             cardStyle: {
                 ...StyleUtils.getNavigationModalCardStyle(),
                 paddingRight: isSmallScreenWidth ? 0 : variables.sideBarWidth,
+            },
+        },
+
+        bottomTab: {
+            ...commonScreenOptions,
+            cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
+
+            cardStyle: {
+                ...StyleUtils.getNavigationModalCardStyle(),
+                width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+
+                // We need to shift the sidebar to not be covered by the StackNavigator so it can be clickable.
+                marginLeft: isSmallScreenWidth ? 0 : -variables.sideBarWidth,
+                ...(isSmallScreenWidth ? {} : themeStyles.borderRight),
             },
         },
     };

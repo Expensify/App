@@ -1,23 +1,19 @@
-import type {ForwardedRef} from 'react';
-import type {GestureResponderEvent} from 'react-native';
+import type {RefObject} from 'react';
+import type {GestureResponderEvent, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
 type Source = ValueOf<typeof CONST.KYC_WALL_SOURCE>;
-
-type TransferMethod = ValueOf<typeof CONST.WALLET.TRANSFER_METHOD_TYPE>;
 
 type DOMRectProperties = 'top' | 'bottom' | 'left' | 'right' | 'height' | 'x' | 'y';
 
 type DomRect = Pick<DOMRect, DOMRectProperties>;
-
-type AnchorAlignment = {
-    horizontal: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL>;
-    vertical: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_VERTICAL>;
-};
 
 type AnchorPosition = {
     anchorPositionVertical: number;
@@ -49,7 +45,7 @@ type KYCWallProps = {
     chatReportID?: string;
 
     /** The IOU/Expense report we are paying */
-    iouReport?: OnyxEntry<Report>;
+    iouReport?: OnyxEntry<Report> | EmptyObject;
 
     /** Where the popover should be positioned relative to the anchor points. */
     anchorAlignment?: AnchorAlignment;
@@ -64,10 +60,10 @@ type KYCWallProps = {
     shouldShowPersonalBankAccountOption?: boolean;
 
     /** Callback for the end of the onContinue trigger on option selection */
-    onSuccessfulKYC: (iouPaymentType?: TransferMethod, currentSource?: Source) => void;
+    onSuccessfulKYC: (iouPaymentType?: PaymentMethodType, currentSource?: Source) => void;
 
     /** Children to build the KYC */
-    children: (continueAction: (event: GestureResponderEvent | KeyboardEvent | undefined, method: TransferMethod) => void, anchorRef: ForwardedRef<HTMLElement>) => void;
+    children: (continueAction: (event: GestureResponderEvent | KeyboardEvent | undefined, method?: PaymentMethodType) => void, anchorRef: RefObject<View>) => void;
 };
 
-export type {AnchorPosition, KYCWallProps, PaymentMethod, TransferMethod, DomRect};
+export type {AnchorPosition, KYCWallProps, PaymentMethod, DomRect, PaymentMethodType, Source};

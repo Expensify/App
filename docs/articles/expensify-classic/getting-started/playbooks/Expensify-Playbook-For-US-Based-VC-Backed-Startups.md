@@ -18,11 +18,11 @@ This playbook is built based on best practices we’ve developed after processin
 ## Step 1: Create your Expensify account
 If you don't already have one, go to *[new.expensify.com](https://new.expensify.com)* and sign up for an account with your work email address. The account is free so don’t worry about the cost at this stage.
 
-## Step 2: Create a Control Policy
-There are three policy types, but for your needs we recommend the Control Policy for the following reasons:
+## Step 2: Upgrade to a paid policy
+There are three paid policies; Individual, Collect, and Control, but for your needs we recommend the Control Policy for the following reasons:
 
 - You can cap spend on certain expense types, and set compliance controls so Expensify’s built-in Concierge Audit Tracking can detect violations on your behalf
-- As a growing business with VC-funding, the Control plan will scale with you as your team grows and you start to introduce more sophisticated approval workflows
+- As a growing business with VC-funding, the Control plan will scale with you as your team grows and you start to introduce more sophisticated [approval workflows](https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Approval-Workflows) (see Step 8 below). 
 
 To create your Control Policy:
 

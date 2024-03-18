@@ -2,7 +2,7 @@ const _ = require('underscore');
 const core = require('@actions/core');
 const github = require('@actions/github');
 const ActionUtils = require('../../../libs/ActionUtils');
-const GitUtils = require('../../../libs/GitUtils');
+const GitUtils = require('../../../libs/GitUtils').default;
 const GithubUtils = require('../../../libs/GithubUtils');
 
 async function run() {

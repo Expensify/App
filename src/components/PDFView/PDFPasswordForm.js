@@ -1,8 +1,9 @@
 import PropTypes from 'prop-types';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import _ from 'underscore';
 import Button from '@components/Button';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -55,13 +56,13 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
 
     const errorText = useMemo(() => {
         if (isPasswordInvalid) {
-            return translate('attachmentView.passwordIncorrect');
+            return 'attachmentView.passwordIncorrect';
         }
         if (!_.isEmpty(validationErrorText)) {
-            return translate(validationErrorText);
+            return validationErrorText;
         }
         return '';
-    }, [isPasswordInvalid, translate, validationErrorText]);
+    }, [isPasswordInvalid, validationErrorText]);
 
     useEffect(() => {
         if (!isFocused) {
@@ -149,6 +150,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
                 style={styles.mt4}
                 isLoading={shouldShowLoadingIndicator}
                 pressOnEnter
+                large
             />
         </ScrollView>
     ) : (

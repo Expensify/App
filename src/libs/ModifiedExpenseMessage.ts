@@ -1,16 +1,17 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTags, ReportAction} from '@src/types/onyx';
+import type {PolicyTagList, ReportAction} from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
 import type {ExpenseOriginalMessage} from './ReportUtils';
+import * as TransactionUtils from './TransactionUtils';
 
-let allPolicyTags: Record<string, PolicyTags | null> = {};
+let allPolicyTags: OnyxCollection<PolicyTagList> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
     waitForCollectionCallback: true,
@@ -96,14 +97,12 @@ function getForDistanceRequest(newDistance: string, oldDistance: string, newAmou
  * ModifiedExpense::getNewDotComment in Web-Expensify should match this.
  * If we change this function be sure to update the backend as well.
  */
-function getForReportAction(reportAction: OnyxEntry<ReportAction>): string {
+function getForReportAction(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>): string {
     if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
         return '';
     }
     const reportActionOriginalMessage = reportAction?.originalMessage as ExpenseOriginalMessage | undefined;
-    const policyID = ReportUtils.getReportPolicyID(reportAction?.reportID) ?? '';
-    const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-    const policyTagListName = PolicyUtils.getTagListName(policyTags) || Localize.translateLocal('common.tag');
+    const policyID = ReportUtils.getReportPolicyID(reportID) ?? '';
 
     const removalFragments: string[] = [];
     const setFragments: string[] = [];
@@ -188,16 +187,32 @@ function getForReportAction(reportAction: OnyxEntry<ReportAction>): string {
 
     const hasModifiedTag = reportActionOriginalMessage && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
     if (hasModifiedTag) {
-        buildMessageFragmentForValue(
-            PolicyUtils.getCleanedTagName(reportActionOriginalMessage?.tag ?? ''),
-            PolicyUtils.getCleanedTagName(reportActionOriginalMessage?.oldTag ?? ''),
-            policyTagListName,
-            true,
-            setFragments,
-            removalFragments,
-            changeFragments,
-            policyTagListName === Localize.translateLocal('common.tag'),
-        );
+        const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
+        const transactionTag = reportActionOriginalMessage?.tag ?? '';
+        const oldTransactionTag = reportActionOriginalMessage?.oldTag ?? '';
+        const splittedTag = TransactionUtils.getTagArrayFromName(transactionTag);
+        const splittedOldTag = TransactionUtils.getTagArrayFromName(oldTransactionTag);
+        const localizedTagListName = Localize.translateLocal('common.tag');
+
+        Object.keys(policyTags).forEach((policyTagKey, index) => {
+            const policyTagListName = PolicyUtils.getTagListName(policyTags, index) || localizedTagListName;
+
+            const newTag = splittedTag[index] ?? '';
+            const oldTag = splittedOldTag[index] ?? '';
+
+            if (newTag !== oldTag) {
+                buildMessageFragmentForValue(
+                    PolicyUtils.getCleanedTagName(newTag),
+                    PolicyUtils.getCleanedTagName(oldTag),
+                    policyTagListName,
+                    true,
+                    setFragments,
+                    removalFragments,
+                    changeFragments,
+                    policyTagListName === localizedTagListName,
+                );
+            }
+        });
     }
 
     const hasModifiedBillable = reportActionOriginalMessage && 'oldBillable' in reportActionOriginalMessage && 'billable' in reportActionOriginalMessage;

@@ -1,19 +1,11 @@
 import type {RefObject} from 'react';
-import type {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
+// eslint-disable-next-line no-restricted-imports
+import type {Text, View} from 'react-native';
 import type {PopoverAnchorPosition} from '@components/Modal/types';
 import type BaseModalProps from '@components/Modal/types';
 import type {WindowDimensionsProps} from '@components/withWindowDimensions/types';
-import type CONST from '@src/CONST';
+import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-
-type AnchorAlignment = {
-    /** The horizontal anchor alignment of the popover */
-    horizontal: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL>;
-
-    /** The vertical anchor alignment of the popover */
-    vertical: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_VERTICAL>;
-};
 
 type PopoverDimensions = {
     width: number;
@@ -29,13 +21,13 @@ type PopoverProps = BaseModalProps &
         anchorAlignment?: AnchorAlignment;
 
         /** The anchor ref of the popover */
-        anchorRef: RefObject<View | HTMLDivElement>;
+        anchorRef: RefObject<View | HTMLDivElement | Text>;
 
         /** Whether disable the animations */
         disableAnimation?: boolean;
 
         /** Whether we don't want to show overlay */
-        withoutOverlay: boolean;
+        withoutOverlay?: boolean;
 
         /** The dimensions of the popover */
         popoverDimensions?: PopoverDimensions;
@@ -49,4 +41,4 @@ type PopoverProps = BaseModalProps &
 
 type PopoverWithWindowDimensionsProps = PopoverProps & WindowDimensionsProps;
 
-export type {PopoverProps, PopoverWithWindowDimensionsProps, AnchorAlignment};
+export type {PopoverProps, PopoverWithWindowDimensionsProps};

@@ -1,3 +1,3 @@
-type UseActiveElementRole = () => string | null | undefined;
+type UseActiveElementRole = () => string | null;
 
 export default UseActiveElementRole;

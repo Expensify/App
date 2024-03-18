@@ -1,7 +1,7 @@
 home:
   href: home
   title: Welcome to ExpensifyHelp!
-  description: Find answers by using the search bar in the left-hand menu or by clicking the version of Expensify you're using to access the relevant resources.
+  description: Find answers using the search bar or click on the version of Expensify you're using to access the relevant resources.
 
 platforms:
   - href: expensify-classic
@@ -19,8 +19,8 @@ platforms:
         icon: /assets/images/accounting.svg
         description: From setting up your account to ensuring you get the most out of Expensify’s suite of features, click here to get started on streamlining your expense management journey.
 
-      - href: account-settings
-        title: Account Settings
+      - href: settings
+        title: Settings
         icon: /assets/images/gears.svg
         description: Discover how to personalize your profile, add secondary logins, and grant delegated access to employees with our comprehensive guide on Account Settings.
 
@@ -29,15 +29,15 @@ platforms:
         icon: /assets/images/bank-card.svg
         description: Find out how to connect Expensify to your financial institutions, track credit card transactions, and best practices for reconciling company cards.
 
-      - href: billing-and-subscriptions
-        title: Billing & Subscriptions
+      - href: expensify-billing
+        title: Expensify Billing
         icon: /assets/images/subscription-annual.svg
-        description: Here is where you can review Expensify's billing and subscription options, plan types, and payment methods.
+        description: Review Expensify's subscription options, plan types, and payment methods.
 
-      - href: expense-and-report-features
-        title: Expense & Report Features
+      - href: reports
+        title: Reports
         icon: /assets/images/money-receipt.svg
-        description: From enabling automatic expense auditing to tracking attendees, here is where you can review tips and tutorials to streamline expense management.
+        description: Set approval workflows and use Expensify’s automated report features.
 
       - href: expensify-card
         title: Expensify Card
@@ -49,10 +49,10 @@ platforms:
         icon: /assets/images/handshake.svg
         description: Discover how to get the most out of Expensify as an ExpensifyApproved! accountant partner. Learn how to set up your clients, receive CPE credits, and take advantage of your partner discount.
 
-      - href: get-paid-back
-        title: Get Paid Back
+      - href: expenses
+        title: Expenses
         icon: /assets/images/money-into-wallet.svg
-        description: Whether you submit an expense report or an invoice, find out here how to ensure a smooth and timely payback process every time.
+        description: Learn more about expense tracking and submission.
 
       - href: insights-and-custom-reporting
         title: Insights & Custom Reporting
@@ -64,20 +64,25 @@ platforms:
         icon: /assets/images/workflow.svg
         description: Enhance Expensify’s capabilities by integrating it with your accounting or HR software. Here is where you can learn more about creating a synchronized financial management ecosystem.
 
-      - href: manage-employees-and-report-approvals
-        title: Manage Employees & Report Approvals
+      - href: copilots-and-delegates
+        title: Copilots & Delegates
         icon: /assets/images/envelope-receipt.svg
-        description: Master the art of overseeing employees and reports by utilizing Expensify’s automation features and approval workflows.
+        description: Assign Copilots and delegate report approvals.
       
       - href: send-payments
         title: Send Payments
         icon: /assets/images/send-money.svg
         description: Uncover step-by-step guidance on sending direct reimbursements to employees, paying an invoice to a vendor, and utilizing third-party payment options.
       
-      - href: workspace-and-domain-settings
-        title: Workspace & Domain Settings
+      - href: workspaces
+        title: Workspaces
         icon: /assets/images/shield.svg
-        description: Discover how to set up and manage workspace, define user permissions, and implement compliance rules to maintain a secure and compliant financial management landscape.
+        description: Configure rules, settings, and limits for your company’s spending.
+
+      - href: domains
+        title: Domains
+        icon: /assets/images/domains.svg
+        description: Claim and verify your company’s domain to access additional management and security features.
   
   - href: new-expensify
     title: New Expensify
@@ -118,7 +123,3 @@ platforms:
         icon: /assets/images/money-into-wallet.svg
         description: Whether you submit an expense report or an invoice, find out here how to ensure a smooth and timely payback process every time.
 
-      - href: workspace-and-domain-settings
-        title: Workspace & Domain Settings
-        icon: /assets/images/shield.svg
-        description: Discover how to set up and manage your workspace, define user permissions, and implement domain-level rules.

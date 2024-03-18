@@ -2,8 +2,8 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 
 /* eslint-disable no-restricted-imports */
-import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, Text as RNText, View} from 'react-native';
-import {Dimensions} from 'react-native';
+import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
+import {DeviceEventEmitter, Dimensions} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
@@ -16,7 +16,7 @@ import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
 import type {ContextMenuAction} from './ContextMenuActions';
-import type {ContextMenuType, ReportActionContextMenu} from './ReportActionContextMenu';
+import type {ContextMenuAnchor, ContextMenuType, ReportActionContextMenu} from './ReportActionContextMenu';
 
 type Location = {
     x: number;
@@ -30,8 +30,7 @@ function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEv
     return event;
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<ReportActionContextMenu>) {
+function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<ReportActionContextMenu>) {
     const {translate} = useLocalize();
     const reportIDRef = useRef('0');
     const typeRef = useRef<ContextMenuType>();
@@ -65,13 +64,14 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<ReportA
     const [disabledActions, setDisabledActions] = useState<ContextMenuAction[]>([]);
 
     const contentRef = useRef<View>(null);
-    const anchorRef = useRef<View | HTMLDivElement>(null);
+    const anchorRef = useRef<View | HTMLDivElement | null>(null);
     const dimensionsEventListener = useRef<EmitterSubscription | null>(null);
-    const contextMenuAnchorRef = useRef<View | RNText | null>(null);
-    const contextMenuTargetNode = useRef<HTMLElement | null>(null);
+    const contextMenuAnchorRef = useRef<ContextMenuAnchor>(null);
+    const contextMenuTargetNode = useRef<HTMLDivElement | null>(null);
 
     const onPopoverShow = useRef(() => {});
     const onPopoverHide = useRef(() => {});
+    const onEmojiPickerToggle = useRef<undefined | ((state: boolean) => void)>();
     const onCancelDeleteModal = useRef(() => {});
     const onComfirmDeleteModal = useRef(() => {});
 
@@ -82,7 +82,7 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<ReportA
     const getContextMenuMeasuredLocation = useCallback(
         () =>
             new Promise<Location>((resolve) => {
-                if (contextMenuAnchorRef.current && typeof contextMenuAnchorRef.current.measureInWindow === 'function') {
+                if (contextMenuAnchorRef.current && 'measureInWindow' in contextMenuAnchorRef.current && typeof contextMenuAnchorRef.current.measureInWindow === 'function') {
                     contextMenuAnchorRef.current.measureInWindow((x, y) => resolve({x, y}));
                 } else {
                     resolve({x: 0, y: 0});
@@ -163,15 +163,22 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<ReportA
         isPinnedChat = false,
         isUnreadChat = false,
         disabledOptions = [],
+        shouldCloseOnTarget = false,
+        setIsEmojiPickerActive = () => {},
     ) => {
         const {pageX = 0, pageY = 0} = extractPointerEvent(event);
         contextMenuAnchorRef.current = contextMenuAnchor;
-        contextMenuTargetNode.current = event.target as HTMLElement;
-
+        contextMenuTargetNode.current = event.target as HTMLDivElement;
+        if (shouldCloseOnTarget) {
+            anchorRef.current = event.target as HTMLDivElement;
+        } else {
+            anchorRef.current = null;
+        }
         setInstanceID(Math.random().toString(36).substr(2, 5));
 
         onPopoverShow.current = onShow;
         onPopoverHide.current = onHide;
+        onEmojiPickerToggle.current = setIsEmojiPickerActive;
 
         new Promise<void>((resolve) => {
             if (!pageX && !pageY && contextMenuAnchorRef.current) {
@@ -250,10 +257,12 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<ReportA
         callbackWhenDeleteModalHide.current = () => (onComfirmDeleteModal.current = runAndResetCallback(onComfirmDeleteModal.current));
         const reportAction = reportActionRef.current;
         if (ReportActionsUtils.isMoneyRequestAction(reportAction) && reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
-            IOU.deleteMoneyRequest(reportAction?.originalMessage?.IOUTransactionID, reportAction);
+            IOU.deleteMoneyRequest(reportAction?.originalMessage?.IOUTransactionID ?? '', reportAction);
         } else if (reportAction) {
             Report.deleteReportComment(reportIDRef.current, reportAction);
         }
+
+        DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
         setIsDeleteCommentConfirmModalVisible(false);
     }, []);
 
@@ -324,6 +333,7 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<ReportA
                     contentRef={contentRef}
                     originalReportID={originalReportIDRef.current}
                     disabledActions={disabledActions}
+                    setIsEmojiPickerActive={onEmojiPickerToggle.current}
                 />
             </PopoverWithMeasuredContent>
             <ConfirmModal

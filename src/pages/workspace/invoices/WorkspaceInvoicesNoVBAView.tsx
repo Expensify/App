@@ -24,7 +24,7 @@ function WorkspaceInvoicesNoVBAView({policyID}: WorkspaceInvoicesNoVBAViewProps)
             <Section
                 title={translate('workspace.invoices.unlockOnlineInvoiceCollection')}
                 icon={Illustrations.MoneyIntoWallet}
-                containerStyles={[styles.cardSection]}
+                isCentralPane
             >
                 <View style={[styles.mv3]}>
                     <Text>{translate('workspace.invoices.unlockNoVBACopy')}</Text>

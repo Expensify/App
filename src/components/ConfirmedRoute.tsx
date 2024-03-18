@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect} from 'react';
 import type {ReactNode} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx/lib/types';
+import type {OnyxEntry} from 'react-native-onyx';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,13 +15,8 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import DistanceMapView from './DistanceMapView';
 import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
+import type {WayPoint} from './MapView/MapViewTypes';
 import PendingMapView from './MapView/PendingMapView';
-
-type WayPoint = {
-    id: string;
-    coordinate: [number, number];
-    markerComponent: () => ReactNode;
-};
 
 type ConfirmedRoutePropsOnyxProps = {
     /** Data about Mapbox token for calling Mapbox API */
@@ -30,16 +25,28 @@ type ConfirmedRoutePropsOnyxProps = {
 
 type ConfirmedRouteProps = ConfirmedRoutePropsOnyxProps & {
     /** Transaction that stores the distance request data */
-    transaction: Transaction;
+    transaction: OnyxEntry<Transaction>;
 };
 
 function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
     const {isOffline} = useNetwork();
-    const {route0: route} = transaction.routes ?? {};
-    const waypoints = transaction.comment?.waypoints ?? {};
+    const {route0: route} = transaction?.routes ?? {};
+    const waypoints = transaction?.comment?.waypoints ?? {};
     const coordinates = route?.geometry?.coordinates ?? [];
     const theme = useTheme();
     const styles = useThemeStyles();
+
+    const getMarkerComponent = useCallback(
+        (icon: IconAsset): ReactNode => (
+            <ImageSVG
+                src={icon}
+                width={CONST.MAP_MARKER_SIZE}
+                height={CONST.MAP_MARKER_SIZE}
+                fill={theme.icon}
+            />
+        ),
+        [theme],
+    );
 
     const getWaypointMarkers = useCallback(
         (waypointsData: WaypointCollection): WayPoint[] => {
@@ -65,19 +72,12 @@ function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
                     return {
                         id: `${waypoint.lng},${waypoint.lat},${index}`,
                         coordinate: [waypoint.lng, waypoint.lat] as const,
-                        markerComponent: (): ReactNode => (
-                            <ImageSVG
-                                src={MarkerComponent}
-                                width={CONST.MAP_MARKER_SIZE}
-                                height={CONST.MAP_MARKER_SIZE}
-                                fill={theme.icon}
-                            />
-                        ),
+                        markerComponent: (): ReactNode => getMarkerComponent(MarkerComponent),
                     };
                 })
                 .filter((waypoint): waypoint is WayPoint => !!waypoint);
         },
-        [theme],
+        [getMarkerComponent],
     );
 
     const waypointMarkers = getWaypointMarkers(waypoints);
@@ -87,26 +87,22 @@ function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
         return MapboxToken.stop;
     }, []);
 
-    return (
-        <>
-            {!isOffline && Boolean(mapboxAccessToken?.token) ? (
-                <DistanceMapView
-                    accessToken={mapboxAccessToken?.token ?? ''}
-                    mapPadding={CONST.MAP_PADDING}
-                    pitchEnabled={false}
-                    initialState={{
-                        zoom: CONST.MAPBOX.DEFAULT_ZOOM,
-                        location: waypointMarkers?.[0]?.coordinate ?? (CONST.MAPBOX.DEFAULT_COORDINATE as [number, number]),
-                    }}
-                    directionCoordinates={coordinates as Array<[number, number]>}
-                    style={[styles.mapView, styles.br4]}
-                    waypoints={waypointMarkers}
-                    styleURL={CONST.MAPBOX.STYLE_URL}
-                />
-            ) : (
-                <PendingMapView />
-            )}
-        </>
+    return !isOffline && Boolean(mapboxAccessToken?.token) ? (
+        <DistanceMapView
+            accessToken={mapboxAccessToken?.token ?? ''}
+            mapPadding={CONST.MAP_PADDING}
+            pitchEnabled={false}
+            initialState={{
+                zoom: CONST.MAPBOX.DEFAULT_ZOOM,
+                location: waypointMarkers?.[0]?.coordinate ?? (CONST.MAPBOX.DEFAULT_COORDINATE as [number, number]),
+            }}
+            directionCoordinates={coordinates as Array<[number, number]>}
+            style={[styles.mapView, styles.br4]}
+            waypoints={waypointMarkers}
+            styleURL={CONST.MAPBOX.STYLE_URL}
+        />
+    ) : (
+        <PendingMapView />
     );
 }
 

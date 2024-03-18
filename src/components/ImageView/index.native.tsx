@@ -1,34 +1,15 @@
 import React from 'react';
 import Lightbox from '@components/Lightbox';
-import {zoomRangeDefaultProps} from '@components/MultiGestureCanvas/propTypes';
-import type {ImageViewProps} from './types';
+import {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCanvas';
+import type ImageViewProps from './types';
 
-function ImageView({
-    isAuthTokenRequired = false,
-    url,
-    onScaleChanged,
-    onPress,
-    style,
-    zoomRange = zoomRangeDefaultProps.zoomRange,
-    onError,
-    isUsedInCarousel = false,
-    isSingleCarouselItem = false,
-    carouselItemIndex = 0,
-    carouselActiveItemIndex = 0,
-}: ImageViewProps) {
-    const hasSiblingCarouselItems = isUsedInCarousel && !isSingleCarouselItem;
-
+function ImageView({isAuthTokenRequired = false, url, style, zoomRange = DEFAULT_ZOOM_RANGE, onError}: ImageViewProps) {
     return (
         <Lightbox
-            source={url}
+            uri={url}
             zoomRange={zoomRange}
             isAuthTokenRequired={isAuthTokenRequired}
-            onScaleChanged={onScaleChanged}
-            onPress={onPress}
             onError={onError}
-            index={carouselItemIndex}
-            activeIndex={carouselActiveItemIndex}
-            hasSiblingCarouselItems={hasSiblingCarouselItems}
             style={style}
         />
     );

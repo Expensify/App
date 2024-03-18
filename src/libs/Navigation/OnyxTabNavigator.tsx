@@ -3,7 +3,7 @@ import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs
 import type {EventMapCore, NavigationState, ScreenListeners} from '@react-navigation/native';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx/lib/types';
+import type {OnyxEntry} from 'react-native-onyx';
 import Tab from '@userActions/Tab';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';

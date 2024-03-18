@@ -56,6 +56,14 @@ describe('Sidebar', () => {
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             };
 
+            const action = {
+                ...LHNTestUtils.getFakeReportAction('email1@test.com', 3, true),
+                actionName: 'CLOSED',
+                originalMessage: {
+                    reason: CONST.REPORT.ARCHIVE_REASON.DEFAULT,
+                },
+            };
+
             // Given the user is in all betas
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
             LHNTestUtils.getDefaultRenderedSidebarLinks('0');
@@ -69,12 +77,13 @@ describe('Sidebar', () => {
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionId]: action},
                         }),
                     )
                     .then(() => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Report (archived)');
+                        expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe('Report (archived)');
 
                         const hintMessagePreviewText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
                         const messagePreviewTexts = screen.queryAllByLabelText(hintMessagePreviewText);
@@ -118,13 +127,11 @@ describe('Sidebar', () => {
                     .then(() => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Report (archived)');
+                        expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe('Report (archived)');
 
                         const hintMessagePreviewText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
                         const messagePreviewTexts = screen.queryAllByLabelText(hintMessagePreviewText);
-                        expect(lodashGet(messagePreviewTexts, [0, 'props', 'children'])).toBe(
-                            'This workspace chat is no longer active because Vikings Policy is no longer an active workspace.',
-                        );
+                        expect(lodashGet(messagePreviewTexts, [0, 'props', 'children'])).toBe('This chat is no longer active because Vikings Policy is no longer an active workspace.');
                     })
             );
         });

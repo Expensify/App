@@ -11,8 +11,9 @@ const FontUtils = {
     },
     fontWeight: {
         bold: fontWeightBold,
+        normal: '400',
     },
-};
+} as const;
 
 type FontUtilsType = typeof FontUtils;
 

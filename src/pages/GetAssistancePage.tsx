@@ -1,13 +1,14 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx/lib/types';
+import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';

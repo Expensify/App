@@ -8,7 +8,6 @@ import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 
@@ -19,22 +18,20 @@ type WorkspaceAvatarOnyxProps = {
 
 type WorkspaceAvatarProps = WorkspaceAvatarOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.WORKSPACE_AVATAR>;
 
-function WorkspaceAvatar({route, policy, isLoadingApp = true}: WorkspaceAvatarProps) {
+function WorkspaceAvatar({policy, isLoadingApp = true}: WorkspaceAvatarProps) {
     const avatarURL = policy?.avatar ?? '' ? policy?.avatar ?? '' : ReportUtils.getDefaultWorkspaceAvatar(policy?.name ?? '');
 
     return (
         <AttachmentModal
-            // @ts-expect-error TODO: Remove this once AttachmentModal (https://github.com/Expensify/App/issues/25130) is migrated to TypeScript.
             headerTitle={policy?.name ?? ''}
             defaultOpen
             source={UserUtils.getFullSizeAvatar(avatarURL, 0)}
-            onModalClose={() => {
-                Navigation.goBack(ROUTES.WORKSPACE_SETTINGS.getRoute(route.params.policyID ?? ''));
-            }}
+            onModalClose={Navigation.goBack}
             isWorkspaceAvatar
             originalFileName={policy?.originalFileName ?? policy?.name ?? ''}
             shouldShowNotFoundPage={!Object.keys(policy ?? {}).length && !isLoadingApp}
-            isLoading={!Object.keys(policy ?? {}).length && isLoadingApp}
+            isLoading={!Object.keys(policy ?? {}).length && !!isLoadingApp}
+            maybeIcon
         />
     );
 }

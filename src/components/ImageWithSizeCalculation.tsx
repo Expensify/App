@@ -1,7 +1,8 @@
 import delay from 'lodash/delay';
-import React, {useEffect, useRef, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
@@ -19,13 +20,15 @@ type OnLoadNativeEvent = {
 
 type ImageWithSizeCalculationProps = {
     /** Url for image to display */
-    url: string | number;
+    url: string | ImageSourcePropType;
 
     /** Any additional styles to apply */
     style?: StyleProp<ViewStyle>;
 
     /** Callback fired when the image has been measured. */
     onMeasure: OnMeasure;
+
+    onLoadFailure?: () => void;
 
     /** Whether the image requires an authToken */
     isAuthTokenRequired: boolean;
@@ -37,18 +40,32 @@ type ImageWithSizeCalculationProps = {
  * performing some calculation on a network image after fetching dimensions so
  * it can be appropriately resized.
  */
-function ImageWithSizeCalculation({url, style, onMeasure, isAuthTokenRequired}: ImageWithSizeCalculationProps) {
+function ImageWithSizeCalculation({url, style, onMeasure, onLoadFailure, isAuthTokenRequired}: ImageWithSizeCalculationProps) {
     const styles = useThemeStyles();
     const isLoadedRef = useRef<boolean | null>(null);
     const [isImageCached, setIsImageCached] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
+    const {isOffline} = useNetwork();
+
+    const source = useMemo(() => (typeof url === 'string' ? {uri: url} : url), [url]);
 
     const onError = () => {
         Log.hmmm('Unable to fetch image to calculate size', {url});
+        onLoadFailure?.();
+        if (isLoadedRef.current) {
+            isLoadedRef.current = false;
+            setIsImageCached(false);
+        }
+        if (isOffline) {
+            return;
+        }
+        setIsLoading(false);
     };
 
     const imageLoadedSuccessfully = (event: OnLoadNativeEvent) => {
         isLoadedRef.current = true;
+        setIsLoading(false);
+        setIsImageCached(true);
         onMeasure({
             width: event.nativeEvent.width,
             height: event.nativeEvent.height,
@@ -73,7 +90,7 @@ function ImageWithSizeCalculation({url, style, onMeasure, isAuthTokenRequired}: 
         <View style={[styles.w100, styles.h100, style]}>
             <Image
                 style={[styles.w100, styles.h100]}
-                source={{uri: url}}
+                source={source}
                 isAuthTokenRequired={isAuthTokenRequired}
                 resizeMode={RESIZE_MODES.cover}
                 onLoadStart={() => {
@@ -81,10 +98,6 @@ function ImageWithSizeCalculation({url, style, onMeasure, isAuthTokenRequired}: 
                         return;
                     }
                     setIsLoading(true);
-                }}
-                onLoadEnd={() => {
-                    setIsLoading(false);
-                    setIsImageCached(true);
                 }}
                 onError={onError}
                 onLoad={imageLoadedSuccessfully}

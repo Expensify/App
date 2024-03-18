@@ -28,8 +28,8 @@ module.exports = (env) => {
         name: 'desktop-main',
         target: 'electron-main',
         entry: {
-            main: './desktop/main.js',
-            contextBridge: './desktop/contextBridge.js',
+            main: './desktop/main.ts',
+            contextBridge: './desktop/contextBridge.ts',
         },
         output: {
             filename: '[name].js',
@@ -53,15 +53,6 @@ module.exports = (env) => {
                     test: /\.tsx?$/,
                     loader: 'babel-loader',
                     exclude: /node_modules/,
-                },
-                {
-                    test: /react-native-onyx/,
-                    use: {
-                        loader: 'babel-loader',
-                        options: {
-                            presets: ['@babel/preset-react'],
-                        },
-                    },
                 },
             ],
         },

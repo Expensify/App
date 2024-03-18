@@ -1,6 +1,7 @@
 import type {RefObject} from 'react';
 import React, {createContext, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {Text, View} from 'react-native';
 import type {AnchorRef, PopoverContextProps, PopoverContextValue} from './types';
 
 const PopoverContext = createContext<PopoverContextValue>({
@@ -10,8 +11,8 @@ const PopoverContext = createContext<PopoverContextValue>({
     isOpen: false,
 });
 
-function elementContains(ref: RefObject<View | HTMLElement> | undefined, target: EventTarget | null) {
-    if (ref?.current && 'contains' in ref?.current && ref?.current?.contains(target as Node)) {
+function elementContains(ref: RefObject<View | HTMLElement | Text> | undefined, target: EventTarget | null) {
+    if (ref?.current && 'contains' in ref.current && ref?.current?.contains(target as Node)) {
         return true;
     }
     return false;
@@ -21,17 +22,15 @@ function PopoverContextProvider(props: PopoverContextProps) {
     const [isOpen, setIsOpen] = useState(false);
     const activePopoverRef = useRef<AnchorRef | null>(null);
 
-    const closePopover = useCallback((anchorRef?: RefObject<View | HTMLElement>) => {
+    const closePopover = useCallback((anchorRef?: RefObject<View | HTMLElement | Text>): boolean => {
         if (!activePopoverRef.current || (anchorRef && anchorRef !== activePopoverRef.current.anchorRef)) {
-            return;
+            return false;
         }
 
         activePopoverRef.current.close();
-        if (activePopoverRef.current.onCloseCallback) {
-            activePopoverRef.current.onCloseCallback();
-        }
         activePopoverRef.current = null;
         setIsOpen(false);
+        return true;
     }, []);
 
     useEffect(() => {
@@ -66,11 +65,13 @@ function PopoverContextProvider(props: PopoverContextProps) {
             if (e.key !== 'Escape') {
                 return;
             }
-            closePopover();
+            if (closePopover()) {
+                e.stopImmediatePropagation();
+            }
         };
-        document.addEventListener('keydown', listener, true);
+        document.addEventListener('keyup', listener, true);
         return () => {
-            document.removeEventListener('keydown', listener, true);
+            document.removeEventListener('keyup', listener, true);
         };
     }, [closePopover]);
 
@@ -107,9 +108,6 @@ function PopoverContextProvider(props: PopoverContextProps) {
                 closePopover(activePopoverRef.current.anchorRef);
             }
             activePopoverRef.current = popoverParams;
-            if (popoverParams?.onOpenCallback) {
-                popoverParams.onOpenCallback();
-            }
             setIsOpen(true);
         },
         [closePopover],

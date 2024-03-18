@@ -341,6 +341,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
             isVisible={isVisible}
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             onModalHide={resetState}
+            shouldUseCustomBackdrop
         >
             <ScreenWrapper
                 style={[styles.pb0]}
@@ -403,10 +404,8 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                                 >
                                     <View>
                                         <Button
-                                            medium
                                             icon={Expensicons.Rotate}
-                                            iconFill={theme.inverse}
-                                            iconStyles={[styles.mr0]}
+                                            iconFill={theme.icon}
                                             onPress={rotateImage}
                                         />
                                     </View>
@@ -420,6 +419,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                     style={[styles.m5]}
                     onPress={cropAndSaveImage}
                     pressOnEnter
+                    large
                     text={translate('common.save')}
                 />
             </ScreenWrapper>

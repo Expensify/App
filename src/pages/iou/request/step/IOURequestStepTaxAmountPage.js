@@ -1,5 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useRef} from 'react';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -36,14 +38,17 @@ const propTypes = {
     transaction: transactionPropTypes,
 
     /* Onyx Props */
-    /** Collection of tax rates attached to a policy */
-    policyTaxRates: taxPropTypes,
+    /** The policy of the report */
+    policy: PropTypes.shape({
+        /** Collection of tax rates attached to a policy */
+        taxRates: taxPropTypes,
+    }),
 };
 
 const defaultProps = {
     report: {},
     transaction: {},
-    policyTaxRates: {},
+    policy: {},
 };
 
 const getTaxAmount = (transaction, defaultTaxValue) => {
@@ -53,21 +58,39 @@ const getTaxAmount = (transaction, defaultTaxValue) => {
 
 function IOURequestStepTaxAmountPage({
     route: {
-        params: {iouType, reportID, transactionID, backTo, currency: selectedCurrency},
+        params: {iouType, reportID, transactionID, backTo},
     },
     transaction,
-    transaction: {currency: originalCurrency},
+    transaction: {currency},
     report,
-    policyTaxRates,
+    policy,
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const textInput = useRef(null);
     const isEditing = Navigation.getActiveRoute().includes('taxAmount');
 
-    const currency = selectedCurrency || originalCurrency;
-
     const focusTimeoutRef = useRef(null);
+
+    const isSaveButtonPressed = useRef(false);
+    const originalCurrency = useRef(null);
+    const taxRates = lodashGet(policy, 'taxRates', {});
+
+    useEffect(() => {
+        if (transaction.originalCurrency) {
+            originalCurrency.current = transaction.originalCurrency;
+        } else {
+            originalCurrency.current = currency;
+            IOU.setMoneyRequestOriginalCurrency_temporaryForRefactor(transactionID, currency);
+        }
+        return () => {
+            if (isSaveButtonPressed.current) {
+                return;
+            }
+            IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, originalCurrency.current, true);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useFocusEffect(
         useCallback(() => {
@@ -82,7 +105,7 @@ function IOURequestStepTaxAmountPage({
     );
 
     const navigateBack = () => {
-        Navigation.goBack(backTo || ROUTES.HOME);
+        Navigation.goBack(backTo);
     };
 
     const navigateToCurrencySelectionPage = () => {
@@ -93,10 +116,11 @@ function IOURequestStepTaxAmountPage({
     };
 
     const updateTaxAmount = (currentAmount) => {
+        isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount.amount));
         IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits);
 
-        IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, currency || CONST.CURRENCY.USD);
+        IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, currency || CONST.CURRENCY.USD, true);
 
         if (backTo) {
             Navigation.goBack(backTo);
@@ -122,7 +146,7 @@ function IOURequestStepTaxAmountPage({
             isEditing={isEditing}
             currency={currency}
             amount={transaction.taxAmount}
-            taxAmount={getTaxAmount(transaction, policyTaxRates.defaultValue)}
+            taxAmount={getTaxAmount(transaction, taxRates.defaultValue)}
             transaction={transaction}
             ref={(e) => (textInput.current = e)}
             onCurrencyButtonPress={navigateToCurrencySelectionPage}
@@ -159,8 +183,8 @@ export default compose(
     withWritableReportOrNotFound,
     withFullTransactionOrNotFound,
     withOnyx({
-        policyTaxRates: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${report ? report.policyID : '0'}`,
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
         },
     }),
 )(IOURequestStepTaxAmountPage);
