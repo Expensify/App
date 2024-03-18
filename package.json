@@ -105,7 +105,7 @@
     "expensify-common": "git+ssh://git@github.com/Expensify/expensify-common.git#7bfd55f0ce75a37423119029fde58cfbe57086d9",
     "expo": "^50.0.3",
     "expo-av": "~13.10.4",
-    "expo-image": "1.10.1",
+    "expo-image": "1.11.0",
     "expo-image-manipulator": "11.8.0",
     "fbjs": "^3.0.2",
     "htmlparser2": "^7.2.0",
