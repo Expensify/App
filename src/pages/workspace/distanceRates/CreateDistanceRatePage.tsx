@@ -1,20 +1,17 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
-import getPermittedDecimalSeparator from '@libs/getPermittedDecimalSeparator';
-import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
-import * as NumberUtils from '@libs/NumberUtils';
+import validateRateValue from '@libs/PolicyDistanceRatesUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
@@ -36,27 +33,16 @@ type CreateDistanceRatePageProps = CreateDistanceRatePageOnyxProps & StackScreen
 function CreateDistanceRatePage({policy, route}: CreateDistanceRatePageProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
-    const currency = policy !== null ? policy?.outputCurrency : CONST.CURRENCY.USD;
+    const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const customUnits = policy?.customUnits ?? {};
     const customUnitID = customUnits[Object.keys(customUnits)[0]]?.customUnitID ?? '';
     const customUnitRateID = generateCustomUnitID();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM> => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM> = {};
-        const rate = values.rate;
-        const parsedRate = MoneyRequestUtils.replaceAllDigits(rate, toLocaleDigit);
-        const decimalSeparator = toLocaleDigit('.');
-
-        // Allow one more decimal place for accuracy
-        const rateValueRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{1,${CurrencyUtils.getCurrencyDecimals(currency) + 1}})?$`, 'i');
-        if (!rateValueRegex.test(parsedRate) || parsedRate === '') {
-            errors.rate = 'workspace.reimburse.invalidRateError';
-        } else if (NumberUtils.parseFloatAnyLocale(parsedRate) <= 0) {
-            errors.rate = 'workspace.reimburse.lowRateError';
-        }
-        return errors;
-    };
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => validateRateValue(values, currency, toLocaleDigit),
+        [currency, toLocaleDigit],
+    );
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
         const newRate: Rate = {
