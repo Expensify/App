@@ -346,6 +346,9 @@ const CONST = {
         INSTALLED: 'installed',
         NOT_INSTALLED: 'not-installed',
     },
+    TAX_RATES: {
+        NAME_MAX_LENGTH: 50,
+    },
     PLATFORM: {
         IOS: 'ios',
         ANDROID: 'android',
