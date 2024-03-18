@@ -32,26 +32,29 @@ type DisabledFields = {
     reimbursable?: boolean;
 };
 
-type TaxRate = {
+type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Name of the a tax rate. */
     name: string;
 
     /** The value of the tax rate as percentage. */
     value: string;
 
-    /** The code associated with the tax rate. */
-    code: string;
+    /** The code associated with the tax rate. If a tax is created in old dot, code field is undefined */
+    code?: string;
 
     /** This contains the tax name and tax value as one name */
-    modifiedName: string;
+    modifiedName?: string;
 
     /** Indicates if the tax rate is disabled. */
     isDisabled?: boolean;
-};
+
+    /** An error message to display to the user */
+    errors?: OnyxCommon.Errors;
+}>;
 
 type TaxRates = Record<string, TaxRate>;
 
-type TaxRatesWithDefault = {
+type TaxRatesWithDefault = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Name of the tax */
     name: string;
 
@@ -66,7 +69,13 @@ type TaxRatesWithDefault = {
 
     /** List of tax names and values */
     taxes: TaxRates;
-};
+
+    /** An error message to display to the user */
+    errors?: OnyxCommon.Errors;
+
+    /** Error objects keyed by field name containing errors keyed by microtime */
+    errorFields?: OnyxCommon.ErrorFields;
+}>;
 
 type ConnectionLastSync = {
     successfulDate?: string;
