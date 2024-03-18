@@ -1,13 +1,15 @@
-const path = require('path');
-const kieMockGithub = require('@kie/mock-github');
-const utils = require('./utils/utils');
-const assertions = require('./assertions/authorChecklistAssertions');
-const mocks = require('./mocks/authorChecklistMocks');
-const eAct = require('./utils/ExtendedAct');
+import type {MockStep} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
+import * as kieMockGithub from '@kie/mock-github';
+import type {CreateRepositoryFile, MockGithub} from '@kie/mock-github';
+import path from 'path';
+import assertions from './assertions/authorChecklistAssertions';
+import mocks from './mocks/authorChecklistMocks';
+import eAct from './utils/ExtendedAct';
+import utils from './utils/utils';
 
 jest.setTimeout(90 * 1000);
-let mockGithub;
-const FILES_TO_COPY_INTO_TEST_REPO = [
+let mockGithub: MockGithub;
+const FILES_TO_COPY_INTO_TEST_REPO: CreateRepositoryFile[] = [
     ...utils.deepCopy(utils.FILES_TO_COPY_INTO_TEST_REPO),
     {
         src: path.resolve(__dirname, '..', '.github', 'workflows', 'authorChecklist.yml'),
@@ -18,7 +20,7 @@ const FILES_TO_COPY_INTO_TEST_REPO = [
 describe('test workflow authorChecklist', () => {
     const githubToken = 'dummy_github_token';
 
-    beforeAll(async () => {
+    beforeAll(() => {
         // in case of the tests being interrupted without cleanup the mock repo directory may be left behind
         // which breaks the next test run, this removes any possible leftovers
         utils.removeMockRepoDir();
@@ -47,11 +49,12 @@ describe('test workflow authorChecklist', () => {
         };
         describe('actor is not OSBotify', () => {
             it('executes workflow', async () => {
-                const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
-                const testMockSteps = {
+                const testMockSteps: MockStep = {
                     checklist: mocks.AUTHORCHECKLIST__CHECKLIST__STEP_MOCKS,
                 };
                 const result = await act.runEvent(event, {
@@ -66,11 +69,12 @@ describe('test workflow authorChecklist', () => {
         });
         describe('actor is OSBotify', () => {
             it('does not execute workflow', async () => {
-                const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
-                const testMockSteps = {
+                const testMockSteps: MockStep = {
                     checklist: mocks.AUTHORCHECKLIST__CHECKLIST__STEP_MOCKS,
                 };
                 const result = await act.runEvent(event, {
@@ -91,11 +95,12 @@ describe('test workflow authorChecklist', () => {
         };
         describe('actor is not OSBotify', () => {
             it('executes workflow', async () => {
-                const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
-                const testMockSteps = {
+                const testMockSteps: MockStep = {
                     checklist: mocks.AUTHORCHECKLIST__CHECKLIST__STEP_MOCKS,
                 };
                 const result = await act.runEvent(event, {
@@ -110,11 +115,12 @@ describe('test workflow authorChecklist', () => {
         });
         describe('actor is OSBotify', () => {
             it('does not execute workflow', async () => {
-                const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
-                const testMockSteps = {
+                const testMockSteps: MockStep = {
                     checklist: mocks.AUTHORCHECKLIST__CHECKLIST__STEP_MOCKS,
                 };
                 const result = await act.runEvent(event, {
@@ -135,11 +141,12 @@ describe('test workflow authorChecklist', () => {
         };
         describe('actor is not OSBotify', () => {
             it('executes workflow', async () => {
-                const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
-                const testMockSteps = {
+                const testMockSteps: MockStep = {
                     checklist: mocks.AUTHORCHECKLIST__CHECKLIST__STEP_MOCKS,
                 };
                 const result = await act.runEvent(event, {
@@ -154,11 +161,12 @@ describe('test workflow authorChecklist', () => {
         });
         describe('actor is OSBotify', () => {
             it('does not execute workflow', async () => {
-                const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
-                const testMockSteps = {
+                const testMockSteps: MockStep = {
                     checklist: mocks.AUTHORCHECKLIST__CHECKLIST__STEP_MOCKS,
                 };
                 const result = await act.runEvent(event, {
