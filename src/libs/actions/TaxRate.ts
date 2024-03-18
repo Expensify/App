@@ -38,7 +38,6 @@ function setPolicyCustomTaxName(policyID: string, customTaxName: string) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     taxRates: {
-                        name: customTaxName,
                         pendingFields: {name: null},
                         errorFields: null,
                     },
@@ -91,7 +90,6 @@ function setWorkspaceCurrencyDefault(policyID: string, taxCode: string) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     taxRates: {
-                        defaultExternalID: taxCode,
                         pendingFields: {defaultExternalID: null},
                         errorFields: null,
                     },
@@ -144,7 +142,6 @@ function setForeignCurrencyDefault(policyID: string, taxCode: string) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     taxRates: {
-                        foreignTaxDefault: taxCode,
                         pendingFields: {foreignTaxDefault: null},
                         errorFields: null,
                     },

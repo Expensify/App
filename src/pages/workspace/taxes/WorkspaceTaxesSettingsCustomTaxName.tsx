@@ -35,8 +35,8 @@ function WorkspaceTaxesSettingsCustomTaxName({
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const submit = ({Name}: WorkspaceTaxCustomName) => {
-        setPolicyCustomTaxName(policyID, Name);
+    const submit = ({name}: WorkspaceTaxCustomName) => {
+        setPolicyCustomTaxName(policyID, name);
         Navigation.goBack(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID));
     };
 
