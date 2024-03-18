@@ -6,6 +6,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
+import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -49,9 +50,6 @@ type AuthScreensProps = {
     /** The report ID of the last opened public room as anonymous user */
     lastOpenedPublicRoomID: OnyxEntry<string>;
 
-    /** Opt-in experimental mode that prevents certain Onyx keys from persisting to disk */
-    isUsingMemoryOnlyKeys: OnyxEntry<boolean>;
-
     /** The last Onyx update ID was applied to the client */
     initialLastUpdateIDAppliedToClient: OnyxEntry<number>;
 };
@@ -63,6 +61,8 @@ const loadConciergePage = () => require('../../../pages/ConciergePage').default 
 const loadProfileAvatar = () => require('../../../pages/settings/Profile/ProfileAvatar').default as React.ComponentType;
 const loadWorkspaceAvatar = () => require('../../../pages/workspace/WorkspaceAvatar').default as React.ComponentType;
 const loadReportAvatar = () => require('../../../pages/ReportAvatar').default as React.ComponentType;
+const loadReceiptView = () => require('../../../pages/TransactionReceiptPage').default as React.ComponentType;
+const loadWorkspaceJoinUser = () => require('@pages/workspace/WorkspaceJoinUserPage').default as React.ComponentType;
 
 let timezone: Timezone | null;
 let currentAccountID = -1;
@@ -81,8 +81,7 @@ Onyx.connect({
         currentAccountID = value.accountID ?? -1;
 
         if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
-            // This means sign in in RHP was successful, so we can dismiss the modal and subscribe to user events
-            Navigation.dismissModal();
+            // This means sign in in RHP was successful, so we can subscribe to user events
             User.subscribeToUserEvents();
         }
     },
@@ -128,6 +127,7 @@ function handleNetworkReconnect() {
     if (isLoadingApp) {
         App.openApp();
     } else {
+        Log.info('[handleNetworkReconnect] Sending ReconnectApp');
         App.reconnectApp(lastUpdateIDAppliedToClient);
     }
 }
@@ -149,7 +149,7 @@ const modalScreenListeners = {
     },
 };
 
-function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = false, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
+function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -167,11 +167,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = f
         const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
         const currentUrl = getCurrentUrl();
         const isLoggingInAsNewUser = !!session?.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
-        const shouldGetAllData = !!isUsingMemoryOnlyKeys || SessionUtils.didUserLogInDuringSession();
         // Sign out the current user if we're transitioning with a different user
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
+        const isSupportalTransition = currentUrl.includes('authTokenType=support');
         if (isLoggingInAsNewUser && isTransitioning) {
-            Session.signOutAndRedirectToSignIn();
+            Session.signOutAndRedirectToSignIn(false, isSupportalTransition);
             return;
         }
 
@@ -188,12 +188,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = f
 
         // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
         // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp().
-        // Note: If a Guide has enabled the memory only key mode then we do want to run OpenApp as their app will not be rehydrated with
-        // the correct state on refresh. They are explicitly opting out of storing data they would need (i.e. reports_) to take advantage of
-        // the optimizations performed during ReconnectApp.
-        if (shouldGetAllData) {
+        if (SessionUtils.didUserLogInDuringSession()) {
             App.openApp();
         } else {
+            Log.info('[AuthScreens] Sending ReconnectApp');
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
@@ -356,6 +354,24 @@ function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = f
                     options={screenOptions.fullScreen}
                     component={DesktopSignInRedirectPage}
                 />
+                <RootStack.Screen
+                    name={SCREENS.WORKSPACE_JOIN_USER}
+                    options={{
+                        headerShown: false,
+                        presentation: 'transparentModal',
+                    }}
+                    listeners={modalScreenListeners}
+                    getComponent={loadWorkspaceJoinUser}
+                />
+                <RootStack.Screen
+                    name={SCREENS.TRANSACTION_RECEIPT}
+                    options={{
+                        headerShown: false,
+                        presentation: 'transparentModal',
+                    }}
+                    getComponent={loadReceiptView}
+                    listeners={modalScreenListeners}
+                />
             </RootStack.Navigator>
         </View>
     );
@@ -371,9 +387,6 @@ export default withOnyx<AuthScreensProps, AuthScreensProps>({
     },
     lastOpenedPublicRoomID: {
         key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
-    },
-    isUsingMemoryOnlyKeys: {
-        key: ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS,
     },
     initialLastUpdateIDAppliedToClient: {
         key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
