@@ -98,8 +98,8 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                                 </View>
                             ),
                         })),
-                    )
-                    .flat(),
+                )
+                .flat(),
         [policyTagLists, selectedTags, styles.alignSelfCenter, styles.flexRow, styles.label, styles.p1, styles.pl2, styles.textSupporting, theme.icon, translate],
     );
 
