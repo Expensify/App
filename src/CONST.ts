@@ -346,6 +346,9 @@ const CONST = {
         INSTALLED: 'installed',
         NOT_INSTALLED: 'not-installed',
     },
+    TAX_RATES: {
+        NAME_MAX_LENGTH: 50,
+    },
     PLATFORM: {
         IOS: 'ios',
         ANDROID: 'android',
@@ -4064,10 +4067,6 @@ const CONST = {
 
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
-    },
-
-    TAX_RATES: {
-        NAME_MAX_LENGTH: 50,
     },
 } as const;
 
