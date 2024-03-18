@@ -1789,6 +1789,7 @@ export default {
             },
             genericFailureMessage: 'An error occurred while updating the category, please try again.',
             addCategory: 'Add category',
+            editCategory: 'Edit category',
             categoryRequiredError: 'Category name is required.',
             existingCategoryError: 'A category with this name already exists.',
             invalidCategoryName: 'Invalid category name.',
@@ -1836,6 +1837,7 @@ export default {
             },
         },
         tags: {
+            tagName: 'Tag name',
             requiresTag: 'Members must tag all spend',
             customTagName: 'Custom tag name',
             enableTag: 'Enable tag',
@@ -1854,6 +1856,12 @@ export default {
             addRate: 'Add rate',
             workspaceDefault: 'Workspace currency default',
             foreignDefault: 'Foreign currency default',
+            value: 'Value',
+            errors: {
+                taxRateAlreadyExists: 'This tax name is already in use.',
+                valuePercentageRange: 'Please enter a valid percentage between 0 and 100.',
+                genericFailureMessage: 'An error occurred while updating the tax rate, please try again.',
+            },
         },
         emptyWorkspace: {
             title: 'Create a workspace',

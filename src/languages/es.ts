@@ -1813,6 +1813,7 @@ export default {
             },
             genericFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
             addCategory: 'Añadir categoría',
+            editCategory: 'Editar categoría',
             categoryRequiredError: 'Lo nombre de la categoría es obligatorio.',
             existingCategoryError: 'Ya existe una categoría con este nombre.',
             invalidCategoryName: 'Lo nombre de la categoría es invalido.',
@@ -1860,6 +1861,7 @@ export default {
             },
         },
         tags: {
+            tagName: 'Nombre de etiqueta',
             requiresTag: 'Los miembros deben etiquetar todos los gastos',
             customTagName: 'Nombre de etiqueta personalizada',
             enableTag: 'Habilitar etiqueta',
@@ -1878,6 +1880,12 @@ export default {
             addRate: 'Añadir tasa',
             workspaceDefault: 'Moneda por defecto del espacio de trabajo',
             foreignDefault: 'Moneda extranjera por defecto',
+            value: 'Valor',
+            errors: {
+                taxRateAlreadyExists: 'Ya existe un impuesto con este nombre',
+                valuePercentageRange: 'Introduzca un porcentaje válido entre 0 y 100',
+                genericFailureMessage: 'Se produjo un error al actualizar el tipo impositivo, inténtelo nuevamente.',
+            },
         },
         emptyWorkspace: {
             title: 'Crea un espacio de trabajo',

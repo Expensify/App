@@ -276,12 +276,6 @@ const ROUTES = {
         route: 'r/:reportID/invite',
         getRoute: (reportID: string) => `r/${reportID}/invite` as const,
     },
-
-    // To see the available iouType, please refer to CONST.IOU.TYPE
-    MONEY_REQUEST: {
-        route: ':iouType/new/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/${reportID}` as const,
-    },
     MONEY_REQUEST_AMOUNT: {
         route: ':iouType/new/amount/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/amount/${reportID}` as const,
@@ -314,13 +308,6 @@ const ROUTES = {
         route: ':iouType/new/address/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/address/${reportID}` as const,
     },
-    MONEY_REQUEST_DISTANCE_TAB: {
-        route: ':iouType/new/:reportID?/distance',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/${reportID}/distance` as const,
-    },
-    MONEY_REQUEST_MANUAL_TAB: ':iouType/new/:reportID?/manual',
-    MONEY_REQUEST_SCAN_TAB: ':iouType/new/:reportID?/scan',
-
     MONEY_REQUEST_CREATE: {
         route: 'create/:iouType/start/:transactionID/:reportID',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}` as const,
@@ -555,19 +542,23 @@ const ROUTES = {
     },
     WORKSPACE_CATEGORY_SETTINGS: {
         route: 'settings/workspaces/:policyID/categories/:categoryName',
-        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURI(categoryName)}` as const,
+        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}` as const,
     },
     WORKSPACE_CATEGORIES_SETTINGS: {
         route: 'settings/workspaces/:policyID/categories/settings',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/settings` as const,
     },
     WORKSPACE_MORE_FEATURES: {
-        route: 'workspace/:policyID/more-features',
-        getRoute: (policyID: string) => `workspace/${policyID}/more-features` as const,
+        route: 'settings/workspaces/:policyID/more-features',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/more-features` as const,
     },
     WORKSPACE_CATEGORY_CREATE: {
         route: 'settings/workspaces/:policyID/categories/new',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/new` as const,
+    },
+    WORKSPACE_CATEGORY_EDIT: {
+        route: 'settings/workspaces/:policyID/categories/:categoryName/edit',
+        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/edit` as const,
     },
     WORKSPACE_TAGS: {
         route: 'settings/workspaces/:policyID/tags',
@@ -585,6 +576,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/tags/edit',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/edit` as const,
     },
+    WORKSPACE_TAG_SETTINGS: {
+        route: 'settings/workspaces/:policyID/tag/:tagName',
+        getRoute: (policyID: string, tagName: string) => `settings/workspaces/${policyID}/tag/${encodeURIComponent(tagName)}` as const,
+    },
     WORKSPACE_TAXES: {
         route: 'settings/workspaces/:policyID/taxes',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/taxes` as const,
@@ -597,9 +592,17 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/members/:accountID/role-selection',
         getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/members/${accountID}/role-selection`, backTo),
     },
+    WORKSPACE_TAX_CREATE: {
+        route: 'settings/workspaces/:policyID/taxes/new',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/taxes/new` as const,
+    },
     WORKSPACE_DISTANCE_RATES: {
-        route: 'workspace/:policyID/distance-rates',
-        getRoute: (policyID: string) => `workspace/${policyID}/distance-rates` as const,
+        route: 'settings/workspaces/:policyID/distance-rates',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/distance-rates` as const,
+    },
+    WORKSPACE_CREATE_DISTANCE_RATE: {
+        route: 'settings/workspaces/:policyID/distance-rates/new',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/distance-rates/new` as const,
     },
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {

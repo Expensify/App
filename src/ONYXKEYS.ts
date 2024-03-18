@@ -330,8 +330,8 @@ const ONYXKEYS = {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
         ADD_DEBIT_CARD_FORM_DRAFT: 'addDebitCardFormDraft',
         WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
-        WORKSPACE_CATEGORY_CREATE_FORM: 'workspaceCategoryCreate',
-        WORKSPACE_CATEGORY_CREATE_FORM_DRAFT: 'workspaceCategoryCreateDraft',
+        WORKSPACE_CATEGORY_FORM: 'workspaceCategoryForm',
+        WORKSPACE_CATEGORY_FORM_DRAFT: 'workspaceCategoryFormDraft',
         WORKSPACE_TAG_CREATE_FORM: 'workspaceTagCreate',
         WORKSPACE_TAG_CREATE_FORM_DRAFT: 'workspaceTagCreateDraft',
         WORKSPACE_SETTINGS_FORM_DRAFT: 'workspaceSettingsFormDraft',
@@ -339,6 +339,8 @@ const ONYXKEYS = {
         WORKSPACE_DESCRIPTION_FORM_DRAFT: 'workspaceDescriptionFormDraft',
         WORKSPACE_RATE_AND_UNIT_FORM: 'workspaceRateAndUnitForm',
         WORKSPACE_RATE_AND_UNIT_FORM_DRAFT: 'workspaceRateAndUnitFormDraft',
+        POLICY_CREATE_DISTANCE_RATE_FORM: 'policyCreateDistanceRateForm',
+        POLICY_CREATE_DISTANCE_RATE_FORM_DRAFT: 'policyCreateDistanceRateFormDraft',
         CLOSE_ACCOUNT_FORM: 'closeAccount',
         CLOSE_ACCOUNT_FORM_DRAFT: 'closeAccountDraft',
         PROFILE_SETTINGS_FORM: 'profileSettingsForm',
@@ -409,6 +411,8 @@ const ONYXKEYS = {
         EXIT_SURVEY_RESPONSE_FORM_DRAFT: 'exitSurveyResponseFormDraft',
         POLICY_TAG_NAME_FORM: 'policyTagNameForm',
         POLICY_TAG_NAME_FORM_DRAFT: 'policyTagNameFormDraft',
+        WORKSPACE_NEW_TAX_FORM: 'workspaceNewTaxForm',
+        WORKSPACE_NEW_TAX_FORM_DRAFT: 'workspaceNewTaxFormDraft',
     },
 } as const;
 
@@ -417,7 +421,7 @@ type AllOnyxKeys = DeepValueOf<typeof ONYXKEYS>;
 type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM]: FormTypes.AddDebitCardForm;
     [ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM]: FormTypes.WorkspaceSettingsForm;
-    [ONYXKEYS.FORMS.WORKSPACE_CATEGORY_CREATE_FORM]: FormTypes.WorkspaceCategoryCreateForm;
+    [ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM]: FormTypes.WorkspaceCategoryForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAG_CREATE_FORM]: FormTypes.WorkspaceTagCreateForm;
     [ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM]: FormTypes.WorkspaceRateAndUnitForm;
     [ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM]: FormTypes.CloseAccountForm;
@@ -456,6 +460,8 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT]: FormTypes.PersonalBankAccountForm;
     [ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM]: FormTypes.WorkspaceDescriptionForm;
     [ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM]: FormTypes.PolicyTagNameForm;
+    [ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM]: FormTypes.WorkspaceNewTaxForm;
+    [ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM]: FormTypes.PolicyCreateDistanceRateForm;
 };
 
 type OnyxFormDraftValuesMapping = {
