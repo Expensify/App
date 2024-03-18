@@ -160,6 +160,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
     const handleDeleteCategories = () => {
         setSelectedCategories({});
         deleteWorkspaceCategories(route.params.policyID, selectedCategoriesArray);
+        setDeleteCategoriesConfirmModalVisible(false);
     };
 
     const getHeaderButtons = () => {
