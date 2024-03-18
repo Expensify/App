@@ -1838,6 +1838,7 @@ export default {
             },
         },
         tags: {
+            tagName: 'Tag name',
             requiresTag: 'Members must tag all spend',
             customTagName: 'Custom tag name',
             enableTag: 'Enable tag',

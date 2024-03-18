@@ -221,6 +221,7 @@ const SCREENS = {
         TAGS_EDIT: 'Tags_Edit',
         TAXES: 'Workspace_Taxes',
         TAG_CREATE: 'Tag_Create',
+        TAG_SETTINGS: 'Tag_Settings',
         CURRENCY: 'Workspace_Profile_Currency',
         WORKFLOWS: 'Workspace_Workflows',
         WORKFLOWS_PAYER: 'Workspace_Workflows_Payer',
@@ -240,6 +241,7 @@ const SCREENS = {
         OWNER_CHANGE_CHECK: 'Workspace_Owner_Change_Check',
         OWNER_PAYMENT_CARD_FORM: 'Workspace_Owner_Payment_Card_Form',
         DISTANCE_RATES: 'Distance_Rates',
+        CREATE_DISTANCE_RATE: 'Create_Distance_Rate',
     },
 
     EDIT_REQUEST: {
