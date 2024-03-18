@@ -220,7 +220,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: {
         backTo: Routes;
     };
-    [SCREENS.WORKSPACE.TAXES_NEW]: {
+    [SCREENS.WORKSPACE.TAX_CREATE]: {
         policyID: string;
     };
 } & ReimbursementAccountNavigatorParamList;
