@@ -86,6 +86,7 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
                                 title={policyCategory.name}
                                 description={translate(`workspace.categories.categoryName`)}
                                 onPress={navigateToEditCategory}
+                                shouldShowRightIcon
                             />
                         </View>
                     </ScreenWrapper>
