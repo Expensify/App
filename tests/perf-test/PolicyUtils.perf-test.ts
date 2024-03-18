@@ -17,7 +17,7 @@ describe('PolicyUtils', () => {
             await measureFunction(() => getMemberAccountIDsForWorkspace(policyMembers, personalDetails));
         });
 
-        test('500 policy members with errors and full personal details', async () => {
+        test('500 policy members with errors and personal details', async () => {
             const policyMembers = createCollection<PolicyMember>(
                 (_, index) => index,
                 () => ({
