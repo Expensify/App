@@ -15,10 +15,12 @@ jest.spyOn(GithubUtils, 'octokit', 'get').mockReturnValue({
     },
 } as RestEndpointMethods);
 
+// @ts-expect-error -- it's a static getter
 jest.spyOn(GithubUtils, 'paginate', 'get').mockReturnValue(<T, TData>(endpoint: (params: Record<string, T>) => Promise<{data: TData}>, params: Record<string, T>) =>
     endpoint(params).then((response) => response.data),
 );
 
+// @ts-expect-error -- it's a static getter
 jest.spyOn(GithubUtils, 'graphql', 'get').mockReturnValue(mockGraphql);
 
 jest.mock('@actions/github', () => ({
@@ -71,6 +73,7 @@ describe('Post test build comments action tests', () => {
         when(core.getInput).calledWith('IOS_LINK').mockReturnValue('https://expensify.app/IOS_LINK');
         when(core.getInput).calledWith('WEB_LINK').mockReturnValue('https://expensify.app/WEB_LINK');
         when(core.getInput).calledWith('DESKTOP_LINK').mockReturnValue('https://expensify.app/DESKTOP_LINK');
+        // @ts-expect-error -- TODO: Fix this
         createCommentMock.mockResolvedValue(true);
         mockListComments.mockResolvedValue({
             data: [

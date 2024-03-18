@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
 import * as core from '@actions/core';
 import {getOctokitOptions, GitHub} from '@actions/github/lib/utils';
 import type {Octokit as OctokitCore} from '@octokit/core';
@@ -325,7 +325,9 @@ class GithubUtils {
                 const sortedPRList = [...new Set(arrayDifference(PRList, Object.keys(internalQAPRMap)))].sort(
                     (a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b),
                 );
-                const sortedDeployBlockers = [...new Set(deployBlockers)].sort((pr) => GithubUtils.getIssueOrPullRequestNumberFromURL(pr));
+                const sortedDeployBlockers = [...new Set(deployBlockers)].sort(
+                    (a, b) => GithubUtils.getIssueOrPullRequestNumberFromURL(a) - GithubUtils.getIssueOrPullRequestNumberFromURL(b),
+                );
 
                 // Tag version and comparison URL
                 // eslint-disable-next-line max-len
@@ -588,5 +590,6 @@ class GithubUtils {
 }
 
 export default GithubUtils;
+module.exports = GithubUtils;
 export {ISSUE_OR_PULL_REQUEST_REGEX, POLL_RATE};
 export type {ListForRepoMethod};

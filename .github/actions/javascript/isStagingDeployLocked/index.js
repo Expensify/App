@@ -11476,7 +11476,7 @@ function wrappy (fn, cb) {
 /***/ }),
 
 /***/ 9296:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+/***/ (function(module, exports, __nccwpck_require__) {
 
 "use strict";
 
@@ -11508,7 +11508,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.POLL_RATE = exports.ISSUE_OR_PULL_REQUEST_REGEX = void 0;
-/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
 const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(3030);
 const plugin_paginate_rest_1 = __nccwpck_require__(4193);
@@ -11757,7 +11757,7 @@ class GithubUtils {
             console.log('Found the following NO QA PRs:', noQAPRs);
             const verifiedOrNoQAPRs = [...new Set([...verifiedPRList, ...noQAPRs])];
             const sortedPRList = [...new Set((0, arrayDifference_1.default)(PRList, Object.keys(internalQAPRMap)))].sort((a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b));
-            const sortedDeployBlockers = [...new Set(deployBlockers)].sort((pr) => GithubUtils.getIssueOrPullRequestNumberFromURL(pr));
+            const sortedDeployBlockers = [...new Set(deployBlockers)].sort((a, b) => GithubUtils.getIssueOrPullRequestNumberFromURL(a) - GithubUtils.getIssueOrPullRequestNumberFromURL(b));
             // Tag version and comparison URL
             // eslint-disable-next-line max-len
             let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n`;
@@ -11984,6 +11984,7 @@ class GithubUtils {
     }
 }
 exports["default"] = GithubUtils;
+module.exports = GithubUtils;
 
 
 /***/ }),

@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
 import core from '@actions/core';
 import {context} from '@actions/github';
 import * as ActionUtils from '../../../libs/ActionUtils';
@@ -134,4 +134,4 @@ if (require.main === module) {
     run();
 }
 
-export default run;
+module.exports = run;
