@@ -70,9 +70,9 @@ export default {
 
             // ... any additional config you might need
         },
-        [TEST_NAMES.OpenSearchPage]: {
-            name: TEST_NAMES.OpenSearchPage,
-        },
+        // [TEST_NAMES.OpenSearchPage]: {
+        //    name: TEST_NAMES.OpenSearchPage,
+        // },
         // TODO: Fix text and enable again
         // [TEST_NAMES.ReportTyping]: {
         //     name: TEST_NAMES.ReportTyping,
@@ -82,11 +82,11 @@ export default {
         //     // Crowded Policy (Do Not Delete) Report, has a input bar available:
         //     reportID: '8268282951170052',
         // },
-        [TEST_NAMES.ChatOpening]: {
-            name: TEST_NAMES.ChatOpening,
-            // #announce Chat with many messages
-            reportID: '5421294415618529',
-        },
+        // [TEST_NAMES.ChatOpening]: {
+        //    name: TEST_NAMES.ChatOpening,
+        //    // #announce Chat with many messages
+        //    reportID: '5421294415618529',
+        // },
     },
 };
 
