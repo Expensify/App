@@ -98,6 +98,20 @@ function getReportID(route: ReportScreenNavigationProps['route']): string {
     return String(route.params?.reportID || 0);
 }
 
+/**
+ * Check is the report is deleted.
+ * We currently use useMemo to memorize every properties of the report
+ * so we can't check using isEmpty.
+ *
+ * @param report
+ */
+function isEmpty(report: OnyxTypes.Report): boolean {
+    if (isEmptyObject(report)) {
+        return true;
+    }
+    return !Object.values(report).some((value) => value !== undefined && value !== '');
+}
+
 function ReportScreen({
     betas = [],
     route,
@@ -394,7 +408,7 @@ function ReportScreen({
                 !onyxReportID &&
                 prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN &&
                 (report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED || (!report.statusNum && !prevReport.parentReportID && prevReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM))) ||
-            ((ReportUtils.isMoneyRequest(prevReport) || ReportUtils.isMoneyRequestReport(prevReport)) && isEmptyObject(report))
+            ((ReportUtils.isMoneyRequest(prevReport) || ReportUtils.isMoneyRequestReport(prevReport) || ReportUtils.isPolicyExpenseChat(prevReport)) && isEmpty(report))
         ) {
             Navigation.dismissModal();
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
