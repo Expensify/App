@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -29,6 +29,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Beta, ReimbursementAccount, Session} from '@src/types/onyx';
+import ConfirmModal from '@components/ConfirmModal';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
@@ -53,6 +54,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
     const policyApproverName = useMemo(() => PersonalDetailsUtils.getPersonalDetailByEmail(policyApproverEmail ?? '')?.displayName ?? policyApproverEmail, [policyApproverEmail]);
     const containerStyle = useMemo(() => [styles.ph8, styles.mhn8, styles.ml11, styles.pv3, styles.pr0, styles.pl4, styles.mr0, styles.widthAuto, styles.mt4], [styles]);
     const canUseDelayedSubmission = Permissions.canUseWorkflowsDelayedSubmission(betas);
+    const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
 
     const displayNameForAuthorizedPayer = useMemo(() => {
         const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([policy?.reimburserAccountID ?? 0], session?.accountID ?? 0);
@@ -65,6 +67,15 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
     const fetchData = () => {
         Policy.openPolicyWorkflowsPage(policy?.id ?? route.params.policyID);
     };
+
+    const confirmCurrencyChangeAndHideModal = useCallback(() => {
+        if (!policy) {
+            return;
+        }
+        Policy.updateGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
+        setIsCurrencyModalOpen(false);
+        navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
+    }, [policy, route.params.policyID]);
 
     useNetwork({onReconnect: fetchData});
 
@@ -150,8 +161,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                 title: translate('workflowsPage.makeOrTrackPaymentsTitle'),
                 subtitle: translate('workflowsPage.makeOrTrackPaymentsDescription'),
                 onToggle: () => {
-                    const isActive = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
-                    const newReimbursementChoice = isActive ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+                    const newReimbursementChoice = !hasVBA ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
                     const newReimburserAccountID =
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         PersonalDetailsUtils.getPersonalDetailByEmail(policy?.reimburserEmail ?? '')?.accountID || policy?.reimburserAccountID || policy?.ownerAccountID;
@@ -165,7 +175,13 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                             descriptionTextStyle={styles.textNormalThemeText}
                             title={hasVBA ? translate('common.bankAccount') : translate('workflowsPage.connectBankAccount')}
                             description={state === BankAccount.STATE.OPEN ? bankDisplayName : undefined}
-                            onPress={() => navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID))}
+                            onPress={() => {
+                                if (!Policy.hasValidCurrencyForDirectReimbursement(policy?.outputCurrency ?? '')) {
+                                    setIsCurrencyModalOpen(true);
+                                    return;
+                                }
+                                navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
+                            }}
                             shouldShowRightIcon
                             wrapperStyle={containerStyle}
                             hoverAndPressStyle={[styles.mr0, styles.br2]}
@@ -257,6 +273,16 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                             data={optionItems}
                             renderItem={renderOptionItem}
                             keyExtractor={(item: ToggleSettingOptionRowProps) => item.title}
+                        />
+                        <ConfirmModal
+                            title={translate('workspace.bankAccount.workspaceCurrency')}
+                            isVisible={isCurrencyModalOpen}
+                            onConfirm={confirmCurrencyChangeAndHideModal}
+                            onCancel={() => setIsCurrencyModalOpen(false)}
+                            prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
+                            confirmText={translate('workspace.bankAccount.updateToUSD')}
+                            cancelText={translate('common.cancel')}
+                            danger
                         />
                     </View>
                 </Section>
