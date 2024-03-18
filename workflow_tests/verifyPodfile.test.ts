@@ -1,12 +1,15 @@
-const path = require('path');
-const kieMockGithub = require('@kie/mock-github');
-const utils = require('./utils/utils');
-const assertions = require('./assertions/verifyPodfileAssertions');
-const mocks = require('./mocks/verifyPodfileMocks');
-const eAct = require('./utils/ExtendedAct');
+/* eslint-disable @typescript-eslint/require-await */
+import kieMockGithub from '@kie/mock-github';
+import type {MockGithub} from '@kie/mock-github';
+import path from 'path';
+import assertions from './assertions/verifyPodfileAssertions';
+import mocks from './mocks/verifyPodfileMocks';
+import * as eAct from './utils/ExtendedAct';
+import * as utils from './utils/utils';
 
 jest.setTimeout(90 * 1000);
-let mockGithub;
+let mockGithub: MockGithub;
+
 const FILES_TO_COPY_INTO_TEST_REPO = [
     ...utils.deepCopy(utils.FILES_TO_COPY_INTO_TEST_REPO),
     {
@@ -48,7 +51,7 @@ describe('test workflow verifyPodfile', () => {
             action: 'opened',
         };
         it('executes workflow', async () => {
-            const repoPath = mockGithub.repo.getPath('testVerifyPodfileWorkflowRepo') || '';
+            const repoPath = mockGithub.repo.getPath('testVerifyPodfileWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'verifyPodfile.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
@@ -67,7 +70,7 @@ describe('test workflow verifyPodfile', () => {
         });
         describe('actor is OSBotify', () => {
             it('does not execute workflow', async () => {
-                const repoPath = mockGithub.repo.getPath('testVerifyPodfileWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testVerifyPodfileWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'verifyPodfile.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
@@ -92,7 +95,7 @@ describe('test workflow verifyPodfile', () => {
             action: 'synchronize',
         };
         it('executes workflow', async () => {
-            const repoPath = mockGithub.repo.getPath('testVerifyPodfileWorkflowRepo') || '';
+            const repoPath = mockGithub.repo.getPath('testVerifyPodfileWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'verifyPodfile.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
@@ -111,7 +114,7 @@ describe('test workflow verifyPodfile', () => {
         });
         describe('actor is OSBotify', () => {
             it('does not execute workflow', async () => {
-                const repoPath = mockGithub.repo.getPath('testVerifyPodfileWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testVerifyPodfileWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'verifyPodfile.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
