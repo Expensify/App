@@ -1,48 +1,30 @@
-import type {ListItem} from '@components/SelectionList/types';
+import type {MenuItemBaseProps} from '@components/MenuItem';
+import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 import type {MaybePhraseKey} from '@libs/Localize';
 
-type ValuePickerListItem = ListItem & {
-    value?: string;
-};
+type TextProps = Exclude<BaseTextInputProps, 'value' | 'onInputChange'>;
 
-type ValuePickerItem = {
-    label?: string;
-    value?: string;
-    description?: string;
-};
-
-type ValueSelectorModalProps = {
+type TextSelectorModalProps = {
     /** Whether the modal is visible */
     isVisible: boolean;
 
-    /** Items to pick from */
-    items?: ValuePickerItem[];
-
-    /** The selected item */
-    selectedItem?: ValuePickerItem;
-
-    /** Label for values */
-    label?: string;
+    /** Current value */
+    value?: string;
 
     /** Function to call when the user selects a item */
-    onItemSelected?: (item: ValuePickerListItem) => void;
+    onValueSelected?: (value: string) => void;
 
     /** Function to call when the user closes the modal */
-    onClose?: () => void;
+    onClose: () => void;
 
     /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
-};
+} & Pick<MenuItemBaseProps, 'description'> &
+    TextProps;
 
-type ValuePickerProps = {
+type TextPickerProps = {
     /** Item to display */
     value?: string;
-
-    /** Label of picker */
-    label?: string;
-
-    /** Items to pick from */
-    items?: ValuePickerItem[];
 
     /** A placeholder value to display */
     placeholder?: string;
@@ -58,6 +40,7 @@ type ValuePickerProps = {
 
     /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
-};
+} & Pick<MenuItemBaseProps, 'rightLabel' | 'description'> &
+    TextProps;
 
-export type {ValuePickerItem, ValueSelectorModalProps, ValuePickerProps, ValuePickerListItem};
+export type {TextSelectorModalProps, TextPickerProps};
