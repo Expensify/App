@@ -139,16 +139,15 @@ const createServerInstance = (): ServerInstance => {
 
             case Routes.testNativeCommand: {
                 getPostJSONRequestData<NativeCommand>(req, res)
-                    ?.then((data) =>
-                        nativeCommands.executeFromPayload(data?.actionName, data?.payload).then((status) => {
-                            if (status) {
-                                res.end('ok');
-                                return;
-                            }
-                            res.statusCode = 500;
-                            res.end('Error executing command');
-                        }),
-                    )
+                    ?.then((data) => {
+                        const status = nativeCommands.executeFromPayload(data?.actionName, data?.payload);
+                        if (status) {
+                            res.end('ok');
+                            return;
+                        }
+                        res.statusCode = 500;
+                        res.end('Error executing command');
+                    })
                     .catch((error) => {
                         Logger.error('Error executing command', error);
                         res.statusCode = 500;
