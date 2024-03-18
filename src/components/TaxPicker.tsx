@@ -2,6 +2,7 @@ import React, {useMemo, useState} from 'react';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TaxRate, TaxRatesWithDefault} from '@src/types/onyx';
@@ -49,7 +50,7 @@ function TaxPicker({selectedTaxRate = '', taxRates, insets, onSubmit}: TaxPicker
         return section.filter((tax) => tax.text.toLowerCase().indexOf(trimmedSearch.toLowerCase()) >= 0);
     }, [searchValue, section]);
 
-    const headerMessage = searchValue.trim() && filteredTaxesList?.length === 0 ? translate('common.noResultsFound') : '';
+    const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(filteredTaxesList.length > 0, searchValue);
 
     return (
         <SelectionList
