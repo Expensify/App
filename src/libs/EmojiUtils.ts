@@ -245,11 +245,8 @@ function getFrequentlyUsedEmojis(newEmoji: Emoji | Emoji[]): FrequentlyUsedEmoji
 /**
  * Given an emoji item object, return an emoji code based on its type.
  */
-const getEmojiCodeWithSkinColor = (item: Emoji, preferredSkinToneIndex: OnyxEntry<string | number>): string | undefined => {
+const getEmojiCodeWithSkinColor = (item: Emoji, preferredSkinToneIndex: OnyxEntry<number | string>): string => {
     const {code, types} = item;
-    if (!preferredSkinToneIndex) {
-        return;
-    }
 
     if (typeof preferredSkinToneIndex === 'number' && types?.[preferredSkinToneIndex]) {
         return types[preferredSkinToneIndex];
