@@ -1797,6 +1797,7 @@ export default {
             },
             genericFailureMessage: 'An error occurred while updating the category, please try again.',
             addCategory: 'Add category',
+            editCategory: 'Edit category',
             categoryRequiredError: 'Category name is required.',
             existingCategoryError: 'A category with this name already exists.',
             invalidCategoryName: 'Invalid category name.',
@@ -1844,6 +1845,7 @@ export default {
             },
         },
         tags: {
+            tagName: 'Tag name',
             requiresTag: 'Members must tag all spend',
             customTagName: 'Custom tag name',
             enableTag: 'Enable tag',
