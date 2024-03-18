@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import React, {useCallback, useContext, useReducer, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
 import Hand from '@assets/images/hand.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
@@ -74,6 +74,22 @@ function IOURequestStepScan({
     const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
     const [isTorchAvailable, setIsTorchAvailable] = useState(false);
     const cameraRef = useRef(null);
+
+    useEffect(() => {
+        if (!Browser.isMobile()) {
+            return;
+        }
+        navigator.permissions
+            .query({name: 'camera'})
+            .then((permissionState) => {
+                setCameraPermissionState(permissionState.state);
+            })
+            .catch(() => {
+                setCameraPermissionState('denied');
+            });
+        // We only want to get the camera permission status when the component is mounted
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const hideRecieptModal = () => {
         setIsAttachmentInvalid(false);
@@ -163,7 +179,17 @@ function IOURequestStepScan({
     };
 
     const capturePhoto = useCallback(() => {
-        if (!cameraRef.current.getScreenshot) {
+        if (!cameraRef.current || !cameraRef.current.getScreenshot) {
+            if (cameraPermissionState === 'prompt') {
+                navigator.mediaDevices
+                    .getUserMedia({video: true})
+                    .then(() => {
+                        setCameraPermissionState('granted');
+                    })
+                    .catch(() => {
+                        setCameraPermissionState('denied');
+                    });
+            }
             return;
         }
         const imageBase64 = cameraRef.current.getScreenshot();
@@ -178,7 +204,7 @@ function IOURequestStepScan({
         }
 
         navigateToConfirmationStep();
-    }, [cameraRef, action, transactionID, updateScanAndNavigate, navigateToConfirmationStep]);
+    }, [cameraRef, action, transactionID, updateScanAndNavigate, navigateToConfirmationStep, cameraPermissionState]);
 
     const panResponder = useRef(
         PanResponder.create({
@@ -208,18 +234,20 @@ function IOURequestStepScan({
                         <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
                     </View>
                 )}
-                <NavigationAwareCamera
-                    onUserMedia={() => setCameraPermissionState('granted')}
-                    onUserMediaError={() => setCameraPermissionState('denied')}
-                    style={{...styles.videoContainer, display: cameraPermissionState !== 'granted' ? 'none' : 'block'}}
-                    ref={cameraRef}
-                    screenshotFormat="image/png"
-                    videoConstraints={{facingMode: {exact: 'environment'}}}
-                    torchOn={isFlashLightOn}
-                    onTorchAvailability={setIsTorchAvailable}
-                    forceScreenshotSourceSize
-                    cameraTabIndex={1}
-                />
+                {cameraPermissionState === 'granted' && (
+                    <NavigationAwareCamera
+                        onUserMedia={() => setCameraPermissionState('granted')}
+                        onUserMediaError={() => setCameraPermissionState('denied')}
+                        style={{...styles.videoContainer, display: cameraPermissionState !== 'granted' ? 'none' : 'block'}}
+                        ref={cameraRef}
+                        screenshotFormat="image/png"
+                        videoConstraints={{facingMode: {exact: 'environment'}}}
+                        torchOn={isFlashLightOn}
+                        onTorchAvailability={setIsTorchAvailable}
+                        forceScreenshotSourceSize
+                        cameraTabIndex={1}
+                    />
+                )}
             </View>
 
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
