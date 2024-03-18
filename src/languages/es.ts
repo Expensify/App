@@ -1881,6 +1881,7 @@ export default {
             addRate: 'Añadir tasa',
             workspaceDefault: 'Moneda por defecto del espacio de trabajo',
             foreignDefault: 'Moneda extranjera por defecto',
+            customTaxName: 'Nombre del impuesto',
             value: 'Valor',
             errors: {
                 taxRateAlreadyExists: 'Ya existe un impuesto con este nombre',

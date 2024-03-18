@@ -183,3 +183,6 @@ export type {default as OpenPolicyMoreFeaturesPageParams} from './OpenPolicyMore
 export type {default as CreatePolicyDistanceRateParams} from './CreatePolicyDistanceRateParams';
 export type {default as CreatePolicyTagsParams} from './CreatePolicyTagsParams';
 export type {default as RenamePolicyTagsParams} from './RenamePolicyTagsParams';
+export type {default as SetPolicyCustomTaxNameParams} from './SetPolicyCustomTaxNameParams';
+export type {default as SetPolicyForeignCurrencyDefaultParams} from './SetPolicyForeignCurrencyDefaultParams';
+export type {default as SetPolicyCurrencyDefaultParams} from './SetPolicyCurrencyDefaultParams';

@@ -54,7 +54,7 @@ type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
 type TaxRates = Record<string, TaxRate>;
 
-type TaxRatesWithDefault = {
+type TaxRatesWithDefault = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Name of the tax */
     name: string;
 
@@ -69,7 +69,13 @@ type TaxRatesWithDefault = {
 
     /** List of tax names and values */
     taxes: TaxRates;
-};
+
+    /** An error message to display to the user */
+    errors?: OnyxCommon.Errors;
+
+    /** Error objects keyed by field name containing errors keyed by microtime */
+    errorFields?: OnyxCommon.ErrorFields;
+}>;
 
 type ConnectionLastSync = {
     successfulDate?: string;

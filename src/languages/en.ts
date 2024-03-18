@@ -1857,6 +1857,7 @@ export default {
             addRate: 'Add rate',
             workspaceDefault: 'Workspace currency default',
             foreignDefault: 'Foreign currency default',
+            customTaxName: 'Custom tax name',
             value: 'Value',
             errors: {
                 taxRateAlreadyExists: 'This tax name is already in use.',
