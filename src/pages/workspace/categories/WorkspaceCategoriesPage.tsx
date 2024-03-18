@@ -174,7 +174,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                 onSelected: () => setDeleteCategoriesConfirmModalVisible(true),
             });
 
-            const enabledCategories = selectedCategoriesArray.filter((categoryName) => policyCategories?.[categoryName].enabled);
+            const enabledCategories = selectedCategoriesArray.filter((categoryName) => policyCategories?.[categoryName]?.enabled);
             if (enabledCategories.length > 0) {
                 const categoriesToDisable = selectedCategoriesArray
                     .filter((categoryName) => policyCategories?.[categoryName].enabled)
