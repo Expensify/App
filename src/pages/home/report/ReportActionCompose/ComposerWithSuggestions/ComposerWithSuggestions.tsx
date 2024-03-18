@@ -39,6 +39,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SuggestionUtils from '@libs/SuggestionUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+import Visibility from '@libs/Visibility';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import type {ComposerRef, SuggestionsRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
@@ -297,6 +298,32 @@ function ComposerWithSuggestions(
         insertedEmojisRef.current = [];
     }, []);
 
+    const [isVisible, setIsVisible] = useState(false);
+    const prevVisible = usePrevious(isVisible);
+    const debouncedSaveReportComment = useMemo(
+        () =>
+            lodashDebounce((selectedReportID, newComment) => {
+                // Use setDebouncedCalls to track when the debounced function is called
+                // setDebouncedCalls((calls) => [...calls, {selectedReportID, newComment}]);
+                Report.saveReportComment(selectedReportID, newComment || '');
+            }, 1000),
+        [],
+    );
+
+    useEffect(() => {
+        const unsubscriber = Visibility.onVisibilityChange(() => {
+            setIsVisible(Visibility.isVisible());
+        });
+
+        return unsubscriber;
+    }, []);
+
+    useEffect(() => {
+        if (!isVisible) {
+            debouncedSaveReportComment.flush();
+        }
+    }, [isVisible]);
+
     /**
      * Set the TextInput Ref
      */
@@ -318,14 +345,6 @@ function ComposerWithSuggestions(
         }
         RNTextInputReset.resetKeyboardInput(findNodeHandle(textInputRef.current));
     }, [textInputRef]);
-
-    const debouncedSaveReportComment = useMemo(
-        () =>
-            lodashDebounce((selectedReportID, newComment) => {
-                Report.saveReportComment(selectedReportID, newComment || '');
-            }, 1000),
-        [],
-    );
 
     /**
      * Find the newly added characters between the previous text and the new text based on the selection.
@@ -776,7 +795,7 @@ function ComposerWithSuggestions(
                 resetKeyboardInput={resetKeyboardInput}
             />
 
-            {ReportUtils.isValidReportIDFromPath(reportID) && (
+            {ReportUtils.isValidReportIDFromPath(reportID) && (!isVisible || (!prevVisible && isVisible)) && (
                 <SilentCommentUpdater
                     reportID={reportID}
                     value={value}
@@ -796,12 +815,6 @@ ComposerWithSuggestions.displayName = 'ComposerWithSuggestions';
 const ComposerWithSuggestionsWithRef = forwardRef(ComposerWithSuggestions);
 
 export default withOnyx<ComposerWithSuggestionsProps & RefAttributes<ComposerRef>, ComposerWithSuggestionsOnyxProps>({
-    numberOfLines: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}`,
-        // We might not have number of lines in onyx yet, for which the composer would be rendered as null
-        // during the first render, which we want to avoid:
-        initWithStoredValues: false,
-    },
     modal: {
         key: ONYXKEYS.MODAL,
     },
