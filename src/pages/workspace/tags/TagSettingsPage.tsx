@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setWorkspaceTagEnabled} from '@libs/actions/Policy';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -20,6 +21,7 @@ import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAcce
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyTagList} from '@src/types/onyx';
 
@@ -43,6 +45,10 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
 
     const updateWorkspaceTagEnabled = (value: boolean) => {
         setWorkspaceTagEnabled(route.params.policyID, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}});
+    };
+
+    const navigateToEditTag = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_TAG_EDIT.getRoute(route.params.policyID, currentPolicyTag.name));
     };
 
     return (
@@ -75,6 +81,8 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
                         <MenuItemWithTopDescription
                             title={currentPolicyTag.name}
                             description={translate(`workspace.tags.tagName`)}
+                            onPress={navigateToEditTag}
+                            shouldShowRightIcon
                         />
                     </View>
                 </ScreenWrapper>

@@ -1,10 +1,7 @@
 type RenamePolicyTagsParams = {
     policyID: string;
-    /**
-     * Stringified JSON object with type of following structure:
-     * {[oldName: string]: string;} where value is new tag name
-     */
-    tags: string;
+    oldName: string;
+    newName: string;
 };
 
 export default RenamePolicyTagsParams;

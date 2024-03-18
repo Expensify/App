@@ -38,6 +38,7 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
+    const currentTagName = route.params.tagName;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
@@ -61,11 +62,11 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
 
     const editTag = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
-            Policy.renamePolicyTag(route.params.policyID, {oldName: route.params.tagName, newName: values.tagName.trim()});
+            Policy.renamePolicyTag(route.params.policyID, {oldName: currentTagName, newName: values.tagName.trim()});
             Keyboard.dismiss();
-            Navigation.goBack(ROUTES.WORKSPACE_TAGS.getRoute(route.params.policyID));
+            Navigation.dismissModal();
         },
-        [route.params.policyID, route.params.tagName],
+        [route.params.policyID, currentTagName],
     );
 
     return (
@@ -92,6 +93,7 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
                         <InputWrapper
                             InputComponent={TextInput}
                             maxLength={CONST.TAG_NAME_LIMIT}
+                            defaultValue={currentTagName}
                             label={translate('common.name')}
                             accessibilityLabel={translate('common.name')}
                             inputID={INPUT_IDS.TAG_NAME}

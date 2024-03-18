@@ -3079,7 +3079,8 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
 
     const parameters = {
         policyID,
-        tags: JSON.stringify({[policyTag.oldName]: policyTag.newName}),
+        oldName: policyTag.oldName,
+        newName: policyTag.newName,
     };
 
     API.write(WRITE_COMMANDS.RENAME_POLICY_TAG, parameters, onyxData);
