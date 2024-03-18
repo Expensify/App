@@ -169,7 +169,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
         if (selectedCategoriesArray.length > 0) {
             options.push({
                 icon: Expensicons.Trashcan,
-                text: translate('workspace.categories.deleteCategories'),
+                text: translate(selectedCategoriesArray.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
                 value: CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES.DELETE,
                 onSelected: () => setDeleteCategoriesConfirmModalVisible(true),
             });
@@ -188,7 +188,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
 
                 options.push({
                     icon: Expensicons.DocumentSlash,
-                    text: translate('workspace.categories.disableCategories'),
+                    text: translate(enabledCategories.length === 1 ? 'workspace.categories.disableCategory' : 'workspace.categories.disableCategories'),
                     value: CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES.DISABLE,
                     onSelected: () => {
                         setSelectedCategories({});
@@ -210,7 +210,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                     }, {});
                 options.push({
                     icon: Expensicons.Document,
-                    text: translate('workspace.categories.enableCategories'),
+                    text: translate(disabledCategories.length === 1 ? 'workspace.categories.enableCategory' : 'workspace.categories.enableCategories'),
                     value: CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
                         setSelectedCategories({});

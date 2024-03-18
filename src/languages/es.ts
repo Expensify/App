@@ -1804,11 +1804,12 @@ export default {
             deleteCategory: 'Eliminar categoría',
             deleteCategoryPrompt: '¿Estás seguro de que quieres eliminar esta categoría?',
             disableCategories: 'Desactivar categorías',
+            disableCategory: 'Desactivar categoría',
             enableCategories: 'Activar categorías',
+            enableCategory: 'Activar categoría',
             deleteFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
             categoryName: 'Nombre de la categoría',
             requiresCategory: 'Los miembros deben categorizar todos los gastos',
-            enableCategory: 'Activar categoría',
             subtitle: 'Obtén una visión general de dónde te gastas el dinero. Utiliza las categorías predeterminadas o añade las tuyas propias.',
             emptyCategories: {
                 title: 'No has creado ninguna categoría',

@@ -1780,11 +1780,12 @@ export default {
             deleteCategory: 'Delete category',
             deleteCategoryPrompt: 'Are you sure you want to delete this category?',
             disableCategories: 'Disable categories',
+            disableCategory: 'Disable category',
             enableCategories: 'Enable categories',
+            enableCategory: 'Enable category',
             deleteFailureMessage: 'An error occurred while deleting the category, please try again.',
             categoryName: 'Category name',
             requiresCategory: 'Members must categorize all spend',
-            enableCategory: 'Enable category',
             subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
             emptyCategories: {
                 title: "You haven't created any categories",
