@@ -37,7 +37,7 @@ function getNextTaxCode(name: string, taxRates?: TaxRates): string {
     return covertTaxNameToID(`${name}_${nextID}`);
 }
 
-function createWorkspaceTax(policyID: string, taxRate: TaxRate) {
+function createPolicyTax(policyID: string, taxRate: TaxRate) {
     if (!taxRate.code) {
         throw new Error('Tax code is required when creating a new tax rate.');
     }
@@ -126,4 +126,4 @@ function clearTaxRateError(policyID: string, taxID: string, pendingAction?: Pend
     });
 }
 
-export {createWorkspaceTax, clearTaxRateError, getNextTaxCode, getTaxValueWithPercentage};
+export {createPolicyTax, clearTaxRateError, getNextTaxCode, getTaxValueWithPercentage};

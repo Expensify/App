@@ -11,7 +11,7 @@ import Text from '@components/Text';
 import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {createWorkspaceTax, getNextTaxCode, getTaxValueWithPercentage} from '@libs/actions/TaxRate';
+import {createPolicyTax, getNextTaxCode, getTaxValueWithPercentage} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -62,7 +62,7 @@ function WorkspaceCreateTaxPage({
                 value: getTaxValueWithPercentage(value),
                 code: getNextTaxCode(values[INPUT_IDS.NAME], policy?.taxRates?.taxes),
             } satisfies TaxRate;
-            createWorkspaceTax(policyID, taxRate);
+            createPolicyTax(policyID, taxRate);
             Navigation.goBack();
         },
         [policy?.taxRates?.taxes, policyID],
