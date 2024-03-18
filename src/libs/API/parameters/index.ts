@@ -181,3 +181,4 @@ export type {default as EnablePolicyTaxesParams} from './EnablePolicyTaxesParams
 export type {default as OpenPolicyMoreFeaturesPageParams} from './OpenPolicyMoreFeaturesPageParams';
 export type {default as CreatePolicyDistanceRateParams} from './CreatePolicyDistanceRateParams';
 export type {default as CreatePolicyTagsParams} from './CreatePolicyTagsParams';
+export type {default as UpdateConnectionConfigParams} from './UpdateConnectionConfigParams';

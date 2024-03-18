@@ -353,6 +353,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ACCEPT_JOIN_REQUEST]: Parameters.AcceptJoinRequestParams;
     [WRITE_COMMANDS.DECLINE_JOIN_REQUEST]: Parameters.DeclineJoinRequestParams;
     [WRITE_COMMANDS.CREATE_POLICY_DISTANCE_RATE]: Parameters.CreatePolicyDistanceRateParams;
+    [WRITE_COMMANDS.UPDATE_CONNECTION_CONFIG]: Parameters.UpdateConnectionConfigParams;
 };
 
 const READ_COMMANDS = {
