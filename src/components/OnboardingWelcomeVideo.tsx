@@ -100,6 +100,7 @@ function OnboardingWelcomeVideo() {
                         onVideoLoaded={setAspectRatio}
                         onPlaybackStatusUpdate={setVideoStatus}
                         controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.VOLUME_ONLY}
+                        shouldUseControlsBottomMargin={false}
                         shouldPlay
                         isLooping
                     />
@@ -126,7 +127,7 @@ function OnboardingWelcomeVideo() {
         >
             <View style={[styles.mh100, shouldUseNarrowLayout && styles.welcomeVideoNarrowLayout]}>
                 <View style={shouldUseNarrowLayout ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{getWelcomeVideo()}</View>
-                <View style={[shouldUseNarrowLayout ? [styles.mt5, styles.mh8] : [styles.mt3, styles.mh5]]}>
+                <View style={[shouldUseNarrowLayout ? [styles.mt5, styles.mh8] : [styles.mt5, styles.mh5]]}>
                     <View style={[shouldUseNarrowLayout ? [styles.gap1, styles.mb8] : [styles.gap2, styles.mb10]]}>
                         <Text style={styles.textHeroSmall}>{translate('onboarding.welcomeVideo.title')}</Text>
                         <Text style={styles.textSupporting}>{translate('onboarding.welcomeVideo.description')}</Text>

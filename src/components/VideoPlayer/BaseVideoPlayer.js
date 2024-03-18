@@ -31,6 +31,10 @@ function BaseVideoPlayer({
     videoDuration,
     shouldUseSharedVideoElement,
     shouldUseSmallVideoControls,
+    // Defines whether we add margins to the bottom of our
+    // controls component, very important for native devices
+    // when video modal is near the bottom of the screen
+    shouldUseControlsBottomMargin,
     controlsStatus,
     onPlaybackStatusUpdate,
     onFullscreenUpdate,
@@ -281,6 +285,7 @@ function BaseVideoPlayer({
                                     small={shouldUseSmallVideoControls}
                                     style={videoControlsStyle}
                                     togglePlayCurrentVideo={togglePlayCurrentVideo}
+                                    shouldUseControlsBottomMargin={shouldUseControlsBottomMargin}
                                     controlsStatus={controlsStatus}
                                     showPopoverMenu={showPopoverMenu}
                                 />
