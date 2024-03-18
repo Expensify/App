@@ -11,6 +11,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import TableListItem from '@components/SelectionList/TableListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
@@ -37,6 +38,11 @@ type PolicyForList = {
     keyForList: string;
     isSelected: boolean;
     rightElement: React.ReactNode;
+};
+
+type PolicyOption = ListItem & {
+    /** Tag name is used as a key for the selectedTags state */
+    keyForList: string;
 };
 
 type WorkspaceTagsOnyxProps = {
@@ -76,6 +82,8 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                             text: value.name,
                             keyForList: value.name,
                             isSelected: !!selectedTags[value.name],
+                            pendingAction: value.pendingAction,
+                            errors: value.errors ?? undefined,
                             rightElement: (
                                 <View style={styles.flexRow}>
                                     <Text style={[styles.textSupporting, styles.alignSelfCenter, styles.pl2, styles.label]}>
@@ -90,8 +98,8 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                                 </View>
                             ),
                         })),
-                )
-                .flat(),
+                    )
+                    .flat(),
         [policyTagLists, selectedTags, styles.alignSelfCenter, styles.flexRow, styles.label, styles.p1, styles.pl2, styles.textSupporting, theme.icon, translate],
     );
 
@@ -122,6 +130,10 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
         Navigation.navigate(ROUTES.WORKSPACE_TAG_CREATE.getRoute(route.params.policyID));
     };
 
+    const navigateToTagSettings = (tag: PolicyOption) => {
+        Navigation.navigate(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route.params.policyID, tag.keyForList));
+    };
+
     const isLoading = !isOffline && policyTags === undefined;
 
     const headerButtons = (
@@ -132,14 +144,13 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                 onPress={navigateToCreateTagPage}
                 icon={Expensicons.Plus}
                 text={translate('workspace.tags.addTag')}
-                style={[styles.pr2, isSmallScreenWidth && styles.w50]}
+                style={[styles.mr3, isSmallScreenWidth && styles.w50]}
             />
             {policyTags && (
                 <Button
                     medium
                     onPress={navigateToTagsSettings}
                     icon={Expensicons.Gear}
-                    iconStyles={[styles.mr2]}
                     text={translate('common.settings')}
                     style={[isSmallScreenWidth && styles.w50]}
                 />
@@ -186,12 +197,13 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                             canSelectMultiple
                             sections={[{data: tagList, indexOffset: 0, isDisabled: false}]}
                             onCheckboxPress={toggleTag}
-                            onSelectRow={() => {}}
+                            onSelectRow={navigateToTagSettings}
                             onSelectAll={toggleAllTags}
                             showScrollIndicator
                             ListItem={TableListItem}
                             customListHeader={getCustomListHeader()}
                             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                            onDismissError={(item) => Policy.clearPolicyTagErrors(route.params.policyID, item.value)}
                         />
                     )}
                 </ScreenWrapper>
