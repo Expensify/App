@@ -5,7 +5,6 @@ import _ from 'underscore';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
 import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
-import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import withLocalize from '@components/withLocalize';
 import withWindowDimensions from '@components/withWindowDimensions';
 import useTheme from '@hooks/useTheme';
@@ -99,7 +98,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
             onNavigate(entry.item);
         },
-        [onNavigate],
+        [isFullscreen, onNavigate],
     );
 
     /**
@@ -111,7 +110,6 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             if (isFullscreen.current) {
                 return;
             }
-            console.log('cycleThroughAttachments');
             const nextIndex = page + deltaSlide;
             const nextItem = attachments[nextIndex];
 
@@ -121,7 +119,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
             scrollRef.current.scrollToIndex({index: nextIndex, animated: canUseTouchScreen});
         },
-        [attachments, canUseTouchScreen, page],
+        [attachments, canUseTouchScreen, isFullscreen, page],
     );
 
     /**

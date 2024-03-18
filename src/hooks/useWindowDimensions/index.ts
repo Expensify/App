@@ -10,6 +10,7 @@ import type WindowDimensions from './types';
 
 const initalViewportHeight = window.visualViewport?.height ?? window.innerHeight;
 const tagNamesOpenKeyboard = ['INPUT', 'TEXTAREA'];
+const isMobile = Browser.isMobile();
 
 /**
  * A convenience wrapper around React Native's useWindowDimensions hook that also provides booleans for our breakpoints.
@@ -105,16 +106,22 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
         return returnObject;
     }
 
-    if (!lockedWindowDimensions.current && isFullscreen.current) {
+    // if video is in fullscreen mode, lock the window dimensions since they can change and casue whole app to re-render
+    if (!lockedWindowDimensions.current) {
         lockWindowDimensions(returnObject);
-    } else if (lockedWindowDimensions.current && !isFullscreen.current && lockedWindowDimensions.current.windowWidth === windowWidth) {
-        const tmp = lockedWindowDimensions.current;
-        unlockWindowDimensions();
-        return tmp;
+        return returnObject;
     }
 
-    if (lockedWindowDimensions.current) {
-        return lockedWindowDimensions.current;
+    // if video exits fullscreen mode, unlock the window dimensions
+    if (
+        lockedWindowDimensions.current &&
+        !isFullscreen.current &&
+        (isMobile || (lockedWindowDimensions.current.windowWidth === windowWidth && lockedWindowDimensions.current.windowHeight === windowHeight))
+    ) {
+        const lastLockedWindowDimensions = {...lockedWindowDimensions.current};
+        unlockWindowDimensions();
+        return lastLockedWindowDimensions;
     }
-    return returnObject;
+
+    return lockedWindowDimensions.current;
 }
