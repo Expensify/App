@@ -4160,8 +4160,11 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            backgroundColor: theme.border,
             marginRight: 12,
+        },
+
+        moneyRequestHeaderStatusBarBadgeBackground: {
+            backgroundColor: theme.border,
         },
 
         staticHeaderImage: {
