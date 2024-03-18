@@ -1443,9 +1443,9 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarAvatar: {
-            borderRadius: 28,
-            height: 28,
-            width: 28,
+            borderRadius: variables.sidebarAvatarSize,
+            height: variables.sidebarAvatarSize,
+            width: variables.sidebarAvatarSize,
         },
 
         selectedAvatarBorder: {

@@ -6,12 +6,12 @@ import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
 function AvatarSkeleton() {
     const theme = useTheme();
-    const skeletonCircleRadius = variables.componentSizeSmall / 2;
+    const skeletonCircleRadius = variables.sidebarAvatarSize / 2;
 
     return (
         <SkeletonViewContentLoader
             animate
-            height={variables.componentSizeSmall}
+            height={variables.sidebarAvatarSize}
             backgroundColor={theme.skeletonLHNIn}
             foregroundColor={theme.skeletonLHNOut}
         >
