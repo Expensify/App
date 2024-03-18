@@ -125,7 +125,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
      */
     const showGeneralAlert = useCallback(
         (message = '') => {
-            Alert.alert(translate('attachmentPicker.attachmentError'), `${message !== '' ? message : translate('attachmentPicker.errorWhileSelectingAttachment')}`);
+            Alert.alert(translate('attachmentPicker.attachmentError'), message || translate('attachmentPicker.errorWhileSelectingAttachment'));
         },
         [translate],
     );
@@ -255,7 +255,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
      * sends the selected attachment to the caller (parent component)
      */
     const pickAttachment = useCallback(
-        (attachments: Array<(Asset & DocumentPickerResponse) | void> = []): Promise<void> | undefined => {
+        (attachments: Array<Asset & DocumentPickerResponse> = []): Promise<void> | undefined => {
             if (attachments.length === 0) {
                 onCanceled.current();
                 return Promise.resolve();
@@ -267,7 +267,8 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                 onCanceled.current();
                 return Promise.resolve();
             }
-            if (fileData.fileName && Str.isImage(fileData.fileName ?? fileData.name)) {
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            if ((fileData.fileName || fileData.name) && Str.isImage(fileData.fileName || fileData.name || '')) {
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 RNImage.getSize(fileData.fileCopyUri || fileData.uri, (width, height) => {
                     fileData.width = width;
