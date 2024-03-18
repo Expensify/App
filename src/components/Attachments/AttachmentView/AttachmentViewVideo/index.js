@@ -23,13 +23,13 @@ const defaultProps = {
 };
 
 function AttachmentViewVideo({source, isHovered, shouldUseSharedVideoElement, videoDuration}) {
-    const {isSmallScreen} = useWindowDimensions();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
 
     return (
         <VideoPlayer
             url={source}
-            shouldUseSharedVideoElement={shouldUseSharedVideoElement && !isSmallScreen}
+            shouldUseSharedVideoElement={shouldUseSharedVideoElement && !isSmallScreenWidth}
             isVideoHovered={isHovered}
             videoDuration={videoDuration}
             style={[styles.w100, styles.h100]}
