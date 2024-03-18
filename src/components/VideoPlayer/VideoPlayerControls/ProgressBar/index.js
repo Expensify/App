@@ -70,7 +70,7 @@ function ProgressBar({duration, position, seekPosition}) {
 
     return (
         <GestureDetector gesture={pan}>
-            <Animated.View style={[styles.w100, styles.h100, styles.pv2, styles.cursorPointer]}>
+            <Animated.View style={[styles.w100, styles.h100, styles.pv2, styles.cursorPointer, styles.flex1, styles.justifyContentCenter]}>
                 <Animated.View
                     style={styles.progressBarOutline}
                     onLayout={onSliderLayout}
