@@ -639,7 +639,6 @@ function createOption(
         isExpenseReport: false,
         policyID: undefined,
         isOptimisticPersonalDetail: false,
-        visibleChatMemberAccountIDs: [],
     };
 
     const personalDetailMap = getPersonalDetailsForAccountIDs(accountIDs, personalDetails);
@@ -1376,16 +1375,6 @@ function orderOptions(options: ReportUtils.OptionData[], searchValue: string | u
         ['asc'],
     );
 }
-
-// /**
-//  * Checks if string is a valid phone number and it returns the formatted phone number if so
-//  */
-// function parsePhoneNumber(text: string) {
-//     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(text)));
-//     const output = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 : text.toLowerCase();
-
-//     return {output, parsedPhoneNumber};
-// }
 
 /**
  * Build the options
