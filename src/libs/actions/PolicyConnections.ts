@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
-import type UpdateConnectionConfigParams from '@libs/API/parameters/UpdateConnectionConfig';
+import type UpdateConnectionConfigParams from '@libs/API/parameters/UpdateConnectionConfigParams';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
