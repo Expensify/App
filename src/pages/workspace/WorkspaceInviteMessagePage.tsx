@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import lodashDebounce from 'lodash/debounce';
 import React, {useEffect, useState} from 'react';
 import {Keyboard, View} from 'react-native';
@@ -52,6 +53,8 @@ type WorkspaceInviteMessagePageProps = WithPolicyAndFullscreenLoadingProps &
     WorkspaceInviteMessagePageOnyxProps &
     StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE_MESSAGE>;
 
+const parser = new ExpensiMark();
+
 function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsToAccountIDsDraft, policy, route, allPersonalDetails}: WorkspaceInviteMessagePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -67,13 +70,15 @@ function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsT
         // policy?.description can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         policy?.description ||
-        translate('workspace.common.welcomeNote', {
-            workspaceName: policy?.name ?? '',
-        });
+        parser.replace(
+            translate('workspace.common.welcomeNote', {
+                workspaceName: policy?.name ?? '',
+            }),
+        );
 
     useEffect(() => {
         if (!isEmptyObject(invitedEmailsToAccountIDsDraft)) {
-            setWelcomeNote(getDefaultWelcomeNote());
+            setWelcomeNote(parser.htmlToMarkdown(getDefaultWelcomeNote()));
             return;
         }
         Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID), true);
