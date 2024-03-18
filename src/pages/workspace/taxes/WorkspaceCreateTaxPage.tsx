@@ -25,14 +25,14 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceNewTaxForm';
 import type {TaxRate} from '@src/types/onyx';
 
-type WorkspaceNewTaxPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES_NEW>;
+type WorkspaceCreateTaxPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES_NEW>;
 
-function WorkspaceNewTaxPage({
+function WorkspaceCreateTaxPage({
     policy,
     route: {
         params: {policyID},
     },
-}: WorkspaceNewTaxPageProps) {
+}: WorkspaceCreateTaxPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -72,7 +72,7 @@ function WorkspaceNewTaxPage({
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
                 <ScreenWrapper
-                    testID={WorkspaceNewTaxPage.displayName}
+                    testID={WorkspaceCreateTaxPage.displayName}
                     includeSafeAreaPaddingBottom={false}
                     style={[styles.defaultModalContainer]}
                 >
@@ -119,6 +119,6 @@ function WorkspaceNewTaxPage({
     );
 }
 
-WorkspaceNewTaxPage.displayName = 'WorkspaceNewTaxPage';
+WorkspaceCreateTaxPage.displayName = 'WorkspaceCreateTaxPage';
 
-export default withPolicyAndFullscreenLoading(WorkspaceNewTaxPage);
+export default withPolicyAndFullscreenLoading(WorkspaceCreateTaxPage);
