@@ -38,15 +38,21 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
     const currentTagName = route.params.tagName;
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
-        const tagName = values.tagName.trim();
-        if (!ValidationUtils.isRequiredFulfilled(tagName)) {
-            errors.tagName = 'workspace.tags.tagRequiredError';
-        }
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
+            const tagName = values.tagName.trim();
+            const {tags} = PolicyUtils.getTagList(policyTags, 0);
+            if (!ValidationUtils.isRequiredFulfilled(tagName)) {
+                errors.tagName = 'workspace.tags.tagRequiredError';
+            } else if (tags?.[tagName] && currentTagName !== tagName) {
+                errors.tagName = 'workspace.tags.existingTagError';
+            }
 
-        return errors;
-    }, []);
+            return errors;
+        },
+        [currentTagName, policyTags],
+    );
 
     const editTag = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
