@@ -96,7 +96,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}: NewRequestAmoun
         return () => {
             prevMoneyRequestID.current = iou?.id;
         };
-    }, [isEditing, iouType, reportID, isDistanceRequestTab, iou]);
+    }, [isEditing, iouType, reportID, isDistanceRequestTab, iou, report?.reportID]);
 
     const navigateBack = () => {
         Navigation.goBack(isEditing ? ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID) : ROUTES.HOME);
