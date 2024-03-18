@@ -11576,7 +11576,7 @@ class GithubUtils {
             return this.internalOctokit.rest;
         }
         this.initOctokit();
-        // @ts-expect-error -- TODO: Fix this
+        // @ts-expect-error -- by running this.initOctokit() above we can be sure that this.internalOctokit is defined
         return this.internalOctokit.rest;
     }
     /**
@@ -11590,7 +11590,7 @@ class GithubUtils {
             return this.internalOctokit.graphql;
         }
         this.initOctokit();
-        // @ts-expect-error -- TODO: Fix this
+        // @ts-expect-error -- by running this.initOctokit() above we can be sure that this.internalOctokit is defined
         return this.internalOctokit.graphql;
     }
     /**
@@ -11605,7 +11605,7 @@ class GithubUtils {
             return this.internalOctokit.paginate;
         }
         this.initOctokit();
-        // @ts-expect-error -- TODO: Fix this
+        // @ts-expect-error -- by running this.initOctokit() above we can be sure that this.internalOctokit is defined
         return this.internalOctokit.paginate;
     }
     /**
@@ -11624,14 +11624,10 @@ class GithubUtils {
             .then(({ data }) => {
             if (!data.length) {
                 const error = new Error(`Unable to find ${CONST_1.default.LABELS.STAGING_DEPLOY} issue.`);
-                // @ts-expect-error -- TODO: Fix this
-                error.code = 404;
                 throw error;
             }
             if (data.length > 1) {
                 const error = new Error(`Found more than one ${CONST_1.default.LABELS.STAGING_DEPLOY} issue.`);
-                // @ts-expect-error -- TODO: Fix this
-                error.code = 500;
                 throw error;
             }
             return this.getStagingDeployCashData(data[0]);
@@ -11710,10 +11706,6 @@ class GithubUtils {
         }));
         // eslint-disable-next-line no-nested-ternary
         return deployBlockers.sort((a, b) => (a.number > b.number ? 1 : b.number > a.number ? -1 : 0));
-    }
-    static test() {
-        const x = this.octokit.issues.listForRepo;
-        return x;
     }
     /**
      * Parse InternalQA section of the StagingDeployCash issue body.

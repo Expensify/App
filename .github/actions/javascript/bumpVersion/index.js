@@ -3693,9 +3693,7 @@ function padToTwoDigits(value) {
 function generateAndroidVersionCode(npmVersion) {
     // All Android versions will be prefixed with '10' due to previous versioning
     const prefix = '10';
-    return ''.concat(prefix, padToTwoDigits((0, major_1.default)(npmVersion) ?? 0), padToTwoDigits((0, minor_1.default)(npmVersion) ?? 0), padToTwoDigits((0, patch_1.default)(npmVersion) ?? 0), 
-    // @ts-expect-error -- TODO: Fix this
-    padToTwoDigits((0, prerelease_1.default)(npmVersion) ?? 0));
+    return ''.concat(prefix, padToTwoDigits((0, major_1.default)(npmVersion) ?? 0), padToTwoDigits((0, minor_1.default)(npmVersion) ?? 0), padToTwoDigits((0, patch_1.default)(npmVersion) ?? 0), padToTwoDigits(Number((0, prerelease_1.default)(npmVersion)) ?? 0));
 }
 exports.generateAndroidVersionCode = generateAndroidVersionCode;
 /**
