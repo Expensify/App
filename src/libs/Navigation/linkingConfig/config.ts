@@ -330,6 +330,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: {
                             path: ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route,
                         },
+                        [SCREENS.WORKSPACE.TAX_CREATE]: {
+                            path: ROUTES.WORKSPACE_TAX_CREATE.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: {

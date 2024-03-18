@@ -4074,6 +4074,10 @@ const CONST = {
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
     },
+
+    TAX_RATES: {
+        NAME_MAX_LENGTH: 50,
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
