@@ -34,6 +34,9 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
     const isLargeScreenWidth = windowWidth > variables.tabletResponsiveWidthBreakpoint;
     const isExtraSmallScreenWidth = windowWidth <= variables.extraSmallMobileResponsiveWidthBreakpoint;
 
+    const lowerScreenDimmension = Math.min(windowWidth, windowHeight);
+    const isSmallScreen = lowerScreenDimmension <= variables.mobileResponsiveWidthBreakpoint;
+
     const [, cachedViewportHeight, setCachedViewportHeight] = useDebouncedState(windowHeight, CONST.TIMING.RESIZE_DEBOUNCE_TIME);
 
     const handleFocusIn = useRef((event: FocusEvent) => {
@@ -95,6 +98,7 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
         isMediumScreenWidth,
         isLargeScreenWidth,
         isExtraSmallScreenWidth,
+        isSmallScreen,
     };
 
     if (!lockedWindowDimensions.current && !isFullscreen.current) {
