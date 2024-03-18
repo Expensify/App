@@ -41,4 +41,5 @@ export type {WorkspaceDescriptionForm} from './WorkspaceDescriptionForm';
 export type {PolicyTagNameForm} from './PolicyTagNameForm';
 export type {WorkspaceNewTaxForm} from './WorkspaceNewTaxForm';
 export type {WorkspaceTagCreateForm} from './WorkspaceTagCreateForm';
+export type {PolicyCreateDistanceRateForm} from './PolicyCreateDistanceRateForm';
 export type {default as Form} from './Form';
