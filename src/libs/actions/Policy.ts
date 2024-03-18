@@ -451,7 +451,7 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean, frequency
                     enabled,
                 },
                 autoReportingFrequency: frequency,
-                pendingFields: {isAutoApprovalEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                pendingFields: {autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             },
         },
     ];
@@ -466,7 +466,7 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean, frequency
                     enabled: policy.harvesting?.enabled ?? null,
                 },
                 autoReportingFrequency: policy.autoReportingFrequency ?? null,
-                pendingFields: {isAutoApprovalEnabled: null, harvesting: null},
+                pendingFields: {autoReporting: null},
             },
         },
     ];
@@ -476,7 +476,7 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean, frequency
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                pendingFields: {isAutoApprovalEnabled: null, harvesting: null},
+                pendingFields: {autoReporting: null},
             },
         },
     ];
@@ -566,13 +566,11 @@ function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingO
 }
 
 function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>) {
-    const isAutoApprovalEnabled = approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC;
     const policy = ReportUtils.getPolicy(policyID);
 
     const value = {
         approver,
         approvalMode,
-        isAutoApprovalEnabled,
     };
 
     const optimisticData: OnyxUpdate[] = [
@@ -593,7 +591,6 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             value: {
                 approver: policy.approver ?? null,
                 approvalMode: policy.approvalMode ?? null,
-                isAutoApprovalEnabled: policy.isAutoApprovalEnabled ?? null,
                 pendingFields: {approvalMode: null},
             },
         },
@@ -609,7 +606,13 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
         },
     ];
 
-    const params: SetWorkspaceApprovalModeParams = {policyID, value: JSON.stringify(value)};
+    const params: SetWorkspaceApprovalModeParams = {
+        policyID,
+        value: JSON.stringify({
+            ...value,
+            isAutoApprovalEnabled: approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC,
+        }),
+    };
     API.write(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, params, {optimisticData, failureData, successData});
 }
 
