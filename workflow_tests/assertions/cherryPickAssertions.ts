@@ -1,19 +1,8 @@
-const utils = require('../utils/utils');
+import type {Step} from '@kie/act-js';
+import {createStepAssertion} from '../utils/utils';
 
-const assertValidateActorJobExecuted = (workflowResult, didExecute = true) => {
-    const steps = [utils.createStepAssertion('Check if user is deployer', true, null, 'VALIDATEACTOR', 'Checking if user is a deployer', [], [{key: 'GITHUB_TOKEN', value: '***'}])];
-
-    steps.forEach((expectedStep) => {
-        if (didExecute) {
-            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
-        } else {
-            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
-        }
-    });
-};
-
-const assertCreateNewVersionJobExecuted = (workflowResult, didExecute = true) => {
-    const steps = [utils.createStepAssertion('Create new version', true, null, 'CREATENEWVERSION', 'Creating new version', [], [])];
+function assertValidateActorJobExecuted(workflowResult: Step[], didExecute = true) {
+    const steps = [createStepAssertion('Check if user is deployer', true, null, 'VALIDATEACTOR', 'Checking if user is a deployer', [], [{key: 'GITHUB_TOKEN', value: '***'}])] as const;
 
     steps.forEach((expectedStep) => {
         if (didExecute) {
@@ -22,11 +11,23 @@ const assertCreateNewVersionJobExecuted = (workflowResult, didExecute = true) =>
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
     });
-};
+}
 
-const assertCherryPickJobExecuted = (workflowResult, user = 'Dummy Author', pullRequestNumber = '1234', didExecute = true, hasConflicts = false, isSuccessful = true) => {
+function assertCreateNewVersionJobExecuted(workflowResult: Step[], didExecute = true) {
+    const steps = [createStepAssertion('Create new version', true, null, 'CREATENEWVERSION', 'Creating new version', [], [])] as const;
+
+    steps.forEach((expectedStep) => {
+        if (didExecute) {
+            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
+        } else {
+            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
+        }
+    });
+}
+
+function assertCherryPickJobExecuted(workflowResult: Step[], user = 'Dummy Author', pullRequestNumber = '1234', didExecute = true, hasConflicts = false, isSuccessful = true) {
     const steps = [
-        utils.createStepAssertion(
+        createStepAssertion(
             'Checkout staging branch',
             true,
             null,
@@ -38,11 +39,11 @@ const assertCherryPickJobExecuted = (workflowResult, user = 'Dummy Author', pull
             ],
             [],
         ),
-        utils.createStepAssertion('Set up git for OSBotify', true, null, 'CHERRYPICK', 'Setting up git for OSBotify', [{key: 'GPG_PASSPHRASE', value: '***'}], []),
-        utils.createStepAssertion('Get previous app version', true, null, 'CHERRYPICK', 'Get previous app version', [{key: 'SEMVER_LEVEL', value: 'PATCH'}]),
-        utils.createStepAssertion('Fetch history of relevant refs', true, null, 'CHERRYPICK', 'Fetch history of relevant refs'),
-        utils.createStepAssertion('Get version bump commit', true, null, 'CHERRYPICK', 'Get version bump commit', [], []),
-        utils.createStepAssertion(
+        createStepAssertion('Set up git for OSBotify', true, null, 'CHERRYPICK', 'Setting up git for OSBotify', [{key: 'GPG_PASSPHRASE', value: '***'}], []),
+        createStepAssertion('Get previous app version', true, null, 'CHERRYPICK', 'Get previous app version', [{key: 'SEMVER_LEVEL', value: 'PATCH'}]),
+        createStepAssertion('Fetch history of relevant refs', true, null, 'CHERRYPICK', 'Fetch history of relevant refs'),
+        createStepAssertion('Get version bump commit', true, null, 'CHERRYPICK', 'Get version bump commit', [], []),
+        createStepAssertion(
             'Get merge commit for pull request to CP',
             true,
             null,
@@ -55,10 +56,10 @@ const assertCherryPickJobExecuted = (workflowResult, user = 'Dummy Author', pull
             ],
             [],
         ),
-        utils.createStepAssertion('Cherry-pick the version-bump to staging', true, null, 'CHERRYPICK', 'Cherry-picking the version-bump to staging', [], []),
-        utils.createStepAssertion('Cherry-pick the merge commit of target PR', true, null, 'CHERRYPICK', 'Cherry-picking the merge commit of target PR', [], []),
-        utils.createStepAssertion('Push changes', true, null, 'CHERRYPICK', 'Pushing changes', [], []),
-    ];
+        createStepAssertion('Cherry-pick the version-bump to staging', true, null, 'CHERRYPICK', 'Cherry-picking the version-bump to staging', [], []),
+        createStepAssertion('Cherry-pick the merge commit of target PR', true, null, 'CHERRYPICK', 'Cherry-picking the merge commit of target PR', [], []),
+        createStepAssertion('Push changes', true, null, 'CHERRYPICK', 'Pushing changes', [], []),
+    ] as const;
 
     steps.forEach((expectedStep) => {
         if (didExecute) {
@@ -69,7 +70,7 @@ const assertCherryPickJobExecuted = (workflowResult, user = 'Dummy Author', pull
     });
 
     const conflictSteps = [
-        utils.createStepAssertion(
+        createStepAssertion(
             'Create Pull Request to manually finish CP',
             true,
             null,
@@ -78,7 +79,7 @@ const assertCherryPickJobExecuted = (workflowResult, user = 'Dummy Author', pull
             [],
             [{key: 'GITHUB_TOKEN', value: 'os_botify_api_token'}],
         ),
-    ];
+    ] as const;
 
     conflictSteps.forEach((step) => {
         if (didExecute && hasConflicts) {
@@ -89,7 +90,7 @@ const assertCherryPickJobExecuted = (workflowResult, user = 'Dummy Author', pull
     });
 
     const failedSteps = [
-        utils.createStepAssertion(
+        createStepAssertion(
             'Announces a CP failure in the #announce Slack room',
             true,
             null,
@@ -101,7 +102,7 @@ const assertCherryPickJobExecuted = (workflowResult, user = 'Dummy Author', pull
                 {key: 'SLACK_WEBHOOK_URL', value: '***'},
             ],
         ),
-    ];
+    ] as const;
 
     failedSteps.forEach((step) => {
         if (didExecute && !isSuccessful) {
@@ -110,10 +111,6 @@ const assertCherryPickJobExecuted = (workflowResult, user = 'Dummy Author', pull
             expect(workflowResult).not.toEqual(expect.arrayContaining([step]));
         }
     });
-};
+}
 
-module.exports = {
-    assertValidateActorJobExecuted,
-    assertCreateNewVersionJobExecuted,
-    assertCherryPickJobExecuted,
-};
+export {assertValidateActorJobExecuted, assertCreateNewVersionJobExecuted, assertCherryPickJobExecuted};

@@ -1,7 +1,8 @@
-const utils = require('../utils/utils');
+import type {Step} from '@kie/act-js';
+import {createStepAssertion} from '../utils/utils';
 
-const assertUpdateChecklistJobExecuted = (workflowResult, didExecute = true, isSuccessful = true) => {
-    const steps = [utils.createStepAssertion('updateChecklist', true, null, 'UPDATECHECKLIST', 'Run updateChecklist')];
+function assertUpdateChecklistJobExecuted(workflowResult: Step[], didExecute = true, isSuccessful = true) {
+    const steps = [createStepAssertion('updateChecklist', true, null, 'UPDATECHECKLIST', 'Run updateChecklist')] as const;
 
     steps.forEach((expectedStep) => {
         if (didExecute) {
@@ -12,12 +13,12 @@ const assertUpdateChecklistJobExecuted = (workflowResult, didExecute = true, isS
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
     });
-};
+}
 
-const assertDeployBlockerJobExecuted = (workflowResult, didExecute = true, isSuccessful = true, failsAt = -1) => {
+function assertDeployBlockerJobExecuted(workflowResult: Step[], didExecute = true, isSuccessful = true, failsAt = -1) {
     const steps = [
-        utils.createStepAssertion('Checkout', true, null, 'DEPLOYBLOCKER', 'Checkout'),
-        utils.createStepAssertion(
+        createStepAssertion('Checkout', true, null, 'DEPLOYBLOCKER', 'Checkout'),
+        createStepAssertion(
             'Give the issue/PR the Hourly, Engineering labels',
             true,
             null,
@@ -26,8 +27,8 @@ const assertDeployBlockerJobExecuted = (workflowResult, didExecute = true, isSuc
             [],
             [{key: 'GITHUB_TOKEN', value: '***'}],
         ),
-        utils.createStepAssertion('Comment on deploy blocker', true, null, 'DEPLOYBLOCKER', 'Comment on deploy blocker', [], [{key: 'GITHUB_TOKEN', value: '***'}]),
-    ];
+        createStepAssertion('Comment on deploy blocker', true, null, 'DEPLOYBLOCKER', 'Comment on deploy blocker', [], [{key: 'GITHUB_TOKEN', value: '***'}]),
+    ] as const;
 
     steps.forEach((expectedStep, i) => {
         if (didExecute) {
@@ -45,7 +46,7 @@ const assertDeployBlockerJobExecuted = (workflowResult, didExecute = true, isSuc
     });
 
     const successSteps = [
-        utils.createStepAssertion(
+        createStepAssertion(
             'Post the issue in the #expensify-open-source slack room',
             true,
             null,
@@ -57,7 +58,7 @@ const assertDeployBlockerJobExecuted = (workflowResult, didExecute = true, isSuc
                 {key: 'SLACK_WEBHOOK_URL', value: '***'},
             ],
         ),
-    ];
+    ] as const;
 
     successSteps.forEach((step) => {
         if (didExecute && isSuccessful) {
@@ -68,8 +69,8 @@ const assertDeployBlockerJobExecuted = (workflowResult, didExecute = true, isSuc
     });
 
     const failedSteps = [
-        utils.createStepAssertion('Announce failed workflow in Slack', true, null, 'DEPLOYBLOCKER', 'Announce failed workflow in Slack', [{key: 'SLACK_WEBHOOK', value: '***'}], []),
-    ];
+        createStepAssertion('Announce failed workflow in Slack', true, null, 'DEPLOYBLOCKER', 'Announce failed workflow in Slack', [{key: 'SLACK_WEBHOOK', value: '***'}], []),
+    ] as const;
 
     failedSteps.forEach((step) => {
         if (didExecute && !isSuccessful) {
@@ -78,9 +79,6 @@ const assertDeployBlockerJobExecuted = (workflowResult, didExecute = true, isSuc
             expect(workflowResult).not.toEqual(expect.arrayContaining([step]));
         }
     });
-};
+}
 
-module.exports = {
-    assertUpdateChecklistJobExecuted,
-    assertDeployBlockerJobExecuted,
-};
+export {assertUpdateChecklistJobExecuted, assertDeployBlockerJobExecuted};

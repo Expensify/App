@@ -112,7 +112,7 @@ describe('test workflow platformDeploy', () => {
                     mockJobs: testMockJobs,
                 });
 
-                assertions.assertVerifyActorJobExecuted(result, 'Dummy Author');
+                assertions.assertVerifyActorJobExecuted(result);
                 assertions.assertDeployChecklistJobExecuted(result, true);
                 assertions.assertAndroidJobExecuted(result, true, false, true);
                 assertions.assertDesktopJobExecuted(result, true, false);
@@ -194,7 +194,7 @@ describe('test workflow platformDeploy', () => {
                     mockJobs: testMockJobs,
                 });
 
-                assertions.assertVerifyActorJobExecuted(result, 'OSBotify');
+                assertions.assertVerifyActorJobExecuted(result);
                 assertions.assertDeployChecklistJobExecuted(result, true);
                 assertions.assertAndroidJobExecuted(result, true, false, true);
                 assertions.assertDesktopJobExecuted(result, true, false);
@@ -276,7 +276,7 @@ describe('test workflow platformDeploy', () => {
                     mockJobs: testMockJobs,
                 });
 
-                assertions.assertVerifyActorJobExecuted(result, 'Dummy Author');
+                assertions.assertVerifyActorJobExecuted(result);
                 assertions.assertDeployChecklistJobExecuted(result, true);
                 assertions.assertAndroidJobExecuted(result, false);
                 assertions.assertDesktopJobExecuted(result, false);

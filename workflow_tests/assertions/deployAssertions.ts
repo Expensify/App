@@ -1,19 +1,20 @@
-const utils = require('../utils/utils');
+import type {Step} from '@kie/act-js';
+import {createStepAssertion} from '../utils/utils';
 
-const assertDeployStagingJobExecuted = (workflowResult, didExecute = true) => {
+function assertDeployStagingJobExecuted(workflowResult: Step[], didExecute = true) {
     const steps = [
-        utils.createStepAssertion('Checkout staging branch', true, null, 'DEPLOY_STAGING', 'Checking out staging branch', [
+        createStepAssertion('Checkout staging branch', true, null, 'DEPLOY_STAGING', 'Checking out staging branch', [
             {key: 'ref', value: 'staging'},
             {key: 'token', value: '***'},
         ]),
-        utils.createStepAssertion('Setup git for OSBotify', true, null, 'DEPLOY_STAGING', 'Setting up git for OSBotify', [
+        createStepAssertion('Setup git for OSBotify', true, null, 'DEPLOY_STAGING', 'Setting up git for OSBotify', [
             {key: 'GPG_PASSPHRASE', value: '***'},
             {key: 'OS_BOTIFY_APP_ID', value: '***'},
             {key: 'OS_BOTIFY_PRIVATE_KEY', value: '***'},
         ]),
-        utils.createStepAssertion('Tag version', true, null, 'DEPLOY_STAGING', 'Tagging new version'),
-        utils.createStepAssertion('🚀 Push tags to trigger staging deploy 🚀', true, null, 'DEPLOY_STAGING', 'Pushing tag to trigger staging deploy'),
-    ];
+        createStepAssertion('Tag version', true, null, 'DEPLOY_STAGING', 'Tagging new version'),
+        createStepAssertion('🚀 Push tags to trigger staging deploy 🚀', true, null, 'DEPLOY_STAGING', 'Pushing tag to trigger staging deploy'),
+    ] as const;
 
     steps.forEach((expectedStep) => {
         if (didExecute) {
@@ -22,27 +23,27 @@ const assertDeployStagingJobExecuted = (workflowResult, didExecute = true) => {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
     });
-};
+}
 
-const assertDeployProductionJobExecuted = (workflowResult, didExecute = true) => {
+function assertDeployProductionJobExecuted(workflowResult: Step[], didExecute = true) {
     const steps = [
-        utils.createStepAssertion('Checkout', true, null, 'DEPLOY_PRODUCTION', 'Checking out', [
+        createStepAssertion('Checkout', true, null, 'DEPLOY_PRODUCTION', 'Checking out', [
             {key: 'ref', value: 'production'},
             {key: 'token', value: '***'},
         ]),
-        utils.createStepAssertion('Setup git for OSBotify', true, null, 'DEPLOY_PRODUCTION', 'Setting up git for OSBotify', [
+        createStepAssertion('Setup git for OSBotify', true, null, 'DEPLOY_PRODUCTION', 'Setting up git for OSBotify', [
             {key: 'GPG_PASSPHRASE', value: '***'},
             {key: 'OS_BOTIFY_APP_ID', value: '***'},
             {key: 'OS_BOTIFY_PRIVATE_KEY', value: '***'},
         ]),
-        utils.createStepAssertion('Get current app version', true, null, 'DEPLOY_PRODUCTION', 'Getting current app version'),
-        utils.createStepAssertion('Get Release Pull Request List', true, null, 'DEPLOY_PRODUCTION', 'Getting release PR list', [
+        createStepAssertion('Get current app version', true, null, 'DEPLOY_PRODUCTION', 'Getting current app version'),
+        createStepAssertion('Get Release Pull Request List', true, null, 'DEPLOY_PRODUCTION', 'Getting release PR list', [
             {key: 'TAG', value: '1.2.3'},
             {key: 'GITHUB_TOKEN', value: 'os_botify_api_token'},
             {key: 'IS_PRODUCTION_DEPLOY', value: 'true'},
         ]),
-        utils.createStepAssertion('Generate Release Body', true, null, 'DEPLOY_PRODUCTION', 'Generating release body', [{key: 'PR_LIST', value: '[1.2.1, 1.2.2]'}]),
-        utils.createStepAssertion(
+        createStepAssertion('Generate Release Body', true, null, 'DEPLOY_PRODUCTION', 'Generating release body', [{key: 'PR_LIST', value: '[1.2.1, 1.2.2]'}]),
+        createStepAssertion(
             '🚀 Create release to trigger production deploy 🚀',
             true,
             null,
@@ -54,7 +55,7 @@ const assertDeployProductionJobExecuted = (workflowResult, didExecute = true) =>
             ],
             [{key: 'GITHUB_TOKEN', value: 'os_botify_api_token'}],
         ),
-    ];
+    ] as const;
 
     steps.forEach((expectedStep) => {
         if (didExecute) {
@@ -63,9 +64,6 @@ const assertDeployProductionJobExecuted = (workflowResult, didExecute = true) =>
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
     });
-};
+}
 
-module.exports = {
-    assertDeployStagingJobExecuted,
-    assertDeployProductionJobExecuted,
-};
+export {assertDeployStagingJobExecuted, assertDeployProductionJobExecuted};

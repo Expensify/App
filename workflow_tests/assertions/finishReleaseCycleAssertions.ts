@@ -1,21 +1,23 @@
-const utils = require('../utils/utils');
+import type {Step} from '@kie/act-js';
+import {createStepAssertion} from '../utils/utils';
 
-const assertValidateJobExecuted = (workflowResult, issueNumber = '', didExecute = true, isTeamMember = true, hasBlockers = false, isSuccessful = true) => {
+function assertValidateJobExecuted(workflowResult: Step[], issueNumber = '', didExecute = true, isTeamMember = true, hasBlockers = false, isSuccessful = true) {
     const steps = [
-        utils.createStepAssertion('Checkout', true, null, 'VALIDATE', 'Checkout', [
+        createStepAssertion('Checkout', true, null, 'VALIDATE', 'Checkout', [
             {key: 'ref', value: 'main'},
             {key: 'token', value: '***'},
         ]),
-        utils.createStepAssertion('Setup git for OSBotify', true, null, 'VALIDATE', 'Setup git for OSBotify', [
+        createStepAssertion('Setup git for OSBotify', true, null, 'VALIDATE', 'Setup git for OSBotify', [
             {key: 'GPG_PASSPHRASE', value: '***'},
             {key: 'OS_BOTIFY_APP_ID', value: '***'},
             {key: 'OS_BOTIFY_PRIVATE_KEY', value: '***'},
         ]),
-        utils.createStepAssertion('Validate actor is deployer', true, null, 'VALIDATE', 'Validating if actor is deployer', [], [{key: 'GITHUB_TOKEN', value: 'os_botify_api_token'}]),
+        createStepAssertion('Validate actor is deployer', true, null, 'VALIDATE', 'Validating if actor is deployer', [], [{key: 'GITHUB_TOKEN', value: 'os_botify_api_token'}]),
     ];
+
     if (isTeamMember) {
         steps.push(
-            utils.createStepAssertion(
+            createStepAssertion(
                 'Check for any deploy blockers',
                 true,
                 null,
@@ -40,7 +42,7 @@ const assertValidateJobExecuted = (workflowResult, issueNumber = '', didExecute 
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const notTeamMemberSteps = [
-        utils.createStepAssertion(
+        createStepAssertion(
             'Reopen and comment on issue (not a team member)',
             true,
             null,
@@ -53,7 +55,7 @@ const assertValidateJobExecuted = (workflowResult, issueNumber = '', didExecute 
             ],
             [],
         ),
-    ];
+    ] as const;
 
     notTeamMemberSteps.forEach((expectedStep) => {
         if (didExecute && !isTeamMember) {
@@ -64,7 +66,7 @@ const assertValidateJobExecuted = (workflowResult, issueNumber = '', didExecute 
     });
 
     const blockerSteps = [
-        utils.createStepAssertion(
+        createStepAssertion(
             'Reopen and comment on issue (has blockers)',
             true,
             null,
@@ -76,7 +78,7 @@ const assertValidateJobExecuted = (workflowResult, issueNumber = '', didExecute 
             ],
             [],
         ),
-    ];
+    ] as const;
 
     blockerSteps.forEach((expectedStep) => {
         if (didExecute && hasBlockers) {
@@ -87,8 +89,8 @@ const assertValidateJobExecuted = (workflowResult, issueNumber = '', didExecute 
     });
 
     const failedSteps = [
-        utils.createStepAssertion('Announce failed workflow in Slack', true, null, 'VALIDATE', 'Announce failed workflow in Slack', [{key: 'SLACK_WEBHOOK', value: '***'}], []),
-    ];
+        createStepAssertion('Announce failed workflow in Slack', true, null, 'VALIDATE', 'Announce failed workflow in Slack', [{key: 'SLACK_WEBHOOK', value: '***'}], []),
+    ] as const;
 
     failedSteps.forEach((expectedStep) => {
         if (didExecute && !isSuccessful) {
@@ -97,11 +99,11 @@ const assertValidateJobExecuted = (workflowResult, issueNumber = '', didExecute 
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
     });
-};
+}
 
-const assertUpdateProductionJobExecuted = (workflowResult, didExecute = true, isSuccessful = true) => {
+function assertUpdateProductionJobExecuted(workflowResult: Step[], didExecute = true, isSuccessful = true) {
     const steps = [
-        utils.createStepAssertion(
+        createStepAssertion(
             'Checkout',
             true,
             null,
@@ -113,9 +115,9 @@ const assertUpdateProductionJobExecuted = (workflowResult, didExecute = true, is
             ],
             [],
         ),
-        utils.createStepAssertion('Setup git for OSBotify', true, null, 'UPDATEPRODUCTION', 'Setup git for OSBotify', [{key: 'GPG_PASSPHRASE', value: '***'}], []),
-        utils.createStepAssertion('Update production branch', true, null, 'UPDATEPRODUCTION', 'Updating production branch', [], []),
-    ];
+        createStepAssertion('Setup git for OSBotify', true, null, 'UPDATEPRODUCTION', 'Setup git for OSBotify', [{key: 'GPG_PASSPHRASE', value: '***'}], []),
+        createStepAssertion('Update production branch', true, null, 'UPDATEPRODUCTION', 'Updating production branch', [], []),
+    ] as const;
 
     steps.forEach((expectedStep) => {
         if (didExecute) {
@@ -126,8 +128,8 @@ const assertUpdateProductionJobExecuted = (workflowResult, didExecute = true, is
     });
 
     const failedSteps = [
-        utils.createStepAssertion('Announce failed workflow in Slack', true, null, 'UPDATEPRODUCTION', 'Announce failed workflow in Slack', [{key: 'SLACK_WEBHOOK', value: '***'}], []),
-    ];
+        createStepAssertion('Announce failed workflow in Slack', true, null, 'UPDATEPRODUCTION', 'Announce failed workflow in Slack', [{key: 'SLACK_WEBHOOK', value: '***'}], []),
+    ] as const;
 
     failedSteps.forEach((expectedStep) => {
         if (didExecute && !isSuccessful) {
@@ -136,10 +138,10 @@ const assertUpdateProductionJobExecuted = (workflowResult, didExecute = true, is
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
     });
-};
+}
 
-const assertCreateNewPatchVersionJobExecuted = (workflowResult, didExecute = true) => {
-    const steps = [utils.createStepAssertion('Create new version', true, null, 'CREATENEWPATCHVERSION', 'Creating new version', [{key: 'SEMVER_LEVEL', value: 'PATCH'}], [])];
+function assertCreateNewPatchVersionJobExecuted(workflowResult: Step[], didExecute = true) {
+    const steps = [createStepAssertion('Create new version', true, null, 'CREATENEWPATCHVERSION', 'Creating new version', [{key: 'SEMVER_LEVEL', value: 'PATCH'}], [])] as const;
 
     steps.forEach((expectedStep) => {
         if (didExecute) {
@@ -148,11 +150,11 @@ const assertCreateNewPatchVersionJobExecuted = (workflowResult, didExecute = tru
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
     });
-};
+}
 
-const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true, isSuccessful = true) => {
+function assertUpdateStagingJobExecuted(workflowResult: Step[], didExecute = true, isSuccessful = true) {
     const steps = [
-        utils.createStepAssertion(
+        createStepAssertion(
             'Checkout',
             true,
             null,
@@ -164,9 +166,9 @@ const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true, isSuc
             ],
             [],
         ),
-        utils.createStepAssertion('Setup git for OSBotify', true, null, 'UPDATESTAGING', 'Setup git for OSBotify', [{key: 'GPG_PASSPHRASE', value: '***'}], []),
-        utils.createStepAssertion('Update staging branch to trigger staging deploy', true, null, 'UPDATESTAGING', 'Updating staging branch', [], []),
-    ];
+        createStepAssertion('Setup git for OSBotify', true, null, 'UPDATESTAGING', 'Setup git for OSBotify', [{key: 'GPG_PASSPHRASE', value: '***'}], []),
+        createStepAssertion('Update staging branch to trigger staging deploy', true, null, 'UPDATESTAGING', 'Updating staging branch', [], []),
+    ] as const;
 
     steps.forEach((expectedStep) => {
         if (didExecute) {
@@ -177,8 +179,8 @@ const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true, isSuc
     });
 
     const failedSteps = [
-        utils.createStepAssertion('Announce failed workflow in Slack', true, null, 'UPDATESTAGING', 'Announce failed workflow in Slack', [{key: 'SLACK_WEBHOOK', value: '***'}], []),
-    ];
+        createStepAssertion('Announce failed workflow in Slack', true, null, 'UPDATESTAGING', 'Announce failed workflow in Slack', [{key: 'SLACK_WEBHOOK', value: '***'}], []),
+    ] as const;
 
     failedSteps.forEach((expectedStep) => {
         if (didExecute && !isSuccessful) {
@@ -187,11 +189,6 @@ const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true, isSuc
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
     });
-};
+}
 
-module.exports = {
-    assertValidateJobExecuted,
-    assertUpdateProductionJobExecuted,
-    assertCreateNewPatchVersionJobExecuted,
-    assertUpdateStagingJobExecuted,
-};
+export {assertValidateJobExecuted, assertUpdateProductionJobExecuted, assertCreateNewPatchVersionJobExecuted, assertUpdateStagingJobExecuted};

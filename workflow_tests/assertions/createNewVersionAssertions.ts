@@ -1,7 +1,8 @@
-const utils = require('../utils/utils');
+import type {Step} from '@kie/act-js';
+import {createStepAssertion} from '../utils/utils';
 
-const assertValidateActorJobExecuted = (workflowResult, didExecute = true) => {
-    const steps = [utils.createStepAssertion('Get user permissions', true, null, 'VALIDATEACTOR', 'Get user permissions', [], [{key: 'GITHUB_TOKEN', value: '***'}])];
+function assertValidateActorJobExecuted(workflowResult: Step[], didExecute = true) {
+    const steps = [createStepAssertion('Get user permissions', true, null, 'VALIDATEACTOR', 'Get user permissions', [], [{key: 'GITHUB_TOKEN', value: '***'}])] as const;
 
     steps.forEach((expectedStep) => {
         if (didExecute) {
@@ -10,11 +11,11 @@ const assertValidateActorJobExecuted = (workflowResult, didExecute = true) => {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
     });
-};
-const assertCreateNewVersionJobExecuted = (workflowResult, semverLevel = 'BUILD', didExecute = true, isSuccessful = true) => {
+}
+function assertCreateNewVersionJobExecuted(workflowResult: Step[], semverLevel = 'BUILD', didExecute = true, isSuccessful = true) {
     const steps = [
-        utils.createStepAssertion('Run turnstyle', true, null, 'CREATENEWVERSION', 'Run turnstyle', [{key: 'poll-interval-seconds', value: '10'}], [{key: 'GITHUB_TOKEN', value: '***'}]),
-        utils.createStepAssertion(
+        createStepAssertion('Run turnstyle', true, null, 'CREATENEWVERSION', 'Run turnstyle', [{key: 'poll-interval-seconds', value: '10'}], [{key: 'GITHUB_TOKEN', value: '***'}]),
+        createStepAssertion(
             'Check out',
             true,
             null,
@@ -26,8 +27,8 @@ const assertCreateNewVersionJobExecuted = (workflowResult, semverLevel = 'BUILD'
             ],
             [],
         ),
-        utils.createStepAssertion('Setup git for OSBotify', true, null, 'CREATENEWVERSION', 'Setup git for OSBotify', [{key: 'GPG_PASSPHRASE', value: '***'}], []),
-        utils.createStepAssertion(
+        createStepAssertion('Setup git for OSBotify', true, null, 'CREATENEWVERSION', 'Setup git for OSBotify', [{key: 'GPG_PASSPHRASE', value: '***'}], []),
+        createStepAssertion(
             'Generate version',
             true,
             null,
@@ -39,9 +40,9 @@ const assertCreateNewVersionJobExecuted = (workflowResult, semverLevel = 'BUILD'
             ],
             [],
         ),
-        utils.createStepAssertion('Commit new version', true, null, 'CREATENEWVERSION', 'Commit new version', [], []),
-        utils.createStepAssertion('Update main branch', true, null, 'CREATENEWVERSION', 'Update main branch', [], []),
-    ];
+        createStepAssertion('Commit new version', true, null, 'CREATENEWVERSION', 'Commit new version', [], []),
+        createStepAssertion('Update main branch', true, null, 'CREATENEWVERSION', 'Update main branch', [], []),
+    ] as const;
 
     steps.forEach((expectedStep) => {
         if (didExecute) {
@@ -54,8 +55,8 @@ const assertCreateNewVersionJobExecuted = (workflowResult, semverLevel = 'BUILD'
     });
 
     const failedSteps = [
-        utils.createStepAssertion('Announce failed workflow in Slack', true, null, 'CREATENEWVERSION', 'Announce failed workflow in Slack', [{key: 'SLACK_WEBHOOK', value: '***'}], []),
-    ];
+        createStepAssertion('Announce failed workflow in Slack', true, null, 'CREATENEWVERSION', 'Announce failed workflow in Slack', [{key: 'SLACK_WEBHOOK', value: '***'}], []),
+    ] as const;
 
     failedSteps.forEach((step) => {
         if (didExecute && !isSuccessful) {
@@ -64,9 +65,6 @@ const assertCreateNewVersionJobExecuted = (workflowResult, semverLevel = 'BUILD'
             expect(workflowResult).not.toEqual(expect.arrayContaining([step]));
         }
     });
-};
+}
 
-module.exports = {
-    assertValidateActorJobExecuted,
-    assertCreateNewVersionJobExecuted,
-};
+export {assertValidateActorJobExecuted, assertCreateNewVersionJobExecuted};
