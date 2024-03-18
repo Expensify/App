@@ -330,6 +330,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: {
                             path: ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route,
                         },
+                        [SCREENS.WORKSPACE.TAX_CREATE]: {
+                            path: ROUTES.WORKSPACE_TAX_CREATE.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: {
@@ -470,24 +473,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STEP_SCAN]: ROUTES.MONEY_REQUEST_STEP_SCAN.route,
                         [SCREENS.MONEY_REQUEST.STEP_TAG]: ROUTES.MONEY_REQUEST_STEP_TAG.route,
                         [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: ROUTES.MONEY_REQUEST_STEP_WAYPOINT.route,
-                        [SCREENS.MONEY_REQUEST.ROOT]: {
-                            path: ROUTES.MONEY_REQUEST.route,
-                            exact: true,
-                            screens: {
-                                [SCREENS.MONEY_REQUEST.MANUAL_TAB]: {
-                                    path: ROUTES.MONEY_REQUEST_MANUAL_TAB,
-                                    exact: true,
-                                },
-                                [SCREENS.MONEY_REQUEST.SCAN_TAB]: {
-                                    path: ROUTES.MONEY_REQUEST_SCAN_TAB,
-                                    exact: true,
-                                },
-                                [SCREENS.MONEY_REQUEST.DISTANCE_TAB]: {
-                                    path: ROUTES.MONEY_REQUEST_DISTANCE_TAB.route,
-                                    exact: true,
-                                },
-                            },
-                        },
                         [SCREENS.MONEY_REQUEST.AMOUNT]: ROUTES.MONEY_REQUEST_AMOUNT.route,
                         [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.route,
                         [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: ROUTES.MONEY_REQUEST_STEP_TAX_RATE.route,

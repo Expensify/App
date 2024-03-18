@@ -220,6 +220,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: {
         backTo: Routes;
     };
+    [SCREENS.WORKSPACE.TAX_CREATE]: {
+        policyID: string;
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type NewChatNavigatorParamList = {
@@ -281,7 +284,6 @@ type RoomInviteNavigatorParamList = {
 };
 
 type MoneyRequestNavigatorParamList = {
-    [SCREENS.MONEY_REQUEST.ROOT]: undefined;
     [SCREENS.MONEY_REQUEST.AMOUNT]: undefined;
     [SCREENS.MONEY_REQUEST.PARTICIPANTS]: {
         iouType: string;

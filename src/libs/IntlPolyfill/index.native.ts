@@ -1,18 +1,16 @@
-import polyfillDateTimeFormat from './polyfillDateTimeFormat';
 import polyfillListFormat from './polyfillListFormat';
-import polyfillNumberFormat from './polyfillNumberFormat';
 import type IntlPolyfill from './types';
 
 /**
  * Polyfill the Intl API, always performed for native devices.
  */
 const intlPolyfill: IntlPolyfill = () => {
-    // Native devices require extra polyfills
-    require('@formatjs/intl-getcanonicallocales/polyfill');
+    // Native devices require extra polyfills which are
+    // not yet implemented in hermes.
+    // see support: https://hermesengine.dev/docs/intl/
+
     require('@formatjs/intl-locale/polyfill');
-    require('@formatjs/intl-pluralrules/polyfill');
-    polyfillNumberFormat();
-    polyfillDateTimeFormat();
+
     polyfillListFormat();
 };
 
