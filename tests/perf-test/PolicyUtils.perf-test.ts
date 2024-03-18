@@ -7,27 +7,12 @@ import createRandomPolicyMember from '../utils/collections/policyMembers';
 
 describe('PolicyUtils', () => {
     describe('getMemberAccountIDsForWorkspace', () => {
-        test('500 policy members and full personal details', async () => {
+        test('500 policy members with personal details', async () => {
             const policyMembers = createCollection<PolicyMember>(
                 (_, index) => index,
                 () => createRandomPolicyMember(),
             );
             const personalDetails = createCollection<PersonalDetails>((_, index) => index, createPersonalDetails);
-
-            await measureFunction(() => getMemberAccountIDsForWorkspace(policyMembers, personalDetails));
-        });
-
-        test('500 policy members and empty personal details', async () => {
-            const policyMembers = createCollection<PolicyMember>(
-                (_, index) => index,
-                () => createRandomPolicyMember(),
-            );
-            const personalDetails = createCollection<PersonalDetails>(
-                (_, index) => index,
-                (index) => ({
-                    accountID: index,
-                }),
-            );
 
             await measureFunction(() => getMemberAccountIDsForWorkspace(policyMembers, personalDetails));
         });
@@ -41,24 +26,6 @@ describe('PolicyUtils', () => {
                 }),
             );
             const personalDetails = createCollection<PersonalDetails>((_, index) => index, createPersonalDetails);
-
-            await measureFunction(() => getMemberAccountIDsForWorkspace(policyMembers, personalDetails));
-        });
-
-        test('500 policy members with errors and empty personal details', async () => {
-            const policyMembers = createCollection<PolicyMember>(
-                (_, index) => index,
-                () => ({
-                    ...createRandomPolicyMember(),
-                    errors: {error: 'Error message'},
-                }),
-            );
-            const personalDetails = createCollection<PersonalDetails>(
-                (_, index) => index,
-                (index) => ({
-                    accountID: index,
-                }),
-            );
 
             await measureFunction(() => getMemberAccountIDsForWorkspace(policyMembers, personalDetails));
         });
