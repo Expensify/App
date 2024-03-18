@@ -171,8 +171,6 @@ type GetOptions = {
 
 type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean};
 
-type ReportTypesOptionData = Record<string, ReportUtils.OptionData[]>;
-
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
  * be configured to display different results based on the options passed to the private getOptions() method. Public
@@ -641,6 +639,7 @@ function createOption(
         isExpenseReport: false,
         policyID: undefined,
         isOptimisticPersonalDetail: false,
+        visibleChatMemberAccountIDs: [],
     };
 
     const personalDetailMap = getPersonalDetailsForAccountIDs(accountIDs, personalDetails);
@@ -2069,26 +2068,10 @@ function formatSectionsFromSearchTerm(
 /**
  * Filters options based on the search input value
  */
-function filterOptions(options: Partial<GetOptions>, searchInputValue: string): ReportUtils.OptionData[] {
+function filterOptions(options: GetOptions, searchInputValue: string): GetOptions {
     const {output: searchValue} = parsePhoneNumber(searchInputValue);
     const searchTerms = searchValue ? searchValue.split(' ') : [];
 
-    const reportsByType = (options.recentReports ?? []).reduce<ReportTypesOptionData>(
-        (acc, option) => {
-            if (!!option.isChatRoom || !!option.isPolicyExpenseChat) {
-                acc.chatRoomsAndPolicyExpenseChats.push(option);
-            } else {
-                acc.reports.push(option);
-            }
-
-            return acc;
-        },
-        {
-            chatRoomsAndPolicyExpenseChats: [],
-            reports: [],
-            personalDetails: options.personalDetails ?? [],
-        },
-    );
     const createFilter = (items: ReportUtils.OptionData[], keys: ReadonlyArray<KeyOption<ReportUtils.OptionData>>, term: string) =>
         filterArrayByMatch(items, term, {
             keys,
@@ -2099,42 +2082,79 @@ function filterOptions(options: Partial<GetOptions>, searchInputValue: string): 
     // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
     const emailRegex = /\.(?=[^\s@]*@)/g;
 
+    const getParticipantsLoginsArray = (item: ReportUtils.OptionData) => {
+        const keys: string[] = [];
+        const visibleChatMemberAccountIDs = item.participantsList ?? [];
+        if (allPersonalDetails) {
+            visibleChatMemberAccountIDs.forEach((participant) => {
+                const login = participant?.login;
+
+                if (login) {
+                    keys.push(login);
+                    keys.push(login.replace(emailRegex, ''));
+                }
+            });
+        }
+
+        return keys;
+    };
+
     const matchResults = searchTerms.reduceRight((items, term) => {
-        const personalDetails = createFilter(
-            items.personalDetails,
+        const recentReports = createFilter(
+            items.recentReports ?? [],
             [
-                'text',
-                'login',
-                (item) => (item.login ? item.login.replace(emailRegex, '') : []),
-                'participantsList.0.displayName',
-                'participantsList.0.firstName',
-                'participantsList.0.lastName',
+                (item) => {
+                    let keys: string[] = [];
+
+                    keys.push(item.text ?? '');
+
+                    if (item.login) {
+                        keys.push(item.login);
+                        keys.push(item.login.replace(emailRegex, ''));
+                    }
+
+                    if (item.isThread) {
+                        if (item.alternateText) {
+                            keys.push(item.alternateText);
+
+                            keys = keys.concat(getParticipantsLoginsArray(item));
+                        }
+                    } else if (!!item.isChatRoom || !!item.isPolicyExpenseChat) {
+                        if (item.subtitle) {
+                            keys.push(item.subtitle);
+                        }
+                    } else {
+                        keys = keys.concat(getParticipantsLoginsArray(item));
+                    }
+                    return keys;
+                },
             ],
             term,
         );
-        const chatRoomsAndPolicyExpenseChats = createFilter(items.chatRoomsAndPolicyExpenseChats, ['text', 'alternateText'], term);
-        const reports = createFilter(
-            items.reports,
-            [
-                'text',
-                'participantsList.0.login',
-                (item) => (item.participantsList ? item.participantsList.filter(({login}) => login).map((i) => (i.login ? i.login.replace(emailRegex, '') : '')) : []),
-                'participantsList.0.displayName',
-                'participantsList.0.firstName',
-                'participantsList.0.lastName',
-            ],
-            term,
-        );
+        const personalDetails = createFilter(items.personalDetails ?? [], ['participantsList.0.displayName', 'login', (item) => item.login?.replace(emailRegex, '') ?? ''], term);
 
         return {
-            reports,
-            personalDetails,
-            chatRoomsAndPolicyExpenseChats,
+            recentReports: recentReports ?? ([] as ReportUtils.OptionData[]),
+            personalDetails: personalDetails ?? ([] as ReportUtils.OptionData[]),
+            userToInvite: null,
+            currentUserOption: null,
+            categoryOptions: [],
+            tagOptions: [],
+            taxRatesOptions: [],
         };
-    }, reportsByType);
+    }, options);
 
-    const filteredOptions = Object.values(matchResults).flat();
-    return orderOptions(filteredOptions, searchValue);
+    const recentReports = matchResults.recentReports.concat(matchResults.personalDetails);
+
+    return {
+        personalDetails: [],
+        recentReports: orderOptions(recentReports, searchValue),
+        userToInvite: null,
+        currentUserOption: null,
+        categoryOptions: [],
+        tagOptions: [],
+        taxRatesOptions: [],
+    };
 }
 
 export {

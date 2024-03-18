@@ -40,6 +40,8 @@ type SearchPageOnyxProps = {
 
 type SearchPageProps = SearchPageOnyxProps & StackScreenProps<RootStackParamList, typeof SCREENS.SEARCH_ROOT>;
 
+type Options = OptionsListUtils.GetOptions & {headerMessage: string};
+
 type SearchPageSectionItem = {
     data: ReportUtils.OptionData[];
     shouldShow: boolean;
@@ -75,12 +77,16 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchP
         Report.searchInServer(debouncedSearchValue.trim());
     }, [debouncedSearchValue]);
 
-    const searchOptions = useMemo(() => {
+    const searchOptions: Options = useMemo(() => {
         if (!isScreenTransitionEnd) {
             return {
                 recentReports: [],
                 personalDetails: [],
                 userToInvite: null,
+                currentUserOption: null,
+                categoryOptions: [],
+                tagOptions: [],
+                taxRatesOptions: [],
                 headerMessage: '',
             };
         }
@@ -100,10 +106,10 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchP
         }
 
         const options = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue);
-        const header = OptionsListUtils.getHeaderMessage(options.length > 0, false, debouncedSearchValue);
+        const header = OptionsListUtils.getHeaderMessage(options.recentReports.length > 0, false, debouncedSearchValue);
         return {
-            recentReports: options,
-            personalDetails: [],
+            recentReports: options.recentReports,
+            personalDetails: options.personalDetails,
             userToInvite: null,
             headerMessage: header,
         };
