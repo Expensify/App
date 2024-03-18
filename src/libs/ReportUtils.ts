@@ -562,7 +562,7 @@ function getReport(reportID: string | undefined): OnyxEntry<Report> | EmptyObjec
 }
 
 /**
- * Returns the parentReport if the given report is a thread.
+ * Returns the parentReport if the given report is a thread
  */
 function getParentReport(report: OnyxEntry<Report> | EmptyObject): OnyxEntry<Report> | EmptyObject {
     if (!report?.parentReportID) {
@@ -591,6 +591,9 @@ function getRootParentReport(report: OnyxEntry<Report> | undefined | EmptyObject
     return getRootParentReport(!isEmptyObject(parentReport) ? parentReport : null);
 }
 
+/**
+ * @deprecated Use withOnyx or Onyx.connect() instead
+ */
 function getPolicy(policyID: string | undefined): Policy | EmptyObject {
     if (!allPolicies || !policyID) {
         return {};
@@ -5462,7 +5465,6 @@ export {
     isSettled,
     isAllowedToComment,
     getBankAccountRoute,
-    getParentReport,
     getRootParentReport,
     getReportPreviewMessage,
     isMoneyRequestReportPendingDeletion,
