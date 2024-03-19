@@ -370,6 +370,35 @@ function ReportActionItem({
             return [];
         }
 
+        if (ReportActionUtils.isActionableTrackExpense()) {
+            return [
+                {
+                    text: 'actionableMentionTrackExpense.request',
+                    key: `${action.reportActionID}-actionableMentionTrackExpense-request`,
+                    onPress: () => console.log('Track'),
+                    isPrimary: true,
+                },
+                {
+                    text: 'actionableMentionTrackExpense.categorize',
+                    key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
+                    onPress: () => console.log('Categorize'),
+                    isPrimary: true,
+                },
+                {
+                    text: 'actionableMentionTrackExpense.share',
+                    key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
+                    onPress: () => console.log('Share'),
+                    isPrimary: true,
+                },
+                {
+                    text: 'actionableMentionTrackExpense.nothing',
+                    key: `${action.reportActionID}-actionableMentionTrackExpense-nothing`,
+                    onPress: () => console.log('Nothing'),
+                    isPrimary: true,
+                },
+            ];
+        }
+
         if (ReportActionsUtils.isActionableJoinRequest(action)) {
             return [
                 {

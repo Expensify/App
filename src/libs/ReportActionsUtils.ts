@@ -943,6 +943,10 @@ function isActionableJoinRequest(reportAction: OnyxEntry<ReportAction>): boolean
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLEJOINREQUEST;
 }
 
+function isActionableTrackExpense(reportAction: OnyxEntry<ReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLETRACKEXPENSEWHISPER;
+}
+
 /**
  * Checks if any report actions correspond to a join request action that is still pending.
  * @param reportID
@@ -1025,6 +1029,7 @@ export {
     isCurrentActionUnread,
     isActionableJoinRequest,
     isActionableJoinRequestPending,
+    isActionableTrackExpense,
 };
 
 export type {LastVisibleMessage};
