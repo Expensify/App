@@ -1532,10 +1532,10 @@ const CONST = {
         },
         ACTIVE_STATES: cardActiveStates,
         LIMIT_TYPES: {
-            SMART: "smart",
-            MONTHLY: "monthly",
-            FIXED: "fixed",
-        }
+            SMART: 'smart',
+            MONTHLY: 'monthly',
+            FIXED: 'fixed',
+        },
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
