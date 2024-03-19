@@ -381,19 +381,19 @@ function ReportActionItem({
                 {
                     text: 'actionableMentionTrackExpense.categorize',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
-                    onPress: () => console.log('Categorize'),
+                    onPress: () => Policy.categorizeTrackedTransaction(report.reportID, action),
                     isPrimary: true,
                 },
                 {
                     text: 'actionableMentionTrackExpense.share',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
-                    onPress: () => console.log('Share'),
+                    onPress: () => Policy.categorizeTrackedTransaction(report.reportID, action),
                     isPrimary: true,
                 },
                 {
                     text: 'actionableMentionTrackExpense.nothing',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-nothing`,
-                    onPress: () => console.log('Nothing'),
+                    onPress: () => ReportActions.dismissActionableWhisper(report.reportID, action.reportActionID),
                     isPrimary: true,
                 },
             ];
@@ -806,7 +806,7 @@ function ReportActionItem({
     }
 
     // if action is actionable mention whisper and resolved by user, then we don't want to render anything
-    if (ReportActionsUtils.isActionableMentionWhisper(action) && (action.originalMessage.resolution ?? null)) {
+    if ((ReportActionsUtils.isActionableMentionWhisper(action) || ReportActionsUtils.isActionableTrackExpense(action)) && (action.originalMessage.resolution ?? null)) {
         return null;
     }
 

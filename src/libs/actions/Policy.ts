@@ -4004,7 +4004,7 @@ function categorizeTrackedTransaction(chatReportID, action) {
 
     const params = {
         policyID,
-        transactionID: action.transactionID,
+        transactionID: action.originalMessage.transactionID,
         reportID: chatReportID,
         reportActionID: action.reportActionID,
         modifiedExpenseReportActionID: action.reportActionID,
@@ -4016,7 +4016,18 @@ function categorizeTrackedTransaction(chatReportID, action) {
         expenseCreatedReportActionID,
     };
 
+    console.log('What are all the parameters', params);
+
     API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_TRANSACTION, params);
+}
+
+function convertTrackedExpenseToRequest(reportID, action) {
+    const params = {
+        reportID,
+        reportActionID: action.reportActionID,
+    };
+
+    API.write(WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, params);
 }
 
 export {
@@ -4102,4 +4113,5 @@ export {
     setWorkspaceCurrencyDefault,
     setForeignCurrencyDefault,
     setPolicyCustomTaxName,
+    categorizeTrackedTransaction,
 };
