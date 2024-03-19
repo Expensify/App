@@ -63,9 +63,9 @@ function OnfidoStep({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoStepP
                 onBackButtonPress={goToPreviousStep}
             />
             <FullPageOfflineBlockingView>
-                {shouldShowOnfido && walletOnfidoData?.sdkToken ? (
+                {shouldShowOnfido ? (
                     <Onfido
-                        sdkToken={walletOnfidoData.sdkToken}
+                        sdkToken={walletOnfidoData.sdkToken ?? ''}
                         onUserExit={goBack}
                         onError={reportError}
                         onSuccess={verifyIdentity}
