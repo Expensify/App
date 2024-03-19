@@ -55,6 +55,9 @@ const propTypes = {
 
     /** Forwarded ref to FloatingActionButtonAndPopover */
     innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+
+    /** Information on the last taken action to display as Quick Action */
+    quickAction: PropTypes.object,
 };
 const defaultProps = {
     onHideCreateMenu: () => {},
@@ -62,6 +65,7 @@ const defaultProps = {
     allPolicies: {},
     isLoading: false,
     innerRef: null,
+    quickAction: null,
 };
 
 /**
@@ -77,6 +81,11 @@ function FloatingActionButtonAndPopover(props) {
     const fabRef = useRef(null);
 
     const prevIsFocused = usePrevious(props.isFocused);
+
+    if (props.quickAction) {
+        const quickActionReportID = props.quickAction.chatReportID;
+        const quickActionReport = ReportUtils.getReport(quickActionReportID);
+    }
 
     /**
      * Check if LHN status changed from active to inactive.
@@ -253,6 +262,9 @@ export default compose(
         },
         isLoading: {
             key: ONYXKEYS.IS_LOADING_APP,
+        },
+        quickAction: {
+            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
         },
     }),
 )(FloatingActionButtonAndPopoverWithRef);

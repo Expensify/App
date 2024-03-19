@@ -131,6 +131,9 @@ const ONYXKEYS = {
     /** The NVP with the last distance rate used per policy */
     NVP_LAST_SELECTED_DISTANCE_RATES: 'lastSelectedDistanceRates',
 
+    /** The NVP with the last action taken (for the Quick Action Button) */
+    NVP_QUICK_ACTION_GLOBAL_CREATE: 'nvp_quickActionGlobalCreate',
+
     /** Does this user have push notifications enabled for this device? */
     PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
 
@@ -330,8 +333,8 @@ const ONYXKEYS = {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
         ADD_DEBIT_CARD_FORM_DRAFT: 'addDebitCardFormDraft',
         WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
-        WORKSPACE_CATEGORY_FORM: 'workspaceCategoryForm',
-        WORKSPACE_CATEGORY_FORM_DRAFT: 'workspaceCategoryFormDraft',
+        WORKSPACE_CATEGORY_CREATE_FORM: 'workspaceCategoryCreate',
+        WORKSPACE_CATEGORY_CREATE_FORM_DRAFT: 'workspaceCategoryCreateDraft',
         WORKSPACE_TAG_CREATE_FORM: 'workspaceTagCreate',
         WORKSPACE_TAG_CREATE_FORM_DRAFT: 'workspaceTagCreateDraft',
         WORKSPACE_SETTINGS_FORM_DRAFT: 'workspaceSettingsFormDraft',
@@ -339,10 +342,6 @@ const ONYXKEYS = {
         WORKSPACE_DESCRIPTION_FORM_DRAFT: 'workspaceDescriptionFormDraft',
         WORKSPACE_RATE_AND_UNIT_FORM: 'workspaceRateAndUnitForm',
         WORKSPACE_RATE_AND_UNIT_FORM_DRAFT: 'workspaceRateAndUnitFormDraft',
-        WORKSPACE_TAX_CUSTOM_NAME: 'workspaceTaxCustomName',
-        WORKSPACE_TAX_CUSTOM_NAME_DRAFT: 'workspaceTaxCustomNameDraft',
-        POLICY_CREATE_DISTANCE_RATE_FORM: 'policyCreateDistanceRateForm',
-        POLICY_CREATE_DISTANCE_RATE_FORM_DRAFT: 'policyCreateDistanceRateFormDraft',
         CLOSE_ACCOUNT_FORM: 'closeAccount',
         CLOSE_ACCOUNT_FORM_DRAFT: 'closeAccountDraft',
         PROFILE_SETTINGS_FORM: 'profileSettingsForm',
