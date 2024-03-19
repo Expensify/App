@@ -1456,6 +1456,16 @@ const CONST = {
             DISABLE: 'disable',
             ENABLE: 'enable',
         },
+        COLLECTION_FIELDS: {
+            DESCRIPTION: 'description',
+            REIMBURSER_EMAIL: 'reimburserEmail',
+            REIMBURSEMENT_CHOICE: 'reimbursementChoice',
+            APPROVAL_MODE: 'approvalMode',
+            AUTOREPORTING: 'autoReporting',
+            AUTOREPORTING_FREQUENCY: 'autoReportingFrequency',
+            AUTOREPORTING_OFFSET: 'autoReportingOffset',
+            GENERAL_SETTINGS: 'generalSettings',
+        },
     },
 
     CUSTOM_UNITS: {
