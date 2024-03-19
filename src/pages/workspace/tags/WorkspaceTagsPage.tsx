@@ -223,7 +223,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                     customText={translate('workspace.common.selected', {selectedNumber: selectedTagsArray.length})}
                     options={options}
-                    style={[isSmallScreenWidth && styles.w50, isSmallScreenWidth && styles.mb3]}
+                    style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
                 />
             );
         }
