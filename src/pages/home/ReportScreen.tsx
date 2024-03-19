@@ -70,7 +70,7 @@ type ReportScreenOnyxProps = {
     isComposerFullSize: OnyxEntry<boolean>;
 
     /** All the report actions for this report */
-    reportActions: OnyxTypes.ReportAction[];
+    reportActions: OnyxCollection<OnyxTypes.ReportAction>;
 
     /** The report currently being looked at */
     report: OnyxEntry<ReportWithoutHasDraft>;
@@ -121,7 +121,7 @@ function ReportScreen({
         isLoadingOlderReportActions: false,
         isLoadingNewerReportActions: false,
     },
-    reportActions = [],
+    reportActions = {},
     parentReportAction,
     accountManagerReportID,
     markReadyForHydration,
@@ -226,6 +226,8 @@ function ReportScreen({
         ],
     );
 
+    const sortedReportActions = useMemo(() => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions as Record<string, OnyxTypes.ReportAction>, true), [reportActions]);
+
     const prevReport = usePrevious(report);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
@@ -241,19 +243,19 @@ function ReportScreen({
     const reportID = getReportID(route);
     const {reportPendingAction, reportErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
-    const isEmptyChat = useMemo((): boolean => reportActions.length === 0, [reportActions]);
+    const isEmptyChat = useMemo((): boolean => sortedReportActions.length === 0, [sortedReportActions]);
     // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
-    const isLoadingInitialReportActions = reportActions.length === 0 && !!reportMetadata?.isLoadingInitialReportActions;
+    const isLoadingInitialReportActions = Object.keys(reportActions ?? {}).length === 0 && !!reportMetadata?.isLoadingInitialReportActions;
     const isOptimisticDelete = report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
     const shouldHideReport = !ReportUtils.canAccessReport(report, policies, betas);
 
     const isLoading = !reportID || !isSidebarLoaded || PersonalDetailsUtils.isPersonalDetailsEmpty();
     const lastReportAction: OnyxEntry<OnyxTypes.ReportAction> = useMemo(
         () =>
-            reportActions.length
-                ? [...reportActions, parentReportAction].find((action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action)) ?? null
+            sortedReportActions.length
+                ? [...sortedReportActions, parentReportAction].find((action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action)) ?? null
                 : null,
-        [reportActions, parentReportAction],
+        [sortedReportActions, parentReportAction],
     );
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report);
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? null;
@@ -545,7 +547,7 @@ function ReportScreen({
                             >
                                 {isReportReadyForDisplay && !isLoadingInitialReportActions && !isLoading && (
                                     <ReportActionsView
-                                        reportActions={reportActions}
+                                        reportActions={sortedReportActions}
                                         report={report}
                                         parentReportAction={parentReportAction}
                                         isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
@@ -590,7 +592,7 @@ export default withViewportOffsetTop(
                 reportActions: {
                     key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
                     canEvict: false,
-                    selector: (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
+                    selector: (reportActions: OnyxCollection<OnyxTypes.ReportAction>) => reportActions,
                 },
                 report: {
                     key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
