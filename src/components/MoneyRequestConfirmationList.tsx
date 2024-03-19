@@ -527,7 +527,7 @@ function MoneyRequestConfirmationList({
         }
 
         const shouldShowSettlementButton = iouType === CONST.IOU.TYPE.SEND;
-        const shouldDisableButton = selectedParticipants.length === 0 || shouldDisplayMerchantError;
+        const shouldDisableButton = selectedParticipants.length === 0;
 
         const button = shouldShowSettlementButton ? (
             <SettlementButton
