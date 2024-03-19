@@ -672,29 +672,9 @@ function setWorkspacePayer(policyID: string, reimburserEmail: string, reimburser
     API.write(WRITE_COMMANDS.SET_WORKSPACE_PAYER, params, {optimisticData, failureData, successData});
 }
 
-function clearWorkspaceAutoReportingError(policyID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {autoReporting: null}});
-}
-
-function clearWorkspaceAutoReportingFrequencyError(policyID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {autoReportingFrequency: null}});
-}
-
-function clearWorkspaceGeneralSettingError(policyID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {generalSettings: null}});
-}
-
-function clearWorkspaceAutoReportingOffsetError(policyID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {autoReportingOffset: null}});
-}
-
-function clearWorkspaceApprovalError(policyID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {approvalMode: null}});
-}
-
-function clearWorkspacePayerError(policyID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {reimburserEmail: null}});
-}
+function clearPolicyErrorField(policyID: string, fieldName: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {[fieldName]: null}});
+} 
 
 function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>, reimburserAccountID: number, reimburserEmail: string) {
     const policy = ReportUtils.getPolicy(policyID);
@@ -3922,7 +3902,6 @@ export {
     renamePolicyCategory,
     clearCategoryErrors,
     setWorkspacePayer,
-    clearWorkspacePayerError,
     setWorkspaceReimbursement,
     openPolicyWorkflowsPage,
     setPolicyRequiresTag,
@@ -3944,10 +3923,6 @@ export {
     clearWorkspaceReimbursementErrors,
     deleteWorkspaceCategories,
     setWorkspaceTagEnabled,
-    clearWorkspaceApprovalError,
-    clearWorkspaceAutoReportingError,
-    clearWorkspaceAutoReportingFrequencyError,
-    clearWorkspaceAutoReportingOffsetError,
-    clearWorkspaceGeneralSettingError,
+    clearPolicyErrorField,
     hasValidCurrencyForDirectReimbursement,
 };
