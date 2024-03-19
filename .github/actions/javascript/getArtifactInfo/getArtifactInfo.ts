@@ -1,4 +1,4 @@
-import core from '@actions/core';
+import * as core from '@actions/core';
 import type {components as OctokitComponents} from '@octokit/openapi-types/types';
 import GithubUtils from '../../../libs/GithubUtils';
 
