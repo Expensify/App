@@ -30,7 +30,7 @@ type UseArrowKeyFocusManager = [number, (index: number) => void];
  * @param [config.isActive] – Whether the component is ready and should subscribe to KeyboardShortcut
  * @param [config.itemsPerRow] – The number of items per row. If provided, the arrow keys will move focus horizontally as well as vertically
  * @param [config.disableCyclicTraversal] – Whether to disable cyclic traversal of the list. If true, the arrow keys will have no effect when the first or last item is focused
- * @param [config.disableHorizontalKeys] – Whether to disable the right/left keys
+ * @param [config.allowHorizontalArrowKeys] – Whether to enable the right/left keys
  */
 export default function useArrowKeyFocusManager({
     maxIndex,
