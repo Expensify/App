@@ -48,7 +48,7 @@ type ContextMenuItemProps = {
     shouldPreventDefaultFocusOnPress?: boolean;
 
     /** The ref of mini context menu item */
-    buttonRef: React.RefObject<View>;
+    buttonRef?: React.RefObject<View>;
 };
 
 type ContextMenuItemHandle = {
@@ -69,7 +69,7 @@ function ContextMenuItem(
         shouldLimitWidth = true,
         wrapperStyle,
         shouldPreventDefaultFocusOnPress = true,
-        buttonRef,
+        buttonRef = {current: null},
     }: ContextMenuItemProps,
     ref: ForwardedRef<ContextMenuItemHandle>,
 ) {

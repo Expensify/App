@@ -194,7 +194,7 @@ function BaseReportActionContextMenu({
         {isActive: shouldEnableArrowNavigation},
     );
 
-    const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: MutableRefObject<HTMLDivElement | View | Text | null>) => {
+    const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: MutableRefObject<View | null>) => {
         const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
         const originalReport = ReportUtils.getReport(originalReportID);
         showContextMenu(

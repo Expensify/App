@@ -16,7 +16,7 @@ type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition' | key
     anchorPosition: AnchorPosition;
 
     /** The dimension of anchor component */
-    anchorDimensions: AnchorDimensions;
+    anchorDimensions?: AnchorDimensions;
 };
 
 /**
