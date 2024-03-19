@@ -150,6 +150,7 @@ Onyx.connect({
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
         currentReportData[reportID] = report;
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
         handleReportChanged(report);
     },
 });
