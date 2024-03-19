@@ -3,7 +3,6 @@ import React from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -12,7 +11,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorPosition} from '@src/styles';
 import type {Report, Session} from '@src/types/onyx';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import * as Expensicons from './Icon/Expensicons';
+import type {PaymentMethod} from './KYCWall/types';
 import PopoverMenu from './PopoverMenu';
 
 type AddPaymentMethodMenuOnyxProps = {
@@ -28,10 +29,10 @@ type AddPaymentMethodMenuProps = AddPaymentMethodMenuOnyxProps & {
     onClose: () => void;
 
     /** Callback to execute when the payment method is selected. */
-    onItemSelected: (paymentMethod: ValueOf<typeof CONST.PAYMENT_METHODS>) => void;
+    onItemSelected: (paymentMethod: PaymentMethod) => void;
 
     /** The IOU/Expense report we are paying */
-    iouReport?: OnyxEntry<Report>;
+    iouReport?: OnyxEntry<Report> | EmptyObject;
 
     /** Anchor position for the AddPaymentMenu. */
     anchorPosition: AnchorPosition;
