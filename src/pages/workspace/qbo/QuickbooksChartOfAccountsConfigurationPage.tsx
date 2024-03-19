@@ -52,12 +52,7 @@ function QuickbooksChartOfAccountsConfigurationPage({policy}: WithPolicyProps) {
                             <Switch
                                 accessibilityLabel={translate('workspace.qbo.accounts')}
                                 isOn={Boolean(enableNewCategories)}
-                                onToggle={() => Policy.updatePolicyConnectionConfig(
-                                    policyID,
-                                    'quickbooksOnline',
-                                    'enableNewCategories',
-                                    !enableNewCategories,
-                                )}
+                                onToggle={() => Policy.updatePolicyConnectionConfig(policyID, 'quickbooksOnline', 'enableNewCategories', !enableNewCategories)}
                             />
                         </View>
                     </OfflineWithFeedback>

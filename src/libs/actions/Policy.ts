@@ -3266,7 +3266,7 @@ function updatePolicyConnectionConfig(policyID: string, connectionName: string, 
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE
+                    [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
                 connections: {
                     quickbooksOnline: {
@@ -3284,10 +3284,10 @@ function updatePolicyConnectionConfig(policyID: string, connectionName: string, 
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 errorFields: {
-                    [settingName]: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')
+                    [settingName]: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage'),
                 },
                 pendingFields: {
-                    [settingName]: null
+                    [settingName]: null,
                 },
                 connections: {
                     quickbooksOnline: {
@@ -3306,7 +3306,7 @@ function updatePolicyConnectionConfig(policyID: string, connectionName: string, 
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    [settingName]: null
+                    [settingName]: null,
                 },
                 connections: {
                     quickbooksOnline: {
