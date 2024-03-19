@@ -28,6 +28,7 @@ type AttachmentCarouselProps = AttachmentCaraouselOnyxProps & {
     /** The report currently being looked at */
     report: Report;
 
+    /** A callback that is called when swipe-down-to-close gesture happens */
     onClose: () => void;
 };
 
