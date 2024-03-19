@@ -20,7 +20,6 @@ import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
-import {usePersonalDetails} from './OnyxProvider';
 import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
 
 type MoneyRequestHeaderOnyxProps = {
@@ -53,7 +52,6 @@ type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
 };
 
 function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, shownHoldUseExplanation = false, policy}: MoneyRequestHeaderProps) {
-    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -172,7 +170,6 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                         ownerAccountID: parentReport?.ownerAccountID,
                     }}
                     policy={policy}
-                    personalDetails={personalDetails}
                     shouldShowBackButton={isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack(undefined, false, true)}
                 />
