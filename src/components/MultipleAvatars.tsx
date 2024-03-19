@@ -46,7 +46,7 @@ type MultipleAvatarsProps = {
     /** Whether avatars are displayed within a reportAction */
     isInReportAction?: boolean;
 
-    /** Whether to show the toolip text */
+    /** Whether to show the tooltip text */
     shouldShowTooltip?: boolean;
 
     /** Whether avatars are displayed with the highlighted background color instead of the app background color. This is primarily the case for IOU previews. */
