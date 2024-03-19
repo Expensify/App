@@ -28,7 +28,9 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
     const {translate} = useLocalize();
     const [description, setDescription] = useState(() =>
         parser.htmlToMarkdown(
-            policy?.description ??
+            // policy?.description can be an empty string
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            policy?.description ||
                 translate('workspace.common.welcomeNote', {
                     workspaceName: policy?.name ?? '',
                 }),
