@@ -122,7 +122,7 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
         return returnObject;
     }
 
-    const didScreenReturnToOriginalSize = isMobile || (lockedWindowDimensions.current.windowWidth === windowWidth && lockedWindowDimensions.current.windowHeight === windowHeight);
+    const didScreenReturnToOriginalSize = lockedWindowDimensions.current.windowWidth === windowWidth && lockedWindowDimensions.current.windowHeight === windowHeight;
 
     // if video exits fullscreen mode, unlock the window dimensions
     if (lockedWindowDimensions.current && !isFullscreen.current && didScreenReturnToOriginalSize) {
