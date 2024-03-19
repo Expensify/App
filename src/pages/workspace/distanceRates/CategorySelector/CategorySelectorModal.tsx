@@ -1,18 +1,15 @@
-import React, {useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import React from 'react';
+import CategoryPicker from '@components/CategoryPicker';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import type * as OnyxTypes from '@src/types/onyx';
-import type CategoryItemType from './types';
 
 type CategorySelectorModalProps = {
-    /** Collection of categories attached to a policy */
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+    /** The ID of the associated policy */
+    policyID: string;
 
     /** Whether the modal is visible */
     isVisible: boolean;
@@ -21,7 +18,7 @@ type CategorySelectorModalProps = {
     currentCategory: string;
 
     /** Function to call when the user selects a category */
-    onCategorySelected: (value: CategoryItemType) => void;
+    onCategorySelected: (value: ListItem) => void;
 
     /** Function to call when the user closes the category selector modal */
     onClose: () => void;
@@ -30,19 +27,8 @@ type CategorySelectorModalProps = {
     label: string;
 };
 
-function CategorySelectorModal({policyCategories, isVisible, currentCategory, onCategorySelected, onClose, label}: CategorySelectorModalProps) {
+function CategorySelectorModal({policyID, isVisible, currentCategory, onCategorySelected, onClose, label}: CategorySelectorModalProps) {
     const styles = useThemeStyles();
-
-    const categories = useMemo(
-        () =>
-            Object.values(policyCategories ?? {}).map((value) => ({
-                value: value.name,
-                text: value.name,
-                keyForList: value.name,
-                isSelected: value.name === currentCategory,
-            })),
-        [currentCategory, policyCategories],
-    );
 
     return (
         <Modal
@@ -64,13 +50,10 @@ function CategorySelectorModal({policyCategories, isVisible, currentCategory, on
                     shouldShowBackButton
                     onBackButtonPress={onClose}
                 />
-                <SelectionList
-                    ListItem={RadioListItem}
-                    sections={[{data: categories, indexOffset: 0}]}
-                    initiallyFocusedOptionKey={currentCategory}
-                    onSelectRow={onCategorySelected}
-                    shouldStopPropagation
-                    shouldUseDynamicMaxToRenderPerBatch
+                <CategoryPicker
+                    policyID={policyID}
+                    selectedCategory={currentCategory}
+                    onSubmit={onCategorySelected}
                 />
             </ScreenWrapper>
         </Modal>

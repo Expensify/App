@@ -2005,10 +2005,6 @@ export default {
             disabled: 'Disabled',
             unit: 'Unit',
             defaultCategory: 'Default category',
-            units: {
-                MI: 'Miles',
-                KM: 'Kilometers',
-            },
         },
         editor: {
             descriptionInputLabel: 'Description',

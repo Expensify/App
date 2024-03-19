@@ -1,21 +1,19 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import useLocalize from '@hooks/useLocalize';
+import type {UnitItemType} from '@components/UnitPicker';
+import UnitPicker from '@components/UnitPicker';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {Unit} from '@src/types/onyx/Policy';
-import type {UnitItemType, UnitType} from './types';
 
 type UnitSelectorModalProps = {
     /** Whether the modal is visible */
     isVisible: boolean;
 
     /** Selected unit  */
-    currentUnit: string;
+    currentUnit: Unit;
 
     /** Function to call when the user selects a unit */
     onUnitSelected: (value: UnitItemType) => void;
@@ -29,18 +27,6 @@ type UnitSelectorModalProps = {
 
 function UnitSelectorModal({isVisible, currentUnit, onUnitSelected, onClose, label}: UnitSelectorModalProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-
-    const units = useMemo(
-        () =>
-            Object.keys(CONST.POLICY.UNITS).map((key) => ({
-                value: key.toLowerCase() as Unit,
-                text: translate(`workspace.distanceRates.units.${key as UnitType}`),
-                keyForList: key,
-                isSelected: key === currentUnit,
-            })),
-        [currentUnit, translate],
-    );
 
     return (
         <Modal
@@ -62,12 +48,9 @@ function UnitSelectorModal({isVisible, currentUnit, onUnitSelected, onClose, lab
                     shouldShowBackButton
                     onBackButtonPress={onClose}
                 />
-                <SelectionList
-                    ListItem={RadioListItem}
-                    sections={[{data: units, indexOffset: 0}]}
-                    initiallyFocusedOptionKey={currentUnit}
-                    onSelectRow={onUnitSelected}
-                    shouldStopPropagation
+                <UnitPicker
+                    defaultValue={currentUnit}
+                    onOptionSelected={onUnitSelected}
                 />
             </ScreenWrapper>
         </Modal>

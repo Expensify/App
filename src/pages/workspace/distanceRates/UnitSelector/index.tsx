@@ -1,10 +1,12 @@
-import React, {useState} from 'react';
+import Str from 'expensify-common/lib/str';
+import React, {useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import type {UnitItemType} from '@components/UnitPicker';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import type {UnitItemType, UnitType} from './types';
+import CONST from '@src/CONST';
+import type {Unit} from '@src/types/onyx/Policy';
 import UnitSelectorModal from './UnitSelectorModal';
 
 type UnitSelectorProps = {
@@ -12,7 +14,7 @@ type UnitSelectorProps = {
     setNewUnit: (value: UnitItemType) => void;
 
     /** Currently selected unit */
-    defaultValue: string;
+    defaultValue: Unit;
 
     /** Label to display on field */
     label: string;
@@ -21,8 +23,7 @@ type UnitSelectorProps = {
     wrapperStyle: StyleProp<ViewStyle>;
 };
 
-function UnitSelector({defaultValue = '', wrapperStyle, label, setNewUnit}: UnitSelectorProps) {
-    const styles = useThemeStyles();
+function UnitSelector({defaultValue, wrapperStyle, label, setNewUnit}: UnitSelectorProps) {
     const {translate} = useLocalize();
 
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -35,21 +36,25 @@ function UnitSelector({defaultValue = '', wrapperStyle, label, setNewUnit}: Unit
         setIsPickerVisible(false);
     };
 
-    const updateUnitInput = (UnitItem: UnitItemType) => {
-        setNewUnit(UnitItem);
+    const updateUnitInput = (unit: UnitItemType) => {
+        setNewUnit(unit);
         hidePickerModal();
     };
 
-    const title = defaultValue ? translate(`workspace.distanceRates.units.${defaultValue as UnitType}`) : '';
-    const descStyle = title.length === 0 ? styles.textNormal : null;
+    const unitTranslations = useMemo(
+        () => ({
+            [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: translate('common.kilometers'),
+            [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: translate('common.miles'),
+        }),
+        [translate],
+    );
 
     return (
         <View>
             <MenuItemWithTopDescription
                 shouldShowRightIcon
-                title={title}
+                title={Str.recapitalize(unitTranslations[defaultValue])}
                 description={label}
-                descriptionTextStyle={descStyle}
                 onPress={showPickerModal}
                 wrapperStyle={wrapperStyle}
             />

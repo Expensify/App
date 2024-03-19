@@ -2030,10 +2030,6 @@ export default {
             disabled: 'Desactivada',
             unit: 'Unidad',
             defaultCategory: 'Categoría predeterminada',
-            units: {
-                MI: 'Millas',
-                KM: 'Kilómetros',
-            },
         },
         editor: {
             nameInputLabel: 'Nombre',
