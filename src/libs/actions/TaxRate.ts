@@ -201,14 +201,14 @@ function setPolicyTaxesEnabled(policyID: string, taxesIDsToUpdate: string[], isE
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     taxRates: {
-                        taxes: taxesIDsToUpdate.reduce((acc, taxID) => {
+                        taxes: taxesIDsToUpdate.reduce<TaxRateEnabledMap>((acc, taxID) => {
                             acc[taxID] = {
                                 isDisabled: !isEnabled,
                                 pendingFields: {isDisabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                                 errorFields: {isDisabled: null},
                             };
                             return acc;
-                        }, {} as TaxRateEnabledMap),
+                        }, {}),
                     },
                 },
             },
@@ -219,10 +219,10 @@ function setPolicyTaxesEnabled(policyID: string, taxesIDsToUpdate: string[], isE
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     taxRates: {
-                        taxes: taxesIDsToUpdate.reduce((acc, taxID) => {
+                        taxes: taxesIDsToUpdate.reduce<TaxRateEnabledMap>((acc, taxID) => {
                             acc[taxID] = {isDisabled: !isEnabled, pendingFields: {isDisabled: null}, errorFields: {isDisabled: null}};
                             return acc;
-                        }, {} as TaxRateEnabledMap),
+                        }, {}),
                     },
                 },
             },
@@ -233,14 +233,14 @@ function setPolicyTaxesEnabled(policyID: string, taxesIDsToUpdate: string[], isE
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     taxRates: {
-                        taxes: taxesIDsToUpdate.reduce((acc, taxID) => {
+                        taxes: taxesIDsToUpdate.reduce<TaxRateEnabledMap>((acc, taxID) => {
                             acc[taxID] = {
                                 isDisabled: !!originalTaxes[taxID].isDisabled,
                                 pendingFields: {isDisabled: null},
                                 errorFields: {isDisabled: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.errors.updateFailureMessage')},
                             };
                             return acc;
-                        }, {} as TaxRateEnabledMap),
+                        }, {}),
                     },
                 },
             },
@@ -282,10 +282,10 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     taxRates: {
-                        taxes: taxesToDelete.reduce((acc, taxID) => {
+                        taxes: taxesToDelete.reduce<TaxRateDeleteMap>((acc, taxID) => {
                             acc[taxID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: null};
                             return acc;
-                        }, {} as TaxRateDeleteMap),
+                        }, {}),
                     },
                 },
             },
@@ -296,10 +296,10 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     taxRates: {
-                        taxes: taxesToDelete.reduce((acc, taxID) => {
+                        taxes: taxesToDelete.reduce<TaxRateDeleteMap>((acc, taxID) => {
                             acc[taxID] = null;
                             return acc;
-                        }, {} as TaxRateDeleteMap),
+                        }, {}),
                     },
                 },
             },
@@ -310,13 +310,13 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     taxRates: {
-                        taxes: taxesToDelete.reduce((acc, taxID) => {
+                        taxes: taxesToDelete.reduce<TaxRateDeleteMap>((acc, taxID) => {
                             acc[taxID] = {
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                                 errors: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.errors.deleteFailureMessage'),
                             };
                             return acc;
-                        }, {} as TaxRateDeleteMap),
+                        }, {}),
                     },
                 },
             },
