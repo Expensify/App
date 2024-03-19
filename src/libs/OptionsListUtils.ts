@@ -1014,9 +1014,8 @@ function getCategoryListSections(
 
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
     const enabledWithoutSelectedCategories = sortedCategories.filter((category) => category.enabled && !selectedOptionNames.includes(category.name));
-    const numberOfVisibleCategories = enabledWithoutSelectedCategories.length + selectedOptions.length;
 
-    if (numberOfVisibleCategories < CONST.CATEGORY_LIST_THRESHOLD) {
+    if (numberOfCategories < CONST.CATEGORY_LIST_THRESHOLD) {
         categorySections.push({
             // "All" section when items amount less than the threshold
             title: '',
