@@ -251,7 +251,7 @@ function updateLastAccessedWorkspace(policyID: OnyxEntry<string>) {
 }
 
 function isCurrencySupportedForDirectReimbursement(currency: string) {
-    return CONST.DIRECT_REIMBURSEMENT_CURRENCIES.filter(currency => currency !== CONST.CURRENCY.EUR).includes(currency as (typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES)[number]);
+    return CONST.DIRECT_REIMBURSEMENT_CURRENCIES.filter((c) => c !== CONST.CURRENCY.EUR).includes(currency as (typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES)[number]);
 }
 
 /**
