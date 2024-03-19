@@ -3,7 +3,7 @@ const kieMockGithub = require('@kie/mock-github');
 const utils = require('./utils/utils');
 const assertions = require('./assertions/platformDeployAssertions');
 const mocks = require('./mocks/platformDeployMocks');
-const eAct = require('./utils/ExtendedAct');
+const ExtendedAct = require('./utils/ExtendedAct').default;
 
 jest.setTimeout(90 * 1000);
 let mockGithub;
@@ -44,7 +44,7 @@ describe('test workflow platformDeploy', () => {
             it('as team member - platform deploy executes on staging', async () => {
                 const repoPath = mockGithub.repo.getPath('testPlatformDeployWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(
                     act,
                     'push',
@@ -126,7 +126,7 @@ describe('test workflow platformDeploy', () => {
             it('as OSBotify - platform deploy executes on staging', async () => {
                 const repoPath = mockGithub.repo.getPath('testPlatformDeployWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(
                     act,
                     'push',
@@ -208,7 +208,7 @@ describe('test workflow platformDeploy', () => {
             it('as outsider - platform deploy does not execute', async () => {
                 const repoPath = mockGithub.repo.getPath('testPlatformDeployWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(
                     act,
                     'push',

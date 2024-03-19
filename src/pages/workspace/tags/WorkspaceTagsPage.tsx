@@ -11,6 +11,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import TableListItem from '@components/SelectionList/TableListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
@@ -36,6 +37,11 @@ type PolicyForList = {
     keyForList: string;
     isSelected: boolean;
     rightElement: React.ReactNode;
+};
+
+type PolicyOption = ListItem & {
+    /** Tag name is used as a key for the selectedTags state */
+    keyForList: string;
 };
 
 type WorkspaceTagsOnyxProps = {
@@ -121,6 +127,10 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
         Navigation.navigate(ROUTES.WORKSPACE_TAG_CREATE.getRoute(route.params.policyID));
     };
 
+    const navigateToTagSettings = (tag: PolicyOption) => {
+        Navigation.navigate(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route.params.policyID, tag.keyForList));
+    };
+
     const isLoading = !isOffline && policyTags === undefined;
 
     const headerButtons = (
@@ -184,7 +194,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                             canSelectMultiple
                             sections={[{data: tagList, indexOffset: 0, isDisabled: false}]}
                             onCheckboxPress={toggleTag}
-                            onSelectRow={() => {}}
+                            onSelectRow={navigateToTagSettings}
                             onSelectAll={toggleAllTags}
                             showScrollIndicator
                             ListItem={TableListItem}
