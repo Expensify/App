@@ -1,11 +1,11 @@
 import Str from 'expensify-common/lib/str';
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import type {UnitItemType} from '@components/UnitPicker';
 import useLocalize from '@hooks/useLocalize';
-import CONST from '@src/CONST';
+import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
 import type {Unit} from '@src/types/onyx/Policy';
 import UnitSelectorModal from './UnitSelectorModal';
 
@@ -41,19 +41,13 @@ function UnitSelector({defaultValue, wrapperStyle, label, setNewUnit}: UnitSelec
         hidePickerModal();
     };
 
-    const unitTranslations = useMemo(
-        () => ({
-            [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: translate('common.kilometers'),
-            [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: translate('common.miles'),
-        }),
-        [translate],
-    );
+    const title = Str.recapitalize(translate(getUnitTranslationKey(defaultValue)));
 
     return (
         <View>
             <MenuItemWithTopDescription
                 shouldShowRightIcon
-                title={Str.recapitalize(unitTranslations[defaultValue])}
+                title={title}
                 description={label}
                 onPress={showPickerModal}
                 wrapperStyle={wrapperStyle}

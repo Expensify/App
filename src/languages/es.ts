@@ -1952,8 +1952,6 @@ export default {
             trackDistanceRate: 'Tarifa',
             trackDistanceUnit: 'Unidad',
             trackDistanceChooseUnit: 'Elige una unidad predeterminada de medida.',
-            kilometers: 'Kilómetros',
-            miles: 'Millas',
             unlockNextDayReimbursements: 'Desbloquea reembolsos diarios',
             captureNoVBACopyBeforeEmail: 'Pide a los miembros de tu espacio de trabajo que envíen recibos a ',
             captureNoVBACopyAfterEmail: ' y descarga la App de Expensify para controlar tus gastos en efectivo sobre la marcha.',

@@ -1,6 +1,7 @@
 import Str from 'expensify-common/lib/str';
 import React, {useMemo} from 'react';
 import useLocalize from '@hooks/useLocalize';
+import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
 import type {Unit} from '@src/types/onyx/Policy';
 import SelectionList from './SelectionList';
@@ -18,28 +19,21 @@ type UnitPickerProps = {
     onOptionSelected: (unit: UnitItemType) => void;
 };
 
+const units = [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES];
+
 function UnitPicker({defaultValue, onOptionSelected}: UnitPickerProps) {
     const {translate} = useLocalize();
-    const unitItems = useMemo(
-        () => ({
-            [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: translate('common.kilometers'),
-            [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: translate('common.miles'),
-        }),
-        [translate],
-    );
 
-    const unitOptions = useMemo(() => {
-        const arr: UnitItemType[] = [];
-        Object.entries(unitItems).forEach(([unit, label]) => {
-            arr.push({
+    const unitOptions = useMemo(
+        () =>
+            units.map((unit) => ({
                 value: unit as Unit,
-                text: Str.recapitalize(label),
+                text: Str.recapitalize(translate(getUnitTranslationKey(unit))),
                 keyForList: unit,
                 isSelected: defaultValue === unit,
-            });
-        });
-        return arr;
-    }, [defaultValue, unitItems]);
+            })),
+        [defaultValue, translate],
+    );
 
     return (
         <SelectionList
