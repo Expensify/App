@@ -220,6 +220,8 @@ const getMockFileContent = (workflowName: string, jobs: Record<string, YamlMockJ
                 .replaceAll('-', '_')
                 .replaceAll(',', '')
                 .replaceAll('#', '')
+                .replaceAll('.ts', '')
+                .replaceAll('.js', '')
                 .toUpperCase()}__STEP_MOCK`;
             stepMocks.push(stepMockName);
             mockStepsContent += mockStepTemplate(stepMockName, step, jobId);

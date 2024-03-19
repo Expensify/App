@@ -1,10 +1,10 @@
 import type {Step} from '@kie/act-js';
-import {createStepAssertion} from 'workflow_tests/utils/utils';
+import {createStepAssertion} from '../utils/utils';
 
 function assertChecklistJobExecuted(workflowResult: Step[], didExecute = true) {
     const steps = [
         createStepAssertion('Checkout', true, null, 'CHECKLIST', 'Checkout'),
-        createStepAssertion('authorChecklist.js', true, null, 'CHECKLIST', 'Running authorChecklist.js', [{key: 'GITHUB_TOKEN', value: '***'}], []),
+        createStepAssertion('authorChecklist.ts', true, null, 'CHECKLIST', 'Running authorChecklist.ts', [{key: 'GITHUB_TOKEN', value: '***'}], []),
     ];
 
     steps.forEach((expectedStep) => {
