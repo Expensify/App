@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import FloatingActionButton from '@components/FloatingActionButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
@@ -22,6 +22,8 @@ import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import * as OnyxTypes from "@src/types/onyx";
+import personalDetailsPropType from "@pages/personalDetailsPropType";
 
 /**
  * @param {Object} [policy]
@@ -34,6 +36,50 @@ const policySelector = (policy) =>
         isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         pendingAction: policy.pendingAction,
     };
+
+const getQuickActionIcon = (action) => {
+    switch (action) {
+        case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
+            return Expensicons.MoneyCircle;
+        case CONST.QUICK_ACTIONS.REQUEST_SCAN:
+            return Expensicons.MoneyCircle;
+        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
+            return Expensicons.Car;
+        case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
+        case CONST.QUICK_ACTIONS.SPLIT_SCAN:
+        case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
+            return Expensicons.Transfer;
+        case CONST.QUICK_ACTIONS.SEND_MONEY:
+            return Expensicons.Send;
+        case CONST.QUICK_ACTIONS.ASSIGN_TASK:
+            return Expensicons.Task;
+        default:
+            return Expensicons.MoneyCircle;
+    }
+};
+
+const getQuickActionTitle = (action) => {
+    switch (action) {
+        case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
+            return Expensicons.MoneyCircle;
+        case CONST.QUICK_ACTIONS.REQUEST_SCAN:
+            return Expensicons.MoneyCircle;
+        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
+            return Expensicons.Car;
+        case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
+        case CONST.QUICK_ACTIONS.SPLIT_SCAN:
+        case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
+            return Expensicons.Transfer;
+        case CONST.QUICK_ACTIONS.SEND_MONEY:
+            return Expensicons.Send;
+        case CONST.QUICK_ACTIONS.ASSIGN_TASK:
+            return Expensicons.Task;
+        default:
+            return Expensicons.MoneyCircle;
+    }
+};
+
+
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -58,6 +104,9 @@ const propTypes = {
 
     /** Information on the last taken action to display as Quick Action */
     quickAction: PropTypes.object,
+
+    /** Personal details of all the users */
+    personalDetails: personalDetailsPropType,
 };
 const defaultProps = {
     onHideCreateMenu: () => {},
@@ -66,6 +115,7 @@ const defaultProps = {
     isLoading: false,
     innerRef: null,
     quickAction: null,
+    personalDetails: {},
 };
 
 /**
@@ -85,6 +135,9 @@ function FloatingActionButtonAndPopover(props) {
     if (props.quickAction) {
         const quickActionReportID = props.quickAction.chatReportID;
         const quickActionReport = ReportUtils.getReport(quickActionReportID);
+        if (quickActionReport) {
+            const avatars = ReportUtils.getIcons(quickActionReport, props.personalDetails);
+        }
     }
 
     /**
@@ -265,6 +318,9 @@ export default compose(
         },
         quickAction: {
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     }),
 )(FloatingActionButtonAndPopoverWithRef);
