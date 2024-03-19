@@ -61,21 +61,23 @@ const getQuickActionIcon = (action) => {
 const getQuickActionTitle = (action) => {
     switch (action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
-            return Expensicons.MoneyCircle;
+            return 'quickAction.requestMoney';
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
-            return Expensicons.MoneyCircle;
+            return 'quickAction.scanReceipt';
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
-            return Expensicons.Car;
+            return 'quickAction.recordDistance';
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
+            return 'quickAction.splitBill';
         case CONST.QUICK_ACTIONS.SPLIT_SCAN:
+            return 'quickAction.splitReceipt';
         case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
-            return Expensicons.Transfer;
+            return 'quickAction.splitScan';
         case CONST.QUICK_ACTIONS.SEND_MONEY:
-            return Expensicons.Send;
+            return 'quickAction.sendMoney';
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-            return Expensicons.Task;
+            return 'quickAction.assignTask';
         default:
-            return Expensicons.MoneyCircle;
+            return '';
     }
 };
 
@@ -133,6 +135,7 @@ function FloatingActionButtonAndPopover(props) {
     const prevIsFocused = usePrevious(props.isFocused);
 
     if (props.quickAction) {
+        const quickAction = props.quickAction.action;
         const quickActionReportID = props.quickAction.chatReportID;
         const quickActionReport = ReportUtils.getReport(quickActionReportID);
         if (quickActionReport) {
