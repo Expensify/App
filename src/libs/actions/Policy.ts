@@ -1668,6 +1668,10 @@ function setPolicyIDForReimburseView(policyID: string) {
     Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, {policyID, rate: null, unit: null});
 }
 
+function openPolicyAccountingPage(policyID: string) {
+    API.read(READ_COMMANDS.OPEN_POLICY_ACCOUNTING_PAGE, { policyID });
+}
+
 function clearOnyxDataForReimburseView() {
     Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, null);
 }
@@ -2236,6 +2240,7 @@ export {
     clearDeleteWorkspaceError,
     openWorkspaceReimburseView,
     setPolicyIDForReimburseView,
+    openPolicyAccountingPage,
     clearOnyxDataForReimburseView,
     setRateForReimburseView,
     setUnitForReimburseView,

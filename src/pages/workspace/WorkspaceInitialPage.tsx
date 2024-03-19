@@ -69,6 +69,13 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
     const policyName = policy?.name ?? '';
 
     useEffect(() => {
+        if (!policyID) {
+            return;
+        }
+        Policy.openPolicyAccountingPage(policyID);
+    }, [policyID]);
+
+    useEffect(() => {
         const policyDraftId = policyDraft?.id;
 
         if (!policyDraftId) {
