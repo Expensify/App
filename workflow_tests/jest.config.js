@@ -1,7 +1,7 @@
 module.exports = {
     verbose: true,
     transform: {
-        '^.+\\.tsx?$': 'ts-jest',
+        '^.+\\.(js|jsx|ts|tsx)$': ['ts-jest', {babelConfig: true}],
     },
     clearMocks: true,
     resetMocks: true,
