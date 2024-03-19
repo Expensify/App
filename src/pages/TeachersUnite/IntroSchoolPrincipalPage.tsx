@@ -20,7 +20,6 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import TeachersUnite from '@userActions/TeachersUnite';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/IntroSchoolPrincipalForm';
 import type {LoginList} from '@src/types/onyx';
 
@@ -81,7 +80,7 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('teachersUnitePage.introSchoolPrincipal')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.TEACHERS_UNITE)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <FormProvider
                 enabledWhenOffline
