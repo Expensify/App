@@ -303,7 +303,7 @@ function updateMoneyRequestTypeParams(routes: StackNavigationState<ParamListBase
 // eslint-disable-next-line @typescript-eslint/naming-convention
 function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string) {
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-    Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE.getRoute(iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
+    Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention

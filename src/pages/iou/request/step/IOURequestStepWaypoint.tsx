@@ -153,7 +153,7 @@ function IOURequestStepWaypoint({
             Navigation.goBack(backTo);
             return;
         }
-        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(iouType, transactionID, reportID));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
     };
 
     return (

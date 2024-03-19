@@ -306,7 +306,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
 
     const navigateBack = () => {
-        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(iouType, transaction.transactionID, reportID));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID));
     };
 
     const shouldDisplayFieldError = useMemo(() => {
@@ -721,7 +721,11 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     description={translate('common.distance')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    onPress={() =>
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                        )
+                    }
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     disabled={didConfirm || !canEditDistance}
                     interactive={!isReadOnly}

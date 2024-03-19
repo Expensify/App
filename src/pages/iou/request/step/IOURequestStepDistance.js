@@ -48,7 +48,7 @@ const defaultProps = {
 function IOURequestStepDistance({
     report,
     route: {
-        params: {iouType, reportID, transactionID, backTo},
+        params: {action, iouType, reportID, transactionID, backTo},
     },
     transaction,
 }) {
@@ -76,6 +76,16 @@ function IOURequestStepDistance({
     const nonEmptyWaypointsCount = useMemo(() => _.filter(_.keys(waypoints), (key) => !_.isEmpty(waypoints[key])).length, [waypoints]);
     const duplicateWaypointsError = useMemo(() => nonEmptyWaypointsCount >= 2 && _.size(validatedWaypoints) !== nonEmptyWaypointsCount, [nonEmptyWaypointsCount, validatedWaypoints]);
     const atLeastTwoDifferentWaypointsError = useMemo(() => _.size(validatedWaypoints) < 2, [validatedWaypoints]);
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
+
+    console.log('transaction', transaction);
+    console.log('hasRoute', hasRoute);
+    console.log('hasRouteError', hasRouteError);
+
+    console.log('isLoadingRoute', isLoadingRoute);
+
+    console.log('shouldFetchRoute', shouldFetchRoute);
+    console.log('isLoading', isLoading);
 
     useEffect(() => {
         MapboxToken.init();
@@ -112,9 +122,7 @@ function IOURequestStepDistance({
      * @param {Number} index of the waypoint to edit
      */
     const navigateToWaypointEditPage = (index) => {
-        Navigation.navigate(
-            ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.REQUEST, transactionID, report.reportID, index, Navigation.getActiveRouteWithoutParams()),
-        );
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(action, CONST.IOU.TYPE.REQUEST, transactionID, report.reportID, index, Navigation.getActiveRouteWithoutParams()));
     };
 
     const navigateToNextStep = useCallback(() => {
@@ -189,7 +197,7 @@ function IOURequestStepDistance({
             headerTitle={translate('common.distance')}
             onBackButtonPress={navigateBack}
             testID={IOURequestStepDistance.displayName}
-            shouldShowWrapper={Boolean(backTo)}
+            shouldShowWrapper={isEditing}
         >
             <>
                 <View style={styles.flex1}>
