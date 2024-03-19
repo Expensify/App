@@ -2292,5 +2292,16 @@ describe('OptionsListUtils', () => {
             expect(filterOptions.recentReports.length).toBe(2);
             expect(filterOptions.recentReports[1].isChatRoom).toBe(true);
         });
+
+        it('should put the item with latest lastVisibleActionCreated on top when search value match multiple items', () => {
+            const searchText = 'fantastic';
+
+            const options = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS, '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
+
+            expect(filteredOptions.recentReports.length).toBe(2);
+            expect(filteredOptions.recentReports[0].text).toBe('Mister Fantastic');
+            expect(filteredOptions.recentReports[1].text).toBe('Mister Fantastic');
+        });
     });
 });
