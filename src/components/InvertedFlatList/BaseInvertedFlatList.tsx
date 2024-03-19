@@ -39,4 +39,5 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
 BaseInvertedFlatList.displayName = 'BaseInvertedFlatList';
 
 export default forwardRef(BaseInvertedFlatList);
+
 export {AUTOSCROLL_TO_TOP_THRESHOLD};

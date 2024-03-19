@@ -134,7 +134,17 @@ function ReportActionsView({
         if (reportActionID) {
             return;
         }
-        openReportIfNecessary();
+
+        const interactionTask = InteractionManager.runAfterInteractions(() => {
+            openReportIfNecessary();
+        });
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        if (interactionTask) {
+            return () => {
+                interactionTask.cancel();
+            };
+        }
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -201,8 +211,13 @@ function ReportActionsView({
         // Existing reports created will have empty fields for `pendingFields`.
         const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
         if (!didSubscribeToReportTypingEvents.current && didCreateReportSuccessfully) {
-            Report.subscribeToReportTypingEvents(reportID);
-            didSubscribeToReportTypingEvents.current = true;
+            const interactionTask = InteractionManager.runAfterInteractions(() => {
+                Report.subscribeToReportTypingEvents(reportID);
+                didSubscribeToReportTypingEvents.current = true;
+            });
+            return () => {
+                interactionTask.cancel();
+            };
         }
     }, [report.pendingFields, didSubscribeToReportTypingEvents, reportID]);
 

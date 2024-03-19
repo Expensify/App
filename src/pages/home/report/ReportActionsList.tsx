@@ -121,6 +121,8 @@ function isMessageUnread(message: OnyxTypes.ReportAction, lastReadTime?: string)
     return !!(message && lastReadTime && message.created && lastReadTime < message.created);
 }
 
+const onScrollToIndexFailed = () => {};
+
 function ReportActionsList({
     report,
     parentReportAction,
@@ -341,7 +343,9 @@ function ReportActionsList({
             if (unsubscribe) {
                 unsubscribe();
             }
-            Report.unsubscribeFromReportChannel(report.reportID);
+            InteractionManager.runAfterInteractions(() => {
+                Report.unsubscribeFromReportChannel(report.reportID);
+            });
         };
 
         newActionUnsubscribeMap[report.reportID] = cleanup;
@@ -525,7 +529,7 @@ function ReportActionsList({
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
-    const extraData = [isSmallScreenWidth ? currentUnreadMarker : undefined, ReportUtils.isArchivedRoom(report)];
+    const extraData = useMemo(() => [isSmallScreenWidth ? currentUnreadMarker : undefined, ReportUtils.isArchivedRoom(report)], [currentUnreadMarker, isSmallScreenWidth, report]);
     const hideComposer = !ReportUtils.canUserPerformWriteAction(report);
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
     const canShowHeader = !isOffline && !hasHeaderRendered.current && scrollingVerticalOffset.current > VERTICAL_OFFSET_THRESHOLD;
@@ -613,7 +617,7 @@ function ReportActionsList({
                     onLayout={onLayoutInner}
                     onContentSizeChange={onContentSizeChangeInner}
                     onScroll={trackVerticalScrolling}
-                    onScrollToIndexFailed={() => {}}
+                    onScrollToIndexFailed={onScrollToIndexFailed}
                     extraData={extraData}
                     key={listID}
                     shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
