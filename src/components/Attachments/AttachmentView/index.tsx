@@ -4,8 +4,7 @@ import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {FileObject} from '@components/AttachmentModal';
-import type {AttachmentSource} from '@components/Attachments/types';
+import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
@@ -34,55 +33,48 @@ type AttachmentViewOnyxProps = {
     transaction: OnyxEntry<Transaction>;
 };
 
-type AttachmentViewProps = AttachmentViewOnyxProps & {
-    /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
-    source: AttachmentSource;
+type AttachmentViewProps = AttachmentViewOnyxProps &
+    Attachment & {
+        /** Whether this view is the active screen  */
+        isFocused?: boolean;
 
-    file?: FileObject;
+        isAuthTokenRequired?: boolean;
 
-    /** Whether this view is the active screen  */
-    isFocused?: boolean;
+        /** Function for handle on press */
+        onPress?: (e?: GestureResponderEvent | KeyboardEvent) => void;
 
-    isAuthTokenRequired?: boolean;
+        /** Whether this AttachmentView is shown as part of a AttachmentCarousel */
+        isUsedInCarousel?: boolean;
 
-    /** Function for handle on press */
-    onPress?: (e?: GestureResponderEvent | KeyboardEvent) => void;
+        isUsedInAttachmentModal?: boolean;
 
-    /** Whether this AttachmentView is shown as part of a AttachmentCarousel */
-    isUsedInCarousel?: boolean;
+        /** Flag to show/hide download icon */
+        shouldShowDownloadIcon?: boolean;
 
-    isUsedInAttachmentModal?: boolean;
+        /** Flag to show the loading indicator */
+        shouldShowLoadingSpinnerIcon?: boolean;
 
-    /** Flag to show/hide download icon */
-    shouldShowDownloadIcon?: boolean;
+        /** Notify parent that the UI should be modified to accommodate keyboard */
+        onToggleKeyboard?: (shouldFadeOut: boolean) => void;
 
-    /** Flag to show the loading indicator */
-    shouldShowLoadingSpinnerIcon?: boolean;
+        /** Extra styles to pass to View wrapper */
+        containerStyles?: Array<StyleProp<ViewStyle>>;
 
-    /** Notify parent that the UI should be modified to accommodate keyboard */
-    onToggleKeyboard?: (shouldFadeOut: boolean) => void;
+        /** Denotes whether it is a workspace avatar or not */
+        isWorkspaceAvatar?: boolean;
 
-    /** Extra styles to pass to View wrapper */
-    containerStyles?: Array<StyleProp<ViewStyle>>;
+        /** Denotes whether it is an icon (ex: SVG) */
+        maybeIcon?: boolean;
 
-    /** Denotes whether it is a workspace avatar or not */
-    isWorkspaceAvatar?: boolean;
+        /** The id of the transaction related to the attachment */
+        transactionID?: string;
 
-    /** Denotes whether it is an icon (ex: SVG) */
-    maybeIcon?: boolean;
+        fallbackSource?: AttachmentSource;
 
-    /** The id of the transaction related to the attachment */
-    transactionID?: string;
+        isHovered?: boolean;
 
-    fallbackSource?: AttachmentSource;
-
-    isHovered?: boolean;
-
-    optionalVideoDuration?: number;
-
-    /** The id of the report action related to the attachment */
-    reportActionID?: string;
-};
+        optionalVideoDuration?: number;
+    };
 
 function AttachmentView({
     source,
@@ -223,7 +215,7 @@ function AttachmentView({
                 source={source}
                 shouldUseSharedVideoElement={isUsedInCarousel}
                 isHovered={isHovered}
-                videoDuration={optionalVideoDuration}
+                duration={optionalVideoDuration}
             />
         );
     }
@@ -271,3 +263,5 @@ export default memo(
         },
     })(AttachmentView),
 );
+
+export type {AttachmentViewProps};

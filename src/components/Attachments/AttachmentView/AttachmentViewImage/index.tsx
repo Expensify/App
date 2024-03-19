@@ -1,25 +1,17 @@
 import React, {memo} from 'react';
-import type {GestureResponderEvent} from 'react-native';
-import type {AttachmentFile} from '@components/Attachments/types';
 import ImageView from '@components/ImageView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import type {AttachmentViewProps} from '..';
 
-type AttachmentViewImageProps = {
+type AttachmentViewImageProps = Pick<AttachmentViewProps, 'isAuthTokenRequired' | 'file' | 'onPress'> & {
     url: string;
 
     loadComplete: boolean;
 
     isImage: boolean;
-
-    file?: AttachmentFile;
-
-    isAuthTokenRequired?: boolean;
-
-    /** Function for handle on press */
-    onPress?: (e?: GestureResponderEvent | KeyboardEvent) => void;
 
     /** Function for handle on error */
     onError?: () => void;

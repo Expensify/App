@@ -1,12 +1,10 @@
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import type {AttachmentFile} from '@components/Attachments/types';
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {AttachmentViewProps} from '..';
 
-type AttachmentViewPdfProps = {
+type AttachmentViewPdfProps = Pick<AttachmentViewProps, 'file' | 'onPress' | 'isUsedInCarousel' | 'isFocused' | 'onToggleKeyboard'> & {
     encryptedSourceUrl: string;
     onToggleKeyboard?: (shouldFadeOut: boolean) => void;
     onLoadComplete: (path: string) => void;
-
-    file?: AttachmentFile;
 
     /** Additional style props */
     style?: StyleProp<ViewStyle>;
@@ -14,10 +12,8 @@ type AttachmentViewPdfProps = {
     /** Styles for the error label */
     errorLabelStyles?: StyleProp<ViewStyle>;
 
-    /** Whether this view is the active screen  */
-    isFocused?: boolean;
-
-    onPress?: (e?: GestureResponderEvent | KeyboardEvent) => void;
+    /** Triggered when the PDF's onScaleChanged event is triggered */
+    onScaleChanged?: (scale: number) => void;
 };
 
 export default AttachmentViewPdfProps;

@@ -4,8 +4,6 @@ import type IconAsset from '@src/types/utils/IconAsset';
 // This can be either a string, function, or number
 type AttachmentSource = string | IconAsset | number;
 
-type AttachmentFile = {name?: string};
-
 // The object shape for the attachment
 type Attachment = {
     /** Report action ID of the attachment */
@@ -31,4 +29,4 @@ type Attachment = {
     duration?: number;
 };
 
-export type {AttachmentSource, AttachmentFile, Attachment};
+export type {AttachmentSource, Attachment};
