@@ -576,6 +576,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/tags/edit',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/edit` as const,
     },
+    WORKSPACE_TAG_EDIT: {
+        route: 'settings/workspace/:policyID/tag/:tagName/edit',
+        getRoute: (policyID: string, tagName: string) => `settings/workspace/${policyID}/tag/${encodeURIComponent(tagName)}/edit` as const,
+    },
     WORKSPACE_TAG_SETTINGS: {
         route: 'settings/workspaces/:policyID/tag/:tagName',
         getRoute: (policyID: string, tagName: string) => `settings/workspaces/${policyID}/tag/${encodeURIComponent(tagName)}` as const,
@@ -619,6 +623,10 @@ const ROUTES = {
     WORKSPACE_CREATE_DISTANCE_RATE: {
         route: 'settings/workspaces/:policyID/distance-rates/new',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/distance-rates/new` as const,
+    },
+    WORKSPACE_DISTANCE_RATES_SETTINGS: {
+        route: 'settings/workspace/:policyID/distance-rates/settings',
+        getRoute: (policyID: string) => `settings/workspace/${policyID}/distance-rates/settings` as const,
     },
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {
