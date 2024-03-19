@@ -2083,6 +2083,10 @@ function filterOptions(options: GetOptions, searchInputValue: string): GetOption
             visibleChatMemberAccountIDs.forEach((participant) => {
                 const login = participant?.login;
 
+                if (participant?.displayName) {
+                    keys.push(participant.displayName);
+                }
+
                 if (login) {
                     keys.push(login);
                     keys.push(login.replace(emailRegex, ''));
@@ -2110,9 +2114,8 @@ function filterOptions(options: GetOptions, searchInputValue: string): GetOption
                     if (item.isThread) {
                         if (item.alternateText) {
                             keys.push(item.alternateText);
-
-                            keys = keys.concat(getParticipantsLoginsArray(item));
                         }
+                        keys = keys.concat(getParticipantsLoginsArray(item));
                     } else if (!!item.isChatRoom || !!item.isPolicyExpenseChat) {
                         if (item.subtitle) {
                             keys.push(item.subtitle);
@@ -2120,7 +2123,8 @@ function filterOptions(options: GetOptions, searchInputValue: string): GetOption
                     } else {
                         keys = keys.concat(getParticipantsLoginsArray(item));
                     }
-                    return keys;
+
+                    return uniqFast(keys);
                 },
             ],
             term,
