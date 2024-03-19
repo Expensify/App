@@ -81,7 +81,7 @@ describe('test workflow ${workflowName}', () => {
         };
         const result = await act
             .runEvent('[EVENT]', {
-                workflowFile: path.join(repoPath, '.github', 'workflows'),
+                workflowFile: path.join(repoPath, '.github', 'workflows', '${workflowName}.yml'),
                 mockSteps: testMockSteps,
                 actor,
             });
@@ -137,9 +137,9 @@ const ${jobAssertionName} = (workflowResult: Step[], didExecute = true) => {
 };`;
 
 const mocksExportsTemplate = (jobMocks: string[]): string => {
-    const jobMocksString = jobMocks.map((jobMock) => `  ${jobMock}: ${jobMock}`).join(',\n');
+    const jobMocksString = jobMocks.map((jobMock) => `  ${jobMock}`).join(',\n');
 
-    return `module.exports = {\n${jobMocksString}\n};\n`;
+    return `\nmodule.exports = {\n${jobMocksString}\n};\n`;
 };
 
 const assertionsExportsTemplate = (jobAssertions: string[]): string => {
@@ -224,6 +224,8 @@ const getMockFileContent = (workflowName: string, jobs: Record<string, YamlMockJ
             stepMocks.push(stepMockName);
             mockStepsContent += mockStepTemplate(stepMockName, step, jobId);
         });
+        console.log('STEP MOCKS ', stepMocks);
+        console.log('JOB ID ', jobId.toUpperCase());
         const jobMocksName = `${workflowName.toUpperCase()}__${jobId.toUpperCase()}__STEP_MOCKS`;
         jobMocks.push(jobMocksName);
         mockStepsContent += jobMocksTemplate(jobMocksName, stepMocks);
