@@ -11,14 +11,11 @@ import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContex
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import * as Browser from '@libs/Browser';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import {videoPlayerDefaultProps, videoPlayerPropTypes} from './propTypes';
 import shouldReplayVideo from './shouldReplayVideo';
 import VideoPlayerControls from './VideoPlayerControls';
-
-const isMobileSafari = Browser.isMobileSafari();
 
 function BaseVideoPlayer({
     url,
@@ -43,8 +40,18 @@ function BaseVideoPlayer({
     isVideoHovered,
 }) {
     const styles = useThemeStyles();
-    const {pauseVideo, playVideo, currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, shareVideoPlayerElements, currentVideoPlayerRef, updateCurrentlyPlayingURL} =
-        usePlaybackContext();
+    const {
+        pauseVideo,
+        playVideo,
+        currentlyPlayingURL,
+        updateSharedElements,
+        sharedElement,
+        originalParent,
+        shareVideoPlayerElements,
+        currentVideoPlayerRef,
+        updateCurrentlyPlayingURL,
+        videoResumeTryNumber,
+    } = usePlaybackContext();
     const {isFullscreen} = useFullScreenContext();
     const [duration, setDuration] = useState(videoDuration * 1000);
     const [position, setPosition] = useState(0);
@@ -58,10 +65,10 @@ function BaseVideoPlayer({
     const videoPlayerElementParentRef = useRef(null);
     const videoPlayerElementRef = useRef(null);
     const sharedVideoPlayerParentRef = useRef(null);
-    const videoResumeTryNumber = useRef(0);
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = _.some(CONST.ATTACHMENT_LOCAL_URL_PREFIX, (prefix) => url.startsWith(prefix));
+    const isPlayingRef = useRef(false);
 
     const togglePlayCurrentVideo = useCallback(() => {
         videoResumeTryNumber.current = 0;
@@ -72,7 +79,7 @@ function BaseVideoPlayer({
         } else {
             playVideo();
         }
-    }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url]);
+    }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, videoResumeTryNumber]);
 
     const showPopoverMenu = (e) => {
         setPopoverAnchorPosition({horizontal: e.nativeEvent.pageX, vertical: e.nativeEvent.pageY});
@@ -94,8 +101,13 @@ function BaseVideoPlayer({
             }
             videoResumeTryNumber.current -= 1;
         },
-        [playVideo],
+        [playVideo, videoResumeTryNumber],
     );
+
+    const updateIsPlaying = useCallback((isVideoPlaying) => {
+        setIsPlaying(isVideoPlaying);
+        isPlayingRef.current = isVideoPlaying;
+    }, []);
 
     const handlePlaybackStatusUpdate = useCallback(
         (e) => {
@@ -108,7 +120,7 @@ function BaseVideoPlayer({
             }
 
             preventPausingWhenExitingFullscreen(isVideoPlaying);
-            setIsPlaying(isVideoPlaying);
+            updateIsPlaying(isVideoPlaying);
             setIsLoading(!e.isLoaded || Number.isNaN(e.durationMillis)); // when video is ready to display duration is not NaN
             setIsBuffering(e.isBuffering || false);
             setDuration(currentDuration);
@@ -116,33 +128,25 @@ function BaseVideoPlayer({
 
             onPlaybackStatusUpdate(e);
         },
-        [onPlaybackStatusUpdate, preventPausingWhenExitingFullscreen, videoDuration],
+        [onPlaybackStatusUpdate, preventPausingWhenExitingFullscreen, updateIsPlaying, videoDuration],
     );
 
     const handleFullscreenUpdate = useCallback(
         (e) => {
             onFullscreenUpdate(e);
-
             // fix for iOS native and mWeb: when switching to fullscreen and then exiting
             // the fullscreen mode while playing, the video pauses
-            if (e.fullscreenUpdate !== VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
-                return;
-            }
 
-            isFullscreen.current = false;
-
-            if (isMobileSafari && videoPlayerRef.current) {
-                videoPlayerRef.current.getStatusAsync().then((status) => {
-                    if (!status.isPlaying) {
-                        return;
-                    }
+            if (e.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
+                isFullscreen.current = false;
+                if (isPlayingRef.current && videoPlayerRef.current) {
                     pauseVideo();
                     playVideo();
                     videoResumeTryNumber.current = 3;
-                });
+                }
             }
         },
-        [isFullscreen, onFullscreenUpdate, pauseVideo, playVideo],
+        [isFullscreen, onFullscreenUpdate, pauseVideo, playVideo, videoResumeTryNumber],
     );
 
     const bindFunctions = useCallback(() => {
