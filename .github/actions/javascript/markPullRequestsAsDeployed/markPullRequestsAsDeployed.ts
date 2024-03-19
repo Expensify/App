@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
 import core from '@actions/core';
 import {context} from '@actions/github';
-import * as ActionUtils from '../../../libs/ActionUtils';
-import CONST from '../../../libs/CONST';
-import GithubUtils from '../../../libs/GithubUtils';
+import * as ActionUtils from '@github/libs/ActionUtils';
+import CONST from '@github/libs/CONST';
+import GithubUtils from '@github/libs/GithubUtils';
 
 type PlatformResult = 'success' | 'cancelled' | 'skipped' | 'failure';
 

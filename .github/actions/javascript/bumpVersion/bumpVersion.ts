@@ -2,8 +2,8 @@ import * as core from '@actions/core';
 import {exec as originalExec} from 'child_process';
 import fs from 'fs';
 import {promisify} from 'util';
-import {generateAndroidVersionCode, updateAndroidVersion, updateiOSVersion} from '../../../libs/nativeVersionUpdater';
-import * as versionUpdater from '../../../libs/versionUpdater';
+import {generateAndroidVersionCode, updateAndroidVersion, updateiOSVersion} from '@github/libs/nativeVersionUpdater';
+import * as versionUpdater from '@github/libs/versionUpdater';
 
 const exec = promisify(originalExec);
 
