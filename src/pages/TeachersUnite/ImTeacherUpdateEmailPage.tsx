@@ -20,7 +20,7 @@ function ImTeacherUpdateEmailPage() {
         <ScreenWrapper testID={ImTeacherUpdateEmailPage.displayName}>
             <HeaderWithBackButton
                 title={translate('teachersUnitePage.iAmATeacher')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.TEACHERS_UNITE)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <BlockingView
                 shouldShowLink
@@ -36,6 +36,7 @@ function ImTeacherUpdateEmailPage() {
             <FixedFooter style={[styles.flexGrow0]}>
                 <Button
                     success
+                    large
                     accessibilityLabel={translate('teachersUnitePage.updateEmail')}
                     text={translate('teachersUnitePage.updateEmail')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(activeRoute))}
