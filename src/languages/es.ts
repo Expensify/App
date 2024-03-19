@@ -1894,7 +1894,7 @@ export default {
                 taxRateAlreadyExists: 'Ya existe un impuesto con este nombre',
                 valuePercentageRange: 'Introduzca un porcentaje válido entre 0 y 100',
                 genericFailureMessage: 'Se produjo un error al actualizar el tipo impositivo, inténtelo nuevamente.',
-                customNameRequired: 'Nombre del impuesto es obligatorio.',
+                customNameRequired: 'El nombre del impuesto es obligatorio.',
             },
         },
         emptyWorkspace: {
