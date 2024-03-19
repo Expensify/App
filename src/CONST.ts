@@ -1477,6 +1477,11 @@ const CONST = {
             DISABLE: 'disable',
             ENABLE: 'enable',
         },
+        TAGS_BULK_ACTION_TYPES: {
+            DELETE: 'delete',
+            DISABLE: 'disable',
+            ENABLE: 'enable',
+        },
         DISTANCE_RATES_BULK_ACTION_TYPES: {
             DELETE: 'delete',
             DISABLE: 'disable',
