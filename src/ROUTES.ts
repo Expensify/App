@@ -276,12 +276,6 @@ const ROUTES = {
         route: 'r/:reportID/invite',
         getRoute: (reportID: string) => `r/${reportID}/invite` as const,
     },
-
-    // To see the available iouType, please refer to CONST.IOU.TYPE
-    MONEY_REQUEST: {
-        route: ':iouType/new/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/${reportID}` as const,
-    },
     MONEY_REQUEST_AMOUNT: {
         route: ':iouType/new/amount/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/amount/${reportID}` as const,
@@ -314,13 +308,6 @@ const ROUTES = {
         route: ':iouType/new/address/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/address/${reportID}` as const,
     },
-    MONEY_REQUEST_DISTANCE_TAB: {
-        route: ':iouType/new/:reportID?/distance',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/${reportID}/distance` as const,
-    },
-    MONEY_REQUEST_MANUAL_TAB: ':iouType/new/:reportID?/manual',
-    MONEY_REQUEST_SCAN_TAB: ':iouType/new/:reportID?/scan',
-
     MONEY_REQUEST_CREATE: {
         route: 'create/:iouType/start/:transactionID/:reportID',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}` as const,
@@ -597,6 +584,22 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/taxes',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/taxes` as const,
     },
+    WORKSPACE_TAXES_SETTINGS: {
+        route: 'settings/workspaces/:policyID/taxes/settings',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/taxes/settings` as const,
+    },
+    WORKSPACE_TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT: {
+        route: 'settings/workspaces/:policyID/taxes/settings/workspace-currency',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/taxes/settings/workspace-currency` as const,
+    },
+    WORKSPACE_TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT: {
+        route: 'settings/workspaces/:policyID/taxes/settings/foreign-currency',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/taxes/settings/foreign-currency` as const,
+    },
+    WORKSPACE_TAXES_SETTINGS_CUSTOM_TAX_NAME: {
+        route: 'settings/workspaces/:policyID/taxes/settings/tax-name',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/taxes/settings/tax-name` as const,
+    },
     WORKSPACE_MEMBER_DETAILS: {
         route: 'settings/workspaces/:policyID/members/:accountID',
         getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/members/${accountID}`, backTo),
@@ -613,6 +616,10 @@ const ROUTES = {
     WORKSPACE_OWNER_PAYMENT_CARD_FORM: {
         route: 'settings/workspaces/:policyID/change-owner/:accountID/add-payment-card',
         getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/change-owner/${accountID}/add-payment-card` as const,
+    },
+    WORKSPACE_TAX_CREATE: {
+        route: 'settings/workspaces/:policyID/taxes/new',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/taxes/new` as const,
     },
     WORKSPACE_DISTANCE_RATES: {
         route: 'settings/workspaces/:policyID/distance-rates',
