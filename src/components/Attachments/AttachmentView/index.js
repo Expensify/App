@@ -79,6 +79,7 @@ const defaultProps = {
     reportActionID: '',
     isHovered: false,
     optionalVideoDuration: 0,
+    fallbackSource: Expensicons.Gallery,
 };
 
 function AttachmentView({
