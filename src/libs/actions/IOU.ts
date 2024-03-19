@@ -302,7 +302,7 @@ function updateMoneyRequestTypeParams(routes: StackNavigationState<ParamListBase
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-function startMoneyRequest_temporaryForRefactor(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string) {
+function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string) {
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE.getRoute(iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
 }
@@ -4111,12 +4111,6 @@ function setMoneyRequestParticipantsFromReport(transactionID: string, report: On
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, participantsAutoAssigned: true});
 }
 
-/** Initialize money request info and navigate to the MoneyRequest page */
-function startMoneyRequest(iouType: string, reportID = '') {
-    resetMoneyRequestInfo(`${iouType}${reportID}`);
-    Navigation.navigate(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID));
-}
-
 function setMoneyRequestId(id: string) {
     Onyx.merge(ONYXKEYS.IOU, {id});
 }
@@ -4346,9 +4340,8 @@ export {
     submitReport,
     payMoneyRequest,
     sendMoneyWithWallet,
-    startMoneyRequest,
     initMoneyRequest,
-    startMoneyRequest_temporaryForRefactor,
+    startMoneyRequest,
     resetMoneyRequestInfo,
     clearMoneyRequest,
     updateMoneyRequestTypeParams,
