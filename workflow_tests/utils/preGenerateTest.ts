@@ -146,7 +146,7 @@ const assertionsExportsTemplate = (jobAssertions: string[]): string => {
     const assertionsString = jobAssertions.join(',\n');
     const eslintDisable = jobAssertions.length === 1 ? '// eslint-disable-next-line import/prefer-default-export\n' : '';
 
-    return `${eslintDisable}export {\n${assertionsString}\n};\n`;
+    return `\n${eslintDisable}export {\n${assertionsString}\n};\n`;
 };
 
 const checkArguments = (args: string[]) => {
@@ -224,6 +224,7 @@ const getMockFileContent = (workflowName: string, jobs: Record<string, YamlMockJ
             stepMocks.push(stepMockName);
             mockStepsContent += mockStepTemplate(stepMockName, step, jobId);
         });
+        console.log('PARAMS ', workflowName, jobs);
         console.log('STEP MOCKS ', stepMocks);
         console.log('JOB ID ', jobId.toUpperCase());
         const jobMocksName = `${workflowName.toUpperCase()}__${jobId.toUpperCase()}__STEP_MOCKS`;
