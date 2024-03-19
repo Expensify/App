@@ -63,8 +63,10 @@ type StagingDeployCashData = {
     tag?: string;
 };
 
+type InternalOctokit = OctokitCore & Api & {paginate: PaginateInterface};
+
 class GithubUtils {
-    static internalOctokit: OctokitCore & Api & {paginate: PaginateInterface};
+    static internalOctokit: InternalOctokit;
 
     /**
      * Initialize internal octokit
@@ -546,4 +548,4 @@ class GithubUtils {
 export default GithubUtils;
 module.exports = GithubUtils;
 export {ISSUE_OR_PULL_REQUEST_REGEX, POLL_RATE};
-export type {ListForRepoMethod};
+export type {ListForRepoMethod, InternalOctokit};

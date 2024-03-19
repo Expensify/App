@@ -3686,9 +3686,6 @@ function padToTwoDigits(value) {
  * Generate the 10-digit versionCode for android.
  * This version code allocates two digits each for PREFIX, MAJOR, MINOR, PATCH, and BUILD versions.
  * As a result, our max version is 99.99.99-99.
- *
- * @param npmVersion
- * @returns
  */
 function generateAndroidVersionCode(npmVersion) {
     // All Android versions will be prefixed with '10' due to previous versioning

@@ -11727,7 +11727,7 @@ class GithubUtils {
             if (!(0, EmptyObject_1.isEmptyObject)(internalQAPRMap)) {
                 console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
                 issueBody += '**Internal QA:**\r\n';
-                Object.keys(internalQAPRMap).forEach(URL => {
+                Object.keys(internalQAPRMap).forEach((URL) => {
                     const assignees = internalQAPRMap[URL];
                     const assigneeMentions = assignees?.reduce((memo, assignee) => `${memo} @${assignee}`, '');
                     issueBody += `${resolvedInternalQAPRs.includes(URL) ? '- [x]' : '- [ ]'} `;

@@ -5,7 +5,7 @@
  */
 import * as core from '@actions/core';
 import type {Writable} from 'type-fest';
-import type {ListForRepoMethod} from '../../.github/libs/GithubUtils';
+import type {InternalOctokit, ListForRepoMethod} from '../../.github/libs/GithubUtils';
 import GithubUtils from '../../.github/libs/GithubUtils';
 
 const mockGetInput = jest.fn();
@@ -82,9 +82,8 @@ beforeAll(() => {
             },
         },
         paginate: jest.fn().mockImplementation(<T>(objectMethod: () => Promise<ObjectMethodData<T>>) => objectMethod().then(({data}) => data)),
-    };
+    } as unknown as InternalOctokit;
 
-    // @ts-expect-error TODO: Remove this once GithubUtils (https://github.com/Expensify/App/issues/25382) is migrated to TypeScript.
     GithubUtils.internalOctokit = moctokit;
 });
 
@@ -419,8 +418,7 @@ describe('GithubUtils', () => {
 
         const octokit = mockGithub().getOctokit();
         const githubUtils = class extends GithubUtils {};
-        // @ts-expect-error TODO: Remove this once GithubUtils (https://github.com/Expensify/App/issues/25382) is migrated to TypeScript.
-        githubUtils.internalOctokit = octokit;
+        githubUtils.internalOctokit = octokit as unknown as InternalOctokit;
         const tag = '1.0.2-12';
         const basePRList = [
             'https://github.com/Expensify/App/pull/2',
