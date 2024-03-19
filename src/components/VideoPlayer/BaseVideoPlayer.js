@@ -136,10 +136,10 @@ function BaseVideoPlayer({
             onFullscreenUpdate(e);
             // fix for iOS native and mWeb: when switching to fullscreen and then exiting
             // the fullscreen mode while playing, the video pauses
-
             if (e.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
                 isFullscreen.current = false;
-                if (isPlayingRef.current && videoPlayerRef.current) {
+                // we  have to use ref to check if the video is playing, because in other case state varaible change will dismiss fullscreen mode
+                if (isPlayingRef.current) {
                     pauseVideo();
                     playVideo();
                     videoResumeTryNumber.current = 3;
@@ -178,11 +178,19 @@ function BaseVideoPlayer({
 
     // append shared video element to new parent (used for example in attachment modal)
     useEffect(() => {
-        if (url !== currentlyPlayingURL || !sharedElement || !shouldUseSharedVideoElement || isFullscreen.current) {
+        if (url !== currentlyPlayingURL || !sharedElement || isFullscreen.current) {
             return;
         }
 
         const newParentRef = sharedVideoPlayerParentRef.current;
+
+        if (!shouldUseSharedVideoElement) {
+            if (newParentRef && newParentRef.childNodes[0] && newParentRef.childNodes[0].remove) {
+                newParentRef.childNodes[0].remove();
+            }
+            return;
+        }
+
         videoPlayerRef.current = currentVideoPlayerRef.current;
         if (currentlyPlayingURL === url) {
             newParentRef.appendChild(sharedElement);
@@ -192,6 +200,7 @@ function BaseVideoPlayer({
             if (!originalParent && !newParentRef.childNodes[0]) {
                 return;
             }
+            newParentRef.childNodes[0].remove();
             originalParent.appendChild(sharedElement);
         };
     }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isFullscreen, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
