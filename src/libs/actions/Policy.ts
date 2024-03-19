@@ -3984,6 +3984,41 @@ function setForeignCurrencyDefault(policyID: string, taxCode: string) {
     API.write(WRITE_COMMANDS.SET_POLICY_TAXES_FOREIGN_CURRENCY_DEFAULT, parameters, onyxData);
 }
 
+function categorizeTrackedTransaction(chatReportID, action) {
+    const policyID = generatePolicyID();
+    const workspaceName = generateDefaultWorkspaceName('');
+    const {
+        announceChatReportID,
+        announceChatData,
+        announceReportActionData,
+        announceCreatedReportActionID,
+        adminsChatReportID,
+        adminsChatData,
+        adminsReportActionData,
+        adminsCreatedReportActionID,
+        expenseChatReportID,
+        expenseChatData,
+        expenseReportActionData,
+        expenseCreatedReportActionID,
+    } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
+
+    const params = {
+        policyID,
+        transactionID: action.transactionID,
+        reportID: chatReportID,
+        reportActionID: action.reportActionID,
+        modifiedExpenseReportActionID: action.reportActionID,
+        announceChatReportID,
+        announceCreatedReportActionID,
+        adminsChatReportID,
+        adminsCreatedReportActionID,
+        expenseChatReportID,
+        expenseCreatedReportActionID,
+    };
+
+    API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_TRANSACTION, params);
+}
+
 export {
     removeMembers,
     updateWorkspaceMembersRole,

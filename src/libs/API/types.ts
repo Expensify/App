@@ -182,6 +182,10 @@ const WRITE_COMMANDS = {
     DECLINE_JOIN_REQUEST: 'DeclineJoinRequest',
     CREATE_POLICY_TAX: 'CreatePolicyTax',
     CREATE_POLICY_DISTANCE_RATE: 'CreatePolicyDistanceRate',
+    CONVERT_TRACKED_TRANSACTION: 'ConvertTrackedExpenseToRequest',
+    CATEGORIZE_TRACKED_TRANSACTION: 'CategorizeTrackedExpense',
+    SHARED_TRACKED_TRANSACTION: 'ShareTrackedExpense',
+    DISMISS_ACTIONABLE_WHISPER: 'DismissActionableWhisper',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
