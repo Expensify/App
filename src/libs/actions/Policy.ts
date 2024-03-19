@@ -322,6 +322,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 hasDraft: false,
                 oldPolicyName: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? '',
+                policyName: '',
             },
         });
 
@@ -368,6 +369,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
                 statusNum,
                 hasDraft,
                 oldPolicyName,
+                policyName: report?.policyName,
             },
         });
     });
