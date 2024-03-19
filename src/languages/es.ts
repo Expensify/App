@@ -1892,8 +1892,20 @@ export default {
             value: 'Valor',
             errors: {
                 taxRateAlreadyExists: 'Ya existe un impuesto con este nombre',
-                valuePercentageRange: 'Introduzca un porcentaje válido entre 0 y 100',
-                genericFailureMessage: 'Se produjo un error al actualizar el tipo impositivo, inténtelo nuevamente.',
+                valuePercentageRange: 'Por favor, introduce un porcentaje entre 0 y 100',
+                deleteFailureMessage: 'Se ha producido un error al intentar eliminar el tipo impositivo. Por favor, inténtalo más tarde.',
+                updateFailureMessage: 'Se ha producido un error al intentar eliminar el tipo impositivo. Por favor, inténtalo más tarde.',
+                createFailureMessage: 'Se ha producido un error al intentar crear el tipo impositivo. Por favor, inténtalo más tarde.',
+            },
+            deleteTaxConfirmation: '¿Estás seguro de que quieres eliminar este impuesto?',
+            deleteMultipleTaxConfirmation: ({taxAmount}) => `¿Está seguro de que desea eliminar ${taxAmount} impuestos?`,
+            actions: {
+                delete: 'Eliminar impositivo',
+                deleteMultiple: 'Eliminar impuestos',
+                disable: 'Desactivar impositivo',
+                disableMultiple: 'Desactivar impuestos',
+                enable: 'Activar impositivo',
+                enableMultiple: 'Activar impuestos',
             },
         },
         emptyWorkspace: {
