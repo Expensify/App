@@ -3613,7 +3613,7 @@ function deleteTrackExpense(chatReportID: string, transactionID: string, reportA
     const shouldDeleteTransactionThread = transactionThreadID ? (reportAction?.childVisibleActionCount ?? 0) === 0 : false;
     const shouldShowDeletedRequestMessage = !!transactionThreadID && !shouldDeleteTransactionThread;
 
-    // STEP 3: Update the IOU reportAction and decide if the iouReport should be deleted. We delete the iouReport if there are no visible comments left in the report.
+    // STEP 3: Update the IOU reportAction.
     const updatedReportAction = {
         [reportAction.reportActionID]: {
             pendingAction: shouldShowDeletedRequestMessage ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,

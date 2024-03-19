@@ -2795,6 +2795,7 @@ export default {
         deletedReport: '[Informe eliminado]',
         deletedMessage: '[Mensaje eliminado]',
         deletedRequest: '[Solicitud eliminada]',
+        deletedExpense: '[Gasto eliminado]',
         reversedTransaction: '[Transacción anulada]',
         deletedTask: '[Tarea eliminada]',
         hiddenMessage: '[Mensaje oculto]',

@@ -2403,6 +2403,9 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
     }
 
     if (ReportActionsUtils.isDeletedAction(reportAction)) {
+        if (ReportActionsUtils.isTrackExpenseAction(reportAction)) {
+            return Localize.translateLocal('parentReportAction.deletedExpense');
+        }
         return Localize.translateLocal('parentReportAction.deletedRequest');
     }
 

@@ -58,6 +58,7 @@ import * as ReportActions from '@userActions/ReportActions';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -670,6 +671,14 @@ function ReportActionItem({
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);
             if (ReportActionsUtils.isDeletedParentAction(parentReportAction) || isReversedTransaction) {
+                let message: TranslationPaths;
+                if (isReversedTransaction) {
+                    message = 'parentReportAction.reversedTransaction';
+                } else if (ReportActionsUtils.isTrackExpenseAction(parentReportAction)) {
+                    message = 'parentReportAction.deletedExpense';
+                } else {
+                    message = 'parentReportAction.deletedRequest';
+                }
                 return (
                     <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true), styles.justifyContentEnd]}>
                         <AnimatedEmptyStateBackground />
@@ -680,9 +689,7 @@ function ReportActionItem({
                                     showHeader
                                     report={report}
                                 >
-                                    <RenderHTML
-                                        html={`<comment>${translate(isReversedTransaction ? 'parentReportAction.reversedTransaction' : 'parentReportAction.deletedRequest')}</comment>`}
-                                    />
+                                    <RenderHTML html={`<comment>${translate(message)}</comment>`} />
                                 </ReportActionItemSingle>
                                 <View style={styles.threadDividerLine} />
                             </OfflineWithFeedback>

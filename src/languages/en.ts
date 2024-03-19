@@ -2307,6 +2307,7 @@ export default {
         deletedReport: '[Deleted report]',
         deletedMessage: '[Deleted message]',
         deletedRequest: '[Deleted request]',
+        deletedExpense: '[Deleted expense]',
         reversedTransaction: '[Reversed transaction]',
         deletedTask: '[Deleted task]',
         hiddenMessage: '[Hidden message]',
