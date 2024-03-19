@@ -13637,6 +13637,7 @@ const core = __importStar(__nccwpck_require__(2186));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(7999));
 const run = function () {
     const artifactName = core.getInput('ARTIFACT_NAME', { required: true });
+    // TODO: remove type casting once GithubUtils (https://github.com/Expensify/App/pull/38280) is migrated to TypeScript
     return GithubUtils_1.default.getArtifactByName(artifactName)
         .then((artifact) => {
         if (artifact === undefined) {

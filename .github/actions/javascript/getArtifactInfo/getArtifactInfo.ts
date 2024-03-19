@@ -7,6 +7,7 @@ type OctokitArtifact = OctokitComponents['schemas']['artifact'];
 const run = function (): Promise<OctokitArtifact | void> {
     const artifactName = core.getInput('ARTIFACT_NAME', {required: true});
 
+    // TODO: remove type casting once GithubUtils (https://github.com/Expensify/App/pull/38280) is migrated to TypeScript
     return GithubUtils.getArtifactByName(artifactName)
         .then((artifact: OctokitArtifact) => {
             if (artifact === undefined) {
