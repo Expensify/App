@@ -129,14 +129,6 @@ type WorkspaceMembersRoleData = {
     role: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER;
 };
 
-const CURRENCY_AU = 'AUD';
-const CURRENCY_CA = 'CAD';
-const CURRENCY_GB = 'GBP';
-const CURRENCY_US = 'USD';
-const CURRENCY_EUR = 'EUR';
-
-const DIRECT_REIMBURSEMENT_CURRENCIES: string[] = [CURRENCY_AU, CURRENCY_CA, CURRENCY_EUR, CURRENCY_GB, CURRENCY_US];
-
 const allPolicies: OnyxCollection<Policy> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
@@ -258,7 +250,7 @@ function updateLastAccessedWorkspace(policyID: OnyxEntry<string>) {
 }
 
 function hasValidCurrencyForDirectReimbursement(currency: string) {
-    return DIRECT_REIMBURSEMENT_CURRENCIES.includes(currency);
+    return CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(currency as typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES[number]);
 }
 /**
  * Check if the user has any active free policies (aka workspaces)
