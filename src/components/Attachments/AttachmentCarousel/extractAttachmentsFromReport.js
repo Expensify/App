@@ -15,6 +15,8 @@ import CONST from '@src/CONST';
 function extractAttachmentsFromReport(parentReportAction, reportActions) {
     const actions = [parentReportAction, ...ReportActionsUtils.getSortedReportActions(_.values(reportActions))];
     const attachments = [];
+    // We handle duplicate image sources by considering the first instance as original. Selecting any duplicate
+    // and navigating back (<) shows the image preceding the first instance, not the selected duplicate's position.
     const uniqueSources = new Set();
 
     const htmlParser = new HtmlParser({
@@ -49,9 +51,12 @@ function extractAttachmentsFromReport(parentReportAction, reportActions) {
                 uniqueSources.add(source);
                 let fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${source}`);
 
-                // image.jpg helps render the attachment as image if we didn't obtain an extension from the source
-                if (!/\.\w+$/.test(fileName)) {
-                    fileName = 'image.jpg';
+                // Public image URLs might lack a file extension in the source URL, without an extension our
+                // AttachmentView fails to recognize them as images and renders fallback content instead.
+                // We apply this small hack to add an image extension and ensure AttachmentView renders the image.
+                const fileInfo = FileUtils.splitExtensionFromFileName(fileName);
+                if (!fileInfo.fileExtension) {
+                    fileName = `${fileInfo.fileName || 'image'}.jpg`;
                 }
 
                 // By iterating actions in chronological order and prepending each attachment
