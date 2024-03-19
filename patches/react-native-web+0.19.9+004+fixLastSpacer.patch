@@ -41,3 +41,4 @@ index 7f6c880..b05da08 100644
        for (var _iterator = _createForOfIteratorHelperLoose(renderRegions), _step; !(_step = _iterator()).done;) {
          var section = _step.value;
          if (section.isSpacer) {
+            
