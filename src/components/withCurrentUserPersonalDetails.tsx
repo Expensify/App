@@ -43,4 +43,4 @@ export default function <TProps extends WithCurrentUserPersonalDetailsProps, TRe
 }
 
 export {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps};
-export type {WithCurrentUserPersonalDetailsProps};
+export type {WithCurrentUserPersonalDetailsProps, CurrentUserPersonalDetails};

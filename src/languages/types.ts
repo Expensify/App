@@ -211,8 +211,6 @@ type UpdatedTheDistanceParams = {newDistanceToDisplay: string; oldDistanceToDisp
 
 type FormattedMaxLengthParams = {formattedMaxLength: string};
 
-type TagSelectionParams = {tagName: string};
-
 type WalletProgramParams = {walletProgram: string};
 
 type ViolationsAutoReportedRejectedExpenseParams = {rejectedBy: string; rejectReason: string};
@@ -362,7 +360,6 @@ export type {
     SizeExceededParams,
     SplitAmountParams,
     StepCounterParams,
-    TagSelectionParams,
     TaskCreatedActionParams,
     TermsParams,
     ThreadRequestReportNameParams,
