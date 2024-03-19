@@ -550,7 +550,10 @@ function getAlternateTextOption(
     if (option.isTaskReport) {
         return showChatPreviewLine && option.lastMessageText ? option.lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
     }
-    return showChatPreviewLine && option.lastMessageText ? option.lastMessageText : LocalePhoneNumber.formatPhoneNumber((option.participantsList ?? [])[0].login ?? '');
+
+    return showChatPreviewLine && option.lastMessageText
+        ? option.lastMessageText
+        : LocalePhoneNumber.formatPhoneNumber(option.participantsList && option.participantsList.length > 0 ? option.participantsList[0].login ?? '' : '');
 }
 
 /**

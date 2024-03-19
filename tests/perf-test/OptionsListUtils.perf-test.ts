@@ -44,35 +44,37 @@ jest.mock('@react-navigation/native', () => {
     } as typeof NativeNavigation;
 });
 
+const options = OptionsListUtils.createOptionList(personalDetails, reports);
+
 /* GetOption is the private function and is never called directly, we are testing the functions which call getOption with different params */
 describe('OptionsListUtils', () => {
     /* Testing getSearchOptions */
     test('[OptionsListUtils] getSearchOptions with search value', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => OptionsListUtils.getSearchOptions(reports, personalDetails, SEARCH_VALUE, mockedBetas));
+        await measureFunction(() => OptionsListUtils.getSearchOptions(options, SEARCH_VALUE, mockedBetas));
     });
 
     /* Testing getShareLogOptions */
     test('[OptionsListUtils] getShareLogOptions with search value', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => OptionsListUtils.getShareLogOptions(reports, personalDetails, SEARCH_VALUE, mockedBetas));
+        await measureFunction(() => OptionsListUtils.getShareLogOptions(options, SEARCH_VALUE, mockedBetas));
     });
 
     /* Testing getFilteredOptions */
     test('[OptionsListUtils] getFilteredOptions with search value', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => OptionsListUtils.getFilteredOptions(reports, personalDetails, mockedBetas, SEARCH_VALUE));
+        await measureFunction(() => OptionsListUtils.getFilteredOptions(options.reports, options.personalDetails, mockedBetas, SEARCH_VALUE));
     });
 
     /* Testing getShareDestinationOptions */
     test('[OptionsListUtils] getShareDestinationOptions with search value', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => OptionsListUtils.getShareDestinationOptions(reports, personalDetails, mockedBetas, SEARCH_VALUE));
+        await measureFunction(() => OptionsListUtils.getShareDestinationOptions(options.reports, options.personalDetails, mockedBetas, SEARCH_VALUE));
     });
 
     /* Testing getMemberInviteOptions */
     test('[OptionsListUtils] getMemberInviteOptions with search value', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => OptionsListUtils.getMemberInviteOptions(personalDetails, mockedBetas, SEARCH_VALUE));
+        await measureFunction(() => OptionsListUtils.getMemberInviteOptions(options.personalDetails, mockedBetas, SEARCH_VALUE));
     });
 });
