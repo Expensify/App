@@ -19,6 +19,7 @@ import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
@@ -74,27 +75,29 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
         () =>
             policyTagLists
                 .map((policyTagList) =>
-                    Object.values(policyTagList.tags || []).map((value) => ({
-                        value: value.name,
-                        text: value.name,
-                        keyForList: value.name,
-                        isSelected: !!selectedTags[value.name],
-                        pendingAction: value.pendingAction,
-                        errors: value.errors ?? undefined,
-                        rightElement: (
-                            <View style={styles.flexRow}>
-                                <Text style={[styles.textSupporting, styles.alignSelfCenter, styles.pl2, styles.label]}>
-                                    {value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}
-                                </Text>
-                                <View style={[styles.p1, styles.pl2]}>
-                                    <Icon
-                                        src={Expensicons.ArrowRight}
-                                        fill={theme.icon}
-                                    />
+                    Object.values(policyTagList.tags || [])
+                        .sort((a, b) => localeCompare(a.name, b.name))
+                        .map((value) => ({
+                            value: value.name,
+                            text: value.name,
+                            keyForList: value.name,
+                            isSelected: !!selectedTags[value.name],
+                            pendingAction: value.pendingAction,
+                            errors: value.errors ?? undefined,
+                            rightElement: (
+                                <View style={styles.flexRow}>
+                                    <Text style={[styles.textSupporting, styles.alignSelfCenter, styles.pl2, styles.label]}>
+                                        {value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}
+                                    </Text>
+                                    <View style={[styles.p1, styles.pl2]}>
+                                        <Icon
+                                            src={Expensicons.ArrowRight}
+                                            fill={theme.icon}
+                                        />
+                                    </View>
                                 </View>
-                            </View>
-                        ),
-                    })),
+                            ),
+                        })),
                 )
                 .flat(),
         [policyTagLists, selectedTags, styles.alignSelfCenter, styles.flexRow, styles.label, styles.p1, styles.pl2, styles.textSupporting, theme.icon, translate],
