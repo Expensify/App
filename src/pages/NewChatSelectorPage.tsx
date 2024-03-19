@@ -7,32 +7,31 @@ import CONST from '@src/CONST';
 import NewChatPage from './NewChatPage';
 import WorkspaceNewRoomPage from './workspace/WorkspaceNewRoomPage';
 import useLocalize from '@hooks/useLocalize';
+import { useNavigation } from '@react-navigation/native';
 
 
 function NewChatSelectorPage() {
     const {translate} = useLocalize();
+    const navigation = useNavigation();
+
     return (
-        <ScreenWrapper 
+        <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
             includeSafeAreaPaddingBottom={false}
             shouldShowOfflineIndicator={false}
             shouldEnableMaxHeight
             testID={NewChatSelectorPage.displayName}
         >
-            <HeaderWithBackButton title={translate('sidebarScreen.fabNewChat')} />
+            <HeaderWithBackButton
+                title={translate('sidebarScreen.fabNewChat')}
+                onBackButtonPress={navigation.goBack}
+            />
             <OnyxTabNavigator
                 id={CONST.TAB.NEW_CHAT_TAB_ID}
-                tabBar={({state, navigation, position}) => (
-                    <TabSelector
-                        state={state}
-                        navigation={navigation}
-                        position={position}
-                    />
-                )}
+                tabBar={TabSelector}
             >
                 <TopTab.Screen
                     name={CONST.TAB.NEW_CHAT}
-                    // @ts-expect-error TODO: 'isGroupChat' is declared here.
                     component={NewChatPage}
                 />
                 <TopTab.Screen
