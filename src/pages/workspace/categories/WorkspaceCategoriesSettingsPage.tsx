@@ -53,6 +53,7 @@ function WorkspaceCategoriesSettingsPage({route}: WorkspaceCategoriesSettingsPag
                                                 isOn={policy?.requiresCategory ?? false}
                                                 accessibilityLabel={translate('workspace.categories.requiresCategory')}
                                                 onToggle={updateWorkspaceRequiresCategory}
+                                                disabled={!policy?.areCategoriesEnabled}
                                             />
                                         </View>
                                     </View>

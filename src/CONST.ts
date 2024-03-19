@@ -43,10 +43,21 @@ const keyInputRightArrow = KeyCommand?.constants?.keyInputRightArrow ?? 'keyInpu
 // describes if a shortcut key can cause navigation
 const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
 
+const chatTypes = {
+    POLICY_ANNOUNCE: 'policyAnnounce',
+    POLICY_ADMINS: 'policyAdmins',
+    DOMAIN_ALL: 'domainAll',
+    POLICY_ROOM: 'policyRoom',
+    POLICY_EXPENSE_CHAT: 'policyExpenseChat',
+    SELF_DM: 'selfDM',
+} as const;
+
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
 
 const CONST = {
+    MERGED_ACCOUNT_PREFIX: 'MERGED_',
+    DEFAULT_POLICY_ROOM_CHAT_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL],
     ANDROID_PACKAGE_NAME,
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
@@ -345,6 +356,9 @@ const CONST = {
         CHECKING: 'checking',
         INSTALLED: 'installed',
         NOT_INSTALLED: 'not-installed',
+    },
+    TAX_RATES: {
+        NAME_MAX_LENGTH: 50,
     },
     PLATFORM: {
         IOS: 'ios',
@@ -732,14 +746,7 @@ const CONST = {
             IOU: 'iou',
             TASK: 'task',
         },
-        CHAT_TYPE: {
-            POLICY_ANNOUNCE: 'policyAnnounce',
-            POLICY_ADMINS: 'policyAdmins',
-            DOMAIN_ALL: 'domainAll',
-            POLICY_ROOM: 'policyRoom',
-            POLICY_EXPENSE_CHAT: 'policyExpenseChat',
-            SELF_DM: 'selfDM',
-        },
+        CHAT_TYPE: chatTypes,
         WORKSPACE_CHAT_ROOMS: {
             ANNOUNCE: '#announce',
             ADMINS: '#admins',
@@ -4073,10 +4080,6 @@ const CONST = {
 
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
-    },
-
-    TAX_RATES: {
-        NAME_MAX_LENGTH: 50,
     },
 } as const;
 
