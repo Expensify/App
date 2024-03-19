@@ -242,6 +242,7 @@ const SCREENS = {
         MEMBER_DETAILS_ROLE_SELECTION: 'Workspace_Member_Details_Role_Selection',
         DISTANCE_RATES: 'Distance_Rates',
         CREATE_DISTANCE_RATE: 'Create_Distance_Rate',
+        DISTANCE_RATES_SETTINGS: 'Distance_Rates_Settings',
     },
 
     EDIT_REQUEST: {
