@@ -250,9 +250,10 @@ function updateLastAccessedWorkspace(policyID: OnyxEntry<string>) {
     Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID);
 }
 
-function hasCurrencySupportedForDirectReimbursement(currency: string) {
-    return CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(currency as (typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES)[number]);
+function isCurrencySupportedForDirectReimbursement(currency: string) {
+    return CONST.DIRECT_REIMBURSEMENT_CURRENCIES.filter(currency => currency !== CONST.CURRENCY.EUR).includes(currency as (typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES)[number]);
 }
+
 /**
  * Check if the user has any active free policies (aka workspaces)
  */
@@ -4139,5 +4140,5 @@ export {
     setForeignCurrencyDefault,
     setPolicyCustomTaxName,
     clearPolicyErrorField,
-    hasCurrencySupportedForDirectReimbursement,
+    isCurrencySupportedForDirectReimbursement,
 };
