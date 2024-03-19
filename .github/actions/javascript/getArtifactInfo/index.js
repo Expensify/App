@@ -1,49 +1,8 @@
 /**
  * NOTE: This is a compiled file. DO NOT directly edit this file.
  */
-/**
- * NOTE: This is a compiled file. DO NOT directly edit this file.
- */
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
-
-/***/ 1307:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const _ = __nccwpck_require__(5067);
-const core = __nccwpck_require__(2186);
-const GithubUtils = __nccwpck_require__(7999);
-
-const run = function () {
-    const artifactName = core.getInput('ARTIFACT_NAME', {required: true});
-
-    return GithubUtils.getArtifactByName(artifactName)
-        .then((artifact) => {
-            if (_.isUndefined(artifact)) {
-                console.log(`No artifact found with the name ${artifactName}`);
-                core.setOutput('ARTIFACT_FOUND', false);
-                return;
-            }
-
-            console.log('Artifact info', artifact);
-            core.setOutput('ARTIFACT_FOUND', true);
-            core.setOutput('ARTIFACT_ID', artifact.id);
-            core.setOutput('ARTIFACT_WORKFLOW_ID', artifact.workflow_run.id);
-        })
-        .catch((error) => {
-            console.error('A problem occurred while trying to communicate with the GitHub API', error);
-            core.setFailed(error);
-        });
-};
-
-if (require.main === require.cache[eval('__filename')]) {
-    run();
-}
-
-module.exports = run;
-
-
-/***/ }),
 
 /***/ 4097:
 /***/ ((module) => {
@@ -13642,6 +13601,44 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 7750:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core_1 = __importDefault(__nccwpck_require__(2186));
+const GithubUtils_1 = __importDefault(__nccwpck_require__(7999));
+const run = function () {
+    const artifactName = core_1.default.getInput('ARTIFACT_NAME', { required: true });
+    return GithubUtils_1.default.getArtifactByName(artifactName)
+        .then((artifact) => {
+        if (artifact === undefined) {
+            console.log(`No artifact found with the name ${artifactName}`);
+            core_1.default.setOutput('ARTIFACT_FOUND', false);
+            return;
+        }
+        console.log('Artifact info', artifact);
+        core_1.default.setOutput('ARTIFACT_FOUND', true);
+        core_1.default.setOutput('ARTIFACT_ID', artifact.id);
+        core_1.default.setOutput('ARTIFACT_WORKFLOW_ID', artifact.workflow_run?.id);
+    })
+        .catch((error) => {
+        console.error('A problem occurred while trying to communicate with the GitHub API', error);
+        core_1.default.setFailed(error);
+    });
+};
+if (require.main === require.cache[eval('__filename')]) {
+    run();
+}
+exports["default"] = run;
+
+
+/***/ }),
+
 /***/ 2877:
 /***/ ((module) => {
 
@@ -16003,7 +16000,7 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(1307);
+/******/ 	var __webpack_exports__ = __nccwpck_require__(7750);
 /******/ 	module.exports = __webpack_exports__;
 /******/ 	
 /******/ })()
