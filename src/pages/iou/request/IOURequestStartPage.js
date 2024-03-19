@@ -158,7 +158,7 @@ function IOURequestStartPage({
                                 title={tabTitles[iouType]}
                                 onBackButtonPress={navigateBack}
                             />
-                            {iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.SPLIT ? (
+                            {iouType !== CONST.IOU.TYPE.SEND ? (
                                 <OnyxTabNavigator
                                     id={CONST.TAB.IOU_REQUEST_TYPE}
                                     selectedTab={selectedTab || CONST.IOU.REQUEST_TYPE.SCAN}

@@ -196,7 +196,7 @@ function FloatingActionButtonAndPopover(props) {
                                   text: translate('iou.trackExpense'),
                                   onSelected: () =>
                                       interceptAnonymousUser(() =>
-                                          IOU.startMoneyRequest_temporaryForRefactor(
+                                          IOU.startMoneyRequest(
                                               CONST.IOU.TYPE.TRACK_EXPENSE,
                                               // When starting to create a track expense from the global FAB, we need to retrieve selfDM reportID.
                                               // If it doesn't exist, we generate a random optimistic reportID and use it for all of the routes in the creation flow.
