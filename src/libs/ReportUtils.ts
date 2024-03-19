@@ -3197,7 +3197,7 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
             iouMessage = `requested ${amount}${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.TRACK:
-            iouMessage = `tracked ${amount}${comment && ` for ${comment}`}`;
+            iouMessage = `tracking ${amount}${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.SPLIT:
             iouMessage = `split ${amount}${comment && ` for ${comment}`}`;
