@@ -124,8 +124,8 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
      * A generic handling when we don't know the exact reason for an error
      */
     const showGeneralAlert = useCallback(
-        (message = '') => {
-            Alert.alert(translate('attachmentPicker.attachmentError'), message || translate('attachmentPicker.errorWhileSelectingAttachment'));
+        (message = translate('attachmentPicker.errorWhileSelectingAttachment')) => {
+            Alert.alert(translate('attachmentPicker.attachmentError'), message);
         },
         [translate],
     );
