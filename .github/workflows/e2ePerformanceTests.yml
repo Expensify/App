@@ -175,23 +175,11 @@ jobs:
       - name: Rename delta APK
         run: mv "${{steps.downloadDeltaAPK.outputs.download-path}}/app-e2edelta-release.apk" "${{steps.downloadDeltaAPK.outputs.download-path}}/app-e2edeltaRelease.apk"
 
-      - name: Copy e2e code into zip folder
-        run: cp -r tests/e2e zip
+      - name: Compile test runner to be executable in a nodeJS environment
+        run: npm run e2e-test-runner-build
 
-      # Note: we can't reuse the apps tsconfig, as it depends on modules that aren't available in the AWS Device Farm environment
-      - name: Write tsconfig.json to zip folder
-        run: |
-          echo '{
-            "compilerOptions": {
-              "target": "ESNext",
-              "module": "commonjs",
-              "strict": true,
-              "esModuleInterop": true,
-              "skipLibCheck": true,
-              "forceConsistentCasingInFileNames": true,
-              "allowJs": true,
-            }
-          }' > zip/tsconfig.json
+      - name: Copy e2e code into zip folder
+        run: cp tests/e2e/dist/index.js zip/testRunner.ts
 
       - name: Zip everything in the zip directory up
         run: zip -qr App.zip ./zip

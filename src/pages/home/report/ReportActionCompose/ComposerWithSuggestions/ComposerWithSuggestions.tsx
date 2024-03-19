@@ -159,7 +159,7 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         isEmptyChat?: boolean;
 
         /** The last report action */
-        lastReportAction?: OnyxTypes.ReportAction;
+        lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
 
         /** Whether to include chronos */
         includeChronos?: boolean;
@@ -419,8 +419,15 @@ function ComposerWithSuggestions(
                 Report.setReportWithDraft(reportID, true);
             }
 
+            const hasDraftStatus = Report.getReportDraftStatus(reportID);
+
+            /**
+             * The extra `!hasDraftStatus` check is to prevent the draft being set
+             * when the user navigates to the ReportScreen. This doesn't alter anything
+             * in terms of functionality.
+             */
             // The draft has been deleted.
-            if (newCommentConverted.length === 0) {
+            if (newCommentConverted.length === 0 && hasDraftStatus) {
                 Report.setReportWithDraft(reportID, false);
             }
 
@@ -676,13 +683,6 @@ function ComposerWithSuggestions(
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
         updateMultilineInputRange(textInputRef.current, !!shouldAutoFocus);
-
-        if (value.length === 0) {
-            return;
-        }
-
-        Report.setReportWithDraft(reportID, true);
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     useImperativeHandle(

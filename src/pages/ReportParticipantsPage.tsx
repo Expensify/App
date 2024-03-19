@@ -50,8 +50,10 @@ const getAllParticipants = (
                 !!userPersonalDetail?.login && !CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID) ? LocalePhoneNumber.formatPhoneNumber(userPersonalDetail.login) : translate('common.hidden');
             const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(userPersonalDetail);
 
+            const pendingChatMember = report?.pendingChatMembers?.find((member) => member.accountID === accountID.toString());
             return {
                 alternateText: userLogin,
+                pendingAction: pendingChatMember?.pendingAction,
                 displayName,
                 accountID: userPersonalDetail?.accountID ?? accountID,
                 icons: [
@@ -87,7 +89,7 @@ function ReportParticipantsPage({report, personalDetails}: ReportParticipantsPag
             testID={ReportParticipantsPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!report || ReportUtils.isArchivedRoom(report)}>
+                <FullPageNotFoundView shouldShow={!report || ReportUtils.isArchivedRoom(report) || ReportUtils.isSelfDM(report)}>
                     <HeaderWithBackButton
                         onBackButtonPress={report ? () => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID)) : undefined}
                         title={translate(
