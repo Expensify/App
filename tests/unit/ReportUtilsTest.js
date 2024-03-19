@@ -552,6 +552,7 @@ describe('ReportUtils', () => {
                 const paidPolicy = {
                     id: 'ef72dfeb',
                     type: CONST.POLICY.TYPE.TEAM,
+                    autoReporting: true,
                     autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
                 };
                 Promise.all([
