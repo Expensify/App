@@ -79,13 +79,8 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
      */
     const renderItem: ListRenderItem<EmojiUtils.EmojiPickerListItem> = useCallback(
         ({item, target}) => {
-            let code: string;
-            let types: readonly string[] | undefined;
-            if ('types' in item) {
-                ({code, types} = item);
-            } else {
-                ({code} = item);
-            }
+            const code = item.code;
+            const types = 'types' in item ? item.types : undefined;
 
             if ('spacer' in item && item.spacer) {
                 return null;

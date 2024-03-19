@@ -149,7 +149,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                 if (!item) {
                     return;
                 }
-                if ('types' in item) {
+                if ('types' in item || 'name' in item) {
                     const emoji = typeof preferredSkinTone === 'number' && item?.types?.[preferredSkinTone] ? item?.types?.[preferredSkinTone] : item.code;
                     onEmojiSelected(emoji, item);
                 }
@@ -239,13 +239,8 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
      */
     const renderItem: ListRenderItem<EmojiUtils.EmojiPickerListItem> = useCallback(
         ({item, index, target}) => {
-            let code: string;
-            let types: readonly string[] | undefined;
-            if ('types' in item) {
-                ({code, types} = item);
-            } else {
-                ({code} = item);
-            }
+            const code = item.code;
+            const types = 'types' in item ? item.types : undefined;
 
             if ('spacer' in item && item.spacer) {
                 return null;
