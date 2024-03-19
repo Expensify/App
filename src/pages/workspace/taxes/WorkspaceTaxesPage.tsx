@@ -34,7 +34,12 @@ import type SCREENS from '@src/SCREENS';
 
 type WorkspaceTaxesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES>;
 
-function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
+function WorkspaceTaxesPage({
+    policy,
+    route: {
+        params: {policyID},
+    },
+}: WorkspaceTaxesPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -45,7 +50,7 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
 
     const fetchTaxes = () => {
-        openPolicyTaxesPage(route.params.policyID);
+        openPolicyTaxesPage(policyID);
     };
 
     const {isOffline} = useNetwork({onReconnect: fetchTaxes});
@@ -135,23 +140,23 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
     );
 
     const deleteTaxes = useCallback(() => {
-        if (!route.params.policyID) {
+        if (!policyID) {
             return;
         }
-        deletePolicyTaxes(route.params.policyID, selectedTaxesIDs);
+        deletePolicyTaxes(policyID, selectedTaxesIDs);
         setSelectedTaxesIDs([]);
         setIsDeleteModalVisible(false);
-    }, [route.params.policyID, selectedTaxesIDs]);
+    }, [policyID, selectedTaxesIDs]);
 
     const toggleTaxes = useCallback(
         (isEnabled: boolean) => {
-            if (!route.params.policyID) {
+            if (!policyID) {
                 return;
             }
-            setPolicyTaxesEnabled(route.params.policyID, selectedTaxesIDs, isEnabled);
+            setPolicyTaxesEnabled(policyID, selectedTaxesIDs, isEnabled);
             setSelectedTaxesIDs([]);
         },
-        [route.params.policyID, selectedTaxesIDs],
+        [policyID, selectedTaxesIDs],
     );
 
     const dropdownMenuOptions = useMemo(() => {
@@ -194,14 +199,14 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
                     <Button
                         medium
                         success
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_CREATE.getRoute(route.params.policyID))}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_CREATE.getRoute(policyID))}
                         icon={Expensicons.Plus}
                         text={translate('workspace.taxes.addRate')}
                         style={[styles.mr3, isSmallScreenWidth && styles.w50]}
                     />
                     <Button
                         medium
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(route.params.policyID))}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID))}
                         icon={Expensicons.Gear}
                         text={translate('common.settings')}
                         style={[isSmallScreenWidth && styles.w50]}
@@ -219,8 +224,8 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
     );
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
+        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
+            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
                 <ScreenWrapper
                     includeSafeAreaPaddingBottom={false}
                     style={[styles.defaultModalContainer]}
@@ -251,13 +256,13 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
                         canSelectMultiple
                         sections={[{data: taxesList, indexOffset: 0, isDisabled: false}]}
                         onCheckboxPress={toggleTax}
-                        onSelectRow={(tax: ListItem) => tax.keyForList && Navigation.navigate(ROUTES.WORKSPACE_TAXES_EDIT.getRoute(route.params.policyID, tax.keyForList))}
+                        onSelectRow={(tax: ListItem) => tax.keyForList && Navigation.navigate(ROUTES.WORKSPACE_TAXES_EDIT.getRoute(policyID, tax.keyForList))}
                         onSelectAll={toggleAllTaxes}
                         showScrollIndicator
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        onDismissError={(item) => (item.keyForList ? clearTaxRateError(route.params.policyID, item.keyForList, item.pendingAction) : undefined)}
+                        onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}
                     />
                     <ConfirmModal
                         title={translate('workspace.taxes.actions.delete')}
