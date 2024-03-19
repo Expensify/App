@@ -31,9 +31,11 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
             // policy?.description can be an empty string
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             policy?.description ||
-                translate('workspace.common.welcomeNote', {
-                    workspaceName: policy?.name ?? '',
-                }),
+                parser.replace(
+                    translate('workspace.common.welcomeNote', {
+                        workspaceName: policy?.name ?? '',
+                    }),
+                ),
         ),
     );
 
