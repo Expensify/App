@@ -2,7 +2,7 @@ import _ from 'lodash';
 import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
-import {ActivityIndicator, Dimensions, ScrollView, View} from 'react-native';
+import {ActivityIndicator, Dimensions, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import Button from '@components/Button';
@@ -18,6 +18,7 @@ import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Popover from '@components/Popover';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -74,7 +75,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
     });
 
     const addPaymentMethodAnchorRef = useRef(null);
-    const paymentMethodButtonRef = useRef<HTMLElement | null>(null);
+    const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
     const [anchorPosition, setAnchorPosition] = useState({
         anchorPositionHorizontal: 0,
         anchorPositionVertical: 0,
@@ -163,7 +164,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
             setShouldShowDefaultDeleteMenu(false);
             return;
         }
-        paymentMethodButtonRef.current = nativeEvent?.currentTarget as HTMLElement;
+        paymentMethodButtonRef.current = nativeEvent?.currentTarget as HTMLDivElement;
 
         // The delete/default menu
         if (accountType) {
@@ -395,7 +396,6 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                             )}
 
                                             <KYCWall
-                                                // eslint-disable-next-line @typescript-eslint/naming-convention
                                                 onSuccessfulKYC={(_iouPaymentType?: PaymentMethodType, source?: Source) => navigateToWalletOrTransferBalancePage(source)}
                                                 onSelectPaymentMethod={()=> Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT_REFACTOR)}
                                                 enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}

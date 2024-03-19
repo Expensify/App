@@ -1,23 +1,24 @@
-import {useNavigationState} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import {NativeModules, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import {View} from 'react-native';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import ConfirmModal from '@components/ConfirmModal';
 import CurrentUserPersonalDetailsSkeletonView from '@components/CurrentUserPersonalDetailsSkeletonView';
-import HeaderPageLayout from '@components/HeaderPageLayout';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
+import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useActiveRoute from '@hooks/useActiveRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -25,9 +26,10 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import getTopmostSettingsCentralPaneName from '@libs/Navigation/getTopmostSettingsCentralPaneName';
 import Navigation from '@libs/Navigation/Navigation';
+import shouldShowSubscriptionsMenu from '@libs/shouldShowSubscriptionsMenu';
 import * as UserUtils from '@libs/UserUtils';
+import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesSettingsUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import * as Link from '@userActions/Link';
@@ -40,7 +42,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -64,6 +65,12 @@ type InitialSettingsPageOnyxProps = {
 
     /** Login list for the user that is signed in */
     loginList: OnyxEntry<OnyxTypes.LoginList>;
+
+    /** The policies which the user has access to */
+    policies: OnyxCollection<OnyxTypes.Policy>;
+
+    /** Members of all the workspaces the user is member of */
+    policyMembers: OnyxCollection<OnyxTypes.PolicyMembers>;
 };
 
 type InitialSettingsPageProps = InitialSettingsPageOnyxProps & WithCurrentUserPersonalDetailsProps;
@@ -88,7 +95,7 @@ type MenuData = {
 
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
 
-function InitialSettingsPage({session, userWallet, bankAccountList, fundList, walletTerms, loginList, currentUserPersonalDetails}: InitialSettingsPageProps) {
+function InitialSettingsPage({session, userWallet, bankAccountList, fundList, walletTerms, loginList, currentUserPersonalDetails, policies, policyMembers}: InitialSettingsPageProps) {
     const network = useNetwork();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -96,7 +103,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
     const waitForNavigate = useWaitForNavigation();
     const popoverAnchor = useRef(null);
     const {translate, formatPhoneNumber} = useLocalize();
-    const activeRoute = useNavigationState(getTopmostSettingsCentralPaneName);
+    const activeRoute = useActiveRoute();
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
@@ -129,7 +136,6 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
     const accountMenuItemsData: Menu = useMemo(() => {
         const profileBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(loginList);
         const paymentCardList = fundList;
-
         const defaultMenu: Menu = {
             sectionStyle: styles.accountSettingsSectionContainer,
             sectionTranslationKey: 'initialSettingsPage.account',
@@ -164,49 +170,70 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                     icon: Expensicons.Lock,
                     routeName: ROUTES.SETTINGS_SECURITY,
                 },
-                {
-                    translationKey: 'initialSettingsPage.signOut',
-                    icon: Expensicons.Exit,
-                    action: () => {
-                        signOut(false);
-                    },
-                },
             ],
         };
 
-        if (NativeModules.HybridAppModule) {
-            const hybridAppMenuItems: MenuData[] = [
-                {
-                    translationKey: 'initialSettingsPage.returnToClassic' as const,
-                    icon: Expensicons.RotateLeft,
-                    shouldShowRightIcon: true,
-                    iconRight: Expensicons.NewWindow,
-                    action: () => {
-                        NativeModules.HybridAppModule.closeReactNativeApp();
-                    },
-                },
-                ...defaultMenu.items,
-            ].filter((item) => item.translationKey !== 'initialSettingsPage.signOut' && item.translationKey !== 'exitSurvey.goToExpensifyClassic');
+        return defaultMenu;
+    }, [loginList, fundList, styles.accountSettingsSectionContainer, bankAccountList, userWallet?.errors, walletTerms?.errors]);
 
-            return {sectionStyle: styles.accountSettingsSectionContainer, sectionTranslationKey: 'initialSettingsPage.account', items: hybridAppMenuItems};
+    /**
+     * Retuns a list of menu items data for workspace section
+     * @returns object with translationKey, style and items for the workspace section
+     */
+    const workspaceMenuItemsData: Menu = useMemo(() => {
+        const items: MenuData[] = [
+            {
+                translationKey: 'common.workspaces',
+                icon: Expensicons.Building,
+                routeName: ROUTES.SETTINGS_WORKSPACES,
+                brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies, policyMembers) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            },
+            {
+                translationKey: 'allSettingsScreen.cardsAndDomains',
+                icon: Expensicons.CardsAndDomains,
+                action: () => {
+                    Link.openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL);
+                },
+                shouldShowRightIcon: true,
+                iconRight: Expensicons.NewWindow,
+                link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL),
+            },
+        ];
+
+        if (shouldShowSubscriptionsMenu) {
+            items.splice(1, 0, {
+                translationKey: 'allSettingsScreen.subscriptions',
+                icon: Expensicons.MoneyBag,
+                action: () => {
+                    Link.openOldDotLink(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL);
+                },
+                shouldShowRightIcon: true,
+                iconRight: Expensicons.NewWindow,
+                link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL),
+            });
         }
 
-        return defaultMenu;
-    }, [loginList, fundList, styles.accountSettingsSectionContainer, bankAccountList, userWallet?.errors, walletTerms?.errors, signOut]);
+        return {
+            sectionStyle: styles.workspaceSettingsSectionContainer,
+            sectionTranslationKey: 'common.workspaces',
+            items,
+        };
+    }, [policies, policyMembers, styles.workspaceSettingsSectionContainer]);
 
     /**
      * Retuns a list of menu items data for general section
      * @returns object with translationKey, style and items for the general section
      */
-    const generalMenuItemsData: Menu = useMemo(
-        () => ({
+    const generalMenuItemsData: Menu = useMemo(() => {
+        const signOutTranslationKey = Session.isSupportAuthToken() && Session.hasStashedSession() ? 'initialSettingsPage.restoreStashed' : 'initialSettingsPage.signOut';
+        const defaultMenu: Menu = {
             sectionStyle: {
                 ...styles.pt4,
             },
-            sectionTranslationKey: 'initialSettingsPage.general' as const,
+            sectionTranslationKey: 'initialSettingsPage.general',
             items: [
                 {
-                    translationKey: 'initialSettingsPage.help' as const,
+                    translationKey: 'initialSettingsPage.help',
                     icon: Expensicons.QuestionMark,
                     action: () => {
                         Link.openExternalLink(CONST.NEWHELP_URL);
@@ -216,14 +243,22 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                     link: CONST.NEWHELP_URL,
                 },
                 {
-                    translationKey: 'initialSettingsPage.about' as const,
+                    translationKey: 'initialSettingsPage.about',
                     icon: Expensicons.Info,
                     routeName: ROUTES.SETTINGS_ABOUT,
                 },
+                {
+                    translationKey: signOutTranslationKey,
+                    icon: Expensicons.Exit,
+                    action: () => {
+                        signOut(false);
+                    },
+                },
             ],
-        }),
-        [styles.pt4],
-    );
+        };
+
+        return defaultMenu;
+    }, [styles.pt4, signOut]);
 
     /**
      * Retuns JSX.Element with menu items
@@ -308,13 +343,14 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
 
     const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);
     const generalMenuItems = useMemo(() => getMenuItemsSection(generalMenuItemsData), [generalMenuItemsData, getMenuItemsSection]);
+    const workspaceMenuItems = useMemo(() => getMenuItemsSection(workspaceMenuItemsData), [workspaceMenuItemsData, getMenuItemsSection]);
 
     const currentUserDetails = currentUserPersonalDetails;
     const avatarURL = currentUserDetails?.avatar ?? '';
     const accountID = currentUserDetails?.accountID ?? '';
 
     const headerContent = (
-        <View style={[styles.avatarSectionWrapperSettings, styles.justifyContentCenter, styles.ph5]}>
+        <View style={[styles.avatarSectionWrapperSettings, styles.justifyContentCenter, styles.ph5, styles.pb5]}>
             {isEmptyObject(currentUserPersonalDetails) || currentUserPersonalDetails.displayName === undefined ? (
                 <CurrentUserPersonalDetailsSkeletonView avatarSize={CONST.AVATAR_SIZE.XLARGE} />
             ) : (
@@ -379,6 +415,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                             originalFileName={currentUserDetails.originalFileName}
                             headerTitle={translate('profilePage.profileAvatar')}
                             fallbackIcon={currentUserDetails?.fallbackIcon}
+                            editIconStyle={styles.smallEditIconAccount}
                         />
                     </OfflineWithFeedback>
                     <Text
@@ -401,17 +438,16 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
     );
 
     return (
-        <HeaderPageLayout
-            title={translate('initialSettingsPage.accountSettings')}
-            headerContent={headerContent}
-            headerContainerStyles={[styles.justifyContentCenter]}
-            onBackButtonPress={() => Navigation.closeFullScreen()}
-            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.ROOT].backgroundColor}
-            childrenContainerStyles={[styles.m0, styles.p0]}
+        <ScreenWrapper
+            style={[styles.w100, styles.pb0]}
+            includePaddingTop={false}
+            includeSafeAreaPaddingBottom={false}
             testID={InitialSettingsPage.displayName}
         >
-            <View style={styles.w100}>
+            <ScrollView style={[styles.w100, styles.pt4]}>
+                {headerContent}
                 {accountMenuItems}
+                {workspaceMenuItems}
                 {generalMenuItems}
                 <ConfirmModal
                     danger
@@ -423,8 +459,8 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                     onConfirm={() => signOut(true)}
                     onCancel={() => toggleSignoutConfirmModal(false)}
                 />
-            </View>
-        </HeaderPageLayout>
+            </ScrollView>
+        </ScreenWrapper>
     );
 }
 
@@ -449,6 +485,12 @@ export default withCurrentUserPersonalDetails(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        policyMembers: {
+            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
         },
     })(InitialSettingsPage),
 );
