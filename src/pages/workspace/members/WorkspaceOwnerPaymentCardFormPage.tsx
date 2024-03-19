@@ -28,6 +28,7 @@ import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddDebitCardForm';
 import WorkspaceOwnerPaymentCardCurrencyModal from './WorkspaceOwnerPaymentCardCurrencyModal';
@@ -47,11 +48,15 @@ function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFor
     const [currency, setCurrency] = useState<keyof typeof CONST.CURRENCY>(CONST.CURRENCY.USD);
 
     const policyID = route.params.policyID;
+    const accountID = route.params.accountID;
 
     useEffect(
-        () => () => {
+        () => {
             PaymentMethods.clearDebitCardFormErrorAndSubmit();
-            Policy.clearWorkspaceOwnerChangeFlow(policyID);
+
+            return () => {
+                PaymentMethods.clearDebitCardFormErrorAndSubmit();
+            };
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
@@ -99,7 +104,7 @@ function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFor
                 currency: CONST.CURRENCY.USD,
             };
             Policy.addBillingCardAndRequestPolicyOwnerChange(policyID, cardData);
-            Navigation.goBack();
+            Navigation.dismissModal();
         },
         [policyID],
     );
@@ -122,7 +127,7 @@ function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFor
                 >
                     <HeaderWithBackButton
                         title={translate('workspace.changeOwner.changeOwnerPageTitle')}
-                        onBackButtonPress={() => Navigation.goBack()}
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID))}
                     />
                     <View style={[styles.containerWithSpaceBetween, styles.ph5, styles.pb0]}>
                         <Text style={[styles.textHeadline, styles.mt3]}>{translate('workspace.changeOwner.addPaymentCardTitle')}</Text>

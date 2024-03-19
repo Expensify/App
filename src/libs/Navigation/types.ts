@@ -205,10 +205,12 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK]: {
         policyID: string;
+        accountID: number;
         error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>;
     };
     [SCREENS.WORKSPACE.OWNER_PAYMENT_CARD_FORM]: {
         policyID: string;
+        accountID: number;
     };
     [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
         policyID: string;

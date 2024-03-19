@@ -1,6 +1,8 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -11,36 +13,77 @@ import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
+import withPolicy from '@pages/workspace/withPolicy';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {PersonalDetailsList, PolicyOwnershipChangeChecks} from '@src/types/onyx';
 
-type WorkspaceMemberDetailsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.OWNER_CHANGE_CHECK>;
+type WorkspaceOwnershipChangeChecksOnyxProps = {
+    /** Personal details of all users */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 
-function WorkspaceOwnerChangeCheckPage({route}: WorkspaceMemberDetailsPageProps) {
+    /** Ownership checks */
+    policyOwnershipChangeChecks: OnyxEntry<Record<string, PolicyOwnershipChangeChecks>>;
+};
+
+type WorkspaceMemberDetailsPageProps = WithPolicyOnyxProps &
+    WorkspaceOwnershipChangeChecksOnyxProps &
+    StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.OWNER_CHANGE_CHECK>;
+
+function WorkspaceOwnerChangeCheckPage({route, personalDetails, policy, policyOwnershipChangeChecks}: WorkspaceMemberDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const policyID = route.params.policyID;
+    const accountID = route.params.accountID;
     const error = route.params.error;
 
     const confirm = useCallback(() => {
         if (error === CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS) {
             // cannot transfer ownership if there are failed settlements
-            Policy.clearWorkspaceOwnerChangeFlow(policyID);
-            Navigation.goBack();
+            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
         }
 
-        // TODO: handle confirmation
-    }, [error, policyID]);
+        const currentPolicyOwnershipChecks = policyOwnershipChangeChecks?.[policyID];
 
-    useEffect(
-        () => () => {
-            Policy.clearWorkspaceOwnerChangeFlow(policyID);
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [],
-    );
+        if (currentPolicyOwnershipChecks) {
+            let ownershipChecks: PolicyOwnershipChangeChecks = {} as PolicyOwnershipChangeChecks;
+            if (error === CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED) {
+                ownershipChecks = {
+                    ...currentPolicyOwnershipChecks,
+                    shouldClearOutstandingBalance: true,
+                };
+            }
+
+            if (error === CONST.POLICY.OWNERSHIP_ERRORS.OWNER_OWES_AMOUNT) {
+                ownershipChecks = {
+                    ...currentPolicyOwnershipChecks,
+                    shouldTransferAmountOwed: true,
+                };
+            }
+
+            if (error === CONST.POLICY.OWNERSHIP_ERRORS.SUBSCRIPTION) {
+                ownershipChecks = {
+                    ...currentPolicyOwnershipChecks,
+                    shouldTransferSubscription: true,
+                };
+            }
+
+            if (error === CONST.POLICY.OWNERSHIP_ERRORS.DUPLICATE_SUBSCRIPTION) {
+                ownershipChecks = {
+                    ...currentPolicyOwnershipChecks,
+                    shouldTransferSingleSubscription: true,
+                };
+            }
+
+            Policy.updateWorkspaceOwnershipChecks(policyID, ownershipChecks);
+            Navigation.dismissModal();
+        }
+    }, [accountID, error, policyID, policyOwnershipChangeChecks]);
 
     const confirmationTitle = useMemo(() => {
         switch (error) {
@@ -77,21 +120,28 @@ function WorkspaceOwnerChangeCheckPage({route}: WorkspaceMemberDetailsPageProps)
     }, [error, translate]);
 
     const confirmationText = useMemo(() => {
+        const changeOwner = policy?.errorFields?.changeOwner;
+        const subscription = changeOwner?.subscription as unknown as {ownerUserCount: number; totalUserCount: number};
+
+        const details = personalDetails?.[accountID];
+
         switch (error) {
+            case 'noBillingCard':
+                break;
             case CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED:
                 return translate('workspace.changeOwner.amountOwedText');
             case CONST.POLICY.OWNERSHIP_ERRORS.OWNER_OWES_AMOUNT:
-                return translate('workspace.changeOwner.ownerOwesAmountText', {email: 'test@test.com', amount: '$10.50'});
+                return translate('workspace.changeOwner.ownerOwesAmountText', {email: changeOwner?.ownerOwesAmount, amount: ''});
             case CONST.POLICY.OWNERSHIP_ERRORS.SUBSCRIPTION:
-                return translate('workspace.changeOwner.subscriptionText', {usersCount: 3, finalCount: 5});
+                return translate('workspace.changeOwner.subscriptionText', {usersCount: subscription?.ownerUserCount, finalCount: subscription?.totalUserCount});
             case CONST.POLICY.OWNERSHIP_ERRORS.DUPLICATE_SUBSCRIPTION:
-                return translate('workspace.changeOwner.duplicateSubscriptionText', {email: 'test@test.com', workspaceName: 'Test workspace'});
+                return translate('workspace.changeOwner.duplicateSubscriptionText', {email: changeOwner?.duplicateSubscription, workspaceName: policy?.name});
             case CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS:
-                return translate('workspace.changeOwner.hasFailedSettlementsText', {email: 'test@test.com'});
+                return translate('workspace.changeOwner.hasFailedSettlementsText', {email: details?.login});
             default:
                 return null;
         }
-    }, [error, translate]);
+    }, [accountID, error, personalDetails, policy?.errorFields?.changeOwner, policy?.name, translate]);
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
@@ -99,7 +149,10 @@ function WorkspaceOwnerChangeCheckPage({route}: WorkspaceMemberDetailsPageProps)
                 <ScreenWrapper testID={WorkspaceOwnerChangeCheckPage.displayName}>
                     <HeaderWithBackButton
                         title={translate('workspace.changeOwner.changeOwnerPageTitle')}
-                        onBackButtonPress={() => Navigation.goBack()}
+                        onBackButtonPress={() => {
+                            Policy.clearWorkspaceOwnerChangeFlow(policyID);
+                            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
+                        }}
                     />
                     <View style={[styles.containerWithSpaceBetween, styles.pb5, styles.ph5]}>
                         <Text style={[styles.textHeadline, styles.mt3, styles.mb5]}>{confirmationTitle}</Text>
@@ -119,4 +172,13 @@ function WorkspaceOwnerChangeCheckPage({route}: WorkspaceMemberDetailsPageProps)
 
 WorkspaceOwnerChangeCheckPage.displayName = 'WorkspaceOwnerChangeCheckPage';
 
-export default WorkspaceOwnerChangeCheckPage;
+export default withPolicy(
+    withOnyx<WorkspaceMemberDetailsPageProps, WorkspaceOwnershipChangeChecksOnyxProps>({
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+        policyOwnershipChangeChecks: {
+            key: ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS,
+        },
+    })(WorkspaceOwnerChangeCheckPage),
+);

@@ -245,16 +245,11 @@ Onyx.connect({
     callback: (val) => (allPolicyCategories = val),
 });
 
-let policyOwnershipChecks: Record<string, PolicyOwnershipChangeChecks> = {};
+let policyOwnershipChecks: Record<string, PolicyOwnershipChangeChecks>;
 Onyx.connect({
     key: ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS,
-    callback: (value, key) => {
-        if (!key || !value) {
-            policyOwnershipChecks = {};
-            return;
-        }
-
-        policyOwnershipChecks = value;
+    callback: (value) => {
+        policyOwnershipChecks = value ?? {};
     },
 });
 
@@ -996,7 +991,7 @@ function updateWorkspaceOwnershipChecks(policyID: string, ownershipChecks: Polic
 }
 
 function requestWorkspaceOwnerChange(policyID: string) {
-    const ownershipChecks = policyOwnershipChecks[policyID] ?? {};
+    const ownershipChecks = policyOwnershipChecks?.[policyID] ?? {};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1040,7 +1035,7 @@ function requestWorkspaceOwnerChange(policyID: string) {
 
 function clearWorkspaceOwnerChangeFlow(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        errorFields: null,
+        errorFields: {changeOwner: null},
         pendingAction: null,
     });
     Onyx.merge(ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS, {

@@ -606,12 +606,13 @@ const ROUTES = {
         getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/members/${accountID}/role-selection`, backTo),
     },
     WORKSPACE_OWNER_CHANGE_CHECK: {
-        route: 'workspace/:policyID/change-owner/:error',
-        getRoute: (policyID: string, error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>) => `workspace/${policyID}/change-owner/${error}` as const,
+        route: 'settings/workspaces/:policyID/change-owner/:accountID/:error',
+        getRoute: (policyID: string, accountID: number, error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>) =>
+            `settings/workspaces/${policyID}/change-owner/${accountID}/${error}` as const,
     },
     WORKSPACE_OWNER_PAYMENT_CARD_FORM: {
-        route: 'workspace/:policyID/add-payment-card',
-        getRoute: (policyID: string) => `workspace/${policyID}/add-payment-card` as const,
+        route: 'settings/workspaces/:policyID/change-owner/:accountID/add-payment-card',
+        getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/change-owner/${accountID}/add-payment-card` as const,
     },
     WORKSPACE_DISTANCE_RATES: {
         route: 'settings/workspaces/:policyID/distance-rates',
