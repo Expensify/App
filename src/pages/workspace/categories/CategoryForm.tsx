@@ -80,7 +80,6 @@ function CategoryForm({onSubmit, policyCategories, categoryName}: CategoryFormPr
                 accessibilityLabel={translate('common.name')}
                 inputID={INPUT_IDS.CATEGORY_NAME}
                 role={CONST.ROLE.PRESENTATION}
-                autoFocus
             />
         </FormProvider>
     );

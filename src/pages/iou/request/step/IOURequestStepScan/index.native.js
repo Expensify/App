@@ -1,6 +1,7 @@
+import {useFocusEffect} from '@react-navigation/core';
 import lodashGet from 'lodash/get';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {ActivityIndicator, Alert, AppState, View} from 'react-native';
+import React, {useCallback, useRef, useState} from 'react';
+import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
@@ -119,29 +120,33 @@ function IOURequestStepScan({
             runOnJS(focusCamera)(point);
         });
 
-    useEffect(() => {
-        const refreshCameraPermissionStatus = () => {
-            CameraPermission.getCameraPermissionStatus()
-                .then(setCameraPermissionStatus)
-                .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
-        };
+    useFocusEffect(
+        useCallback(() => {
+            const refreshCameraPermissionStatus = () => {
+                CameraPermission.getCameraPermissionStatus()
+                    .then(setCameraPermissionStatus)
+                    .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
+            };
 
-        // Check initial camera permission status
-        refreshCameraPermissionStatus();
+            InteractionManager.runAfterInteractions(() => {
+                // Check initial camera permission status
+                refreshCameraPermissionStatus();
+            });
 
-        // Refresh permission status when app gain focus
-        const subscription = AppState.addEventListener('change', (appState) => {
-            if (appState !== 'active') {
-                return;
-            }
+            // Refresh permission status when app gain focus
+            const subscription = AppState.addEventListener('change', (appState) => {
+                if (appState !== 'active') {
+                    return;
+                }
 
-            refreshCameraPermissionStatus();
-        });
+                refreshCameraPermissionStatus();
+            });
 
-        return () => {
-            subscription.remove();
-        };
-    }, []);
+            return () => {
+                subscription.remove();
+            };
+        }, []),
+    );
 
     const validateReceipt = (file) => {
         const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
