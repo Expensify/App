@@ -108,10 +108,13 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
 
     const didScreenChangeOrientation =
         isMobile &&
-        isSmallScreenWidth &&
         lockedWindowDimensions.current &&
-        lockedWindowDimensions.current.windowWidth <= windowWidth &&
-        lockedWindowDimensions.current.windowHeight >= windowHeight;
+        isExtraSmallScreenWidth === lockedWindowDimensions.current.isExtraSmallScreenWidth &&
+        isSmallScreenWidth === lockedWindowDimensions.current.isSmallScreen &&
+        isMediumScreenWidth === lockedWindowDimensions.current.isMediumScreenWidth &&
+        isLargeScreenWidth === lockedWindowDimensions.current.isLargeScreenWidth &&
+        lockedWindowDimensions.current.windowWidth !== windowWidth &&
+        lockedWindowDimensions.current.windowHeight !== windowHeight;
 
     // if video is in fullscreen mode, lock the window dimensions since they can change and casue whole app to re-render
     if (!lockedWindowDimensions.current || didScreenChangeOrientation) {
