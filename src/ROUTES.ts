@@ -578,11 +578,11 @@ const ROUTES = {
     },
     WORKSPACE_TAG_EDIT: {
         route: 'settings/workspace/:policyID/tag/:tagName/edit',
-        getRoute: (policyID: string, tagName: string) => `settings/workspace/${policyID}/tag/${decodeURIComponent(tagName)}/edit` as const,
+        getRoute: (policyID: string, tagName: string) => `settings/workspace/${policyID}/tag/${encodeURIComponent(tagName)}/edit` as const,
     },
     WORKSPACE_TAG_SETTINGS: {
         route: 'settings/workspaces/:policyID/tag/:tagName',
-        getRoute: (policyID: string, tagName: string) => `settings/workspaces/${policyID}/tag/${decodeURIComponent(tagName)}` as const,
+        getRoute: (policyID: string, tagName: string) => `settings/workspaces/${policyID}/tag/${encodeURIComponent(tagName)}` as const,
     },
     WORKSPACE_TAXES: {
         route: 'settings/workspaces/:policyID/taxes',
