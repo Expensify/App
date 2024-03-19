@@ -70,15 +70,21 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
     let receiptIconWidth: number = variables.eReceiptIconWidth;
     let receiptIconHeight: number = variables.eReceiptIconHeight;
     let receiptMCCSize: number = variables.eReceiptMCCHeightWidth;
+    let labelFontSize: number = variables.fontSizeNormal;
+    let labelLineHeight: number = variables.lineHeightLarge;
 
     if (iconSize === 'small') {
         receiptIconWidth = variables.eReceiptIconWidthSmall;
         receiptIconHeight = variables.eReceiptIconHeightSmall;
         receiptMCCSize = variables.eReceiptMCCHeightWidthSmall;
+        labelFontSize = variables.fontSizeExtraSmall;
+        labelLineHeight = variables.lineHeightXSmall;
     } else if (iconSize === 'medium') {
         receiptIconWidth = variables.eReceiptIconWidthMedium;
         receiptIconHeight = variables.eReceiptIconHeightMedium;
         receiptMCCSize = variables.eReceiptMCCHeightWidthMedium;
+        labelFontSize = variables.fontSizeLabel;
+        labelLineHeight = variables.lineHeightNormal;
     }
 
     return (
@@ -107,7 +113,16 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
                         additionalStyles={[styles.fullScreen]}
                     />
                     {isReceiptThumbnail && fileExtension && (
-                        <Text style={[styles.labelStrong, StyleUtils.getTextColorStyle(primaryColor ?? colors.black)]}>{fileExtension.toUpperCase()}</Text>
+                        <Text
+                            style={[
+                                styles.labelStrong,
+                                StyleUtils.getFontSizeStyle(labelFontSize),
+                                StyleUtils.getLineHeightStyle(labelLineHeight),
+                                StyleUtils.getTextColorStyle(primaryColor ?? colors.black),
+                            ]}
+                        >
+                            {fileExtension.toUpperCase()}
+                        </Text>
                     )}
                     {MCCIcon && !isReceiptThumbnail ? (
                         <Icon
