@@ -5337,7 +5337,7 @@ function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxEntry<Report> 
 
 function hasActionsWithErrors(reportID: string): boolean {
     const reportActions = ReportActionsUtils.getAllReportActions(reportID ?? '');
-    return !!Object.values(reportActions ?? {}).find((action) => !isEmptyObject(action.errors));
+    return !!Object.values(reportActions ?? {}).some((action) => !isEmptyObject(action.errors));
 }
 
 export {
