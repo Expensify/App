@@ -7,26 +7,42 @@ import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {AnchorPosition} from '@src/styles';
 import type {Report, Session} from '@src/types/onyx';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import * as Expensicons from './Icon/Expensicons';
 import PopoverMenu from './PopoverMenu';
 
 type AddPaymentMethodMenuOnyxProps = {
+    /** Session info for the currently logged-in user. */
     session: OnyxEntry<Session>;
 };
 
 type AddPaymentMethodMenuProps = AddPaymentMethodMenuOnyxProps & {
+    /** Should the component be visible? */
     isVisible: boolean;
+
+    /** Callback to execute when the component closes. */
     onClose: () => void;
+
+    /** Callback to execute when the payment method is selected. */
     onItemSelected: (paymentMethod: ValueOf<typeof CONST.PAYMENT_METHODS>) => void;
+
+    /** The IOU/Expense report we are paying */
     iouReport?: OnyxEntry<Report>;
+
+    /** Anchor position for the AddPaymentMenu. */
     anchorPosition: AnchorPosition;
+
+    /** Where the popover should be positioned relative to the anchor points. */
     anchorAlignment?: AnchorAlignment;
+
+    /** Popover anchor ref */
     anchorRef: RefObject<View | HTMLDivElement>;
+
+    /** Whether the personal bank account option should be shown */
     shouldShowPersonalBankAccountOption?: boolean;
 };
 
@@ -34,7 +50,10 @@ function AddPaymentMethodMenu({
     isVisible,
     onClose,
     anchorPosition,
-    anchorAlignment,
+    anchorAlignment = {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+    },
     anchorRef,
     iouReport,
     onItemSelected,
