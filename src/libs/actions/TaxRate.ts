@@ -326,7 +326,7 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
     const parameters = {
         policyID,
         taxNames: JSON.stringify(taxesToDelete.map((taxID) => policyTaxRates[taxID].name)),
-    } as DeletePolicyTaxesParams;
+    } satisfies DeletePolicyTaxesParams;
 
     API.write(WRITE_COMMANDS.DELETE_POLICY_TAXES, parameters, onyxData);
 }
@@ -397,7 +397,7 @@ function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number)
         policyID,
         taxCode: taxID,
         taxAmount: Number(taxValue),
-    } as UpdatePolicyTaxValueParams;
+    } satisfies UpdatePolicyTaxValueParams;
 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_TAX_VALUE, parameters, onyxData);
 }

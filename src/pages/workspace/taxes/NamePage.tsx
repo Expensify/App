@@ -100,7 +100,6 @@ function NamePage({
                                 value={name}
                                 maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
                                 onChangeText={setName}
-                                multiline={false}
                                 ref={inputCallbackRef}
                             />
                         </View>
