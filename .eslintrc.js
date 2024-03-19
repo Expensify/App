@@ -51,6 +51,10 @@ const restrictedImportPaths = [
         name: '@styles/theme/illustrations',
         message: 'Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead.',
     },
+    {
+        name: 'date-fns/locale',
+        message: "Do not import 'date-fns/locale' directly. Please use the submodule import instead, like 'date-fns/locale/en-GB'.",
+    },
 ];
 
 const restrictedImportPatterns = [
@@ -194,6 +198,7 @@ module.exports = {
                     {
                         selector: ['parameter', 'method'],
                         format: ['camelCase', 'PascalCase'],
+                        leadingUnderscore: 'allow',
                     },
                 ],
                 '@typescript-eslint/ban-types': [

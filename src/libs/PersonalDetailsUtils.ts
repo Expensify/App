@@ -25,14 +25,28 @@ Onyx.connect({
 });
 
 function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails> | null, defaultValue = '', shouldFallbackToHidden = true, shouldAddCurrentUserPostfix = false): string {
-    let displayName = passedPersonalDetails?.displayName ? passedPersonalDetails.displayName.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '') : '';
+    let displayName = passedPersonalDetails?.displayName ?? '';
+
+    // If the displayName starts with the merged account prefix, remove it.
+    if (displayName.startsWith(CONST.MERGED_ACCOUNT_PREFIX)) {
+        // Remove the merged account prefix from the displayName.
+        displayName = displayName.substring(CONST.MERGED_ACCOUNT_PREFIX.length);
+    }
+
+    // If the displayName is not set by the user, the backend sets the diplayName same as the login so
+    // we need to remove the sms domain from the displayName if it is an sms login.
+    if (displayName === passedPersonalDetails?.login && Str.isSMSLogin(passedPersonalDetails?.login)) {
+        displayName = Str.removeSMSDomain(displayName);
+    }
+
     if (shouldAddCurrentUserPostfix && !!displayName) {
         displayName = `${displayName} (${Localize.translateLocal('common.you').toLowerCase()})`;
     }
 
-    const fallbackValue = shouldFallbackToHidden ? Localize.translateLocal('common.hidden') : '';
-
-    return displayName || defaultValue || fallbackValue;
+    if (displayName) {
+        return displayName;
+    }
+    return defaultValue || (shouldFallbackToHidden ? Localize.translateLocal('common.hidden') : '');
 }
 
 /**

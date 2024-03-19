@@ -977,7 +977,17 @@ function getCategoryListSections(
     }
 
     if (searchInputValue) {
-        const searchCategories = enabledCategories.filter((category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
+        const searchCategories: Category[] = [];
+
+        enabledCategories.forEach((category) => {
+            if (!category.name.toLowerCase().includes(searchInputValue.toLowerCase())) {
+                return;
+            }
+            searchCategories.push({
+                ...category,
+                isSelected: selectedOptions.some((selectedOption) => selectedOption.name === category.name),
+            });
+        });
 
         categorySections.push({
             // "Search" section
@@ -985,22 +995,6 @@ function getCategoryListSections(
             shouldShow: true,
             indexOffset,
             data: getCategoryOptionTree(searchCategories, true),
-        });
-
-        return categorySections;
-    }
-
-    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
-    const enabledAndSelectedCategories = [...selectedOptions, ...sortedCategories.filter((category) => category.enabled && !selectedOptionNames.includes(category.name))];
-    const numberOfVisibleCategories = enabledAndSelectedCategories.length;
-
-    if (numberOfVisibleCategories < CONST.CATEGORY_LIST_THRESHOLD) {
-        categorySections.push({
-            // "All" section when items amount less than the threshold
-            title: '',
-            shouldShow: false,
-            indexOffset,
-            data: getCategoryOptionTree(enabledAndSelectedCategories),
         });
 
         return categorySections;
@@ -1016,6 +1010,22 @@ function getCategoryListSections(
         });
 
         indexOffset += selectedOptions.length;
+    }
+
+    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
+    const enabledWithoutSelectedCategories = sortedCategories.filter((category) => category.enabled && !selectedOptionNames.includes(category.name));
+    const numberOfVisibleCategories = enabledWithoutSelectedCategories.length + selectedOptions.length;
+
+    if (numberOfVisibleCategories < CONST.CATEGORY_LIST_THRESHOLD) {
+        categorySections.push({
+            // "All" section when items amount less than the threshold
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getCategoryOptionTree(enabledWithoutSelectedCategories),
+        });
+
+        return categorySections;
     }
 
     const filteredRecentlyUsedCategories = recentlyUsedCategories
@@ -1192,8 +1202,8 @@ function hasEnabledTags(policyTagList: Array<PolicyTagList[keyof PolicyTagList]>
  * @param  taxRates - The original tax rates object.
  * @returns The transformed tax rates object.g
  */
-function transformedTaxRates(taxRates: TaxRatesWithDefault | undefined): Record<string, TaxRate> {
-    const defaultTaxKey = taxRates?.defaultExternalID;
+function transformedTaxRates(taxRates: TaxRatesWithDefault | undefined, defaultKey?: string): Record<string, TaxRate> {
+    const defaultTaxKey = defaultKey ?? taxRates?.defaultExternalID;
     const getModifiedName = (data: TaxRate, code: string) => `${data.name} (${data.value})${defaultTaxKey === code ? ` • ${Localize.translateLocal('common.default')}` : ''}`;
     const taxes = Object.fromEntries(Object.entries(taxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
     return taxes;
@@ -1224,10 +1234,10 @@ function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): Option[] {
 /**
  * Builds the section list for tax rates
  */
-function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedOptions: Category[], searchInputValue: string): CategorySection[] {
+function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedOptions: Category[], searchInputValue: string, defaultTaxKey?: string): CategorySection[] {
     const policyRatesSections = [];
 
-    const taxes = transformedTaxRates(taxRates);
+    const taxes = transformedTaxRates(taxRates, defaultTaxKey);
 
     const sortedTaxRates = sortTaxRates(taxes);
     const enabledTaxRates = sortedTaxRates.filter((taxRate) => !taxRate.isDisabled);
@@ -1254,7 +1264,7 @@ function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedO
     }
 
     if (searchInputValue) {
-        const searchTaxRates = enabledTaxRates.filter((taxRate) => taxRate.modifiedName.toLowerCase().includes(searchInputValue.toLowerCase()));
+        const searchTaxRates = enabledTaxRates.filter((taxRate) => taxRate.modifiedName?.toLowerCase().includes(searchInputValue.toLowerCase()));
 
         policyRatesSections.push({
             // "Search" section
@@ -1280,7 +1290,7 @@ function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedO
     }
 
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
-    const filteredTaxRates = enabledTaxRates.filter((taxRate) => !selectedOptionNames.includes(taxRate.modifiedName));
+    const filteredTaxRates = enabledTaxRates.filter((taxRate) => taxRate.modifiedName && !selectedOptionNames.includes(taxRate.modifiedName));
 
     if (selectedOptions.length > 0) {
         const selectedTaxRatesOptions = selectedOptions.map((option) => {
@@ -2064,6 +2074,7 @@ export {
     formatSectionsFromSearchTerm,
     transformedTaxRates,
     getShareLogOptions,
+    getTaxRatesSection,
 };
 
-export type {MemberForList, CategorySection, GetOptions, PayeePersonalDetails};
+export type {MemberForList, CategorySection, GetOptions, PayeePersonalDetails, Category};
