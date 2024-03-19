@@ -35,7 +35,9 @@ function updateNativeVersions(version: string) {
         }
     } catch (err) {
         console.error('Error updating iOS');
-        core.setFailed(err as string);
+        if (err instanceof Error) {
+            core.setFailed(err);
+        }
     }
 }
 

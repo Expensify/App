@@ -6,8 +6,8 @@ import type {graphql} from '@octokit/graphql/dist-types/types';
 import type {components as OctokitComponents} from '@octokit/openapi-types/types';
 import type {PaginateInterface} from '@octokit/plugin-paginate-rest';
 import {paginateRest} from '@octokit/plugin-paginate-rest';
+import type {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods';
 import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
-import type {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/parameters-and-response-types';
 import type {Api} from '@octokit/plugin-rest-endpoint-methods/dist-types/types';
 import {throttling} from '@octokit/plugin-throttling';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -49,6 +49,8 @@ type OctokitArtifact = OctokitComponents['schemas']['artifact'];
 
 type OctokitPR = OctokitComponents['schemas']['pull-request-simple'];
 
+type CreateCommentResponse = RestEndpointMethodTypes['issues']['createComment']['response'];
+
 type StagingDeployCashData = {
     title: string;
     url: string;
@@ -66,7 +68,7 @@ type StagingDeployCashData = {
 type InternalOctokit = OctokitCore & Api & {paginate: PaginateInterface};
 
 class GithubUtils {
-    static internalOctokit: InternalOctokit;
+    static internalOctokit: InternalOctokit | undefined;
 
     /**
      * Initialize internal octokit
@@ -105,30 +107,28 @@ class GithubUtils {
      *
      * @readonly
      * @static
-     * @memberof GithubUtils
      */
     static get octokit(): RestEndpointMethods {
-        if (this.internalOctokit) {
-            return this.internalOctokit.rest;
+        if (!this.internalOctokit) {
+            this.initOctokit();
         }
-        this.initOctokit();
-        // @ts-expect-error -- by running this.initOctokit() above we can be sure that this.internalOctokit is defined
-        return this.internalOctokit.rest as RestEndpointMethods;
+
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        return (this.internalOctokit as InternalOctokit).rest;
     }
 
     /**
      * Get the graphql instance from internal octokit.
      * @readonly
      * @static
-     * @memberof GithubUtils
      */
     static get graphql(): graphql {
-        if (this.internalOctokit) {
-            return this.internalOctokit.graphql;
+        if (!this.internalOctokit) {
+            this.initOctokit();
         }
-        this.initOctokit();
-        // @ts-expect-error -- by running this.initOctokit() above we can be sure that this.internalOctokit is defined
-        return this.internalOctokit.graphql as graphql;
+
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        return (this.internalOctokit as InternalOctokit).graphql;
     }
 
     /**
@@ -136,15 +136,14 @@ class GithubUtils {
      *
      * @readonly
      * @static
-     * @memberof GithubUtils
      */
     static get paginate(): PaginateInterface {
-        if (this.internalOctokit) {
-            return this.internalOctokit.paginate;
+        if (!this.internalOctokit) {
+            this.initOctokit();
         }
-        this.initOctokit();
-        // @ts-expect-error -- by running this.initOctokit() above we can be sure that this.internalOctokit is defined
-        return this.internalOctokit.paginate as PaginateInterface;
+
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        return (this.internalOctokit as InternalOctokit).paginate;
     }
 
     /**
@@ -205,7 +204,7 @@ class GithubUtils {
      * @private
      */
     static getStagingDeployCashPRList(issue: OctokitIssueItem): StagingDeployCashPR[] {
-        let PRListSection: RegExpMatchArray | null | [] | string = issue.body?.match(/pull requests:\*\*\r?\n((?:-.*\r?\n)+)\r?\n\r?\n?/) ?? [];
+        let PRListSection: RegExpMatchArray | string | null = issue.body?.match(/pull requests:\*\*\r?\n((?:-.*\r?\n)+)\r?\n\r?\n?/) ?? null;
         if (PRListSection?.length !== 2) {
             // No PRs, return an empty array
             console.log('Hmmm...The open StagingDeployCash does not list any pull requests, continuing...');
@@ -228,8 +227,8 @@ class GithubUtils {
      * @private
      */
     static getStagingDeployCashDeployBlockers(issue: OctokitIssueItem): StagingDeployCashBlocker[] {
-        let deployBlockerSection: RegExpMatchArray | null | [] | string = issue.body?.match(/Deploy Blockers:\*\*\r?\n((?:-.*\r?\n)+)/) ?? [];
-        if (deployBlockerSection.length !== 2) {
+        let deployBlockerSection: RegExpMatchArray | string | null = issue.body?.match(/Deploy Blockers:\*\*\r?\n((?:-.*\r?\n)+)/) ?? null;
+        if (deployBlockerSection?.length !== 2) {
             return [];
         }
 
@@ -240,7 +239,15 @@ class GithubUtils {
             isResolved: match[1] === 'x',
         }));
 
-        return deployBlockers.sort((a, b) => a.number - b.number);
+        return deployBlockers.sort((a, b) => {
+            if (a.number > b.number) {
+                return 1;
+            }
+            if (b.number > a.number) {
+                return -1;
+            }
+            return 0;
+        });
     }
 
     /**
@@ -249,8 +256,8 @@ class GithubUtils {
      * @private
      */
     static getStagingDeployCashInternalQA(issue: OctokitIssueItem): StagingDeployCashBlocker[] {
-        let internalQASection: RegExpMatchArray | [] | null | string = issue.body?.match(/Internal QA:\*\*\r?\n((?:- \[[ x]].*\r?\n)+)/) ?? [];
-        if (internalQASection.length !== 2) {
+        let internalQASection: RegExpMatchArray | string | null = issue.body?.match(/Internal QA:\*\*\r?\n((?:- \[[ x]].*\r?\n)+)/) ?? null;
+        if (internalQASection?.length !== 2) {
             return [];
         }
         internalQASection = internalQASection[1];
@@ -260,7 +267,15 @@ class GithubUtils {
             isResolved: match[1] === 'x',
         }));
 
-        return internalQAPRs.sort((a, b) => a.number - b.number);
+        return internalQAPRs.sort((a, b) => {
+            if (a.number > b.number) {
+                return 1;
+            }
+            if (b.number > a.number) {
+                return -1;
+            }
+            return 0;
+        });
     }
 
     /**
@@ -444,7 +459,7 @@ class GithubUtils {
      * @param number - The pull request or issue number
      * @param messageBody - The comment message
      */
-    static createComment(repo: string, number: number, messageBody: string): Promise<RestEndpointMethodTypes['issues']['createComment']['response']> {
+    static createComment(repo: string, number: number, messageBody: string): Promise<CreateCommentResponse> {
         console.log(`Writing comment on #${number}`);
         return this.octokit.issues.createComment({
             owner: CONST.GITHUB_OWNER,
@@ -533,7 +548,7 @@ class GithubUtils {
             per_page: 100,
         })
             .then((events) => events.filter((event) => event.event === 'closed'))
-            .then((closedEvents) => closedEvents.slice(-1)[0].actor?.login ?? '');
+            .then((closedEvents) => closedEvents.at(-1)?.actor?.login ?? '');
     }
 
     static getArtifactByName(artefactName: string): Promise<OctokitArtifact | undefined> {
@@ -546,6 +561,9 @@ class GithubUtils {
 }
 
 export default GithubUtils;
+// This is a temporary solution to allow the use of the GithubUtils class in both TypeScript and JavaScript.
+// Once all the files that import GithubUtils are migrated to TypeScript, this can be removed.
 module.exports = GithubUtils;
+
 export {ISSUE_OR_PULL_REQUEST_REGEX, POLL_RATE};
-export type {ListForRepoMethod, InternalOctokit};
+export type {ListForRepoMethod, InternalOctokit, CreateCommentResponse};

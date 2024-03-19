@@ -3616,7 +3616,9 @@ function updateNativeVersions(version) {
     }
     catch (err) {
         console.error('Error updating iOS');
-        core.setFailed(err);
+        if (err instanceof Error) {
+            core.setFailed(err);
+        }
     }
 }
 let semanticVersionLevel = core.getInput('SEMVER_LEVEL', { required: true });

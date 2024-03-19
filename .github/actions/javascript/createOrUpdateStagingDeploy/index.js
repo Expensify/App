@@ -14778,28 +14778,24 @@ class GithubUtils {
      *
      * @readonly
      * @static
-     * @memberof GithubUtils
      */
     static get octokit() {
-        if (this.internalOctokit) {
-            return this.internalOctokit.rest;
+        if (!this.internalOctokit) {
+            this.initOctokit();
         }
-        this.initOctokit();
-        // @ts-expect-error -- by running this.initOctokit() above we can be sure that this.internalOctokit is defined
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         return this.internalOctokit.rest;
     }
     /**
      * Get the graphql instance from internal octokit.
      * @readonly
      * @static
-     * @memberof GithubUtils
      */
     static get graphql() {
-        if (this.internalOctokit) {
-            return this.internalOctokit.graphql;
+        if (!this.internalOctokit) {
+            this.initOctokit();
         }
-        this.initOctokit();
-        // @ts-expect-error -- by running this.initOctokit() above we can be sure that this.internalOctokit is defined
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         return this.internalOctokit.graphql;
     }
     /**
@@ -14807,14 +14803,12 @@ class GithubUtils {
      *
      * @readonly
      * @static
-     * @memberof GithubUtils
      */
     static get paginate() {
-        if (this.internalOctokit) {
-            return this.internalOctokit.paginate;
+        if (!this.internalOctokit) {
+            this.initOctokit();
         }
-        this.initOctokit();
-        // @ts-expect-error -- by running this.initOctokit() above we can be sure that this.internalOctokit is defined
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         return this.internalOctokit.paginate;
     }
     /**
@@ -14871,7 +14865,7 @@ class GithubUtils {
      * @private
      */
     static getStagingDeployCashPRList(issue) {
-        let PRListSection = issue.body?.match(/pull requests:\*\*\r?\n((?:-.*\r?\n)+)\r?\n\r?\n?/) ?? [];
+        let PRListSection = issue.body?.match(/pull requests:\*\*\r?\n((?:-.*\r?\n)+)\r?\n\r?\n?/) ?? null;
         if (PRListSection?.length !== 2) {
             // No PRs, return an empty array
             console.log('Hmmm...The open StagingDeployCash does not list any pull requests, continuing...');
@@ -14892,8 +14886,8 @@ class GithubUtils {
      * @private
      */
     static getStagingDeployCashDeployBlockers(issue) {
-        let deployBlockerSection = issue.body?.match(/Deploy Blockers:\*\*\r?\n((?:-.*\r?\n)+)/) ?? [];
-        if (deployBlockerSection.length !== 2) {
+        let deployBlockerSection = issue.body?.match(/Deploy Blockers:\*\*\r?\n((?:-.*\r?\n)+)/) ?? null;
+        if (deployBlockerSection?.length !== 2) {
             return [];
         }
         deployBlockerSection = deployBlockerSection[1];
@@ -14902,7 +14896,15 @@ class GithubUtils {
             number: Number.parseInt(match[3], 10),
             isResolved: match[1] === 'x',
         }));
-        return deployBlockers.sort((a, b) => a.number - b.number);
+        return deployBlockers.sort((a, b) => {
+            if (a.number > b.number) {
+                return 1;
+            }
+            if (b.number > a.number) {
+                return -1;
+            }
+            return 0;
+        });
     }
     /**
      * Parse InternalQA section of the StagingDeployCash issue body.
@@ -14910,8 +14912,8 @@ class GithubUtils {
      * @private
      */
     static getStagingDeployCashInternalQA(issue) {
-        let internalQASection = issue.body?.match(/Internal QA:\*\*\r?\n((?:- \[[ x]].*\r?\n)+)/) ?? [];
-        if (internalQASection.length !== 2) {
+        let internalQASection = issue.body?.match(/Internal QA:\*\*\r?\n((?:- \[[ x]].*\r?\n)+)/) ?? null;
+        if (internalQASection?.length !== 2) {
             return [];
         }
         internalQASection = internalQASection[1];
@@ -14920,7 +14922,15 @@ class GithubUtils {
             number: Number.parseInt(match[3], 10),
             isResolved: match[1] === 'x',
         }));
-        return internalQAPRs.sort((a, b) => a.number - b.number);
+        return internalQAPRs.sort((a, b) => {
+            if (a.number > b.number) {
+                return 1;
+            }
+            if (b.number > a.number) {
+                return -1;
+            }
+            return 0;
+        });
     }
     /**
      * Generate the issue body for a StagingDeployCash.
@@ -15141,7 +15151,7 @@ class GithubUtils {
             per_page: 100,
         })
             .then((events) => events.filter((event) => event.event === 'closed'))
-            .then((closedEvents) => closedEvents.slice(-1)[0].actor?.login ?? '');
+            .then((closedEvents) => closedEvents.at(-1)?.actor?.login ?? '');
     }
     static getArtifactByName(artefactName) {
         return this.paginate(this.octokit.actions.listArtifactsForRepo, {
@@ -15152,6 +15162,8 @@ class GithubUtils {
     }
 }
 exports["default"] = GithubUtils;
+// This is a temporary solution to allow the use of the GithubUtils class in both TypeScript and JavaScript.
+// Once all the files that import GithubUtils are migrated to TypeScript, this can be removed.
 module.exports = GithubUtils;
 
 

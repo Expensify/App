@@ -33,7 +33,9 @@ async function commentPR(PR: number, message: string) {
         console.log(`Comment created on #${PR} successfully 🎉`);
     } catch (err) {
         console.log(`Unable to write comment on #${PR} 😞`);
-        core.setFailed((err as Error).message);
+        if (err instanceof Error) {
+            core.setFailed(err.message);
+        }
     }
 }
 

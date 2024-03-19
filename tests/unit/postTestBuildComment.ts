@@ -1,9 +1,9 @@
 import * as core from '@actions/core';
 import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
-import type {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/parameters-and-response-types';
 import {when} from 'jest-when';
 import asMutable from '@src/types/utils/asMutable';
 import ghAction from '../../.github/actions/javascript/postTestBuildComment/postTestBuildComment';
+import type {CreateCommentResponse} from '../../.github/libs/GithubUtils';
 import GithubUtils from '../../.github/libs/GithubUtils';
 
 const mockGetInput = jest.fn();
@@ -74,7 +74,7 @@ describe('Post test build comments action tests', () => {
         when(core.getInput).calledWith('IOS_LINK').mockReturnValue('https://expensify.app/IOS_LINK');
         when(core.getInput).calledWith('WEB_LINK').mockReturnValue('https://expensify.app/WEB_LINK');
         when(core.getInput).calledWith('DESKTOP_LINK').mockReturnValue('https://expensify.app/DESKTOP_LINK');
-        createCommentMock.mockResolvedValue({} as RestEndpointMethodTypes['issues']['createComment']['response']);
+        createCommentMock.mockResolvedValue({} as CreateCommentResponse);
         mockListComments.mockResolvedValue({
             data: [
                 {

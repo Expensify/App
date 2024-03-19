@@ -1,9 +1,8 @@
-import GitHubUtils from '../../../libs/GithubUtils';
-
 const _ = require('underscore');
 const core = require('@actions/core');
 const github = require('@actions/github');
 const CONST = require('../../../libs/CONST');
+const GitHubUtils = require('../../../libs/GithubUtils');
 
 const PR_NUMBER = Number.parseInt(core.getInput('PR_NUMBER'), 10) || github.context.payload.pull_request.number;
 
