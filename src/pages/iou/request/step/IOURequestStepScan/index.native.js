@@ -1,3 +1,4 @@
+import {useFocusEffect} from '@react-navigation/core';
 import lodashGet from 'lodash/get';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, AppState, View } from 'react-native';
@@ -122,37 +123,41 @@ function IOURequestStepScan({
             runOnJS(focusCamera)(point);
         });
 
-    useEffect(() => {
-        const refreshCameraPermissionStatus = (shouldAskForPermission = false) => {
-            CameraPermission.getCameraPermissionStatus()
-                .then((res) => {
-                    // In android device app data, the status is not set to blocked until denied twice,
-                    // due to that the app will ask for permission twice whenever users opens uses the scan tab
-                    setCameraPermissionStatus(res);
-                    if (shouldAskForPermission && !askedForPermission.current) {
-                        askedForPermission.current = true;
-                        askForPermissions(false);
-                    }
-                })
-                .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
-        };
+    useFocusEffect(
+        useCallback(() => {
+            const refreshCameraPermissionStatus = (shouldAskForPermission = false) => {
+                CameraPermission.getCameraPermissionStatus()
+                    .then((res) => {
+                        // In android device app data, the status is not set to blocked until denied twice,
+                        // due to that the app will ask for permission twice whenever users opens uses the scan tab
+                        setCameraPermissionStatus(res);
+                        if (shouldAskForPermission && !askedForPermission.current) {
+                            askedForPermission.current = true;
+                            askForPermissions(false);
+                        }
+                    })
+                    .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
+            };
 
-        // Check initial camera permission status
-        refreshCameraPermissionStatus(true);
+            InteractionManager.runAfterInteractions(() => {
+                // Check initial camera permission status
+                refreshCameraPermissionStatus(true);
+            });
 
-        // Refresh permission status when app gain focus
-        const subscription = AppState.addEventListener('change', (appState) => {
-            if (appState !== 'active') {
-                return;
-            }
+            // Refresh permission status when app gain focus
+            const subscription = AppState.addEventListener('change', (appState) => {
+                if (appState !== 'active') {
+                    return;
+                }
 
-            refreshCameraPermissionStatus();
-        });
+                refreshCameraPermissionStatus();
+            });
 
-        return () => {
-            subscription.remove();
-        };
-    }, []);
+            return () => {
+                subscription.remove();
+            };
+        }, []),
+    );
 
     const validateReceipt = (file) => {
         const { fileExtension } = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
