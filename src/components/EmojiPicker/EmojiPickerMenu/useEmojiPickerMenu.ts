@@ -2,7 +2,6 @@ import type {FlashList} from '@shopify/flash-list';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import {useAnimatedRef} from 'react-native-reanimated';
 import emojis from '@assets/emojis';
-import type {PickerEmojis} from '@assets/emojis/types';
 import {useFrequentlyUsedEmojis} from '@components/OnyxProvider';
 import useLocalize from '@hooks/useLocalize';
 import usePreferredEmojiSkinTone from '@hooks/usePreferredEmojiSkinTone';
@@ -15,7 +14,7 @@ const useEmojiPickerMenu = () => {
     const frequentlyUsedEmojis = useFrequentlyUsedEmojis();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const allEmojis = useMemo(() => EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis), [frequentlyUsedEmojis]);
-    const headerEmojis = useMemo(() => EmojiUtils.getHeaderEmojis(allEmojis as PickerEmojis), [allEmojis]);
+    const headerEmojis = useMemo(() => EmojiUtils.getHeaderEmojis(allEmojis), [allEmojis]);
     const headerRowIndices = useMemo(() => headerEmojis.map((headerEmoji) => headerEmoji.index), [headerEmojis]);
     const spacersIndexes = useMemo(() => EmojiUtils.getSpacersIndexes(allEmojis), [allEmojis]);
     const [filteredEmojis, setFilteredEmojis] = useState<EmojiUtils.EmojiPickerList>(allEmojis);

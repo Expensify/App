@@ -53,7 +53,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
      *
      * Don't directly get the ref from emojiPopoverAnchorRef, instead use getEmojiPopoverAnchor()
      */
-    const getEmojiPopoverAnchor = useCallback(() => emojiPopoverAnchorRef.current ?? emojiPopoverAnchorRef, []);
+    const getEmojiPopoverAnchor = useCallback(() => emojiPopoverAnchorRef.current ?? emojiPopoverAnchorRef?.current, []);
 
     /**
      * Show the emoji picker menu.
@@ -85,7 +85,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
 
         const anchorOriginValue = anchorOrigin ?? DEFAULT_ANCHOR_ORIGIN;
 
-        calculateAnchorPosition(emojiPopoverAnchor.current as View, anchorOriginValue).then((value) => {
+        calculateAnchorPosition(emojiPopoverAnchor?.current, anchorOriginValue).then((value) => {
             onWillShow?.();
             setIsEmojiPickerVisible(true);
             setEmojiPopoverAnchorPosition({
@@ -158,14 +158,14 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
     useEffect(() => {
         const emojiPopoverDimensionListener = Dimensions.addEventListener('change', () => {
             const emojiPopoverAnchor = getEmojiPopoverAnchor();
-            if (!emojiPopoverAnchor.current) {
+            if (!emojiPopoverAnchor?.current) {
                 // In small screen width, the window size change might be due to keyboard open/hide, we should avoid hide EmojiPicker in those cases
                 if (isEmojiPickerVisible && !isSmallScreenWidth) {
                     hideEmojiPicker();
                 }
                 return;
             }
-            calculateAnchorPosition(emojiPopoverAnchor.current as View, emojiPopoverAnchorOrigin).then((value) => {
+            calculateAnchorPosition(emojiPopoverAnchor?.current, emojiPopoverAnchorOrigin).then((value) => {
                 setEmojiPopoverAnchorPosition({
                     horizontal: value.horizontal,
                     vertical: value.vertical,
