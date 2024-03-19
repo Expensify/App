@@ -3,7 +3,6 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// @ts-expect-error TODO: Remove this once Onfido (https://github.com/Expensify/App/issues/25136) is migrated to TypeScript.
 import Onfido from '@components/Onfido';
 import useLocalize from '@hooks/useLocalize';
 import Growl from '@libs/Growl';
@@ -66,7 +65,7 @@ function OnfidoStep({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoStepP
             <FullPageOfflineBlockingView>
                 {shouldShowOnfido ? (
                     <Onfido
-                        sdkToken={walletOnfidoData.sdkToken}
+                        sdkToken={walletOnfidoData?.sdkToken ?? ''}
                         onUserExit={goBack}
                         onError={reportError}
                         onSuccess={verifyIdentity}
