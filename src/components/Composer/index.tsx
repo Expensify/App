@@ -259,7 +259,7 @@ function Composer(
         updateNumberOfLines();
     }, [updateNumberOfLines]);
 
-    useHtmlPaste(textInput, handlePaste, true);
+    useHtmlPaste(textInput, handlePaste, false);
 
     useEffect(() => {
         if (typeof ref === 'function') {
