@@ -69,16 +69,14 @@ Onyx.connect({
 });
 
 /**
- * Set up the event listener for NetInfo to tell whether the user has
- * internet connectivity or not. This is more reliable than the Pusher
- * `disconnected` event which takes about 10-15 seconds to emit.
+ * Monitor internet connectivity and perform periodic backend reachability checks
  */
 function subscribeToNetInfo() {
     let backendReachabilityCheckInterval: NodeJS.Timeout;
     // Note: We are disabling the reachability check when using the local web API since requests can get stuck in a 'Pending' state and are not reliable indicators for "offline".
     // If you need to test the "recheck" feature then switch to the production API proxy server.
     if (!CONFIG.IS_USING_LOCAL_WEB) {
-        // Set interval to (re)check current state every 60 seconds
+        // Set interval to periodically (re)check backend status
         backendReachabilityCheckInterval = setInterval(() => {
             // Offline status also implies backend unreachability
             if (isOffline) {
@@ -103,8 +101,11 @@ function subscribeToNetInfo() {
         }, CONST.NETWORK.REACHABILITY_TIMEOUT_MS);
     }
 
-    // Subscribe to the state change event via NetInfo so we can update
-    // whether a user has internet connectivity or not.
+    /**
+     * Set up the event listener for NetInfo to tell whether the user has
+     * internet connectivity or not. This is more reliable than the Pusher
+     * `disconnected` event which takes about 10-15 seconds to emit.
+     */
     const unsubscribeNetInfo = NetInfo.addEventListener((state) => {
         Log.info('[NetworkConnection] NetInfo state change', false, {...state});
         if (shouldForceOffline) {

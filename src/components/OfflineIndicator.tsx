@@ -50,7 +50,7 @@ function OfflineIndicator({style, containerStyles}: OfflineIndicatorProps) {
             />
             <Text style={[styles.ml3, styles.chatItemComposeSecondaryRowSubText]}>
                 {
-                    // Do not reorder the condition, we only show unreachability message when online and backend is unreachable
+                    // If we reversed the ternary, unreachability message would always show even when offline
                     isOffline ? (
                         translate('common.youAppearToBeOffline')
                     ) : (
