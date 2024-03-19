@@ -67,7 +67,6 @@ import type {
     SizeExceededParams,
     SplitAmountParams,
     StepCounterParams,
-    TagSelectionParams,
     TaskCreatedActionParams,
     TermsParams,
     ThreadRequestReportNameParams,
@@ -621,7 +620,7 @@ export default {
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `dividió ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         amountEach: ({amount}: AmountEachParams) => `${amount} cada uno`,
-        payerOwesAmount: ({payer, amount}: PayerOwesAmountParams) => `${payer} debe ${amount}`,
+        payerOwesAmount: ({payer, amount, comment}: PayerOwesAmountParams) => `${payer} debe ${amount}${comment ? ` para ${comment}` : ''}`,
         payerOwes: ({payer}: PayerOwesParams) => `${payer} debe: `,
         payerPaidAmount: ({payer, amount}: PayerPaidAmountParams) => `${payer ? `${payer} ` : ''}pagó ${amount}`,
         payerPaid: ({payer}: PayerPaidParams) => `${payer} pagó: `,
@@ -652,7 +651,7 @@ export default {
             `cambió la distancia a ${newDistanceToDisplay} (previamente ${oldDistanceToDisplay}), lo que cambió el importe a ${newAmountToDisplay} (previamente ${oldAmountToDisplay})`,
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${comment ? `${formattedAmount} para ${comment}` : `Solicitud de ${formattedAmount}`}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
-        tagSelection: ({tagName}: TagSelectionParams) => `Seleccione una ${tagName} para organizar mejor tu dinero.`,
+        tagSelection: 'Selecciona una etiqueta para organizar mejor tu dinero.',
         categorySelection: 'Seleccione una categoría para organizar mejor tu dinero.',
         error: {
             invalidCategoryLength: 'El largo de la categoría escogida excede el máximo permitido (255). Por favor, escoge otra categoría o acorta la categoría primero.',
@@ -1792,6 +1791,8 @@ export default {
             moreFeatures: 'Más características',
             requested: 'Solicitado',
             distanceRates: 'Tasas de distancia',
+            welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
+                `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
         },
         type: {
             free: 'Gratis',
@@ -1871,6 +1872,7 @@ export default {
             customTagName: 'Nombre de etiqueta personalizada',
             enableTag: 'Habilitar etiqueta',
             addTag: 'Añadir etiqueta',
+            editTag: 'Editar etiqueta',
             subtitle: 'Las etiquetas añaden formas más detalladas de clasificar los costos.',
             emptyTags: {
                 title: 'No has creado ninguna etiqueta',
@@ -1960,8 +1962,6 @@ export default {
             trackDistanceRate: 'Tarifa',
             trackDistanceUnit: 'Unidad',
             trackDistanceChooseUnit: 'Elige una unidad predeterminada de medida.',
-            kilometers: 'Kilómetros',
-            miles: 'Millas',
             unlockNextDayReimbursements: 'Desbloquea reembolsos diarios',
             captureNoVBACopyBeforeEmail: 'Pide a los miembros de tu espacio de trabajo que envíen recibos a ',
             captureNoVBACopyAfterEmail: ' y descarga la App de Expensify para controlar tus gastos en efectivo sobre la marcha.',
@@ -2017,8 +2017,6 @@ export default {
             personalMessagePrompt: 'Mensaje',
             inviteNoMembersError: 'Por favor, selecciona al menos un miembro a invitar',
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
-            welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
-                `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
         },
         distanceRates: {
             oopsNotSoFast: 'Ups! No tan rápido...',
@@ -2036,6 +2034,8 @@ export default {
             status: 'Estado',
             enabled: 'Activada',
             disabled: 'Desactivada',
+            unit: 'Unidad',
+            defaultCategory: 'Categoría predeterminada',
         },
         editor: {
             nameInputLabel: 'Nombre',
