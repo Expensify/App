@@ -125,7 +125,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                               />
                           ),
                           isActive: (policy?.harvesting?.enabled && policy.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT && !hasDelayedSubmissionError) ?? false,
-                          pendingAction: policy?.pendingFields?.isAutoApprovalEnabled,
+                          pendingAction: policy?.pendingFields?.autoReporting,
                           errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_FIELDS.AUTOREPORTING),
                           onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_FIELDS.AUTOREPORTING),
                       },
@@ -151,7 +151,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                         brickRoadIndicator={hasApprovalError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
                 ),
-                isActive: (policy?.isAutoApprovalEnabled && !hasApprovalError) ?? false,
+                isActive: (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC && !hasApprovalError) ?? false,
                 pendingAction: policy?.pendingFields?.approvalMode,
                 errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_FIELDS.APPROVAL_MODE),
                 onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_FIELDS.APPROVAL_MODE),

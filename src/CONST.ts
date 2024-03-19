@@ -535,6 +535,10 @@ const CONST = {
     TERMS_URL: `${USE_EXPENSIFY_URL}/terms`,
     PRIVACY_URL: `${USE_EXPENSIFY_URL}/privacy`,
     LICENSES_URL: `${USE_EXPENSIFY_URL}/licenses`,
+    ACH_TERMS_URL: `${USE_EXPENSIFY_URL}/achterms`,
+    WALLET_AGREEMENT_URL: `${USE_EXPENSIFY_URL}/walletagreement`,
+    HELP_LINK_URL: `${USE_EXPENSIFY_URL}/usa-patriot-act`,
+    ELECTRONIC_DISCLOSURES_URL: `${USE_EXPENSIFY_URL}/esignagreement`,
     GITHUB_RELEASE_URL: 'https://api.github.com/repos/expensify/app/releases/latest',
     ADD_SECONDARY_LOGIN_URL: encodeURI('settings?param={"section":"account","openModal":"secondaryLogin"}'),
     MANAGE_CARDS_URL: 'domain_companycards',
@@ -575,6 +579,21 @@ const CONST = {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',
     },
+
+    QUICK_ACTIONS: {
+        REQUEST_MANUAL: 'requestManual',
+        REQUEST_SCAN: 'requestScan',
+        REQUEST_DISTANCE: 'requestDistance',
+        SPLIT_MANUAL: 'splitManual',
+        SPLIT_SCAN: 'splitScan',
+        SPLIT_DISTANCE: 'splitDistance',
+        TRACK_MANUAL: 'trackManual',
+        TRACK_SCAN: 'trackScan',
+        TRACK_DISTANCE: 'trackDistance',
+        ASSIGN_TASK: 'assignTask',
+        SEND_MONEY: 'sendMoney',
+    },
+
     RECEIPT: {
         ICON_SIZE: 164,
         PERMISSION_GRANTED: 'granted',

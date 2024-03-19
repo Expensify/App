@@ -193,6 +193,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         tagName: string;
     };
+    [SCREENS.WORKSPACE.TAG_EDIT]: {
+        policyID: string;
+        tagName: string;
+    };
     [SCREENS.WORKSPACE.TAXES_SETTINGS]: {
         policyID: string;
     };
