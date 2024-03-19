@@ -17,7 +17,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
-
 type Props = {
     /** Object of last selected rates for the policies */
     lastSelectedDistanceRates: Record<string, string>;
