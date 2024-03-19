@@ -2,7 +2,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {FormOnyxValues} from '@components/Form/types';
 import * as API from '@libs/API';
-import type {CreatePolicyTaxParams, DeletePolicyTaxesParams, SetPolicyTaxesEnabledParams, UpdatePolicyTaxValueParams} from '@libs/API/parameters';
+import type {CreatePolicyTaxParams, DeletePolicyTaxesParams, RenamePolicyTaxParams, SetPolicyTaxesEnabledParams, UpdatePolicyTaxValueParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
@@ -455,15 +455,11 @@ function renamePolicyTax(policyID: string, taxID: string, newName: string) {
         ],
     };
 
-    if (!originalTaxRate.name) {
-        throw new Error('Tax rate name not found');
-    }
-
     const parameters = {
         policyID,
         taxCode: taxID,
         newName,
-    };
+    } satisfies RenamePolicyTaxParams;
 
     API.write(WRITE_COMMANDS.RENAME_POLICY_TAX, parameters, onyxData);
 }

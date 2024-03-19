@@ -57,16 +57,16 @@ function WorkspaceEditTaxPage({
         Navigation.goBack();
     };
 
-    const threeDotsMenuItems = useMemo(() => {
-        const menuItems = [
+    const threeDotsMenuItems: ThreeDotsMenuItem[] = useMemo(
+        () => [
             {
                 icon: Expensicons.Trashcan,
                 text: translate('common.delete'),
                 onSelected: () => setIsDeleteModalVisible(true),
             },
-        ] satisfies ThreeDotsMenuItem[];
-        return menuItems;
-    }, [translate]);
+        ],
+        [translate],
+    );
 
     if (!currentTaxRate) {
         return <NotFoundPage />;
