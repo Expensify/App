@@ -10,9 +10,9 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import Button from './Button';
 import Lottie from './Lottie';
-import SafeAreaConsumer from './SafeAreaConsumer';
 import LottieAnimations from './LottieAnimations';
 import Modal from './Modal';
+import SafeAreaConsumer from './SafeAreaConsumer';
 import Text from './Text';
 import VideoPlayer from './VideoPlayer';
 
