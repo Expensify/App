@@ -126,8 +126,8 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                           ),
                           isActive: (policy?.harvesting?.enabled && policy.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT && !hasDelayedSubmissionError) ?? false,
                           pendingAction: policy?.pendingFields?.isAutoApprovalEnabled,
-                          errors: ErrorUtils.getLatestErrorField(policy ?? {}, 'autoReporting'),
-                          onCloseError: () => Policy.clearWorkspaceAutoReportingError(policy?.id ?? ''),
+                          errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_FIELDS.AUTOREPORTING),
+                          onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_FIELDS.AUTOREPORTING),
                       },
                   ]
                 : []),
@@ -153,8 +153,8 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                 ),
                 isActive: (policy?.isAutoApprovalEnabled && !hasApprovalError) ?? false,
                 pendingAction: policy?.pendingFields?.approvalMode,
-                errors: ErrorUtils.getLatestErrorField(policy ?? {}, 'approvalMode'),
-                onCloseError: () => Policy.clearWorkspaceApprovalError(policy?.id ?? ''),
+                errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_FIELDS.APPROVAL_MODE),
+                onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_FIELDS.APPROVAL_MODE),
             },
             {
                 icon: Illustrations.WalletAlt,
@@ -189,8 +189,8 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                         {hasVBA && (
                             <OfflineWithFeedback
                                 pendingAction={policy?.pendingFields?.reimburserEmail}
-                                errors={ErrorUtils.getLatestErrorField(policy ?? {}, 'reimburserEmail')}
-                                onClose={() => Policy.clearWorkspacePayerError(policy?.id ?? '')}
+                                errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_FIELDS.REIMBURSER_EMAIL)}
+                                onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_FIELDS.REIMBURSER_EMAIL)}
                                 errorRowStyles={[styles.ml7]}
                             >
                                 <MenuItem
@@ -211,8 +211,8 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                 isEndOptionRow: true,
                 isActive: policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 pendingAction: policy?.pendingFields?.reimbursementChoice,
-                errors: ErrorUtils.getLatestErrorField(policy ?? {}, 'reimbursementChoice'),
-                onCloseError: () => Policy.clearWorkspaceReimbursementErrors(policy?.id ?? ''),
+                errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_FIELDS.REIMBURSEMENT_CHOICE),
+                onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_FIELDS.REIMBURSEMENT_CHOICE),
             },
         ];
     }, [

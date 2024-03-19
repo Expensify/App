@@ -165,8 +165,8 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                             {(!StringUtils.isEmptyString(policy?.description ?? '') || !readOnly) && (
                                 <OfflineWithFeedback
                                     pendingAction={policy?.pendingFields?.description}
-                                    errors={ErrorUtils.getLatestErrorField(policy ?? {}, 'description')}
-                                    onClose={() => Policy.clearWorkspaceGeneralSettingError(policy?.id ?? '')}
+                                    errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_FIELDS.DESCRIPTION)}
+                                    onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_FIELDS.DESCRIPTION)}
                                 >
                                     <MenuItemWithTopDescription
                                         title={policyDescription}
@@ -183,8 +183,8 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                             )}
                             <OfflineWithFeedback
                                 pendingAction={policy?.pendingFields?.generalSettings}
-                                errors={ErrorUtils.getLatestErrorField(policy ?? {}, 'generalSettings')}
-                                onClose={() => Policy.clearWorkspaceGeneralSettingError(policy?.id ?? '')}
+                                errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_FIELDS.GENERAL_SETTINGS)}
+                                onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_FIELDS.GENERAL_SETTINGS)}
                                 errorRowStyles={[styles.mt2]}
                             >
                                 <View>
