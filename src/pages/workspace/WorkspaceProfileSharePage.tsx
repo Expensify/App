@@ -32,9 +32,11 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
 
     const policyName = policy?.name ?? '';
     const id = policy?.id ?? '';
+    const adminEmail = policy?.owner ?? '';
     const urlWithTrailingSlash = Url.addTrailingForwardSlash(environmentURL);
 
-    const url = `${urlWithTrailingSlash}${ROUTES.WORKSPACE_PROFILE.getRoute(id)}`;
+    const url = `${urlWithTrailingSlash}${ROUTES.WORKSPACE_JOIN_USER.getRoute(id, adminEmail)}`;
+
     return (
         <ScreenWrapper
             testID={WorkspaceProfileSharePage.displayName}
