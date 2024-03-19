@@ -2,6 +2,7 @@ import type {RouteProp} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -274,6 +275,7 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
                 <Button
                     success
                     allowBubble
+                    large
                     pressOnEnter
                     style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                     onPress={submitWaypoints}

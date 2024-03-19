@@ -27,6 +27,7 @@ import type MapboxAccessToken from './MapboxAccessToken';
 import type Modal from './Modal';
 import type Network from './Network';
 import type {OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
+import type {DecisionName, OriginalMessageIOU} from './OriginalMessage';
 import type PersonalBankAccount from './PersonalBankAccount';
 import type {PersonalDetailsList} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
@@ -34,10 +35,13 @@ import type PlaidData from './PlaidData';
 import type Policy from './Policy';
 import type {TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
+import type PolicyJoinMember from './PolicyJoinMember';
 import type {PolicyMembers} from './PolicyMember';
 import type PolicyMember from './PolicyMember';
 import type {PolicyReportField, PolicyReportFields} from './PolicyReportField';
 import type {PolicyTag, PolicyTagList, PolicyTags} from './PolicyTag';
+import type PreferredTheme from './PreferredTheme';
+import type PriorityMode from './PriorityMode';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
 import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
@@ -45,7 +49,7 @@ import type RecentlyUsedTags from './RecentlyUsedTags';
 import type RecentWaypoint from './RecentWaypoint';
 import type ReimbursementAccount from './ReimbursementAccount';
 import type Report from './Report';
-import type {ReportActions} from './ReportAction';
+import type {ReportActionBase, ReportActions} from './ReportAction';
 import type ReportAction from './ReportAction';
 import type ReportActionReactions from './ReportActionReactions';
 import type ReportActionsDraft from './ReportActionsDraft';
@@ -112,6 +116,8 @@ export type {
     PolicyTag,
     PolicyTags,
     PolicyTagList,
+    PreferredTheme,
+    PriorityMode,
     PrivatePersonalDetails,
     RecentWaypoint,
     RecentlyUsedCategories,
@@ -152,8 +158,12 @@ export type {
     PolicyReportField,
     PolicyReportFields,
     RecentlyUsedReportFields,
+    DecisionName,
+    OriginalMessageIOU,
+    ReportActionBase,
     LastPaymentMethod,
     LastSelectedDistanceRates,
     InvitedEmailsToAccountIDs,
     Log,
+    PolicyJoinMember,
 };
