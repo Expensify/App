@@ -1986,6 +1986,7 @@ function shouldOptionShowTooltip(option: ReportUtils.OptionData): boolean {
 
 /**
  * Handles the logic for displaying selected participants from the search term
+ * 
  */
 function formatSectionsFromSearchTerm(
     searchTerm: string,
