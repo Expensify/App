@@ -20,7 +20,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {openPolicyTaxesPage} from '@libs/actions/Policy';
-import {clearTaxRateError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
+import {canEditTaxRate, clearTaxRateError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
@@ -71,34 +71,34 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
         [defaultExternalID, foreignTaxDefault, translate],
     );
 
-    const taxesList = useMemo<ListItem[]>(
-        () =>
-            Object.entries(policy?.taxRates?.taxes ?? {})
-                .map(([key, value]) => ({
-                    text: value.name,
-                    alternateText: textForDefault(key),
-                    keyForList: key,
-                    isSelected: !!selectedTaxesIDs.includes(key),
-                    isDisabledCheckbox: key === defaultExternalID,
-                    pendingAction: value.pendingAction,
-                    errors: value.errors ?? ErrorUtils.getLatestErrorFieldForAnyField(value),
-                    rightElement: (
-                        <View style={styles.flexRow}>
-                            <Text style={[styles.disabledText, styles.alignSelfCenter]}>
-                                {value.isDisabled ? translate('workspace.common.disabled') : translate('workspace.common.enabled')}
-                            </Text>
-                            <View style={[styles.p1, styles.pl2]}>
-                                <Icon
-                                    src={Expensicons.ArrowRight}
-                                    fill={theme.icon}
-                                />
-                            </View>
+    const taxesList = useMemo<ListItem[]>(() => {
+        if (!policy) {
+            return [];
+        }
+        return Object.entries(policy.taxRates?.taxes ?? {})
+            .map(([key, value]) => ({
+                text: value.name,
+                alternateText: textForDefault(key),
+                keyForList: key,
+                isSelected: !!selectedTaxesIDs.includes(key),
+                isDisabledCheckbox: !canEditTaxRate(policy, key),
+                isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                pendingAction: value.pendingAction ?? (Object.keys(value.pendingFields ?? {}).length > 0 ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null),
+                errors: value.errors ?? ErrorUtils.getLatestErrorFieldForAnyField(value),
+                rightElement: (
+                    <View style={styles.flexRow}>
+                        <Text style={[styles.disabledText, styles.alignSelfCenter]}>{value.isDisabled ? translate('workspace.common.disabled') : translate('workspace.common.enabled')}</Text>
+                        <View style={[styles.p1, styles.pl2]}>
+                            <Icon
+                                src={Expensicons.ArrowRight}
+                                fill={theme.icon}
+                            />
                         </View>
-                    ),
-                }))
-                .sort((a, b) => (a.text ?? a.keyForList ?? '').localeCompare(b.text ?? b.keyForList ?? '')),
-        [policy?.taxRates?.taxes, textForDefault, defaultExternalID, selectedTaxesIDs, styles, theme.icon, translate],
-    );
+                    </View>
+                ),
+            }))
+            .sort((a, b) => (a.text ?? a.keyForList ?? '').localeCompare(b.text ?? b.keyForList ?? ''));
+    }, [policy, textForDefault, selectedTaxesIDs, styles.flexRow, styles.disabledText, styles.alignSelfCenter, styles.p1, styles.pl2, translate, theme.icon]);
 
     const isLoading = !isOffline && taxesList === undefined;
 
@@ -149,6 +149,7 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
                 return;
             }
             setPolicyTaxesEnabled(policy.id, selectedTaxesIDs, isEnabled);
+            setSelectedTaxesIDs([]);
         },
         [policy?.id, selectedTaxesIDs],
     );

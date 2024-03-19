@@ -9,8 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updatePolicyTaxValue} from '@libs/actions/TaxRate';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {updatePolicyTaxValue, validateTaxValue} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -38,17 +37,6 @@ function ValuePage({
     const [value, setValue] = useState(currentTaxRate?.value?.replace('%', ''));
 
     const goBack = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_TAXES_EDIT.getRoute(policyID ?? '', taxID)), [policyID, taxID]);
-
-    // TODO: Extract it to a separate file, and use it also when creating a new tax
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM>) => {
-        const errors = {};
-
-        if (Number(values.value) < 0 || Number(values.value) >= 100) {
-            ErrorUtils.addErrorMessage(errors, 'value', 'Percentage must be between 0 and 100');
-        }
-
-        return errors;
-    }, []);
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM>) => {
@@ -78,12 +66,15 @@ function ValuePage({
                     <FormProvider
                         formID={ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM}
                         submitButtonText={translate('workspace.editor.save')}
-                        style={[styles.flexGrow1, styles.ph5]}
+                        style={[styles.flexGrow1]}
                         scrollContextEnabled
-                        validate={validate}
+                        validate={validateTaxValue}
                         onSubmit={submit}
                         enabledWhenOffline
                         disablePressOnEnter={false}
+                        shouldHideFixErrorsAlert
+                        submitFlexEnabled={false}
+                        submitButtonStyles={[styles.mh5]}
                     >
                         <InputWrapper
                             InputComponent={AmountForm}

@@ -25,7 +25,8 @@ function AmountPicker({value, description, title, errorText = '', onInputChange,
 
     const updateInput = (updatedValue: string) => {
         if (updatedValue !== value) {
-            onInputChange?.(updatedValue);
+            // We cast the updatedValue to a number and then back to a string to remove any leading zeros and separating commas
+            onInputChange?.(String(Number(updatedValue)));
         }
         hidePickerModal();
     };

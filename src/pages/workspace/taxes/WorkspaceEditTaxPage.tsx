@@ -13,7 +13,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {clearTaxRateFieldError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
+import {canEditTaxRate, clearTaxRateFieldError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -39,6 +39,7 @@ function WorkspaceEditTaxPage({
     const currentTaxRate = PolicyUtils.getTaxByID(policy, taxID);
     const {windowWidth} = useWindowDimensions();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+    const canEdit = policy && canEditTaxRate(policy, taxID);
 
     const toggle = () => {
         if (!policy?.id || !currentTaxRate) {
@@ -83,7 +84,7 @@ function WorkspaceEditTaxPage({
                             <HeaderWithBackButton
                                 title={currentTaxRate?.name}
                                 threeDotsMenuItems={threeDotsMenuItems}
-                                shouldShowThreeDotsButton
+                                shouldShowThreeDotsButton={!!canEdit}
                                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                             />
                             <OfflineWithFeedback
@@ -99,6 +100,7 @@ function WorkspaceEditTaxPage({
                                             isOn={!currentTaxRate?.isDisabled}
                                             accessibilityLabel={translate('workspace.taxes.actions.enable')}
                                             onToggle={toggle}
+                                            disabled={!canEdit}
                                         />
                                     </View>
                                 </View>

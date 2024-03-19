@@ -1,11 +1,14 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {FormOnyxValues} from '@components/Form/types';
 import * as API from '@libs/API';
 import type {CreatePolicyTaxParams, DeletePolicyTaxesParams, SetPolicyTaxesEnabledParams, UpdatePolicyTaxValueParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import * as ErrorUtils from '@src/libs/ErrorUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/WorkspaceNewTaxForm';
 import type {Policy, TaxRate, TaxRates} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -27,6 +30,41 @@ function getTaxValueWithPercentage(value: string): string {
 function covertTaxNameToID(name: string) {
     return `id_${name.toUpperCase().replaceAll(' ', '_')}`;
 }
+
+/**
+ * Whether the tax rate can be deleted and disabled
+ */
+function canEditTaxRate(policy: Policy, taxID: string): boolean {
+    return policy.taxRates?.defaultExternalID !== taxID;
+}
+
+/**
+ *  Function to validate tax name
+ */
+const validateTaxName = (policy: Policy, values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM>) => {
+    const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.NAME]);
+
+    const name = values[INPUT_IDS.NAME];
+    if (policy?.taxRates?.taxes && ValidationUtils.isExistingTaxName(name, policy.taxRates.taxes)) {
+        errors[INPUT_IDS.NAME] = 'workspace.taxes.errors.taxRateAlreadyExists';
+    }
+
+    return errors;
+};
+
+/**
+ *  Function to validate tax value
+ */
+const validateTaxValue = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM>) => {
+    const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.VALUE]);
+
+    const value = values[INPUT_IDS.VALUE];
+    if (!ValidationUtils.isValidPercentage(value)) {
+        errors[INPUT_IDS.VALUE] = 'workspace.taxes.errors.valuePercentageRange';
+    }
+
+    return errors;
+};
 
 /**
  * Get new tax ID
@@ -437,7 +475,10 @@ export {
     clearTaxRateFieldError,
     getTaxValueWithPercentage,
     setPolicyTaxesEnabled,
+    validateTaxName,
+    validateTaxValue,
     deletePolicyTaxes,
     updatePolicyTaxValue,
     renamePolicyTax,
+    canEditTaxRate,
 };
