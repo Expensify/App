@@ -1,7 +1,10 @@
-const http = require('http');
-const https = require('https');
-const proxyConfig = require('../config/proxyConfig');
-require('dotenv').config();
+import dotenv from 'dotenv';
+import http from 'http';
+import type {IncomingMessage, ServerResponse} from 'http';
+import https from 'https';
+import proxyConfig from '../config/proxyConfig';
+
+dotenv.config();
 
 if (process.env.USE_WEB_PROXY === 'false') {
     process.stdout.write('Skipping proxy as USE_WEB_PROXY was set to false.\n');
@@ -20,7 +23,7 @@ console.log(`Creating proxy with host: ${host} for production API and ${stagingH
  * possible to work on the app within a limited development
  * environment that has no local API.
  */
-const server = http.createServer((request, response) => {
+const server = http.createServer((request: IncomingMessage, response: ServerResponse) => {
     let hostname = host;
     let requestPath = request.url;
 
@@ -37,10 +40,10 @@ const server = http.createServer((request, response) => {
      * /receipts/w_... => request sent to production server
      * /staging/chat-attachments/46545... => request sent to staging server
      */
-    if (request.url.startsWith(proxyConfig.STAGING_SECURE)) {
+    if (request.url?.startsWith(proxyConfig.STAGING_SECURE)) {
         hostname = stagingSecureHost;
         requestPath = request.url.replace(proxyConfig.STAGING_SECURE, '/');
-    } else if (request.url.startsWith(proxyConfig.STAGING)) {
+    } else if (request.url?.startsWith(proxyConfig.STAGING)) {
         hostname = stagingHost;
         requestPath = request.url.replace(proxyConfig.STAGING, '/');
     }
@@ -52,14 +55,15 @@ const server = http.createServer((request, response) => {
         headers: {
             ...request.headers,
             host: hostname,
-            'user-agent': request.headers['user-agent'].concat(' Development-NewDot/1.0'),
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            'user-agent': request.headers['user-agent']?.concat(' Development-NewDot/1.0'),
         },
         port: 443,
     });
 
     request.pipe(proxyRequest);
     proxyRequest.on('response', (proxyResponse) => {
-        response.writeHead(proxyResponse.statusCode, proxyResponse.headers);
+        response.writeHead(proxyResponse.statusCode ?? 0, proxyResponse.headers);
         proxyResponse.pipe(response);
     });
 
