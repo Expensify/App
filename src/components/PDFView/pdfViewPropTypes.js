@@ -28,8 +28,11 @@ const propTypes = {
     /** Should focus to the password input  */
     isFocused: PropTypes.bool,
 
-    /** Styles for the error label */
-    errorLabelStyles: stylePropTypes,
+    /** Whether the attachment is used as a chat attachment */
+    isUsedAsChatAttachment: PropTypes.bool,
+
+    /** Callback when the pdf fails to load */
+    onError: PropTypes.func,
 
     ...windowDimensionsPropTypes,
 
@@ -45,7 +48,6 @@ const defaultProps = {
     onScaleChanged: () => {},
     onLoadComplete: () => {},
     isFocused: false,
-    errorLabelStyles: [],
 };
 
 export {propTypes, defaultProps};

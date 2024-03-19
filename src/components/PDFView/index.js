@@ -254,7 +254,6 @@ class PDFView extends Component {
                 >
                     <PDFDocument
                         listStyle={styles.PDFViewList}
-                        errorLabelStyles={this.props.errorLabelStyles}
                         translate={this.props.translate}
                         sourceURL={this.props.sourceURL}
                         onDocumentLoadSuccess={this.onDocumentLoadSuccess}
