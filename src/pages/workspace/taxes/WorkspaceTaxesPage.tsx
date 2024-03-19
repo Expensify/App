@@ -173,7 +173,7 @@ function WorkspaceTaxesPage({
         // `Disable rates` when at least one enabled rate is selected.
         if (selectedTaxesIDs.some((taxID) => !policy?.taxRates?.taxes[taxID]?.isDisabled)) {
             options.push({
-                icon: Expensicons.Document,
+                icon: Expensicons.DocumentSlash,
                 text: isMultiple ? translate('workspace.taxes.actions.disableMultiple') : translate('workspace.taxes.actions.disable'),
                 value: CONST.POLICY.TAX_RATES_BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => toggleTaxes(false),

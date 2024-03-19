@@ -79,7 +79,7 @@ function WorkspaceEditTaxPage({
                     testID={WorkspaceEditTaxPage.displayName}
                     style={styles.mb5}
                 >
-                    <View style={[styles.h100, styles.flex1, styles.justifyContentBetween]}>
+                    <View style={[styles.h100, styles.flex1]}>
                         <HeaderWithBackButton
                             title={currentTaxRate?.name}
                             threeDotsMenuItems={threeDotsMenuItems}
