@@ -7,7 +7,7 @@ import * as ReportUtils from './ReportUtils';
  * Returns the report name if the report is a group chat
  */
 function getGroupChatName(report: OnyxEntry<Report>): string | undefined {
-    const participants = report?.participantAccountIDs ?? [];
+    const participants = report?.participantAccountIDs?.slice(0, 5) ?? [];
     const isMultipleParticipantReport = participants.length > 1;
 
     return participants
