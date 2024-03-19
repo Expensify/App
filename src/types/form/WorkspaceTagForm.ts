@@ -7,12 +7,12 @@ const INPUT_IDS = {
 
 type InputID = ValueOf<typeof INPUT_IDS>;
 
-type WorkspaceTagCreateForm = Form<
+type WorkspaceTagForm = Form<
     InputID,
     {
         [INPUT_IDS.TAG_NAME]: string;
     }
 >;
 
-export type {WorkspaceTagCreateForm};
+export type {WorkspaceTagForm};
 export default INPUT_IDS;

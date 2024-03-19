@@ -301,6 +301,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.TAG_CREATE]: {
                             path: ROUTES.WORKSPACE_TAG_CREATE.route,
                         },
+                        [SCREENS.WORKSPACE.TAG_EDIT]: {
+                            path: ROUTES.WORKSPACE_TAG_EDIT.route,
+                            parse: {
+                                tagName: (tagName: string) => decodeURIComponent(tagName),
+                            },
+                        },
                         [SCREENS.WORKSPACE.TAG_SETTINGS]: {
                             path: ROUTES.WORKSPACE_TAG_SETTINGS.route,
                             parse: {

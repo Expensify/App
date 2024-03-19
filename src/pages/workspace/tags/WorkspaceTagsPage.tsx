@@ -128,6 +128,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
     };
 
     const navigateToTagSettings = (tag: PolicyOption) => {
+        setSelectedTags({});
         Navigation.navigate(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route.params.policyID, tag.keyForList));
     };
 
