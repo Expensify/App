@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/core';
 import lodashGet from 'lodash/get';
 import React, {useCallback, useRef, useState} from 'react';
-import {ActivityIndicator, Alert, AppState, View} from 'react-native';
+import {ActivityIndicator, Alert, AppState, View, InteractionManager} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
