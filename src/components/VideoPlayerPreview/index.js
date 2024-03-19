@@ -80,14 +80,15 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
                         shouldUseSmallVideoControls
                         style={[styles.w100, styles.h100]}
                     />
-
-                    <IconButton
-                        src={Expensicons.Expand}
-                        style={styles.videoExpandButton}
-                        tooltipText={translate('videoPlayer.expand')}
-                        onPress={onShowModalPress}
-                        small
-                    />
+                    <View style={[styles.pAbsolute, styles.w100]}>
+                        <IconButton
+                            src={Expensicons.Expand}
+                            style={[styles.videoExpandButton]}
+                            tooltipText={translate('videoPlayer.expand')}
+                            onPress={onShowModalPress}
+                            small
+                        />
+                    </View>
                 </>
             )}
         </View>
