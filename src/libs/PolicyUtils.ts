@@ -188,13 +188,15 @@ function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: numbe
 /**
  * Gets all tag lists of a policy
  */
-function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<PolicyTagList[keyof PolicyTagList]> {
+function getTagLists(policyTagList: OnyxEntry<PolicyTagList>, excludeMultiLevelTags = false): Array<PolicyTagList[keyof PolicyTagList]> {
     if (isEmptyObject(policyTagList)) {
         return [];
     }
 
+    const regex = new RegExp(CONST.REGEX.MULTI_LEVEL_TAG, `/\\{1,2}:/g`);
+
     return Object.values(policyTagList)
-        .filter((policyTagListValue) => policyTagListValue !== null)
+        .filter((policyTagListValue) => policyTagListValue !== null && (!excludeMultiLevelTags || regex.test(policyTagListValue.name)))
         .sort((tagA, tagB) => tagA.orderWeight - tagB.orderWeight);
 }
 
