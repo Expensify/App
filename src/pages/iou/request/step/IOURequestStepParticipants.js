@@ -137,7 +137,7 @@ function IOURequestStepParticipants({
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
             selectedReportID.current = lodashGet(val, '[0].reportID', reportID);
         },
-        [reportID, transactionID, iouType, participants, updateRouteParams],
+        [iouType, participants, transactionID, transaction, reportID, updateRouteParams, lastSelectedDistanceRates],
     );
 
     const goToNextStep = useCallback(

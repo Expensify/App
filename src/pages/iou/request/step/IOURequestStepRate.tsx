@@ -10,12 +10,12 @@ import * as IOU from '@libs/actions/IOU';
 import compose from '@libs/compose';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
-import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
+import StepScreenWrapper from './StepScreenWrapper';
+import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type Props = {
     /** Object of last selected rates for the policies */
