@@ -12,7 +12,7 @@ type Card = {
     lastFourPAN?: string;
     cardName: string;
     cardTitle: string; // used only for virtual limit cards
-    limitType: string;
+    limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
     isAdminIssuedVirtualCard: boolean;
     isVirtual: boolean;
     fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
