@@ -160,8 +160,14 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                 icon: Illustrations.WalletAlt,
                 title: translate('workflowsPage.makeOrTrackPaymentsTitle'),
                 subtitle: translate('workflowsPage.makeOrTrackPaymentsDescription'),
-                onToggle: () => {
-                    const newReimbursementChoice = !hasVBA ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+                onToggle: (isEnabled: boolean) => {
+                    let newReimbursementChoice;
+                    if (!isEnabled) {
+                        newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+                    } else {
+                        newReimbursementChoice = hasVBA ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+                    }
+                
                     const newReimburserAccountID =
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         PersonalDetailsUtils.getPersonalDetailByEmail(policy?.reimburserEmail ?? '')?.accountID || policy?.reimburserAccountID || policy?.ownerAccountID;
@@ -176,7 +182,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                             title={hasVBA ? translate('common.bankAccount') : translate('workflowsPage.connectBankAccount')}
                             description={state === BankAccount.STATE.OPEN ? bankDisplayName : undefined}
                             onPress={() => {
-                                if (!Policy.hasCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
+                                if (!Policy.isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
                                     setIsCurrencyModalOpen(true);
                                     return;
                                 }
@@ -209,7 +215,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                     </>
                 ),
                 isEndOptionRow: true,
-                isActive: policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                isActive: policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
                 pendingAction: policy?.pendingFields?.reimbursementChoice,
                 errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_FIELDS.REIMBURSEMENT_CHOICE),
                 onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_FIELDS.REIMBURSEMENT_CHOICE),
