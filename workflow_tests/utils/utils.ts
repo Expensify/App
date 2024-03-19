@@ -2,7 +2,7 @@ import type {StepIdentifier} from '@kie/act-js/build/src/step-mocker/step-mocker
 import fs from 'fs';
 import path from 'path';
 import yaml from 'yaml';
-import type {ExtendedAct} from './ExtendedAct';
+import type ExtendedAct from './ExtendedAct';
 
 type EventOptions = {
     action?: string;
