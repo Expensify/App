@@ -9,10 +9,10 @@ import getCommonConfig from './webpack.common';
 
 const BASE_PORT = 8082;
 
-type EnvFile = Partial<{
-    envFile: string;
-    platform: 'web' | 'desktop';
-}>;
+type EnvFile = {
+    envFile?: string;
+    platform?: 'web' | 'desktop';
+};
 
 /**
  * Configuration for the local dev server

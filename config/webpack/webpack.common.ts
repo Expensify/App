@@ -10,6 +10,7 @@ import {DefinePlugin, EnvironmentPlugin, IgnorePlugin, ProvidePlugin} from 'webp
 import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
 import CustomVersionFilePlugin from './CustomVersionFilePlugin';
 
+// require is necessary, there are no types for this package and the declaration file can't be seen by the build process which causes an error.
 const PreloadWebpackPlugin = require('@vue/preload-webpack-plugin');
 
 const includeModules = [
