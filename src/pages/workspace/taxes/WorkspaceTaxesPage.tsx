@@ -4,6 +4,7 @@ import {ActivityIndicator, View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceTaxRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -19,7 +20,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {openPolicyTaxesPage} from '@libs/actions/Policy';
-import {clearTaxRateError} from '@libs/actions/TaxRate';
+import {clearTaxRateError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
@@ -39,6 +40,7 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const [selectedTaxesIDs, setSelectedTaxesIDs] = useState<string[]>([]);
+    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
 
@@ -94,7 +96,7 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
                         </View>
                     ),
                 }))
-                .sort((a, b) => a.text.localeCompare(b.text)),
+                .sort((a, b) => (a.text ?? a.keyForList ?? '').localeCompare(b.text ?? b.keyForList ?? '')),
         [policy?.taxRates?.taxes, textForDefault, defaultExternalID, selectedTaxesIDs, styles, theme.icon, translate],
     );
 
@@ -132,13 +134,33 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
         </View>
     );
 
+    const deleteTaxes = useCallback(() => {
+        if (!policy?.id) {
+            return;
+        }
+        deletePolicyTaxes(policy.id, selectedTaxesIDs);
+        setSelectedTaxesIDs([]);
+        setIsDeleteModalVisible(false);
+    }, [policy?.id, selectedTaxesIDs]);
+
+    const toggleTaxes = useCallback(
+        (isEnabled: boolean) => {
+            if (!policy?.id) {
+                return;
+            }
+            setPolicyTaxesEnabled(policy.id, selectedTaxesIDs, isEnabled);
+        },
+        [policy?.id, selectedTaxesIDs],
+    );
+
     const dropdownMenuOptions = useMemo(() => {
+        const isMultiple = selectedTaxesIDs.length > 1;
         const options: Array<DropdownOption<WorkspaceTaxRatesBulkActionType>> = [
             {
                 icon: Expensicons.Trashcan,
-                text: translate('workspace.taxes.actions.delete'),
+                text: isMultiple ? translate('workspace.taxes.actions.deleteMultiple') : translate('workspace.taxes.actions.delete'),
                 value: CONST.POLICY.TAX_RATES_BULK_ACTION_TYPES.DELETE,
-                onSelected: () => {},
+                onSelected: () => setIsDeleteModalVisible(true),
             },
         ];
 
@@ -146,8 +168,9 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
         if (selectedTaxesIDs.some((taxID) => !policy?.taxRates?.taxes[taxID]?.isDisabled)) {
             options.push({
                 icon: Expensicons.Document,
-                text: translate('workspace.taxes.actions.disable'),
+                text: isMultiple ? translate('workspace.taxes.actions.disableMultiple') : translate('workspace.taxes.actions.disable'),
                 value: CONST.POLICY.TAX_RATES_BULK_ACTION_TYPES.DISABLE,
+                onSelected: () => toggleTaxes(false),
             });
         }
 
@@ -155,12 +178,13 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
         if (selectedTaxesIDs.some((taxID) => policy?.taxRates?.taxes[taxID]?.isDisabled)) {
             options.push({
                 icon: Expensicons.Document,
-                text: translate('workspace.taxes.actions.enable'),
+                text: isMultiple ? translate('workspace.taxes.actions.enableMultiple') : translate('workspace.taxes.actions.enable'),
                 value: CONST.POLICY.TAX_RATES_BULK_ACTION_TYPES.ENABLE,
+                onSelected: () => toggleTaxes(true),
             });
         }
         return options;
-    }, [policy?.taxRates?.taxes, selectedTaxesIDs, translate]);
+    }, [policy?.taxRates?.taxes, selectedTaxesIDs, toggleTaxes, translate]);
 
     const headerButtons = (
         <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
@@ -233,6 +257,16 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         onDismissError={(item) => (item.keyForList ? clearTaxRateError(route.params.policyID, item.keyForList, item.pendingAction) : undefined)}
+                    />
+                    <ConfirmModal
+                        title={translate('workspace.taxes.actions.delete')}
+                        isVisible={isDeleteModalVisible}
+                        onConfirm={deleteTaxes}
+                        onCancel={() => setIsDeleteModalVisible(false)}
+                        prompt={translate('workspace.taxes.deleteTaxConfirmation')}
+                        confirmText={translate('common.delete')}
+                        cancelText={translate('common.cancel')}
+                        danger
                     />
                 </ScreenWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>

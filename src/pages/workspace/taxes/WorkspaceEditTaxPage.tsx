@@ -3,6 +3,7 @@ import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {ThreeDotsMenuItem} from '@components/HeaderWithBackButton/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -62,7 +63,7 @@ function WorkspaceEditTaxPage({
                 text: translate('common.delete'),
                 onSelected: () => setIsDeleteModalVisible(true),
             },
-        ];
+        ] satisfies ThreeDotsMenuItem[];
         return menuItems;
     }, [translate]);
 

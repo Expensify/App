@@ -211,7 +211,7 @@ function setPolicyTaxesEnabled(policyID: string, taxesIDsToUpdate: string[], isE
 
     const parameters = {
         policyID,
-        taxFieldsArray: JSON.stringify(taxesIDsToUpdate.map((taxID) => ({taxCode: originalTaxes[taxID].name, enabled: isEnabled}))),
+        taxFieldsArray: JSON.stringify(taxesIDsToUpdate.map((taxID) => ({taxCode: taxID, enabled: isEnabled}))),
     } satisfies SetPolicyTaxesEnabledParams;
 
     API.write(WRITE_COMMANDS.SET_POLICY_TAXES_ENABLED, parameters, onyxData);

@@ -1874,8 +1874,11 @@ export default {
             deleteTaxConfirmation: 'Are you sure you want to delete this tax?',
             actions: {
                 delete: 'Delete rate',
+                deleteMultiple: 'Delete rates',
                 disable: 'Disable rate',
+                disableMultiple: 'Disable rates',
                 enable: 'Enable rate',
+                enableMultiple: 'Enable rates',
             },
         },
         emptyWorkspace: {
