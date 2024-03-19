@@ -42,17 +42,17 @@ function WorkspaceEditTaxPage({
     const canEdit = policy && canEditTaxRate(policy, taxID);
 
     const toggle = () => {
-        if (!policy?.id || !currentTaxRate) {
+        if (!currentTaxRate) {
             return;
         }
-        setPolicyTaxesEnabled(policy.id, [taxID], !!currentTaxRate?.isDisabled);
+        setPolicyTaxesEnabled(policyID, [taxID], !!currentTaxRate.isDisabled);
     };
 
     const deleteTax = () => {
-        if (!policy?.id) {
+        if (!policyID) {
             return;
         }
-        deletePolicyTaxes(policy?.id, [taxID]);
+        deletePolicyTaxes(policyID, [taxID]);
         setIsDeleteModalVisible(false);
         Navigation.goBack();
     };
@@ -117,7 +117,7 @@ function WorkspaceEditTaxPage({
                                     description={translate('common.name')}
                                     style={[styles.moneyRequestMenuItem]}
                                     titleStyle={styles.flex1}
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_NAME.getRoute(`${policy?.id}`, taxID))}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_NAME.getRoute(`${policyID}`, taxID))}
                                 />
                             </OfflineWithFeedback>
                             <OfflineWithFeedback
@@ -132,7 +132,7 @@ function WorkspaceEditTaxPage({
                                     description={translate('workspace.taxes.value')}
                                     style={[styles.moneyRequestMenuItem]}
                                     titleStyle={styles.flex1}
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_VALUE.getRoute(`${policy?.id}`, taxID))}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_VALUE.getRoute(`${policyID}`, taxID))}
                                 />
                             </OfflineWithFeedback>
                         </View>

@@ -135,23 +135,23 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
     );
 
     const deleteTaxes = useCallback(() => {
-        if (!policy?.id) {
+        if (!route.params.policyID) {
             return;
         }
-        deletePolicyTaxes(policy.id, selectedTaxesIDs);
+        deletePolicyTaxes(route.params.policyID, selectedTaxesIDs);
         setSelectedTaxesIDs([]);
         setIsDeleteModalVisible(false);
-    }, [policy?.id, selectedTaxesIDs]);
+    }, [route.params.policyID, selectedTaxesIDs]);
 
     const toggleTaxes = useCallback(
         (isEnabled: boolean) => {
-            if (!policy?.id) {
+            if (!route.params.policyID) {
                 return;
             }
-            setPolicyTaxesEnabled(policy.id, selectedTaxesIDs, isEnabled);
+            setPolicyTaxesEnabled(route.params.policyID, selectedTaxesIDs, isEnabled);
             setSelectedTaxesIDs([]);
         },
-        [policy?.id, selectedTaxesIDs],
+        [route.params.policyID, selectedTaxesIDs],
     );
 
     const dropdownMenuOptions = useMemo(() => {
@@ -251,7 +251,7 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
                         canSelectMultiple
                         sections={[{data: taxesList, indexOffset: 0, isDisabled: false}]}
                         onCheckboxPress={toggleTax}
-                        onSelectRow={(tax: ListItem) => tax.keyForList && Navigation.navigate(ROUTES.WORKSPACE_TAXES_EDIT.getRoute(policy?.id ?? '', tax.keyForList))}
+                        onSelectRow={(tax: ListItem) => tax.keyForList && Navigation.navigate(ROUTES.WORKSPACE_TAXES_EDIT.getRoute(route.params.policyID ?? '', tax.keyForList))}
                         onSelectAll={toggleAllTaxes}
                         showScrollIndicator
                         ListItem={TableListItem}
