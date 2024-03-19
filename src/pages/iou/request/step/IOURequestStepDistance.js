@@ -78,15 +78,6 @@ function IOURequestStepDistance({
     const atLeastTwoDifferentWaypointsError = useMemo(() => _.size(validatedWaypoints) < 2, [validatedWaypoints]);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
 
-    console.log('transaction', transaction);
-    console.log('hasRoute', hasRoute);
-    console.log('hasRouteError', hasRouteError);
-
-    console.log('isLoadingRoute', isLoadingRoute);
-
-    console.log('shouldFetchRoute', shouldFetchRoute);
-    console.log('isLoading', isLoading);
-
     useEffect(() => {
         MapboxToken.init();
         return MapboxToken.stop;
@@ -96,7 +87,7 @@ function IOURequestStepDistance({
         if (isOffline || !shouldFetchRoute) {
             return;
         }
-        Transaction.getRouteForDraft(transactionID, validatedWaypoints);
+        Transaction.getRoute(transactionID, validatedWaypoints);
     }, [shouldFetchRoute, transactionID, validatedWaypoints, isOffline]);
 
     useEffect(() => {
@@ -176,11 +167,14 @@ function IOURequestStepDistance({
 
             setOptimisticWaypoints(newWaypoints);
             // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
-            Promise.all([Transaction.removeWaypoint(transaction, emptyWaypointIndex.toString(), true), Transaction.updateWaypoints(transactionID, newWaypoints, true)]).then(() => {
-                setOptimisticWaypoints(null);
+            Promise.all([
+                Transaction.removeWaypoint(transaction, emptyWaypointIndex.toString(), action === CONST.IOU.ACTION.CREATE),
+                Transaction.updateWaypoints(transactionID, newWaypoints, action === CONST.IOU.ACTION.CREATE),
+            ]).then(() => {
+                setOptimisticWaypoints(undefined);
             });
         },
-        [transactionID, transaction, waypoints, waypointsList],
+        [transactionID, transaction, waypoints, waypointsList, action],
     );
 
     const submitWaypoints = useCallback(() => {
@@ -189,8 +183,12 @@ function IOURequestStepDistance({
             setShouldShowAtLeastTwoDifferentWaypointsError(true);
             return;
         }
+        if (isEditing) {
+            Navigation.dismissModal(report.reportID);
+            return;
+        }
         navigateToNextStep();
-    }, [atLeastTwoDifferentWaypointsError, duplicateWaypointsError, hasRouteError, isLoadingRoute, isLoading, navigateToNextStep]);
+    }, [duplicateWaypointsError, atLeastTwoDifferentWaypointsError, hasRouteError, isLoadingRoute, isLoading, isEditing, navigateToNextStep, report.reportID]);
 
     return (
         <StepScreenWrapper
@@ -245,7 +243,7 @@ function IOURequestStepDistance({
                         large
                         style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                         onPress={submitWaypoints}
-                        text={translate('common.next')}
+                        text={translate(isEditing ? 'common.save' : 'common.next')}
                         isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}
                     />
                 </View>
