@@ -169,14 +169,14 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
                     <Button
                         medium
                         success
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_NEW.getRoute(route.params.policyID))}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_CREATE.getRoute(route.params.policyID))}
                         icon={Expensicons.Plus}
                         text={translate('workspace.taxes.addRate')}
                         style={[styles.mr3, isSmallScreenWidth && styles.w50]}
                     />
                     <Button
                         medium
-                        onPress={() => {}}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(route.params.policyID))}
                         icon={Expensicons.Gear}
                         text={translate('common.settings')}
                         style={[isSmallScreenWidth && styles.w50]}
@@ -232,7 +232,7 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        onDismissError={(item) => item.keyForList && clearTaxRateError(policy?.id ?? '', item.keyForList, item.pendingAction)}
+                        onDismissError={(item) => (item.keyForList ? clearTaxRateError(route.params.policyID, item.keyForList, item.pendingAction) : undefined)}
                     />
                 </ScreenWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>

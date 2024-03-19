@@ -6,7 +6,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import * as ErrorUtils from '@src/libs/ErrorUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, TaxRate} from '@src/types/onyx';
+import type {Policy, TaxRate, TaxRates} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
 
@@ -24,14 +24,32 @@ function getTaxValueWithPercentage(value: string): string {
     return `${value}%`;
 }
 
-/**
- * Get new tax object
- */
-function getNextTaxID(name: string): string {
+function covertTaxNameToID(name: string) {
     return `id_${name.toUpperCase().replaceAll(' ', '_')}`;
 }
 
-function createWorkspaceTax(policyID: string, taxRate: TaxRate) {
+/**
+ * Get new tax ID
+ */
+function getNextTaxCode(name: string, taxRates?: TaxRates): string {
+    const newID = covertTaxNameToID(name);
+    if (!taxRates?.[newID]) {
+        return newID;
+    }
+
+    // If the tax ID already exists, we need to find a unique ID
+    let nextID = 1;
+    while (taxRates?.[covertTaxNameToID(`${name}_${nextID}`)]) {
+        nextID++;
+    }
+    return covertTaxNameToID(`${name}_${nextID}`);
+}
+
+function createPolicyTax(policyID: string, taxRate: TaxRate) {
+    if (!taxRate.code) {
+        throw new Error('Tax code is required when creating a new tax rate.');
+    }
+
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -43,7 +61,6 @@ function createWorkspaceTax(policyID: string, taxRate: TaxRate) {
                             [taxRate.code]: {
                                 ...taxRate,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                                errors: null,
                             },
                         },
                     },
@@ -58,8 +75,8 @@ function createWorkspaceTax(policyID: string, taxRate: TaxRate) {
                     taxRates: {
                         taxes: {
                             [taxRate.code]: {
-                                pendingAction: null,
                                 errors: null,
+                                pendingAction: null,
                             },
                         },
                     },
@@ -74,7 +91,6 @@ function createWorkspaceTax(policyID: string, taxRate: TaxRate) {
                     taxRates: {
                         taxes: {
                             [taxRate.code]: {
-                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                                 errors: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.errors.genericFailureMessage'),
                             },
                         },
@@ -415,10 +431,10 @@ function renamePolicyTax(policyID: string, taxID: string, newName: string) {
 }
 
 export {
-    createWorkspaceTax,
+    createPolicyTax,
+    getNextTaxCode,
     clearTaxRateError,
     clearTaxRateFieldError,
-    getNextTaxID,
     getTaxValueWithPercentage,
     setPolicyTaxesEnabled,
     deletePolicyTaxes,

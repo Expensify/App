@@ -21,7 +21,7 @@ function TextSelectorModal({value, description = '', onValueSelected, isVisible,
         <Modal
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isVisible}
-            onClose={() => onClose?.()}
+            onClose={onClose}
             onModalHide={onClose}
             hideModalContentWhileAnimating
             useNativeDriver
@@ -30,6 +30,7 @@ function TextSelectorModal({value, description = '', onValueSelected, isVisible,
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
                 testID={TextSelectorModal.displayName}
+                shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
                     title={description}
@@ -46,6 +47,7 @@ function TextSelectorModal({value, description = '', onValueSelected, isVisible,
                     </View>
                     <Button
                         success
+                        large
                         pressOnEnter
                         text={translate('common.save')}
                         onPress={() => onValueSelected?.(currentValue ?? '')}

@@ -31,7 +31,7 @@ function BaseTextInputWithCurrencySymbol(
     const isCurrencySymbolLTR = CurrencyUtils.isCurrencySymbolLTR(selectedCurrencyCode);
     const styles = useThemeStyles();
 
-    const currencySymbolButton = (
+    const currencySymbolButton = !hideCurrencySymbol && (
         <CurrencySymbolButton
             currencySymbol={currencySymbol ?? ''}
             onCurrencyButtonPress={onCurrencyButtonPress}
@@ -69,7 +69,7 @@ function BaseTextInputWithCurrencySymbol(
     if (isCurrencySymbolLTR) {
         return (
             <>
-                {!hideCurrencySymbol && currencySymbolButton}
+                {currencySymbolButton}
                 {amountTextInput}
                 {extraSymbol}
             </>
@@ -79,7 +79,7 @@ function BaseTextInputWithCurrencySymbol(
     return (
         <>
             {amountTextInput}
-            {!hideCurrencySymbol && currencySymbolButton}
+            {currencySymbolButton}
             {extraSymbol}
         </>
     );
