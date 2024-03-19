@@ -985,27 +985,6 @@ const CONST = {
 
     TOOLTIP_MAX_LINES: 3,
 
-    TAXES: {
-        DEFAULT: {
-            defaultExternalID: 'id_TAX_EXEMPT',
-            defaultValue: '0%',
-            foreignTaxDefault: 'id_TAX_EXEMPT',
-            name: 'Tax',
-            taxes: {
-                id_TAX_EXEMPT: {
-                    name: 'Tax exempt',
-                    value: '0%',
-                    pendingAction: 'add',
-                },
-                id_TAX_RATE_1: {
-                    name: 'Tax rate 1',
-                    value: '5%',
-                    pendingAction: 'add',
-                },
-            },
-        },
-    },
-
     LOGIN_TYPE: {
         PHONE: 'phone',
         EMAIL: 'email',
@@ -4054,8 +4033,28 @@ const CONST = {
     },
 } as const;
 
+const DEFAULT_TAXES_DATA = {
+    defaultExternalID: 'id_TAX_EXEMPT',
+    defaultValue: '0%',
+    foreignTaxDefault: 'id_TAX_EXEMPT',
+    name: 'Tax',
+    taxes: {
+        id_TAX_EXEMPT: {
+            name: 'Tax exempt',
+            value: '0%',
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        },
+        id_TAX_RATE_1: {
+            name: 'Tax rate 1',
+            value: '5%',
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        },
+    },
+};
+
 type Country = keyof typeof CONST.ALL_COUNTRIES;
 
 export type {Country};
+export {DEFAULT_TAXES_DATA};
 
 export default CONST;

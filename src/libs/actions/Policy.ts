@@ -57,7 +57,7 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import CONST from '@src/CONST';
+import CONST, {DEFAULT_TAXES_DATA} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -3421,7 +3421,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    taxRates: CONST.TAXES.DEFAULT,
+                    taxRates: DEFAULT_TAXES_DATA,
                 },
             },
         ],
@@ -3473,7 +3473,9 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
     };
 
     const parameters: EnablePolicyTaxesParams = {policyID, enabled};
-
+    if (shouldAddDefaultTaxRatesData) {
+        parameters.taxFields = DEFAULT_TAXES_DATA;
+    }
     API.write(WRITE_COMMANDS.ENABLE_POLICY_TAXES, parameters, onyxData);
 
     if (enabled) {
