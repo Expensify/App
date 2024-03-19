@@ -51,9 +51,6 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
-    /** Padding bottom style of safe area */
-    safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-
     /** The type of IOU report, i.e. bill, request, send */
     iouType: PropTypes.oneOf(_.values(CONST.IOU.TYPE)).isRequired,
 
@@ -66,7 +63,6 @@ const propTypes = {
 
 const defaultProps = {
     participants: [],
-    safeAreaPaddingBottomStyle: {},
     reports: {},
     betas: [],
     dismissedReferralBanners: {},
@@ -79,7 +75,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     reports,
     onFinish,
     onParticipantsAdded,
-    safeAreaPaddingBottomStyle,
     iouType,
     iouRequestType,
     dismissedReferralBanners,
@@ -333,23 +328,21 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const isOptionsDataReady = useMemo(() => ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails), [personalDetails]);
 
     return (
-        <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
-            <SelectionList
-                onConfirm={handleConfirmSelection}
-                sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
-                ListItem={UserListItem}
-                textInputValue={searchTerm}
-                textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                textInputHint={offlineMessage}
-                onChangeText={setSearchTermAndSearchInServer}
-                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                onSelectRow={addSingleParticipant}
-                footerContent={footerContent}
-                headerMessage={headerMessage}
-                showLoadingPlaceholder={!(didScreenTransitionEnd && isOptionsDataReady)}
-                rightHandSideComponent={itemRightSideComponent}
-            />
-        </View>
+        <SelectionList
+            onConfirm={handleConfirmSelection}
+            sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
+            ListItem={UserListItem}
+            textInputValue={searchTerm}
+            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+            textInputHint={offlineMessage}
+            onChangeText={setSearchTermAndSearchInServer}
+            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+            onSelectRow={addSingleParticipant}
+            footerContent={footerContent}
+            headerMessage={headerMessage}
+            showLoadingPlaceholder={!(didScreenTransitionEnd && isOptionsDataReady)}
+            rightHandSideComponent={itemRightSideComponent}
+        />
     );
 }
 
