@@ -87,8 +87,8 @@ function IOURequestStepDistance({
         if (isOffline || !shouldFetchRoute) {
             return;
         }
-        Transaction.getRoute(transactionID, validatedWaypoints);
-    }, [shouldFetchRoute, transactionID, validatedWaypoints, isOffline]);
+        Transaction.getRoute(transactionID, validatedWaypoints, action === CONST.IOU.ACTION.CREATE);
+    }, [shouldFetchRoute, transactionID, validatedWaypoints, isOffline, action]);
 
     useEffect(() => {
         if (numberOfWaypoints <= numberOfPreviousWaypoints) {

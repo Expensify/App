@@ -20,7 +20,6 @@ export type {default as GetMissingOnyxMessagesParams} from './GetMissingOnyxMess
 export type {default as GetNewerActionsParams} from './GetNewerActionsParams';
 export type {default as GetOlderActionsParams} from './GetOlderActionsParams';
 export type {default as GetReportPrivateNoteParams} from './GetReportPrivateNoteParams';
-export type {default as GetRouteForDraftParams} from './GetRouteForDraftParams';
 export type {default as GetRouteParams} from './GetRouteParams';
 export type {default as GetStatementPDFParams} from './GetStatementPDFParams';
 export type {default as HandleRestrictedEventParams} from './HandleRestrictedEventParams';
