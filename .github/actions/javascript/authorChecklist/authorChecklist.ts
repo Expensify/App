@@ -2,8 +2,8 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import escapeRegExp from 'lodash/escapeRegExp';
-import CONST from '../../../libs/CONST';
-import GithubUtils from '../../../libs/GithubUtils';
+import CONST from '@github/libs/CONST';
+import GithubUtils from '@github/libs/GithubUtils';
 import newComponentCategory from './categories/newComponentCategory';
 
 const pathToAuthorChecklist = `https://raw.githubusercontent.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}/main/.github/PULL_REQUEST_TEMPLATE.md`;
