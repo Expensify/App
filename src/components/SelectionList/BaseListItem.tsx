@@ -71,7 +71,7 @@ function BaseListItem<TItem extends ListItem>({
                 accessibilityLabel={item.text ?? ''}
                 role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}
-                hoverStyle={!item.isSelected && styles.hoveredComponentBG}
+                hoverStyle={!item.isDisabled && !item.isSelected && styles.hoveredComponentBG}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
                 nativeID={keyForList ?? ''}
