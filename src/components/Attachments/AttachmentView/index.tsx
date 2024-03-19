@@ -34,7 +34,7 @@ type AttachmentViewOnyxProps = {
 };
 
 type AttachmentViewProps = AttachmentViewOnyxProps &
-    Attachment & {
+    Omit<Attachment, 'isAuthTokenRequired'> & {
         /** Whether this view is the active screen  */
         isFocused?: boolean;
 
