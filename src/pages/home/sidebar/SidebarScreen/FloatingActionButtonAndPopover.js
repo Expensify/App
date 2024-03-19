@@ -134,12 +134,14 @@ function FloatingActionButtonAndPopover(props) {
 
     const prevIsFocused = usePrevious(props.isFocused);
 
+    let quickAction;
+    let avatars;
     if (props.quickAction) {
-        const quickAction = props.quickAction.action;
+        quickAction = props.quickAction.action;
         const quickActionReportID = props.quickAction.chatReportID;
         const quickActionReport = ReportUtils.getReport(quickActionReportID);
         if (quickActionReport) {
-            const avatars = ReportUtils.getIcons(quickActionReport, props.personalDetails);
+            avatars = ReportUtils.getIcons(quickActionReport, props.personalDetails);
         }
     }
 
@@ -277,6 +279,15 @@ function FloatingActionButtonAndPopover(props) {
                                   onSelected: () => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()),
                               },
                           ]
+                        : []),
+                    ...(props.quickAction
+                        ? [
+                            {
+                                icon: getQuickActionIcon(quickAction),
+                                text: translate(getQuickActionTitle(quickAction)),
+                                description: translate('workspace.new.getTheExpensifyCardAndMore'),
+                            },
+                        ]
                         : []),
                 ]}
                 withoutOverlay
