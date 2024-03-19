@@ -12,8 +12,9 @@ import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import BigNumberPad from './BigNumberPad';
 import FormHelpMessage from './FormHelpMessage';
-import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
+import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import TextInputWithCurrencySymbol from './TextInputWithCurrencySymbol';
+import type TextInputWithCurrencySymbolProps from './TextInputWithCurrencySymbol/types';
 
 type AmountFormProps = {
     /** Amount supplied by the FormProvider */
@@ -36,7 +37,8 @@ type AmountFormProps = {
 
     /** Whether the currency symbol is pressable */
     isCurrencyPressable?: boolean;
-};
+} & Pick<TextInputWithCurrencySymbolProps, 'hideCurrencySymbol' | 'extraSymbol'> &
+    Pick<BaseTextInputProps, 'autoFocus'>;
 
 /**
  * Returns the new selection object based on the updated amount's length
@@ -51,7 +53,7 @@ const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
 function AmountForm(
-    {value: amount, currency = CONST.CURRENCY.USD, extraDecimals = 0, errorText, onInputChange, onCurrencyButtonPress, isCurrencyPressable = true}: AmountFormProps,
+    {value: amount, currency = CONST.CURRENCY.USD, extraDecimals = 0, errorText, onInputChange, onCurrencyButtonPress, isCurrencyPressable = true, ...rest}: AmountFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
     const styles = useThemeStyles();
@@ -214,6 +216,8 @@ function AmountForm(
                     }}
                     onKeyPress={textInputKeyPress}
                     isCurrencyPressable={isCurrencyPressable}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...rest}
                 />
                 {!!errorText && (
                     <FormHelpMessage
@@ -243,3 +247,4 @@ function AmountForm(
 AmountForm.displayName = 'AmountForm';
 
 export default forwardRef(AmountForm);
+export type {AmountFormProps};
