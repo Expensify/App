@@ -1781,6 +1781,9 @@ export default {
             notImported: 'Not imported',
             importedAsTags: 'Imported, displayed as tags',
             importedAsReportFields: 'Imported, displayed as categories',
+            accountsDescription: 'Chart of Accounts import as categories when connected to an accounting integration, this cannot be disabled.',
+            accountsSwitchTitle: 'Enable newly imported Chart of Accounts.',
+            accountsSwitchDescription: 'New categories imported from QuickBooks Online to Expensify will be either enabled or disabled by default.',
         },
         type: {
             free: 'Free',

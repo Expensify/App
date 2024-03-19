@@ -180,6 +180,7 @@ const WRITE_COMMANDS = {
     ACCEPT_JOIN_REQUEST: 'AcceptJoinRequest',
     DECLINE_JOIN_REQUEST: 'DeclineJoinRequest',
     CREATE_POLICY_TAX: 'CreatePolicyTax',
+    UPDATE_POLICY_CONNECTIONS_CONFIGURATION: 'UpdatePolicyConnectionsConfiguration',
     CREATE_POLICY_DISTANCE_RATE: 'CreatePolicyDistanceRate',
 } as const;
 

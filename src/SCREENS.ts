@@ -243,6 +243,11 @@ const SCREENS = {
         CREATE_DISTANCE_RATE: 'Create_Distance_Rate',
         ACCOUNTING: 'Policy_Accounting',
         QUICKBOOKSONLINE_IMPORT: 'Policy_Accounting_QuickbooksOnline_Import',
+        QUICKBOOKSONLINE_CHART_OF_ACCOUNTS: 'Policy_Accounting_QuickbooksOnline_Import_Chart_Of_Accounts',
+        QUICKBOOKSONLINE_CLASSES: 'Policy_Accounting_QuickbooksOnline_Import_Classes',
+        QUICKBOOKSONLINE_CUSTOMER: 'Policy_Accounting_QuickbooksOnline_Import_Customer',
+        QUICKBOOKSONLINE_LOCATIONS: 'Policy_Accounting_QuickbooksOnline_Import_Locations',
+        QUICKBOOKSONLINE_TAXES: 'Policy_Accounting_QuickbooksOnline_Import_Taxes',
     },
 
     EDIT_REQUEST: {

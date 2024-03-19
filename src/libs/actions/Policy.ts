@@ -3258,6 +3258,70 @@ function openPolicyDistanceRatesPage(policyID?: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE, params);
 }
 
+function updatePolicyConnectionConfig(policyID: string, connectionName: string, settingName: string, settingValue: string | boolean) {
+    const parameters = {policyID, connectionName, settingName, settingValue, idempotencyKey: settingName};
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE
+                },
+                connections: {
+                    quickbooksOnline: {
+                        config: {
+                            [settingName]: settingValue,
+                        },
+                    },
+                },
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                errorFields: {
+                    [settingName]: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')
+                },
+                pendingFields: {
+                    [settingName]: null
+                },
+                connections: {
+                    quickbooksOnline: {
+                        config: {
+                            [settingName]: settingValue,
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    [settingName]: null
+                },
+                connections: {
+                    quickbooksOnline: {
+                        config: {
+                            [settingName]: settingValue,
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTIONS_CONFIGURATION, parameters, {optimisticData, failureData, successData});
+}
+
 function navigateWhenEnableFeature(policyID: string, featureRoute: Route) {
     const isNarrowLayout = getIsNarrowLayout();
 
@@ -4066,5 +4130,6 @@ export {
     setWorkspaceTagEnabled,
     setWorkspaceCurrencyDefault,
     setForeignCurrencyDefault,
+    updatePolicyConnectionConfig,
     setPolicyCustomTaxName,
 };

@@ -634,9 +634,25 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import',
         getRoute: (policyID: string) => `workspace/${policyID}/connections/quickbooks-online/import` as const,
     },
-    POLICY_ACCOUNTING_QUICKBOOKSONLINE_OPTION: {
-        route: 'workspace/:policyID/accounting/quickbooks-online/import/:option',
-        getRoute: (policyID: string, option: string) => `workspace/${policyID}/connections/quickbooks-online/import/${option}` as const,
+    POLICY_ACCOUNTING_QUICKBOOKSONLINE_CHART_OF_ACCOUNTS: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/accounts',
+        getRoute: (policyID: string) => `workspace/${policyID}/connections/quickbooks-online/import/accounts` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKSONLINE_CLASSES: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/classes',
+        getRoute: (policyID: string) => `workspace/${policyID}/connections/quickbooks-online/import/classes` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKSONLINE_CUSTOMER: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/customers',
+        getRoute: (policyID: string) => `workspace/${policyID}/connections/quickbooks-online/import/customers` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKSONLINE_LOCATIONS: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/locations',
+        getRoute: (policyID: string) => `workspace/${policyID}/connections/quickbooks-online/import/locations` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKSONLINE_TAXES: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/taxes',
+        getRoute: (policyID: string) => `workspace/${policyID}/connections/quickbooks-online/import/taxes` as const,
     },
 } as const;
 
