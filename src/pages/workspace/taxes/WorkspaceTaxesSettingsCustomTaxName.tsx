@@ -1,8 +1,9 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -12,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setPolicyCustomTaxName} from '@libs/actions/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -35,6 +37,17 @@ function WorkspaceTaxesSettingsCustomTaxName({
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
+    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CUSTOM_NAME>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CUSTOM_NAME> = {};
+        const customTaxName = values[INPUT_IDS.NAME];
+
+        if (!ValidationUtils.isRequiredFulfilled(customTaxName)) {
+            errors.name = 'workspace.taxes.errors.customNameRequired';
+        }
+
+        return errors;
+    }, []);
+
     const submit = ({name}: WorkspaceTaxCustomName) => {
         setPolicyCustomTaxName(policyID, name);
         Navigation.goBack(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID));
@@ -57,6 +70,7 @@ function WorkspaceTaxesSettingsCustomTaxName({
                         style={[styles.flexGrow1, styles.ph5]}
                         scrollContextEnabled
                         enabledWhenOffline
+                        validate={validate}
                         onSubmit={submit}
                     >
                         <View style={styles.mb4}>

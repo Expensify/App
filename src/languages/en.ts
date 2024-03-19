@@ -1870,6 +1870,7 @@ export default {
                 taxRateAlreadyExists: 'This tax name is already in use.',
                 valuePercentageRange: 'Please enter a valid percentage between 0 and 100.',
                 genericFailureMessage: 'An error occurred while updating the tax rate, please try again.',
+                customNameRequired: 'Custom tax name is required.',
             },
         },
         emptyWorkspace: {
