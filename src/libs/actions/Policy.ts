@@ -82,7 +82,7 @@ import type {
     ReportAction,
     Transaction,
 } from '@src/types/onyx';
-import type {Errors, OnyxValueWithOfflineFeedback, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OriginalMessageJoinPolicyChangeLog} from '@src/types/onyx/OriginalMessage';
 import type {Attributes, CustomUnit, Rate, Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -3893,6 +3893,16 @@ function clearCreateDistanceRateItemAndError(policyID: string, customUnitID: str
     });
 }
 
+function clearPolicyDistanceRatesErrorFields(policyID: string, customUnitID: string, updatedErrorFields: ErrorFields) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        customUnits: {
+            [customUnitID]: {
+                errorFields: updatedErrorFields,
+            },
+        },
+    });
+}
+
 function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: CustomUnit) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -3902,7 +3912,7 @@ function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomU
                 customUnits: {
                     [newCustomUnit.customUnitID]: {
                         ...newCustomUnit,
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        pendingFields: {attributes: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                     },
                 },
             },
@@ -3916,7 +3926,7 @@ function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomU
             value: {
                 customUnits: {
                     [newCustomUnit.customUnitID]: {
-                        pendingAction: null,
+                        pendingFields: null,
                     },
                 },
             },
@@ -3931,8 +3941,8 @@ function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomU
                 customUnits: {
                     [currentCustomUnit.customUnitID]: {
                         ...currentCustomUnit,
-                        errors: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage'),
-                        pendingAction: null,
+                        errorFields: {attributes: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                        pendingFields: {attributes: null},
                     },
                 },
             },
@@ -3956,7 +3966,7 @@ function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUn
                 customUnits: {
                     [newCustomUnit.customUnitID]: {
                         ...newCustomUnit,
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        pendingFields: {defaultCategory: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                     },
                 },
             },
@@ -3970,7 +3980,7 @@ function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUn
             value: {
                 customUnits: {
                     [newCustomUnit.customUnitID]: {
-                        pendingAction: null,
+                        pendingFields: {defaultCategory: null},
                     },
                 },
             },
@@ -3985,8 +3995,8 @@ function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUn
                 customUnits: {
                     [currentCustomUnit.customUnitID]: {
                         ...currentCustomUnit,
-                        errors: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage'),
-                        pendingAction: null,
+                        errorFields: {defaultCategory: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                        pendingFields: {defaultCategory: null},
                     },
                 },
             },
@@ -4243,4 +4253,5 @@ export {
     setWorkspaceCurrencyDefault,
     setForeignCurrencyDefault,
     setPolicyCustomTaxName,
+    clearPolicyDistanceRatesErrorFields,
 };
