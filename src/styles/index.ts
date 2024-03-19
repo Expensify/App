@@ -1579,7 +1579,6 @@ const styles = (theme: ThemeColors) =>
 
         welcomeVideoNarrowLayout: {
             width: variables.onboardingModalWidth,
-            paddingBottom: 20,
         },
 
         onlyEmojisText: {

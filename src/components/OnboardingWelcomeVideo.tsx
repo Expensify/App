@@ -10,6 +10,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import Button from './Button';
 import Lottie from './Lottie';
+import SafeAreaConsumer from './SafeAreaConsumer';
 import LottieAnimations from './LottieAnimations';
 import Modal from './Modal';
 import Text from './Text';
@@ -119,29 +120,33 @@ function OnboardingWelcomeVideo() {
     };
 
     return (
-        <Modal
-            isVisible={isModalVisible}
-            type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.CENTERED_SMALL : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
-            onClose={closeModal}
-            innerContainerStyle={shouldUseNarrowLayout ? undefined : {paddingTop: MODAL_PADDING, paddingBottom: MODAL_PADDING}}
-        >
-            <View style={[styles.mh100, shouldUseNarrowLayout && styles.welcomeVideoNarrowLayout]}>
-                <View style={shouldUseNarrowLayout ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{getWelcomeVideo()}</View>
-                <View style={[shouldUseNarrowLayout ? [styles.mt5, styles.mh8] : [styles.mt5, styles.mh5]]}>
-                    <View style={[shouldUseNarrowLayout ? [styles.gap1, styles.mb8] : [styles.gap2, styles.mb10]]}>
-                        <Text style={styles.textHeroSmall}>{translate('onboarding.welcomeVideo.title')}</Text>
-                        <Text style={styles.textSupporting}>{translate('onboarding.welcomeVideo.description')}</Text>
+        <SafeAreaConsumer>
+            {({safeAreaPaddingBottomStyle}) => (
+                <Modal
+                    isVisible={isModalVisible}
+                    type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.CENTERED_SMALL : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+                    onClose={closeModal}
+                    innerContainerStyle={{paddingBottom: 20, paddingTop: shouldUseNarrowLayout ? undefined : MODAL_PADDING}}
+                >
+                    <View style={[styles.mh100, shouldUseNarrowLayout && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
+                        <View style={shouldUseNarrowLayout ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{getWelcomeVideo()}</View>
+                        <View style={[shouldUseNarrowLayout ? [styles.mt5, styles.mh8] : [styles.mt5, styles.mh5]]}>
+                            <View style={[shouldUseNarrowLayout ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
+                                <Text style={styles.textHeroSmall}>{translate('onboarding.welcomeVideo.title')}</Text>
+                                <Text style={styles.textSupporting}>{translate('onboarding.welcomeVideo.description')}</Text>
+                            </View>
+                            <Button
+                                large
+                                success
+                                pressOnEnter
+                                onPress={closeModal}
+                                text={translate('onboarding.welcomeVideo.button')}
+                            />
+                        </View>
                     </View>
-                    <Button
-                        large
-                        success
-                        pressOnEnter
-                        onPress={closeModal}
-                        text={translate('onboarding.welcomeVideo.button')}
-                    />
-                </View>
-            </View>
-        </Modal>
+                </Modal>
+            )}
+        </SafeAreaConsumer>
     );
 }
 

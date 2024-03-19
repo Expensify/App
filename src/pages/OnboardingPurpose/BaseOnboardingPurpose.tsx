@@ -7,6 +7,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import type {MenuItemProps} from '@components/MenuItem';
+import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import MenuItemList from '@components/MenuItemList';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -107,35 +108,39 @@ function BaseOnboardingPurpose({shouldUseNativeStyles}: BaseOnboardingPurposePro
     });
 
     return (
-        <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
-            <View style={shouldUseNarrowLayout && styles.mh3}>
-                <HeaderWithBackButton
-                    shouldShowBackButton
-                    onBackButtonPress={handleGoBack}
-                    progressBarPercentage={66.6}
-                />
-            </View>
-            <ScrollView style={[styles.flex1, styles.flexGrow1, styles.mt5, !shouldUseNarrowLayout && styles.mb5, paddingHorizontal]}>
-                <View style={styles.flex1}>
-                    <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                        <Text style={styles.textHeroSmall}>{translate('onboarding.purpose.title')} </Text>
+        <SafeAreaConsumer>
+            {({safeAreaPaddingBottomStyle}) => (
+                <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8, safeAreaPaddingBottomStyle]}>
+                    <View style={shouldUseNarrowLayout && styles.mh3}>
+                        <HeaderWithBackButton
+                            shouldShowBackButton
+                            onBackButtonPress={handleGoBack}
+                            progressBarPercentage={66.6}
+                        />
                     </View>
-                    <MenuItemList
-                        menuItems={menuItems}
-                        shouldUseSingleExecution
-                    />
+                    <ScrollView style={[styles.flex1, styles.flexGrow1, styles.mt5, !shouldUseNarrowLayout && styles.mb5, paddingHorizontal]}>
+                        <View style={styles.flex1}>
+                            <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                                <Text style={styles.textHeroSmall}>{translate('onboarding.purpose.title')} </Text>
+                            </View>
+                            <MenuItemList
+                                menuItems={menuItems}
+                                shouldUseSingleExecution
+                            />
+                        </View>
+                    </ScrollView>
+                    <View style={[styles.mb5, paddingHorizontal]}>
+                        <Button
+                            large
+                            success
+                            onPress={completeEngagement}
+                            isDisabled={!selectedPurpose}
+                            text={translate('common.continue')}
+                        />
+                    </View>
                 </View>
-            </ScrollView>
-            <View style={[styles.pb5, paddingHorizontal]}>
-                <Button
-                    large
-                    success
-                    onPress={completeEngagement}
-                    isDisabled={!selectedPurpose}
-                    text={translate('common.continue')}
-                />
-            </View>
-        </View>
+            )}
+        </SafeAreaConsumer>
     );
 }
 
