@@ -215,6 +215,7 @@ const SCREENS = {
         TAGS: 'Workspace_Tags',
         TAGS_SETTINGS: 'Tags_Settings',
         TAGS_EDIT: 'Tags_Edit',
+        TAG_EDIT: 'Tag_Edit',
         TAXES: 'Workspace_Taxes',
         TAXES_SETTINGS: 'Workspace_Taxes_Settings',
         TAXES_SETTINGS_CUSTOM_TAX_NAME: 'Workspace_Taxes_Settings_CustomTaxName',
