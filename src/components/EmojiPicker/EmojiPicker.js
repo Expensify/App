@@ -210,6 +210,7 @@ const EmojiPicker = forwardRef((props, ref) => {
             innerContainerStyle={styles.popoverInnerContainer}
             anchorDimensions={emojiAnchorDimission.current}
             avoidKeyboard
+            shoudSwitchPositionIfOverflow
         >
             <EmojiPickerMenu
                 onEmojiSelected={selectEmoji}

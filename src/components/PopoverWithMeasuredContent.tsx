@@ -17,6 +17,9 @@ type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition' | key
 
     /** The dimension of anchor component */
     anchorDimensions?: AnchorDimensions;
+
+    /** Whether we should change the vertical position if the popover's position is overflow */
+    shoudSwitchPositionIfOverflow?: boolean;
 };
 
 /**
@@ -49,6 +52,7 @@ function PopoverWithMeasuredContent({
         height: 0,
         width: 0,
     },
+    shoudSwitchPositionIfOverflow = false,
     ...props
 }: PopoverWithMeasuredContentProps) {
     const styles = useThemeStyles();
@@ -117,7 +121,13 @@ function PopoverWithMeasuredContent({
     }, [anchorPosition, anchorAlignment, popoverWidth, popoverHeight]);
 
     const horizontalShift = PopoverWithMeasuredContentUtils.computeHorizontalShift(adjustedAnchorPosition.left, popoverWidth, windowWidth);
-    const verticalShift = PopoverWithMeasuredContentUtils.computeVerticalShift(adjustedAnchorPosition.top, popoverHeight, windowHeight, anchorDimensions.height);
+    const verticalShift = PopoverWithMeasuredContentUtils.computeVerticalShift(
+        adjustedAnchorPosition.top,
+        popoverHeight,
+        windowHeight,
+        anchorDimensions.height,
+        shoudSwitchPositionIfOverflow,
+    );
     const shiftedAnchorPosition = {
         left: adjustedAnchorPosition.left + horizontalShift,
         bottom: windowHeight - (adjustedAnchorPosition.top + popoverHeight) - verticalShift,
