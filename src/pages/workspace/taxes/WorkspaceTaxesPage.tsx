@@ -192,35 +192,34 @@ function WorkspaceTaxesPage({
         return options;
     }, [policy?.taxRates?.taxes, selectedTaxesIDs, toggleTaxes, translate]);
 
-    const headerButtons = (
+    const headerButtons = !selectedTaxesIDs.length ? (
         <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
-            {!selectedTaxesIDs.length ? (
-                <>
-                    <Button
-                        medium
-                        success
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_CREATE.getRoute(policyID))}
-                        icon={Expensicons.Plus}
-                        text={translate('workspace.taxes.addRate')}
-                        style={[styles.mr3, isSmallScreenWidth && styles.w50]}
-                    />
-                    <Button
-                        medium
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID))}
-                        icon={Expensicons.Gear}
-                        text={translate('common.settings')}
-                        style={[isSmallScreenWidth && styles.w50]}
-                    />
-                </>
-            ) : (
-                <ButtonWithDropdownMenu<WorkspaceTaxRatesBulkActionType>
-                    onPress={() => {}}
-                    options={dropdownMenuOptions}
-                    buttonSize="medium"
-                    customText={`${selectedTaxesIDs.length} selected`}
-                />
-            )}
+            <Button
+                medium
+                success
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_CREATE.getRoute(policyID))}
+                icon={Expensicons.Plus}
+                text={translate('workspace.taxes.addRate')}
+                style={[styles.mr3, isSmallScreenWidth && styles.w50]}
+            />
+            <Button
+                medium
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID))}
+                icon={Expensicons.Gear}
+                text={translate('common.settings')}
+                style={[isSmallScreenWidth && styles.w50]}
+            />
         </View>
+    ) : (
+        <ButtonWithDropdownMenu<WorkspaceTaxRatesBulkActionType>
+            onPress={() => {}}
+            options={dropdownMenuOptions}
+            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+            customText={translate('workspace.common.selected', {selectedNumber: selectedTaxesIDs.length})}
+            shouldAlwaysShowDropdownMenu
+            pressOnEnter
+            style={[isSmallScreenWidth && styles.w50, isSmallScreenWidth && styles.mb3]}
+        />
     );
 
     return (
