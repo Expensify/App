@@ -141,7 +141,7 @@ function AttachmentPickerWithMenuItems({
             [CONST.IOU.TYPE.TRACK_EXPENSE]: {
                 icon: Expensicons.TrackExpense,
                 text: translate('iou.trackExpense'),
-                onSelected: () => IOU.startMoneyRequest_temporaryForRefactor(CONST.IOU.TYPE.TRACK_EXPENSE, report?.reportID ?? ''),
+                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK_EXPENSE, report?.reportID ?? ''),
             },
         };
 
