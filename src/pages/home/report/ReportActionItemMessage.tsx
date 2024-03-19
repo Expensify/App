@@ -58,11 +58,11 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
         const originalMessage = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? action.originalMessage : null;
         const iouReportID = originalMessage?.IOUReportID;
         if (iouReportID) {
-            iouMessage = ReportUtils.getReportPreviewMessage(ReportUtils.getReport(iouReportID), action, false, false, null, false, true);
+            iouMessage = ReportUtils.getIOUReportActionDisplayMessage(action);
         }
     }
 
-    const isApprovedOrSubmittedReportAction = [CONST.REPORT.ACTIONS.TYPE.APPROVED, CONST.REPORT.ACTIONS.TYPE.SUBMITTED].some((type) => type === action.actionName);
+    const isApprovedOrSubmittedReportAction = ReportActionsUtils.isApprovedOrSubmittedReportAction(action);
 
     const isHoldReportAction = [CONST.REPORT.ACTIONS.TYPE.HOLD, CONST.REPORT.ACTIONS.TYPE.UNHOLD].some((type) => type === action.actionName);
 
@@ -80,6 +80,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
                 iouMessage={iouMessage}
                 isThreadParentMessage={ReportActionsUtils.isThreadParentMessage(action, reportID)}
                 pendingAction={action.pendingAction}
+                actionName={action.actionName}
                 source={(action.originalMessage as OriginalMessageAddComment['originalMessage'])?.source}
                 accountID={action.actorAccountID ?? 0}
                 style={style}

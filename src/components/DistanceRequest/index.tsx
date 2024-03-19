@@ -2,6 +2,7 @@ import type {RouteProp} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -28,6 +29,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import DistanceRequestFooter from './DistanceRequestFooter';
 import DistanceRequestRenderItem from './DistanceRequestRenderItem';
 
@@ -176,7 +178,7 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
         );
     };
 
-    const getError = () => {
+    const getError = useCallback(() => {
         // Get route error if available else show the invalid number of waypoints error.
         if (hasRouteError) {
             return ErrorUtils.getLatestErrorField((transaction ?? {}) as Transaction, 'route');
@@ -186,8 +188,12 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
             // eslint-disable-next-line @typescript-eslint/naming-convention
             return {0: 'iou.error.atLeastTwoDifferentWaypoints'};
         }
-        return {};
-    };
+
+        if (Object.keys(validatedWaypoints).length < Object.keys(waypoints).length) {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            return {0: translate('iou.error.duplicateWaypointsErrorMessage')};
+        }
+    }, [translate, transaction, hasRouteError, validatedWaypoints, waypoints]);
 
     const updateWaypoints = useCallback(
         ({data}: DraggableListData<string>) => {
@@ -196,22 +202,27 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
             }
 
             const newWaypoints: WaypointCollection = {};
+            let emptyWaypointIndex = -1;
             data.forEach((waypoint, index) => {
                 newWaypoints[`waypoint${index}`] = waypoints?.[waypoint] ?? {};
+                // Find waypoint that BECOMES empty after dragging
+                if (isEmptyObject(newWaypoints[`waypoint${index}`]) && !isEmptyObject(waypoints[`waypoint${index}`])) {
+                    emptyWaypointIndex = index;
+                }
             });
 
             setOptimisticWaypoints(newWaypoints);
             // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
-            TransactionUserActions.updateWaypoints(transactionID, newWaypoints).then(() => {
+            Promise.all([TransactionUserActions.removeWaypoint(transaction, emptyWaypointIndex.toString()), TransactionUserActions.updateWaypoints(transactionID, newWaypoints)]).then(() => {
                 setOptimisticWaypoints(undefined);
             });
         },
-        [transactionID, waypoints, waypointsList],
+        [transactionID, transaction, waypoints, waypointsList],
     );
 
     const submitWaypoints = useCallback(() => {
         // If there is any error or loading state, don't let user go to next page.
-        if (Object.keys(validatedWaypoints).length < 2 || hasRouteError || isLoadingRoute || (isLoading && !isOffline)) {
+        if (!isEmptyObject(getError()) || isLoadingRoute || (isLoading && !isOffline)) {
             setHasError(true);
             return;
         }
@@ -221,7 +232,7 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
         }
 
         onSubmit(waypoints);
-    }, [onSubmit, setHasError, hasRouteError, isLoadingRoute, isLoading, validatedWaypoints, waypoints, isEditingNewRequest, isEditingRequest, isOffline]);
+    }, [onSubmit, setHasError, getError, isLoadingRoute, isLoading, waypoints, isEditingNewRequest, isEditingRequest, isOffline]);
 
     const content = (
         <>
@@ -254,16 +265,17 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
             </View>
             <View style={[styles.w100, styles.pt2]}>
                 {/* Show error message if there is route error or there are less than 2 routes and user has tried submitting, */}
-                {((hasError && Object.keys(validatedWaypoints).length < 2) || hasRouteError) && (
+                {((hasError && !isEmptyObject(getError())) || hasRouteError) && (
                     <DotIndicatorMessage
                         style={[styles.mh4, styles.mv3]}
-                        messages={getError()}
+                        messages={getError() ?? {}}
                         type="error"
                     />
                 )}
                 <Button
                     success
                     allowBubble
+                    large
                     pressOnEnter
                     style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                     onPress={submitWaypoints}

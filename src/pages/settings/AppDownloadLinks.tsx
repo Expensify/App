@@ -1,11 +1,11 @@
 import React, {useRef} from 'react';
-import {ScrollView} from 'react-native';
 import type {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -47,7 +47,7 @@ function AppDownloadLinksPage() {
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.desktop.label',
             action: () => {
-                Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.DESKTOP);
+                Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.DESKTOP, true);
             },
             link: CONST.APP_DOWNLOAD_LINKS.DESKTOP,
             icon: Expensicons.Monitor,

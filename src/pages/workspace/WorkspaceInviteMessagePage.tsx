@@ -85,7 +85,6 @@ function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsT
         Keyboard.dismiss();
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
         Policy.addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, welcomeNote ?? '', route.params.policyID);
-        Policy.setWorkspaceInviteMembersDraft(route.params.policyID, {});
         SearchInputManager.searchInput = '';
         // Pop the invite message page before navigating to the members page.
         Navigation.goBack();
@@ -116,7 +115,8 @@ function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsT
             <FullPageNotFoundView
                 shouldShow={isEmptyObject(policy) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
+                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
             >
                 <HeaderWithBackButton
                     title={translate('workspace.inviteMessage.inviteMessageTitle')}
