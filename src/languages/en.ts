@@ -2358,6 +2358,12 @@ export default {
         accept: 'Accept',
         decline: 'Decline',
     },
+    actionableMentionTrackExpense: {
+        request: 'Request someone to pay it',
+        categorize: 'Categorize it',
+        share: 'Share it with my accountant',
+        nothing: 'Nothing for now'
+    },
     teachersUnitePage: {
         teachersUnite: 'Teachers Unite',
         joinExpensifyOrg: 'Join Expensify.org in eliminating injustice around the world and help teachers split their expenses for classrooms in need!',

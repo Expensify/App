@@ -2827,6 +2827,12 @@ export default {
         accept: 'Aceptar',
         decline: 'Rechazar',
     },
+    actionableMentionTrackExpense: {
+        request: 'Request someone to pay it',
+        categorize: 'Categorize it',
+        share: 'Share it with my accountant',
+        nothing: 'Nothing for now'
+    },
     moderation: {
         flagDescription: 'Todos los mensajes marcados se enviarán a un moderador para su revisión.',
         chooseAReason: 'Elige abajo un motivo para reportarlo:',

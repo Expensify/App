@@ -581,9 +581,10 @@ const CONST = {
             LIMIT: 50,
             // OldDot Actions render getMessage from Web-Expensify/lib/Report/Action PHP files via getMessageOfOldDotReportAction in ReportActionsUtils.ts
             TYPE: {
-                ACTIONABLEMENTIONWHISPER: 'ACTIONABLEMENTIONWHISPER',
-                ADDCOMMENT: 'ADDCOMMENT',
                 ACTIONABLEJOINREQUEST: 'ACTIONABLEJOINREQUEST',
+                ACTIONABLEMENTIONWHISPER: 'ACTIONABLEMENTIONWHISPER',
+                ACTIONABLETRACKEXPENSEWHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
+                ADDCOMMENT: 'ADDCOMMENT',
                 APPROVED: 'APPROVED',
                 CHANGEFIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGEPOLICY: 'CHANGEPOLICY', // OldDot Action
