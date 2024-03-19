@@ -40,7 +40,7 @@ function AnimatedEmptyStateBackground() {
         return {
             // On Android, scroll view sub views gets clipped beyond container bounds. Set the top position so that image wouldn't get clipped
             top: IMAGE_OFFSET_Y,
-            transform: [{translateX: withSpring(xOffset.value)}, {translateY: withSpring(yOffset.value)}, {scale: 1.15}],
+            transform: [{translateX: withSpring(xOffset.value)}, {translateY: withSpring(yOffset.value, {overshootClamping: true})}, {scale: 1.15}],
         };
     }, [isReducedMotionEnabled]);
 
