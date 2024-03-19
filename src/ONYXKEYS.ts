@@ -113,6 +113,9 @@ const ONYXKEYS = {
     /** Contains the users's block expiration (if they have one) */
     NVP_BLOCKED_FROM_CONCIERGE: 'private_blockedFromConcierge',
 
+    /** Whether the user is blocked from chat */
+    NVP_BLOCKED_FROM_CHAT: 'nvp_privateBlockedFromChat',
+
     /** A unique identifier that each user has that's used to send notifications */
     NVP_PRIVATE_PUSH_NOTIFICATION_ID: 'private_pushNotificationID',
 
@@ -533,6 +536,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.BETAS]: OnyxTypes.Beta[];
     [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;
     [ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE]: OnyxTypes.BlockedFromConcierge;
+    [ONYXKEYS.NVP_BLOCKED_FROM_CHAT]: boolean;
     [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: string;
     [ONYXKEYS.NVP_TRY_FOCUS_MODE]: boolean;
     [ONYXKEYS.NVP_HOLD_USE_EXPLAINED]: boolean;
