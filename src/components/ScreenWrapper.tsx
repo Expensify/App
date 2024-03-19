@@ -1,7 +1,7 @@
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
 import type {ForwardedRef, ReactNode} from 'react';
-import React, {forwardRef, useEffect, useRef, useState} from 'react';
+import React, {createContext, forwardRef, useEffect, useMemo, useRef, useState} from 'react';
 import type {DimensionValue, StyleProp, ViewStyle} from 'react-native';
 import {Keyboard, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
@@ -97,6 +97,8 @@ type ScreenWrapperProps = {
     /** Whether to show offline indicator on wide screens */
     shouldShowOfflineIndicatorInWideScreen?: boolean;
 };
+
+const ScreenWrapperStatusContext = createContext({didScreenTransitionEnd: false});
 
 function ScreenWrapper(
     {
@@ -200,6 +202,7 @@ function ScreenWrapper(
     }, []);
 
     const isAvoidingViewportScroll = useTackInputFocus(shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && Browser.isMobileSafari());
+    const contextValue = useMemo(() => ({didScreenTransitionEnd}), [didScreenTransitionEnd]);
 
     return (
         <SafeAreaConsumer>
@@ -250,16 +253,18 @@ function ScreenWrapper(
                                     <HeaderGap styles={headerGapStyles} />
                                     <TestToolsModal />
                                     {isDevelopment && <CustomDevMenu />}
-                                    {
-                                        // If props.children is a function, call it to provide the insets to the children.
-                                        typeof children === 'function'
-                                            ? children({
-                                                  insets,
-                                                  safeAreaPaddingBottomStyle,
-                                                  didScreenTransitionEnd,
-                                              })
-                                            : children
-                                    }
+                                    <ScreenWrapperStatusContext.Provider value={contextValue}>
+                                        {
+                                            // If props.children is a function, call it to provide the insets to the children.
+                                            typeof children === 'function'
+                                                ? children({
+                                                      insets,
+                                                      safeAreaPaddingBottomStyle,
+                                                      didScreenTransitionEnd,
+                                                  })
+                                                : children
+                                        }
+                                    </ScreenWrapperStatusContext.Provider>
                                     {isSmallScreenWidth && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
                                     {!isSmallScreenWidth && shouldShowOfflineIndicatorInWideScreen && (
                                         <OfflineIndicator
@@ -280,3 +285,5 @@ function ScreenWrapper(
 ScreenWrapper.displayName = 'ScreenWrapper';
 
 export default forwardRef(ScreenWrapper);
+
+export {ScreenWrapperStatusContext};
