@@ -1,7 +1,6 @@
 import React, {useMemo} from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
-import {FlatList} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {FlatList, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
@@ -15,13 +14,9 @@ import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ReportAction, Transaction} from '@src/types/onyx';
-import type {Reservation, ReservationType} from '@src/types/onyx/Transaction';
-import IconAsset from '@src/types/utils/IconAsset';
-
-const reservations: Reservation[] = [];
+import type {ReportAction} from '@src/types/onyx';
+import type {Reservation} from '@src/types/onyx/Transaction';
 
 type TripRoomPreviewOnyxProps = {
     /** All the transactions, used to update ReportPreview label and status */
@@ -117,6 +112,11 @@ function TripRoomPreview({action, iouReportID, containerStyles}: TripRoomPreview
     const tripTransactions = ReportUtils.getTripTransactions(iouReportID);
 
     const renderItem = ({item}: {item: Reservation}) => <ReservationRow reservation={item} />;
+
+    const reservations: Reservation[] = tripTransactions
+        .map((item) => item?.reservationList ?? [])
+        .filter((item) => item.length > 0)
+        .flat();
 
     return (
         <OfflineWithFeedback
