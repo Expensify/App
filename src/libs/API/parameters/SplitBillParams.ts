@@ -13,6 +13,7 @@ type SplitBillParams = {
     reportActionID: string;
     createdReportActionID?: string;
     policyID?: string;
+    chatType?: string;
 };
 
 export default SplitBillParams;

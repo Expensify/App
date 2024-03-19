@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import doInteractionTask from '@libs/DoInteractionTask';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -167,10 +168,19 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
      * or navigates to the existing chat if one with those participants already exists.
      */
     const createChat = (option: OptionData) => {
-        if ((!option.login && selectedOptions.length !== 1) || !selectedOptions[0].login) {
+        let login = '';
+
+        if (selectedOptions.length === 1) {
+            login = selectedOptions[0].login ?? '';
+        } else if (option.login) {
+            login = option.login;
+        }
+
+        if (!login) {
+            Log.warn('Tried to create chat with empty login');
             return;
         }
-        const login = option.login ?? selectedOptions[0].login;
+
         Report.navigateToAndOpenReport([login]);
     };
     /**

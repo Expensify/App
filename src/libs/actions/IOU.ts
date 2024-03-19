@@ -2077,6 +2077,7 @@ function splitBillAndOpenReport(
         reportActionID: splitData.reportActionID,
         createdReportActionID: splitData.createdReportActionID,
         policyID: splitData.policyID,
+        chatType: participants.length > 1 ? CONST.REPORT.CHAT_TYPE.GROUP_CHAT : '',
     };
 
     API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
