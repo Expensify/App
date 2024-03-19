@@ -176,7 +176,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                             title={hasVBA ? translate('common.bankAccount') : translate('workflowsPage.connectBankAccount')}
                             description={state === BankAccount.STATE.OPEN ? bankDisplayName : undefined}
                             onPress={() => {
-                                if (!Policy.hasValidCurrencyForDirectReimbursement(policy?.outputCurrency ?? '')) {
+                                if (!Policy.hasCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
                                     setIsCurrencyModalOpen(true);
                                     return;
                                 }

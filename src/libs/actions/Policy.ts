@@ -249,8 +249,8 @@ function updateLastAccessedWorkspace(policyID: OnyxEntry<string>) {
     Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID);
 }
 
-function hasValidCurrencyForDirectReimbursement(currency: string) {
-    return CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(currency as typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES[number]);
+function hasCurrencySupportedForDirectReimbursement(currency: string) {
+    return CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(currency as (typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES)[number]);
 }
 /**
  * Check if the user has any active free policies (aka workspaces)
@@ -666,7 +666,7 @@ function setWorkspacePayer(policyID: string, reimburserEmail: string, reimburser
 
 function clearPolicyErrorField(policyID: string, fieldName: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {[fieldName]: null}});
-} 
+}
 
 function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>, reimburserAccountID: number, reimburserEmail: string) {
     const policy = ReportUtils.getPolicy(policyID);
@@ -3916,5 +3916,5 @@ export {
     deleteWorkspaceCategories,
     setWorkspaceTagEnabled,
     clearPolicyErrorField,
-    hasValidCurrencyForDirectReimbursement,
+    hasCurrencySupportedForDirectReimbursement,
 };
