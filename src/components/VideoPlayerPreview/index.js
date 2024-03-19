@@ -6,13 +6,13 @@ import VideoPlayer from '@components/VideoPlayer';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import VideoPlayerThumbnail from './VideoPlayerThumbnail';
-import useTheme from '@hooks/useTheme';
-import useStyleUtils from '@hooks/useStyleUtils';
 
 const propTypes = {
     videoUrl: PropTypes.string.isRequired,
