@@ -177,7 +177,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
             const enabledCategories = selectedCategoriesArray.filter((categoryName) => policyCategories?.[categoryName]?.enabled);
             if (enabledCategories.length > 0) {
                 const categoriesToDisable = selectedCategoriesArray
-                    .filter((categoryName) => policyCategories?.[categoryName].enabled)
+                    .filter((categoryName) => policyCategories?.[categoryName]?.enabled)
                     .reduce<Record<string, {name: string; enabled: boolean}>>((acc, categoryName) => {
                         acc[categoryName] = {
                             name: categoryName,
@@ -197,10 +197,10 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                 });
             }
 
-            const disabledCategories = selectedCategoriesArray.filter((categoryName) => !policyCategories?.[categoryName].enabled);
+            const disabledCategories = selectedCategoriesArray.filter((categoryName) => !policyCategories?.[categoryName]?.enabled);
             if (disabledCategories.length > 0) {
                 const categoriesToEnable = selectedCategoriesArray
-                    .filter((categoryName) => !policyCategories?.[categoryName].enabled)
+                    .filter((categoryName) => !policyCategories?.[categoryName]?.enabled)
                     .reduce<Record<string, {name: string; enabled: boolean}>>((acc, categoryName) => {
                         acc[categoryName] = {
                             name: categoryName,

@@ -295,6 +295,7 @@ function IOURequestStepConfirmation({
                     transaction.tag,
                     report.reportID,
                     transaction.billable,
+                    transaction.iouRequestType,
                 );
                 return;
             }
@@ -313,6 +314,7 @@ function IOURequestStepConfirmation({
                     transaction.category,
                     transaction.tag,
                     transaction.billable,
+                    transaction.iouRequestType,
                 );
                 return;
             }
