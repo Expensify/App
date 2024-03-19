@@ -13,6 +13,7 @@ import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAcce
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyCategories} from '@src/types/onyx';
 import CategoryForm from './CategoryForm';
@@ -27,12 +28,13 @@ type EditCategoryPageProps = WorkspaceEditCategoryPageOnyxProps & StackScreenPro
 function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const currentCategoryName = route.params.categoryName;
 
     const editCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-            Policy.renamePolicyCategory(route.params.policyID, {oldName: route.params.categoryName, newName: values.categoryName});
+            Policy.renamePolicyCategory(route.params.policyID, {oldName: currentCategoryName, newName: values.categoryName});
         },
-        [route.params.categoryName, route.params.policyID],
+        [currentCategoryName, route.params.policyID],
     );
 
     return (
@@ -46,11 +48,11 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
                 >
                     <HeaderWithBackButton
                         title={translate('workspace.categories.editCategory')}
-                        onBackButtonPress={Navigation.goBack}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName))}
                     />
                     <CategoryForm
                         onSubmit={editCategory}
-                        categoryName={route.params.categoryName}
+                        categoryName={currentCategoryName}
                         policyCategories={policyCategories}
                     />
                 </ScreenWrapper>
