@@ -366,11 +366,11 @@ function ReportActionItem({
         const isWhisperResolution = (action?.originalMessage as OriginalMessageActionableMentionWhisper['originalMessage'])?.resolution !== null;
         const isJoinChoice = (action?.originalMessage as OriginalMessageJoinPolicyChangeLog['originalMessage'])?.choice === '';
 
-        if (!((ReportActionsUtils.isActionableMentionWhisper(action) && isWhisperResolution) || (ReportActionsUtils.isActionableJoinRequest(action) && isJoinChoice))) {
+        if (!((ReportActionsUtils.isActionableMentionWhisper(action) && isWhisperResolution) || (ReportActionsUtils.isActionableJoinRequest(action) && isJoinChoice) || ReportActionsUtils.isActionableTrackExpense(action))) {
             return [];
         }
 
-        if (ReportActionUtils.isActionableTrackExpense()) {
+        if (ReportActionsUtils.isActionableTrackExpense(action)) {
             return [
                 {
                     text: 'actionableMentionTrackExpense.request',
