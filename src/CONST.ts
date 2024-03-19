@@ -4073,6 +4073,12 @@ const CONST = {
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
     },
+
+    RESERVATION_TYPE: {
+        CAR: 'car',
+        HOTEL: 'hotel',
+        FLIGHT: 'flight',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

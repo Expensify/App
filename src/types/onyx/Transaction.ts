@@ -128,7 +128,7 @@ type ReservationConfirmation = {
     value: string;
 };
 
-type ReservationType = 'flight' | 'hotel' | 'car';
+type ReservationType = ValueOf<typeof CONST.RESERVATION_TYPE>;
 
 type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
     {

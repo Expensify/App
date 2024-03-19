@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
+import {StyleProp, View, ViewStyle} from 'react-native';
 import {FlatList} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -10,14 +10,19 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
+import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {ReportAction, Transaction} from '@src/types/onyx';
 import type {Reservation, ReservationType} from '@src/types/onyx/Transaction';
 import IconAsset from '@src/types/utils/IconAsset';
 
 const reservations: Reservation[] = [];
+
 type TripRoomPreviewOnyxProps = {
     /** All the transactions, used to update ReportPreview label and status */
     // transactions: OnyxCollection<Transaction>;
@@ -36,8 +41,8 @@ type TripRoomPreviewProps = TripRoomPreviewOnyxProps & {
     //   /** The report's policyID, used for Onyx subscription */
     //   policyID: string;
 
-    //   /** Extra styles to pass to View wrapper */
-    //   containerStyles?: StyleProp<ViewStyle>;
+    /** Extra styles to pass to View wrapper */
+    containerStyles?: StyleProp<ViewStyle>;
 
     //   /** Popover context menu anchor, used for showing context menu */
     //   contextMenuAnchor?: ContextMenuAnchor;
@@ -63,11 +68,11 @@ function ReservationRow({reservation}: ReservationRowProps) {
 
     const reservationIcon = useMemo(() => {
         switch (reservation.type) {
-            case 'flight':
+            case CONST.RESERVATION_TYPE.FLIGHT:
                 return Expensicons.Plane;
-            case 'hotel':
+            case CONST.RESERVATION_TYPE.HOTEL:
                 return Expensicons.Bed;
-            case 'car':
+            case CONST.RESERVATION_TYPE.CAR:
                 return Expensicons.CarWithKey;
             default:
                 return Expensicons.CarWithKey;
@@ -75,25 +80,24 @@ function ReservationRow({reservation}: ReservationRowProps) {
     }, [reservation.type]);
 
     return (
-        <View style={[styles.flexRow, styles.mb3]}>
-            <View style={{width: 32, height: 32, backgroundColor: '#E6E1DA', borderRadius: 32, marginRight: 8, alignItems: 'center', justifyContent: 'center'}}>
+        <View style={[styles.flexRow, styles.gap3]}>
+            <View style={styles.tripReservationIconContainer}>
                 <Icon
                     src={reservationIcon}
-                    width={16}
-                    height={16}
+                    width={variables.iconSizeSmall}
+                    height={variables.iconSizeSmall}
                     fill={theme.icon}
                 />
             </View>
-            <View style={{marginLeft: 2, justifyContent: 'space-between'}}>
-                <Text style={[styles.textSupportingSmallSize]}>{translate(`travel.${reservation.type}`)}</Text>
-                {reservation.type === 'flight' ? (
-                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
+            <View style={styles.tripReserviationInfoContainer}>
+                <Text style={[styles.textSupportingSmallSize, styles.lh14]}>{translate(`travel.${reservation.type}`)}</Text>
+                {reservation.type === CONST.RESERVATION_TYPE.FLIGHT ? (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                         <Text style={styles.labelStrong}>{reservation.start.shortName}</Text>
                         <Icon
-                            additionalStyles={styles.mh1}
                             src={Expensicons.ArrowRightLong}
-                            width={16}
-                            height={16}
+                            width={variables.iconSizeSmall}
+                            height={variables.iconSizeSmall}
                             fill={theme.icon}
                         />
                         <Text style={styles.labelStrong}>{reservation.end.shortName}</Text>
@@ -106,20 +110,22 @@ function ReservationRow({reservation}: ReservationRowProps) {
     );
 }
 
-function TripRoomPreview({action, iouReportID}: TripRoomPreviewProps) {
+function TripRoomPreview({action, iouReportID, containerStyles}: TripRoomPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    // const tripTransactions = ReportUtils.getTripTransactions(iouReportID);
+    const tripTransactions = ReportUtils.getTripTransactions(iouReportID);
+
+    const renderItem = ({item}: {item: Reservation}) => <ReservationRow reservation={item} />;
 
     return (
         <OfflineWithFeedback
             // pendingAction={iouReport?.pendingFields?.preview}
             shouldDisableOpacity={!!(action.pendingAction ?? action.isOptimisticAction)}
             needsOffscreenAlphaCompositing
-            style={[styles.moneyRequestPreviewBox, {padding: 16}]}
+            style={[styles.moneyRequestPreviewBox]}
         >
-            <View style={[styles.chatItemMessage]}>
+            <View style={[styles.chatItemMessage, styles.p4, styles.gap5, containerStyles]}>
                 <View style={styles.expenseAndReportPreviewTextContainer}>
                     <View style={styles.reportPreviewAmountSubtitleContainer}>
                         <View style={styles.flexRow}>
@@ -131,7 +137,7 @@ function TripRoomPreview({action, iouReportID}: TripRoomPreviewProps) {
                     <View style={styles.reportPreviewAmountSubtitleContainer}>
                         <View style={styles.flexRow}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={styles.textHeadlineH1}>$1,439.21</Text>
+                                <Text style={styles.textHeadlineH2}>$1,439.21</Text>
                             </View>
                         </View>
                         <View style={styles.flexRow}>
@@ -143,14 +149,14 @@ function TripRoomPreview({action, iouReportID}: TripRoomPreviewProps) {
                 </View>
                 <FlatList
                     data={reservations}
-                    renderItem={({item}: {item: Reservation}) => <ReservationRow reservation={item} />}
-                    style={{marginVertical: 12}}
+                    style={styles.gap3}
+                    renderItem={renderItem}
                 />
                 <Button
                     medium
                     success
                     text={translate('travel.viewTrip')}
-                    onPress={() => {}}
+                    onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID))}
                 />
             </View>
         </OfflineWithFeedback>
