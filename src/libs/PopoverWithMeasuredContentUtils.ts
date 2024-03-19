@@ -32,13 +32,14 @@ function computeHorizontalShift(anchorLeftEdge: number, menuWidth: number, windo
  * @param anchorTopEdge - Menu's anchor Top edge.
  * @param menuHeight - The height of the menu itself.
  * @param windowHeight - The height of the Window.
+ * @param anchorHeight - The height of anchor component
  */
-function computeVerticalShift(anchorTopEdge: number, menuHeight: number, windowHeight: number): number {
+function computeVerticalShift(anchorTopEdge: number, menuHeight: number, windowHeight: number, anchorHeight: number): number {
     const popoverBottomEdge = anchorTopEdge + menuHeight;
 
     if (anchorTopEdge < 0) {
         // Anchor is in top window Edge, shift bottom by a multiple of four.
-        return roundToNearestMultipleOfFour(0 - anchorTopEdge);
+        return roundToNearestMultipleOfFour(menuHeight + anchorHeight);
     }
 
     if (popoverBottomEdge > windowHeight) {

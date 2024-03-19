@@ -31,6 +31,10 @@ const EmojiPicker = forwardRef((props, ref) => {
     const [emojiPopoverAnchorOrigin, setEmojiPopoverAnchorOrigin] = useState(DEFAULT_ANCHOR_ORIGIN);
     const [activeID, setActiveID] = useState();
     const emojiPopoverAnchorRef = useRef(null);
+    const emojiAnchorDimission = useRef({
+        width: 0,
+        height: 0,
+    });
     const onModalHide = useRef(() => {});
     const onEmojiSelected = useRef(() => {});
     const activeEmoji = useRef();
@@ -75,7 +79,14 @@ const EmojiPicker = forwardRef((props, ref) => {
             // eslint-disable-next-line es/no-optional-chaining
             onWillShow?.();
             setIsEmojiPickerVisible(true);
-            setEmojiPopoverAnchorPosition(value);
+            setEmojiPopoverAnchorPosition({
+                horizontal: value.horizontal,
+                vertical: value.vertical,
+            });
+            emojiAnchorDimission.current = {
+                width: value.width,
+                height: value.height,
+            };
             setEmojiPopoverAnchorOrigin(anchorOriginValue);
             setActiveID(id);
         });
@@ -154,7 +165,14 @@ const EmojiPicker = forwardRef((props, ref) => {
                 return;
             }
             calculateAnchorPosition(emojiPopoverAnchor.current, emojiPopoverAnchorOrigin).then((value) => {
-                setEmojiPopoverAnchorPosition(value);
+                setEmojiPopoverAnchorPosition({
+                    horizontal: value.horizontal,
+                    vertical: value.vertical,
+                });
+                emojiAnchorDimission.current = {
+                    width: value.width,
+                    height: value.height,
+                };
             });
         });
         return () => {
@@ -190,6 +208,7 @@ const EmojiPicker = forwardRef((props, ref) => {
             anchorAlignment={emojiPopoverAnchorOrigin}
             outerStyle={StyleUtils.getOuterModalStyle(windowHeight, props.viewportOffsetTop)}
             innerContainerStyle={styles.popoverInnerContainer}
+            anchorDimensions={emojiAnchorDimission.current}
             avoidKeyboard
         >
             <EmojiPickerMenu
