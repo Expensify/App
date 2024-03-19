@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -35,7 +35,8 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     const styles = useThemeStyles();
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isChatRoom = ReportUtils.isChatRoom(report);
-    const isDefault = !(isChatRoom || isPolicyExpenseChat);
+    const isSelfDM = ReportUtils.isSelfDM(report);
+    const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM);
     const participantAccountIDs = report?.participantAccountIDs ?? [];
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
@@ -44,6 +45,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, policy, participantAccountIDs);
     const additionalText = moneyRequestOptions.map((item) => translate(`reportActionsView.iouTypes.${item}`)).join(', ');
     const canEditPolicyDescription = ReportUtils.canEditPolicyDescription(policy);
+    const reportName = ReportUtils.getReportName(report);
 
     const navigateToReport = () => {
         if (!report?.reportID) {
@@ -53,12 +55,22 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
         Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
     };
 
+    const welcomeHeroText = useMemo(() => {
+        if (isChatRoom) {
+            return translate('reportActionsView.welcomeToRoom', {roomName: reportName});
+        }
+
+        if (isSelfDM) {
+            return translate('reportActionsView.yourSpace');
+        }
+
+        return translate('reportActionsView.sayHello');
+    }, [isChatRoom, isSelfDM, translate, reportName]);
+
     return (
         <>
             <View>
-                <Text style={[styles.textHero]}>
-                    {isChatRoom ? translate('reportActionsView.welcomeToRoom', {roomName: ReportUtils.getReportName(report)}) : translate('reportActionsView.sayHello')}
-                </Text>
+                <Text style={[styles.textHero]}>{welcomeHeroText}</Text>
             </View>
             <View style={[styles.mt3, styles.mw100]}>
                 {isPolicyExpenseChat &&
@@ -114,6 +126,11 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                             {roomWelcomeMessage.phrase2 !== undefined && <Text>{roomWelcomeMessage.phrase2}</Text>}
                         </Text>
                     ))}
+                {isSelfDM && (
+                    <Text>
+                        <Text>{translate('reportActionsView.beginningOfChatHistorySelfDM')}</Text>
+                    </Text>
+                )}
                 {isDefault && (
                     <Text>
                         <Text>{translate('reportActionsView.beginningOfChatHistory')}</Text>

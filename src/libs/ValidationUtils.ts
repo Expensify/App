@@ -8,7 +8,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormValue} from '@components/Form/types';
 import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, TaxRates} from '@src/types/onyx';
 import * as CardUtils from './CardUtils';
 import DateUtils from './DateUtils';
 import type {MaybePhraseKey} from './Localize';
@@ -82,7 +82,7 @@ function isValidPastDate(date: string | Date): boolean {
  * Used to validate a value that is "required".
  * @param value - field value
  */
-function isRequiredFulfilled(value?: FormValue): boolean {
+function isRequiredFulfilled(value?: FormValue | number[] | string[] | Record<string, string>): boolean {
     if (!value) {
         return false;
     }
@@ -460,6 +460,21 @@ function prepareValues(values: ValuesType): ValuesType {
     return trimmedStringValues;
 }
 
+/**
+ * Validates the given value if it is correct percentage value.
+ */
+function isValidPercentage(value: string): boolean {
+    const parsedValue = Number(value);
+    return !Number.isNaN(parsedValue) && parsedValue >= 0 && parsedValue <= 100;
+}
+
+/**
+ * Validates the given value if it is correct tax name.
+ */
+function isExistingTaxName(value: string, taxRates: TaxRates): boolean {
+    return !!Object.values(taxRates).find((taxRate) => taxRate.name === value);
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
@@ -498,4 +513,6 @@ export {
     validateDateTimeIsAtLeastOneMinuteInFuture,
     prepareValues,
     isValidPersonName,
+    isValidPercentage,
+    isExistingTaxName,
 };
