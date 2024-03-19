@@ -39,7 +39,12 @@ const addSkewList: string[] = [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT, SIDE_EF
 /**
  * Regex to get API command from the command
  */
-const APICommandRegex = /[?&]command=([^&]+)/;
+const APICommandRegex = /\/api\/([^&?]+)\??.*/;
+
+/**
+ * The accountID header value
+ */
+let accountIDHeaderValue = '';
 
 /**
  * Send an HTTP request, and attempt to resolve the json response.
@@ -47,13 +52,24 @@ const APICommandRegex = /[?&]command=([^&]+)/;
  */
 function processHTTPRequest(url: string, method: RequestType = 'get', body: FormData | null = null, canCancel = true): Promise<Response> {
     const startTime = new Date().valueOf();
+
+    const requestHeaders: HeadersInit = new Headers();
+    if (accountIDHeaderValue) {
+        requestHeaders.set('x-accountid', accountIDHeaderValue);
+    }
+
     return fetch(url, {
         // We hook requests to the same Controller signal, so we can cancel them all at once
         signal: canCancel ? cancellationController.signal : undefined,
         method,
         body,
+        headers: requestHeaders,
     })
         .then((response) => {
+            if (response.headers.get('x-accountid') ?? false) {
+                accountIDHeaderValue = response.headers.get('x-accountid') ?? '';
+            }
+
             // We are calculating the skew to minimize the delay when posting the messages
             const match = url.match(APICommandRegex)?.[1];
             if (match && addSkewList.includes(match) && response.headers) {
