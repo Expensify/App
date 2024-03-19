@@ -117,7 +117,7 @@ function IOURequestStepWaypoint({
         const waypointValue = values[`waypoint${pageIndex}`] ?? '';
         // Allows letting you set a waypoint to an empty value
         if (waypointValue === '') {
-            Transaction.removeWaypoint(transaction, pageIndex, true);
+            Transaction.removeWaypoint(transaction, pageIndex, action === CONST.IOU.ACTION.CREATE);
         }
 
         // While the user is offline, the auto-complete address search will not work
@@ -135,7 +135,7 @@ function IOURequestStepWaypoint({
     };
 
     const deleteStopAndHideModal = () => {
-        Transaction.removeWaypoint(transaction, pageIndex, true);
+        Transaction.removeWaypoint(transaction, pageIndex, action === CONST.IOU.ACTION.CREATE);
         setIsDeleteStopModalOpen(false);
         Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID));
     };
