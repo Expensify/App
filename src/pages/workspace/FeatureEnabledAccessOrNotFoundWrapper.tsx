@@ -52,7 +52,12 @@ function FeatureEnabledAccessOrNotFoundComponent(props: FeatureEnabledAccessOrNo
     }
 
     if (shouldShowNotFoundPage) {
-        return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)} />;
+        return (
+            <NotFoundPage
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                shouldForceFullScreen
+            />
+        );
     }
 
     return typeof props.children === 'function' ? props.children(props) : props.children;
