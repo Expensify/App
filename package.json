@@ -102,7 +102,7 @@
     "date-fns-tz": "^2.0.0",
     "dom-serializer": "^0.2.2",
     "domhandler": "^4.3.0",
-    "expensify-common": "git+ssh://git@github.com/kidroca/expensify-common.git#4111539e4086cc2e6d7cccaef2844603db86f399",
+    "expensify-common": "git+ssh://git@github.com/kidroca/expensify-common.git#6a95384b6634e2b548036f94b9e18913a52e8847",
     "expo": "^50.0.3",
     "expo-av": "~13.10.4",
     "expo-image": "1.10.1",
