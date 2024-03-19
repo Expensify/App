@@ -3,7 +3,9 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {Trashcan} from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -11,6 +13,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {setWorkspaceTagEnabled} from '@libs/actions/Policy';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -37,11 +40,21 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
     const {translate} = useLocalize();
     const policyTag = useMemo(() => PolicyUtils.getTagList(policyTags, 0), [policyTags]);
 
+    const {windowWidth} = useWindowDimensions();
+
+    const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
+
     const currentPolicyTag = policyTag.tags[decodeURIComponent(route.params.tagName)];
 
     if (!currentPolicyTag) {
         return <NotFoundPage />;
     }
+
+    const deleteTagAndHideModal = () => {
+        Policy.deletePolicyTags(route.params.policyID, [currentPolicyTag.name]);
+        setIsDeleteTagModalOpen(false);
+        Navigation.goBack();
+    };
 
     const updateWorkspaceTagEnabled = (value: boolean) => {
         setWorkspaceTagEnabled(route.params.policyID, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}});
@@ -59,7 +72,30 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
                     style={[styles.defaultModalContainer]}
                     testID={TagSettingsPage.displayName}
                 >
-                    <HeaderWithBackButton title={route.params.tagName} />
+                    <HeaderWithBackButton
+                        title={route.params.tagName}
+                        shouldShowThreeDotsButton
+                        shouldSetModalVisibility={false}
+                        threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
+                        threeDotsMenuItems={[
+                            {
+                                icon: Trashcan,
+                                text: translate('workspace.tags.deleteTag'),
+                                onSelected: () => setIsDeleteTagModalOpen(true),
+                            },
+                        ]}
+                    />
+                    <ConfirmModal
+                        title={translate('workspace.tags.deleteTag')}
+                        isVisible={isDeleteTagModalOpen}
+                        onConfirm={deleteTagAndHideModal}
+                        onCancel={() => setIsDeleteTagModalOpen(false)}
+                        shouldSetModalVisibility={false}
+                        prompt={translate('workspace.tags.deleteTagConfirmation')}
+                        confirmText={translate('common.delete')}
+                        cancelText={translate('common.cancel')}
+                        danger
+                    />
                     <View style={styles.flexGrow1}>
                         <OfflineWithFeedback
                             errors={ErrorUtils.getLatestErrorMessageField(currentPolicyTag)}
