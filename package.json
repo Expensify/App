@@ -56,7 +56,7 @@
     "test:e2e:dev": "ts-node tests/e2e/testRunner.ts --config ./config.dev.ts",
     "gh-actions-unused-styles": "./.github/scripts/findUnusedKeys.sh",
     "workflow-test": "./workflow_tests/scripts/runWorkflowTests.sh",
-    "workflow-test:generate": "ts-node workflow_tests/utils/preGenerateTest.js",
+    "workflow-test:generate": "ts-node workflow_tests/utils/preGenerateTest.ts",
     "setup-https": "mkcert -install && mkcert -cert-file config/webpack/certificate.pem -key-file config/webpack/key.pem dev.new.expensify.com localhost 127.0.0.1",
     "e2e-test-runner-build": "ncc build tests/e2e/testRunner.ts -o tests/e2e/dist/"
   },
@@ -283,6 +283,7 @@
     "shellcheck": "^1.1.0",
     "style-loader": "^2.0.0",
     "time-analytics-webpack-plugin": "^0.1.17",
+    "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
     "type-fest": "^4.10.2",
     "typescript": "^5.3.2",
