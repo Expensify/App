@@ -174,6 +174,7 @@ export type {default as EnablePolicyReportFieldsParams} from './EnablePolicyRepo
 export type {default as AcceptJoinRequestParams} from './AcceptJoinRequest';
 export type {default as DeclineJoinRequestParams} from './DeclineJoinRequest';
 export type {default as JoinPolicyInviteLinkParams} from './JoinPolicyInviteLink';
+export type {default as CreatePolicyTaxParams} from './CreatePolicyTaxParams';
 export type {default as OpenPolicyWorkflowsPageParams} from './OpenPolicyWorkflowsPageParams';
 export type {default as OpenPolicyDistanceRatesPageParams} from './OpenPolicyDistanceRatesPageParams';
 export type {default as OpenPolicyTaxesPageParams} from './OpenPolicyTaxesPageParams';
@@ -181,3 +182,8 @@ export type {default as EnablePolicyTaxesParams} from './EnablePolicyTaxesParams
 export type {default as OpenPolicyMoreFeaturesPageParams} from './OpenPolicyMoreFeaturesPageParams';
 export type {default as CreatePolicyDistanceRateParams} from './CreatePolicyDistanceRateParams';
 export type {default as CreatePolicyTagsParams} from './CreatePolicyTagsParams';
+export type {default as RenamePolicyTagsParams} from './RenamePolicyTagsParams';
+export type {default as DeletePolicyTagsParams} from './DeletePolicyTagsParams';
+export type {default as SetPolicyCustomTaxNameParams} from './SetPolicyCustomTaxNameParams';
+export type {default as SetPolicyForeignCurrencyDefaultParams} from './SetPolicyForeignCurrencyDefaultParams';
+export type {default as SetPolicyCurrencyDefaultParams} from './SetPolicyCurrencyDefaultParams';
