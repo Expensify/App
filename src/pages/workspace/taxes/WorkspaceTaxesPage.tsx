@@ -251,7 +251,7 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
                         canSelectMultiple
                         sections={[{data: taxesList, indexOffset: 0, isDisabled: false}]}
                         onCheckboxPress={toggleTax}
-                        onSelectRow={(tax: ListItem) => tax.keyForList && Navigation.navigate(ROUTES.WORKSPACE_TAXES_EDIT.getRoute(route.params.policyID ?? '', tax.keyForList))}
+                        onSelectRow={(tax: ListItem) => tax.keyForList && Navigation.navigate(ROUTES.WORKSPACE_TAXES_EDIT.getRoute(route.params.policyID, tax.keyForList))}
                         onSelectAll={toggleAllTaxes}
                         showScrollIndicator
                         ListItem={TableListItem}
@@ -264,7 +264,11 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
                         isVisible={isDeleteModalVisible}
                         onConfirm={deleteTaxes}
                         onCancel={() => setIsDeleteModalVisible(false)}
-                        prompt={translate('workspace.taxes.deleteTaxConfirmation')}
+                        prompt={
+                            selectedTaxesIDs.length > 1
+                                ? translate('workspace.taxes.deleteMultipleTaxConfirmation', {taxAmount: selectedTaxesIDs.length})
+                                : translate('workspace.taxes.deleteTaxConfirmation')
+                        }
                         confirmText={translate('common.delete')}
                         cancelText={translate('common.cancel')}
                         danger
