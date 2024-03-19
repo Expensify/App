@@ -696,18 +696,16 @@ function ReportActionItem({
             if (ReportUtils.isCanceledTaskReport(report, parentReportAction)) {
                 return (
                     <View>
-                        <View>
-                            <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction}>
-                                <ReportActionItemSingle
-                                    action={parentReportAction}
-                                    showHeader={draftMessage === undefined}
-                                    report={report}
-                                >
-                                    <RenderHTML html={`<comment>${translate('parentReportAction.deletedTask')}</comment>`} />
-                                </ReportActionItemSingle>
-                            </OfflineWithFeedback>
-                            <View style={styles.reportHorizontalRule} />
-                        </View>
+                        <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction}>
+                            <ReportActionItemSingle
+                                action={parentReportAction}
+                                showHeader={draftMessage === undefined}
+                                report={report}
+                            >
+                                <RenderHTML html={`<comment>${translate('parentReportAction.deletedTask')}</comment>`} />
+                            </ReportActionItemSingle>
+                        </OfflineWithFeedback>
+                        <View style={styles.reportHorizontalRule} />
                     </View>
                 );
             }
