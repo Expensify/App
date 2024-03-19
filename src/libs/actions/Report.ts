@@ -48,7 +48,6 @@ import DateUtils from '@libs/DateUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import LocalNotification from '@libs/Notification/LocalNotification';
@@ -56,6 +55,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import getPolicyMemberAccountIDs from '@libs/PolicyMembersUtils';
 import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
+import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -204,27 +204,7 @@ const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 
 let reportIDDeeplinkedFromOldDot: string | undefined;
 Linking.getInitialURL().then((url) => {
-    const isWeb = ([CONST.PLATFORM.WEB] as unknown as string).includes(getPlatform());
-    const currentParams = new URLSearchParams(url ?? '');
-    const currentExitToRoute = currentParams.get('exitTo') ?? '';
-    const {reportID: currentReportID} = ReportUtils.parseReportRouteParams(currentExitToRoute);
-
-    if (!isWeb) {
-        reportIDDeeplinkedFromOldDot = currentReportID;
-
-        return;
-    }
-
-    const prevUrl = sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.INITIAL_URL);
-    const prevParams = new URLSearchParams(prevUrl ?? '');
-    const prevExitToRoute = prevParams.get('exitTo') ?? '';
-    const {reportID: prevReportID} = ReportUtils.parseReportRouteParams(prevExitToRoute);
-
-    reportIDDeeplinkedFromOldDot = currentReportID || prevReportID;
-
-    if (currentReportID && url) {
-        sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.INITIAL_URL, url);
-    }
+    reportIDDeeplinkedFromOldDot = processReportIDDeeplink(url ?? '');
 });
 
 let lastVisitedPath: string | undefined;
@@ -1908,7 +1888,7 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
     };
 
     API.write(WRITE_COMMANDS.ADD_WORKSPACE_ROOM, parameters, {optimisticData, successData, failureData});
-    Navigation.dismissModal(policyReport.reportID);
+    Navigation.dismissModalWithReport(policyReport);
 }
 
 /** Deletes a report, along with its reportActions, any linked reports, and any linked IOU report. */
@@ -2954,6 +2934,17 @@ function clearNewRoomFormError() {
     });
 }
 
+function getReportDraftStatus(reportID: string) {
+    if (!allReports) {
+        return false;
+    }
+
+    if (!allReports[reportID]) {
+        return false;
+    }
+    return allReports[reportID]?.hasDraft;
+}
+
 function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEntry<ReportAction>, resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>) {
     const message = reportAction?.message?.[0];
     if (!message) {
@@ -3008,6 +2999,7 @@ function setGroupDraft(participantLogins: string[], reportName = '') {
 }
 
 export {
+    getReportDraftStatus,
     searchInServer,
     addComment,
     addAttachment,

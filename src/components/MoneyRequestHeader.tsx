@@ -21,7 +21,6 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import HoldBanner from './HoldBanner';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
-import {usePersonalDetails} from './OnyxProvider';
 import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
 
 type MoneyRequestHeaderOnyxProps = {
@@ -54,7 +53,6 @@ type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
 };
 
 function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, shownHoldUseExplanation = false, policy}: MoneyRequestHeaderProps) {
-    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -163,7 +161,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
             <View style={[styles.pl0]}>
                 <HeaderWithBackButton
                     shouldShowBorderBottom={!isScanning && !isPending && !isOnHold}
-                    shouldShowAvatarWithDisplay
+                    shouldShowReportAvatarWithDisplay
                     shouldShowPinButton={false}
                     shouldShowThreeDotsButton
                     threeDotsMenuItems={threeDotsMenuItems}
@@ -173,7 +171,6 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                         ownerAccountID: parentReport?.ownerAccountID,
                     }}
                     policy={policy}
-                    personalDetails={personalDetails}
                     shouldShowBackButton={isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack(undefined, false, true)}
                 />
