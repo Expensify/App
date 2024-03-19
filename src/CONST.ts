@@ -43,10 +43,21 @@ const keyInputRightArrow = KeyCommand?.constants?.keyInputRightArrow ?? 'keyInpu
 // describes if a shortcut key can cause navigation
 const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
 
+const chatTypes = {
+    POLICY_ANNOUNCE: 'policyAnnounce',
+    POLICY_ADMINS: 'policyAdmins',
+    DOMAIN_ALL: 'domainAll',
+    POLICY_ROOM: 'policyRoom',
+    POLICY_EXPENSE_CHAT: 'policyExpenseChat',
+    SELF_DM: 'selfDM',
+} as const;
+
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
 
 const CONST = {
+    MERGED_ACCOUNT_PREFIX: 'MERGED_',
+    DEFAULT_POLICY_ROOM_CHAT_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL],
     ANDROID_PACKAGE_NAME,
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
@@ -331,6 +342,9 @@ const CONST = {
         INSTALLED: 'installed',
         NOT_INSTALLED: 'not-installed',
     },
+    TAX_RATES: {
+        NAME_MAX_LENGTH: 50,
+    },
     PLATFORM: {
         IOS: 'ios',
         ANDROID: 'android',
@@ -506,6 +520,10 @@ const CONST = {
     TERMS_URL: `${USE_EXPENSIFY_URL}/terms`,
     PRIVACY_URL: `${USE_EXPENSIFY_URL}/privacy`,
     LICENSES_URL: `${USE_EXPENSIFY_URL}/licenses`,
+    ACH_TERMS_URL: `${USE_EXPENSIFY_URL}/achterms`,
+    WALLET_AGREEMENT_URL: `${USE_EXPENSIFY_URL}/walletagreement`,
+    HELP_LINK_URL: `${USE_EXPENSIFY_URL}/usa-patriot-act`,
+    ELECTRONIC_DISCLOSURES_URL: `${USE_EXPENSIFY_URL}/esignagreement`,
     GITHUB_RELEASE_URL: 'https://api.github.com/repos/expensify/app/releases/latest',
     ADD_SECONDARY_LOGIN_URL: encodeURI('settings?param={"section":"account","openModal":"secondaryLogin"}'),
     MANAGE_CARDS_URL: 'domain_companycards',
@@ -546,6 +564,21 @@ const CONST = {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',
     },
+
+    QUICK_ACTIONS: {
+        REQUEST_MANUAL: 'requestManual',
+        REQUEST_SCAN: 'requestScan',
+        REQUEST_DISTANCE: 'requestDistance',
+        SPLIT_MANUAL: 'splitManual',
+        SPLIT_SCAN: 'splitScan',
+        SPLIT_DISTANCE: 'splitDistance',
+        TRACK_MANUAL: 'trackManual',
+        TRACK_SCAN: 'trackScan',
+        TRACK_DISTANCE: 'trackDistance',
+        ASSIGN_TASK: 'assignTask',
+        SEND_MONEY: 'sendMoney',
+    },
+
     RECEIPT: {
         ICON_SIZE: 164,
         PERMISSION_GRANTED: 'granted',
@@ -717,14 +750,7 @@ const CONST = {
             IOU: 'iou',
             TASK: 'task',
         },
-        CHAT_TYPE: {
-            POLICY_ANNOUNCE: 'policyAnnounce',
-            POLICY_ADMINS: 'policyAdmins',
-            DOMAIN_ALL: 'domainAll',
-            POLICY_ROOM: 'policyRoom',
-            POLICY_EXPENSE_CHAT: 'policyExpenseChat',
-            SELF_DM: 'selfDM',
-        },
+        CHAT_TYPE: chatTypes,
         WORKSPACE_CHAT_ROOMS: {
             ANNOUNCE: '#announce',
             ADMINS: '#admins',
@@ -1436,6 +1462,11 @@ const CONST = {
             DISABLE: 'disable',
             ENABLE: 'enable',
         },
+        TAGS_BULK_ACTION_TYPES: {
+            DELETE: 'delete',
+            DISABLE: 'disable',
+            ENABLE: 'enable',
+        },
         DISTANCE_RATES_BULK_ACTION_TYPES: {
             DELETE: 'delete',
             DISABLE: 'disable',
@@ -1505,6 +1536,11 @@ const CONST = {
             STATE_SUSPENDED: 7,
         },
         ACTIVE_STATES: cardActiveStates,
+        LIMIT_TYPES: {
+            SMART: 'smart',
+            MONTHLY: 'monthly',
+            FIXED: 'fixed',
+        },
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
