@@ -269,27 +269,6 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                         {Object.values(customUnitRates).length > 0 && (
                             <SelectionList
                                 canSelectMultiple
-                                ListItem={TableListItem}
-                                onSelectAll={toggleAllRates}
-                                onCheckboxPress={toggleRate}
-                                sections={[{data: distanceRatesList, indexOffset: 0, isDisabled: false}]}
-                                onSelectRow={editRate}
-                                showScrollIndicator
-                                customListHeader={getCustomListHeader()}
-                                listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                            />
-                        )}
-                        <ConfirmModal
-                            onConfirm={() => setIsWarningModalVisible(false)}
-                            isVisible={isWarningModalVisible}
-                            title={translate('workspace.distanceRates.oopsNotSoFast')}
-                            prompt={translate('workspace.distanceRates.workspaceNeeds')}
-                            confirmText={translate('common.buttonConfirm')}
-                            shouldShowCancelButton={false}
-                        />
-                        {Object.values(customUnitRates).length > 0 && (
-                            <SelectionList
-                                canSelectMultiple
                                 sections={[{data: distanceRatesList, indexOffset: 0, isDisabled: false}]}
                                 onCheckboxPress={toggleRate}
                                 onSelectRow={editRate}
