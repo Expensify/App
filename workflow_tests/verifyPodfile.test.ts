@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/require-await */
-import kieMockGithub from '@kie/mock-github';
-import type {MockGithub} from '@kie/mock-github';
+import {MockGithub} from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/verifyPodfileAssertions';
 import mocks from './mocks/verifyPodfileMocks';
@@ -31,7 +30,7 @@ describe('test workflow verifyPodfile', () => {
 
     beforeEach(async () => {
         // create a local repository and copy required files
-        mockGithub = new kieMockGithub.MockGithub({
+        mockGithub = new MockGithub({
             repo: {
                 testVerifyPodfileWorkflowRepo: {
                     files: FILES_TO_COPY_INTO_TEST_REPO,

@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/require-await */
-import type {MockGithub} from '@kie/mock-github';
-import kieMockGithub from '@kie/mock-github';
+import {MockGithub} from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/validateGithubActionsAssertions';
 import mocks from './mocks/validateGithubActionsMocks';
-import * as eAct from './utils/ExtendedAct';
+import {ExtendedAct} from './utils/ExtendedAct';
 import * as utils from './utils/utils';
 
 jest.setTimeout(90 * 1000);
@@ -29,7 +28,7 @@ describe('test workflow validateGithubActions', () => {
 
     beforeEach(async () => {
         // create a local repository and copy required files
-        mockGithub = new kieMockGithub.MockGithub({
+        mockGithub = new MockGithub({
             repo: {
                 testValidateGithubActionsWorkflowRepo: {
                     files: FILES_TO_COPY_INTO_TEST_REPO,
@@ -51,7 +50,7 @@ describe('test workflow validateGithubActions', () => {
         it('executes verification', async () => {
             const repoPath = mockGithub.repo.getPath('testValidateGithubActionsWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'validateGithubActions.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
+            let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
             const testMockSteps = {
                 verify: mocks.VALIDATEGITHUBACTIONS__VERIFY__STEP_MOCKS,
@@ -74,7 +73,7 @@ describe('test workflow validateGithubActions', () => {
         it('executes verification', async () => {
             const repoPath = mockGithub.repo.getPath('testValidateGithubActionsWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'validateGithubActions.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
+            let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
             const testMockSteps = {
                 verify: mocks.VALIDATEGITHUBACTIONS__VERIFY__STEP_MOCKS,

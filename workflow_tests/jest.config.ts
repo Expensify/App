@@ -4,7 +4,7 @@ import type {Config} from 'jest';
 const config: Config = {
     verbose: true,
     transform: {
-        '^.+\\.jsx?$': 'babel-jest',
+        '^.+\\.(js|jsx|ts|tsx)$': 'ts-jest',
     },
     clearMocks: true,
     resetMocks: true,
