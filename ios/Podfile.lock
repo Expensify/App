@@ -1384,7 +1384,7 @@ PODS:
     - React-Core
   - RNReactNativeHapticFeedback (2.2.0):
     - React-Core
-  - RNReanimated (3.8.1):
+  - RNReanimated (3.7.2):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -1415,7 +1415,7 @@ PODS:
     - SDWebImage/Core (~> 5.17)
   - SocketRocket (0.6.1)
   - Turf (2.7.0)
-  - VisionCamera (4.0.0-beta.7):
+  - VisionCamera (4.0.0-beta.8):
     - React
     - React-callinvoker
     - React-Core
@@ -1909,7 +1909,7 @@ SPEC CHECKSUMS:
   rnmapbox-maps: fcf7f1cbdc8bd7569c267d07284e8a5c7bee06ed
   RNPermissions: 9b086c8f05b2e2faa587fdc31f4c5ab4509728aa
   RNReactNativeHapticFeedback: ec56a5f81c3941206fd85625fa669ffc7b4545f9
-  RNReanimated: 3e23d4be380e295e504b7b3b3a357df60e1168a2
+  RNReanimated: 3850671fd0c67051ea8e1e648e8c3e86bf3a28eb
   RNScreens: b582cb834dc4133307562e930e8fa914b8c04ef2
   RNShare: 859ff710211285676b0bcedd156c12437ea1d564
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
@@ -1920,7 +1920,7 @@ SPEC CHECKSUMS:
   SDWebImageWebPCoder: af09429398d99d524cae2fe00f6f0f6e491ed102
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
-  VisionCamera: a1ceaad4c20a116c4538c25e842da2f749ffb58d
+  VisionCamera: 5722c0900990b8826fc716e337af4a930f448e8e
   Yoga: e64aa65de36c0832d04e8c7bd614396c77a80047
 
 PODFILE CHECKSUM: a431c146e1501391834a2f299a74093bac53b530
