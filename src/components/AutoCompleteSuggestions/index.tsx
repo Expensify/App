@@ -19,13 +19,13 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainer = () => {}
     const StyleUtils = useStyleUtils();
     const containerRef = React.useRef<HTMLDivElement>(null);
     const {windowHeight, windowWidth} = useWindowDimensions();
-    const suggestionContainerHeight = measureHeightOfSuggestionsContainer(props.suggestions.length, props.isSuggestionPickerLarge);
+    const suggestionsContainerHeight = measureHeightOfSuggestionsContainer(props.suggestions.length, props.isSuggestionPickerLarge);
     const [{width, left, bottom}, setContainerState] = React.useState({
         width: 0,
         left: 0,
         bottom: 0,
     });
-    const [shouldBelowContainer, setShouldBelowContainer] = React.useState(false);
+    const [shouldShowBelowContainer, setShouldShowBelowContainer] = React.useState(false);
     React.useEffect(() => {
         const container = containerRef.current;
         if (!container) {
@@ -46,17 +46,17 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainer = () => {}
         }
 
         measureParentContainer((x, y, w, h) => {
-            const currenBottom = y < suggestionContainerHeight ? windowHeight - y - suggestionContainerHeight - h : windowHeight - y;
-            setShouldBelowContainer(y < suggestionContainerHeight);
-            setContainerState({left: x, bottom: currenBottom, width: w});
+            const currentBottom = y < suggestionsContainerHeight ? windowHeight - y - suggestionsContainerHeight - h : windowHeight - y;
+            setShouldShowBelowContainer(y < suggestionsContainerHeight);
+            setContainerState({left: x, bottom: currentBottom, width: w});
         });
-    }, [measureParentContainer, windowHeight, windowWidth, suggestionContainerHeight]);
+    }, [measureParentContainer, windowHeight, windowWidth, suggestionsContainerHeight]);
 
     const componentToRender = (
         <BaseAutoCompleteSuggestions<TSuggestion>
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            shouldBeDisplayedBelowParentContainer={shouldBelowContainer}
+            shouldBeDisplayedBelowParentContainer={shouldShowBelowContainer}
             ref={containerRef}
         />
     );

@@ -392,7 +392,6 @@ function ReportActionItemMessageEdit(
             }
             containerRef.current.measureInWindow(callback);
         },
-        // We added isComposerFullSize in dependencies so that when this value changes, we recalculate the position of the popup
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
