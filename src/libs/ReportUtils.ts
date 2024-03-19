@@ -2490,6 +2490,28 @@ function getReportPreviewMessage(
         }
     }
 
+    if (!isEmptyObject(reportAction) && !isIOUReport(report) && reportAction && ReportActionsUtils.isTrackExpenseAction(reportAction)) {
+        // This covers group chats where the last action is a track expense action
+        const linkedTransaction = getLinkedTransaction(reportAction);
+        if (isEmptyObject(linkedTransaction)) {
+            return reportActionMessage;
+        }
+
+        if (!isEmptyObject(linkedTransaction)) {
+            if (TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
+                return Localize.translateLocal('iou.receiptScanning');
+            }
+
+            if (TransactionUtils.hasMissingSmartscanFields(linkedTransaction)) {
+                return Localize.translateLocal('iou.receiptMissingDetails');
+            }
+
+            const transactionDetails = getTransactionDetails(linkedTransaction);
+            const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency ?? '');
+            return Localize.translateLocal('iou.trackedAmount', {formattedAmount, comment: transactionDetails?.comment ?? ''});
+        }
+    }
+
     const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
     const totalAmount = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
     const policyName = getPolicyName(report, false, policy);
