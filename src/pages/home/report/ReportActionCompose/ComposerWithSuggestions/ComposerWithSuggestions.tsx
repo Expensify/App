@@ -179,9 +179,16 @@ const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
 /**
  * Broadcast that the user is typing. Debounced to limit how often we publish client events.
  */
-const debouncedBroadcastUserIsTyping = lodashDebounce((reportID: string) => {
-    Report.broadcastUserIsTyping(reportID);
-}, 100);
+const debouncedBroadcastUserIsTyping = lodashDebounce(
+    (reportID: string) => {
+        Report.broadcastUserIsTyping(reportID);
+    },
+    1000,
+    {
+        maxWait: 1000,
+        leading: true,
+    },
+);
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
