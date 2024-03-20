@@ -252,7 +252,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     const defaultTaxKey = taxRates?.defaultExternalID;
     const defaultTaxName = (defaultTaxKey && `${taxRates?.taxes[defaultTaxKey].name} (${taxRates?.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) ?? '';
-    const taxRateTitle = transaction?.taxRate?.text ?? defaultTaxName;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing is not working when a left hand side value is ''
+    const taxRateTitle = transaction?.taxRate?.text || defaultTaxName;
 
     const isFocused = useIsFocused();
     const [formError, setFormError] = useState('');
@@ -268,12 +269,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(iouType, transaction?.transactionID ?? '', reportID));
     };
 
-    const shouldDisplayFieldError = useMemo(() => {
+    const shouldDisplayFieldError: boolean = useMemo(() => {
         if (!isEditingSplitBill) {
             return false;
         }
 
-        return (hasSmartScanFailed && TransactionUtils.hasMissingSmartscanFields(transaction ?? null)) ?? (didConfirmSplit && TransactionUtils.areRequiredFieldsEmpty(transaction ?? null));
+        return (!!hasSmartScanFailed && TransactionUtils.hasMissingSmartscanFields(transaction)) || (didConfirmSplit && TransactionUtils.areRequiredFieldsEmpty(transaction));
     }, [isEditingSplitBill, hasSmartScanFailed, transaction, didConfirmSplit]);
 
     const isMerchantEmpty = !iouMerchant || iouMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
@@ -325,7 +326,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
      */
     const getParticipantsWithAmount = useCallback(
         (participantsList: Participant[]) => {
-            const amount = IOUUtils.calculateAmount(participantsList.length, iouAmount, iouCurrencyCode ?? 'USD');
+            const amount = IOUUtils.calculateAmount(participantsList.length, iouAmount, iouCurrencyCode ?? '');
             return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participantsList, amount > 0 ? CurrencyUtils.convertToDisplayString(amount, iouCurrencyCode) : '');
         },
         [iouAmount, iouCurrencyCode],
@@ -729,7 +730,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 <MenuItemWithTopDescription
                     key={translate('common.date')}
                     shouldShowRightIcon={!isReadOnly}
-                    title={iouCreated ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    title={iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
                     description={translate('common.date')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
@@ -884,7 +886,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             ) : (
                 <Image
                     style={styles.moneyRequestImage}
-                    source={{uri: (receiptThumbnail ?? receiptImage) as string}}
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    source={{uri: (receiptThumbnail || receiptImage) as string}}
                     // AuthToken is required when retrieving the image from the server
                     // but we don't need it to load the blob:// or file:// image when starting a money request / split bill
                     // So if we have a thumbnail, it means we're retrieving the image from the server
