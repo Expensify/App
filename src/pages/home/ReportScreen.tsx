@@ -255,7 +255,7 @@ function ReportScreen({
                 : null,
         [reportActions, parentReportAction],
     );
-    const isSingleTransactionView = ReportUtils.isMoneyRequest(report);
+    const isSingleTransactionView = ReportUtils.isMoneyRequest(report) || ReportUtils.isTrackExpenseReport(report);
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? null;
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
