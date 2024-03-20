@@ -69,6 +69,7 @@ function BaseSelectionList<TItem extends ListItem>(
         listHeaderWrapperStyle,
         isRowMultilineSupported = false,
         textInputRef,
+        ListHeaderComponent,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -339,6 +340,39 @@ function BaseSelectionList<TItem extends ListItem>(
         );
     };
 
+    const header = () => (
+        <>
+            {!headerMessage && canSelectMultiple && shouldShowSelectAll && (
+                <View style={[styles.userSelectNone, styles.peopleRow, styles.ph5, styles.pb3, listHeaderWrapperStyle]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                        <Checkbox
+                            accessibilityLabel={translate('workspace.people.selectAll')}
+                            isChecked={flattenedSections.allSelected}
+                            onPress={selectAllRow}
+                            disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
+                        />
+                        {!customListHeader && (
+                            <PressableWithFeedback
+                                style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
+                                onPress={selectAllRow}
+                                accessibilityLabel={translate('workspace.people.selectAll')}
+                                role="button"
+                                accessibilityState={{checked: flattenedSections.allSelected}}
+                                disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
+                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
+                            >
+                                <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
+                            </PressableWithFeedback>
+                        )}
+                    </View>
+                    {customListHeader}
+                </View>
+            )}
+            {!headerMessage && !canSelectMultiple && customListHeader}
+        </>
+    );
+
     const scrollToFocusedIndexOnFirstRender = useCallback(
         (nativeEvent: LayoutChangeEvent) => {
             if (shouldUseDynamicMaxToRenderPerBatch) {
@@ -523,34 +557,7 @@ function BaseSelectionList<TItem extends ListItem>(
                             <OptionsListSkeletonView shouldAnimate />
                         ) : (
                             <>
-                                {!headerMessage && canSelectMultiple && shouldShowSelectAll && (
-                                    <View style={[styles.userSelectNone, styles.peopleRow, styles.ph5, styles.pb3, listHeaderWrapperStyle]}>
-                                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                            <Checkbox
-                                                accessibilityLabel={translate('workspace.people.selectAll')}
-                                                isChecked={flattenedSections.allSelected}
-                                                onPress={selectAllRow}
-                                                disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
-                                            />
-                                            {!customListHeader && (
-                                                <PressableWithFeedback
-                                                    style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
-                                                    onPress={selectAllRow}
-                                                    accessibilityLabel={translate('workspace.people.selectAll')}
-                                                    role="button"
-                                                    accessibilityState={{checked: flattenedSections.allSelected}}
-                                                    disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
-                                                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                                                    onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
-                                                >
-                                                    <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
-                                                </PressableWithFeedback>
-                                            )}
-                                        </View>
-                                        {customListHeader}
-                                    </View>
-                                )}
-                                {!headerMessage && !canSelectMultiple && customListHeader}
+                                {!ListHeaderComponent && header()}
                                 <SectionList
                                     ref={listRef}
                                     sections={slicedSections}
@@ -573,6 +580,14 @@ function BaseSelectionList<TItem extends ListItem>(
                                     onLayout={onSectionListLayout}
                                     style={(!maxToRenderPerBatch || isInitialSectionListRender) && styles.opacity0}
                                     ListFooterComponent={ShowMoreButtonInstance}
+                                    ListHeaderComponent={
+                                        ListHeaderComponent && (
+                                            <>
+                                                {ListHeaderComponent}
+                                                {header()}
+                                            </>
+                                        )
+                                    }
                                 />
                                 {children}
                             </>
