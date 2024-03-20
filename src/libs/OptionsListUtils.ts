@@ -252,8 +252,8 @@ let policyExpenseReports: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
-    callback: (report) => {
-        policyExpenseReports = report;
+    callback: (reports) => {
+        policyExpenseReports = reports;
     },
 });
 

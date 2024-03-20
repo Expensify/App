@@ -87,8 +87,8 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     initWithStoredValues: false,
     waitForCollectionCallback: true,
-    callback: (val) => {
-        allReports = val;
+    callback: (reports) => {
+        allReports = reports;
     },
 });
 

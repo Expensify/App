@@ -54,8 +54,8 @@ let allReports: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
-    callback: (report) => {
-        allReports = report;
+    callback: (reports) => {
+        allReports = reports;
     },
 });
 

@@ -39,8 +39,8 @@ let allReports: OnyxCollection<Report> | undefined = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
-    callback: (report) => {
-        allReports = report;
+    callback: (reports) => {
+        allReports = reports;
 
         // Each time a new report is added we will check to see if the user should be switched
         autoSwitchToFocusMode();
