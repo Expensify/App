@@ -38,7 +38,7 @@ function ContactMethodsPage({loginList, session, route}: ContactMethodsPageProps
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate} = useLocalize();
     const loginNames = Object.keys(loginList ?? {});
-    const navigateBackTo = route?.params?.backTo || ROUTES.SETTINGS_PROFILE;
+    const navigateBackTo = route?.params?.backTo;
 
     // Sort the login names by placing the one corresponding to the default contact method as the first item before displaying the contact methods.
     // The default contact method is determined by checking against the session email (the current login).
@@ -91,10 +91,6 @@ function ContactMethodsPage({loginList, session, route}: ContactMethodsPageProps
     });
 
     const onNewContactMethodButtonPress = useCallback(() => {
-        if (navigateBackTo === ROUTES.SETTINGS_PROFILE) {
-            Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD.route);
-            return;
-        }
         Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD.getRoute(navigateBackTo));
     }, [navigateBackTo]);
 
@@ -105,7 +101,7 @@ function ContactMethodsPage({loginList, session, route}: ContactMethodsPageProps
         >
             <HeaderWithBackButton
                 title={translate('contacts.contactMethods')}
-                onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap]}>
@@ -121,6 +117,7 @@ function ContactMethodsPage({loginList, session, route}: ContactMethodsPageProps
                 {loginMenuItems}
                 <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                     <Button
+                        large
                         success
                         text={translate('contacts.newContactMethod')}
                         onPress={onNewContactMethodButtonPress}

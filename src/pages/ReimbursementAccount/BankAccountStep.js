@@ -135,6 +135,7 @@ function BankAccountStep(props) {
                         )}
                         <Button
                             icon={Expensicons.Bank}
+                            iconStyles={[styles.customMarginButtonWithMenuItem]}
                             text={props.translate('bankAccount.connectOnlineWithPlaid')}
                             onPress={() => {
                                 if (props.isPlaidDisabled || !props.user.validated) {
@@ -145,10 +146,9 @@ function BankAccountStep(props) {
                             }}
                             isDisabled={props.isPlaidDisabled || !props.user.validated}
                             style={[styles.mt4]}
-                            iconStyles={[styles.buttonCTAIcon]}
                             shouldShowRightIcon
                             success
-                            large
+                            innerStyles={[styles.pr2, styles.pl4, styles.h13]}
                         />
                         {Boolean(props.error) && <Text style={[styles.formError, styles.mh5]}>{props.error}</Text>}
                         <View style={[styles.mv3]}>
@@ -185,7 +185,7 @@ function BankAccountStep(props) {
                         </View>
                     )}
                     <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
-                        <TextLink href="https://use.expensify.com/privacy">{props.translate('common.privacy')}</TextLink>
+                        <TextLink href={CONST.PRIVACY_URL}>{props.translate('common.privacy')}</TextLink>
                         <PressableWithoutFeedback
                             onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/')}
                             style={[styles.flexRow, styles.alignItemsCenter]}

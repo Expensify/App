@@ -62,7 +62,7 @@ function ExitSurveyConfirmPage({exitReason, isLoading, route, navigation}: ExitS
         <ScreenWrapper testID={ExitSurveyConfirmPage.displayName}>
             <HeaderWithBackButton
                 title={translate('exitSurvey.header')}
-                onBackButtonPress={() => Navigation.goBack(backTo)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.mh5]}>
                 {isOffline && <ExitSurveyOffline />}
@@ -81,6 +81,7 @@ function ExitSurveyConfirmPage({exitReason, isLoading, route, navigation}: ExitS
             <FixedFooter>
                 <Button
                     success
+                    large
                     text={translate('exitSurvey.goToExpensifyClassic')}
                     onPress={() => {
                         ExitSurvey.switchToOldDot();

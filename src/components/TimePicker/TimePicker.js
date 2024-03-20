@@ -452,7 +452,6 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                 >
                     <AmountTextInput
                         placeholder={numberFormat(0)}
-                        maxLength={2}
                         formattedAmount={hours}
                         onKeyPress={(e) => {
                             lastPressedKey.current = e.nativeEvent.key;
@@ -479,7 +478,6 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                     <Text style={styles.timePickerSemiDot}>{CONST.COLON}</Text>
                     <AmountTextInput
                         placeholder={numberFormat(0)}
-                        maxLength={2}
                         formattedAmount={minutes}
                         onKeyPress={(e) => {
                             lastPressedKey.current = e.nativeEvent.key;
@@ -511,6 +509,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                         shouldEnableHapticFeedback
                         innerStyles={styleForAM}
                         medium={isExtraSmallScreenHeight}
+                        large={!isExtraSmallScreenHeight}
                         text={translate('common.am')}
                         onLongPress={() => {}}
                         onPress={() => {
@@ -523,6 +522,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                         shouldEnableHapticFeedback
                         innerStyles={[...styleForPM, styles.ml1]}
                         medium={isExtraSmallScreenHeight}
+                        large={!isExtraSmallScreenHeight}
                         text={translate('common.pm')}
                         onLongPress={() => {}}
                         onPress={() => {
@@ -551,6 +551,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
             <Button
                 success
                 medium={isExtraSmallScreenHeight}
+                large={!isExtraSmallScreenHeight}
                 style={[styles.mb5, styles.mh5]}
                 onPress={handleSubmit}
                 pressOnEnter

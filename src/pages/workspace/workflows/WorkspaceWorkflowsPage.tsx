@@ -18,7 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import type {CentralPaneNavigatorParamList} from '@navigation/types';
+import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
@@ -42,7 +42,7 @@ type WorkspaceWorkflowsPageOnyxProps = {
     /** Policy details */
     session: OnyxEntry<Session>;
 };
-type WorkspaceWorkflowsPageProps = WithPolicyProps & WorkspaceWorkflowsPageOnyxProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
+type WorkspaceWorkflowsPageProps = WithPolicyProps & WorkspaceWorkflowsPageOnyxProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
 function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, session}: WorkspaceWorkflowsPageProps) {
     const {translate, preferredLocale} = useLocalize();
@@ -111,7 +111,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                               />
                           ),
                           isActive: (policy?.harvesting?.enabled && policy.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT) ?? false,
-                          pendingAction: policy?.pendingFields?.isAutoApprovalEnabled,
+                          pendingAction: policy?.pendingFields?.autoReporting,
                       },
                   ]
                 : []),
@@ -134,7 +134,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                         hoverAndPressStyle={[styles.mr0, styles.br2]}
                     />
                 ),
-                isActive: policy?.isAutoApprovalEnabled ?? false,
+                isActive: policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC,
                 pendingAction: policy?.pendingFields?.approvalMode,
             },
             {
