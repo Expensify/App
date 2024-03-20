@@ -231,6 +231,8 @@ type PolicyReportField = {
     defaultExternalID?: string | null;
 };
 
+type PolicyFeatureName = ValueOf<typeof CONST.POLICY.MORE_FEATURES>;
+
 type PendingJoinRequestPolicy = {
     isJoinRequestPending: boolean;
     policyDetailsForNonMembers: Record<
@@ -417,4 +419,4 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
 export default Policy;
 
-export type {PolicyReportField, PolicyReportFieldType, Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault, PendingJoinRequestPolicy};
+export type {PolicyReportField, PolicyReportFieldType, Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault, PolicyFeatureName, PendingJoinRequestPolicy};
