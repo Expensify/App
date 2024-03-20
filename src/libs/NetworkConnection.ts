@@ -70,10 +70,10 @@ Onyx.connect({
 
 /**
  * Set interval to periodically (re)check backend status
- * @returns for use with clearInterval
+ * @returns clearInterval cleanup
  */
-function subscribeToBackendReachability(): NodeJS.Timeout {
-    return setInterval(() => {
+function subscribeToBackendReachability(): () => void {
+    const intervalID = setInterval(() => {
         // Offline status also implies backend unreachability
         if (isOffline) {
             return;
@@ -95,6 +95,10 @@ function subscribeToBackendReachability(): NodeJS.Timeout {
             .then(NetworkActions.setIsBackendReachable)
             .catch(() => NetworkActions.setIsBackendReachable(false));
     }, CONST.NETWORK.REACHABILITY_TIMEOUT_MS);
+
+    return () => {
+        clearInterval(intervalID);
+    };
 }
 
 /**
@@ -104,7 +108,7 @@ function subscribeToBackendReachability(): NodeJS.Timeout {
 function subscribeToNetworkStatus(): () => void {
     // Note: We are disabling the reachability check when using the local web API since requests can get stuck in a 'Pending' state and are not reliable indicators for "offline".
     // If you need to test the "recheck" feature then switch to the production API proxy server.
-    const backendReachabilityCheckInterval = !CONFIG.IS_USING_LOCAL_WEB ? subscribeToBackendReachability() : undefined;
+    const unsubscribeFromBackendReachability = !CONFIG.IS_USING_LOCAL_WEB ? subscribeToBackendReachability() : undefined;
 
     // Set up the event listener for NetInfo to tell whether the user has
     // internet connectivity or not. This is more reliable than the Pusher
@@ -119,7 +123,7 @@ function subscribeToNetworkStatus(): () => void {
     });
 
     return () => {
-        clearInterval(backendReachabilityCheckInterval);
+        unsubscribeFromBackendReachability?.();
         unsubscribeNetInfo();
     };
 }
