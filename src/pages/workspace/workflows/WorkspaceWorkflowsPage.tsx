@@ -19,6 +19,7 @@ import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
+import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
@@ -111,7 +112,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                               />
                           ),
                           isActive: (policy?.harvesting?.enabled && policy.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT) ?? false,
-                          pendingAction: policy?.pendingFields?.isAutoApprovalEnabled,
+                          pendingAction: policy?.pendingFields?.autoReporting,
                       },
                   ]
                 : []),
@@ -134,7 +135,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                         hoverAndPressStyle={[styles.mr0, styles.br2]}
                     />
                 ),
-                isActive: policy?.isAutoApprovalEnabled ?? false,
+                isActive: policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC,
                 pendingAction: policy?.pendingFields?.approvalMode,
             },
             {
@@ -153,7 +154,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                 subMenuItems: (
                     <>
                         <MenuItem
-                            titleStyle={styles.textLabelSupportingNormal}
+                            titleStyle={hasVBA ? styles.textLabelSupportingNormal : styles.textLabelSupportingEmptyValue}
                             descriptionTextStyle={styles.textNormalThemeText}
                             title={hasVBA ? translate('common.bankAccount') : translate('workflowsPage.connectBankAccount')}
                             description={state === BankAccount.STATE.OPEN ? bankDisplayName : undefined}
@@ -227,33 +228,38 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
     const isLoading = reimbursementAccount?.isLoading ?? true;
 
     return (
-        <WorkspacePageWithSections
-            headerText={translate('workspace.common.workflows')}
-            icon={Illustrations.Workflows}
-            route={route}
-            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_WORKFLOWS}
-            shouldShowOfflineIndicatorInWideScreen
-            shouldShowNotFoundPage={!isPaidGroupPolicy || !isPolicyAdmin}
-            shouldSkipVBBACall
-            isLoading={isLoading}
+        <FeatureEnabledAccessOrNotFoundWrapper
+            policyID={route.params.policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
-            <View style={[styles.mt3, styles.textStrong, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                <Section
-                    title={translate('workflowsPage.workflowTitle')}
-                    titleStyles={styles.textStrong}
-                    containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
-                >
-                    <View>
-                        <Text style={[styles.mt3, styles.textSupporting]}>{translate('workflowsPage.workflowDescription')}</Text>
-                        <FlatList
-                            data={optionItems}
-                            renderItem={renderOptionItem}
-                            keyExtractor={(item: ToggleSettingOptionRowProps) => item.title}
-                        />
-                    </View>
-                </Section>
-            </View>
-        </WorkspacePageWithSections>
+            <WorkspacePageWithSections
+                headerText={translate('workspace.common.workflows')}
+                icon={Illustrations.Workflows}
+                route={route}
+                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_WORKFLOWS}
+                shouldShowOfflineIndicatorInWideScreen
+                shouldShowNotFoundPage={!isPaidGroupPolicy || !isPolicyAdmin}
+                shouldSkipVBBACall
+                isLoading={isLoading}
+            >
+                <View style={[styles.mt3, styles.textStrong, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <Section
+                        title={translate('workflowsPage.workflowTitle')}
+                        titleStyles={styles.textStrong}
+                        containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
+                    >
+                        <View>
+                            <Text style={[styles.mt3, styles.textSupporting]}>{translate('workflowsPage.workflowDescription')}</Text>
+                            <FlatList
+                                data={optionItems}
+                                renderItem={renderOptionItem}
+                                keyExtractor={(item: ToggleSettingOptionRowProps) => item.title}
+                            />
+                        </View>
+                    </Section>
+                </View>
+            </WorkspacePageWithSections>
+        </FeatureEnabledAccessOrNotFoundWrapper>
     );
 }
 
