@@ -52,7 +52,8 @@ function getApiRoot(request?: Request): string {
  * @param - the name of the API command
  */
 function getCommandURL(request: Request): string {
-    return `${getApiRoot(request)}api?command=${request.command}`;
+    // If request.command already contains ? then we don't need to append it
+    return `${getApiRoot(request)}api/${request.command}${request.command.includes('?') ? '' : '?'}`;
 }
 
 /**
