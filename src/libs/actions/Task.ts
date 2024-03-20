@@ -250,9 +250,10 @@ function createTaskAndNavigate(
     // If needed, update optimistic data for parent report action of the parent report.
     const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(parentReportID, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     optimisticParentReportData.forEach((parentReportData) => {
-        if (!isEmptyObject(parentReportData)) {
-            optimisticData.push(parentReportData);
+        if (isEmptyObject(parentReportData)) {
+            return;
         }
+        optimisticData.push(parentReportData);
     });
 
     // FOR PARENT REPORT (SHARE DESTINATION)
@@ -864,9 +865,10 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
             CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
         optimisticParentReportData.forEach((parentReportData) => {
-            if (!isEmptyObject(parentReportData)) {
-                optimisticData.push(parentReportData);
+            if (isEmptyObject(parentReportData)) {
+                return;
             }
+            optimisticData.push(parentReportData);
         });
     }
 

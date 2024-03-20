@@ -5258,7 +5258,7 @@ function getAllAncestorReportActionIDs(report: Report | null | undefined): Ances
  * @param lastVisibleActionCreated Last visible action created of the child report
  * @param type The type of action in the child report
  */
-function getOptimisticDataForParentReportAction(reportID: string, lastVisibleActionCreated: string, type: string): (OnyxUpdate | EmptyObject)[] {
+function getOptimisticDataForParentReportAction(reportID: string, lastVisibleActionCreated: string, type: string): Array<OnyxUpdate | EmptyObject> {
     const report = getReport(reportID);
 
     if (!report || isEmptyObject(report)) {
