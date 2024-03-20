@@ -5258,14 +5258,29 @@ function getAllAncestorReportActionIDs(report: Report | null | undefined): Ances
  * @param lastVisibleActionCreated Last visible action created of the child report
  * @param type The type of action in the child report
  */
-function getOptimisticDataForParentReportAction(reportID: string, lastVisibleActionCreated: string, type: string): OnyxUpdate[] {
+function getOptimisticDataForParentReportAction(reportID: string, lastVisibleActionCreated: string, type: string): (OnyxUpdate | EmptyObject)[] {
     const report = getReport(reportID);
+
+    if (!report || isEmptyObject(report)) {
+        return [];
+    }
+
     const ancestors = getAllAncestorReportActionIDs(report);
     const totalAncestor = ancestors.reportIDs.length;
 
     return Array.from(Array(totalAncestor), (_, index) => {
         const ancestorReport = getReport(ancestors.reportIDs[index]);
+
+        if (!ancestorReport || isEmptyObject(ancestorReport)) {
+            return {} as EmptyObject;
+        }
+
         const ancestorReportAction = ReportActionsUtils.getReportAction(ancestorReport.reportID, ancestors.reportActionsIDs[index]);
+
+        if (!ancestorReportAction || isEmptyObject(ancestorReportAction)) {
+            return {} as EmptyObject;
+        }
+
         return {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReport.reportID}`,
