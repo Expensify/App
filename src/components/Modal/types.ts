@@ -23,6 +23,9 @@ type BaseModalProps = Partial<ModalProps> & {
     /** Callback method fired when the user requests to close the modal */
     onClose: () => void;
 
+    /** Function to call when the user presses on the modal backdrop */
+    onBackdropPress?: () => void;
+
     /** State that determines whether to display the modal or not */
     isVisible: boolean;
 
