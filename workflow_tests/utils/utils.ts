@@ -4,8 +4,22 @@ import path from 'path';
 import yaml from 'yaml';
 import type ExtendedAct from './ExtendedAct';
 
+type Label = {
+    name: string;
+};
+
 type EventOptions = {
     action?: string;
+    ref?: string;
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    ref_type?: string;
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    ref_name?: string;
+    type?: string;
+    label?: Label;
+    issue?: {
+        labels: Label[];
+    };
 };
 
 type StepAssertionInputEntry = {key: string; value: string};

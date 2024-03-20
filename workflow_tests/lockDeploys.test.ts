@@ -5,7 +5,7 @@ import path from 'path';
 import assertions from './assertions/lockDeploysAssertions';
 import mocks from './mocks/lockDeploysMocks';
 import ExtendedAct from './utils/ExtendedAct';
-import utils from './utils/utils';
+import * as utils from './utils/utils';
 
 jest.setTimeout(90 * 1000);
 let mockGithub: MockGithub;
@@ -50,7 +50,6 @@ describe('test workflow lockDeploys', () => {
                         let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
                             act,
-                            // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                             'issues',
                             {
                                 action: 'labeled',
@@ -93,7 +92,6 @@ describe('test workflow lockDeploys', () => {
                         let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
                             act,
-                            // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                             'issues',
                             {
                                 action: 'labeled',
@@ -123,7 +121,6 @@ describe('test workflow lockDeploys', () => {
                         testMockSteps.lockStagingDeploys[1] = utils.createMockStep(
                             'Wait for staging deploys to finish',
                             'Waiting for staging deploys to finish',
-                            // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                             'LOCKSTAGINGDEPLOYS',
                             ['GITHUB_TOKEN'],
                             [],
@@ -149,7 +146,6 @@ describe('test workflow lockDeploys', () => {
                         let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
                             act,
-                            // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                             'issues',
                             {
                                 action: 'labeled',
@@ -196,7 +192,6 @@ describe('test workflow lockDeploys', () => {
                         let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
                             act,
-                            // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                             'issues',
                             {
                                 action: 'labeled',
@@ -241,7 +236,6 @@ describe('test workflow lockDeploys', () => {
                         let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
                             act,
-                            // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                             'issues',
                             {
                                 action: 'labeled',
@@ -290,7 +284,6 @@ describe('test workflow lockDeploys', () => {
                         let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
                             act,
-                            // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                             'issues',
                             {
                                 action: 'labeled',
@@ -335,7 +328,6 @@ describe('test workflow lockDeploys', () => {
                         let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
                             act,
-                            // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                             'issues',
                             {
                                 action: 'labeled',
@@ -382,7 +374,6 @@ describe('test workflow lockDeploys', () => {
                         let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
                             act,
-                            // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                             'issues',
                             {
                                 action: 'labeled',
@@ -427,7 +418,6 @@ describe('test workflow lockDeploys', () => {
                         let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
                             act,
-                            // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                             'issues',
                             {
                                 action: 'labeled',

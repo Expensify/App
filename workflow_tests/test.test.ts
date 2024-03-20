@@ -5,7 +5,7 @@ import path from 'path';
 import assertions from './assertions/testAssertions';
 import mocks from './mocks/testMocks';
 import ExtendedAct from './utils/ExtendedAct';
-import utils from './utils/utils';
+import * as utils from './utils/utils';
 
 jest.setTimeout(90 * 1000);
 let mockGithub: MockGithub;
@@ -54,7 +54,6 @@ describe('test workflow test', () => {
             const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
             let act = new ExtendedAct(repoPath, workflowPath);
-            // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
             act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
             const testMockSteps: MockStep = {
                 jest: mocks.TEST__JEST__STEP_MOCKS,
@@ -75,7 +74,6 @@ describe('test workflow test', () => {
                 const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
                 let act = new ExtendedAct(repoPath, workflowPath);
-                // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps: MockStep = {
                     jest: mocks.TEST__JEST__STEP_MOCKS,
@@ -103,7 +101,6 @@ describe('test workflow test', () => {
             const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
             let act = new ExtendedAct(repoPath, workflowPath);
-            // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
             act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
             const testMockSteps: MockStep = {
                 jest: mocks.TEST__JEST__STEP_MOCKS,
@@ -124,7 +121,6 @@ describe('test workflow test', () => {
                 const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
                 let act = new ExtendedAct(repoPath, workflowPath);
-                // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps: MockStep = {
                     jest: mocks.TEST__JEST__STEP_MOCKS,
@@ -150,7 +146,6 @@ describe('test workflow test', () => {
             const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
             let act = new ExtendedAct(repoPath, workflowPath);
-            // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
             act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
             const testMockSteps: MockStep = {
                 jest: mocks.TEST__JEST__STEP_MOCKS,
@@ -171,7 +166,6 @@ describe('test workflow test', () => {
                 const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
                 let act = new ExtendedAct(repoPath, workflowPath);
-                // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps: MockStep = {
                     jest: mocks.TEST__JEST__STEP_MOCKS,

@@ -5,7 +5,7 @@ import path from 'path';
 import assertions from './assertions/platformDeployAssertions';
 import mocks from './mocks/platformDeployMocks';
 import ExtendedAct from './utils/ExtendedAct';
-import utils from './utils/utils';
+import * as utils from './utils/utils';
 
 jest.setTimeout(90 * 1000);
 let mockGithub: MockGithub;
@@ -49,7 +49,6 @@ describe('test workflow platformDeploy', () => {
                 let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(
                     act,
-                    // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                     'push',
                     {
                         ref: 'refs/tags/1.2.3',
@@ -134,7 +133,6 @@ describe('test workflow platformDeploy', () => {
                 let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(
                     act,
-                    // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                     'push',
                     {
                         ref: 'refs/tags/1.2.3',
@@ -219,7 +217,6 @@ describe('test workflow platformDeploy', () => {
                 let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(
                     act,
-                    // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                     'push',
                     {
                         ref: 'refs/tags/1.2.3',
