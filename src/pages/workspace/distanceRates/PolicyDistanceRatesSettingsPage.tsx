@@ -13,8 +13,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -57,13 +59,17 @@ function PolicyDistanceRatesSettingsPage({policy, route}: PolicyDistanceRatesSet
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    style={[styles.defaultModalContainer]}
-                    testID={PolicyDistanceRatesSettingsPage.displayName}
+                <FeatureEnabledAccessOrNotFoundWrapper
+                    policyID={route.params.policyID}
+                    featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
                 >
-                    <HeaderWithBackButton title={translate('workspace.common.settings')} />
-                    <View style={styles.flexGrow1}>
+                    <ScreenWrapper
+                        includeSafeAreaPaddingBottom={false}
+                        style={[styles.defaultModalContainer]}
+                        testID={PolicyDistanceRatesSettingsPage.displayName}
+                    >
+                        <HeaderWithBackButton title={translate('workspace.common.settings')} />
+                        <View style={styles.flexGrow1}>
                         <OfflineWithFeedback
                             errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID], 'attributes')}
                             pendingAction={customUnits[customUnitID].pendingFields?.attributes}
@@ -94,7 +100,8 @@ function PolicyDistanceRatesSettingsPage({policy, route}: PolicyDistanceRatesSet
                             </OfflineWithFeedback>
                         )}
                     </View>
-                </ScreenWrapper>
+                    </ScreenWrapper>
+                </FeatureEnabledAccessOrNotFoundWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>
     );
