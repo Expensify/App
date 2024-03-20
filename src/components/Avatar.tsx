@@ -9,8 +9,8 @@ import * as ReportUtils from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
+import type {SVGAvatarColorStyle} from '@src/styles/utils/types';
 import type {AvatarType} from '@src/types/onyx/OnyxCommon';
-import type {SVGAvatarColorStyle} from '@src/types';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Image from './Image';
@@ -93,7 +93,7 @@ function Avatar({
         iconColors = null;
     }
 
-    const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(name) : (fallbackIcon || Expensicons.FallbackAvatar);
+    const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(name) : fallbackIcon || Expensicons.FallbackAvatar;
     const fallbackAvatarTestID = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatarTestID(name) : fallbackIconTestID || 'SvgFallbackAvatar Icon';
 
     const avatarSource = imageError ? fallbackAvatar : source;
@@ -116,11 +116,7 @@ function Avatar({
                         height={iconSize}
                         width={iconSize}
                         fill={imageError ? theme.offline : fill}
-                        additionalStyles={[
-                            StyleUtils.getAvatarBorderStyle(size, type),
-                            iconColors,
-                            iconAdditionalStyles,
-                        ]}
+                        additionalStyles={[StyleUtils.getAvatarBorderStyle(size, type), iconColors, iconAdditionalStyles]}
                     />
                 </View>
             )}

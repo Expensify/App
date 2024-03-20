@@ -38,8 +38,8 @@ import type {
     EReceiptColorName,
     EreceiptColorStyle,
     ParsableStyle,
-    TextColorStyle,
     SVGAvatarColorStyle,
+    TextColorStyle,
 } from './types';
 
 const workspaceColorOptions: SVGAvatarColorStyle[] = [
@@ -275,7 +275,6 @@ function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle {
 
     return workspaceColorOptions[colorHash];
 }
-
 
 /**
  * Helper method to return formatted backgroundColor and fill styles
