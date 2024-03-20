@@ -15,12 +15,13 @@ type RoomHeaderAvatarsProps = {
     reportID: string;
 };
 
-function RoomHeaderAvatars({icons = [], reportID = ''}: RoomHeaderAvatarsProps) {
+function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
     const navigateToAvatarPage = (icon: Icon) => {
         if (icon.type === CONST.ICON_TYPE_WORKSPACE) {
             Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(reportID));
             return;
         }
+
         if (icon.id) {
             Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(icon.id));
         }
@@ -28,6 +29,7 @@ function RoomHeaderAvatars({icons = [], reportID = ''}: RoomHeaderAvatarsProps) 
 
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+
     if (!icons.length) {
         return null;
     }
@@ -35,14 +37,14 @@ function RoomHeaderAvatars({icons = [], reportID = ''}: RoomHeaderAvatarsProps) 
     if (icons.length === 1) {
         return (
             <PressableWithoutFocus
-                style={[styles.noOutline]}
+                style={styles.noOutline}
                 onPress={() => navigateToAvatarPage(icons[0])}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                 accessibilityLabel={icons[0].name ?? ''}
             >
                 <Avatar
                     source={icons[0].source}
-                    imageStyles={[styles.avatarLarge]}
+                    imageStyles={styles.avatarLarge}
                     size={CONST.AVATAR_SIZE.LARGE}
                     name={icons[0].name}
                     type={icons[0].type}
