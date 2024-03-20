@@ -5219,7 +5219,7 @@ function getAllAncestorReportActions(report: Report | null | undefined, shouldHi
     return allAncestors.reverse();
 }
 
-function getAllAncestorReportActionIDs(report: Report | null | undefined): AncestorIDs {
+function getAllAncestorReportActionIDs(report: Report | null | undefined, includeTransactionThread: boolean = false): AncestorIDs {
     if (!report) {
         return {
             reportIDs: [],
@@ -5238,7 +5238,7 @@ function getAllAncestorReportActionIDs(report: Report | null | undefined): Ances
         const parentReport = getReport(parentReportID);
         const parentReportAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID ?? '0');
 
-        if (!parentReportAction || ReportActionsUtils.isTransactionThread(parentReportAction) || !parentReport) {
+        if (!parentReportAction || (!includeTransactionThread && ReportActionsUtils.isTransactionThread(parentReportAction)) || !parentReport) {
             break;
         }
 
@@ -5265,8 +5265,10 @@ function getOptimisticDataForParentReportAction(reportID: string, lastVisibleAct
         return [];
     }
 
-    const ancestors = getAllAncestorReportActionIDs(report);
+    const ancestors = getAllAncestorReportActionIDs(report, true);
     const totalAncestor = ancestors.reportIDs.length;
+
+    console.log('total ancestor', totalAncestor)
 
     return Array.from(Array(totalAncestor), (_, index) => {
         const ancestorReport = getReport(ancestors.reportIDs[index]);
