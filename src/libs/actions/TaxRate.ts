@@ -85,7 +85,8 @@ function getNextTaxCode(name: string, taxRates?: TaxRates): string {
 
 function createPolicyTax(policyID: string, taxRate: TaxRate) {
     if (!taxRate.code) {
-        throw new Error('Tax code is required when creating a new tax rate.');
+        console.debug('Policy or tax rates not found');
+        return;
     }
 
     const onyxData: OnyxData = {
@@ -220,7 +221,7 @@ function setPolicyTaxesEnabled(policyID: string, taxesIDsToUpdate: string[], isE
                 value: {
                     taxRates: {
                         taxes: taxesIDsToUpdate.reduce<TaxRateEnabledMap>((acc, taxID) => {
-                            acc[taxID] = {isDisabled: !isEnabled, pendingFields: {isDisabled: null}, errorFields: {isDisabled: null}};
+                            acc[taxID] = {pendingFields: {isDisabled: null}, errorFields: {isDisabled: null}};
                             return acc;
                         }, {}),
                     },
@@ -263,16 +264,13 @@ type TaxRateDeleteMap = Record<
     | null
 >;
 
-/**
- * API call to delete policy taxes
- * @param taxesToDelete A tax IDs array to delete
- */
 function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const policyTaxRates = policy?.taxRates?.taxes;
 
     if (!policyTaxRates) {
-        throw new Error('Policy or tax rates not found');
+        console.debug('Policy or tax rates not found');
+        return;
     }
 
     const onyxData: OnyxData = {
@@ -312,7 +310,7 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                     taxRates: {
                         taxes: taxesToDelete.reduce<TaxRateDeleteMap>((acc, taxID) => {
                             acc[taxID] = {
-                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                                pendingAction: null,
                                 errors: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.errors.deleteFailureMessage'),
                             };
                             return acc;
@@ -331,9 +329,6 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
     API.write(WRITE_COMMANDS.DELETE_POLICY_TAXES, parameters, onyxData);
 }
 
-/**
- * Rename policy tax
- */
 function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const originalTaxRate = {...policy?.taxRates?.taxes[taxID]};
@@ -364,7 +359,7 @@ function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number)
                 value: {
                     taxRates: {
                         taxes: {
-                            [taxID]: {value: stringTaxValue, pendingFields: {value: null}, errorFields: {value: null}},
+                            [taxID]: {pendingFields: {value: null}, errorFields: {value: null}},
                         },
                     },
                 },
@@ -388,10 +383,6 @@ function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number)
             },
         ],
     };
-
-    if (!originalTaxRate.name) {
-        throw new Error('Tax rate name not found');
-    }
 
     const parameters = {
         policyID,
@@ -430,7 +421,7 @@ function renamePolicyTax(policyID: string, taxID: string, newName: string) {
                 value: {
                     taxRates: {
                         taxes: {
-                            [taxID]: {name: newName, pendingFields: {name: null}, errorFields: {name: null}},
+                            [taxID]: {pendingFields: {name: null}, errorFields: {name: null}},
                         },
                     },
                 },

@@ -41,7 +41,7 @@ function WorkspaceEditTaxPage({
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const canEdit = policy && canEditTaxRate(policy, taxID);
 
-    const toggle = () => {
+    const toggleTaxRate = () => {
         if (!currentTaxRate) {
             return;
         }
@@ -98,7 +98,7 @@ function WorkspaceEditTaxPage({
                                     <Switch
                                         isOn={!currentTaxRate?.isDisabled}
                                         accessibilityLabel={translate('workspace.taxes.actions.enable')}
-                                        onToggle={toggle}
+                                        onToggle={toggleTaxRate}
                                         disabled={!canEdit}
                                     />
                                 </View>

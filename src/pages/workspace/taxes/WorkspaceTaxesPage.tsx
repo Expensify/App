@@ -160,6 +160,14 @@ function WorkspaceTaxesPage({
         [policyID, selectedTaxesIDs],
     );
 
+    const navigateToEditTaxRate = (taxRate: ListItem) => {
+        if (!taxRate.keyForList) {
+            return;
+        }
+        setSelectedTaxesIDs([]);
+        Navigation.navigate(ROUTES.WORKSPACE_TAXES_EDIT.getRoute(policyID, taxRate.keyForList));
+    };
+
     const dropdownMenuOptions = useMemo(() => {
         const isMultiple = selectedTaxesIDs.length > 1;
         const options: Array<DropdownOption<WorkspaceTaxRatesBulkActionType>> = [
@@ -257,7 +265,7 @@ function WorkspaceTaxesPage({
                         canSelectMultiple
                         sections={[{data: taxesList, indexOffset: 0, isDisabled: false}]}
                         onCheckboxPress={toggleTax}
-                        onSelectRow={(tax: ListItem) => tax.keyForList && Navigation.navigate(ROUTES.WORKSPACE_TAXES_EDIT.getRoute(policyID, tax.keyForList))}
+                        onSelectRow={navigateToEditTaxRate}
                         onSelectAll={toggleAllTaxes}
                         showScrollIndicator
                         ListItem={TableListItem}

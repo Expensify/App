@@ -471,9 +471,9 @@ function isValidPercentage(value: string): boolean {
 /**
  * Validates the given value if it is correct tax name.
  */
-function isExistingTaxName(value: string, taxRates: TaxRates): boolean {
-    const toCheck = value.trim();
-    return !!Object.values(taxRates).find((taxRate) => taxRate.name === toCheck);
+function isExistingTaxName(taxName: string, taxRates: TaxRates): boolean {
+    const trimmedTaxName = taxName.trim();
+    return !!Object.values(taxRates).find((taxRate) => taxRate.name === trimmedTaxName);
 }
 
 export {
