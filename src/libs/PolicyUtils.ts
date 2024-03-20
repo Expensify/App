@@ -196,7 +196,7 @@ function getTagLists(policyTagList: OnyxEntry<PolicyTagList>, excludeMultiLevelT
     const regex = new RegExp(CONST.REGEX.MULTI_LEVEL_TAG, `/\\{1,2}:/g`);
 
     return Object.values(policyTagList)
-        .filter((policyTagListValue) => policyTagListValue !== null && (!excludeMultiLevelTags || regex.test(policyTagListValue.name)))
+        .filter((policyTagListValue) => !(!policyTagListValue || excludeMultiLevelTags || regex.test(policyTagListValue.name)))
         .sort((tagA, tagB) => tagA.orderWeight - tagB.orderWeight);
 }
 
