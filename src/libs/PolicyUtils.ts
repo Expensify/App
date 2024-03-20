@@ -4,7 +4,8 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy, PolicyCategories, PolicyMembers, PolicyTagList, PolicyTags} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, PolicyCategories, PolicyMembers, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
+import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Navigation from './Navigation/Navigation';
@@ -34,7 +35,7 @@ function hasPolicyMemberError(policyMembers: OnyxEntry<PolicyMembers>): boolean 
  *  Check if the policy has any tax rate errors.
  */
 function hasTaxRateError(policy: OnyxEntry<Policy>): boolean {
-    return Object.values(policy?.taxRates?.taxes ?? {}).some((taxRate) => Object.keys(taxRate?.errors ?? {}).length > 0);
+    return Object.values(policy?.taxRates?.taxes ?? {}).some((taxRate) => Object.keys(taxRate?.errors ?? {}).length > 0 || Object.values(taxRate?.errorFields ?? {}).some(Boolean));
 }
 
 /**
@@ -276,6 +277,26 @@ function goBackFromInvalidPolicy() {
     Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
 }
 
+/** Get a tax with given ID from policy */
+function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefined {
+    return policy?.taxRates?.taxes?.[taxID];
+}
+
+/**
+ * Whether the tax rate can be deleted and disabled
+ */
+function canEditTaxRate(policy: Policy, taxID: string): boolean {
+    return policy.taxRates?.defaultExternalID !== taxID;
+}
+
+function isPolicyFeatureEnabled(policy: OnyxEntry<Policy> | EmptyObject, featureName: PolicyFeatureName): boolean {
+    if (featureName === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) {
+        return Boolean(policy?.tax?.trackingEnabled);
+    }
+
+    return Boolean(policy?.[featureName]);
+}
+
 export {
     getActivePolicies,
     hasAccountingConnections,
@@ -296,6 +317,7 @@ export {
     getIneligibleInvitees,
     getTagLists,
     getTagListName,
+    canEditTaxRate,
     getTagList,
     getCleanedTagName,
     getCountOfEnabledTagsOfList,
@@ -306,7 +328,9 @@ export {
     getPathWithoutPolicyID,
     getPolicyMembersByIdWithoutCurrentUser,
     goBackFromInvalidPolicy,
+    isPolicyFeatureEnabled,
     hasTaxRateError,
+    getTaxByID,
     hasPolicyCategoriesError,
 };
 
