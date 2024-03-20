@@ -13,7 +13,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {canEditTaxRate, clearTaxRateFieldError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
+import {clearTaxRateFieldError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -39,7 +39,7 @@ function WorkspaceEditTaxPage({
     const currentTaxRate = PolicyUtils.getTaxByID(policy, taxID);
     const {windowWidth} = useWindowDimensions();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-    const canEdit = policy && canEditTaxRate(policy, taxID);
+    const canEdit = policy && PolicyUtils.canEditTaxRate(policy, taxID);
 
     const toggleTaxRate = () => {
         if (!currentTaxRate) {

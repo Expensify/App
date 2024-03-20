@@ -281,6 +281,13 @@ function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefin
     return policy?.taxRates?.taxes?.[taxID];
 }
 
+/**
+ * Whether the tax rate can be deleted and disabled
+ */
+function canEditTaxRate(policy: Policy, taxID: string): boolean {
+    return policy.taxRates?.defaultExternalID !== taxID;
+}
+
 export {
     getActivePolicies,
     hasAccountingConnections,
@@ -301,6 +308,7 @@ export {
     getIneligibleInvitees,
     getTagLists,
     getTagListName,
+    canEditTaxRate,
     getTagList,
     getCleanedTagName,
     getCountOfEnabledTagsOfList,

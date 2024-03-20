@@ -32,13 +32,6 @@ function covertTaxNameToID(name: string) {
 }
 
 /**
- * Whether the tax rate can be deleted and disabled
- */
-function canEditTaxRate(policy: Policy, taxID: string): boolean {
-    return policy.taxRates?.defaultExternalID !== taxID;
-}
-
-/**
  *  Function to validate tax name
  */
 const validateTaxName = (policy: Policy, values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM>) => {
@@ -467,5 +460,4 @@ export {
     deletePolicyTaxes,
     updatePolicyTaxValue,
     renamePolicyTax,
-    canEditTaxRate,
 };
