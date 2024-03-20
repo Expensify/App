@@ -23,12 +23,12 @@ type BaseImageProps = {
 
     /** Event for when the image is fully loaded and returns the natural dimensions of the image */
     onLoad?: (event: ImageOnLoadEvent) => void;
+
+    /** Styles for the Image */
+    style?: StyleProp<ImageStyle>;
 };
 
 type ImageOwnProps = BaseImageProps & {
-    /** Styles for the Image */
-    style?: StyleProp<ImageStyle>;
-
     /** Should an auth token be included in the image request */
     isAuthTokenRequired?: boolean;
 
@@ -46,6 +46,9 @@ type ImageOwnProps = BaseImageProps & {
 
     /** Progress events while the image is downloading */
     onProgress?: () => void;
+
+    /** Whether we should show the top of the image */
+    objectPositionTop?: boolean;
 };
 
 type ImageProps = ImageOnyxProps & ImageOwnProps;

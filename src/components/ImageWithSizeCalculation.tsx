@@ -33,7 +33,8 @@ type ImageWithSizeCalculationProps = {
     /** Whether the image requires an authToken */
     isAuthTokenRequired: boolean;
 
-    objectPositionTop: boolean;
+    /** Whether we should show the top of the image */
+    objectPositionTop?: boolean;
 };
 
 /**
@@ -42,7 +43,7 @@ type ImageWithSizeCalculationProps = {
  * performing some calculation on a network image after fetching dimensions so
  * it can be appropriately resized.
  */
-function ImageWithSizeCalculation({url, style, onMeasure, onLoadFailure, isAuthTokenRequired, objectPositionTop}: ImageWithSizeCalculationProps) {
+function ImageWithSizeCalculation({url, style, onMeasure, onLoadFailure, isAuthTokenRequired, objectPositionTop = false}: ImageWithSizeCalculationProps) {
     const styles = useThemeStyles();
     const isLoadedRef = useRef<boolean | null>(null);
     const [isImageCached, setIsImageCached] = useState(true);

@@ -1,11 +1,39 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import BaseImage from './BaseImage';
-import type {ImageOnyxProps, ImageOwnProps, ImageProps} from './types';
+import type {ImageOnLoadEvent, ImageOnyxProps, ImageOwnProps, ImageProps} from './types';
 
-function Image({source: propsSource, isAuthTokenRequired = false, session, ...forwardedProps}: ImageProps) {
+function Image({source: propsSource, isAuthTokenRequired = false, session, onLoad, objectPositionTop, style, ...forwardedProps}: ImageProps) {
+    const [aspectRatio, setAspectRatio] = useState<string | number | null>(null);
+
+    const updateAspectRatio = useCallback(
+        (width: number, height: number) => {
+            if (!objectPositionTop) {
+                return;
+            }
+
+            if (width > height) {
+                setAspectRatio(1);
+                return;
+            }
+
+            setAspectRatio(height ? width / height : 'auto');
+        },
+        [objectPositionTop],
+    );
+
+    const handleLoad = useCallback(
+        (event: ImageOnLoadEvent) => {
+            const {width, height} = event.nativeEvent;
+
+            onLoad?.(event);
+
+            updateAspectRatio(width, height);
+        },
+        [onLoad, updateAspectRatio],
+    );
     /**
      * Check if the image source is a URL - if so the `encryptedAuthToken` is appended
      * to the source.
@@ -34,6 +62,8 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, ...fo
         <BaseImage
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...forwardedProps}
+            onLoad={handleLoad}
+            style={[style, aspectRatio ? {aspectRatio, height: 'auto'} : {}, objectPositionTop && !aspectRatio && {opacity: 0}]}
             source={source}
         />
     );
