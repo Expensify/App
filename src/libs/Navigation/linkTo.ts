@@ -120,7 +120,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     }
     let root: NavigationRoot = navigation;
     let current: NavigationRoot | undefined;
-
     // Traverse up to get the root navigation
     // eslint-disable-next-line no-cond-assign
     while ((current = root.getParent())) {
@@ -145,7 +144,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     }
 
     const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
-
     // If action type is different than NAVIGATE we can't change it to the PUSH safely
     if (action?.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
         const topmostCentralPaneRoute = getTopmostCentralPaneRoute(rootState);
@@ -182,12 +180,11 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
 
             // If this action is navigating to the ModalNavigator and the last route on the root navigator is not already opened ModalNavigator then push
-        } else if (isModalNavigator(action.payload.name) && !isTargetNavigatorOnTop) {
+        } else if ((action.payload.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR || isModalNavigator(action.payload.name)) && !isTargetNavigatorOnTop) {
             if (isModalNavigator(topRouteName)) {
                 dismissModal(navigation);
             }
             action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
-
             // If this RHP has mandatory central pane and bottom tab screens defined we need to push them.
             const {adaptedState, metainfo} = getAdaptedStateFromPath(path, linkingConfig.config);
             if (adaptedState && (metainfo.isCentralPaneAndBottomTabMandatory || metainfo.isFullScreenNavigatorMandatory)) {
