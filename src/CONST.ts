@@ -4074,7 +4074,7 @@ const CONST = {
     },
 } as const;
 
-const DEFAULT_TAXES_DATA = {
+const DEFAULT_TAXES_OPTIMISTIC_DATA = {
     defaultExternalID: 'id_TAX_EXEMPT',
     defaultValue: '0%',
     foreignTaxDefault: 'id_TAX_EXEMPT',
@@ -4093,9 +4093,20 @@ const DEFAULT_TAXES_DATA = {
     },
 };
 
+const DEFAULT_TAXES_SUCCESS_DATA = {
+    taxes: {
+        id_TAX_EXEMPT: {
+            pendingAction: null,
+        },
+        id_TAX_RATE_1: {
+            pendingAction: null,
+        },
+    },
+};
+
 type Country = keyof typeof CONST.ALL_COUNTRIES;
 
 export type {Country};
-export {DEFAULT_TAXES_DATA};
+export {DEFAULT_TAXES_OPTIMISTIC_DATA, DEFAULT_TAXES_SUCCESS_DATA};
 
 export default CONST;

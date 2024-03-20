@@ -59,7 +59,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import CONST, {DEFAULT_TAXES_DATA} from '@src/CONST';
+import CONST, {DEFAULT_TAXES_DATA, DEFAULT_TAXES_OPTIMISTIC_DATA, DEFAULT_TAXES_SUCCESS_DATA} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -3571,7 +3571,25 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    taxRates: DEFAULT_TAXES_DATA,
+                    taxRates: DEFAULT_TAXES_OPTIMISTIC_DATA,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: DEFAULT_TAXES_SUCCESS_DATA,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: undefined,
                 },
             },
         ],
@@ -3604,6 +3622,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                     },
                 },
             },
+            ...(shouldAddDefaultTaxRatesData ? taxRatesData.successData ?? [] : []),
         ],
         failureData: [
             {
@@ -3613,12 +3632,12 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                     tax: {
                         trackingEnabled: !enabled,
                     },
-                    taxRates: undefined,
                     pendingFields: {
                         tax: null,
                     },
                 },
             },
+            ...(shouldAddDefaultTaxRatesData ? taxRatesData.successData ?? [] : []),
         ],
     };
 
