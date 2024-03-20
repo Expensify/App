@@ -1,3 +1,4 @@
+import ImagesMoreBg from '@assets/images/imagesMoreBg/light_bg.png';
 import EmptyStateBackgroundImage from '@assets/images/themeDependent/empty-state_background-fade-light.png';
 import ExampleCheckEN from '@assets/images/themeDependent/example-check-image-light-en.png';
 import ExampleCheckES from '@assets/images/themeDependent/example-check-image-light-es.png';
@@ -9,6 +10,7 @@ const illustrations = {
     ExampleCheckEN,
     ExampleCheckES,
     WorkspaceProfile,
+    ImagesMoreBg,
 } satisfies IllustrationsType;
 
 export default illustrations;

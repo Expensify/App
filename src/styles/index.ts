@@ -4123,14 +4123,13 @@ const styles = (theme: ThemeColors) =>
 
         reportActionItemImagesMoreContainer: {
             position: 'absolute',
-            bottom: 0,
-            right: 0,
+            bottom: 4,
+            right: 4,
             display: 'flex',
         },
 
         reportActionItemImagesMore: {
             borderTopLeftRadius: 12,
-            backgroundColor: theme.border,
             width: 40,
             height: 40,
         },
