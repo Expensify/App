@@ -7,13 +7,13 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-function PolicyQuickbooksImportPage({policy}: WithPolicyProps) {
+function QuickbooksImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const quickbooksOnlineConfigTitles = {
@@ -30,31 +30,31 @@ function PolicyQuickbooksImportPage({policy}: WithPolicyProps) {
     const sections = [
         {
             description: translate('workspace.qbo.accounts'),
-            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKSONLINE_CHART_OF_ACCOUNTS.getRoute(policyID)),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_CHART_OF_ACCOUNTS.getRoute(policyID)),
             hasError: Boolean(policy?.errors?.syncAccounts),
             title: syncAccounts,
         },
         {
             description: translate('workspace.qbo.classes'),
-            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKSONLINE_CLASSES.getRoute(policyID)),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_CLASSES.getRoute(policyID)),
             hasError: Boolean(policy?.errors?.syncClasses),
             title: syncClasses,
         },
         {
             description: translate('workspace.qbo.customers'),
-            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKSONLINE_CUSTOMER.getRoute(policyID)),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_CUSTOMERS.getRoute(policyID)),
             hasError: Boolean(policy?.errors?.syncCustomers),
             title: syncCustomers,
         },
         {
             description: translate('workspace.qbo.locations'),
-            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKSONLINE_LOCATIONS.getRoute(policyID)),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_LOCATIONS.getRoute(policyID)),
             hasError: Boolean(policy?.errors?.syncLocations),
             title: syncLocations,
         },
         {
             description: translate('workspace.qbo.taxes'),
-            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKSONLINE_TAXES.getRoute(policyID)),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_TAXES.getRoute(policyID)),
             hasError: Boolean(policy?.errors?.syncTaxes),
             title: syncTaxes,
         },
@@ -64,7 +64,7 @@ function PolicyQuickbooksImportPage({policy}: WithPolicyProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            testID={PolicyQuickbooksImportPage.displayName}
+            testID={QuickbooksImportPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('workspace.qbo.import')}
@@ -88,6 +88,6 @@ function PolicyQuickbooksImportPage({policy}: WithPolicyProps) {
     );
 }
 
-PolicyQuickbooksImportPage.displayName = 'PolicyQuickbooksImportPage';
+QuickbooksImportPage.displayName = 'PolicyQuickbooksImportPage';
 
-export default withPolicy(PolicyQuickbooksImportPage);
+export default withPolicy(QuickbooksImportPage);

@@ -8,13 +8,13 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import variables from '@styles/variables';
 import * as Policy from '@userActions/Policy';
 
-function QuickbooksChartOfAccountsConfigurationPage({policy}: WithPolicyProps) {
+function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
@@ -24,7 +24,7 @@ function QuickbooksChartOfAccountsConfigurationPage({policy}: WithPolicyProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            testID={QuickbooksChartOfAccountsConfigurationPage.displayName}
+            testID={QuickbooksChartOfAccountsPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('workspace.qbo.accounts')}
@@ -62,6 +62,6 @@ function QuickbooksChartOfAccountsConfigurationPage({policy}: WithPolicyProps) {
     );
 }
 
-QuickbooksChartOfAccountsConfigurationPage.displayName = 'QuickbooksChartOfAccountsConfigurationPage';
+QuickbooksChartOfAccountsPage.displayName = 'QuickbooksChartOfAccountsConfigurationPage';
 
-export default withPolicy(QuickbooksChartOfAccountsConfigurationPage);
+export default withPolicy(QuickbooksChartOfAccountsPage);
