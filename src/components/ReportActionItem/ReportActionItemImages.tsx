@@ -2,11 +2,13 @@
 import React from 'react';
 import {View} from 'react-native';
 import {Polygon, Svg} from 'react-native-svg';
+import ConfirmedRoute from '@components/ConfirmedRoute';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import ReportActionItemImage from './ReportActionItemImage';
 
@@ -70,19 +72,28 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
                 // Show a border to separate multiple images. Shown to the right for each except the last.
                 const shouldShowBorder = shownImages.length > 1 && index < shownImages.length - 1;
                 const borderStyle = shouldShowBorder ? styles.reportActionItemImageBorder : {};
+                const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
+                const hasPendingWaypoints = transaction?.pendingFields?.waypoints;
+                const showMapAsImage = isDistanceRequest && hasPendingWaypoints;
                 return (
                     <View
                         key={`${index}-${image as string}`}
                         style={[styles.reportActionItemImage, borderStyle, hoverStyle]}
                     >
-                        <ReportActionItemImage
-                            thumbnail={thumbnail}
-                            image={image}
-                            isLocalFile={isLocalFile}
-                            filename={filename}
-                            transaction={transaction}
-                            isSingleImage={numberOfShownImages === 1}
-                        />
+                        {showMapAsImage ? (
+                            <View style={{...styles.reportActionItemImages, width: '100%'}}>
+                                <ConfirmedRoute transaction={transaction} />
+                            </View>
+                        ) : (
+                            <ReportActionItemImage
+                                thumbnail={thumbnail}
+                                image={image}
+                                isLocalFile={isLocalFile}
+                                filename={filename}
+                                transaction={transaction}
+                                isSingleImage={numberOfShownImages === 1}
+                            />
+                        )}
                         {isLastImage && remaining > 0 && (
                             <View style={[styles.reportActionItemImagesMoreContainer]}>
                                 <View style={[styles.reportActionItemImagesMore, isHovered ? styles.reportActionItemImagesMoreHovered : {}]} />
