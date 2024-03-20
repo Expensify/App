@@ -71,10 +71,10 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
     const styles = useThemeStyles();
 
     const logsList = useMemo(
-        () => Object.entries(logs ?? {})
-            .map(([key, value]) => ({ key, ...value }))
-            .reverse(),
-        [logs],
+        () =>
+            Object.entries(logs ?? {})
+                .map(([key, value]) => ({key, ...value}))
+                .reverse(),
         [logs],
     );
 
