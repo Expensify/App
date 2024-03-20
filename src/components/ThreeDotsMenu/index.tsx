@@ -6,7 +6,6 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -15,6 +14,7 @@ import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Modal} from '@src/types/onyx';
+import type ThreeDotsMenuProps from './types';
 
 type ThreeDotsMenuOnyxProps = {
     /** Details about any modals being used */
