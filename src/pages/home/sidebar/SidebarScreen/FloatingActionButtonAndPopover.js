@@ -155,14 +155,22 @@ function FloatingActionButtonAndPopover(props) {
     const navigateToQuickAction = () => {
         switch (props.quickAction.action) {
             case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
+                IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, props.quickAction.chatReportID, CONST.IOU.REQUEST_TYPE.MANUAL);
+                return;
             case CONST.QUICK_ACTIONS.REQUEST_SCAN:
+                IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, props.quickAction.chatReportID, CONST.IOU.REQUEST_TYPE.SCAN);
+                return;
             case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, props.quickAction.chatReportID, props.quickAction.action);
+                IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, props.quickAction.chatReportID, CONST.IOU.REQUEST_TYPE.DISTANCE);
                 return;
             case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, props.quickAction.chatReportID, CONST.IOU.REQUEST_TYPE.MANUAL);
+                return;
             case CONST.QUICK_ACTIONS.SPLIT_SCAN:
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, props.quickAction.chatReportID, CONST.IOU.REQUEST_TYPE.SCAN);
+                return;
             case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, props.quickAction.chatReportID, props.quickAction.action);
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, props.quickAction.chatReportID, CONST.IOU.REQUEST_TYPE.DISTANCE);
                 return;
             case CONST.QUICK_ACTIONS.SEND_MONEY:
                 IOU.startMoneyRequest(CONST.IOU.TYPE.SEND, props.quickAction.chatReportID);
