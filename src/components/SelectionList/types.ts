@@ -107,6 +107,8 @@ type ListItem = {
 
     /** Whether to wrap long text up to 2 lines */
     isMultilineSupported?: boolean;
+
+    searchText?: string;
 };
 
 type ListItemProps = CommonListItemProps<ListItem> & {

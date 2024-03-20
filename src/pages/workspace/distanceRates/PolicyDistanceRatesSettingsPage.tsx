@@ -49,7 +49,7 @@ function PolicyDistanceRatesSettingsPage({policy, route}: PolicyDistanceRatesSet
     };
 
     const setNewCategory = (category: ListItem) => {
-        Policy.setPolicyDistanceRatesDefaultCategory(policyID, customUnit, {...customUnit, defaultCategory: defaultCategory === category.text ? '' : category.text});
+        Policy.setPolicyDistanceRatesDefaultCategory(policyID, customUnit, {...customUnit, defaultCategory: defaultCategory === category.searchText ? '' : category.searchText});
     };
 
     const clearErrorFields = (fieldName: keyof CustomUnit) => {
