@@ -1,7 +1,7 @@
 import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
-import {escapeRegExp, reduce} from 'lodash';
+import {escapeRegExp} from 'lodash';
 import lodashClone from 'lodash/clone';
 import lodashUnion from 'lodash/union';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
