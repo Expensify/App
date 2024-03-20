@@ -1071,6 +1071,14 @@ export default {
             },
         },
     },
+    workflowsDelayedSubmissionPage: {
+        autoReportingErrorMessage: 'The delayed submission parameter could not be changed. Please try again or contact support.',
+        autoReportingFrequencyErrorMessage: 'The submission frequency could not be changed. Please try again or contact support.',
+        monthlyOffsetErrorMessage: 'The monthly frequency could not be changed. Please try again or contact support.',
+    },
+    workflowsApprovalPage: {
+        genericErrorMessage: 'The approver could not be changed. Please try again or contact support.',
+    },
     workflowsPayerPage: {
         title: 'Authorized payer',
         genericErrorMessage: 'The authorized payer could not be changed. Please try again.',
