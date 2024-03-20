@@ -219,11 +219,6 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
             items,
         };
     }, [policies, policyMembers, styles.workspaceSettingsSectionContainer]);
-            ],
-        };
-
-        return defaultMenu;
-    }, [loginList, fundList, styles.accountSettingsSectionContainer, bankAccountList, userWallet?.errors, walletTerms?.errors, signOut]);
 
     /**
      * Retuns a list of menu items data for general section
