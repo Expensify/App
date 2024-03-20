@@ -209,6 +209,7 @@ function isTransactionThread(parentReportAction: OnyxEntry<ReportAction> | Empty
     return (
         parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
         (parentReportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
+            parentReportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ||
             (parentReportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !!parentReportAction.originalMessage.IOUDetails))
     );
 }
@@ -690,7 +691,7 @@ function getReportPreviewAction(chatReportID: string, iouReportID: string): Onyx
  * Get the iouReportID for a given report action.
  */
 function getIOUReportIDFromReportActionPreview(reportAction: OnyxEntry<ReportAction>): string {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW ? reportAction.originalMessage.linkedReportID : '';
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW ? reportAction.originalMessage.linkedReportID : '0';
 }
 
 function isCreatedTaskReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
@@ -713,6 +714,10 @@ function getNumberOfMoneyRequests(reportPreviewAction: OnyxEntry<ReportAction>):
 
 function isSplitBillAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+}
+
+function isTrackExpenseAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && (reportAction.originalMessage as IOUMessage).type === CONST.IOU.REPORT_ACTION_TYPE.TRACK;
 }
 
 function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
@@ -847,6 +852,47 @@ function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): 
         text: reportAction?.message ? reportAction?.message[0].text : '',
         type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
     };
+}
+
+function isOldDotReportAction(action: ReportAction): boolean {
+    return [
+        CONST.REPORT.ACTIONS.TYPE.CHANGEFIELD,
+        CONST.REPORT.ACTIONS.TYPE.CHANGEPOLICY,
+        CONST.REPORT.ACTIONS.TYPE.CHANGETYPE,
+        CONST.REPORT.ACTIONS.TYPE.DELEGATESUBMIT,
+        CONST.REPORT.ACTIONS.TYPE.DELETEDACCOUNT,
+        CONST.REPORT.ACTIONS.TYPE.DONATION,
+        CONST.REPORT.ACTIONS.TYPE.EXPORTEDTOCSV,
+        CONST.REPORT.ACTIONS.TYPE.EXPORTEDTOINTEGRATION,
+        CONST.REPORT.ACTIONS.TYPE.EXPORTEDTOQUICKBOOKS,
+        CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+        CONST.REPORT.ACTIONS.TYPE.INTEGRATIONSMESSAGE,
+        CONST.REPORT.ACTIONS.TYPE.MANAGERATTACHRECEIPT,
+        CONST.REPORT.ACTIONS.TYPE.MANAGERDETACHRECEIPT,
+        CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED,
+        CONST.REPORT.ACTIONS.TYPE.MARKREIMBURSEDFROMINTEGRATION,
+        CONST.REPORT.ACTIONS.TYPE.OUTDATEDBANKACCOUNT,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTACHBOUNCE,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTACHCANCELLED,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTACCOUNTCHANGED,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDELAYED,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTREQUESTED,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTSETUP,
+        CONST.REPORT.ACTIONS.TYPE.SELECTEDFORRANDOMAUDIT,
+        CONST.REPORT.ACTIONS.TYPE.SHARE,
+        CONST.REPORT.ACTIONS.TYPE.STRIPEPAID,
+        CONST.REPORT.ACTIONS.TYPE.TAKECONTROL,
+        CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
+        CONST.REPORT.ACTIONS.TYPE.UNSHARE,
+    ].some((oldDotActionName) => oldDotActionName === action.actionName);
+}
+
+/**
+ * Helper method to format message of OldDot Actions.
+ * For now, we just concat all of the text elements of the message to create the full message.
+ */
+function getMessageOfOldDotReportAction(reportAction: OnyxEntry<ReportAction>): string {
+    return reportAction?.message?.map((element) => element.text).join('') ?? '';
 }
 
 function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
@@ -998,6 +1044,7 @@ export {
     isReportPreviewAction,
     isSentMoneyReportAction,
     isSplitBillAction,
+    isTrackExpenseAction,
     isTaskAction,
     doesReportHaveVisibleActions,
     isThreadParentMessage,
@@ -1012,6 +1059,8 @@ export {
     getFirstVisibleReportActionID,
     isMemberChangeAction,
     getMemberChangeMessageFragment,
+    isOldDotReportAction,
+    getMessageOfOldDotReportAction,
     getMemberChangeMessagePlainText,
     isReimbursementDeQueuedAction,
     isActionableMentionWhisper,
