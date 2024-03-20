@@ -1,54 +1,57 @@
-import lodashGet from 'lodash/get';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {OnyxEntry} from 'react-native-onyx';
 import FixedFooter from '@components/FixedFooter';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormScrollView from '@components/FormScrollView';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import walletOnfidoDataPropTypes from './walletOnfidoDataPropTypes';
+import type {WalletOnfido} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-const propTypes = {
+const DEFAULT_WALLET_ONFIDO_DATA = {
+    applicantID: '',
+    sdkToken: '',
+    loading: false,
+    errors: {},
+    fixableErrors: [],
+    hasAcceptedPrivacyPolicy: false,
+};
+
+type OnfidoPrivacyOnyxProps = {
     /** Stores various information used to build the UI and call any APIs */
-    walletOnfidoData: walletOnfidoDataPropTypes,
-
-    ...withLocalizePropTypes,
+    walletOnfidoData: OnyxEntry<WalletOnfido>;
 };
 
-const defaultProps = {
-    walletOnfidoData: {
-        applicantID: '',
-        sdkToken: '',
-        loading: false,
-        errors: {},
-        fixableErrors: [],
-        hasAcceptedPrivacyPolicy: false,
-    },
-};
+type OnfidoPrivacyProps = OnfidoPrivacyOnyxProps;
 
-function OnfidoPrivacy({walletOnfidoData, translate, form}) {
+function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPrivacyProps) {
+    const {translate} = useLocalize();
+    const formRef = useRef<ScrollView>(null);
     const styles = useThemeStyles();
+    if (!walletOnfidoData) {
+        return;
+    }
     const {isLoading = false, hasAcceptedPrivacyPolicy} = walletOnfidoData;
-
-    const formRef = useRef(null);
 
     const openOnfidoFlow = () => {
         BankAccounts.openOnfidoFlow();
     };
 
-    const onfidoError = ErrorUtils.getLatestErrorMessage(walletOnfidoData) || '';
-    const onfidoFixableErrors = lodashGet(walletOnfidoData, 'fixableErrors', []);
-    if (_.isArray(onfidoError)) {
-        onfidoError[0] += !_.isEmpty(onfidoFixableErrors) ? `\n${onfidoFixableErrors.join('\n')}` : '';
+    const onfidoError = ErrorUtils.getLatestErrorMessage(walletOnfidoData) ?? '';
+    const onfidoFixableErrors = walletOnfidoData?.fixableErrors ?? [];
+    if (Array.isArray(onfidoError)) {
+        onfidoError[0] += !isEmptyObject(onfidoFixableErrors) ? `\n${onfidoFixableErrors.join('\n')}` : '';
     }
 
     return (
@@ -59,11 +62,11 @@ function OnfidoPrivacy({walletOnfidoData, translate, form}) {
                         <View style={[styles.mh5, styles.justifyContentCenter]}>
                             <Text style={[styles.mb5]}>
                                 {translate('onfidoStep.acceptTerms')}
-                                <TextLink href="https://onfido.com/facial-scan-policy-and-release/">{translate('onfidoStep.facialScan')}</TextLink>
+                                <TextLink href={CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}>{translate('onfidoStep.facialScan')}</TextLink>
                                 {', '}
-                                <TextLink href="https://onfido.com/privacy/">{translate('common.privacy')}</TextLink>
+                                <TextLink href={CONST.ONFIDO_PRIVACY_POLICY_URL}>{translate('common.privacy')}</TextLink>
                                 {` ${translate('common.and')} `}
-                                <TextLink href="https://onfido.com/terms-of-service/">{translate('common.termsOfService')}</TextLink>.
+                                <TextLink href={CONST.ONFIDO_TERMS_OF_SERVICE_URL}>{translate('common.termsOfService')}</TextLink>.
                             </Text>
                         </View>
                     </FormScrollView>
@@ -72,7 +75,7 @@ function OnfidoPrivacy({walletOnfidoData, translate, form}) {
                             isAlertVisible={Boolean(onfidoError)}
                             onSubmit={openOnfidoFlow}
                             onFixTheErrorsLinkPressed={() => {
-                                form.scrollTo({y: 0, animated: true});
+                                formRef.current?.scrollTo({y: 0, animated: true});
                             }}
                             message={onfidoError}
                             isLoading={isLoading}
@@ -87,18 +90,13 @@ function OnfidoPrivacy({walletOnfidoData, translate, form}) {
     );
 }
 
-OnfidoPrivacy.propTypes = propTypes;
-OnfidoPrivacy.defaultProps = defaultProps;
 OnfidoPrivacy.displayName = 'OnfidoPrivacy';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        walletOnfidoData: {
-            key: ONYXKEYS.WALLET_ONFIDO,
+export default withOnyx<OnfidoPrivacyProps, OnfidoPrivacyOnyxProps>({
+    walletOnfidoData: {
+        key: ONYXKEYS.WALLET_ONFIDO,
 
-            // Let's get a new onfido token each time the user hits this flow (as it should only be once)
-            initWithStoredValues: false,
-        },
-    }),
-)(OnfidoPrivacy);
+        // Let's get a new onfido token each time the user hits this flow (as it should only be once)
+        initWithStoredValues: false,
+    },
+})(OnfidoPrivacy);
