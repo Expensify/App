@@ -1791,6 +1791,8 @@ export default {
             moreFeatures: 'Más características',
             requested: 'Solicitado',
             distanceRates: 'Tasas de distancia',
+            welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
+                `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
         },
         type: {
             free: 'Gratis',
@@ -1869,6 +1871,9 @@ export default {
             requiresTag: 'Los miembros deben etiquetar todos los gastos',
             customTagName: 'Nombre de etiqueta personalizada',
             enableTag: 'Habilitar etiqueta',
+            enableTags: 'Habilitar etiquetas',
+            disableTag: 'Desactivar etiqueta',
+            disableTags: 'Desactivar etiquetas',
             addTag: 'Añadir etiqueta',
             editTag: 'Editar etiqueta',
             subtitle: 'Las etiquetas añaden formas más detalladas de clasificar los costos.',
@@ -1877,7 +1882,9 @@ export default {
                 subtitle: 'Añade una etiqueta para realizar el seguimiento de proyectos, ubicaciones, departamentos y otros.',
             },
             deleteTag: 'Eliminar etiqueta',
+            deleteTags: 'Eliminar etiquetas',
             deleteTagConfirmation: '¿Estás seguro de que quieres eliminar esta etiqueta?',
+            deleteTagsConfirmation: '¿Estás seguro de que quieres eliminar estas etiquetas?',
             deleteFailureMessage: 'Se ha producido un error al intentar eliminar la etiqueta. Por favor, inténtalo más tarde.',
             tagRequiredError: 'Lo nombre de la etiqueta es obligatorio.',
             existingTagError: 'Ya existe una etiqueta con este nombre.',
@@ -1960,8 +1967,6 @@ export default {
             trackDistanceRate: 'Tarifa',
             trackDistanceUnit: 'Unidad',
             trackDistanceChooseUnit: 'Elige una unidad predeterminada de medida.',
-            kilometers: 'Kilómetros',
-            miles: 'Millas',
             unlockNextDayReimbursements: 'Desbloquea reembolsos diarios',
             captureNoVBACopyBeforeEmail: 'Pide a los miembros de tu espacio de trabajo que envíen recibos a ',
             captureNoVBACopyAfterEmail: ' y descarga la App de Expensify para controlar tus gastos en efectivo sobre la marcha.',
@@ -2017,8 +2022,6 @@ export default {
             personalMessagePrompt: 'Mensaje',
             inviteNoMembersError: 'Por favor, selecciona al menos un miembro a invitar',
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
-            welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
-                `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
         },
         distanceRates: {
             oopsNotSoFast: 'Ups! No tan rápido...',
@@ -2036,6 +2039,8 @@ export default {
             status: 'Estado',
             enabled: 'Activada',
             disabled: 'Desactivada',
+            unit: 'Unidad',
+            defaultCategory: 'Categoría predeterminada',
         },
         editor: {
             nameInputLabel: 'Nombre',

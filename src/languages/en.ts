@@ -1767,6 +1767,8 @@ export default {
             moreFeatures: 'More features',
             requested: 'Requested',
             distanceRates: 'Distance rates',
+            welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
+                `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
         },
         type: {
             free: 'Free',
@@ -1845,6 +1847,9 @@ export default {
             requiresTag: 'Members must tag all spend',
             customTagName: 'Custom tag name',
             enableTag: 'Enable tag',
+            enableTags: 'Enable tags',
+            disableTag: 'Disable tag',
+            disableTags: 'Disable tags',
             addTag: 'Add tag',
             editTag: 'Edit tag',
             subtitle: 'Tags add more detailed ways to classify costs.',
@@ -1853,7 +1858,9 @@ export default {
                 subtitle: 'Add a tag to track projects, locations, departments, and more.',
             },
             deleteTag: 'Delete tag',
+            deleteTags: 'Delete tags',
             deleteTagConfirmation: 'Are you sure that you want to delete this tag?',
+            deleteTagsConfirmation: 'Are you sure that you want to delete these tags?',
             deleteFailureMessage: 'An error occurred while deleting the tag, please try again.',
             tagRequiredError: 'Tag name is required.',
             existingTagError: 'A tag with this name already exists.',
@@ -1935,8 +1942,6 @@ export default {
             trackDistanceRate: 'Rate',
             trackDistanceUnit: 'Unit',
             trackDistanceChooseUnit: 'Choose a default unit to track.',
-            kilometers: 'Kilometers',
-            miles: 'Miles',
             unlockNextDayReimbursements: 'Unlock next-day reimbursements',
             captureNoVBACopyBeforeEmail: 'Ask your workspace members to forward receipts to ',
             captureNoVBACopyAfterEmail: ' and download the Expensify App to track cash expenses on the go.',
@@ -1992,8 +1997,6 @@ export default {
             personalMessagePrompt: 'Message',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
             inviteNoMembersError: 'Please select at least one member to invite',
-            welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
-                `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
         },
         distanceRates: {
             oopsNotSoFast: 'Oops! Not so fast...',
@@ -2011,6 +2014,8 @@ export default {
             status: 'Status',
             enabled: 'Enabled',
             disabled: 'Disabled',
+            unit: 'Unit',
+            defaultCategory: 'Default category',
         },
         editor: {
             descriptionInputLabel: 'Description',
