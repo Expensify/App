@@ -124,7 +124,7 @@ const jobMocksTemplate = (jobMocksName: string, stepMocks: string[]): string => 
 };
 
 const jobAssertionTemplate = (jobAssertionName: string, stepAssertionsContent: string) => `
-const ${jobAssertionName} = (workflowResult: Step[], didExecute = true) => {
+function ${jobAssertionName}(workflowResult: Step[], didExecute = true) {
     const steps = [\n${stepAssertionsContent}\n];
 
     for (const expectedStep of steps) {
@@ -226,7 +226,7 @@ const getMockFileContent = (workflowName: string, jobs: Record<string, YamlMockJ
             stepMocks.push(stepMockName);
             mockStepsContent += mockStepTemplate(stepMockName, step, jobId);
         });
-        
+
         const jobMocksName = `${workflowName.toUpperCase()}__${jobId.toUpperCase()}__STEP_MOCKS`;
         jobMocks.push(jobMocksName);
         mockStepsContent += jobMocksTemplate(jobMocksName, stepMocks);
