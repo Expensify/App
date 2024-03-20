@@ -452,7 +452,6 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                 >
                     <AmountTextInput
                         placeholder={numberFormat(0)}
-                        maxLength={2}
                         formattedAmount={hours}
                         onKeyPress={(e) => {
                             lastPressedKey.current = e.nativeEvent.key;
@@ -479,7 +478,6 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                     <Text style={styles.timePickerSemiDot}>{CONST.COLON}</Text>
                     <AmountTextInput
                         placeholder={numberFormat(0)}
-                        maxLength={2}
                         formattedAmount={minutes}
                         onKeyPress={(e) => {
                             lastPressedKey.current = e.nativeEvent.key;

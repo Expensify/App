@@ -3,7 +3,7 @@ import type {EventJSON} from '@kie/act-js/build/src/action-event/action-event.ty
 import fs from 'fs';
 import path from 'path';
 import yaml from 'yaml';
-import type {ExtendedAct} from './ExtendedAct';
+import type ExtendedAct from './ExtendedAct';
 
 type StepAssertionInputEntry = {key: string; value: string};
 

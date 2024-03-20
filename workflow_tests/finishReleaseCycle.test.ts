@@ -2,7 +2,7 @@ import {MockGithub} from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/finishReleaseCycleAssertions';
 import mocks from './mocks/finishReleaseCycleMocks';
-import {ExtendedAct} from './utils/ExtendedAct';
+import ExtendedAct from './utils/ExtendedAct';
 import type {MockJob} from './utils/JobMocker';
 import * as utils from './utils/utils';
 

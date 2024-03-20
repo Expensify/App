@@ -114,6 +114,5 @@ class JobMocker {
     }
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {JobMocker};
+export default JobMocker;
 export type {MockJob, MockJobs, YamlWorkflow, YamlMockJob, MockJobStep};

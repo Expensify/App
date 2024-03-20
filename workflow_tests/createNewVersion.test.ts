@@ -2,7 +2,7 @@ import {MockGithub} from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/createNewVersionAssertions';
 import mocks from './mocks/createNewVersionMocks';
-import {ExtendedAct} from './utils/ExtendedAct';
+import ExtendedAct from './utils/ExtendedAct';
 import * as utils from './utils/utils';
 
 jest.setTimeout(90 * 1000); // 90 sec
