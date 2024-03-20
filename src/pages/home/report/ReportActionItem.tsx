@@ -53,7 +53,6 @@ import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as Policy from '@userActions/Policy';
-import * as store from '@userActions/ReimbursementAccount/store';
 import * as Report from '@userActions/Report';
 import * as ReportActions from '@userActions/ReportActions';
 import * as Session from '@userActions/Session';
@@ -470,27 +469,23 @@ function ReportActionItem({
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails[report.ownerAccountID ?? -1]);
             const paymentType = action.originalMessage.paymentType ?? '';
 
-            const isSubmitterOfUnsettledReport = ReportUtils.isCurrentUserSubmitter(report.reportID) && !ReportUtils.isSettled(report.reportID);
-            const shouldShowAddCreditBankAccountButton = isSubmitterOfUnsettledReport && !store.hasCreditBankAccount() && paymentType !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
-            const shouldShowEnableWalletButton =
-                isSubmitterOfUnsettledReport && (isEmptyObject(userWallet) || userWallet?.tierName === CONST.WALLET.TIER_NAME.SILVER) && paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
-
+            const missingPaymentMethod = ReportUtils.getIndicatedMissingPaymentMethod(userWallet, report.reportID, action);
             children = (
                 <ReportActionItemBasicMessage
                     message={translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', {submitterDisplayName})}
                 >
                     <>
-                        {shouldShowAddCreditBankAccountButton && (
+                        {missingPaymentMethod === 'bankAccount' && (
                             <Button
                                 success
                                 style={[styles.w100, styles.requestPreviewBox]}
                                 text={translate('bankAccount.addBankAccount')}
                                 onPress={() => BankAccounts.openPersonalBankAccountSetupView(report.reportID)}
                                 pressOnEnter
+                                large
                             />
                         )}
-
-                        {shouldShowEnableWalletButton && (
+                        {missingPaymentMethod === 'wallet' && (
                             <KYCWall
                                 onSuccessfulKYC={() => Navigation.navigate(ROUTES.ENABLE_PAYMENTS)}
                                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
@@ -503,6 +498,7 @@ function ReportActionItem({
                                     <Button
                                         ref={buttonRef}
                                         success
+                                        large
                                         style={[styles.w100, styles.requestPreviewBox]}
                                         text={translate('iou.enableWallet')}
                                         onPress={triggerKYCFlow}
@@ -517,6 +513,9 @@ function ReportActionItem({
             children = <ReportActionItemBasicMessage message={ReportUtils.getReimbursementDeQueuedActionMessage(action, report)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
             children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(report.reportID, action)} />;
+        } else if (ReportActionsUtils.isOldDotReportAction(action)) {
+            // This handles all historical actions from OldDot that we just want to display the message text
+            children = <ReportActionItemBasicMessage message={ReportActionsUtils.getMessageOfOldDotReportAction(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.heldRequest', {comment: action.message?.[1].text ?? ''})} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {

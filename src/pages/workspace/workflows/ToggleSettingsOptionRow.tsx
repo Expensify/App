@@ -5,7 +5,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type ToggleSettingOptionRowProps = {
@@ -23,14 +23,23 @@ type ToggleSettingOptionRowProps = {
     subMenuItems?: React.ReactNode;
     /** If there is a pending action, we will grey out the option */
     pendingAction?: PendingAction;
+    /** Any error message to show */
+    errors?: Errors;
+    /** Callback to close the error messages */
+    onCloseError?: () => void;
 };
 const ICON_SIZE = 48;
 
-function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, isActive, pendingAction}: ToggleSettingOptionRowProps) {
+function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, isActive, pendingAction, errors, onCloseError}: ToggleSettingOptionRowProps) {
     const styles = useThemeStyles();
 
     return (
-        <OfflineWithFeedback pendingAction={pendingAction}>
+        <OfflineWithFeedback
+            pendingAction={pendingAction}
+            errors={errors}
+            errorRowStyles={[styles.mt2]}
+            onClose={onCloseError}
+        >
             <View style={styles.pRelative}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>

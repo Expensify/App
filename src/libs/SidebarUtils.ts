@@ -304,7 +304,8 @@ function getOptionData({
     const lastActorDisplayName = OptionsListUtils.getLastActorDisplayName(lastActorDetails, hasMultipleParticipants);
     const lastMessageTextFromReport = OptionsListUtils.getLastMessageTextForReport(report, lastActorDetails, policy);
 
-    let lastMessageText = lastMessageTextFromReport;
+    // We need to remove sms domain in case the last message text has a phone number mention with sms domain.
+    let lastMessageText = Str.removeSMSDomain(lastMessageTextFromReport);
 
     const lastAction = visibleReportActionItems[report.reportID];
 
@@ -351,25 +352,26 @@ function getOptionData({
         if (!lastMessageText) {
             // Here we get the beginning of chat history message and append the display name for each user, adding pronouns if there are any.
             // We also add a fullstop after the final name, the word "and" before the final name and commas between all previous names.
-            lastMessageText =
-                Localize.translate(preferredLocale, 'reportActionsView.beginningOfChatHistory') +
-                displayNamesWithTooltips
-                    .map(({displayName, pronouns}, index) => {
-                        const formattedText = !pronouns ? displayName : `${displayName} (${pronouns})`;
+            lastMessageText = ReportUtils.isSelfDM(report)
+                ? Localize.translate(preferredLocale, 'reportActionsView.beginningOfChatHistorySelfDM')
+                : Localize.translate(preferredLocale, 'reportActionsView.beginningOfChatHistory') +
+                  displayNamesWithTooltips
+                      .map(({displayName, pronouns}, index) => {
+                          const formattedText = !pronouns ? displayName : `${displayName} (${pronouns})`;
 
-                        if (index === displayNamesWithTooltips.length - 1) {
-                            return `${formattedText}.`;
-                        }
-                        if (index === displayNamesWithTooltips.length - 2) {
-                            return `${formattedText} ${Localize.translate(preferredLocale, 'common.and')}`;
-                        }
-                        if (index < displayNamesWithTooltips.length - 2) {
-                            return `${formattedText},`;
-                        }
+                          if (index === displayNamesWithTooltips.length - 1) {
+                              return `${formattedText}.`;
+                          }
+                          if (index === displayNamesWithTooltips.length - 2) {
+                              return `${formattedText} ${Localize.translate(preferredLocale, 'common.and')}`;
+                          }
+                          if (index < displayNamesWithTooltips.length - 2) {
+                              return `${formattedText},`;
+                          }
 
-                        return '';
-                    })
-                    .join(' ');
+                          return '';
+                      })
+                      .join(' ');
         }
 
         result.alternateText = ReportUtils.isGroupChat(report) && lastActorDisplayName ? `${lastActorDisplayName}: ${lastMessageText}` : lastMessageText || formattedLogin;

@@ -25,6 +25,7 @@ type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<{
     defaultCategory?: string;
     enabled?: boolean;
     errors?: OnyxCommon.Errors;
+    errorFields?: OnyxCommon.ErrorFields;
 }>;
 
 type DisabledFields = {
@@ -32,26 +33,32 @@ type DisabledFields = {
     reimbursable?: boolean;
 };
 
-type TaxRate = {
+type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Name of the a tax rate. */
     name: string;
 
     /** The value of the tax rate as percentage. */
     value: string;
 
-    /** The code associated with the tax rate. */
-    code: string;
+    /** The code associated with the tax rate. If a tax is created in old dot, code field is undefined */
+    code?: string;
 
     /** This contains the tax name and tax value as one name */
-    modifiedName: string;
+    modifiedName?: string;
 
     /** Indicates if the tax rate is disabled. */
     isDisabled?: boolean;
-};
+
+    /** An error message to display to the user */
+    errors?: OnyxCommon.Errors;
+
+    /** An error object keyed by field name containing errors keyed by microtime */
+    errorFields?: OnyxCommon.ErrorFields;
+}>;
 
 type TaxRates = Record<string, TaxRate>;
 
-type TaxRatesWithDefault = {
+type TaxRatesWithDefault = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Name of the tax */
     name: string;
 
@@ -66,7 +73,13 @@ type TaxRatesWithDefault = {
 
     /** List of tax names and values */
     taxes: TaxRates;
-};
+
+    /** An error message to display to the user */
+    errors?: OnyxCommon.Errors;
+
+    /** Error objects keyed by field name containing errors keyed by microtime */
+    errorFields?: OnyxCommon.ErrorFields;
+}>;
 
 type ConnectionLastSync = {
     successfulDate?: string;
@@ -171,6 +184,8 @@ type Connections = {
 
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
+type PolicyFeatureName = ValueOf<typeof CONST.POLICY.MORE_FEATURES>;
+
 type PendingJoinRequestPolicy = {
     isJoinRequestPending: boolean;
     policyDetailsForNonMembers: Record<
@@ -210,6 +225,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The URL for the policy avatar */
         avatar?: string;
+        avatarURL?: string;
 
         /** Error objects keyed by field name containing errors keyed by microtime */
         errorFields?: OnyxCommon.ErrorFields;
@@ -282,9 +298,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The approval mode set up on this policy */
         approvalMode?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
 
-        /** Whether the auto approval is enabled */
-        isAutoApprovalEnabled?: boolean;
-
         /** Whether transactions should be billable by default */
         defaultBillable?: boolean;
 
@@ -321,6 +334,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Email of the reimburser when reimbursement is set direct */
         reimburserEmail?: string;
 
+        /** AccountID of the reimburser when reimbursement is set direct */
+        reimburserAccountID?: number;
+
         /** ReportID of the admins room for this workspace */
         chatReportIDAdmins?: number;
 
@@ -353,4 +369,4 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
 export default Policy;
 
-export type {Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault, PendingJoinRequestPolicy};
+export type {Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault, PolicyFeatureName, PendingJoinRequestPolicy};
