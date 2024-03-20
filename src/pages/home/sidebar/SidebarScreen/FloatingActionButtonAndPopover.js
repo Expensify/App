@@ -105,7 +105,12 @@ const propTypes = {
     innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 
     /** Information on the last taken action to display as Quick Action */
-    quickAction: PropTypes.object,
+    quickAction: PropTypes.shape({
+        action: PropTypes.string,
+        chatReportID: PropTypes.string,
+        targetAccountID: PropTypes.number,
+        isFirstQuickAction: PropTypes.bool,
+    })
 
     /** Personal details of all the users */
     personalDetails: personalDetailsPropType,
