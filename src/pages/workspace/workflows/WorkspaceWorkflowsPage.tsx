@@ -153,7 +153,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                 subMenuItems: (
                     <>
                         <MenuItem
-                            titleStyle={styles.textLabelSupportingNormal}
+                            titleStyle={hasVBA ? styles.textLabelSupportingNormal : styles.textLabelSupportingEmptyValue}
                             descriptionTextStyle={styles.textNormalThemeText}
                             title={hasVBA ? translate('common.bankAccount') : translate('workflowsPage.connectBankAccount')}
                             description={state === BankAccount.STATE.OPEN ? bankDisplayName : undefined}

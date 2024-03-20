@@ -5336,6 +5336,14 @@ function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxEntry<Report> 
 }
 
 /**
+ * Checks if report contains actions with errors
+ */
+function hasActionsWithErrors(reportID: string): boolean {
+    const reportActions = ReportActionsUtils.getAllReportActions(reportID ?? '');
+    return Object.values(reportActions ?? {}).some((action) => !isEmptyObject(action.errors));
+}
+
+/**
  * @returns the object to update `report.hasOutstandingChildRequest`
  */
 function getOutstandingChildRequest(iouReport: OnyxEntry<Report> | EmptyObject): OutstandingChildRequest {
@@ -5577,6 +5585,7 @@ export {
     isJoinRequestInAdminRoom,
     canAddOrDeleteTransactions,
     shouldCreateNewMoneyRequestReport,
+    hasActionsWithErrors,
     getOutstandingChildRequest,
 };
 
