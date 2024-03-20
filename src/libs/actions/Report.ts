@@ -2457,8 +2457,6 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                participantAccountIDs: participantAccountIDsAfterRemoval,
-                visibleChatMemberAccountIDs: visibleChatMemberAccountIDsAfterRemoval,
                 pendingChatMembers,
             },
         },
@@ -2469,8 +2467,6 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                participantAccountIDs: report?.participantAccountIDs,
-                visibleChatMemberAccountIDs: report?.visibleChatMemberAccountIDs,
                 pendingChatMembers: report?.pendingChatMembers ?? null,
             },
         },
