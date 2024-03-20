@@ -312,7 +312,20 @@ function updateMoneyRequestTypeParams(routes: StackNavigationState<ParamListBase
 // eslint-disable-next-line @typescript-eslint/naming-convention
 function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string, requestType?: ValueOf<typeof CONST.IOU.REQUEST_TYPE>) {
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-    Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE.getRoute(iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
+    switch (requestType) {
+        case CONST.IOU.REQUEST_TYPE.MANUAL:
+            Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
+            return;
+        case CONST.IOU.REQUEST_TYPE.SCAN:
+            Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
+            return;
+        case CONST.IOU.REQUEST_TYPE.DISTANCE:
+            Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
+            return;
+        default:
+            Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE.getRoute(iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
+    }
+
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
