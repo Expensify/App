@@ -1,19 +1,17 @@
 import React, {useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import type {ListItem} from '@components/SelectionList/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type * as OnyxTypes from '@src/types/onyx';
 import CategorySelectorModal from './CategorySelectorModal';
-import type CategoryItemType from './types';
 
 type CategorySelectorProps = {
-    /** Collection of categories attached to a policy */
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+    /** The ID of the associated policy */
+    policyID: string;
 
     /** Function to call when the user selects a category */
-    setNewCategory: (value: CategoryItemType) => void;
+    setNewCategory: (value: ListItem) => void;
 
     /** Currently selected category */
     defaultValue?: string;
@@ -25,7 +23,7 @@ type CategorySelectorProps = {
     wrapperStyle: StyleProp<ViewStyle>;
 };
 
-function CategorySelector({policyCategories, defaultValue = '', wrapperStyle, label, setNewCategory}: CategorySelectorProps) {
+function CategorySelector({defaultValue = '', wrapperStyle, label, setNewCategory, policyID}: CategorySelectorProps) {
     const styles = useThemeStyles();
 
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -38,7 +36,7 @@ function CategorySelector({policyCategories, defaultValue = '', wrapperStyle, la
         setIsPickerVisible(false);
     };
 
-    const updateCategoryInput = (categoryItem: CategoryItemType) => {
+    const updateCategoryInput = (categoryItem: ListItem) => {
         setNewCategory(categoryItem);
         hidePickerModal();
     };
@@ -57,7 +55,7 @@ function CategorySelector({policyCategories, defaultValue = '', wrapperStyle, la
                 wrapperStyle={wrapperStyle}
             />
             <CategorySelectorModal
-                policyCategories={policyCategories}
+                policyID={policyID}
                 isVisible={isPickerVisible}
                 currentCategory={defaultValue}
                 onClose={hidePickerModal}

@@ -1,10 +1,12 @@
+import Str from 'expensify-common/lib/str';
 import React, {useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import type {UnitItemType} from '@components/UnitPicker';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import type {UnitItemType, UnitType} from './types';
+import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
+import type {Unit} from '@src/types/onyx/Policy';
 import UnitSelectorModal from './UnitSelectorModal';
 
 type UnitSelectorProps = {
@@ -12,7 +14,7 @@ type UnitSelectorProps = {
     setNewUnit: (value: UnitItemType) => void;
 
     /** Currently selected unit */
-    defaultValue: string;
+    defaultValue: Unit;
 
     /** Label to display on field */
     label: string;
@@ -21,8 +23,7 @@ type UnitSelectorProps = {
     wrapperStyle: StyleProp<ViewStyle>;
 };
 
-function UnitSelector({defaultValue = '', wrapperStyle, label, setNewUnit}: UnitSelectorProps) {
-    const styles = useThemeStyles();
+function UnitSelector({defaultValue, wrapperStyle, label, setNewUnit}: UnitSelectorProps) {
     const {translate} = useLocalize();
 
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -35,13 +36,12 @@ function UnitSelector({defaultValue = '', wrapperStyle, label, setNewUnit}: Unit
         setIsPickerVisible(false);
     };
 
-    const updateUnitInput = (UnitItem: UnitItemType) => {
-        setNewUnit(UnitItem);
+    const updateUnitInput = (unit: UnitItemType) => {
+        setNewUnit(unit);
         hidePickerModal();
     };
 
-    const title = defaultValue ? translate(`workspace.distanceRates.units.${defaultValue as UnitType}`) : '';
-    const descStyle = title.length === 0 ? styles.textNormal : null;
+    const title = Str.recapitalize(translate(getUnitTranslationKey(defaultValue)));
 
     return (
         <View>
@@ -49,7 +49,6 @@ function UnitSelector({defaultValue = '', wrapperStyle, label, setNewUnit}: Unit
                 shouldShowRightIcon
                 title={title}
                 description={label}
-                descriptionTextStyle={descStyle}
                 onPress={showPickerModal}
                 wrapperStyle={wrapperStyle}
             />

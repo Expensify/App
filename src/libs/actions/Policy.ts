@@ -75,6 +75,7 @@ import type {
     PolicyCategories,
     PolicyCategory,
     PolicyMember,
+    PolicyTag,
     PolicyTagList,
     PolicyTags,
     RecentlyUsedCategories,
@@ -84,7 +85,7 @@ import type {
     ReportAction,
     Transaction,
 } from '@src/types/onyx';
-import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OriginalMessageJoinPolicyChangeLog} from '@src/types/onyx/OriginalMessage';
 import type {Attributes, CustomUnit, Rate, Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -326,6 +327,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 hasDraft: false,
                 oldPolicyName: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? '',
+                policyName: '',
             },
         });
 
@@ -372,6 +374,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
                 statusNum,
                 hasDraft,
                 oldPolicyName,
+                policyName: report?.policyName,
             },
         });
     });
@@ -455,7 +458,7 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean, frequency
                     enabled,
                 },
                 autoReportingFrequency: frequency,
-                pendingFields: {isAutoApprovalEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                pendingFields: {autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             },
         },
     ];
@@ -470,7 +473,7 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean, frequency
                     enabled: policy.harvesting?.enabled ?? null,
                 },
                 autoReportingFrequency: policy.autoReportingFrequency ?? null,
-                pendingFields: {isAutoApprovalEnabled: null, harvesting: null},
+                pendingFields: {autoReporting: null},
             },
         },
     ];
@@ -480,7 +483,7 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean, frequency
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                pendingFields: {isAutoApprovalEnabled: null, harvesting: null},
+                pendingFields: {autoReporting: null},
             },
         },
     ];
@@ -570,13 +573,11 @@ function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingO
 }
 
 function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>) {
-    const isAutoApprovalEnabled = approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC;
     const policy = ReportUtils.getPolicy(policyID);
 
     const value = {
         approver,
         approvalMode,
-        isAutoApprovalEnabled,
     };
 
     const optimisticData: OnyxUpdate[] = [
@@ -597,7 +598,6 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             value: {
                 approver: policy.approver ?? null,
                 approvalMode: policy.approvalMode ?? null,
-                isAutoApprovalEnabled: policy.isAutoApprovalEnabled ?? null,
                 pendingFields: {approvalMode: null},
             },
         },
@@ -613,7 +613,14 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
         },
     ];
 
-    const params: SetWorkspaceApprovalModeParams = {policyID, value: JSON.stringify(value)};
+    const params: SetWorkspaceApprovalModeParams = {
+        policyID,
+        value: JSON.stringify({
+            ...value,
+            // This property should now be set to false for all Collect policies
+            isAutoApprovalEnabled: false,
+        }),
+    };
     API.write(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, params, {optimisticData, failureData, successData});
 }
 
@@ -1146,7 +1153,6 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
             // need to remove the members since that is handled by onClose of OfflineWithFeedback.
             value: failureMembersState,
         },
-        ...newPersonalDetailsOnyxData.finallyData,
         ...membersChats.onyxFailureData,
         ...announceRoomMembers.onyxFailureData,
     ];
@@ -2169,7 +2175,7 @@ function setWorkspaceInviteMembersDraft(policyID: string, invitedEmailsToAccount
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, invitedEmailsToAccountIDs);
 }
 
-function setWorkspaceInviteMessageDraft(policyID: string, message: string) {
+function setWorkspaceInviteMessageDraft(policyID: string, message: string | null) {
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${policyID}`, message);
 }
 
@@ -2713,7 +2719,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
                         acc[key] = {
                             ...policyCategories[key],
                             ...categoriesToUpdate[key],
-                            errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.genericFailureMessage'),
+                            errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.updateFailureMessage'),
                             pendingFields: {
                                 enabled: null,
                             },
@@ -2768,7 +2774,7 @@ function createPolicyCategory(policyID: string, categoryName: string) {
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
                     [categoryName]: {
-                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.genericFailureMessage'),
+                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.createFailureMessage'),
                         pendingAction: null,
                     },
                 },
@@ -2829,7 +2835,7 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                         ...policyCategoryToUpdate,
                         name: policyCategory.oldName,
                         unencodedName: decodeURIComponent(policyCategory.oldName),
-                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.genericFailureMessage'),
+                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.updateFailureMessage'),
                         pendingAction: null,
                     },
                 },
@@ -2846,7 +2852,7 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
 }
 
 function createPolicyTag(policyID: string, tagName: string) {
-    const tagListName = Object.keys(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})[0];
+    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[0] ?? {};
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -2854,7 +2860,7 @@ function createPolicyTag(policyID: string, tagName: string) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    [tagListName]: {
+                    [policyTag.name]: {
                         tags: {
                             [tagName]: {
                                 name: tagName,
@@ -2872,7 +2878,7 @@ function createPolicyTag(policyID: string, tagName: string) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    [tagListName]: {
+                    [policyTag.name]: {
                         tags: {
                             [tagName]: {
                                 errors: null,
@@ -2888,7 +2894,7 @@ function createPolicyTag(policyID: string, tagName: string) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    [tagListName]: {
+                    [policyTag.name]: {
                         tags: {
                             [tagName]: {
                                 errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
@@ -2994,6 +3000,68 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
     API.write(WRITE_COMMANDS.SET_POLICY_TAGS_ENABLED, parameters, onyxData);
 }
 
+function deletePolicyTags(policyID: string, tagsToDelete: string[]) {
+    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[0] ?? {};
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [policyTag.name]: {
+                        tags: {
+                            ...tagsToDelete.reduce<Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>>((acc, tagName) => {
+                                acc[tagName] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+                                return acc;
+                            }, {}),
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [policyTag.name]: {
+                        tags: {
+                            ...tagsToDelete.reduce<Record<string, null | Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>>((acc, tagName) => {
+                                acc[tagName] = null;
+                                return acc;
+                            }, {}),
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [policyTag.name]: {
+                        tags: {
+                            ...tagsToDelete.reduce<Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>>((acc, tagName) => {
+                                acc[tagName] = {pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.deleteFailureMessage')};
+                                return acc;
+                            }, {}),
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        tags: JSON.stringify(tagsToDelete),
+    };
+
+    API.write(WRITE_COMMANDS.DELETE_POLICY_TAGS, parameters, onyxData);
+}
+
 function clearPolicyTagErrors(policyID: string, tagName: string) {
     const tagListName = Object.keys(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})[0];
     const tag = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[tagListName].tags?.[tagName];
@@ -3022,6 +3090,72 @@ function clearPolicyTagErrors(policyID: string, tagName: string) {
             },
         },
     });
+}
+
+function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName: string}) {
+    const tagListName = Object.keys(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})[0];
+    const oldTag = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[policyTag.oldName] ?? {};
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [tagListName]: {
+                        tags: {
+                            [policyTag.oldName]: null,
+                            [policyTag.newName]: {
+                                ...oldTag,
+                                name: policyTag.newName,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [tagListName]: {
+                        tags: {
+                            [policyTag.newName]: {
+                                errors: null,
+                                pendingAction: null,
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [tagListName]: {
+                        tags: {
+                            [policyTag.newName]: null,
+                            [policyTag.oldName]: {
+                                ...oldTag,
+                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        oldName: policyTag.oldName,
+        newName: policyTag.newName,
+    };
+
+    API.write(WRITE_COMMANDS.RENAME_POLICY_TAG, parameters, onyxData);
 }
 
 function setWorkspaceRequiresCategory(policyID: string, requiresCategory: boolean) {
@@ -3061,7 +3195,7 @@ function setWorkspaceRequiresCategory(policyID: string, requiresCategory: boolea
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     requiresCategory: !requiresCategory,
-                    errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.genericFailureMessage'),
+                    errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.updateFailureMessage'),
                     pendingFields: {
                         requiresCategory: null,
                     },
@@ -3834,6 +3968,16 @@ function clearCreateDistanceRateItemAndError(policyID: string, customUnitID: str
     });
 }
 
+function clearPolicyDistanceRatesErrorFields(policyID: string, customUnitID: string, updatedErrorFields: ErrorFields) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        customUnits: {
+            [customUnitID]: {
+                errorFields: updatedErrorFields,
+            },
+        },
+    });
+}
+
 function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: CustomUnit) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -3843,7 +3987,7 @@ function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomU
                 customUnits: {
                     [newCustomUnit.customUnitID]: {
                         ...newCustomUnit,
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        pendingFields: {attributes: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                     },
                 },
             },
@@ -3857,7 +4001,7 @@ function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomU
             value: {
                 customUnits: {
                     [newCustomUnit.customUnitID]: {
-                        pendingAction: null,
+                        pendingFields: null,
                     },
                 },
             },
@@ -3872,8 +4016,8 @@ function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomU
                 customUnits: {
                     [currentCustomUnit.customUnitID]: {
                         ...currentCustomUnit,
-                        errors: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage'),
-                        pendingAction: null,
+                        errorFields: {attributes: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                        pendingFields: {attributes: null},
                     },
                 },
             },
@@ -3897,7 +4041,7 @@ function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUn
                 customUnits: {
                     [newCustomUnit.customUnitID]: {
                         ...newCustomUnit,
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        pendingFields: {defaultCategory: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                     },
                 },
             },
@@ -3911,7 +4055,7 @@ function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUn
             value: {
                 customUnits: {
                     [newCustomUnit.customUnitID]: {
-                        pendingAction: null,
+                        pendingFields: {defaultCategory: null},
                     },
                 },
             },
@@ -3926,8 +4070,8 @@ function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUn
                 customUnits: {
                     [currentCustomUnit.customUnitID]: {
                         ...currentCustomUnit,
-                        errors: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage'),
-                        pendingAction: null,
+                        errorFields: {defaultCategory: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                        pendingFields: {defaultCategory: null},
                     },
                 },
             },
@@ -4160,6 +4304,162 @@ function deletePolicyDistanceRates(policyID: string, customUnit: CustomUnit, rat
     API.write(WRITE_COMMANDS.DELETE_POLICY_DISTANCE_RATES, params, {optimisticData, successData, failureData});
 }
 
+function setPolicyCustomTaxName(policyID: string, customTaxName: string) {
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const originalCustomTaxName = policy?.taxRates?.name;
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        name: customTaxName,
+                        pendingFields: {name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                        errorFields: null,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        pendingFields: {name: null},
+                        errorFields: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        name: originalCustomTaxName,
+                        pendingFields: {name: null},
+                        errorFields: {name: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        customTaxName,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_CUSTOM_TAX_NAME, parameters, onyxData);
+}
+
+function setWorkspaceCurrencyDefault(policyID: string, taxCode: string) {
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const originalDefaultExternalID = policy?.taxRates?.defaultExternalID;
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        defaultExternalID: taxCode,
+                        pendingFields: {defaultExternalID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                        errorFields: null,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        pendingFields: {defaultExternalID: null},
+                        errorFields: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        defaultExternalID: originalDefaultExternalID,
+                        pendingFields: {defaultExternalID: null},
+                        errorFields: {defaultExternalID: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        taxCode,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_TAXES_CURRENCY_DEFAULT, parameters, onyxData);
+}
+
+function setForeignCurrencyDefault(policyID: string, taxCode: string) {
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const originalDefaultForeignCurrencyID = policy?.taxRates?.foreignTaxDefault;
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        foreignTaxDefault: taxCode,
+                        pendingFields: {foreignTaxDefault: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                        errorFields: null,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        pendingFields: {foreignTaxDefault: null},
+                        errorFields: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        foreignTaxDefault: originalDefaultForeignCurrencyID,
+                        pendingFields: {foreignTaxDefault: null},
+                        errorFields: {foreignTaxDefault: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        taxCode,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_TAXES_FOREIGN_CURRENCY_DEFAULT, parameters, onyxData);
+}
+
 export {
     removeMembers,
     updateWorkspaceMembersRole,
@@ -4238,10 +4538,16 @@ export {
     setPolicyDistanceRatesUnit,
     setPolicyDistanceRatesDefaultCategory,
     createPolicyTag,
+    renamePolicyTag,
     clearPolicyTagErrors,
     clearWorkspaceReimbursementErrors,
     deleteWorkspaceCategories,
+    deletePolicyTags,
     setWorkspaceTagEnabled,
+    setWorkspaceCurrencyDefault,
+    setForeignCurrencyDefault,
+    setPolicyCustomTaxName,
+    clearPolicyDistanceRatesErrorFields,
     updatePolicyDistanceRateValue,
     setPolicyDistanceRatesEnabled,
     deletePolicyDistanceRates,

@@ -117,7 +117,7 @@ type DidSplitAmountMessageParams = {formattedAmount: string; comment: string};
 
 type AmountEachParams = {amount: string};
 
-type PayerOwesAmountParams = {payer: string; amount: number | string};
+type PayerOwesAmountParams = {payer: string; amount: number | string; comment?: string};
 
 type PayerOwesParams = {payer: string};
 
@@ -210,8 +210,6 @@ type UpdatedTheRequestParams = {valueName: string; newValueToDisplay: string; ol
 type UpdatedTheDistanceParams = {newDistanceToDisplay: string; oldDistanceToDisplay: string; newAmountToDisplay: string; oldAmountToDisplay: string};
 
 type FormattedMaxLengthParams = {formattedMaxLength: string};
-
-type TagSelectionParams = {tagName: string};
 
 type WalletProgramParams = {walletProgram: string};
 
@@ -365,7 +363,6 @@ export type {
     SizeExceededParams,
     SplitAmountParams,
     StepCounterParams,
-    TagSelectionParams,
     TaskCreatedActionParams,
     TermsParams,
     ThreadRequestReportNameParams,
