@@ -44,6 +44,7 @@ import Copy from '@assets/images/copy.svg';
 import CreditCard from '@assets/images/creditcard.svg';
 import DocumentSlash from '@assets/images/document-slash.svg';
 import Document from '@assets/images/document.svg';
+import DocumentPlus from '@assets/images/document-plus.svg';
 import DotIndicatorUnfilled from '@assets/images/dot-indicator-unfilled.svg';
 import DotIndicator from '@assets/images/dot-indicator.svg';
 import DownArrow from '@assets/images/down.svg';
@@ -141,7 +142,6 @@ import Task from '@assets/images/task.svg';
 import Tax from '@assets/images/tax.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
-import TrackExpense from '@assets/images/track-expense.svg';
 import Transfer from '@assets/images/transfer.svg';
 import Trashcan from '@assets/images/trashcan.svg';
 import Unlock from '@assets/images/unlock.svg';
@@ -315,5 +315,5 @@ export {
     ChatBubbleUnread,
     ChatBubbleReply,
     Lightbulb,
-    TrackExpense,
+    DocumentPlus,
 };
