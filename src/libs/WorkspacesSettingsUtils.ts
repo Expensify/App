@@ -10,6 +10,7 @@ import * as OptionsListUtils from './OptionsListUtils';
 import {hasCustomUnitsError, hasPolicyError, hasPolicyMemberError, hasTaxRateError} from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
+import type {Phrase, PhraseParameters} from "@libs/Localize";
 
 type CheckingMethod = () => boolean;
 
@@ -243,6 +244,91 @@ function getOwnershipChecks(error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>
     return {};
 }
 
+/**
+ * @param error workspace change owner error
+ * @param translate translation function
+ * @param policy policy object
+ * @param accountLogin account login/email
+ * @returns ownership change checks page display text's
+ */
+function getOwnershipChecksDisplayText(
+    error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>,
+    translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string,
+    policy: OnyxEntry<Policy>,
+    accountLogin: string | undefined,
+) {
+    const confirmationTitle = () => {
+        switch (error) {
+            case CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED:
+                return translate('workspace.changeOwner.amountOwedTitle');
+            case CONST.POLICY.OWNERSHIP_ERRORS.OWNER_OWES_AMOUNT:
+                return translate('workspace.changeOwner.ownerOwesAmountTitle');
+            case CONST.POLICY.OWNERSHIP_ERRORS.SUBSCRIPTION:
+                return translate('workspace.changeOwner.subscriptionTitle');
+            case CONST.POLICY.OWNERSHIP_ERRORS.DUPLICATE_SUBSCRIPTION:
+                return translate('workspace.changeOwner.duplicateSubscriptionTitle');
+            case CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS:
+                return translate('workspace.changeOwner.hasFailedSettlementsTitle');
+            default:
+                return null;
+        }
+    };
+
+    const confirmationButtonText = () => {
+        switch (error) {
+            case CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED:
+                return translate('workspace.changeOwner.amountOwedButtonText');
+            case CONST.POLICY.OWNERSHIP_ERRORS.OWNER_OWES_AMOUNT:
+                return translate('workspace.changeOwner.ownerOwesAmountButtonText');
+            case CONST.POLICY.OWNERSHIP_ERRORS.SUBSCRIPTION:
+                return translate('workspace.changeOwner.subscriptionButtonText');
+            case CONST.POLICY.OWNERSHIP_ERRORS.DUPLICATE_SUBSCRIPTION:
+                return translate('workspace.changeOwner.duplicateSubscriptionButtonText');
+            case CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS:
+                return translate('workspace.changeOwner.hasFailedSettlementsButtonText');
+            default:
+                return '';
+        }
+    };
+
+    const confirmationText = () => {
+        const changeOwner = policy?.errorFields?.changeOwner;
+        const subscription = changeOwner?.subscription as unknown as { ownerUserCount: number; totalUserCount: number };
+
+        switch (error) {
+            case 'noBillingCard':
+                break;
+            case CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED:
+                return translate('workspace.changeOwner.amountOwedText');
+            case CONST.POLICY.OWNERSHIP_ERRORS.OWNER_OWES_AMOUNT:
+                return translate('workspace.changeOwner.ownerOwesAmountText', {
+                    email: changeOwner?.ownerOwesAmount,
+                    amount: ''
+                });
+            case CONST.POLICY.OWNERSHIP_ERRORS.SUBSCRIPTION:
+                return translate('workspace.changeOwner.subscriptionText', {
+                    usersCount: subscription?.ownerUserCount,
+                    finalCount: subscription?.totalUserCount
+                });
+            case CONST.POLICY.OWNERSHIP_ERRORS.DUPLICATE_SUBSCRIPTION:
+                return translate('workspace.changeOwner.duplicateSubscriptionText', {
+                    email: changeOwner?.duplicateSubscription,
+                    workspaceName: policy?.name
+                });
+            case CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS:
+                return translate('workspace.changeOwner.hasFailedSettlementsText', {email: accountLogin});
+            default:
+                return null;
+        }
+    };
+
+    const title = confirmationTitle();
+    const text = confirmationText();
+    const buttonText = confirmationButtonText();
+
+    return {title, text, buttonText};
+}
+
 export {
     getBrickRoadForPolicy,
     getWorkspacesBrickRoads,
@@ -253,5 +339,6 @@ export {
     getChatTabBrickRoad,
     getUnitTranslationKey,
     getOwnershipChecks,
+    getOwnershipChecksDisplayText,
 };
 export type {BrickRoad};
