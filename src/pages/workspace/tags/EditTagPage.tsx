@@ -12,7 +12,6 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -26,45 +25,42 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
 import type {PolicyTagList} from '@src/types/onyx';
 
-type WorkspaceCreateTagPageOnyxProps = {
+type EditTagPageOnyxProps = {
     /** All policy tags */
     policyTags: OnyxEntry<PolicyTagList>;
 };
 
-type CreateTagPageProps = WorkspaceCreateTagPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_CREATE>;
+type EditTagPageProps = EditTagPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_EDIT>;
 
-function CreateTagPage({route, policyTags}: CreateTagPageProps) {
+function EditTagPage({route, policyTags}: EditTagPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
+    const currentTagName = route.params.tagName;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
             const tagName = values.tagName.trim();
             const {tags} = PolicyUtils.getTagList(policyTags, 0);
-
             if (!ValidationUtils.isRequiredFulfilled(tagName)) {
                 errors.tagName = 'workspace.tags.tagRequiredError';
-            } else if (tags?.[tagName]) {
+            } else if (tags?.[tagName] && currentTagName !== tagName) {
                 errors.tagName = 'workspace.tags.existingTagError';
-            } else if ([...tagName].length > CONST.TAG_NAME_LIMIT) {
-                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                ErrorUtils.addErrorMessage(errors, 'tagName', ['common.error.characterLimitExceedCounter', {length: [...tagName].length, limit: CONST.TAG_NAME_LIMIT}]);
             }
 
             return errors;
         },
-        [policyTags],
+        [currentTagName, policyTags],
     );
 
-    const createTag = useCallback(
+    const editTag = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
-            Policy.createPolicyTag(route.params.policyID, values.tagName.trim());
+            Policy.renamePolicyTag(route.params.policyID, {oldName: currentTagName, newName: values.tagName.trim()});
             Keyboard.dismiss();
-            Navigation.goBack();
+            Navigation.dismissModal();
         },
-        [route.params.policyID],
+        [route.params.policyID, currentTagName],
     );
 
     return (
@@ -73,16 +69,16 @@ function CreateTagPage({route, policyTags}: CreateTagPageProps) {
                 <ScreenWrapper
                     includeSafeAreaPaddingBottom={false}
                     style={[styles.defaultModalContainer]}
-                    testID={CreateTagPage.displayName}
+                    testID={EditTagPage.displayName}
                     shouldEnableMaxHeight
                 >
                     <HeaderWithBackButton
-                        title={translate('workspace.tags.addTag')}
+                        title={translate('workspace.tags.editTag')}
                         onBackButtonPress={Navigation.goBack}
                     />
                     <FormProvider
                         formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}
-                        onSubmit={createTag}
+                        onSubmit={editTag}
                         submitButtonText={translate('common.save')}
                         validate={validate}
                         style={[styles.mh5, styles.flex1]}
@@ -91,6 +87,7 @@ function CreateTagPage({route, policyTags}: CreateTagPageProps) {
                         <InputWrapper
                             InputComponent={TextInput}
                             maxLength={CONST.TAG_NAME_LIMIT}
+                            defaultValue={currentTagName}
                             label={translate('common.name')}
                             accessibilityLabel={translate('common.name')}
                             inputID={INPUT_IDS.TAG_NAME}
@@ -104,10 +101,10 @@ function CreateTagPage({route, policyTags}: CreateTagPageProps) {
     );
 }
 
-CreateTagPage.displayName = 'CreateTagPage';
+EditTagPage.displayName = 'EditTagPage';
 
-export default withOnyx<CreateTagPageProps, WorkspaceCreateTagPageOnyxProps>({
+export default withOnyx<EditTagPageProps, EditTagPageOnyxProps>({
     policyTags: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`,
     },
-})(CreateTagPage);
+})(EditTagPage);
