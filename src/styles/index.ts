@@ -3453,6 +3453,12 @@ const styles = (theme: ThemeColors) =>
             zIndex: 1000,
         },
 
+        invisibleImage: {
+            opacity: 0,
+            width: 200,
+            height: 200,
+        },
+
         reportDropOverlay: {
             backgroundColor: theme.dropUIBG,
             zIndex: 2,
