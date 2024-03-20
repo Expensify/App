@@ -81,7 +81,7 @@ function CarouselItem({item, onPress, isFocused, isModalHovered}: CarouselItemPr
                     reportActionID={item.reportActionID}
                     isHovered={isModalHovered}
                     isFocused={isFocused}
-                    optionalVideoDuration={item.duration}
+                    duration={item.duration}
                 />
             </View>
 

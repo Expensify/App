@@ -203,7 +203,7 @@ function AttachmentModal({
         (attachment: Attachment) => {
             setSourceState(attachment.source);
             setFile(attachment.file);
-            setIsAuthTokenRequiredState(attachment.isAuthTokenRequired);
+            setIsAuthTokenRequiredState(attachment.isAuthTokenRequired ?? false);
             onCarouselAttachmentChange(attachment);
         },
         [onCarouselAttachmentChange],
