@@ -69,43 +69,45 @@ Onyx.connect({
 });
 
 /**
+ * Set interval to periodically (re)check backend status
+ * @returns for use with clearInterval
+ */
+function subscribeToBackendReachability() {
+    return setInterval(() => {
+        // Offline status also implies backend unreachability
+        if (isOffline) {
+            return;
+        }
+        // Using the API url ensures reachability is tested over internet
+        fetch(`${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/Ping`, {
+            method: 'GET',
+            cache: 'no-cache',
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    return Promise.resolve(false);
+                }
+                return response
+                    .json()
+                    .then((json) => Promise.resolve(json.jsonCode === 200))
+                    .catch(() => Promise.resolve(false));
+            })
+            .then(NetworkActions.setIsBackendReachable)
+            .catch(() => NetworkActions.setIsBackendReachable(false));
+    }, CONST.NETWORK.REACHABILITY_TIMEOUT_MS);
+}
+
+/**
  * Monitor internet connectivity and perform periodic backend reachability checks
  */
-function subscribeToNetInfo() {
-    let backendReachabilityCheckInterval: NodeJS.Timeout;
+function subscribeToNetworkStatus() {
     // Note: We are disabling the reachability check when using the local web API since requests can get stuck in a 'Pending' state and are not reliable indicators for "offline".
     // If you need to test the "recheck" feature then switch to the production API proxy server.
-    if (!CONFIG.IS_USING_LOCAL_WEB) {
-        // Set interval to periodically (re)check backend status
-        backendReachabilityCheckInterval = setInterval(() => {
-            // Offline status also implies backend unreachability
-            if (isOffline) {
-                return;
-            }
-            // Using the API url ensures reachability is tested over internet
-            fetch(`${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/Ping`, {
-                method: 'GET',
-                cache: 'no-cache',
-            })
-                .then((response) => {
-                    if (!response.ok) {
-                        return Promise.resolve(false);
-                    }
-                    return response
-                        .json()
-                        .then((json) => Promise.resolve(json.jsonCode === 200))
-                        .catch(() => Promise.resolve(false));
-                })
-                .then(NetworkActions.setIsBackendReachable)
-                .catch(() => NetworkActions.setIsBackendReachable(false));
-        }, CONST.NETWORK.REACHABILITY_TIMEOUT_MS);
-    }
+    const backendReachabilityCheckInterval = !CONFIG.IS_USING_LOCAL_WEB ? subscribeToBackendReachability() : undefined;
 
-    /**
-     * Set up the event listener for NetInfo to tell whether the user has
-     * internet connectivity or not. This is more reliable than the Pusher
-     * `disconnected` event which takes about 10-15 seconds to emit.
-     */
+    // Set up the event listener for NetInfo to tell whether the user has
+    // internet connectivity or not. This is more reliable than the Pusher
+    // `disconnected` event which takes about 10-15 seconds to emit.
     const unsubscribeNetInfo = NetInfo.addEventListener((state) => {
         Log.info('[NetworkConnection] NetInfo state change', false, {...state});
         if (shouldForceOffline) {
@@ -167,5 +169,5 @@ export default {
     onReconnect,
     triggerReconnectionCallbacks,
     recheckNetworkConnection,
-    subscribeToNetInfo,
+    subscribeToNetworkStatus,
 };
