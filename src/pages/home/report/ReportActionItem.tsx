@@ -116,6 +116,7 @@ type ReportActionItemProps = {
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
 
     /** Array of report actions for the report for this action */
+    // eslint-disable-next-line react/no-unused-prop-types
     reportActions: OnyxTypes.ReportAction[];
 
     /** Report action belonging to the report's parent */
