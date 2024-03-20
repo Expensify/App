@@ -25,9 +25,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import getInitialPaginationSize from './getInitialPaginationSize';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import ReportActionsList from './ReportActionsList';
-import getInitialPaginationSize from './getInitialPaginationSize';
 
 type ReportActionsViewOnyxProps = {
     /** Session info for the currently logged in user. */
@@ -76,7 +76,7 @@ let listIDCount = Math.round(Math.random() * 100);
  * returns {object} An object containing the sliced message array, the pagination function,
  *                   index of the linked message, and a unique list ID.
  */
-function usePaginatedReportActionList (
+function usePaginatedReportActionList(
     linkedID: string,
     allReportActions: OnyxTypes.ReportAction[],
     fetchNewerReportActions: (newestReportAction: OnyxTypes.ReportAction) => void,
@@ -117,11 +117,10 @@ function usePaginatedReportActionList (
         }
 
         if (isFirstLinkedActionRender.current) {
-            return allReportActions.slice(index, allReportActions.length);
+            return allReportActions.slice(index);
         }
         const paginationSize = getInitialPaginationSize;
-        const newStartIndex = index >= paginationSize ? index - paginationSize : 0;
-        return newStartIndex ? allReportActions.slice(newStartIndex, allReportActions.length) : allReportActions;
+        return allReportActions.slice(Math.max(index - paginationSize, 0));
         // currentReportActionID is needed to trigger batching once the report action has been positioned
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [linkedID, allReportActions, index, isLoading, currentReportActionID]);
@@ -147,10 +146,10 @@ function usePaginatedReportActionList (
     return {
         visibleReportActions,
         loadMoreReportActionsHandler: handleReportActionPagination,
-        linkedIdIndex: index,
+        linkedIDIndex: index,
         listID,
     };
-};
+}
 
 function ReportActionsView({
     report,
@@ -170,14 +169,13 @@ function ReportActionsView({
     const didSubscribeToReportTypingEvents = useRef(false);
 
     const network = useNetwork();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const contentListHeight = useRef(0);
     const layoutListHeight = useRef(0);
-    const {windowHeight} = useWindowDimensions();
     const isFocused = useIsFocused();
     const prevNetworkRef = useRef(network);
     const prevAuthTokenType = usePrevious(session?.authTokenType);
-    const [isInitialLinkedView, setIsInitialLinkedView] = useState(!!reportActionID);
+    const [isNavigatingToLinkedMessage, setNavigatingToLinkedMessage] = useState(!!reportActionID);
     const prevIsSmallScreenWidthRef = useRef(isSmallScreenWidth);
     const reportID = report.reportID;
     const isLoading = (!!reportActionID && isLoadingInitialReportActions) || !isReadyForCommentLinking;
@@ -200,16 +198,15 @@ function ReportActionsView({
     const {
         visibleReportActions: reportActions,
         loadMoreReportActionsHandler,
-        linkedIdIndex,
+        linkedIDIndex,
         listID,
     } = usePaginatedReportActionList(reportActionID, allReportActions, fetchNewerAction, route, isLoading, isLoadingInitialReportActions);
     const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActions), [reportActions]);
-    const hasCachedActions = useInitialValue(() => reportActions.length > 0);
+    const hasCachedActionOnFirstRender = useInitialValue(() => reportActions.length > 0);
     const hasNewestReportAction = reportActions[0]?.created === report.lastVisibleActionCreated;
-    const newestReportAction = reportActions?.[0];
+    const newestReportAction = useMemo(() => reportActions?.[0], [reportActions]);
     const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
     const hasCreatedAction = oldestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
-    const firstReportActionName = reportActions?.[0]?.actionName;
 
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
 
@@ -338,39 +335,32 @@ function ReportActionsView({
         Report.getOlderActions(reportID, oldestReportAction.reportActionID);
     }, [network.isOffline, isLoadingOlderReportActions, isLoadingInitialReportActions, oldestReportAction, hasCreatedAction, reportID]);
 
-    // const firstReportActionID = useMemo(() => lodashGet(newestReportAction, 'reportActionID'), [newestReportAction]);
-    const firstReportActionID = useMemo(() => newestReportAction?.reportActionID, [newestReportAction]);
-    const loadNewerChats = useCallback(
-        // eslint-disable-next-line rulesdir/prefer-early-return
-        () => {
-            if (isLoadingInitialReportActions || isLoadingOlderReportActions || network.isOffline || newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                return;
-            }
-            // Determines if loading older reports is necessary when the content is smaller than the list
-            // and there are fewer than 23 items, indicating we've reached the oldest message.
-            const isLoadingOlderReportsFirstNeeded = checkIfContentSmallerThanList() && reportActions.length > 23;
+    const loadNewerChats = useCallback(() => {
+        if (isLoadingInitialReportActions || isLoadingOlderReportActions || network.isOffline || newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return;
+        }
+        // Determines if loading older reports is necessary when the content is smaller than the list
+        // and there are fewer than 23 items, indicating we've reached the oldest message.
+        const isLoadingOlderReportsFirstNeeded = checkIfContentSmallerThanList() && reportActions.length > 23;
 
-            if (
-                (reportActionID && linkedIdIndex > -1 && !hasNewestReportAction && !isLoadingOlderReportsFirstNeeded) ||
-                (!reportActionID && !hasNewestReportAction && !isLoadingOlderReportsFirstNeeded)
-            ) {
-                loadMoreReportActionsHandler({firstReportActionID});
-            }
-        },
-        [
-            isLoadingInitialReportActions,
-            isLoadingOlderReportActions,
-            checkIfContentSmallerThanList,
-            reportActionID,
-            linkedIdIndex,
-            hasNewestReportAction,
-            loadMoreReportActionsHandler,
-            firstReportActionID,
-            network.isOffline,
-            reportActions.length,
-            newestReportAction,
-        ],
-    );
+        if (
+            (reportActionID && linkedIDIndex > -1 && !hasNewestReportAction && !isLoadingOlderReportsFirstNeeded) ||
+            (!reportActionID && !hasNewestReportAction && !isLoadingOlderReportsFirstNeeded)
+        ) {
+            loadMoreReportActionsHandler({firstReportActionID: newestReportAction?.reportActionID});
+        }
+    }, [
+        isLoadingInitialReportActions,
+        isLoadingOlderReportActions,
+        checkIfContentSmallerThanList,
+        reportActionID,
+        linkedIDIndex,
+        hasNewestReportAction,
+        loadMoreReportActionsHandler,
+        network.isOffline,
+        reportActions.length,
+        newestReportAction,
+    ]);
 
     /**
      * Runs when the FlatList finishes laying out
@@ -384,7 +374,7 @@ function ReportActionsView({
             }
 
             didLayout.current = true;
-            Timing.end(CONST.TIMING.SWITCH_REPORT, hasCachedActions ? CONST.TIMING.WARM : CONST.TIMING.COLD);
+            Timing.end(CONST.TIMING.SWITCH_REPORT, hasCachedActionOnFirstRender ? CONST.TIMING.WARM : CONST.TIMING.COLD);
 
             // Capture the init measurement only once not per each chat switch as the value gets overwritten
             if (!ReportActionsView.initMeasured) {
@@ -394,7 +384,7 @@ function ReportActionsView({
                 Performance.markEnd(CONST.TIMING.SWITCH_REPORT);
             }
         },
-        [hasCachedActions],
+        [hasCachedActionOnFirstRender],
     );
 
     useEffect(() => {
@@ -402,7 +392,7 @@ function ReportActionsView({
         // This code should be removed once REPORTPREVIEW is no longer repositioned.
         // We need to call openReport for gaps created by moving REPORTPREVIEW, which causes mismatches in previousReportActionID and reportActionID of adjacent reportActions. The server returns the correct sequence, allowing us to overwrite incorrect data with the correct one.
         const shouldOpenReport =
-            firstReportActionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW &&
+            newestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW &&
             !hasCreatedAction &&
             isReadyForCommentLinking &&
             reportActions.length < 24 &&
@@ -419,7 +409,7 @@ function ReportActionsView({
         reportID,
         reportActions,
         reportActionID,
-        firstReportActionName,
+        newestReportAction?.actionName,
         isReadyForCommentLinking,
         isLoadingOlderReportActions,
         isLoadingNewerReportActions,
@@ -427,27 +417,27 @@ function ReportActionsView({
     ]);
 
     // Check if the first report action in the list is the one we're currently linked to
-    const isTheFirstReportActionIsLinked = firstReportActionID === reportActionID;
+    const isTheFirstReportActionIsLinked = newestReportAction?.reportActionID === reportActionID;
 
     useEffect(() => {
-        let timerId: NodeJS.Timeout;
+        let timerID: NodeJS.Timeout;
 
         if (isTheFirstReportActionIsLinked) {
-            setIsInitialLinkedView(true);
+            setNavigatingToLinkedMessage(true);
         } else {
             // After navigating to the linked reportAction, apply this to correctly set
             // `autoscrollToTopThreshold` prop when linking to a specific reportAction.
             InteractionManager.runAfterInteractions(() => {
                 // Using a short delay to ensure the view is updated after interactions
-                timerId = setTimeout(() => setIsInitialLinkedView(false), 10);
+                timerID = setTimeout(() => setNavigatingToLinkedMessage(false), 10);
             });
         }
 
         return () => {
-            if (!timerId) {
+            if (!timerID) {
                 return;
             }
-            clearTimeout(timerId);
+            clearTimeout(timerID);
         };
     }, [isTheFirstReportActionIsLinked]);
 
@@ -456,7 +446,7 @@ function ReportActionsView({
         return null;
     }
     // AutoScroll is disabled when we do linking to a specific reportAction
-    const shouldEnableAutoScroll = hasNewestReportAction && (!reportActionID || !isInitialLinkedView);
+    const shouldEnableAutoScroll = hasNewestReportAction && (!reportActionID || !isNavigatingToLinkedMessage);
 
     return (
         <>
