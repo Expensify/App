@@ -207,6 +207,7 @@ function PopoverMenu({
                         shouldPutLeftPaddingWhenNoIcon={item.shouldPutLeftPaddingWhenNoIcon}
                         label={item.label}
                         floatRightAvatars={item.floatRightAvatars}
+                        floatRightAvatarSize={item.floatRightAvatarSize}
                     />
                 ))}
             </View>

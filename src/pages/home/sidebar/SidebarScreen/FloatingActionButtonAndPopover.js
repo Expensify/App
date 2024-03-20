@@ -109,6 +109,11 @@ const propTypes = {
 
     /** Personal details of all the users */
     personalDetails: personalDetailsPropType,
+
+    session: PropTypes.shape({
+        /** Currently logged in user accountID */
+        accountID: PropTypes.number,
+    }).isRequired,
 };
 const defaultProps = {
     onHideCreateMenu: () => {},
@@ -141,7 +146,7 @@ function FloatingActionButtonAndPopover(props) {
         const quickActionReportID = props.quickAction.chatReportID;
         const quickActionReport = ReportUtils.getReport(quickActionReportID);
         if (quickActionReport) {
-            avatars = ReportUtils.getIcons(quickActionReport, props.personalDetails);
+            avatars = _.filter(ReportUtils.getIcons(quickActionReport, props.personalDetails), avatar => avatar.id !== props.session.accountID);
         }
     }
 
@@ -287,6 +292,7 @@ function FloatingActionButtonAndPopover(props) {
                                 text: translate(getQuickActionTitle(quickAction)),
                                 label: 'Shortcut',
                                 floatRightAvatars: avatars,
+                                floatRightAvatarSize: CONST.AVATAR_SIZE.SMALLER,
                                 description: translate('workspace.new.getTheExpensifyCardAndMore'),
                             },
                         ]
@@ -337,6 +343,9 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(FloatingActionButtonAndPopoverWithRef);
