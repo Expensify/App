@@ -616,15 +616,15 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/taxes/new',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/taxes/new` as const,
     },
-    WORKSPACE_TAXES_EDIT: {
+    WORKSPACE_TAX_EDIT: {
         route: 'settings/workspaces/:policyID/tax/:taxID',
         getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURI(taxID)}` as const,
     },
-    WORKSPACE_TAXES_NAME: {
+    WORKSPACE_TAX_NAME: {
         route: 'settings/workspaces/:policyID/tax/:taxID/name',
         getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURI(taxID)}/name` as const,
     },
-    WORKSPACE_TAXES_VALUE: {
+    WORKSPACE_TAX_VALUE: {
         route: 'settings/workspaces/:policyID/tax/:taxID/value',
         getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURI(taxID)}/value` as const,
     },

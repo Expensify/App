@@ -354,14 +354,14 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.TAX_CREATE]: {
                             path: ROUTES.WORKSPACE_TAX_CREATE.route,
                         },
-                        [SCREENS.WORKSPACE.TAXES_EDIT]: {
-                            path: ROUTES.WORKSPACE_TAXES_EDIT.route,
+                        [SCREENS.WORKSPACE.TAX_EDIT]: {
+                            path: ROUTES.WORKSPACE_TAX_EDIT.route,
                         },
-                        [SCREENS.WORKSPACE.TAXES_NAME]: {
-                            path: ROUTES.WORKSPACE_TAXES_NAME.route,
+                        [SCREENS.WORKSPACE.TAX_NAME]: {
+                            path: ROUTES.WORKSPACE_TAX_NAME.route,
                         },
-                        [SCREENS.WORKSPACE.TAXES_VALUE]: {
-                            path: ROUTES.WORKSPACE_TAXES_VALUE.route,
+                        [SCREENS.WORKSPACE.TAX_VALUE]: {
+                            path: ROUTES.WORKSPACE_TAX_VALUE.route,
                         },
                     },
                 },

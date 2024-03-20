@@ -26,7 +26,7 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type WorkspaceEditTaxPageBaseProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES_EDIT>;
+type WorkspaceEditTaxPageBaseProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_EDIT>;
 
 function WorkspaceEditTaxPage({
     route: {
@@ -116,7 +116,7 @@ function WorkspaceEditTaxPage({
                                 description={translate('common.name')}
                                 style={[styles.moneyRequestMenuItem]}
                                 titleStyle={styles.flex1}
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_NAME.getRoute(`${policyID}`, taxID))}
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_NAME.getRoute(`${policyID}`, taxID))}
                             />
                         </OfflineWithFeedback>
                         <OfflineWithFeedback
@@ -131,7 +131,7 @@ function WorkspaceEditTaxPage({
                                 description={translate('workspace.taxes.value')}
                                 style={[styles.moneyRequestMenuItem]}
                                 titleStyle={styles.flex1}
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_VALUE.getRoute(`${policyID}`, taxID))}
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_VALUE.getRoute(`${policyID}`, taxID))}
                             />
                         </OfflineWithFeedback>
                     </View>

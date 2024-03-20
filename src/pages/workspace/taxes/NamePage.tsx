@@ -26,7 +26,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTaxNameForm';
 
-type NamePageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES_NAME>;
+type NamePageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_NAME>;
 
 const parser = new ExpensiMark();
 
@@ -43,7 +43,7 @@ function NamePage({
 
     const [name, setName] = useState(() => parser.htmlToMarkdown(currentTaxRate?.name ?? ''));
 
-    const goBack = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_TAXES_EDIT.getRoute(policyID ?? '', taxID)), [policyID, taxID]);
+    const goBack = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID ?? '', taxID)), [policyID, taxID]);
 
     const submit = () => {
         renamePolicyTax(policyID, taxID, name);

@@ -284,9 +284,9 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: () => require('../../../pages/settings/ExitSurvey/ExitSurveyConfirmPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: () => require('../../../pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: () => require('../../../pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.TAXES_EDIT]: () => require('../../../pages/workspace/taxes/WorkspaceEditTaxPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.TAXES_NAME]: () => require('../../../pages/workspace/taxes/NamePage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.TAXES_VALUE]: () => require('../../../pages/workspace/taxes/ValuePage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.TAX_EDIT]: () => require('../../../pages/workspace/taxes/WorkspaceEditTaxPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.TAX_NAME]: () => require('../../../pages/workspace/taxes/NamePage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.TAX_VALUE]: () => require('../../../pages/workspace/taxes/ValuePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAX_CREATE]: () => require('../../../pages/workspace/taxes/WorkspaceCreateTaxPage').default as React.ComponentType,
 });
 

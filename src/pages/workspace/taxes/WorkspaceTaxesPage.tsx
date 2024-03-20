@@ -165,7 +165,7 @@ function WorkspaceTaxesPage({
             return;
         }
         setSelectedTaxesIDs([]);
-        Navigation.navigate(ROUTES.WORKSPACE_TAXES_EDIT.getRoute(policyID, taxRate.keyForList));
+        Navigation.navigate(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, taxRate.keyForList));
     };
 
     const dropdownMenuOptions = useMemo(() => {
