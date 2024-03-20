@@ -181,6 +181,8 @@ type Connections = {
 
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
+type PolicyFeatureName = ValueOf<typeof CONST.POLICY.MORE_FEATURES>;
+
 type PendingJoinRequestPolicy = {
     isJoinRequestPending: boolean;
     policyDetailsForNonMembers: Record<
@@ -364,4 +366,4 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
 export default Policy;
 
-export type {Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault, PendingJoinRequestPolicy};
+export type {Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault, PolicyFeatureName, PendingJoinRequestPolicy};
