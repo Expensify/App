@@ -55,7 +55,7 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
         }
 
         setOptions((prevOptions) => {
-            const newOptions = {...prevOptions};
+            const newOptions = prevOptions;
             newOptions.reports[replaceIndex] = newOption;
             return newOptions;
         });
