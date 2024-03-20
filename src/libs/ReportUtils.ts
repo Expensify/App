@@ -2958,34 +2958,6 @@ function updateOptimisticParentReportAction(parentReportAction: OnyxEntry<Report
 }
 
 /**
- * Get optimistic data of parent report action
- * @param reportID The reportID of the report that is updated
- * @param lastVisibleActionCreated Last visible action created of the child report
- * @param type The type of action in the child report
- * @param parentReportID Custom reportID to be updated
- * @param parentReportActionID Custom reportActionID to be updated
- */
-function getOptimisticDataForParentReportAction(reportID: string, lastVisibleActionCreated: string, type: string, parentReportID = '', parentReportActionID = ''): OnyxUpdate | EmptyObject {
-    const report = getReport(reportID);
-    if (!report || isEmptyObject(report)) {
-        return {};
-    }
-    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-    if (!parentReportAction || isEmptyObject(parentReportAction)) {
-        return {};
-    }
-
-    const optimisticParentReportAction = updateOptimisticParentReportAction(parentReportAction, lastVisibleActionCreated, type);
-    return {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID || report?.parentReportID}`,
-        value: {
-            [parentReportActionID || (report?.parentReportActionID ?? '')]: optimisticParentReportAction,
-        },
-    };
-}
-
-/**
  * Builds an optimistic reportAction for the parent report when a task is created
  * @param taskReportID - Report ID of the task
  * @param taskTitle - Title of the task
@@ -5278,6 +5250,30 @@ function getAllAncestorReportActionIDs(report: Report | null | undefined): Ances
     }
 
     return allAncestorIDs;
+}
+
+/**
+ * Get optimistic data of parent report action
+ * @param reportID The reportID of the report that is updated
+ * @param lastVisibleActionCreated Last visible action created of the child report
+ * @param type The type of action in the child report
+ */
+function getOptimisticDataForParentReportAction(reportID: string, lastVisibleActionCreated: string, type: string): OnyxUpdate[] {
+    const report = getReport(reportID);
+    const ancestors = getAllAncestorReportActionIDs(report);
+    const totalAncestor = ancestors.reportIDs.length;
+
+    return Array.from(Array(totalAncestor), (_, index) => {
+        const ancestorReport = getReport(ancestors.reportIDs[index]);
+        const ancestorReportAction = ReportActionsUtils.getReportAction(ancestorReport.reportID, ancestors.reportActionsIDs[index]);
+        return {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReport.reportID}`,
+            value: {
+                [ancestorReportAction?.reportActionID ?? '']: updateOptimisticParentReportAction(ancestorReportAction, lastVisibleActionCreated, type),
+            },
+        };
+    });
 }
 
 function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | EmptyObject): boolean {
