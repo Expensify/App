@@ -292,6 +292,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
                             path: ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.route,
                         },
+                        [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.route,
+                        },
                         [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
                             path: ROUTES.WORKSPACE_TAGS_SETTINGS.route,
                         },

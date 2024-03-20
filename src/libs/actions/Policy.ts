@@ -34,6 +34,8 @@ import type {
     OpenWorkspaceMembersPageParams,
     OpenWorkspaceParams,
     OpenWorkspaceReimburseViewParams,
+    SetPolicyDistanceRatesDefaultCategoryParams,
+    SetPolicyDistanceRatesUnitParams,
     SetWorkspaceApprovalModeParams,
     SetWorkspaceAutoReportingFrequencyParams,
     SetWorkspaceAutoReportingMonthlyOffsetParams,
@@ -80,7 +82,7 @@ import type {
     ReportAction,
     Transaction,
 } from '@src/types/onyx';
-import type {Errors, OnyxValueWithOfflineFeedback, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OriginalMessageJoinPolicyChangeLog} from '@src/types/onyx/OriginalMessage';
 import type {Attributes, CustomUnit, Rate, Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -2183,7 +2185,7 @@ function setWorkspaceInviteMembersDraft(policyID: string, invitedEmailsToAccount
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, invitedEmailsToAccountIDs);
 }
 
-function setWorkspaceInviteMessageDraft(policyID: string, message: string) {
+function setWorkspaceInviteMessageDraft(policyID: string, message: string | null) {
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${policyID}`, message);
 }
 
@@ -3976,6 +3978,124 @@ function clearCreateDistanceRateItemAndError(policyID: string, customUnitID: str
     });
 }
 
+function clearPolicyDistanceRatesErrorFields(policyID: string, customUnitID: string, updatedErrorFields: ErrorFields) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        customUnits: {
+            [customUnitID]: {
+                errorFields: updatedErrorFields,
+            },
+        },
+    });
+}
+
+function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: CustomUnit) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [newCustomUnit.customUnitID]: {
+                        ...newCustomUnit,
+                        pendingFields: {attributes: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [newCustomUnit.customUnitID]: {
+                        pendingFields: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [currentCustomUnit.customUnitID]: {
+                        ...currentCustomUnit,
+                        errorFields: {attributes: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                        pendingFields: {attributes: null},
+                    },
+                },
+            },
+        },
+    ];
+
+    const params: SetPolicyDistanceRatesUnitParams = {
+        policyID,
+        customUnit: JSON.stringify(newCustomUnit),
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_UNIT, params, {optimisticData, successData, failureData});
+}
+
+function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: CustomUnit) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [newCustomUnit.customUnitID]: {
+                        ...newCustomUnit,
+                        pendingFields: {defaultCategory: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [newCustomUnit.customUnitID]: {
+                        pendingFields: {defaultCategory: null},
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [currentCustomUnit.customUnitID]: {
+                        ...currentCustomUnit,
+                        errorFields: {defaultCategory: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                        pendingFields: {defaultCategory: null},
+                    },
+                },
+            },
+        },
+    ];
+
+    const params: SetPolicyDistanceRatesDefaultCategoryParams = {
+        policyID,
+        customUnit: JSON.stringify(newCustomUnit),
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY, params, {optimisticData, successData, failureData});
+}
+
 function setPolicyCustomTaxName(policyID: string, customTaxName: string) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const originalCustomTaxName = policy?.taxRates?.name;
@@ -4206,6 +4326,8 @@ export {
     generateCustomUnitID,
     createPolicyDistanceRate,
     clearCreateDistanceRateItemAndError,
+    setPolicyDistanceRatesUnit,
+    setPolicyDistanceRatesDefaultCategory,
     createPolicyTag,
     renamePolicyTag,
     clearPolicyTagErrors,
@@ -4218,4 +4340,5 @@ export {
     setPolicyCustomTaxName,
     clearPolicyErrorField,
     isCurrencySupportedForDirectReimbursement,
+    clearPolicyDistanceRatesErrorFields,
 };

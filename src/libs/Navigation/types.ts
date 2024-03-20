@@ -222,6 +222,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: {
+        policyID: string;
+    };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };

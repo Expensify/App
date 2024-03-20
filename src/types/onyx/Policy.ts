@@ -25,6 +25,7 @@ type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<{
     defaultCategory?: string;
     enabled?: boolean;
     errors?: OnyxCommon.Errors;
+    errorFields?: OnyxCommon.ErrorFields;
 }>;
 
 type DisabledFields = {
