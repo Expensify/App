@@ -36,7 +36,7 @@ These instructions should get you set up ready to work on New Expensify 🙌
 1. Install `nvm` then `node` & `npm`: `brew install nvm && nvm install`
 2. Install `watchman`: `brew install watchman`
 3. Install dependencies: `npm install`
-4. Install `mkcert`: `brew install mkcert` followed by `npm run setup-https`. If you are not using macOS, follow the instructions [here](https://github.com/FiloSottile/mkcert?tab=readme-ov-file#installation). 
+4. Install `mkcert`: `brew install mkcert` followed by `npm run setup-https`. If you are not using macOS, follow the instructions [here](https://github.com/FiloSottile/mkcert?tab=readme-ov-file#installation).
 5. Create a host entry in your local hosts file, `/etc/hosts` for dev.new.expensify.com pointing to localhost:
 ```
 127.0.0.1 dev.new.expensify.com
@@ -86,7 +86,7 @@ If you want to run the app on an actual physical iOS device, please follow the i
 1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
 2. If you are running into CORS errors like (in the browser dev console)
    ```sh
-   Access to fetch at 'https://www.expensify.com/api?command=BeginSignIn' from origin 'http://localhost:8080' has been blocked by CORS policy
+   Access to fetch at 'https://www.expensify.com/api/BeginSignIn' from origin 'http://localhost:8080' has been blocked by CORS policy
    ```
    You probably have a misconfigured `.env` file - remove it (`rm .env`) and try again
 
@@ -113,7 +113,7 @@ variables referenced here get updated since your local `.env` file is ignored.
    see [PERFORMANCE.md](contributingGuides/PERFORMANCE.md#performance-metrics-opt-in-on-local-release-builds) for more information
 - `ONYX_METRICS` (optional) - Set this to `true` to capture even more performance metrics and see them in Flipper
    see [React-Native-Onyx#benchmarks](https://github.com/Expensify/react-native-onyx#benchmarks) for more information
-- `E2E_TESTING` (optional) - This needs to be set to `true` when running the e2e tests for performance regression testing. 
+- `E2E_TESTING` (optional) - This needs to be set to `true` when running the e2e tests for performance regression testing.
    This happens usually automatically, read [this](tests/e2e/README.md) for more information
 
 ----
@@ -127,7 +127,7 @@ You create this certificate by following the instructions in [`Configuring HTTPS
 #### Pre-requisite for Android flow
 1. Open any emulator using Android Studio
 2. Use `adb push "$(mkcert -CAROOT)/rootCA.pem" /storage/emulated/0/Download/` to push certificate to install in Download folder.
-3. Install the certificate as CA certificate from the settings. On the Android emulator, this option can be found in Settings > Security > Encryption & Credentials > Install a certificate > CA certificate.  
+3. Install the certificate as CA certificate from the settings. On the Android emulator, this option can be found in Settings > Security > Encryption & Credentials > Install a certificate > CA certificate.
 4. Close the emulator.
 
 Note - If you want to run app on `https://127.0.0.1:8082`, then just install the certificate and use `adb reverse tcp:8082 tcp:8082` on every startup.
@@ -196,7 +196,7 @@ Often, performance issue debugging occurs in debug builds, which can introduce e
 
 ### Getting Started with Source Maps
 To accurately profile your application, generating source maps for Android and iOS is crucial. Here's how to enable them:
-1. Enable source maps on Android 
+1. Enable source maps on Android
 Ensure the following is set in your app's `android/app/build.gradle` file.
 
     ```jsx
@@ -205,13 +205,13 @@ Ensure the following is set in your app's `android/app/build.gradle` file.
         hermesFlagsRelease: ["-O", "-output-source-map"], // <-- here, plus whichever flag was required to set this away from default
     ]
     ```
-    
-2. Enable source maps on IOS 
+
+2. Enable source maps on IOS
 Within Xcode head to the build phase - `Bundle React Native code and images`.
-    
+
     ```jsx
     export SOURCEMAP_FILE="$(pwd)/../main.jsbundle.map" // <-- here;
-    
+
     export NODE_BINARY=node
     ../node_modules/react-native/scripts/react-native-xcode.sh
     ```
@@ -221,8 +221,8 @@ Within Xcode head to the build phase - `Bundle React Native code and images`.
     ```
 7. Depending on the platform you are targeting, run your Android/iOS app in production mode.
 8. Upon completion, the generated source map can be found at:
-  Android: `android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map` 
-  IOS: `main.jsbundle.map` 
+  Android: `android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map`
+  IOS: `main.jsbundle.map`
 
 ### Recording a Trace:
 1. Ensure you have generated the source map as outlined above.
@@ -253,7 +253,7 @@ Build info:
 
 4. Use the following commands to symbolicate the trace for Android and iOS, respectively:
 Android: `npm run symbolicate-release:android`
-IOS: `npm run symbolicate-release:ios` 
+IOS: `npm run symbolicate-release:ios`
 5. A new file named `Profile_trace_for_<app version>-converted.json` will appear in your project's root folder.
 6. Open this file in your tool of choice:
     - SpeedScope ([https://www.speedscope.app](https://www.speedscope.app/))
@@ -482,8 +482,8 @@ Updated rules for managing members across all types of chats in New Expensify.
     - Members can't leave or be removed from the #announce room
     - Admins can't leave or be removed from #admins
     - Domain members can't leave or be removed from their domain chat
-    - Report submitters can't leave or be removed from their reports 
-    - Report managers can't leave or be removed from their reports 
+    - Report submitters can't leave or be removed from their reports
+    - Report managers can't leave or be removed from their reports
     - Group owners cannot be removed from their groups - they need to transfer ownership first
 - **Excepting the above, admins can remove anyone. For example:**
     - Group admins can remove other group admins, as well as group members
@@ -494,17 +494,17 @@ Updated rules for managing members across all types of chats in New Expensify.
 
 1. ### DM
     |  | Member
-    | :---: | :---: 
-    | **Invite** | ❌ 
-    | **Remove** | ❌ 
-    | **Leave**  | ❌ 
+    | :---: | :---:
+    | **Invite** | ❌
+    | **Remove** | ❌
+    | **Leave**  | ❌
     | **Can be removed**  | ❌
 - DM always has two participants. None of the participant can leave or be removed from the DM. Also no additional member can be invited to the chat.
 
 2. ### Workspace
     1. #### Workspace
         |   |  Creator  |  Member(Employee/User) | Admin |  Auditor?
-        | :---: | :---:  |  :---: | :---: | :---: 
+        | :---: | :---:  |  :---: | :---: | :---:
         | **Invite** | ✅ |  ❌ |  ✅ | ❌
         | **Remove** | ✅ |  ❌ |  ✅ | ❌
         | **Leave**  | ❌ |  ✅ |  ❌ | ✅
@@ -518,7 +518,7 @@ Updated rules for managing members across all types of chats in New Expensify.
 
     2. #### Workspace #announce room
         |   |  Member(Employee/User) | Admin |  Auditor?
-        | :---: | :---:  |  :---: | :---: 
+        | :---: | :---:  |  :---: | :---:
         | **Invite** | ❌ |  ❌ |  ❌
         | **Remove** | ❌ |  ❌ |  ❌
         | **Leave**  | ❌ |  ❌ |  ❌
@@ -528,14 +528,14 @@ Updated rules for managing members across all types of chats in New Expensify.
 
     3. #### Workspace #admin room
         |   |  Admin |
-        | :---: | :---: 
-        | **Invite** | ❌  
-        | **Remove** | ❌   
-        | **Leave**  | ❌ 
+        | :---: | :---:
+        | **Invite** | ❌
+        | **Remove** | ❌
+        | **Leave**  | ❌
         | **Can be removed**  | ❌
 
         - Admins can't leave or be removed from #admins
-    
+
     4. #### Workspace rooms
         |   |  Creator | Member | Guest(outside of the workspace)
         | :---: | :---:  |  :---: | :---:
@@ -548,10 +548,10 @@ Updated rules for managing members across all types of chats in New Expensify.
         - Guests are not able to remove anyone from the room
 
     4. #### Workspace chats
-        |   |  Admin | Member(default) | Member(invited)  
+        |   |  Admin | Member(default) | Member(invited)
         | :---: | :---:  |  :---:  |  :---:
         | **Invite** | ✅ |  ✅ | ❌
-        | **Remove** | ✅ |  ✅ | ❌  
+        | **Remove** | ✅ |  ✅ | ❌
         | **Leave**  | ❌ |  ❌  | ✅
         | **Can be removed**  | ❌ | ❌ | ✅
 
@@ -563,16 +563,16 @@ Updated rules for managing members across all types of chats in New Expensify.
 
 3. ### Domain chat
     |   |  Member
-    | :---: | :---:  
-    | **Remove** | ❌ 
-    | **Leave**  | ❌ 
-    | **Can be removed**  | ❌ 
+    | :---: | :---:
+    | **Remove** | ❌
+    | **Leave**  | ❌
+    | **Can be removed**  | ❌
 
 - Domain members can't leave or be removed from their domain chat
 
 4. ### Reports
     |   |  Submitter | Manager
-    | :---: | :---:  | :---:  
+    | :---: | :---:  | :---:
     | **Remove** | ❌ | ❌
     | **Leave**  | ❌ | ❌
     | **Can be removed**  | ❌ | ❌
