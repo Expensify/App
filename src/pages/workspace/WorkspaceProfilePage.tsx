@@ -176,8 +176,8 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                             {(!StringUtils.isEmptyString(policy?.description ?? '') || !readOnly) && (
                                 <OfflineWithFeedback
                                     pendingAction={policy?.pendingFields?.description}
-                                    errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_FIELDS.DESCRIPTION)}
-                                    onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_FIELDS.DESCRIPTION)}
+                                    errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.DESCRIPTION)}
+                                    onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.DESCRIPTION)}
                                 >
                                     <MenuItemWithTopDescription
                                         title={policyDescription}
@@ -194,8 +194,8 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                             )}
                             <OfflineWithFeedback
                                 pendingAction={policy?.pendingFields?.generalSettings}
-                                errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_FIELDS.GENERAL_SETTINGS)}
-                                onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_FIELDS.GENERAL_SETTINGS)}
+                                errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.GENERAL_SETTINGS)}
+                                onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.GENERAL_SETTINGS)}
                                 errorRowStyles={[styles.mt2]}
                             >
                                 <View>

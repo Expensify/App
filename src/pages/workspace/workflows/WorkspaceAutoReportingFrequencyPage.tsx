@@ -83,8 +83,8 @@ function WorkspaceAutoReportingFrequencyPage({policy}: WorkspaceAutoReportingFre
     const monthlyFrequencyDetails = () => (
         <OfflineWithFeedback
             pendingAction={policy?.pendingFields?.autoReportingOffset}
-            errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_FIELDS.AUTOREPORTING_OFFSET)}
-            onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_FIELDS.AUTOREPORTING_OFFSET)}
+            errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET)}
+            onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET)}
             errorRowStyles={[styles.ml7]}
         >
             <MenuItem
@@ -127,8 +127,8 @@ function WorkspaceAutoReportingFrequencyPage({policy}: WorkspaceAutoReportingFre
                 />
                 <OfflineWithFeedback
                     pendingAction={policy?.pendingFields?.autoReportingFrequency}
-                    errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_FIELDS.AUTOREPORTING_FREQUENCY)}
-                    onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_FIELDS.AUTOREPORTING_FREQUENCY)}
+                    errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_FREQUENCY)}
+                    onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_FREQUENCY)}
                 >
                     <FlatList
                         data={autoReportingFrequencyItems}
