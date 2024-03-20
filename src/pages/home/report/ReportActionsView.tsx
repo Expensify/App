@@ -12,6 +12,7 @@ import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
+import {generateNewRandomInt} from '@libs/NumberUtils';
 import Performance from '@libs/Performance';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
@@ -59,7 +60,7 @@ type ReportActionsViewProps = ReportActionsViewOnyxProps & {
 const DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST = 120;
 const SPACER = 16;
 
-let listIDCount = Math.round(Math.random() * 100);
+let listOldID = Math.round(Math.random() * 100);
 
 function ReportActionsView({
     report,
@@ -127,8 +128,9 @@ function ReportActionsView({
 
     const listID = useMemo(() => {
         isFirstLinkedActionRender.current = true;
-        listIDCount += 1;
-        return listIDCount;
+        const newID = generateNewRandomInt(listOldID, 1, Number.MAX_SAFE_INTEGER);
+        listOldID = newID;
+        return newID;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [route, isLoadingInitialReportActions]);
 

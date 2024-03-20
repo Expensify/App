@@ -1,16 +1,11 @@
-import type {RouteProp} from '@react-navigation/native';
 import fastMerge from 'expensify-common/lib/fastMerge';
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
-import {useCallback, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import getInitialPaginationSize from '@pages/home/report/getInitialPaginationSize';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {
     ActionName,
     ChangeLog,
@@ -31,7 +26,6 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import * as Localize from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
-import type {CentralPaneNavigatorParamList} from './Navigation/types';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import type {OptimisticIOUReportAction} from './ReportUtils';
 
