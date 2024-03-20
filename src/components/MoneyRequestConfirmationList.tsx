@@ -527,7 +527,7 @@ function MoneyRequestConfirmationList({
         }
 
         const shouldShowSettlementButton = iouType === CONST.IOU.TYPE.SEND;
-        const shouldDisableButton = selectedParticipants.length === 0 || shouldDisplayMerchantError;
+        const shouldDisableButton = selectedParticipants.length === 0;
 
         const button = shouldShowSettlementButton ? (
             <SettlementButton
@@ -575,20 +575,7 @@ function MoneyRequestConfirmationList({
                 {button}
             </>
         );
-    }, [
-        isReadOnly,
-        iouType,
-        bankAccountRoute,
-        iouCurrencyCode,
-        policyID,
-        selectedParticipants.length,
-        shouldDisplayMerchantError,
-        confirm,
-        splitOrRequestOptions,
-        formError,
-        styles.ph1,
-        styles.mb2,
-    ]);
+    }, [isReadOnly, iouType, bankAccountRoute, iouCurrencyCode, policyID, selectedParticipants.length, confirm, splitOrRequestOptions, formError, styles.ph1, styles.mb2]);
 
     const {image: receiptImage, thumbnail: receiptThumbnail} =
         receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : ({} as ReceiptUtils.ThumbnailAndImageURI);
@@ -785,7 +772,7 @@ function MoneyRequestConfirmationList({
                             <MenuItemWithTopDescription
                                 key={name}
                                 shouldShowRightIcon={!isReadOnly}
-                                title={TransactionUtils.getTag(transaction, index)}
+                                title={TransactionUtils.getTagForDisplay(transaction, index)}
                                 description={name}
                                 numberOfLinesTitle={2}
                                 onPress={() => {
