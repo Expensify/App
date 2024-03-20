@@ -217,7 +217,7 @@ function ReportActionsList({
             }
         }
 
-        if ((currentUnreadMarker || lastVisibleActionCreatedRef.current === report.lastVisibleActionCreated) && ReportUtils.isUnread(report)) {
+        if ((currentUnreadMarker ?? lastVisibleActionCreatedRef.current === report.lastVisibleActionCreated) && ReportUtils.isUnread(report)) {
             return;
         }
 
