@@ -70,7 +70,7 @@ const CONST = {
     ANIMATION_GYROSCOPE_VALUE: 0.4,
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     ARROW_HIDE_DELAY: 3000,
-    
+
     API_ATTACHMENT_VALIDATIONS: {
         // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
         MAX_SIZE: 25165824,
