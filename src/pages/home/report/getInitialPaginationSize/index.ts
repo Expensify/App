@@ -1,6 +1,3 @@
 import CONST from '@src/CONST';
 
-function getInitialPaginationSize(): number {
-    return CONST.WEB_PAGINATION_SIZE;
-}
-export default getInitialPaginationSize;
+export default CONST.WEB_PAGINATION_SIZE

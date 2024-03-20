@@ -1021,98 +1021,6 @@ function getReportActionMessageText(reportAction: OnyxEntry<ReportAction> | Empt
     return reportAction?.message?.reduce((acc, curr) => `${acc}${curr.text}`, '') ?? '';
 }
 
-let listIDCount = Math.round(Math.random() * 100);
-/**
- * usePaginatedReportActionList manages the logic for handling a list of messages with pagination and dynamic loading.
- * It determines the part of the message array to display ('visibleReportActions') based on the current linked message,
- * and manages pagination through 'handleReportActionPagination' function.
- *
- * linkedID - ID of the linked message used for initial focus.
- * allReportActions - Array of messages.
- * fetchNewerReportActions - Function to fetch more messages.
- * route - Current route, used to reset states on route change.
- * isLoading - Loading state indicator.
- * triggerListID - Used to trigger a listID change.
- * returns {object} An object containing the sliced message array, the pagination function,
- *                   index of the linked message, and a unique list ID.
- */
-const usePaginatedReportActionList = (
-    linkedID: string,
-    localAllReportActions: OnyxTypes.ReportAction[],
-    fetchNewerReportActions: (newestReportAction: OnyxTypes.ReportAction) => void,
-    route: RouteProp<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>,
-    isLoading: boolean,
-    triggerListID: boolean,
-) => {
-    // triggerListID is used when navigating to a chat with messages loaded from LHN. Typically, these include thread actions, task actions, etc. Since these messages aren't the latest, we don't maintain their position and instead trigger a recalculation of their positioning in the list.
-    // we don't set currentReportActionID on initial render as linkedID as it should trigger visibleReportActions after linked message was positioned
-    const [currentReportActionID, setCurrentReportActionID] = useState('');
-    const isFirstLinkedActionRender = useRef(true);
-
-    useLayoutEffect(() => {
-        setCurrentReportActionID('');
-    }, [route]);
-
-    const listID = useMemo(() => {
-        isFirstLinkedActionRender.current = true;
-        listIDCount += 1;
-        return listIDCount;
-        // This needs to be triggered with each navigation to a comment. It happens when the route is changed. triggerListID is needed to trigger a listID change after initial mounting.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [route, triggerListID]);
-
-    const index = useMemo(() => {
-        if (!linkedID || isLoading) {
-            return -1;
-        }
-
-        return localAllReportActions.findIndex((obj) => String(obj.reportActionID) === String(isFirstLinkedActionRender.current ? linkedID : currentReportActionID));
-    }, [localAllReportActions, currentReportActionID, linkedID, isLoading]);
-
-    const visibleReportActions = useMemo(() => {
-        if (!linkedID) {
-            return localAllReportActions;
-        }
-        if (isLoading || index === -1) {
-            return [];
-        }
-
-        if (isFirstLinkedActionRender.current) {
-            return localAllReportActions.slice(index, localAllReportActions.length);
-        }
-        const paginationSize = getInitialPaginationSize();
-        const newStartIndex = index >= paginationSize ? index - paginationSize : 0;
-        return newStartIndex ? localAllReportActions.slice(newStartIndex, localAllReportActions.length) : localAllReportActions;
-        // currentReportActionID is needed to trigger batching once the report action has been positioned
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [linkedID, localAllReportActions, index, isLoading, currentReportActionID]);
-
-    const hasMoreCached = visibleReportActions.length < localAllReportActions?.length;
-    const newestReportAction = visibleReportActions?.[0];
-
-    const handleReportActionPagination = useCallback(
-        ({firstReportActionID}: {firstReportActionID: string}) => {
-            // This function is a placeholder as the actual pagination is handled by visibleReportActions
-            if (!hasMoreCached) {
-                isFirstLinkedActionRender.current = false;
-                fetchNewerReportActions(newestReportAction);
-            }
-            if (isFirstLinkedActionRender.current) {
-                isFirstLinkedActionRender.current = false;
-            }
-            setCurrentReportActionID(firstReportActionID);
-        },
-        [fetchNewerReportActions, hasMoreCached, newestReportAction],
-    );
-
-    return {
-        visibleReportActions,
-        loadMoreReportActionsHandler: handleReportActionPagination,
-        linkedIdIndex: index,
-        listID,
-    };
-};
-
 export {
     extractLinksFromMessageHtml,
     getAllReportActions,
@@ -1172,7 +1080,6 @@ export {
     isCurrentActionUnread,
     isActionableJoinRequest,
     isActionableJoinRequestPending,
-    usePaginatedReportActionList,
 };
 
 export type {LastVisibleMessage};
