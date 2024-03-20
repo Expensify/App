@@ -133,18 +133,18 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
                         title={translate('workflowsPage.submissionFrequency')}
                         onBackButtonPress={Navigation.goBack}
                     />
-                <OfflineWithFeedback
-                    pendingAction={policy?.pendingFields?.autoReportingFrequency}
-                    errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_FREQUENCY)}
-                    onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_FREQUENCY)}
-                >
+                    <OfflineWithFeedback
+                        pendingAction={policy?.pendingFields?.autoReportingFrequency}
+                        errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_FREQUENCY)}
+                        onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_FREQUENCY)}
+                    >
                         <FlatList
                             data={autoReportingFrequencyItems}
                             renderItem={renderItem}
                             keyExtractor={(item: WorkspaceAutoReportingFrequencyPageItem) => item.text}
                         />
                     </OfflineWithFeedback>
-            </FullPageNotFoundView>
+                </FullPageNotFoundView>
             </ScreenWrapper>
         </FeatureEnabledAccessOrNotFoundWrapper>
     );

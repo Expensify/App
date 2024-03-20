@@ -292,16 +292,16 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                                 keyExtractor={(item: ToggleSettingOptionRowProps) => item.title}
                             />
                             <ConfirmModal
-                            title={translate('workspace.bankAccount.workspaceCurrency')}
-                            isVisible={isCurrencyModalOpen}
-                            onConfirm={confirmCurrencyChangeAndHideModal}
-                            onCancel={() => setIsCurrencyModalOpen(false)}
-                            prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
-                            confirmText={translate('workspace.bankAccount.updateToUSD')}
-                            cancelText={translate('common.cancel')}
-                            danger
-                        />
-                    </View>
+                                title={translate('workspace.bankAccount.workspaceCurrency')}
+                                isVisible={isCurrencyModalOpen}
+                                onConfirm={confirmCurrencyChangeAndHideModal}
+                                onCancel={() => setIsCurrencyModalOpen(false)}
+                                prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
+                                confirmText={translate('workspace.bankAccount.updateToUSD')}
+                                cancelText={translate('common.cancel')}
+                                danger
+                            />
+                        </View>
                     </Section>
                 </View>
             </WorkspacePageWithSections>
