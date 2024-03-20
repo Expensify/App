@@ -23,7 +23,8 @@ function getReport(reportID: string | undefined): OnyxEntry<Report> | EmptyObjec
 }
 
 /**
- * Get the report policyID given a reportID
+ * Get the report policyID given a reportID.
+ * We need to define this method in a separate file to avoid cyclic dependency.
  */
 function getReportPolicyID(reportID?: string): string | undefined {
     return getReport(reportID)?.policyID;
