@@ -241,7 +241,7 @@ function createTaskAndNavigate(
         key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
         value: {
             action: CONST.QUICK_ACTIONS.ASSIGN_TASK,
-            reportID: parentReportID,
+            chatReportID: parentReportID,
             isFirstQuickAction: isEmptyObject(quickAction),
             targetAccountID: assigneeAccountID,
         },

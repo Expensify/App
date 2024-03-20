@@ -583,7 +583,7 @@ function buildOnyxDataForMoneyRequest(
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
             value: {
                 action: newQuickAction,
-                reportID: chatReport?.reportID,
+                chatReportID: chatReport?.reportID,
                 isFirstQuickAction: isEmptyObject(quickAction),
             },
         });
@@ -1731,7 +1731,7 @@ function createSplitsAndOnyxData(
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
             value: {
                 action: iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ? CONST.QUICK_ACTIONS.SPLIT_DISTANCE : CONST.QUICK_ACTIONS.SPLIT_MANUAL,
-                reportID: splitChatReport.reportID,
+                chatReportID: splitChatReport.reportID,
                 isFirstQuickAction: isEmptyObject(quickAction),
             },
         },
@@ -2217,7 +2217,7 @@ function startSplitBill(
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
             value: {
                 action: CONST.QUICK_ACTIONS.SPLIT_SCAN,
-                reportID: splitChatReport.reportID,
+                chatReportID: splitChatReport.reportID,
                 isFirstQuickAction: isEmptyObject(quickAction),
             },
         },
@@ -3338,7 +3338,7 @@ function getSendMoneyParams(
         key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
         value: {
             action: CONST.QUICK_ACTIONS.SEND_MONEY,
-            reportID: chatReport.reportID,
+            chatReportID: chatReport.reportID,
             isFirstQuickAction: isEmptyObject(quickAction),
         },
     };

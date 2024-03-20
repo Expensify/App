@@ -6,7 +6,7 @@ type QuickAction = {
     action?: ValueOf<typeof CONST.QUICK_ACTIONS>;
 
     /** ID of the report */
-    reportID?: string;
+    chatReportID?: string;
 
     /** ID of the target account for task actions */
     targetAccountID?: number;

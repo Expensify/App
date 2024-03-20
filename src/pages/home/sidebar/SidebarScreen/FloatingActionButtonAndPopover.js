@@ -140,13 +140,13 @@ function FloatingActionButtonAndPopover(props) {
 
     const prevIsFocused = usePrevious(props.isFocused);
 
-    let quickAction;
     let avatars;
     let quickActionReport;
     if (props.quickAction) {
-        quickAction = props.quickAction.action;
         const quickActionReportID = props.quickAction.chatReportID;
         quickActionReport = ReportUtils.getReport(quickActionReportID);
+        console.log(quickActionReportID);
+        console.log(quickActionReport);
         if (quickActionReport) {
             avatars = _.filter(ReportUtils.getIcons(quickActionReport, props.personalDetails), avatar => avatar.id !== props.session.accountID);
         }
@@ -321,12 +321,13 @@ function FloatingActionButtonAndPopover(props) {
                     ...(props.quickAction
                         ? [
                             {
-                                icon: getQuickActionIcon(quickAction.action),
-                                text: translate(getQuickActionTitle(quickAction.action)),
+                                icon: getQuickActionIcon(props.quickAction.action),
+                                text: translate(getQuickActionTitle(props.quickAction.action)),
                                 label: translate('quickAction.shortcut'),
                                 floatRightAvatars: avatars,
                                 floatRightAvatarSize: CONST.AVATAR_SIZE.SMALLER,
                                 description: ReportUtils.getReportName(quickActionReport),
+                                onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
                             },
                         ]
                         : []),
