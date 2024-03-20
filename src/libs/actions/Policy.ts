@@ -985,7 +985,7 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData, failureData});
 }
 
-function requestWorkspaceOwnerChange(policyID: string, ownershipChecks: PolicyOwnershipChangeChecks) {
+function requestWorkspaceOwnerChange(policyID: string, ownershipChecks?: PolicyOwnershipChangeChecks) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

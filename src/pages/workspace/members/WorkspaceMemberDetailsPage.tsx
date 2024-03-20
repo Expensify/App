@@ -99,10 +99,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
     }, [accountID, policyID]);
 
     const startChangeOwnershipFlow = useCallback(() => {
-        const ownershipChecks: PolicyOwnershipChangeChecks = {};
-
         Policy.clearWorkspaceOwnerChangeFlow(policyID);
-        Policy.requestWorkspaceOwnerChange(policyID, ownershipChecks);
+        Policy.requestWorkspaceOwnerChange(policyID);
     }, [policyID]);
 
     return (
