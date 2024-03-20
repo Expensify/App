@@ -144,6 +144,7 @@ const mocksExportsTemplate = (jobMocks: string[]): string => {
 
 const assertionsExportsTemplate = (jobAssertions: string[]): string => {
     const assertionsString = jobAssertions.join(',\n');
+    // There are other pre-generated files using imports from here, so to keep the interface uniform it's better to just disable it
     const eslintDisable = jobAssertions.length === 1 ? '// eslint-disable-next-line import/prefer-default-export\n' : '';
 
     return `\n${eslintDisable}export {\n${assertionsString}\n};\n`;
