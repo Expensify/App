@@ -120,9 +120,8 @@ function BaseModal(
 
         if (onBackdropPress) {
             onBackdropPress();
-        } else {
-            onClose();
         }
+        onClose();
     };
 
     const handleDismissModal = () => {
