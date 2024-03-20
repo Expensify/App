@@ -5331,6 +5331,14 @@ function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxEntry<Report> 
     return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddOrDeleteTransactions(existingIOUReport);
 }
 
+/**
+ * Checks if report contains actions with errors
+ */
+function hasActionsWithErrors(reportID: string): boolean {
+    const reportActions = ReportActionsUtils.getAllReportActions(reportID ?? '');
+    return Object.values(reportActions ?? {}).some((action) => !isEmptyObject(action.errors));
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -5541,6 +5549,7 @@ export {
     isJoinRequestInAdminRoom,
     canAddOrDeleteTransactions,
     shouldCreateNewMoneyRequestReport,
+    hasActionsWithErrors,
 };
 
 export type {
