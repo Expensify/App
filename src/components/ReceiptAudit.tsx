@@ -7,27 +7,32 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 
-export default function ReceiptAudit({notes = []}: {notes?: string[]}) {
+function ReceiptAuditHeader({notes = []}: {notes?: string[]}) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
 
     const issuesFoundText = notes.length > 0 ? translate('iou.receiptIssuesFound', notes.length) : translate('iou.receiptNoIssuesFound');
     return (
-        <View style={[styles.mt1, styles.mb2, styles.ph5]}>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                <View style={[styles.receiptAuditTitleContainer, {backgroundColor: notes.length ? theme.danger : theme.success}]}>
-                    <Icon
-                        width={18}
-                        height={18}
-                        src={notes.length > 0 ? Expensicons.Receipt : Expensicons.Checkmark}
-                        fill={theme.white}
-                    />
-                    <Text style={[styles.textLabel, styles.textStrong, styles.textWhite]}>{notes.length > 0 ? translate('iou.receiptAudit') : translate('iou.receiptVerified')}</Text>
-                </View>
-                <Text style={[styles.textLabel, styles.textSupporting]}>{issuesFoundText}</Text>
+        <View style={[styles.ph5]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                <Text style={[styles.textLabelSupporting]}>{translate('common.receipt')}</Text>
+                <Text style={[styles.textLabelSupporting]}>{` • ${issuesFoundText}`}</Text>
+                <Icon
+                    width={12}
+                    height={12}
+                    src={notes.length > 0 ? Expensicons.DotIndicator : Expensicons.Checkmark}
+                    fill={notes.length ? theme.danger : theme.success}
+                    additionalStyles={styles.ml2}
+                />
             </View>
-            <View style={[styles.mt2, styles.gap1]}>{notes.length > 0 && notes.map((message) => <Text style={[styles.textLabelError]}>{message}</Text>)}</View>
         </View>
     );
 }
+
+function ReceiptAuditMessages({notes = []}: {notes?: string[]}) {
+    const styles = useThemeStyles();
+    return <View style={[styles.mt1, styles.mb2, styles.ph5, {gap: 6}]}>{notes.length > 0 && notes.map((message) => <Text style={[styles.textLabelError]}>{message}</Text>)}</View>;
+}
+
+export {ReceiptAuditHeader, ReceiptAuditMessages};
