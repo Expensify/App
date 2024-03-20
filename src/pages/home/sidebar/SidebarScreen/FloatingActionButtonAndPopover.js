@@ -148,7 +148,10 @@ function FloatingActionButtonAndPopover(props) {
         const quickActionReportID = props.quickAction.chatReportID;
         quickActionReport = ReportUtils.getReport(quickActionReportID);
         if (quickActionReport) {
-            avatars = _.filter(ReportUtils.getIcons(quickActionReport, props.personalDetails), (avatar) => avatar.id !== props.session.accountID);
+            avatars = ReportUtils.getIcons(quickActionReport, props.personalDetails);
+
+            // Remove the user's own avatar if there are others
+            avatars = _.filter(avatars, (avatar) => avatar.id !== props.session.accountID);
         }
     }
 
