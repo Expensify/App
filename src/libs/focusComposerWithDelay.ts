@@ -14,10 +14,10 @@ function focusComposerWithDelay(textInput: TextInput | null): FocusComposerWithD
     return (shouldDelay = false) => {
         // There could be other animations running while we trigger manual focus.
         // This prevents focus from making those animations janky.
-
         if (!textInput || EmojiPickerAction.isEmojiPickerVisible()) {
             return;
         }
+
         if (!shouldDelay) {
             textInput.focus();
             return;
