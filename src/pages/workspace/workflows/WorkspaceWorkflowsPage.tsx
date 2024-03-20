@@ -112,7 +112,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                               />
                           ),
                           isActive: (policy?.harvesting?.enabled && policy.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT) ?? false,
-                          pendingAction: policy?.pendingFields?.isAutoApprovalEnabled,
+                          pendingAction: policy?.pendingFields?.autoReporting,
                       },
                   ]
                 : []),
@@ -135,7 +135,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                         hoverAndPressStyle={[styles.mr0, styles.br2]}
                     />
                 ),
-                isActive: policy?.isAutoApprovalEnabled ?? false,
+                isActive: policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC,
                 pendingAction: policy?.pendingFields?.approvalMode,
             },
             {

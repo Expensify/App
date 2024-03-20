@@ -25,6 +25,7 @@ type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<{
     defaultCategory?: string;
     enabled?: boolean;
     errors?: OnyxCommon.Errors;
+    errorFields?: OnyxCommon.ErrorFields;
 }>;
 
 type DisabledFields = {
@@ -293,9 +294,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The approval mode set up on this policy */
         approvalMode?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
-
-        /** Whether the auto approval is enabled */
-        isAutoApprovalEnabled?: boolean;
 
         /** Whether transactions should be billable by default */
         defaultBillable?: boolean;
