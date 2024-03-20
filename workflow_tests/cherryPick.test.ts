@@ -4,8 +4,8 @@ import type {CreateRepositoryFile, MockGithub} from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/cherryPickAssertions';
 import mocks from './mocks/cherryPickMocks';
-import eAct from './utils/ExtendedAct';
-import utils from './utils/utils';
+import ExtendedAct from './utils/ExtendedAct';
+import * as utils from './utils/utils';
 
 jest.setTimeout(90 * 1000);
 
@@ -49,7 +49,7 @@ describe('test workflow cherryPick', () => {
             it('workflow ends after validate job', async () => {
                 const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'cherryPick.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(
                     act,
                     // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
@@ -100,7 +100,7 @@ describe('test workflow cherryPick', () => {
             it('behaviour is the same as with actor being the deployer', async () => {
                 const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'cherryPick.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 const testMockSteps: MockStep = {
                     validateActor: mocks.CHERRYPICK__VALIDATEACTOR__FALSE__STEP_MOCKS,
                     cherryPick: mocks.getCherryPickMockSteps(versionsMatch, mergeConflicts),
@@ -153,7 +153,7 @@ describe('test workflow cherryPick', () => {
                     it('workflow executes, PR approved and merged automatically', async () => {
                         const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') ?? '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'cherryPick.yml');
-                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        let act = new ExtendedAct(repoPath, workflowPath);
                         const testMockSteps: MockStep = {
                             validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
                         };
@@ -202,7 +202,7 @@ describe('test workflow cherryPick', () => {
                     it('workflow executes, PR auto-assigned and commented, approved and merged automatically', async () => {
                         const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') ?? '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'cherryPick.yml');
-                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        let act = new ExtendedAct(repoPath, workflowPath);
                         const testMockSteps: MockStep = {
                             validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
                         };
@@ -254,7 +254,7 @@ describe('test workflow cherryPick', () => {
                     it('workflow executes, PR auto-assigned and commented, not merged automatically', async () => {
                         const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') ?? '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'cherryPick.yml');
-                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        let act = new ExtendedAct(repoPath, workflowPath);
                         const testMockSteps: MockStep = {
                             validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
                         };
@@ -303,7 +303,7 @@ describe('test workflow cherryPick', () => {
                     it('workflow executes, PR auto-assigned and commented, not merged automatically', async () => {
                         const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') ?? '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'cherryPick.yml');
-                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        let act = new ExtendedAct(repoPath, workflowPath);
                         const testMockSteps: MockStep = {
                             validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
                         };
@@ -355,7 +355,7 @@ describe('test workflow cherryPick', () => {
         it('workflow does not execute', async () => {
             const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'cherryPick.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
+            let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.

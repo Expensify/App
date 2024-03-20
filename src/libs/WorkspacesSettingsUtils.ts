@@ -2,8 +2,10 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyMembers, ReimbursementAccount, Report} from '@src/types/onyx';
+import type {Unit} from '@src/types/onyx/Policy';
 import * as OptionsListUtils from './OptionsListUtils';
 import {hasCustomUnitsError, hasPolicyError, hasPolicyMemberError, hasTaxRateError} from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
@@ -196,6 +198,19 @@ function getWorkspacesUnreadStatuses(): Record<string, boolean> {
     return workspacesUnreadStatuses;
 }
 
+/**
+ * @param unit Unit
+ * @returns translation key for the unit
+ */
+function getUnitTranslationKey(unit: Unit): TranslationPaths {
+    const unitTranslationKeysStrategy: Record<Unit, TranslationPaths> = {
+        [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: 'common.kilometers',
+        [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: 'common.miles',
+    };
+
+    return unitTranslationKeysStrategy[unit];
+}
+
 export {
     getBrickRoadForPolicy,
     getWorkspacesBrickRoads,
@@ -204,5 +219,6 @@ export {
     checkIfWorkspaceSettingsTabHasRBR,
     hasWorkspaceSettingsRBR,
     getChatTabBrickRoad,
+    getUnitTranslationKey,
 };
 export type {BrickRoad};

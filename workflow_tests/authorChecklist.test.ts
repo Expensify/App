@@ -4,8 +4,8 @@ import type {CreateRepositoryFile, MockGithub} from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/authorChecklistAssertions';
 import mocks from './mocks/authorChecklistMocks';
-import eAct from './utils/ExtendedAct';
-import utils from './utils/utils';
+import ExtendedAct from './utils/ExtendedAct';
+import * as utils from './utils/utils';
 
 jest.setTimeout(90 * 1000);
 
@@ -53,7 +53,7 @@ describe('test workflow authorChecklist', () => {
             it('executes workflow', async () => {
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps: MockStep = {
@@ -73,7 +73,7 @@ describe('test workflow authorChecklist', () => {
             it('does not execute workflow', async () => {
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps: MockStep = {
@@ -99,7 +99,7 @@ describe('test workflow authorChecklist', () => {
             it('executes workflow', async () => {
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps: MockStep = {
@@ -119,7 +119,7 @@ describe('test workflow authorChecklist', () => {
             it('does not execute workflow', async () => {
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps: MockStep = {
@@ -145,7 +145,7 @@ describe('test workflow authorChecklist', () => {
             it('executes workflow', async () => {
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps: MockStep = {
@@ -165,7 +165,7 @@ describe('test workflow authorChecklist', () => {
             it('does not execute workflow', async () => {
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps: MockStep = {
