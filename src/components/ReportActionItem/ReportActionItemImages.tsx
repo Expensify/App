@@ -1,10 +1,10 @@
 /* eslint-disable react/no-array-index-key */
 import React from 'react';
 import {View} from 'react-native';
-import Image from '@components/Image';
+import {Polygon, Svg} from 'react-native-svg';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeIllustrations from '@hooks/useThemeIllustrations';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import variables from '@styles/variables';
@@ -38,9 +38,9 @@ type ReportActionItemImagesProps = {
  */
 
 function ReportActionItemImages({images, size, total, isHovered = false}: ReportActionItemImagesProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const illustrations = useThemeIllustrations();
     // Calculate the number of images to be shown, limited by the value of 'size' (if defined)
     // or the total number of images.
     const numberOfShownImages = Math.min(size ?? images.length, images.length);
@@ -60,8 +60,10 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
 
     const hoverStyle = isHovered ? styles.reportPreviewBoxHoverBorder : undefined;
 
+    const triangleWidth = variables.reportActionItemImagesMoreCornerTriangleWidth;
+
     return (
-        <View>
+        <View style={styles.reportActionItemImagesContainer}>
             <View style={[styles.reportActionItemImages, hoverStyle, heightStyle]}>
                 {shownImages.map(({thumbnail, image, transaction, isLocalFile, filename}, index) => {
                     // Show a border to separate multiple images. Shown to the right for each except the last.
@@ -86,10 +88,17 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
             </View>
             {remaining > 0 && (
                 <View style={[styles.reportActionItemImagesMoreContainer]}>
-                    <Image
-                        source={illustrations.ImagesMoreBg}
-                        style={styles.reportActionItemImagesMore}
-                    />
+                    <View style={[styles.reportActionItemImagesMore, isHovered ? styles.reportActionItemImagesMoreHovered : {}]} />
+                    <Svg
+                        height={triangleWidth}
+                        width={triangleWidth}
+                        style={styles.reportActionItemImagesMoreCornerTriangle}
+                    >
+                        <Polygon
+                            points={`${triangleWidth},0 ${triangleWidth},${triangleWidth} 0,${triangleWidth}`}
+                            fill={isHovered ? theme.border : theme.cardBG}
+                        />
+                    </Svg>
                     <Text style={[styles.reportActionItemImagesMoreText, styles.textStrong]}>{remaining > MAX_REMAINING ? `${MAX_REMAINING}+` : `+${remaining}`}</Text>
                 </View>
             )}

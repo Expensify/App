@@ -4099,9 +4099,12 @@ const styles = (theme: ThemeColors) =>
             gap: 16,
         },
 
+        reportActionItemImagesContainer: {
+            margin: 4,
+        },
+
         reportActionItemImages: {
             flexDirection: 'row',
-            margin: 4,
             borderRadius: 12,
             overflow: 'hidden',
             height: variables.reportActionImagesSingleImageHeight,
@@ -4123,13 +4126,14 @@ const styles = (theme: ThemeColors) =>
 
         reportActionItemImagesMoreContainer: {
             position: 'absolute',
-            bottom: 4,
-            right: 4,
+            bottom: 0,
+            right: 0,
             display: 'flex',
         },
 
         reportActionItemImagesMore: {
             borderTopLeftRadius: 12,
+            backgroundColor: theme.border,
             width: 40,
             height: 40,
         },
