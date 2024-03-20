@@ -51,6 +51,6 @@ function useSuggestionsContext() {
     return context;
 }
 
-SuggestionsContextProvider.displayName = 'PlaybackContextProvider';
+SuggestionsContextProvider.displayName = 'SuggestionsContextProvider';
 
 export {SuggestionsContextProvider, useSuggestionsContext};
