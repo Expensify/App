@@ -586,7 +586,8 @@ export default {
         splitReceipt: 'Split Receipt',
         splitDistance: 'Split Distance',
         sendMoney: 'Send Money',
-        assignTask: 'Assign Task'
+        assignTask: 'Assign Task',
+        shortcut: 'Shortcut',
     },
     iou: {
         amount: 'Amount',

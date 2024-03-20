@@ -24,6 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import * as OnyxTypes from "@src/types/onyx";
 import personalDetailsPropType from "@pages/personalDetailsPropType";
+import lodashGet from "lodash/get";
 
 /**
  * @param {Object} [policy]
@@ -141,14 +142,38 @@ function FloatingActionButtonAndPopover(props) {
 
     let quickAction;
     let avatars;
+    let quickActionReport;
     if (props.quickAction) {
         quickAction = props.quickAction.action;
         const quickActionReportID = props.quickAction.chatReportID;
-        const quickActionReport = ReportUtils.getReport(quickActionReportID);
+        quickActionReport = ReportUtils.getReport(quickActionReportID);
         if (quickActionReport) {
             avatars = _.filter(ReportUtils.getIcons(quickActionReport, props.personalDetails), avatar => avatar.id !== props.session.accountID);
         }
     }
+
+    const navigateToQuickAction = () => {
+        switch (props.quickAction.action) {
+            case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
+            case CONST.QUICK_ACTIONS.REQUEST_SCAN:
+            case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
+                IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, props.quickAction.chatReportID, props.quickAction.action);
+                return;
+            case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
+            case CONST.QUICK_ACTIONS.SPLIT_SCAN:
+            case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, props.quickAction.chatReportID, props.quickAction.action);
+                return;
+            case CONST.QUICK_ACTIONS.SEND_MONEY:
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SEND, props.quickAction.chatReportID);
+                return;
+            case CONST.QUICK_ACTIONS.ASSIGN_TASK:
+                Task.clearOutTaskInfoAndNavigate(props.quickAction.chatReportID, lodashGet(props.quickAction, 'targetAccountID', ''))
+                return;
+            default:
+                return '';
+        }
+    };
 
     /**
      * Check if LHN status changed from active to inactive.
@@ -288,12 +313,12 @@ function FloatingActionButtonAndPopover(props) {
                     ...(props.quickAction
                         ? [
                             {
-                                icon: getQuickActionIcon(quickAction),
-                                text: translate(getQuickActionTitle(quickAction)),
-                                label: 'Shortcut',
+                                icon: getQuickActionIcon(quickAction.action),
+                                text: translate(getQuickActionTitle(quickAction.action)),
+                                label: translate('quickAction.shortcut'),
                                 floatRightAvatars: avatars,
                                 floatRightAvatarSize: CONST.AVATAR_SIZE.SMALLER,
-                                description: translate('workspace.new.getTheExpensifyCardAndMore'),
+                                description: ReportUtils.getReportName(quickActionReport),
                             },
                         ]
                         : []),
