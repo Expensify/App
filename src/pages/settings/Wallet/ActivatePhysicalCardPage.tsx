@@ -150,6 +150,7 @@ function ActivatePhysicalCardPage({
                 isDisabled={isOffline}
                 isLoading={physicalCard?.isLoading}
                 medium={isExtraSmallScreenHeight}
+                large={!isExtraSmallScreenHeight}
                 style={[styles.w100, styles.p5, styles.mtAuto]}
                 onPress={submitAndNavigateToNextPage}
                 pressOnEnter

@@ -1,7 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {ScrollView} from 'react-native';
 import _ from 'underscore';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -10,6 +9,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
@@ -65,13 +65,13 @@ function ContinueBankAccountSetup(props) {
                     >
                         <Text>{props.translate('workspace.bankAccount.youreAlmostDone')}</Text>
                         <Button
+                            iconStyles={[styles.customMarginButtonWithMenuItem]}
                             text={props.translate('workspace.bankAccount.continueWithSetup')}
                             onPress={props.continue}
                             icon={Expensicons.Bank}
                             style={[styles.mv4]}
-                            iconStyles={[styles.buttonCTAIcon]}
                             shouldShowRightIcon
-                            large
+                            innerStyles={[styles.pr2, styles.pl4, styles.h13]}
                             success
                             isDisabled={Boolean(pendingAction) || !_.isEmpty(errors)}
                         />
