@@ -20,6 +20,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -111,76 +112,81 @@ function PolicyDistanceRateEditPage({policy, route}: PolicyDistanceRateEditPageP
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <ScreenWrapper
-                    testID={PolicyDistanceRateEditPage.displayName}
-                    includeSafeAreaPaddingBottom={false}
-                    style={[styles.defaultModalContainer]}
-                    shouldShowOfflineIndicatorInWideScreen
+                <FeatureEnabledAccessOrNotFoundWrapper
+                    policyID={policyID}
+                    featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
                 >
-                    <HeaderWithBackButton
-                        title={`${rateValueToDisplay} / ${translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`)}`}
-                        shouldShowThreeDotsButton
-                        threeDotsMenuItems={threeDotsMenuItems}
-                        threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
-                    />
-                    <View style={styles.flexGrow1}>
-                        <OfflineWithFeedback
-                            errors={ErrorUtils.getLatestErrorField(rate, 'enabled')}
-                            pendingAction={rate?.pendingFields?.enabled}
-                            errorRowStyles={styles.mh5}
-                            onClose={() => clearErrorFields('enabled')}
-                        >
-                            <View style={[styles.flexRow, styles.justifyContentBetween, styles.p5]}>
-                                <Text>{translate('workspace.distanceRates.enableRate')}</Text>
-                                <Switch
-                                    isOn={rate.enabled ?? false}
-                                    onToggle={toggleRate}
-                                    accessibilityLabel={translate('workspace.distanceRates.enableRate')}
+                    <ScreenWrapper
+                        testID={PolicyDistanceRateEditPage.displayName}
+                        includeSafeAreaPaddingBottom={false}
+                        style={[styles.defaultModalContainer]}
+                        shouldShowOfflineIndicatorInWideScreen
+                    >
+                        <HeaderWithBackButton
+                            title={`${rateValueToDisplay} / ${translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`)}`}
+                            shouldShowThreeDotsButton
+                            threeDotsMenuItems={threeDotsMenuItems}
+                            threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
+                        />
+                        <View style={styles.flexGrow1}>
+                            <OfflineWithFeedback
+                                errors={ErrorUtils.getLatestErrorField(rate, 'enabled')}
+                                pendingAction={rate?.pendingFields?.enabled}
+                                errorRowStyles={styles.mh5}
+                                onClose={() => clearErrorFields('enabled')}
+                            >
+                                <View style={[styles.flexRow, styles.justifyContentBetween, styles.p5]}>
+                                    <Text>{translate('workspace.distanceRates.enableRate')}</Text>
+                                    <Switch
+                                        isOn={rate.enabled ?? false}
+                                        onToggle={toggleRate}
+                                        accessibilityLabel={translate('workspace.distanceRates.enableRate')}
+                                    />
+                                </View>
+                            </OfflineWithFeedback>
+                            <OfflineWithFeedback
+                                errors={ErrorUtils.getLatestErrorField(rate, 'rate')}
+                                pendingAction={rate?.pendingFields?.rate}
+                                errorRowStyles={styles.mh5}
+                                onClose={() => clearErrorFields('rate')}
+                            >
+                                <MenuItemWithTopDescription
+                                    shouldShowRightIcon
+                                    title={`${rateValueToDisplay} / ${unitToDisplay}`}
+                                    description={translate('workspace.distanceRates.rate')}
+                                    descriptionTextStyle={styles.textNormal}
+                                    onPress={showRateModal}
                                 />
-                            </View>
-                        </OfflineWithFeedback>
-                        <OfflineWithFeedback
-                            errors={ErrorUtils.getLatestErrorField(rate, 'rate')}
-                            pendingAction={rate?.pendingFields?.rate}
-                            errorRowStyles={styles.mh5}
-                            onClose={() => clearErrorFields('rate')}
-                        >
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={`${rateValueToDisplay} / ${unitToDisplay}`}
-                                description={translate('workspace.distanceRates.rate')}
-                                descriptionTextStyle={styles.textNormal}
-                                onPress={showRateModal}
+                            </OfflineWithFeedback>
+                            <RateModal
+                                isVisible={isRateModalVisible}
+                                currentRate={(rate.rate ?? '').toString()}
+                                onClose={hideRateModal}
+                                onRateSubmit={updateRate}
+                                label={translate('workspace.distanceRates.rate')}
+                                currency={currency}
                             />
-                        </OfflineWithFeedback>
-                        <RateModal
-                            isVisible={isRateModalVisible}
-                            currentRate={(rate.rate ?? '').toString()}
-                            onClose={hideRateModal}
-                            onRateSubmit={updateRate}
-                            label={translate('workspace.distanceRates.rate')}
-                            currency={currency}
-                        />
-                        <ConfirmModal
-                            onConfirm={() => setIsWarningModalVisible(false)}
-                            isVisible={isWarningModalVisible}
-                            title={translate('workspace.distanceRates.oopsNotSoFast')}
-                            prompt={translate('workspace.distanceRates.workspaceNeeds')}
-                            confirmText={translate('common.buttonConfirm')}
-                            shouldShowCancelButton={false}
-                        />
-                        <ConfirmModal
-                            title={translate('workspace.distanceRates.deleteDistanceRate')}
-                            isVisible={isDeleteModalVisible}
-                            onConfirm={deleteRate}
-                            onCancel={() => setIsDeleteModalVisible(false)}
-                            prompt={translate('workspace.distanceRates.areYouSureDelete', {count: 1})}
-                            confirmText={translate('common.delete')}
-                            cancelText={translate('common.cancel')}
-                            danger
-                        />
-                    </View>
-                </ScreenWrapper>
+                            <ConfirmModal
+                                onConfirm={() => setIsWarningModalVisible(false)}
+                                isVisible={isWarningModalVisible}
+                                title={translate('workspace.distanceRates.oopsNotSoFast')}
+                                prompt={translate('workspace.distanceRates.workspaceNeeds')}
+                                confirmText={translate('common.buttonConfirm')}
+                                shouldShowCancelButton={false}
+                            />
+                            <ConfirmModal
+                                title={translate('workspace.distanceRates.deleteDistanceRate')}
+                                isVisible={isDeleteModalVisible}
+                                onConfirm={deleteRate}
+                                onCancel={() => setIsDeleteModalVisible(false)}
+                                prompt={translate('workspace.distanceRates.areYouSureDelete', {count: 1})}
+                                confirmText={translate('common.delete')}
+                                cancelText={translate('common.cancel')}
+                                danger
+                            />
+                        </View>
+                    </ScreenWrapper>
+                </FeatureEnabledAccessOrNotFoundWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>
     );
