@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, PolicyCategories, PolicyMembers, PolicyTagList, PolicyTags} from '@src/types/onyx';
+import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Navigation from './Navigation/Navigation';
@@ -28,6 +29,13 @@ function getActivePolicies(policies: OnyxCollection<Policy>): Policy[] | undefin
  */
 function hasPolicyMemberError(policyMembers: OnyxEntry<PolicyMembers>): boolean {
     return Object.values(policyMembers ?? {}).some((member) => Object.keys(member?.errors ?? {}).length > 0);
+}
+
+/**
+ *  Check if the policy has any tax rate errors.
+ */
+function hasTaxRateError(policy: OnyxEntry<Policy>): boolean {
+    return Object.values(policy?.taxRates?.taxes ?? {}).some((taxRate) => Object.keys(taxRate?.errors ?? {}).length > 0);
 }
 
 /**
@@ -269,6 +277,14 @@ function goBackFromInvalidPolicy() {
     Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
 }
 
+function isPolicyFeatureEnabled(policy: OnyxEntry<Policy> | EmptyObject, featureName: PolicyFeatureName): boolean {
+    if (featureName === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) {
+        return Boolean(policy?.tax?.trackingEnabled);
+    }
+
+    return Boolean(policy?.[featureName]);
+}
+
 export {
     getActivePolicies,
     hasAccountingConnections,
@@ -299,6 +315,8 @@ export {
     getPathWithoutPolicyID,
     getPolicyMembersByIdWithoutCurrentUser,
     goBackFromInvalidPolicy,
+    isPolicyFeatureEnabled,
+    hasTaxRateError,
     hasPolicyCategoriesError,
 };
 

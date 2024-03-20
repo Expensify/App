@@ -17,12 +17,16 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {openPolicyTaxesPage} from '@libs/actions/Policy';
+import {clearTaxRateError} from '@libs/actions/TaxRate';
+import Navigation from '@libs/Navigation/Navigation';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type WorkspaceTaxesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES>;
@@ -72,6 +76,8 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
                     keyForList: key,
                     isSelected: !!selectedTaxesIDs.includes(key),
                     isDisabledCheckbox: key === defaultExternalID,
+                    pendingAction: value.pendingAction,
+                    errors: value.errors,
                     rightElement: (
                         <View style={styles.flexRow}>
                             <Text style={[styles.disabledText, styles.alignSelfCenter]}>
@@ -129,14 +135,14 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
             <Button
                 medium
                 success
-                onPress={() => {}}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_CREATE.getRoute(route.params.policyID))}
                 icon={Expensicons.Plus}
                 text={translate('workspace.taxes.addRate')}
                 style={[styles.mr3, isSmallScreenWidth && styles.w50]}
             />
             <Button
                 medium
-                onPress={() => {}}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(route.params.policyID))}
                 icon={Expensicons.Gear}
                 text={translate('common.settings')}
                 style={[isSmallScreenWidth && styles.w50]}
@@ -147,44 +153,50 @@ function WorkspaceTaxesPage({policy, route}: WorkspaceTaxesPageProps) {
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    style={[styles.defaultModalContainer]}
-                    testID={WorkspaceTaxesPage.displayName}
-                    shouldShowOfflineIndicatorInWideScreen
+                <FeatureEnabledAccessOrNotFoundWrapper
+                    policyID={route.params.policyID}
+                    featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
                 >
-                    <HeaderWithBackButton
-                        icon={Illustrations.Coins}
-                        title={translate('workspace.common.taxes')}
-                        shouldShowBackButton={isSmallScreenWidth}
+                    <ScreenWrapper
+                        includeSafeAreaPaddingBottom={false}
+                        style={[styles.defaultModalContainer]}
+                        testID={WorkspaceTaxesPage.displayName}
+                        shouldShowOfflineIndicatorInWideScreen
                     >
-                        {!isSmallScreenWidth && headerButtons}
-                    </HeaderWithBackButton>
+                        <HeaderWithBackButton
+                            icon={Illustrations.Coins}
+                            title={translate('workspace.common.taxes')}
+                            shouldShowBackButton={isSmallScreenWidth}
+                        >
+                            {!isSmallScreenWidth && headerButtons}
+                        </HeaderWithBackButton>
 
-                    {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
+                        {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
 
-                    <View style={[styles.ph5, styles.pb5]}>
-                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
-                    </View>
-                    {isLoading && (
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            style={[styles.flex1]}
-                            color={theme.spinner}
+                        <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+                            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
+                        </View>
+                        {isLoading && (
+                            <ActivityIndicator
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                style={[styles.flex1]}
+                                color={theme.spinner}
+                            />
+                        )}
+                        <SelectionList
+                            canSelectMultiple
+                            sections={[{data: taxesList, indexOffset: 0, isDisabled: false}]}
+                            onCheckboxPress={toggleTax}
+                            onSelectRow={() => {}}
+                            onSelectAll={toggleAllTaxes}
+                            showScrollIndicator
+                            ListItem={TableListItem}
+                            customListHeader={getCustomListHeader()}
+                            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                            onDismissError={(item) => (item.keyForList ? clearTaxRateError(route.params.policyID, item.keyForList, item.pendingAction) : undefined)}
                         />
-                    )}
-                    <SelectionList
-                        canSelectMultiple
-                        sections={[{data: taxesList, indexOffset: 0, isDisabled: false}]}
-                        onCheckboxPress={toggleTax}
-                        onSelectRow={() => {}}
-                        onSelectAll={toggleAllTaxes}
-                        showScrollIndicator
-                        ListItem={TableListItem}
-                        customListHeader={getCustomListHeader()}
-                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                    />
-                </ScreenWrapper>
+                    </ScreenWrapper>
+                </FeatureEnabledAccessOrNotFoundWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>
     );
