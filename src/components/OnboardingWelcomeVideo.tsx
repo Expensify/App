@@ -124,9 +124,20 @@ function OnboardingWelcomeVideo() {
             {({safeAreaPaddingBottomStyle}) => (
                 <Modal
                     isVisible={isModalVisible}
-                    type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.CENTERED_SMALL : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+                    type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
                     onClose={closeModal}
-                    innerContainerStyle={{paddingBottom: 20, paddingTop: shouldUseNarrowLayout ? undefined : MODAL_PADDING}}
+                    innerContainerStyle={{
+                        paddingBottom: 20,
+                        paddingTop: shouldUseNarrowLayout ? undefined : MODAL_PADDING,
+                        ...(shouldUseNarrowLayout
+                            ? // Override styles defined by MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
+                              // To make it take as little space as possible.
+                              {
+                                  flex: undefined,
+                                  width: 'auto',
+                              }
+                            : {}),
+                    }}
                 >
                     <View style={[styles.mh100, shouldUseNarrowLayout && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
                         <View style={shouldUseNarrowLayout ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{getWelcomeVideo()}</View>
