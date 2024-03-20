@@ -19,5 +19,5 @@ export default function useGeographicalStateFromRoute(stateParamName = 'state'):
     if (!stateFromUrlTemp) {
         return;
     }
-    return COMMON_CONST.STATES[stateFromUrlTemp as State].stateISO;
+    return COMMON_CONST.STATES[stateFromUrlTemp as State]?.stateISO;
 }
