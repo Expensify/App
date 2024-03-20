@@ -2232,6 +2232,11 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>): boolean {
         return true;
     }
 
+    // TODO: Uncomment this line when BE starts working properly (Editing Track Expense)
+    // if (reportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK) {
+    //     return true;
+    // }
+
     if (reportAction.originalMessage.type !== CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
         return false;
     }
