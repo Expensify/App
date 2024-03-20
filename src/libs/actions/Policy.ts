@@ -250,8 +250,12 @@ function updateLastAccessedWorkspace(policyID: OnyxEntry<string>) {
     Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID);
 }
 
+/**
+ * Checks if the currency is supported for direct reimbursement
+ * USD currency is the only one supported in NewDot for now
+ */
 function isCurrencySupportedForDirectReimbursement(currency: string) {
-    return CONST.DIRECT_REIMBURSEMENT_CURRENCIES.filter((c) => c !== CONST.CURRENCY.EUR).includes(currency as (typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES)[number]);
+    return currency === CONST.CURRENCY.USD;
 }
 
 /**
