@@ -72,7 +72,7 @@ Onyx.connect({
  * Set interval to periodically (re)check backend status
  * @returns for use with clearInterval
  */
-function subscribeToBackendReachability() {
+function subscribeToBackendReachability(): NodeJS.Timeout {
     return setInterval(() => {
         // Offline status also implies backend unreachability
         if (isOffline) {
@@ -99,8 +99,9 @@ function subscribeToBackendReachability() {
 
 /**
  * Monitor internet connectivity and perform periodic backend reachability checks
+ * @returns unsubscribe method
  */
-function subscribeToNetworkStatus() {
+function subscribeToNetworkStatus(): () => void {
     // Note: We are disabling the reachability check when using the local web API since requests can get stuck in a 'Pending' state and are not reliable indicators for "offline".
     // If you need to test the "recheck" feature then switch to the production API proxy server.
     const backendReachabilityCheckInterval = !CONFIG.IS_USING_LOCAL_WEB ? subscribeToBackendReachability() : undefined;
