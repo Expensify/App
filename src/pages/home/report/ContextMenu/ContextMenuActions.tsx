@@ -1,7 +1,8 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import type {MutableRefObject} from 'react';
 import React from 'react';
-import type {GestureResponderEvent} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {GestureResponderEvent, Text, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -13,10 +14,10 @@ import EmailUtils from '@libs/EmailUtils';
 import * as Environment from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
 import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
+import * as Localize from '@libs/Localize';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -28,6 +29,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Beta, ReportAction, ReportActionReactions, Report as ReportType} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {ContextMenuAnchor} from './ReportActionContextMenu';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /** Gets the HTML version of the message in an action */
@@ -52,7 +54,7 @@ type ShouldShow = (
     reportAction: OnyxEntry<ReportAction>,
     isArchivedRoom: boolean,
     betas: OnyxEntry<Beta[]>,
-    menuTarget: MutableRefObject<HTMLElement | null> | undefined,
+    menuTarget: MutableRefObject<ContextMenuAnchor> | undefined,
     isChronosReport: boolean,
     reportID: string,
     isPinnedChat: boolean,
@@ -69,6 +71,8 @@ type ContextMenuActionPayload = {
     close: () => void;
     openContextMenu: () => void;
     interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
+    anchor?: MutableRefObject<HTMLDivElement | View | Text | null>;
+    checkIfContextMenuActive?: () => void;
     openOverflowMenu: (event: GestureResponderEvent | MouseEvent) => void;
     event?: GestureResponderEvent | MouseEvent | KeyboardEvent;
     setIsEmojiPickerActive?: (state: boolean) => void;
@@ -96,6 +100,7 @@ type ContextMenuActionWithIcon = {
 type ContextMenuAction = (ContextMenuActionWithContent | ContextMenuActionWithIcon) & {
     isAnonymousAction: boolean;
     shouldShow: ShouldShow;
+    shouldPreventDefaultFocusOnPress?: boolean;
 };
 
 // A list of all the context actions in this menu.
@@ -214,13 +219,6 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                 hideContextMenu(false);
                 const childReportID = reportAction?.childReportID ?? '0';
-                if (!childReportID) {
-                    const thread = ReportUtils.buildTransactionThread(reportAction, reportID);
-                    const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs ?? []);
-                    Report.openReport(thread.reportID, userLogins, thread, reportAction?.reportActionID);
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(thread.reportID));
-                    return;
-                }
                 Report.openReport(childReportID);
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 return;
@@ -342,9 +340,8 @@ const ContextMenuActions: ContextMenuAction[] = [
         // `ContextMenuItem` with `successText` and `successIcon` which will fall back to
         // the `text` and `icon`
         onPress: (closePopover, {reportAction, selection, reportID}) => {
-            const isTaskAction = ReportActionsUtils.isTaskAction(reportAction);
             const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
-            const messageHtml = isTaskAction ? TaskUtils.getTaskReportActionMessage(reportAction?.actionName) : getActionHtml(reportAction);
+            const messageHtml = getActionHtml(reportAction);
             const messageText = ReportActionsUtils.getReportActionMessageText(reportAction);
 
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
@@ -353,6 +350,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                 if (isReportPreviewAction) {
                     const iouReport = ReportUtils.getReport(ReportActionsUtils.getIOUReportIDFromReportActionPreview(reportAction));
                     const displayMessage = ReportUtils.getReportPreviewMessage(iouReport, reportAction);
+                    Clipboard.setString(displayMessage);
+                } else if (ReportActionsUtils.isTaskAction(reportAction)) {
+                    const displayMessage = TaskUtils.getTaskReportActionMessage(reportAction).text;
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
                     const modifyExpenseMessage = ModifiedExpenseMessage.getForReportAction(reportID, reportAction);
@@ -376,6 +376,10 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (ReportActionsUtils.isActionableMentionWhisper(reportAction)) {
                     const mentionWhisperMessage = ReportActionsUtils.getActionableMentionWhisperMessage(reportAction);
                     setClipboardMessage(mentionWhisperMessage);
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
+                    Clipboard.setString(Localize.translateLocal('iou.heldRequest', {comment: reportAction.message?.[1]?.text ?? ''}));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
+                    Clipboard.setString(Localize.translateLocal('iou.unheldRequest'));
                 } else if (content) {
                     setClipboardMessage(content);
                 } else if (messageText) {
@@ -399,7 +403,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
 
             // Only hide the copylink menu item when context menu is opened over img element.
-            const isAttachmentTarget = menuTarget?.current?.tagName === 'IMG' && isAttachment;
+            const isAttachmentTarget = menuTarget?.current && 'tagName' in menuTarget.current && menuTarget?.current.tagName === 'IMG' && isAttachment;
             return Permissions.canUseCommentLinking(betas) && type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget && !ReportActionsUtils.isMessageDeleted(reportAction);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
@@ -490,6 +494,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             openContextMenu();
         },
         getDescription: () => {},
+        shouldPreventDefaultFocusOnPress: false,
     },
 ];
 

@@ -20,18 +20,23 @@ function setup() {
     Pusher.init({
         appKey: CONFIG.PUSHER.APP_KEY,
         cluster: CONFIG.PUSHER.CLUSTER,
-        authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api?command=AuthenticatePusher`,
+        authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
     });
 }
 
 function emitOnyxUpdate(args: OnyxUpdate[]) {
     const channel = Pusher.getChannel(CHANNEL_NAME);
-    channel?.emit(Pusher.TYPE.MULTIPLE_EVENTS, [
-        {
-            eventType: Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE,
-            data: args,
-        },
-    ]);
+    channel?.emit(Pusher.TYPE.MULTIPLE_EVENTS, {
+        type: 'pusher',
+        lastUpdateID: null,
+        previousUpdateID: null,
+        updates: [
+            {
+                eventType: Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE,
+                data: args,
+            },
+        ],
+    });
 }
 
 function teardown() {
