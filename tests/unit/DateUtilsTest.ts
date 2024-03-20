@@ -42,7 +42,7 @@ describe('DateUtils', () => {
     });
 
     it('formatToDayOfWeek should return a weekday', () => {
-        const weekDay = DateUtils.formatToDayOfWeek(datetime);
+        const weekDay = DateUtils.formatToDayOfWeek(new Date(datetime));
         expect(weekDay).toBe('Monday');
     });
     it('formatToLocalTime should return a date in a local format', () => {
