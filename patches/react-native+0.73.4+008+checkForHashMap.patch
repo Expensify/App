@@ -13,4 +13,4 @@ index 6d07704..88dd74e 100644
 +    }
      for (String oldKey : keysToNormalize) {
        Object value = events.get(oldKey);
-       String newKey = "top" + oldKey.substring(0, 1).toUpperCase() + oldKey.substring(1);
+       String baseKey = "";
