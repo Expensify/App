@@ -1589,8 +1589,8 @@ function updateReportName(reportID: string, value: string, previousValue: string
 }
 
 function updateReportField(reportID: string, reportField: PolicyReportField, previousReportField: PolicyReportField) {
-    const recentlyUsedValues = allRecentlyUsedReportFields?.[reportField.fieldID] ?? [];
-    const fieldID = ReportUtils.getReportFieldKey(reportField.fieldID);
+    const fieldKey = ReportUtils.getReportFieldKey(reportField.fieldID);
+    const recentlyUsedValues = allRecentlyUsedReportFields?.[fieldKey] ?? [];
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1598,10 +1598,10 @@ function updateReportField(reportID: string, reportField: PolicyReportField, pre
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 fieldList: {
-                    [fieldID]: reportField,
+                    [fieldKey]: reportField,
                 },
                 pendingFields: {
-                    [fieldID]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    [fieldKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             },
         },
@@ -1612,7 +1612,7 @@ function updateReportField(reportID: string, reportField: PolicyReportField, pre
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.RECENTLY_USED_REPORT_FIELDS,
             value: {
-                [fieldID]: [...new Set([...recentlyUsedValues, reportField.value])],
+                [fieldKey]: [...new Set([...recentlyUsedValues, reportField.value])],
             },
         });
     }
@@ -1623,13 +1623,13 @@ function updateReportField(reportID: string, reportField: PolicyReportField, pre
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 fieldList: {
-                    [fieldID]: previousReportField,
+                    [fieldKey]: previousReportField,
                 },
                 pendingFields: {
-                    [fieldID]: null,
+                    [fieldKey]: null,
                 },
                 errorFields: {
-                    [fieldID]: ErrorUtils.getMicroSecondOnyxError('report.genericUpdateReportFieldFailureMessage'),
+                    [fieldKey]: ErrorUtils.getMicroSecondOnyxError('report.genericUpdateReportFieldFailureMessage'),
                 },
             },
         },
@@ -1640,7 +1640,7 @@ function updateReportField(reportID: string, reportField: PolicyReportField, pre
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.RECENTLY_USED_REPORT_FIELDS,
             value: {
-                [fieldID]: recentlyUsedValues,
+                [fieldKey]: recentlyUsedValues,
             },
         });
     }
@@ -1651,10 +1651,10 @@ function updateReportField(reportID: string, reportField: PolicyReportField, pre
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 pendingFields: {
-                    [fieldID]: null,
+                    [fieldKey]: null,
                 },
                 errorFields: {
-                    [fieldID]: null,
+                    [fieldKey]: null,
                 },
             },
         },
@@ -1662,7 +1662,7 @@ function updateReportField(reportID: string, reportField: PolicyReportField, pre
 
     const parameters = {
         reportID,
-        reportFields: JSON.stringify({[fieldID]: reportField}),
+        reportFields: JSON.stringify({[fieldKey]: reportField}),
     };
 
     API.write(WRITE_COMMANDS.SET_REPORT_FIELD, parameters, {optimisticData, failureData, successData});

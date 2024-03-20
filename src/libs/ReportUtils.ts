@@ -2098,7 +2098,7 @@ function getReportFieldsByPolicyID(policyID: string): Record<string, PolicyRepor
         return {};
     }
 
-    return fieldList as Record<string, PolicyReportField>;
+    return fieldList;
 }
 
 /**
@@ -2123,7 +2123,7 @@ function getAvailableReportFields(report: Report, policyReportFields: PolicyRepo
         const field = report?.fieldList?.[getReportFieldKey(id)];
 
         if (field) {
-            return field as PolicyReportField;
+            return field;
         }
 
         const policyReportField = policyReportFields.find(({fieldID}) => fieldID === id);
