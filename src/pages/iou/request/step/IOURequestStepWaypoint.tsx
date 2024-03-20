@@ -73,6 +73,7 @@ function IOURequestStepWaypoint({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {keyboardHeight} = useKeyboardState();
+    const [isSubmitButtonVisible, setIsSubmitButtonVisible] = useState(true);
     const textInput = useRef<TextInput | null>(null);
     const parsedWaypointIndex = parseInt(pageIndex, 10);
     const allWaypoints = transaction?.comment.waypoints ?? {};
@@ -168,9 +169,9 @@ function IOURequestStepWaypoint({
             testID={IOURequestStepWaypoint.displayName}
             style={[styles.overflowHidden]}
             // This keeps the submit button at the bottom of the screen on iOS
-            shouldEnableKeyboardAvoidingView={Platform.OS !== 'ios'}
+            // shouldEnableKeyboardAvoidingView={Platform.OS !== 'ios'}
             // This keeps the submit button at the bottom of the screen on android
-            shouldEnableMinHeight={Platform.OS === 'android'}
+            // shouldEnableMinHeight={Platform.OS === 'android'}
         >
             <FullPageNotFoundView shouldShow={shouldDisableEditor}>
                 <HeaderWithBackButton
@@ -202,16 +203,17 @@ function IOURequestStepWaypoint({
                     danger
                 />
                 <FormProvider
-                    style={[styles.flex1, styles.mh5]}
+                    style={[styles.flex1, styles.mh5, Platform.OS === 'android' ? styles.mb5 : null]}
                     formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
                     enabledWhenOffline
                     validate={validate}
                     onSubmit={submit}
                     submitFlexEnabled={false}
                     // This keeps the list of waypoints above the keyboard on android
-                    submitButtonStyles={keyboardHeight && Platform.OS === 'android' ? {height: keyboardHeight} : null}
+                    // submitButtonStyles={Platform.OS === 'android' ? styles.mb5 : null}
                     shouldValidateOnChange={false}
                     shouldValidateOnBlur={false}
+                    isSubmitButtonVisible={isSubmitButtonVisible}
                     submitButtonText={translate('common.save')}
                 >
                     <InputWrapperWithRef
@@ -227,6 +229,8 @@ function IOURequestStepWaypoint({
                         label={translate('distance.address')}
                         defaultValue={waypointAddress}
                         onPress={selectWaypoint}
+                        onFocus={() => setIsSubmitButtonVisible(false)}
+                        onBlur={() => setIsSubmitButtonVisible(true)}
                         maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                         renamedInputKeys={{
                             address: `waypoint${pageIndex}`,

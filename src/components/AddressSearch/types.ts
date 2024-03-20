@@ -46,6 +46,9 @@ type AddressSearchProps = {
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft?: boolean;
 
+    /** Callback that is called when the text input is focused */
+    onFocus?: () => void;
+
     /** Callback that is called when the text input is blurred */
     onBlur?: () => void;
 

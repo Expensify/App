@@ -58,6 +58,7 @@ function AddressSearch(
         isLimitedToUSA = false,
         label,
         maxInputLength,
+        onFocus,
         onBlur,
         onInputChange,
         onPress,
@@ -407,6 +408,7 @@ function AddressSearch(
                             shouldSaveDraft,
                             onFocus: () => {
                                 setIsFocused(true);
+                                onFocus?.();
                             },
                             onBlur: (event) => {
                                 if (!isCurrentTargetInsideContainer(event, containerRef)) {
