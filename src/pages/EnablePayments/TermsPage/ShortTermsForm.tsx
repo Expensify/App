@@ -1,23 +1,20 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import userWalletPropTypes from '@pages/EnablePayments/userWalletPropTypes';
 import CONST from '@src/CONST';
+import type {UserWallet} from '@src/types/onyx';
 
-const propTypes = {
+type ShortTermsFormProps = {
     /** The user's wallet */
-    userWallet: userWalletPropTypes,
+    userWallet: OnyxEntry<UserWallet>;
 };
 
-const defaultProps = {
-    userWallet: {},
-};
-
-function ShortTermsForm(props) {
+function ShortTermsForm(props: ShortTermsFormProps) {
     const styles = useThemeStyles();
     const {translate, numberFormat} = useLocalize();
     return (
@@ -25,7 +22,9 @@ function ShortTermsForm(props) {
             <Text style={styles.mb5}>
                 {translate('termsStep.shortTermsForm.expensifyPaymentsAccount', {
                     walletProgram:
-                        props.userWallet.walletProgramID === CONST.WALLET.MTL_WALLET_PROGRAM_ID ? CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS : CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK,
+                        props.userWallet?.walletProgramID === CONST.WALLET.MTL_WALLET_PROGRAM_ID
+                            ? CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS
+                            : CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK,
                 })}
             </Text>
 
@@ -150,8 +149,6 @@ function ShortTermsForm(props) {
     );
 }
 
-ShortTermsForm.propTypes = propTypes;
-ShortTermsForm.defaultProps = defaultProps;
 ShortTermsForm.displayName = 'ShortTermsForm';
 
 export default ShortTermsForm;

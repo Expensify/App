@@ -215,6 +215,7 @@ const SCREENS = {
         TAGS: 'Workspace_Tags',
         TAGS_SETTINGS: 'Tags_Settings',
         TAGS_EDIT: 'Tags_Edit',
+        TAG_EDIT: 'Tag_Edit',
         TAXES: 'Workspace_Taxes',
         TAXES_EDIT: 'Workspace_Taxes_Edit',
         TAXES_NAME: 'Workspace_Taxes_Name',
@@ -244,6 +245,7 @@ const SCREENS = {
         MEMBER_DETAILS_ROLE_SELECTION: 'Workspace_Member_Details_Role_Selection',
         DISTANCE_RATES: 'Distance_Rates',
         CREATE_DISTANCE_RATE: 'Create_Distance_Rate',
+        DISTANCE_RATES_SETTINGS: 'Distance_Rates_Settings',
     },
 
     EDIT_REQUEST: {
