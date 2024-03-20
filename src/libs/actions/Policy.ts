@@ -4002,18 +4002,32 @@ function categorizeTrackedTransaction(chatReportID, action) {
         expenseCreatedReportActionID,
     } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
 
+
+    const moneyRequestReport = ReportUtils.buildOptimisticExpenseReport(chatReportID, policyID, sessionAccountID, 0, 'USD');
+    const moneyRequestCreatedReportActionID = ReportUtils.buildOptimisticCreatedReportAction(sessionEmail ?? '');
+          
+
     const params = {
         policyID,
         transactionID: action.originalMessage.transactionID,
+
+        // Report ID that the transaction is currently on
         reportID: chatReportID,
+
+        // reportActionID of the actionable whisper
         reportActionID: action.reportActionID,
-        modifiedExpenseReportActionID: action.reportActionID,
+
+        // Parameters for the money request
+        moneyRequestReportID: moneyRequestReport.reportID,
+        moneyRequestCreatedReportActionID,
+
+        // Parameters for the workspace
         announceChatReportID,
         announceCreatedReportActionID,
         adminsChatReportID,
         adminsCreatedReportActionID,
-        expenseChatReportID,
-        expenseCreatedReportActionID,
+        policyExpenseChatReportID: expenseChatReportID,
+        policyExpenseCreatedReportActionID: expenseCreatedReportActionID,
     };
 
     console.log('What are all the parameters', params);
