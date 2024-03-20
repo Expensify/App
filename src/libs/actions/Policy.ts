@@ -1052,7 +1052,6 @@ function addBillingCardAndRequestPolicyOwnerChange(
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
             value: {
-                errors: null,
                 isLoading: true,
             },
         },
@@ -1061,7 +1060,6 @@ function addBillingCardAndRequestPolicyOwnerChange(
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 errorFields: null,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
         },
     ];
@@ -1073,14 +1071,6 @@ function addBillingCardAndRequestPolicyOwnerChange(
                 isLoading: false,
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                errorFields: null,
-                pendingAction: null,
-            },
-        },
     ];
 
     const failureData: OnyxUpdate[] = [
@@ -1089,13 +1079,6 @@ function addBillingCardAndRequestPolicyOwnerChange(
             key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
             value: {
                 isLoading: false,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                pendingAction: null,
             },
         },
     ];
