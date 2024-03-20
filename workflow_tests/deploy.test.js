@@ -3,7 +3,7 @@ const kieMockGithub = require('@kie/mock-github');
 const utils = require('./utils/utils');
 const assertions = require('./assertions/deployAssertions');
 const mocks = require('./mocks/deployMocks');
-const eAct = require('./utils/ExtendedAct');
+const ExtendedAct = require('./utils/ExtendedAct').default;
 
 jest.setTimeout(90 * 1000);
 let mockGithub;
@@ -50,7 +50,7 @@ describe('test workflow deploy', () => {
         it('to main - nothing triggered', async () => {
             const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
+            let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 'push',
@@ -77,7 +77,7 @@ describe('test workflow deploy', () => {
         it('to staging - deployStaging triggered', async () => {
             const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
+            let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 'push',
@@ -104,7 +104,7 @@ describe('test workflow deploy', () => {
         it('to production - deployProduction triggered', async () => {
             const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
+            let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 'push',
@@ -132,7 +132,7 @@ describe('test workflow deploy', () => {
     it('different event than push - workflow does not execute', async () => {
         const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
         const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
-        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+        let act = new ExtendedAct(repoPath, workflowPath);
         const testMockSteps = {
             deployStaging: mocks.DEPLOY_STAGING_STEP_MOCKS,
             deployProduction: mocks.DEPLOY_PRODUCTION_STEP_MOCKS,
