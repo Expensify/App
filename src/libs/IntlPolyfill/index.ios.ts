@@ -1,3 +1,4 @@
+import polyfillDateTimeFormat from './polyfillDateTimeFormat';
 import polyfillListFormat from './polyfillListFormat';
 import polyfillNumberFormat from './polyfillNumberFormat';
 import type IntlPolyfill from './types';
@@ -16,6 +17,10 @@ const intlPolyfill: IntlPolyfill = () => {
     // see: https://github.com/facebook/hermes/issues/1172#issuecomment-1776156538
     require('@formatjs/intl-pluralrules/polyfill');
     polyfillNumberFormat();
+
+    // Required to polyfill DateTimeFormat on iOS
+    // see: https://github.com/facebook/hermes/issues/1172#issuecomment-1776156538
+    polyfillDateTimeFormat();
 
     polyfillListFormat();
 };
