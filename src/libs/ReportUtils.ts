@@ -4260,8 +4260,10 @@ function shouldReportBeInOptionList({
         return true;
     }
 
+    const reportIsSettled = report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+
     // Always show IOU reports with violations
-    if (isExpenseRequest(report) && doesReportHaveViolations) {
+    if (isExpenseRequest(report) && doesReportHaveViolations && !reportIsSettled) {
         return true;
     }
 
