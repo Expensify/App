@@ -72,13 +72,14 @@ function MoneyReportView({report, policy, shouldShowHorizontalRule}: MoneyReport
                                 const isTitleField = ReportUtils.isReportFieldOfTypeTitle(reportField);
                                 const fieldValue = isTitleField ? report.reportName : reportField.value ?? reportField.defaultValue;
                                 const isFieldDisabled = ReportUtils.isReportFieldDisabled(report, reportField, policy);
+                                const fieldKey = ReportUtils.getReportFieldKey(reportField.fieldID);
 
                                 return (
                                     <OfflineWithFeedback
-                                        pendingAction={report.pendingFields?.[reportField.fieldID]}
-                                        errors={report.errorFields?.[reportField.fieldID]}
+                                        pendingAction={report.pendingFields?.[fieldKey]}
+                                        errors={report.errorFields?.[fieldKey]}
                                         errorRowStyles={styles.ph5}
-                                        key={`menuItem-${reportField.fieldID}`}
+                                        key={`menuItem-${fieldKey}`}
                                     >
                                         <MenuItemWithTopDescription
                                             description={Str.UCFirst(reportField.name)}

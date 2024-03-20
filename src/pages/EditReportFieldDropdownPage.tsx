@@ -17,8 +17,8 @@ type EditReportFieldDropdownPageComponentProps = {
     /** Name of the policy report field */
     fieldName: string;
 
-    /** ID of the policy report field */
-    fieldID: string;
+    /** Key of the policy report field */
+    fieldKey: string;
 
     /** ID of the policy this report field belongs to */
     // eslint-disable-next-line react/no-unused-prop-types
@@ -37,12 +37,12 @@ type EditReportFieldDropdownPageOnyxProps = {
 
 type EditReportFieldDropdownPageProps = EditReportFieldDropdownPageComponentProps & EditReportFieldDropdownPageOnyxProps;
 
-function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, fieldOptions, recentlyUsedReportFields}: EditReportFieldDropdownPageProps) {
+function EditReportFieldDropdownPage({fieldName, onSubmit, fieldKey, fieldValue, fieldOptions, recentlyUsedReportFields}: EditReportFieldDropdownPageProps) {
     const [searchValue, setSearchValue] = useState('');
     const styles = useThemeStyles();
     const {getSafeAreaMargins} = useStyleUtils();
     const {translate} = useLocalize();
-    const recentlyUsedOptions = useMemo(() => recentlyUsedReportFields?.[fieldID] ?? [], [recentlyUsedReportFields, fieldID]);
+    const recentlyUsedOptions = useMemo(() => recentlyUsedReportFields?.[fieldKey] ?? [], [recentlyUsedReportFields, fieldKey]);
     const [headerMessage, setHeaderMessage] = useState('');
 
     const sections = useMemo(() => {
@@ -93,7 +93,11 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, 
                         boldStyle
                         sections={sections}
                         value={searchValue}
-                        onSelectRow={(option: Record<string, string>) => onSubmit({[fieldID]: option.text})}
+                        onSelectRow={(option: Record<string, string>) =>
+                            onSubmit({
+                                [fieldKey]: fieldValue === option.text ? '' : option.text,
+                            })
+                        }
                         onChangeText={setSearchValue}
                         highlightSelectedOptions
                         isRowMultilineSupported

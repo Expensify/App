@@ -40,8 +40,8 @@ type EditReportFieldPageProps = EditReportFieldPageOnyxProps & {
 };
 
 function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) {
-    const fieldId = `expensify_${route.params.fieldID}`;
-    const reportField = report?.fieldList?.[fieldId] ?? policy?.fieldList?.[fieldId];
+    const fieldKey = ReportUtils.getReportFieldKey(route.params.fieldID);
+    const reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
     const isDisabled = ReportUtils.isReportFieldDisabled(report, reportField ?? null, policy);
 
     if (!reportField || !report || isDisabled) {
@@ -63,11 +63,11 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
     const isReportFieldTitle = ReportUtils.isReportFieldOfTypeTitle(reportField);
 
     const handleReportFieldChange = (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM>) => {
-        const value = form[reportField.fieldID] || '';
+        const value = form[fieldKey];
         if (isReportFieldTitle) {
             ReportActions.updateReportName(report.reportID, value, report.reportName ?? '');
         } else {
-            ReportActions.updateReportField(report.reportID, {...reportField, value}, reportField);
+            ReportActions.updateReportField(report.reportID, {...reportField, value: value === '' ? null : value}, reportField);
         }
 
         Navigation.dismissModal(report?.reportID);
@@ -79,7 +79,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
         return (
             <EditReportFieldTextPage
                 fieldName={Str.UCFirst(reportField.name)}
-                fieldID={reportField.fieldID}
+                fieldKey={fieldKey}
                 fieldValue={fieldValue}
                 isRequired={!reportField.deletable}
                 onSubmit={handleReportFieldChange}
@@ -91,7 +91,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
         return (
             <EditReportFieldDatePage
                 fieldName={Str.UCFirst(reportField.name)}
-                fieldID={reportField.fieldID}
+                fieldKey={fieldKey}
                 fieldValue={fieldValue}
                 isRequired={!reportField.deletable}
                 onSubmit={handleReportFieldChange}
@@ -103,7 +103,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
         return (
             <EditReportFieldDropdownPage
                 policyID={report.policyID ?? ''}
-                fieldID={reportField.fieldID}
+                fieldKey={fieldKey}
                 fieldName={Str.UCFirst(reportField.name)}
                 fieldValue={fieldValue}
                 fieldOptions={reportField.values.filter((value) => !(value in reportField.disabledOptions))}

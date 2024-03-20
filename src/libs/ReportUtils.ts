@@ -2081,6 +2081,13 @@ function getTitleReportField(reportFields: Record<string, PolicyReportField>) {
 }
 
 /**
+ * Get the key for a report field
+ */
+function getReportFieldKey(reportFieldId: string) {
+    return `expensify_${reportFieldId}`;
+}
+
+/**
  * Get the report fields attached to the policy given policyID
  */
 function getReportFieldsByPolicyID(policyID: string): Record<string, PolicyReportField> {
@@ -2091,7 +2098,7 @@ function getReportFieldsByPolicyID(policyID: string): Record<string, PolicyRepor
         return {};
     }
 
-    return fieldList;
+    return fieldList as Record<string, PolicyReportField>;
 }
 
 /**
@@ -2113,10 +2120,10 @@ function getAvailableReportFields(report: Report, policyReportFields: PolicyRepo
     const mergedFieldIds = Array.from(new Set([...policyReportFields.map(({fieldID}) => fieldID), ...reportFields.map(({fieldID}) => fieldID)]));
 
     const fields = mergedFieldIds.map((id) => {
-        const field = report?.fieldList?.[`expensify_${id}`];
+        const field = report?.fieldList?.[getReportFieldKey(id)];
 
         if (field) {
-            return field;
+            return field as PolicyReportField;
         }
 
         const policyReportField = policyReportFields.find(({fieldID}) => fieldID === id);
@@ -5554,6 +5561,7 @@ export {
     hasUpdatedTotal,
     isReportFieldDisabled,
     getAvailableReportFields,
+    getReportFieldKey,
     reportFieldsEnabled,
     getAllAncestorReportActionIDs,
     getPendingChatMembers,
