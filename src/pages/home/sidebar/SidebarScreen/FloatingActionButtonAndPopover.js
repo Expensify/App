@@ -110,7 +110,7 @@ const propTypes = {
         chatReportID: PropTypes.string,
         targetAccountID: PropTypes.number,
         isFirstQuickAction: PropTypes.bool,
-    })
+    }),
 
     /** Personal details of all the users */
     personalDetails: personalDetailsPropType,
