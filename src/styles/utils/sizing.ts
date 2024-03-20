@@ -14,6 +14,10 @@ export default {
         height: 272,
     },
 
+    h13: {
+        height: 52,
+    },
+
     w15: {
         width: '15%',
     },

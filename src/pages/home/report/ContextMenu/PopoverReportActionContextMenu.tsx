@@ -3,7 +3,7 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, 
 
 /* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
-import {Dimensions} from 'react-native';
+import {DeviceEventEmitter, Dimensions} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
@@ -30,7 +30,6 @@ function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEv
     return event;
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<ReportActionContextMenu>) {
     const {translate} = useLocalize();
     const reportIDRef = useRef('0');
@@ -67,8 +66,8 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const contentRef = useRef<View>(null);
     const anchorRef = useRef<View | HTMLDivElement | null>(null);
     const dimensionsEventListener = useRef<EmitterSubscription | null>(null);
-    const contextMenuAnchorRef = useRef<ContextMenuAnchor | null>(null);
-    const contextMenuTargetNode = useRef<HTMLElement | null>(null);
+    const contextMenuAnchorRef = useRef<ContextMenuAnchor>(null);
+    const contextMenuTargetNode = useRef<HTMLDivElement | null>(null);
 
     const onPopoverShow = useRef(() => {});
     const onPopoverHide = useRef(() => {});
@@ -83,7 +82,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const getContextMenuMeasuredLocation = useCallback(
         () =>
             new Promise<Location>((resolve) => {
-                if (contextMenuAnchorRef.current && typeof contextMenuAnchorRef.current.measureInWindow === 'function') {
+                if (contextMenuAnchorRef.current && 'measureInWindow' in contextMenuAnchorRef.current && typeof contextMenuAnchorRef.current.measureInWindow === 'function') {
                     contextMenuAnchorRef.current.measureInWindow((x, y) => resolve({x, y}));
                 } else {
                     resolve({x: 0, y: 0});
@@ -169,7 +168,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     ) => {
         const {pageX = 0, pageY = 0} = extractPointerEvent(event);
         contextMenuAnchorRef.current = contextMenuAnchor;
-        contextMenuTargetNode.current = event.target as HTMLElement;
+        contextMenuTargetNode.current = event.target as HTMLDivElement;
         if (shouldCloseOnTarget) {
             anchorRef.current = event.target as HTMLDivElement;
         } else {
@@ -262,6 +261,8 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         } else if (reportAction) {
             Report.deleteReportComment(reportIDRef.current, reportAction);
         }
+
+        DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
         setIsDeleteCommentConfirmModalVisible(false);
     }, []);
 

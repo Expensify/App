@@ -183,12 +183,12 @@ function Expensify({
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
             setInitialUrl(url);
-            Report.openReportFromDeepLink(url ?? '', isAuthenticated);
+            Report.openReportFromDeepLink(url ?? '');
         });
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => {
-            Report.openReportFromDeepLink(state.url, isAuthenticated);
+            Report.openReportFromDeepLink(state.url);
         });
 
         return () => {

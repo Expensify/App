@@ -1,4 +1,3 @@
-import type {ImageContentFit} from 'expo-image';
 import type {RefObject} from 'react';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -10,48 +9,21 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
-import type IconAsset from '@src/types/utils/IconAsset';
 import * as Expensicons from './Icon/Expensicons';
+import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
 import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
 import Text from './Text';
 
-type PopoverMenuItem = {
-    /** An icon element displayed on the left side */
-    icon: IconAsset;
-
+type PopoverMenuItem = MenuItemProps & {
     /** Text label */
     text: string;
 
     /** A callback triggered when this item is selected */
-    onSelected: () => void;
-
-    /** A description text to show under the title */
-    description?: string;
-
-    /** The fill color to pass into the icon. */
-    iconFill?: string;
-
-    /** Icon Width */
-    iconWidth?: number;
-
-    /** Icon Height */
-    iconHeight?: number;
-
-    /** Icon should be displayed in its own color */
-    displayInDefaultIconColor?: boolean;
-
-    /** Determines how the icon should be resized to fit its container */
-    contentFit?: ImageContentFit;
+    onSelected?: () => void;
 
     /** Sub menu items to be rendered after a menu item is selected */
     subMenuItems?: PopoverMenuItem[];
-
-    /** Determines whether an icon should be displayed on the right side of the menu item. */
-    shouldShowRightIcon?: boolean;
-
-    /** Adds padding to the left of the text when there is no icon. */
-    shouldPutLeftPaddingWhenNoIcon?: boolean;
 };
 
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'>;
@@ -181,7 +153,7 @@ function PopoverMenu({
     const onModalHide = () => {
         setFocusedIndex(-1);
         if (selectedItemIndex.current !== null) {
-            currentMenuItems[selectedItemIndex.current].onSelected();
+            currentMenuItems[selectedItemIndex.current].onSelected?.();
             selectedItemIndex.current = null;
         }
     };
