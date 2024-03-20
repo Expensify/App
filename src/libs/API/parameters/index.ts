@@ -187,8 +187,12 @@ export type {default as UpdatePolicyDistanceRateValueParams} from './UpdatePolic
 export type {default as SetPolicyDistanceRatesEnabledParams} from './SetPolicyDistanceRatesEnabledParams';
 export type {default as DeletePolicyDistanceRatesParams} from './DeletePolicyDistanceRatesParams';
 export type {default as CreatePolicyTagsParams} from './CreatePolicyTagsParams';
+export type {default as SetPolicyTaxesEnabledParams} from './SetPolicyTaxesEnabledParams';
+export type {default as DeletePolicyTaxesParams} from './DeletePolicyTaxesParams';
+export type {default as UpdatePolicyTaxValueParams} from './UpdatePolicyTaxValueParams';
 export type {default as RenamePolicyTagsParams} from './RenamePolicyTagsParams';
 export type {default as DeletePolicyTagsParams} from './DeletePolicyTagsParams';
 export type {default as SetPolicyCustomTaxNameParams} from './SetPolicyCustomTaxNameParams';
 export type {default as SetPolicyForeignCurrencyDefaultParams} from './SetPolicyForeignCurrencyDefaultParams';
 export type {default as SetPolicyCurrencyDefaultParams} from './SetPolicyCurrencyDefaultParams';
+export type {default as RenamePolicyTaxParams} from './RenamePolicyTaxParams';

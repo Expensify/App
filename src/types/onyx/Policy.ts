@@ -52,6 +52,9 @@ type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** An error message to display to the user */
     errors?: OnyxCommon.Errors;
+
+    /** An error object keyed by field name containing errors keyed by microtime */
+    errorFields?: OnyxCommon.ErrorFields;
 }>;
 
 type TaxRates = Record<string, TaxRate>;
