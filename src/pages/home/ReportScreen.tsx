@@ -447,6 +447,10 @@ function ReportScreen({
         if (!ReportUtils.isValidReportIDFromPath(reportID)) {
             return;
         }
+        // Ensure the optimistic report is created successfully
+        if (reportID !== report.reportID) {
+            return;
+        }
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
         // Check if the optimistic `OpenReport` or `AddWorkspaceRoom` has succeeded by confirming
         // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
