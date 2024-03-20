@@ -17,7 +17,7 @@ switch (process.env.ENV) {
 }
 
 const env = dotenv.config({path: path.resolve(__dirname, `../${envFile}`)});
-const custom = require('../config/webpack/webpack.common')({
+const custom = require('../config/webpack/webpack.common').default({
     envFile,
 });
 
