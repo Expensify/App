@@ -2117,6 +2117,9 @@ export default {
             hasFailedSettlementsButtonText: 'Entiendo',
             hasFailedSettlementsText: ({email}) =>
                 `No puede hacerse cargo de la facturación porque ${email} tiene una liquidación vencida de la tarjeta Expensify. Avíseles que se comuniquen con concierge@expensify.com para resolver el problema. Luego, podrá hacerse cargo de la facturación de este espacio de trabajo.`,
+            failedToClearBalanceTitle: 'Failed to clear balance',
+            failedToClearBalanceButtonText: 'OK',
+            failedToClearBalanceText: 'We were unable to clear the balance. Please try again later.',
         },
     },
     getAssistancePage: {

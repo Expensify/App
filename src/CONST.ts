@@ -1494,6 +1494,7 @@ const CONST = {
             OWNER_OWES_AMOUNT: 'ownerOwesAmount',
             SUBSCRIPTION: 'subscription',
             DUPLICATE_SUBSCRIPTION: 'duplicateSubscription',
+            FAILED_TO_CLEAR_BALANCE: 'failedToClearBalance',
         },
     },
 

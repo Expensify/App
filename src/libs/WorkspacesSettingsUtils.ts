@@ -6,11 +6,11 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyMembers, ReimbursementAccount, Report} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
+import type {Phrase, PhraseParameters} from './Localize';
 import * as OptionsListUtils from './OptionsListUtils';
 import {hasCustomUnitsError, hasPolicyError, hasPolicyMemberError, hasTaxRateError} from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
-import type {Phrase, PhraseParameters} from "@libs/Localize";
 
 type CheckingMethod = () => boolean;
 
@@ -219,25 +219,25 @@ function getUnitTranslationKey(unit: Unit): TranslationPaths {
 function getOwnershipChecks(error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>) {
     if (error === CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED) {
         return {
-            shouldClearOutstandingBalance: true
+            shouldClearOutstandingBalance: true,
         };
     }
 
     if (error === CONST.POLICY.OWNERSHIP_ERRORS.OWNER_OWES_AMOUNT) {
         return {
-            shouldTransferAmountOwed: true
+            shouldTransferAmountOwed: true,
         };
     }
 
     if (error === CONST.POLICY.OWNERSHIP_ERRORS.SUBSCRIPTION) {
         return {
-            shouldTransferSubscription: true
+            shouldTransferSubscription: true,
         };
     }
 
     if (error === CONST.POLICY.OWNERSHIP_ERRORS.DUPLICATE_SUBSCRIPTION) {
         return {
-            shouldTransferSingleSubscription: true
+            shouldTransferSingleSubscription: true,
         };
     }
 
@@ -269,6 +269,8 @@ function getOwnershipChecksDisplayText(
                 return translate('workspace.changeOwner.duplicateSubscriptionTitle');
             case CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS:
                 return translate('workspace.changeOwner.hasFailedSettlementsTitle');
+            case CONST.POLICY.OWNERSHIP_ERRORS.FAILED_TO_CLEAR_BALANCE:
+                return translate('workspace.changeOwner.failedToClearBalanceTitle');
             default:
                 return null;
         }
@@ -286,6 +288,8 @@ function getOwnershipChecksDisplayText(
                 return translate('workspace.changeOwner.duplicateSubscriptionButtonText');
             case CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS:
                 return translate('workspace.changeOwner.hasFailedSettlementsButtonText');
+            case CONST.POLICY.OWNERSHIP_ERRORS.FAILED_TO_CLEAR_BALANCE:
+                return translate('workspace.changeOwner.failedToClearBalanceButtonText');
             default:
                 return '';
         }
@@ -293,7 +297,7 @@ function getOwnershipChecksDisplayText(
 
     const confirmationText = () => {
         const changeOwner = policy?.errorFields?.changeOwner;
-        const subscription = changeOwner?.subscription as unknown as { ownerUserCount: number; totalUserCount: number };
+        const subscription = changeOwner?.subscription as unknown as {ownerUserCount: number; totalUserCount: number};
 
         switch (error) {
             case 'noBillingCard':
@@ -303,20 +307,22 @@ function getOwnershipChecksDisplayText(
             case CONST.POLICY.OWNERSHIP_ERRORS.OWNER_OWES_AMOUNT:
                 return translate('workspace.changeOwner.ownerOwesAmountText', {
                     email: changeOwner?.ownerOwesAmount,
-                    amount: ''
+                    amount: '',
                 });
             case CONST.POLICY.OWNERSHIP_ERRORS.SUBSCRIPTION:
                 return translate('workspace.changeOwner.subscriptionText', {
                     usersCount: subscription?.ownerUserCount,
-                    finalCount: subscription?.totalUserCount
+                    finalCount: subscription?.totalUserCount,
                 });
             case CONST.POLICY.OWNERSHIP_ERRORS.DUPLICATE_SUBSCRIPTION:
                 return translate('workspace.changeOwner.duplicateSubscriptionText', {
                     email: changeOwner?.duplicateSubscription,
-                    workspaceName: policy?.name
+                    workspaceName: policy?.name,
                 });
             case CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS:
                 return translate('workspace.changeOwner.hasFailedSettlementsText', {email: accountLogin});
+            case CONST.POLICY.OWNERSHIP_ERRORS.FAILED_TO_CLEAR_BALANCE:
+                return translate('workspace.changeOwner.failedToClearBalanceText');
             default:
                 return null;
         }

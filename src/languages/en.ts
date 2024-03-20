@@ -2071,7 +2071,6 @@ export default {
             addPaymentCardRedundant: 'Redundant infrastructure',
             addPaymentCardLearnMore: 'Learn more about our',
             addPaymentCardSecurity: 'security',
-            // TODO: these are temporary messages, and should be replaced once the copy is available
             amountOwedTitle: 'Outstanding balance',
             amountOwedButtonText: 'OK',
             amountOwedText: 'This account has an outstanding balance from a previous month.\n\nDo you want to clear balance and take over billing of this workspace?',
@@ -2091,6 +2090,9 @@ export default {
             hasFailedSettlementsButtonText: 'Got it',
             hasFailedSettlementsText: ({email}) =>
                 `You cannot take over billing because ${email} has an overdue expensify Expensify Card settlement. Please advise them to reach out to concierge@expensify.com to resolve the issue. Then, you can take over billing for this workspace.`,
+            failedToClearBalanceTitle: 'Failed to clear balance',
+            failedToClearBalanceButtonText: 'OK',
+            failedToClearBalanceText: 'We were unable to clear the balance. Please try again later.',
         },
     },
     getAssistancePage: {

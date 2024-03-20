@@ -33,8 +33,6 @@ type WorkspaceMemberDetailsPageProps = WithPolicyOnyxProps &
     WorkspaceOwnershipChangeChecksOnyxProps &
     StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.OWNER_CHANGE_CHECK>;
 
-
-
 function WorkspaceOwnerChangeCheckPage({route, personalDetails, policy}: WorkspaceMemberDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -61,8 +59,8 @@ function WorkspaceOwnerChangeCheckPage({route, personalDetails, policy}: Workspa
     }, [accountID, policy, policy?.errorFields?.changeOwner, policyID]);
 
     const confirm = useCallback(() => {
-        if (error === CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS) {
-            // cannot transfer ownership if there are failed settlements
+        if (error === CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS || error === CONST.POLICY.OWNERSHIP_ERRORS.FAILED_TO_CLEAR_BALANCE) {
+            // cannot transfer ownership if there are failed settlements, or we cannot clear the balance
             Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
         }
 
