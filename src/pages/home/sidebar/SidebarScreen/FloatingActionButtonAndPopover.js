@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import _ from 'underscore';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import FloatingActionButton from '@components/FloatingActionButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
@@ -16,6 +16,7 @@ import compose from '@libs/compose';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
@@ -23,7 +24,6 @@ import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import personalDetailsPropType from "@pages/personalDetailsPropType";
 
 /**
  * @param {Object} [policy]
@@ -80,8 +80,6 @@ const getQuickActionTitle = (action) => {
             return '';
     }
 };
-
-
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -150,7 +148,7 @@ function FloatingActionButtonAndPopover(props) {
         const quickActionReportID = props.quickAction.chatReportID;
         quickActionReport = ReportUtils.getReport(quickActionReportID);
         if (quickActionReport) {
-            avatars = _.filter(ReportUtils.getIcons(quickActionReport, props.personalDetails), avatar => avatar.id !== props.session.accountID);
+            avatars = _.filter(ReportUtils.getIcons(quickActionReport, props.personalDetails), (avatar) => avatar.id !== props.session.accountID);
         }
     }
 
@@ -322,16 +320,16 @@ function FloatingActionButtonAndPopover(props) {
                         : []),
                     ...(props.quickAction
                         ? [
-                            {
-                                icon: getQuickActionIcon(props.quickAction.action),
-                                text: translate(getQuickActionTitle(props.quickAction.action)),
-                                label: translate('quickAction.shortcut'),
-                                floatRightAvatars: avatars,
-                                floatRightAvatarSize: CONST.AVATAR_SIZE.SMALLER,
-                                description: ReportUtils.getReportName(quickActionReport),
-                                onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
-                            },
-                        ]
+                              {
+                                  icon: getQuickActionIcon(props.quickAction.action),
+                                  text: translate(getQuickActionTitle(props.quickAction.action)),
+                                  label: translate('quickAction.shortcut'),
+                                  floatRightAvatars: avatars,
+                                  floatRightAvatarSize: CONST.AVATAR_SIZE.SMALLER,
+                                  description: ReportUtils.getReportName(quickActionReport),
+                                  onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
+                              },
+                          ]
                         : []),
                 ]}
                 withoutOverlay

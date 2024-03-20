@@ -325,7 +325,6 @@ function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: st
         default:
             Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE.getRoute(iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
     }
-
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
