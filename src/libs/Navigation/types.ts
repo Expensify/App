@@ -580,6 +580,7 @@ type WorkspacesCentralPaneNavigatorParamList = {
 type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.INITIAL]: {
         policyID: string;
+        enabledFeatureRouteName?: string;
     };
     [SCREENS.WORKSPACES_CENTRAL_PANE]: NavigatorScreenParams<WorkspacesCentralPaneNavigatorParamList>;
 };

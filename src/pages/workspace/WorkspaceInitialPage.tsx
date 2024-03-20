@@ -1,4 +1,5 @@
-import {useNavigationState} from '@react-navigation/native';
+import {useNavigationState, useRoute} from '@react-navigation/native';
+import type {RouteProp} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -225,9 +226,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
     ];
 
     const prevPolicy = usePrevious(policy);
+    const route = useRoute<RouteProp<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>>();
+    const enabledFeatureRouteName = route.params?.enabledFeatureRouteName ?? '';
 
-    const prevProtectedMenuItems = usePrevious(protectedCollectPolicyMenuItems);
-    const enabledItems = protectedCollectPolicyMenuItems.filter((curItem) => !prevProtectedMenuItems.some((prevItem) => curItem.translationKey === prevItem.translationKey));
+    const enabledItem = protectedCollectPolicyMenuItems.find((item) => item.routeName === enabledFeatureRouteName);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
@@ -290,7 +292,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
                                     brickRoadIndicator={item.brickRoadIndicator}
                                     wrapperStyle={styles.sectionMenuItem}
                                     focused={!!(item.routeName && activeRoute?.startsWith(item.routeName))}
-                                    shouldFocusTemporarily={enabledItems.length === 1 && enabledItems[0].translationKey === item.translationKey}
+                                    shouldHighlight={enabledItem?.translationKey === item.translationKey}
                                     hoverAndPressStyle={styles.hoveredComponentBG}
                                     isPaneMenu
                                 />

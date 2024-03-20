@@ -6,6 +6,7 @@ import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react
 import {View} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
+import useHighlightToggle from '@hooks/useHighlightToggle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -149,10 +150,10 @@ type MenuItemBaseProps = {
     focused?: boolean;
 
     /** Temporarily focus the item indicating an action (like setting enable) occured */
-    shouldFocusTemporarily?: boolean;
+    shouldHighlight?: boolean;
 
-    /** The duration to focus the item temporarily */
-    temporaryFocusDuration?: number;
+    /** The duration to highlight the item */
+    highlightDuration?: number;
 
     /** Should we disable this menu item? */
     disabled?: boolean;
@@ -282,8 +283,8 @@ function MenuItem(
         success = false,
         focused = false,
         disabled = false,
-        shouldFocusTemporarily = false,
-        temporaryFocusDuration = 3000,
+        shouldHighlight = false,
+        highlightDuration = 2000,
         title,
         subtitle,
         shouldShowBasicTitle,
@@ -323,10 +324,8 @@ function MenuItem(
     const {isSmallScreenWidth} = useWindowDimensions();
     const [html, setHtml] = useState('');
     const titleRef = useRef('');
-    const tempFocusTimeoutRef = useRef<NodeJS.Timeout>();
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
-    const [temporaryilyFocused, setTemporaryilyFocused] = useState(false);
-
+    const highlighted = useHighlightToggle(shouldHighlight, highlightDuration);
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const fallbackAvatarSize = viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
@@ -351,25 +350,6 @@ function MenuItem(
         (descriptionTextStyle as TextStyle) || styles.breakWord,
         isDeleted ? styles.offlineFeedback.deleted : {},
     ]);
-
-    useEffect(() => {
-        if (!shouldFocusTemporarily) {
-            return;
-        }
-        setTemporaryilyFocused(true);
-        tempFocusTimeoutRef.current = setTimeout(() => setTemporaryilyFocused(false), temporaryFocusDuration);
-    }, [shouldFocusTemporarily, temporaryFocusDuration]);
-
-    useEffect(
-        () => () => {
-            if (!tempFocusTimeoutRef.current) {
-                return;
-            }
-
-            clearTimeout(tempFocusTimeoutRef.current);
-        },
-        [],
-    );
 
     useEffect(() => {
         if (!title || (titleRef.current.length && titleRef.current === title) || !shouldParseTitle) {
@@ -446,7 +426,7 @@ function MenuItem(
                             errorText ? styles.pb5 : {},
                             combinedStyle,
                             !interactive && styles.cursorDefault,
-                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(temporaryilyFocused || focused || isHovered, pressed, success, disabled, interactive), true),
+                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(highlighted || focused || isHovered, pressed, success, disabled, interactive), true),
                             !focused && (isHovered || pressed) && hoverAndPressStyle,
                             ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                             shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
@@ -496,7 +476,11 @@ function MenuItem(
                                                         displayInDefaultIconColor
                                                             ? undefined
                                                             : iconFill ??
-                                                              StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true, isPaneMenu)
+                                                              StyleUtils.getIconFillColor(
+                                                                  getButtonState(highlighted || focused || isHovered, pressed, success, disabled, interactive),
+                                                                  true,
+                                                                  isPaneMenu,
+                                                              )
                                                     }
                                                 />
                                             )}

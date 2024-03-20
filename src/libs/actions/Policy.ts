@@ -63,6 +63,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {
     InvitedEmailsToAccountIDs,
     PersonalDetailsList,
@@ -3393,11 +3394,11 @@ function openPolicyDistanceRatesPage(policyID?: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE, params);
 }
 
-function navigateWhenEnableFeature(policyID: string, featureRoute: Route) {
+function navigateWhenEnableFeature(policyID: string, featureRouteName: string, featureRoute: Route) {
     const isNarrowLayout = getIsNarrowLayout();
 
     if (isNarrowLayout) {
-        Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+        Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policyID, featureRouteName));
         return;
     }
 
@@ -3448,7 +3449,7 @@ function enablePolicyCategories(policyID: string, enabled: boolean) {
     API.write(WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES, parameters, onyxData);
 
     if (enabled) {
-        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+        navigateWhenEnableFeature(policyID, SCREENS.WORKSPACE.CATEGORIES, ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
     }
 }
 
@@ -3540,7 +3541,7 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
     API.write(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, onyxData);
 
     if (enabled) {
-        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID));
+        navigateWhenEnableFeature(policyID, SCREENS.WORKSPACE.DISTANCE_RATES, ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID));
     }
 }
 
@@ -3632,7 +3633,7 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
     API.write(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData);
 
     if (enabled) {
-        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_TAGS.getRoute(policyID));
+        navigateWhenEnableFeature(policyID, SCREENS.WORKSPACE.TAGS, ROUTES.WORKSPACE_TAGS.getRoute(policyID));
     }
 }
 
@@ -3684,7 +3685,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
     API.write(WRITE_COMMANDS.ENABLE_POLICY_TAXES, parameters, onyxData);
 
     if (enabled) {
-        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_TAXES.getRoute(policyID));
+        navigateWhenEnableFeature(policyID, SCREENS.WORKSPACE.TAXES, ROUTES.WORKSPACE_TAXES.getRoute(policyID));
     }
 }
 
@@ -3775,7 +3776,7 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
     API.write(WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS, parameters, onyxData);
 
     if (enabled) {
-        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID));
+        navigateWhenEnableFeature(policyID, SCREENS.WORKSPACE.WORKFLOWS, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID));
     }
 }
 
