@@ -161,21 +161,21 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                 icon: Illustrations.WalletAlt,
                 title: translate('workflowsPage.makeOrTrackPaymentsTitle'),
                 subtitle: translate('workflowsPage.makeOrTrackPaymentsDescription'),
-                onToggle: () => {
-                    const shouldUseDirectReimbursement =
-                        policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES &&
-                        Policy.isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '');
-
-                    // If trying to enable direct reimbursement and currency is not supported, default to manual (indirect) reimbursement
-                    const effectiveReimbursementChoice = shouldUseDirectReimbursement
-                        ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES
-                        : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+                onToggle: (isEnabled: boolean) => {
+                    let newReimbursementChoice;
+                    if (!isEnabled) {
+                        newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+                    } else if (hasVBA && !Policy.isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
+                        newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+                    } else {
+                        newReimbursementChoice = hasVBA ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+                    }
 
                     const newReimburserAccountID =
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         PersonalDetailsUtils.getPersonalDetailByEmail(policy?.reimburserEmail ?? '')?.accountID || policy?.reimburserAccountID || policy?.ownerAccountID;
                     const newReimburserEmail = PersonalDetailsUtils.getPersonalDetailsByIDs([newReimburserAccountID ?? 0], session?.accountID ?? 0)?.[0]?.login;
-                    Policy.setWorkspaceReimbursement(policy?.id ?? '', effectiveReimbursementChoice, newReimburserAccountID ?? 0, newReimburserEmail ?? '');
+                    Policy.setWorkspaceReimbursement(policy?.id ?? '', newReimbursementChoice, newReimburserAccountID ?? 0, newReimburserEmail ?? '');
                 },
                 subMenuItems: (
                     <>
@@ -222,7 +222,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                     </>
                 ),
                 isEndOptionRow: true,
-                isActive: policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                isActive: policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
                 pendingAction: policy?.pendingFields?.reimbursementChoice,
                 errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),
                 onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),
