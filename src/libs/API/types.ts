@@ -182,7 +182,7 @@ const WRITE_COMMANDS = {
     ACCEPT_JOIN_REQUEST: 'AcceptJoinRequest',
     DECLINE_JOIN_REQUEST: 'DeclineJoinRequest',
     CREATE_POLICY_TAX: 'CreatePolicyTax',
-    UPDATE_POLICY_CONNECTIONS_CONFIGURATION: 'UpdatePolicyConnectionsConfiguration',
+    UPDATE_WORKSPACE_CONNECTIONS_CONFIGURATION: 'UpdateWorkspaceConnectionsConfiguration',
     CREATE_POLICY_DISTANCE_RATE: 'CreatePolicyDistanceRate',
     SET_POLICY_DISTANCE_RATES_UNIT: 'SetPolicyDistanceRatesUnit',
     SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY: 'SetPolicyDistanceRatesDefaultCategory',
@@ -369,6 +369,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CREATE_POLICY_DISTANCE_RATE]: Parameters.CreatePolicyDistanceRateParams;
     [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_UNIT]: Parameters.SetPolicyDistanceRatesUnitParams;
     [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY]: Parameters.SetPolicyDistanceRatesDefaultCategoryParams;
+    [WRITE_COMMANDS.UPDATE_WORKSPACE_CONNECTIONS_CONFIGURATION]: Parameters.UpdateWorkspaceAccountingChartOfAccounts;
 };
 
 const READ_COMMANDS = {
