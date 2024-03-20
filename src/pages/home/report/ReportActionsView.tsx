@@ -171,7 +171,6 @@ function ReportActionsView({
     const network = useNetwork();
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const contentListHeight = useRef(0);
-    const layoutListHeight = useRef(0);
     const isFocused = useIsFocused();
     const prevNetworkRef = useRef(network);
     const prevAuthTokenType = usePrevious(session?.authTokenType);
@@ -365,27 +364,22 @@ function ReportActionsView({
     /**
      * Runs when the FlatList finishes laying out
      */
-    const recordTimeToMeasureItemLayout = useCallback(
-        (e: LayoutChangeEvent) => {
-            layoutListHeight.current = e.nativeEvent.layout.height;
+    const recordTimeToMeasureItemLayout = useCallback(() => {
+        if (didLayout.current) {
+            return;
+        }
 
-            if (didLayout.current) {
-                return;
-            }
+        didLayout.current = true;
+        Timing.end(CONST.TIMING.SWITCH_REPORT, hasCachedActionOnFirstRender ? CONST.TIMING.WARM : CONST.TIMING.COLD);
 
-            didLayout.current = true;
-            Timing.end(CONST.TIMING.SWITCH_REPORT, hasCachedActionOnFirstRender ? CONST.TIMING.WARM : CONST.TIMING.COLD);
-
-            // Capture the init measurement only once not per each chat switch as the value gets overwritten
-            if (!ReportActionsView.initMeasured) {
-                Performance.markEnd(CONST.TIMING.REPORT_INITIAL_RENDER);
-                ReportActionsView.initMeasured = true;
-            } else {
-                Performance.markEnd(CONST.TIMING.SWITCH_REPORT);
-            }
-        },
-        [hasCachedActionOnFirstRender],
-    );
+        // Capture the init measurement only once not per each chat switch as the value gets overwritten
+        if (!ReportActionsView.initMeasured) {
+            Performance.markEnd(CONST.TIMING.REPORT_INITIAL_RENDER);
+            ReportActionsView.initMeasured = true;
+        } else {
+            Performance.markEnd(CONST.TIMING.SWITCH_REPORT);
+        }
+    }, [hasCachedActionOnFirstRender]);
 
     useEffect(() => {
         // Temporary solution for handling REPORTPREVIEW. More details: https://expensify.slack.com/archives/C035J5C9FAP/p1705417778466539?thread_ts=1705035404.136629&cid=C035J5C9FAP
