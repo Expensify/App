@@ -1265,6 +1265,13 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
+        textLabelSupportingEmptyValue: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeNormal,
+            fontWeight: FontUtils.fontWeight.normal,
+            color: theme.textSupporting,
+        },
+
         textLabelSupportingNormal: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeLabel,
@@ -3447,6 +3454,12 @@ const styles = (theme: ThemeColors) =>
         invisibleOverlay: {
             backgroundColor: theme.transparent,
             zIndex: 1000,
+        },
+
+        invisibleImage: {
+            opacity: 0,
+            width: 200,
+            height: 200,
         },
 
         reportDropOverlay: {
