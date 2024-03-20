@@ -76,6 +76,9 @@ function IOURequestStepScan({
     const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
     const [isTorchAvailable, setIsTorchAvailable] = useState(false);
     const cameraRef = useRef(null);
+    const trackRef = useRef(null);
+
+    const getScreenshotTimeoutRef = useRef(null);
 
     const [videoConstraints, setVideoConstraints] = useState(null);
     const tabIndex = 1;
@@ -212,11 +215,24 @@ function IOURequestStepScan({
         navigateToConfirmationStep();
     };
 
-    const capturePhoto = useCallback(() => {
-        if (!cameraRef.current.getScreenshot) {
+    const setupCameraPermissionsAndCapabilities = (stream) => {
+        setCameraPermissionState('granted');
+
+        const [track] = stream.getVideoTracks();
+        const capabilities = track.getCapabilities();
+        if (capabilities.torch) {
+            trackRef.current = track;
+        }
+        setIsTorchAvailable(!!capabilities.torch);
+    };
+
+    const getScreenshot = useCallback(() => {
+        if (!cameraRef.current) {
             return;
         }
+
         const imageBase64 = cameraRef.current.getScreenshot();
+
         const filename = `receipt_${Date.now()}.png`;
         const file = FileUtils.base64ToFile(imageBase64, filename);
         const source = URL.createObjectURL(file);
@@ -228,13 +244,50 @@ function IOURequestStepScan({
         }
 
         navigateToConfirmationStep();
-    }, [cameraRef, action, transactionID, updateScanAndNavigate, navigateToConfirmationStep]);
+    }, [action, transactionID, updateScanAndNavigate, navigateToConfirmationStep]);
+
+    const clearTorchConstraints = useCallback(() => {
+        if (!trackRef.current) {
+            return;
+        }
+        trackRef.current.applyConstraints({
+            advanced: [{torch: false}],
+        });
+    }, []);
+
+    const capturePhoto = useCallback(() => {
+        if (trackRef.current && isFlashLightOn) {
+            trackRef.current
+                .applyConstraints({
+                    advanced: [{torch: true}],
+                })
+                .then(() => {
+                    getScreenshotTimeoutRef.current = setTimeout(() => {
+                        getScreenshot();
+                        clearTorchConstraints();
+                    }, 2000);
+                });
+            return;
+        }
+
+        getScreenshot();
+    }, [isFlashLightOn, getScreenshot, clearTorchConstraints]);
 
     const panResponder = useRef(
         PanResponder.create({
             onPanResponderTerminationRequest: () => false,
         }),
     ).current;
+
+    useEffect(
+        () => () => {
+            if (!getScreenshotTimeoutRef.current) {
+                return;
+            }
+            clearTimeout(getScreenshotTimeoutRef.current);
+        },
+        [],
+    );
 
     const mobileCameraView = () => (
         <>
@@ -260,14 +313,12 @@ function IOURequestStepScan({
                 )}
                 {!_.isEmpty(videoConstraints) && (
                     <NavigationAwareCamera
-                        onUserMedia={() => setCameraPermissionState('granted')}
+                        onUserMedia={setupCameraPermissionsAndCapabilities}
                         onUserMediaError={() => setCameraPermissionState('denied')}
                         style={{...styles.videoContainer, display: cameraPermissionState !== 'granted' ? 'none' : 'block'}}
                         ref={cameraRef}
                         screenshotFormat="image/png"
                         videoConstraints={videoConstraints}
-                        torchOn={isFlashLightOn}
-                        onTorchAvailability={setIsTorchAvailable}
                         forceScreenshotSourceSize
                         cameraTabIndex={tabIndex}
                     />
