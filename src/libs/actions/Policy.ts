@@ -3580,8 +3580,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                 value: {
                     taxRates: {
                         taxes: {
-                            ...reduce(
-                                Object.keys(CONST.DEFAULT_TAX.RATES.taxes),
+                            ...Object.keys(CONST.DEFAULT_TAX.RATES.taxes).reduce(
                                 (prevTaxesData, taxKey) => ({
                                     ...prevTaxesData,
                                     [taxKey]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
@@ -3600,8 +3599,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                 value: {
                     taxRates: {
                         taxes: {
-                            ...reduce(
-                                Object.keys(CONST.DEFAULT_TAX.RATES.taxes),
+                            ...Object.keys(CONST.DEFAULT_TAX.RATES.taxes).reduce(
                                 (prevTaxesData, taxKey) => ({
                                     ...prevTaxesData,
                                     [taxKey]: {pendingAction: null},
