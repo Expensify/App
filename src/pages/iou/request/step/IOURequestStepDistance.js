@@ -84,6 +84,7 @@ function IOURequestStepDistance({
     const duplicateWaypointsError = useMemo(() => nonEmptyWaypointsCount >= 2 && _.size(validatedWaypoints) !== nonEmptyWaypointsCount, [nonEmptyWaypointsCount, validatedWaypoints]);
     const atLeastTwoDifferentWaypointsError = useMemo(() => _.size(validatedWaypoints) < 2, [validatedWaypoints]);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const isCreatingNewRequest = Navigation.getActiveRoute().includes('start');
 
     useEffect(() => {
         MapboxToken.init();
@@ -213,7 +214,7 @@ function IOURequestStepDistance({
             headerTitle={translate('common.distance')}
             onBackButtonPress={navigateBack}
             testID={IOURequestStepDistance.displayName}
-            shouldShowWrapper={isEditing}
+            shouldShowWrapper={!isCreatingNewRequest}
         >
             <>
                 <View style={styles.flex1}>
@@ -261,7 +262,7 @@ function IOURequestStepDistance({
                         large
                         style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                         onPress={submitWaypoints}
-                        text={translate(isEditing ? 'common.save' : 'common.next')}
+                        text={translate(!isCreatingNewRequest ? 'common.save' : 'common.next')}
                         isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}
                     />
                 </View>
