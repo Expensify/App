@@ -267,8 +267,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     // Do not hide fields in case of send money request
     const shouldShowAllFields = isDistanceRequest || shouldExpandFields || !shouldShowSmartScanFields || isTypeSend || isEditingSplitBill;
 
-    const shouldShowDate = shouldShowSmartScanFields || isDistanceRequest;
-    const shouldShowMerchant = shouldShowSmartScanFields && !isDistanceRequest;
+    const shouldShowDate = (shouldShowSmartScanFields || isDistanceRequest) && !isTypeSend;
+    const shouldShowMerchant = shouldShowSmartScanFields && !isDistanceRequest && !isTypeSend;
 
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
