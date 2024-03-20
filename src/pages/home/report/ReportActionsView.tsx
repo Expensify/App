@@ -3,7 +3,6 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
-import type {LayoutChangeEvent} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
@@ -62,95 +61,6 @@ const SPACER = 16;
 
 let listIDCount = Math.round(Math.random() * 100);
 
-/**
- * usePaginatedReportActionList manages the logic for handling a list of messages with pagination and dynamic loading.
- * It determines the part of the message array to display ('visibleReportActions') based on the current linked message,
- * and manages pagination through 'handleReportActionPagination' function.
- *
- * linkedID - ID of the linked message used for initial focus.
- * allReportActions - Array of messages.
- * fetchNewerReportActions - Function to fetch more messages.
- * route - Current route, used to reset states on route change.
- * isLoading - Loading state indicator.
- * triggerListID - Used to trigger a listID change.
- * returns {object} An object containing the sliced message array, the pagination function,
- *                   index of the linked message, and a unique list ID.
- */
-function usePaginatedReportActionList(
-    linkedID: string,
-    allReportActions: OnyxTypes.ReportAction[],
-    fetchNewerReportActions: (newestReportAction: OnyxTypes.ReportAction) => void,
-    route: RouteProp<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>,
-    isLoading: boolean,
-    triggerListID: boolean,
-) {
-    // triggerListID is used when navigating to a chat with messages loaded from LHN. Typically, these include thread actions, task actions, etc. Since these messages aren't the latest, we don't maintain their position and instead trigger a recalculation of their positioning in the list.
-    // we don't set currentReportActionID on initial render as linkedID as it should trigger visibleReportActions after linked message was positioned
-    const [currentReportActionID, setCurrentReportActionID] = useState('');
-    const isFirstLinkedActionRender = useRef(true);
-
-    useLayoutEffect(() => {
-        setCurrentReportActionID('');
-    }, [route]);
-
-    const listID = useMemo(() => {
-        isFirstLinkedActionRender.current = true;
-        listIDCount += 1;
-        return listIDCount;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [route, triggerListID]);
-
-    const index = useMemo(() => {
-        if (!linkedID || isLoading) {
-            return -1;
-        }
-
-        return allReportActions.findIndex((obj) => String(obj.reportActionID) === String(isFirstLinkedActionRender.current ? linkedID : currentReportActionID));
-    }, [allReportActions, currentReportActionID, linkedID, isLoading]);
-
-    const visibleReportActions = useMemo(() => {
-        if (!linkedID) {
-            return allReportActions;
-        }
-        if (isLoading || index === -1) {
-            return [];
-        }
-
-        if (isFirstLinkedActionRender.current) {
-            return allReportActions.slice(index);
-        }
-        const paginationSize = getInitialPaginationSize;
-        return allReportActions.slice(Math.max(index - paginationSize, 0));
-        // currentReportActionID is needed to trigger batching once the report action has been positioned
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [linkedID, allReportActions, index, isLoading, currentReportActionID]);
-
-    const hasMoreCached = visibleReportActions.length < allReportActions.length;
-    const newestReportAction = visibleReportActions?.[0];
-
-    const handleReportActionPagination = useCallback(
-        ({firstReportActionID}: {firstReportActionID: string}) => {
-            // This function is a placeholder as the actual pagination is handled by visibleReportActions
-            if (!hasMoreCached) {
-                isFirstLinkedActionRender.current = false;
-                fetchNewerReportActions(newestReportAction);
-            }
-            if (isFirstLinkedActionRender.current) {
-                isFirstLinkedActionRender.current = false;
-            }
-            setCurrentReportActionID(firstReportActionID);
-        },
-        [fetchNewerReportActions, hasMoreCached, newestReportAction],
-    );
-
-    return {
-        visibleReportActions,
-        loadMoreReportActionsHandler: handleReportActionPagination,
-        linkedIDIndex: index,
-        listID,
-    };
-}
-
 function ReportActionsView({
     report,
     session,
@@ -167,6 +77,11 @@ function ReportActionsView({
     const reportActionID = route?.params?.reportActionID;
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
+
+    // triggerListID is used when navigating to a chat with messages loaded from LHN. Typically, these include thread actions, task actions, etc. Since these messages aren't the latest,we don't maintain their position and instead trigger a recalculation of their positioning in the list.
+    // we don't set currentReportActionID on initial render as linkedID as it should trigger visibleReportActions after linked message was positioned
+    const [currentReportActionID, setCurrentReportActionID] = useState('');
+    const isFirstLinkedActionRender = useRef(true);
 
     const network = useNetwork();
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
@@ -194,19 +109,6 @@ function ReportActionsView({
         [isLoadingNewerReportActions, isLoadingInitialReportActions, reportID],
     );
 
-    const {
-        visibleReportActions: reportActions,
-        loadMoreReportActionsHandler,
-        linkedIDIndex,
-        listID,
-    } = usePaginatedReportActionList(reportActionID, allReportActions, fetchNewerAction, route, isLoading, isLoadingInitialReportActions);
-    const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActions), [reportActions]);
-    const hasCachedActionOnFirstRender = useInitialValue(() => reportActions.length > 0);
-    const hasNewestReportAction = reportActions[0]?.created === report.lastVisibleActionCreated;
-    const newestReportAction = useMemo(() => reportActions?.[0], [reportActions]);
-    const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
-    const hasCreatedAction = oldestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
-
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
 
     const openReportIfNecessary = () => {
@@ -218,6 +120,66 @@ function ReportActionsView({
 
         Report.openReport(reportID, reportActionID);
     };
+
+    useLayoutEffect(() => {
+        setCurrentReportActionID('');
+    }, [route]);
+
+    const listID = useMemo(() => {
+        isFirstLinkedActionRender.current = true;
+        listIDCount += 1;
+        return listIDCount;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [route, isLoadingInitialReportActions]);
+
+    const indexOfLinkedAction = useMemo(() => {
+        if (!reportActionID || isLoading) {
+            return -1;
+        }
+
+        return allReportActions.findIndex((obj) => String(obj.reportActionID) === String(isFirstLinkedActionRender.current ? reportActionID : currentReportActionID));
+    }, [allReportActions, currentReportActionID, reportActionID, isLoading]);
+
+    const reportActions = useMemo(() => {
+        if (!reportActionID) {
+            return allReportActions;
+        }
+        if (isLoading || indexOfLinkedAction === -1) {
+            return [];
+        }
+
+        if (isFirstLinkedActionRender.current) {
+            return allReportActions.slice(indexOfLinkedAction);
+        }
+        const paginationSize = getInitialPaginationSize;
+        return allReportActions.slice(Math.max(indexOfLinkedAction - paginationSize, 0));
+        // currentReportActionID is needed to trigger batching once the report action has been positioned
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [reportActionID, allReportActions, indexOfLinkedAction, isLoading, currentReportActionID]);
+
+    const hasMoreCached = reportActions.length < allReportActions.length;
+    const newestReportAction = useMemo(() => reportActions?.[0], [reportActions]);
+    const handleReportActionPagination = useCallback(
+        ({firstReportActionID}: {firstReportActionID: string}) => {
+            // This function is a placeholder as the actual pagination is handled by visibleReportActions
+            if (!hasMoreCached) {
+                isFirstLinkedActionRender.current = false;
+                fetchNewerAction(newestReportAction);
+            }
+            if (isFirstLinkedActionRender.current) {
+                isFirstLinkedActionRender.current = false;
+            }
+            setCurrentReportActionID(firstReportActionID);
+        },
+        [fetchNewerAction, hasMoreCached, newestReportAction],
+    );
+
+    const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActions), [reportActions]);
+    const hasCachedActionOnFirstRender = useInitialValue(() => reportActions.length > 0);
+    const hasNewestReportAction = reportActions[0]?.created === report.lastVisibleActionCreated;
+
+    const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
+    const hasCreatedAction = oldestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 
     useEffect(() => {
         if (reportActionID) {
@@ -343,19 +305,19 @@ function ReportActionsView({
         const isLoadingOlderReportsFirstNeeded = checkIfContentSmallerThanList() && reportActions.length > 23;
 
         if (
-            (reportActionID && linkedIDIndex > -1 && !hasNewestReportAction && !isLoadingOlderReportsFirstNeeded) ||
+            (reportActionID && indexOfLinkedAction > -1 && !hasNewestReportAction && !isLoadingOlderReportsFirstNeeded) ||
             (!reportActionID && !hasNewestReportAction && !isLoadingOlderReportsFirstNeeded)
         ) {
-            loadMoreReportActionsHandler({firstReportActionID: newestReportAction?.reportActionID});
+            handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID});
         }
     }, [
         isLoadingInitialReportActions,
         isLoadingOlderReportActions,
         checkIfContentSmallerThanList,
         reportActionID,
-        linkedIDIndex,
+        indexOfLinkedAction,
         hasNewestReportAction,
-        loadMoreReportActionsHandler,
+        handleReportActionPagination,
         network.isOffline,
         reportActions.length,
         newestReportAction,
