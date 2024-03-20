@@ -2070,7 +2070,7 @@ function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry
  * Given a set of report fields, return the field of type formula
  */
 function getFormulaTypeReportField(reportFields: Record<string, PolicyReportField>) {
-    return Object.values(reportFields).find((field) => field.type === 'formula');
+    return Object.values(reportFields).find((field) => field?.type === 'formula');
 }
 
 /**
