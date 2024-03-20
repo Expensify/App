@@ -5,18 +5,18 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {AvatarProps} from './Avatar';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import Text from './Text';
 
 type RoomHeaderAvatarsProps = {
-    icons: AvatarProps[];
+    icons: Icon[];
     reportID: string;
 };
 
 function RoomHeaderAvatars({icons = [], reportID = ''}: RoomHeaderAvatarsProps) {
-    const navigateToAvatarPage = (icon: AvatarProps) => {
+    const navigateToAvatarPage = (icon: Icon) => {
         if (icon.type === CONST.ICON_TYPE_WORKSPACE) {
             Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(reportID));
             return;

@@ -49,9 +49,6 @@ type AvatarProps = {
 
     /** Owner of the avatar. If user, displayName. If workspace, policy name */
     name?: string;
-    // this prop is used in RoomHeaderAvatars
-    // eslint-disable-next-line react/no-unused-prop-types
-    id?: string | number;
 };
 
 function Avatar({
