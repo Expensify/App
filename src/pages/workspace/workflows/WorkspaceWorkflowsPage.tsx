@@ -161,14 +161,14 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                 title: translate('workflowsPage.makeOrTrackPaymentsTitle'),
                 subtitle: translate('workflowsPage.makeOrTrackPaymentsDescription'),
                 onToggle: () => {
-                    const isActive = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
-
-                    const newReimbursementChoice = isActive ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
-
-                    const shouldUseDirectReimbursement = !isActive && Policy.isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '');
+                    const shouldUseDirectReimbursement =
+                        policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES &&
+                        Policy.isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '');
 
                     // If trying to enable direct reimbursement and currency is not supported, default to manual (indirect) reimbursement
-                    const effectiveReimbursementChoice = shouldUseDirectReimbursement ? newReimbursementChoice : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+                    const effectiveReimbursementChoice = shouldUseDirectReimbursement
+                        ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES
+                        : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
 
                     const newReimburserAccountID =
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -181,7 +181,11 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                         <MenuItem
                             titleStyle={styles.textLabelSupportingNormal}
                             descriptionTextStyle={styles.textNormalThemeText}
-                            title={hasVBA && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? translate('common.bankAccount') : translate('workflowsPage.connectBankAccount')}
+                            title={
+                                hasVBA && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES
+                                    ? translate('common.bankAccount')
+                                    : translate('workflowsPage.connectBankAccount')
+                            }
                             description={state === BankAccount.STATE.OPEN ? bankDisplayName : undefined}
                             onPress={() => {
                                 if (!Policy.isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
