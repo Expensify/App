@@ -4,7 +4,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy, PolicyMembers, PolicyTagList, PolicyTags} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, PolicyCategories, PolicyMembers, PolicyTagList, PolicyTags} from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Navigation from './Navigation/Navigation';
@@ -28,6 +28,20 @@ function getActivePolicies(policies: OnyxCollection<Policy>): Policy[] | undefin
  */
 function hasPolicyMemberError(policyMembers: OnyxEntry<PolicyMembers>): boolean {
     return Object.values(policyMembers ?? {}).some((member) => Object.keys(member?.errors ?? {}).length > 0);
+}
+
+/**
+ *  Check if the policy has any tax rate errors.
+ */
+function hasTaxRateError(policy: OnyxEntry<Policy>): boolean {
+    return Object.values(policy?.taxRates?.taxes ?? {}).some((taxRate) => Object.keys(taxRate?.errors ?? {}).length > 0);
+}
+
+/**
+ * Check if the policy has any errors within the categories.
+ */
+function hasPolicyCategoriesError(policyCategories: OnyxEntry<PolicyCategories>): boolean {
+    return Object.keys(policyCategories ?? {}).some((categoryName) => Object.keys(policyCategories?.[categoryName]?.errors ?? {}).length > 0);
 }
 
 /**
@@ -100,11 +114,6 @@ function shouldShowPolicy(policy: OnyxEntry<Policy>, isOffline: boolean): boolea
 function isExpensifyTeam(email: string | undefined): boolean {
     const emailDomain = Str.extractEmailDomain(email ?? '');
     return emailDomain === CONST.EXPENSIFY_PARTNER_NAME || emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
-}
-
-function isExpensifyGuideTeam(email: string): boolean {
-    const emailDomain = Str.extractEmailDomain(email ?? '');
-    return emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
 }
 
 /**
@@ -236,7 +245,7 @@ function isInstantSubmitEnabled(policy: OnyxEntry<Policy> | EmptyObject): boolea
 /**
  * Checks if policy's approval mode is "optional", a.k.a. "Submit & Close"
  */
-function isSubmitAndClose(policy: OnyxEntry<Policy>): boolean {
+function isSubmitAndClose(policy: OnyxEntry<Policy> | EmptyObject): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
@@ -264,10 +273,7 @@ function getPolicyMembersByIdWithoutCurrentUser(policyMembers: OnyxCollection<Po
 }
 
 function goBackFromInvalidPolicy() {
-    Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
-
-    // Needed when workspace with given policyID does not exist
-    Navigation.navigateWithSwitchPolicyID({route: ROUTES.ALL_SETTINGS});
+    Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
 }
 
 export {
@@ -282,7 +288,6 @@ export {
     getPolicyBrickRoadIndicatorStatus,
     shouldShowPolicy,
     isExpensifyTeam,
-    isExpensifyGuideTeam,
     isInstantSubmitEnabled,
     isFreeGroupPolicy,
     isPolicyAdmin,
@@ -301,6 +306,8 @@ export {
     getPathWithoutPolicyID,
     getPolicyMembersByIdWithoutCurrentUser,
     goBackFromInvalidPolicy,
+    hasTaxRateError,
+    hasPolicyCategoriesError,
 };
 
 export type {MemberEmailsToAccountIDs};

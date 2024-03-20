@@ -25,6 +25,7 @@ type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<{
     defaultCategory?: string;
     enabled?: boolean;
     errors?: OnyxCommon.Errors;
+    errorFields?: OnyxCommon.ErrorFields;
 }>;
 
 type DisabledFields = {
@@ -32,26 +33,29 @@ type DisabledFields = {
     reimbursable?: boolean;
 };
 
-type TaxRate = {
+type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Name of the a tax rate. */
     name: string;
 
     /** The value of the tax rate as percentage. */
     value: string;
 
-    /** The code associated with the tax rate. */
-    code: string;
+    /** The code associated with the tax rate. If a tax is created in old dot, code field is undefined */
+    code?: string;
 
     /** This contains the tax name and tax value as one name */
-    modifiedName: string;
+    modifiedName?: string;
 
     /** Indicates if the tax rate is disabled. */
     isDisabled?: boolean;
-};
+
+    /** An error message to display to the user */
+    errors?: OnyxCommon.Errors;
+}>;
 
 type TaxRates = Record<string, TaxRate>;
 
-type TaxRatesWithDefault = {
+type TaxRatesWithDefault = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Name of the tax */
     name: string;
 
@@ -66,18 +70,113 @@ type TaxRatesWithDefault = {
 
     /** List of tax names and values */
     taxes: TaxRates;
+
+    /** An error message to display to the user */
+    errors?: OnyxCommon.Errors;
+
+    /** Error objects keyed by field name containing errors keyed by microtime */
+    errorFields?: OnyxCommon.ErrorFields;
+}>;
+
+type ConnectionLastSync = {
+    successfulDate?: string;
+    errorDate?: string;
+    isSuccessful: boolean;
+    source: 'DIRECT' | 'EXPENSIFYWEB' | 'EXPENSIFYAPI' | 'AUTOSYNC' | 'AUTOAPPROVE';
 };
 
-// These types are for the Integration connections for a policy (eg. Quickbooks, Xero, etc).
-// This data is not yet used in the codebase which is why it is given a very generic type, but the data is being put into Onyx for future use.
-// Once the data is being used, these types should be defined appropriately.
-type ConnectionLastSync = Record<string, unknown>;
-type ConnectionData = Record<string, unknown>;
-type ConnectionConfig = Record<string, unknown>;
-type Connection = {
+type Account = {
+    glCode?: string;
+    name: string;
+    currency: string;
+    id: string;
+};
+
+type Employee = {
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    name: string;
+    email: string;
+};
+
+type Vendor = {
+    id: string;
+    name: string;
+    currency: string;
+    email: string;
+};
+
+type TaxCode = {
+    totalTaxRateVal: string;
+    simpleName: string;
+    taxCodeRef: string;
+    taxRateRefs: Record<string, string>;
+    name: string;
+};
+
+/**
+ * Data imported from QuickBooks Online.
+ */
+type QBOConnectionData = {
+    country: string;
+    edition: string;
+    homeCurrency: string;
+    isMultiCurrencyEnabled: boolean;
+
+    journalEntryAccounts: Account[];
+    bankAccounts: Account[];
+    creditCards: Account[];
+    accountsReceivable: Account[];
+    accountsPayable: Account[];
+    otherCurrentAssetAccounts: Account[];
+
+    taxCodes: TaxCode[];
+    employees: Employee[];
+    vendors: Vendor[];
+};
+
+type IntegrationEntityMap = 'NONE' | 'DEFAULT' | 'TAG' | 'REPORT_FIELD';
+
+/**
+ * User configuration for the QuickBooks Online accounting integration.
+ */
+type QBOConnectionConfig = {
+    realmId: string;
+    companyName: string;
+    autoSync: {
+        jobID: string;
+        enabled: boolean;
+    };
+    syncPeople: boolean;
+    syncItems: boolean;
+    markChecksToBePrinted: boolean;
+    reimbursableExpensesExportDestination: IntegrationEntityMap;
+    nonReimbursableExpensesExportDestination: IntegrationEntityMap;
+
+    reimbursableExpensesAccount?: string;
+    nonReimbursableExpensesAccount?: string;
+    autoCreateVendor: boolean;
+    hasChosenAutoSyncOption: boolean;
+    syncClasses: IntegrationEntityMap;
+    syncCustomers: IntegrationEntityMap;
+    syncLocations: IntegrationEntityMap;
+    exportDate: string;
+    lastConfigurationTime: number;
+    syncTax: boolean;
+    enableNewCategories: boolean;
+    export: {
+        exporter: string;
+    };
+};
+type Connection<ConnectionData, ConnectionConfig> = {
     lastSync?: ConnectionLastSync;
     data: ConnectionData;
     config: ConnectionConfig;
+};
+
+type Connections = {
+    quickbooksOnline: Connection<QBOConnectionData, QBOConnectionConfig>;
 };
 
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
@@ -121,6 +220,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The URL for the policy avatar */
         avatar?: string;
+        avatarURL?: string;
 
         /** Error objects keyed by field name containing errors keyed by microtime */
         errorFields?: OnyxCommon.ErrorFields;
@@ -155,7 +255,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         isPreventSelfApprovalEnabled?: boolean;
 
         /** Whether the self approval or submitting is enabled */
-        preventSelfApprovalEnabled?: boolean;
+        preventSelfApproval?: boolean;
 
         /** When the monthly scheduled submit should happen */
         autoReportingOffset?: AutoReportingOffset;
@@ -193,9 +293,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The approval mode set up on this policy */
         approvalMode?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
 
-        /** Whether the auto approval is enabled */
-        isAutoApprovalEnabled?: boolean;
-
         /** Whether transactions should be billable by default */
         defaultBillable?: boolean;
 
@@ -232,6 +329,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Email of the reimburser when reimbursement is set direct */
         reimburserEmail?: string;
 
+        /** AccountID of the reimburser when reimbursement is set direct */
+        reimburserAccountID?: number;
+
         /** ReportID of the admins room for this workspace */
         chatReportIDAdmins?: number;
 
@@ -239,7 +339,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         chatReportIDAnnounce?: number;
 
         /** All the integration connections attached to the policy */
-        connections?: Record<string, Connection>;
+        connections?: Connections;
 
         /** Whether the Categories feature is enabled */
         areCategoriesEnabled?: boolean;

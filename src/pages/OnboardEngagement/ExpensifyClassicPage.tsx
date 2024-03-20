@@ -49,6 +49,7 @@ function ExpensifyClassicModal() {
                     success
                     pressOnEnter
                     medium={isExtraSmallScreenHeight}
+                    large={!isExtraSmallScreenHeight}
                     style={[styles.w100, styles.mtAuto]}
                     text={translate('expensifyClassic.buttonText')}
                     onPress={navigateToOldDot}

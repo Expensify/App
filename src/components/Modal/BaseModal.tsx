@@ -42,6 +42,7 @@ function BaseModal(
         avoidKeyboard = false,
         children,
         shouldUseCustomBackdrop = false,
+        onBackdropPress,
         shouldEnableNewFocusManagement = false,
         restoreFocusType,
     }: BaseModalProps,
@@ -126,7 +127,11 @@ function BaseModal(
             return;
         }
 
-        onClose();
+        if (onBackdropPress) {
+            onBackdropPress();
+        } else {
+            onClose();
+        }
     };
 
     const handleDismissModal = () => {

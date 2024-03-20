@@ -43,10 +43,21 @@ const keyInputRightArrow = KeyCommand?.constants?.keyInputRightArrow ?? 'keyInpu
 // describes if a shortcut key can cause navigation
 const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
 
+const chatTypes = {
+    POLICY_ANNOUNCE: 'policyAnnounce',
+    POLICY_ADMINS: 'policyAdmins',
+    DOMAIN_ALL: 'domainAll',
+    POLICY_ROOM: 'policyRoom',
+    POLICY_EXPENSE_CHAT: 'policyExpenseChat',
+    SELF_DM: 'selfDM',
+} as const;
+
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
 
 const CONST = {
+    MERGED_ACCOUNT_PREFIX: 'MERGED_',
+    DEFAULT_POLICY_ROOM_CHAT_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL],
     ANDROID_PACKAGE_NAME,
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
@@ -97,6 +108,8 @@ const CONST = {
     // Maximum width and height size in px for a selected image
     AVATAR_MAX_WIDTH_PX: 4096,
     AVATAR_MAX_HEIGHT_PX: 4096,
+
+    LOGO_MAX_SCALE: 1.5,
 
     BREADCRUMB_TYPE: {
         ROOT: 'root',
@@ -344,6 +357,9 @@ const CONST = {
         INSTALLED: 'installed',
         NOT_INSTALLED: 'not-installed',
     },
+    TAX_RATES: {
+        NAME_MAX_LENGTH: 50,
+    },
     PLATFORM: {
         IOS: 'ios',
         ANDROID: 'android',
@@ -519,6 +535,10 @@ const CONST = {
     TERMS_URL: `${USE_EXPENSIFY_URL}/terms`,
     PRIVACY_URL: `${USE_EXPENSIFY_URL}/privacy`,
     LICENSES_URL: `${USE_EXPENSIFY_URL}/licenses`,
+    ACH_TERMS_URL: `${USE_EXPENSIFY_URL}/achterms`,
+    WALLET_AGREEMENT_URL: `${USE_EXPENSIFY_URL}/walletagreement`,
+    HELP_LINK_URL: `${USE_EXPENSIFY_URL}/usa-patriot-act`,
+    ELECTRONIC_DISCLOSURES_URL: `${USE_EXPENSIFY_URL}/esignagreement`,
     GITHUB_RELEASE_URL: 'https://api.github.com/repos/expensify/app/releases/latest',
     ADD_SECONDARY_LOGIN_URL: encodeURI('settings?param={"section":"account","openModal":"secondaryLogin"}'),
     MANAGE_CARDS_URL: 'domain_companycards',
@@ -559,6 +579,21 @@ const CONST = {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',
     },
+
+    QUICK_ACTIONS: {
+        REQUEST_MANUAL: 'requestManual',
+        REQUEST_SCAN: 'requestScan',
+        REQUEST_DISTANCE: 'requestDistance',
+        SPLIT_MANUAL: 'splitManual',
+        SPLIT_SCAN: 'splitScan',
+        SPLIT_DISTANCE: 'splitDistance',
+        TRACK_MANUAL: 'trackManual',
+        TRACK_SCAN: 'trackScan',
+        TRACK_DISTANCE: 'trackDistance',
+        ASSIGN_TASK: 'assignTask',
+        SEND_MONEY: 'sendMoney',
+    },
+
     RECEIPT: {
         ICON_SIZE: 164,
         PERMISSION_GRANTED: 'granted',
@@ -573,28 +608,57 @@ const CONST = {
         SPLIT_REPORTID: '-2',
         ACTIONS: {
             LIMIT: 50,
+            // OldDot Actions render getMessage from Web-Expensify/lib/Report/Action PHP files via getMessageOfOldDotReportAction in ReportActionsUtils.ts
             TYPE: {
+                ACTIONABLEMENTIONWHISPER: 'ACTIONABLEMENTIONWHISPER',
                 ADDCOMMENT: 'ADDCOMMENT',
                 ACTIONABLEJOINREQUEST: 'ACTIONABLEJOINREQUEST',
                 APPROVED: 'APPROVED',
+                CHANGEFIELD: 'CHANGEFIELD', // OldDot Action
+                CHANGEPOLICY: 'CHANGEPOLICY', // OldDot Action
+                CHANGETYPE: 'CHANGETYPE', // OldDot Action
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
+                DELEGATESUBMIT: 'DELEGATESUBMIT', // OldDot Action
+                DELETEDACCOUNT: 'DELETEDACCOUNT', // OldDot Action
+                DONATION: 'DONATION', // OldDot Action
+                EXPORTEDTOCSV: 'EXPORTEDTOCSV', // OldDot Action
+                EXPORTEDTOINTEGRATION: 'EXPORTEDTOINTEGRATION', // OldDot Action
+                EXPORTEDTOQUICKBOOKS: 'EXPORTEDTOQUICKBOOKS', // OldDot Action
+                FORWARDED: 'FORWARDED', // OldDot Action
                 HOLD: 'HOLD',
                 IOU: 'IOU',
-                MARKEDREIMBURSED: 'MARKEDREIMBURSED',
+                INTEGRATIONSMESSAGE: 'INTEGRATIONSMESSAGE', // OldDot Action
+                MANAGERATTACHRECEIPT: 'MANAGERATTACHRECEIPT', // OldDot Action
+                MANAGERDETACHRECEIPT: 'MANAGERDETACHRECEIPT', // OldDot Action
+                MARKEDREIMBURSED: 'MARKEDREIMBURSED', // OldDot Action
+                MARKREIMBURSEDFROMINTEGRATION: 'MARKREIMBURSEDFROMINTEGRATION', // OldDot Action
                 MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
                 MOVED: 'MOVED',
+                OUTDATEDBANKACCOUNT: 'OUTDATEDBANKACCOUNT', // OldDot Action
+                REIMBURSEMENTACHBOUNCE: 'REIMBURSEMENTACHBOUNCE', // OldDot Action
+                REIMBURSEMENTACHCANCELLED: 'REIMBURSEMENTACHCANCELLED', // OldDot Action
+                REIMBURSEMENTACCOUNTCHANGED: 'REIMBURSEMENTACCOUNTCHANGED', // OldDot Action
+                REIMBURSEMENTDELAYED: 'REIMBURSEMENTDELAYED', // OldDot Action
                 REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
                 REIMBURSEMENTDEQUEUED: 'REIMBURSEMENTDEQUEUED',
+                REIMBURSEMENTREQUESTED: 'REIMBURSEMENTREQUESTED', // OldDot Action
+                REIMBURSEMENTSETUP: 'REIMBURSEMENTSETUP', // OldDot Action
                 RENAMED: 'RENAMED',
                 REPORTPREVIEW: 'REPORTPREVIEW',
+                SELECTEDFORRANDOMAUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
+                SHARE: 'SHARE', // OldDot Action
+                STRIPEPAID: 'STRIPEPAID', // OldDot Action
                 SUBMITTED: 'SUBMITTED',
+                TAKECONTROL: 'TAKECONTROL', // OldDot Action
                 TASKCANCELLED: 'TASKCANCELLED',
                 TASKCOMPLETED: 'TASKCOMPLETED',
                 TASKEDITED: 'TASKEDITED',
                 TASKREOPENED: 'TASKREOPENED',
-                ACTIONABLEMENTIONWHISPER: 'ACTIONABLEMENTIONWHISPER',
+                UNAPPROVED: 'UNAPPROVED', // OldDot Action
+                UNHOLD: 'UNHOLD',
+                UNSHARE: 'UNSHARE', // OldDot Action
                 POLICYCHANGELOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_BUDGET: 'POLICYCHANGELOG_ADD_BUDGET',
@@ -668,7 +732,6 @@ const CONST = {
                     LEAVE_ROOM: 'LEAVEROOM',
                     UPDATE_ROOM_DESCRIPTION: 'UPDATEROOMDESCRIPTION',
                 },
-                UNHOLD: 'UNHOLD',
             },
             THREAD_DISABLED: ['CREATED'],
         },
@@ -702,14 +765,7 @@ const CONST = {
             IOU: 'iou',
             TASK: 'task',
         },
-        CHAT_TYPE: {
-            POLICY_ANNOUNCE: 'policyAnnounce',
-            POLICY_ADMINS: 'policyAdmins',
-            DOMAIN_ALL: 'domainAll',
-            POLICY_ROOM: 'policyRoom',
-            POLICY_EXPENSE_CHAT: 'policyExpenseChat',
-            SELF_DM: 'selfDM',
-        },
+        CHAT_TYPE: chatTypes,
         WORKSPACE_CHAT_ROOMS: {
             ANNOUNCE: '#announce',
             ADMINS: '#admins',
@@ -996,8 +1052,6 @@ const CONST = {
     MAGIC_CODE_LENGTH: 6,
     MAGIC_CODE_EMPTY_CHAR: ' ',
 
-    RECOVERY_CODE_LENGTH: 8,
-
     KEYBOARD_TYPE: {
         VISIBLE_PASSWORD: 'visible-password',
         ASCII_CAPABLE: 'ascii-capable',
@@ -1180,6 +1234,7 @@ const CONST = {
             MISSING_FIELD: 'Missing required additional details fields',
             WRONG_ANSWERS: 'Wrong answers',
             ONFIDO_FIXABLE_ERROR: 'Onfido returned a fixable error',
+            ONFIDO_USER_CONSENT_DENIED: 'user_consent_denied',
 
             // KBA stands for Knowledge Based Answers (requiring us to show Idology questions)
             KBA_NEEDED: 'KBA needed',
@@ -1422,6 +1477,21 @@ const CONST = {
             MAKE_MEMBER: 'makeMember',
             MAKE_ADMIN: 'makeAdmin',
         },
+        CATEGORIES_BULK_ACTION_TYPES: {
+            DELETE: 'delete',
+            DISABLE: 'disable',
+            ENABLE: 'enable',
+        },
+        TAGS_BULK_ACTION_TYPES: {
+            DELETE: 'delete',
+            DISABLE: 'disable',
+            ENABLE: 'enable',
+        },
+        DISTANCE_RATES_BULK_ACTION_TYPES: {
+            DELETE: 'delete',
+            DISABLE: 'disable',
+            ENABLE: 'enable',
+        },
     },
 
     CUSTOM_UNITS: {
@@ -1486,6 +1556,11 @@ const CONST = {
             STATE_SUSPENDED: 7,
         },
         ACTIVE_STATES: cardActiveStates,
+        LIMIT_TYPES: {
+            SMART: 'smart',
+            MONTHLY: 'monthly',
+            FIXED: 'fixed',
+        },
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
@@ -1501,8 +1576,6 @@ const CONST = {
         ALPHABETIC_AND_LATIN_CHARS: /^[\p{Script=Latin} ]*$/u,
         NON_ALPHABETIC_AND_NON_LATIN_CHARS: /[^\p{Script=Latin}]/gu,
         ACCENT_LATIN_CHARS: /[\u00C0-\u017F]/g,
-        INVALID_DISPLAY_NAME_LHN: /[^\p{L}\p{N}\u00C0-\u017F\s-]/gu,
-        INVALID_DISPLAY_NAME_ONLY_LHN: /^[^\p{L}\p{N}\u00C0-\u017F]$/gu,
         POSITIVE_INTEGER: /^\d+$/,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,
@@ -1665,6 +1738,8 @@ const CONST = {
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
     LOGIN_CHARACTER_LIMIT: 254,
     CATEGORY_NAME_LIMIT: 256,
+
+    TAG_NAME_LIMIT: 256,
 
     TITLE_CHARACTER_LIMIT: 100,
     DESCRIPTION_LIMIT: 500,
@@ -3167,7 +3242,7 @@ const CONST = {
             SHARE_CODE: 'shareCode',
         },
         REVENUE: 250,
-        LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/get-paid-back/Referral-Program',
+        LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/expenses/Referral-Program',
         LINK: 'https://join.my.expensify.com',
     },
 
