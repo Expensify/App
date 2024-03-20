@@ -428,6 +428,10 @@ type AncestorIDs = {
 
 type MissingPaymentMethod = 'bankAccount' | 'wallet';
 
+type OutstandingChildRequest = {
+    hasOutstandingChildRequest?: boolean;
+};
+
 let currentUserEmail: string | undefined;
 let currentUserPrivateDomain: string | undefined;
 let currentUserAccountID: number | undefined;
@@ -5331,6 +5335,38 @@ function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxEntry<Report> 
     return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddOrDeleteTransactions(existingIOUReport);
 }
 
+/**
+ * @returns the object to update `report.hasOutstandingChildRequest`
+ */
+function getOutstandingChildRequest(iouReport: OnyxEntry<Report> | EmptyObject): OutstandingChildRequest {
+    if (!iouReport || isEmptyObject(iouReport)) {
+        return {};
+    }
+
+    if (!isPolicyExpenseChat(iouReport)) {
+        return {
+            hasOutstandingChildRequest: iouReport.managerID === currentUserAccountID && iouReport.total !== 0,
+        };
+    }
+
+    const policy = getPolicy(iouReport.policyID);
+    if (PolicyUtils.isPolicyAdmin(policy)) {
+        return {
+            hasOutstandingChildRequest: true,
+        };
+    }
+
+    const shouldBeManuallySubmitted = PolicyUtils.isPaidGroupPolicy(policy) && !policy?.harvesting?.enabled;
+    if (!shouldBeManuallySubmitted) {
+        return {
+            hasOutstandingChildRequest: false,
+        };
+    }
+
+    // We don't need to update hasOutstandingChildRequest in this case
+    return {};
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -5541,6 +5577,7 @@ export {
     isJoinRequestInAdminRoom,
     canAddOrDeleteTransactions,
     shouldCreateNewMoneyRequestReport,
+    getOutstandingChildRequest,
 };
 
 export type {
