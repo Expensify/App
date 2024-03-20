@@ -411,7 +411,7 @@ function ReportActionItemMessageEdit(
                 ref={containerRef}
                 style={[styles.chatItemMessage, styles.flexRow]}
             >
-                <PortalHost name="suggestions" />
+                <PortalHost name={`suggestions_${action.reportActionID}`} />
                 <View
                     style={[
                         isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
