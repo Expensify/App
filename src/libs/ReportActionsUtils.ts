@@ -209,6 +209,7 @@ function isTransactionThread(parentReportAction: OnyxEntry<ReportAction> | Empty
     return (
         parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
         (parentReportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
+            parentReportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ||
             (parentReportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !!parentReportAction.originalMessage.IOUDetails))
     );
 }
@@ -649,7 +650,7 @@ function getReportPreviewAction(chatReportID: string, iouReportID: string): Onyx
  * Get the iouReportID for a given report action.
  */
 function getIOUReportIDFromReportActionPreview(reportAction: OnyxEntry<ReportAction>): string {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW ? reportAction.originalMessage.linkedReportID : '';
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW ? reportAction.originalMessage.linkedReportID : '0';
 }
 
 function isCreatedTaskReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
@@ -672,6 +673,10 @@ function getNumberOfMoneyRequests(reportPreviewAction: OnyxEntry<ReportAction>):
 
 function isSplitBillAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+}
+
+function isTrackExpenseAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && (reportAction.originalMessage as IOUMessage).type === CONST.IOU.REPORT_ACTION_TYPE.TRACK;
 }
 
 function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
@@ -996,6 +1001,7 @@ export {
     isReportPreviewAction,
     isSentMoneyReportAction,
     isSplitBillAction,
+    isTrackExpenseAction,
     isTaskAction,
     doesReportHaveVisibleActions,
     isThreadParentMessage,

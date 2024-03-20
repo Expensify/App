@@ -253,6 +253,14 @@ function updateLastAccessedWorkspace(policyID: OnyxEntry<string>) {
 }
 
 /**
+ * Checks if the currency is supported for direct reimbursement
+ * USD currency is the only one supported in NewDot for now
+ */
+function isCurrencySupportedForDirectReimbursement(currency: string) {
+    return currency === CONST.CURRENCY.USD;
+}
+
+/**
  * Check if the user has any active free policies (aka workspaces)
  */
 function hasActiveFreePolicy(policies: Array<OnyxEntry<Policy>> | PoliciesRecord): boolean {
@@ -471,6 +479,7 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean, frequency
                 },
                 autoReportingFrequency: policy.autoReportingFrequency ?? null,
                 pendingFields: {autoReporting: null},
+                errorFields: {autoReporting: ErrorUtils.getMicroSecondOnyxError('workflowsDelayedSubmissionPage.autoReportingErrorMessage')},
             },
         },
     ];
@@ -511,6 +520,7 @@ function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf
             value: {
                 autoReportingFrequency: policy.autoReportingFrequency ?? null,
                 pendingFields: {autoReportingFrequency: null},
+                errorFields: {autoReportingFrequency: ErrorUtils.getMicroSecondOnyxError('workflowsDelayedSubmissionPage.autoReportingFrequencyErrorMessage')},
             },
         },
     ];
@@ -551,6 +561,7 @@ function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingO
             value: {
                 autoReportingOffset: policy.autoReportingOffset ?? null,
                 pendingFields: {autoReportingOffset: null},
+                errorFields: {autoReportingOffset: ErrorUtils.getMicroSecondOnyxError('workflowsDelayedSubmissionPage.monthlyOffsetErrorMessage')},
             },
         },
     ];
@@ -596,6 +607,7 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
                 approver: policy.approver ?? null,
                 approvalMode: policy.approvalMode ?? null,
                 pendingFields: {approvalMode: null},
+                errorFields: {approvalMode: ErrorUtils.getMicroSecondOnyxError('workflowsApprovalPage.genericErrorMessage')},
             },
         },
     ];
@@ -666,8 +678,8 @@ function setWorkspacePayer(policyID: string, reimburserEmail: string, reimburser
     API.write(WRITE_COMMANDS.SET_WORKSPACE_PAYER, params, {optimisticData, failureData, successData});
 }
 
-function clearWorkspacePayerError(policyID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {reimburserEmail: null}});
+function clearPolicyErrorField(policyID: string, fieldName: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {[fieldName]: null}});
 }
 
 function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>, reimburserAccountID: number, reimburserEmail: string) {
@@ -1367,6 +1379,7 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
             },
         },
     ];
+
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3403,7 +3416,15 @@ function navigateWhenEnableFeature(policyID: string, featureRoute: Route) {
         return;
     }
 
-    Navigation.navigate(featureRoute);
+    /**
+     * The app needs to set a navigation action to the microtask queue, it guarantees to execute Onyx.update first, then the navigation action.
+     * More details - https://github.com/Expensify/App/issues/37785#issuecomment-1989056726.
+     */
+    new Promise<void>((resolve) => {
+        resolve();
+    }).then(() => {
+        Navigation.navigate(featureRoute);
+    });
 }
 
 function enablePolicyCategories(policyID: string, enabled: boolean) {
@@ -4297,7 +4318,6 @@ export {
     renamePolicyCategory,
     clearCategoryErrors,
     setWorkspacePayer,
-    clearWorkspacePayerError,
     setWorkspaceReimbursement,
     openPolicyWorkflowsPage,
     setPolicyRequiresTag,
@@ -4326,5 +4346,7 @@ export {
     setWorkspaceCurrencyDefault,
     setForeignCurrencyDefault,
     setPolicyCustomTaxName,
+    clearPolicyErrorField,
+    isCurrencySupportedForDirectReimbursement,
     clearPolicyDistanceRatesErrorFields,
 };

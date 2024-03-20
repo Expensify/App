@@ -332,6 +332,7 @@ const CONST = {
         BETA_COMMENT_LINKING: 'commentLinking',
         VIOLATIONS: 'violations',
         REPORT_FIELDS: 'reportFields',
+        TRACK_EXPENSE: 'trackExpense',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
     },
@@ -513,7 +514,7 @@ const CONST = {
         EUR: 'EUR',
     },
     get DIRECT_REIMBURSEMENT_CURRENCIES() {
-        return [this.CURRENCY.USD, this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.GBP, this.CURRENCY.NZD, this.CURRENCY.EUR];
+        return [this.CURRENCY.USD, this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.GBP, this.CURRENCY.EUR];
     },
     EXAMPLE_PHONE_NUMBER: '+15005550006',
     CONCIERGE_CHAT_NAME: 'Concierge',
@@ -1344,6 +1345,7 @@ const CONST = {
             SEND: 'send',
             SPLIT: 'split',
             REQUEST: 'request',
+            TRACK_EXPENSE: 'track-expense',
         },
         REQUEST_TYPE: {
             DISTANCE: 'distance',
@@ -1358,6 +1360,7 @@ const CONST = {
             CANCEL: 'cancel',
             DELETE: 'delete',
             APPROVE: 'approve',
+            TRACK: 'track',
         },
         AMOUNT_MAX_LENGTH: 10,
         RECEIPT_STATE: {
@@ -1472,6 +1475,15 @@ const CONST = {
             MAKE_MEMBER: 'makeMember',
             MAKE_ADMIN: 'makeAdmin',
         },
+        MORE_FEATURES: {
+            ARE_CATEGORIES_ENABLED: 'areCategoriesEnabled',
+            ARE_TAGS_ENABLED: 'areTagsEnabled',
+            ARE_DISTANCE_RATES_ENABLED: 'areDistanceRatesEnabled',
+            ARE_WORKFLOWS_ENABLED: 'areWorkflowsEnabled',
+            ARE_REPORTFIELDS_ENABLED: 'areReportFieldsEnabled',
+            ARE_CONNECTIONS_ENABLED: 'areConnectionsEnabled',
+            ARE_TAXES_ENABLED: 'tax',
+        },
         CATEGORIES_BULK_ACTION_TYPES: {
             DELETE: 'delete',
             DISABLE: 'disable',
@@ -1486,6 +1498,21 @@ const CONST = {
             DELETE: 'delete',
             DISABLE: 'disable',
             ENABLE: 'enable',
+        },
+        TAX_RATES_BULK_ACTION_TYPES: {
+            DELETE: 'delete',
+            DISABLE: 'disable',
+            ENABLE: 'enable',
+        },
+        COLLECTION_KEYS: {
+            DESCRIPTION: 'description',
+            REIMBURSER_EMAIL: 'reimburserEmail',
+            REIMBURSEMENT_CHOICE: 'reimbursementChoice',
+            APPROVAL_MODE: 'approvalMode',
+            AUTOREPORTING: 'autoReporting',
+            AUTOREPORTING_FREQUENCY: 'autoReportingFrequency',
+            AUTOREPORTING_OFFSET: 'autoReportingOffset',
+            GENERAL_SETTINGS: 'generalSettings',
         },
     },
 
