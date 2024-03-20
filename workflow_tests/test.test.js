@@ -3,7 +3,7 @@ const kieMockGithub = require('@kie/mock-github');
 const utils = require('./utils/utils');
 const assertions = require('./assertions/testAssertions');
 const mocks = require('./mocks/testMocks');
-const eAct = require('./utils/ExtendedAct');
+const ExtendedAct = require('./utils/ExtendedAct').default;
 
 jest.setTimeout(90 * 1000);
 let mockGithub;
@@ -51,7 +51,7 @@ describe('test workflow test', () => {
         it('runs all tests', async () => {
             const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
+            let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
             const testMockSteps = {
                 jest: mocks.TEST__JEST__STEP_MOCKS,
@@ -71,7 +71,7 @@ describe('test workflow test', () => {
             it('does not run tests', async () => {
                 const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps = {
                     jest: mocks.TEST__JEST__STEP_MOCKS,
@@ -98,7 +98,7 @@ describe('test workflow test', () => {
         it('runs all tests', async () => {
             const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
+            let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
             const testMockSteps = {
                 jest: mocks.TEST__JEST__STEP_MOCKS,
@@ -118,7 +118,7 @@ describe('test workflow test', () => {
             it('does not run tests', async () => {
                 const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps = {
                     jest: mocks.TEST__JEST__STEP_MOCKS,
@@ -143,7 +143,7 @@ describe('test workflow test', () => {
         it('runs all tests', async () => {
             const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
+            let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
             const testMockSteps = {
                 jest: mocks.TEST__JEST__STEP_MOCKS,
@@ -163,7 +163,7 @@ describe('test workflow test', () => {
             it('runs all tests normally', async () => {
                 const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps = {
                     jest: mocks.TEST__JEST__STEP_MOCKS,
