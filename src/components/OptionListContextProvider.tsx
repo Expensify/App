@@ -9,12 +9,16 @@ import type {Report} from '@src/types/onyx';
 import {usePersonalDetails} from './OnyxProvider';
 
 type OptionsListContextProps = {
+    /** List of options for reports and personal details */
     options: OptionList;
+    /** Function to initialize the options */
     initializeOptions: () => void;
+    /** Flag to check if the options are initialized */
     areOptionsInitialized: boolean;
 };
 
 type OptionsListProviderOnyxProps = {
+    /** Collection of reports */
     reports: OnyxCollection<Report>;
 };
 
