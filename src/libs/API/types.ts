@@ -122,11 +122,12 @@ const WRITE_COMMANDS = {
     CREATE_WORKSPACE_CATEGORIES: 'CreateWorkspaceCategories',
     RENAME_WORKSPACE_CATEGORY: 'RenameWorkspaceCategory',
     CREATE_POLICY_TAG: 'CreatePolicyTag',
+    RENAME_POLICY_TAG: 'RenamePolicyTag',
     SET_WORKSPACE_REQUIRES_CATEGORY: 'SetWorkspaceRequiresCategory',
     DELETE_WORKSPACE_CATEGORIES: 'DeleteWorkspaceCategories',
     SET_POLICY_REQUIRES_TAG: 'SetPolicyRequiresTag',
     RENAME_POLICY_TAG_LIST: 'RenamePolicyTaglist',
-    DELETE_POLICY_TAGS: 'Policy_IndependentTaglist_Tags_Remove',
+    DELETE_POLICY_TAGS: 'DeletePolicyTags',
     CREATE_TASK: 'CreateTask',
     CANCEL_TASK: 'CancelTask',
     EDIT_TASK_ASSIGNEE: 'EditTaskAssignee',
@@ -184,6 +185,8 @@ const WRITE_COMMANDS = {
     CREATE_POLICY_DISTANCE_RATE: 'CreatePolicyDistanceRate',
     REQUEST_WORKSPACE_OWNER_CHANGE: 'RequestWorkspaceOwnerChange',
     ADD_BILLING_CARD_AND_REQUEST_WORKSPACE_OWNER_CHANGE: 'AddBillingCardAndRequestPolicyOwnerChange',
+    SET_POLICY_DISTANCE_RATES_UNIT: 'SetPolicyDistanceRatesUnit',
+    SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY: 'SetPolicyDistanceRatesDefaultCategory',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -300,6 +303,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG]: Parameters.SetPolicyRequiresTag;
     [WRITE_COMMANDS.RENAME_POLICY_TAG_LIST]: Parameters.RenamePolicyTaglist;
     [WRITE_COMMANDS.CREATE_POLICY_TAG]: Parameters.CreatePolicyTagsParams;
+    [WRITE_COMMANDS.RENAME_POLICY_TAG]: Parameters.RenamePolicyTagsParams;
     [WRITE_COMMANDS.SET_POLICY_TAGS_ENABLED]: Parameters.SetPolicyTagsEnabled;
     [WRITE_COMMANDS.DELETE_POLICY_TAGS]: Parameters.DeletePolicyTagsParams;
     [WRITE_COMMANDS.CREATE_TASK]: Parameters.CreateTaskParams;
@@ -366,6 +370,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CREATE_POLICY_DISTANCE_RATE]: Parameters.CreatePolicyDistanceRateParams;
     [WRITE_COMMANDS.REQUEST_WORKSPACE_OWNER_CHANGE]: Parameters.RequestWorkspaceOwnerChangeParams;
     [WRITE_COMMANDS.ADD_BILLING_CARD_AND_REQUEST_WORKSPACE_OWNER_CHANGE]: Parameters.AddBillingCardAndRequestWorkspaceOwnerChangeParams;
+    [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_UNIT]: Parameters.SetPolicyDistanceRatesUnitParams;
+    [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY]: Parameters.SetPolicyDistanceRatesDefaultCategoryParams;
 };
 
 const READ_COMMANDS = {

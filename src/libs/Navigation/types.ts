@@ -193,6 +193,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         tagName: string;
     };
+    [SCREENS.WORKSPACE.TAG_EDIT]: {
+        policyID: string;
+        tagName: string;
+    };
     [SCREENS.WORKSPACE.TAXES_SETTINGS]: {
         policyID: string;
     };
@@ -225,6 +229,9 @@ type SettingsNavigatorParamList = {
         accountID: number;
     };
     [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: {
         policyID: string;
     };
     [SCREENS.GET_ASSISTANCE]: {
