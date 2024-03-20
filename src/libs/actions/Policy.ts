@@ -4122,6 +4122,18 @@ function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUn
     API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY, params, {optimisticData, successData, failureData});
 }
 
+function prepareCustomUnitRatesArray(customUnitRates: Rate[]): Rate[] {
+    const customUnitRateArray: Rate[] = [];
+    customUnitRates.forEach((rate) => {
+        const cleanedRate = {...rate};
+        delete cleanedRate.pendingFields;
+        delete cleanedRate.errorFields;
+        customUnitRateArray.push(cleanedRate);
+    });
+
+    return customUnitRateArray;
+}
+
 function updatePolicyDistanceRateValue(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[]) {
     const currentRates = customUnit.rates;
     const optimisticRates: Record<string, Rate> = {};
@@ -4193,7 +4205,7 @@ function updatePolicyDistanceRateValue(policyID: string, customUnit: CustomUnit,
     const params: UpdatePolicyDistanceRateValueParams = {
         policyID,
         customUnitID: customUnit.customUnitID,
-        customUnitRateArray: JSON.stringify(customUnitRates),
+        customUnitRateArray: JSON.stringify(prepareCustomUnitRatesArray(customUnitRates)),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE_VALUE, params, {optimisticData, successData, failureData});
@@ -4270,7 +4282,7 @@ function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit,
     const params: SetPolicyDistanceRatesEnabledParams = {
         policyID,
         customUnitID: customUnit.customUnitID,
-        customUnitRateArray: JSON.stringify(customUnitRates),
+        customUnitRateArray: JSON.stringify(prepareCustomUnitRatesArray(customUnitRates)),
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_ENABLED, params, {optimisticData, successData, failureData});
