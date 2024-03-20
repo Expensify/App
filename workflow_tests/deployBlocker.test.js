@@ -3,7 +3,7 @@ const kieMockGithub = require('@kie/mock-github');
 const utils = require('./utils/utils');
 const assertions = require('./assertions/deployBlockerAssertions');
 const mocks = require('./mocks/deployBlockerMocks');
-const eAct = require('./utils/ExtendedAct');
+const ExtendedAct = require('./utils/ExtendedAct').default;
 
 jest.setTimeout(90 * 1000);
 let mockGithub;
@@ -66,7 +66,7 @@ describe('test workflow deployBlocker', () => {
             it('runs the workflow and announces success on Slack', async () => {
                 const repoPath = mockGithub.repo.getPath('testDeployBlockerWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'deployBlocker.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, testEventOptions, secrets, githubToken, {}, {});
                 const testMockSteps = {
                     deployBlocker: mocks.DEPLOYBLOCKER__DEPLOYBLOCKER__STEP_MOCKS,
@@ -92,7 +92,7 @@ describe('test workflow deployBlocker', () => {
                 it('announces failure on Slack', async () => {
                     const repoPath = mockGithub.repo.getPath('testDeployBlockerWorkflowRepo') || '';
                     const workflowPath = path.join(repoPath, '.github', 'workflows', 'deployBlocker.yml');
-                    let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                    let act = new ExtendedAct(repoPath, workflowPath);
                     act = utils.setUpActParams(act, event, testEventOptions, secrets, githubToken, {}, {});
                     const testMockSteps = {
                         deployBlocker: utils.deepCopy(mocks.DEPLOYBLOCKER__DEPLOYBLOCKER__STEP_MOCKS),
@@ -132,7 +132,7 @@ describe('test workflow deployBlocker', () => {
             it('does not run workflow', async () => {
                 const repoPath = mockGithub.repo.getPath('testDeployBlockerWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'deployBlocker.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, testEventOptions, secrets, githubToken, {}, {});
                 const testMockSteps = {
                     deployBlocker: mocks.DEPLOYBLOCKER__DEPLOYBLOCKER__STEP_MOCKS,
