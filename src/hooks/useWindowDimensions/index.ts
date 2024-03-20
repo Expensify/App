@@ -16,9 +16,9 @@ const isMobile = Browser.isMobile();
  * A convenience wrapper around React Native's useWindowDimensions hook that also provides booleans for our breakpoints.
  */
 export default function (useCachedViewportHeight = false): WindowDimensions {
-    const {isFullscreen, lockedWindowDimensions, lockWindowDimensions, unlockWindowDimensions} = useContext(FullScreenContext) ?? {
-        isFullscreen: useRef(false),
-        lockedWindowDimensions: useRef<WindowDimensions | null>(null),
+    const {isFullscreenRef, lockedWindowDimensionsRef, lockWindowDimensions, unlockWindowDimensions} = useContext(FullScreenContext) ?? {
+        isFullscreenRef: useRef(false),
+        lockedWindowDimensionsRef: useRef<WindowDimensions | null>(null),
         lockWindowDimensions: () => {},
         unlockWindowDimensions: () => {},
     };
@@ -91,7 +91,7 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
         cachedViewportHeightWithKeyboardRef.current = windowHeight;
     }, [isCachedViewportHeight, windowHeight]);
 
-    const returnObject = {
+    const windowDimensions = {
         windowWidth,
         windowHeight: isCachedViewportHeight ? cachedViewportHeight : windowHeight,
         isExtraSmallScreenHeight,
@@ -102,34 +102,34 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
         isSmallScreen,
     };
 
-    if (!lockedWindowDimensions.current && !isFullscreen.current) {
-        return returnObject;
+    if (!lockedWindowDimensionsRef.current && !isFullscreenRef.current) {
+        return windowDimensions;
     }
 
     const didScreenChangeOrientation =
         isMobile &&
-        lockedWindowDimensions.current &&
-        isExtraSmallScreenWidth === lockedWindowDimensions.current.isExtraSmallScreenWidth &&
-        isSmallScreenWidth === lockedWindowDimensions.current.isSmallScreen &&
-        isMediumScreenWidth === lockedWindowDimensions.current.isMediumScreenWidth &&
-        isLargeScreenWidth === lockedWindowDimensions.current.isLargeScreenWidth &&
-        lockedWindowDimensions.current.windowWidth !== windowWidth &&
-        lockedWindowDimensions.current.windowHeight !== windowHeight;
+        lockedWindowDimensionsRef.current &&
+        isExtraSmallScreenWidth === lockedWindowDimensionsRef.current.isExtraSmallScreenWidth &&
+        isSmallScreenWidth === lockedWindowDimensionsRef.current.isSmallScreen &&
+        isMediumScreenWidth === lockedWindowDimensionsRef.current.isMediumScreenWidth &&
+        isLargeScreenWidth === lockedWindowDimensionsRef.current.isLargeScreenWidth &&
+        lockedWindowDimensionsRef.current.windowWidth !== windowWidth &&
+        lockedWindowDimensionsRef.current.windowHeight !== windowHeight;
 
     // if video is in fullscreen mode, lock the window dimensions since they can change and casue whole app to re-render
-    if (!lockedWindowDimensions.current || didScreenChangeOrientation) {
-        lockWindowDimensions(returnObject);
-        return returnObject;
+    if (!lockedWindowDimensionsRef.current || didScreenChangeOrientation) {
+        lockWindowDimensions(windowDimensions);
+        return windowDimensions;
     }
 
-    const didScreenReturnToOriginalSize = lockedWindowDimensions.current.windowWidth === windowWidth && lockedWindowDimensions.current.windowHeight === windowHeight;
+    const didScreenReturnToOriginalSize = lockedWindowDimensionsRef.current.windowWidth === windowWidth && lockedWindowDimensionsRef.current.windowHeight === windowHeight;
 
     // if video exits fullscreen mode, unlock the window dimensions
-    if (lockedWindowDimensions.current && !isFullscreen.current && didScreenReturnToOriginalSize) {
-        const lastLockedWindowDimensions = {...lockedWindowDimensions.current};
+    if (lockedWindowDimensionsRef.current && !isFullscreenRef.current && didScreenReturnToOriginalSize) {
+        const lastLockedWindowDimensions = {...lockedWindowDimensionsRef.current};
         unlockWindowDimensions();
         return lastLockedWindowDimensions;
     }
 
-    return lockedWindowDimensions.current;
+    return lockedWindowDimensionsRef.current;
 }

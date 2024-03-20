@@ -6,18 +6,18 @@ import type {FullScreenContext} from './types';
 const Context = React.createContext<FullScreenContext | null>(null);
 
 function FullScreenContextProvider({children}: ChildrenProps) {
-    const isFullscreen = useRef(false);
-    const lockedWindowDimensions = useRef<WindowDimensions | null>(null);
+    const isFullscreenRef = useRef(false);
+    const lockedWindowDimensionsRef = useRef<WindowDimensions | null>(null);
 
     const lockWindowDimensions = useCallback((newWindowDimensions: WindowDimensions) => {
-        lockedWindowDimensions.current = newWindowDimensions;
+        lockedWindowDimensionsRef.current = newWindowDimensions;
     }, []);
 
     const unlockWindowDimensions = useCallback(() => {
-        lockedWindowDimensions.current = null;
+        lockedWindowDimensionsRef.current = null;
     }, []);
 
-    const contextValue = useMemo(() => ({isFullscreen, lockedWindowDimensions, lockWindowDimensions, unlockWindowDimensions}), [unlockWindowDimensions, lockWindowDimensions]);
+    const contextValue = useMemo(() => ({isFullscreenRef, lockedWindowDimensionsRef, lockWindowDimensions, unlockWindowDimensions}), [lockWindowDimensions, unlockWindowDimensions]);
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }
 

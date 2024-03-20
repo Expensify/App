@@ -33,7 +33,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     const theme = useTheme();
     const styles = useThemeStyles();
     const scrollRef = useRef(null);
-    const {isFullscreen} = useFullScreenContext();
+    const {isFullscreenRef} = useFullScreenContext();
 
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
@@ -79,7 +79,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
      */
     const updatePage = useCallback(
         ({viewableItems}) => {
-            if (isFullscreen.current) {
+            if (isFullscreenRef.current) {
                 return;
             }
 
@@ -98,7 +98,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
             onNavigate(entry.item);
         },
-        [isFullscreen, onNavigate],
+        [isFullscreenRef, onNavigate],
     );
 
     /**
@@ -107,7 +107,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
      */
     const cycleThroughAttachments = useCallback(
         (deltaSlide) => {
-            if (isFullscreen.current) {
+            if (isFullscreenRef.current) {
                 return;
             }
             const nextIndex = page + deltaSlide;
@@ -119,7 +119,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
             scrollRef.current.scrollToIndex({index: nextIndex, animated: canUseTouchScreen});
         },
-        [attachments, canUseTouchScreen, isFullscreen, page],
+        [attachments, canUseTouchScreen, isFullscreenRef, page],
     );
 
     /**
@@ -167,7 +167,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         <View
             style={[styles.flex1, styles.attachmentCarouselContainer]}
             onLayout={({nativeEvent}) => {
-                if (isFullscreen.current) {
+                if (isFullscreenRef.current) {
                     return;
                 }
                 setContainerWidth(PixelRatio.roundToNearestPixel(nativeEvent.layout.width));

@@ -53,7 +53,7 @@ function BaseVideoPlayer({
         updateCurrentlyPlayingURL,
         videoResumeTryNumber,
     } = usePlaybackContext();
-    const {isFullscreen} = useFullScreenContext();
+    const {isFullscreenRef} = useFullScreenContext();
     const [duration, setDuration] = useState(videoDuration * 1000);
     const [position, setPosition] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -70,7 +70,7 @@ function BaseVideoPlayer({
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = _.some(CONST.ATTACHMENT_LOCAL_URL_PREFIX, (prefix) => url.startsWith(prefix));
-    const isPlayingRef = useRef(false);
+    const videoStateRef = useRef(null);
 
     const togglePlayCurrentVideo = useCallback(() => {
         videoResumeTryNumber.current = 0;
@@ -106,11 +106,6 @@ function BaseVideoPlayer({
         [playVideo, videoResumeTryNumber],
     );
 
-    const updateIsPlaying = useCallback((isVideoPlaying) => {
-        setIsPlaying(isVideoPlaying);
-        isPlayingRef.current = isVideoPlaying;
-    }, []);
-
     const handlePlaybackStatusUpdate = useCallback(
         (e) => {
             const isVideoPlaying = e.isPlaying || false;
@@ -122,15 +117,15 @@ function BaseVideoPlayer({
             }
 
             preventPausingWhenExitingFullscreen(isVideoPlaying);
-            updateIsPlaying(isVideoPlaying);
+            setIsPlaying(isVideoPlaying);
             setIsLoading(!e.isLoaded || Number.isNaN(e.durationMillis)); // when video is ready to display duration is not NaN
             setIsBuffering(e.isBuffering || false);
             setDuration(currentDuration);
             setPosition(currentPositon);
-
+            videoStateRef.current = e;
             onPlaybackStatusUpdate(e);
         },
-        [onPlaybackStatusUpdate, preventPausingWhenExitingFullscreen, updateIsPlaying, videoDuration],
+        [onPlaybackStatusUpdate, preventPausingWhenExitingFullscreen, videoDuration],
     );
 
     const handleFullscreenUpdate = useCallback(
@@ -139,16 +134,17 @@ function BaseVideoPlayer({
             // fix for iOS native and mWeb: when switching to fullscreen and then exiting
             // the fullscreen mode while playing, the video pauses
             if (e.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
-                isFullscreen.current = false;
-                // we  have to use ref to check if the video is playing, because in other case state varaible change will dismiss fullscreen mode
-                if (isPlayingRef.current) {
+                isFullscreenRef.current = false;
+                // we need to use video state ref to check if video is playing, to catch proper state after exiting fullscreen
+                // and also fix a bug with fullscreen mode dismissing when handleFullscreenUpdate function changes
+                if (isPlaying) {
                     pauseVideo();
                     playVideo();
                     videoResumeTryNumber.current = 3;
                 }
             }
         },
-        [isFullscreen, onFullscreenUpdate, pauseVideo, playVideo, videoResumeTryNumber],
+        [isFullscreenRef, isPlaying, onFullscreenUpdate, pauseVideo, playVideo, videoResumeTryNumber],
     );
 
     const bindFunctions = useCallback(() => {
@@ -172,15 +168,15 @@ function BaseVideoPlayer({
 
     // update shared video elements
     useEffect(() => {
-        if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || isFullscreen.current) {
+        if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || isFullscreenRef.current) {
             return;
         }
         shareVideoPlayerElements(videoPlayerRef.current, videoPlayerElementParentRef.current, videoPlayerElementRef.current, isUploading);
-    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, updateSharedElements, url, isUploading, isFullscreen]);
+    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, updateSharedElements, url, isUploading, isFullscreenRef]);
 
     // append shared video element to new parent (used for example in attachment modal)
     useEffect(() => {
-        if (url !== currentlyPlayingURL || !sharedElement || isFullscreen.current) {
+        if (url !== currentlyPlayingURL || !sharedElement || isFullscreenRef.current) {
             return;
         }
 
@@ -205,7 +201,7 @@ function BaseVideoPlayer({
             newParentRef.childNodes[0].remove();
             originalParent.appendChild(sharedElement);
         };
-    }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isFullscreen, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
+    }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isFullscreenRef, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
 
     return (
         <>

@@ -29,8 +29,8 @@ type VideoPopoverMenuContext = {
 };
 
 type FullScreenContext = {
-    isFullscreen: MutableRefObject<boolean>;
-    lockedWindowDimensions: MutableRefObject<WindowDimensions | null>;
+    isFullscreenRef: MutableRefObject<boolean>;
+    lockedWindowDimensionsRef: MutableRefObject<WindowDimensions | null>;
     lockWindowDimensions: (newWindowDimensions: WindowDimensions) => void;
     unlockWindowDimensions: () => void;
 };

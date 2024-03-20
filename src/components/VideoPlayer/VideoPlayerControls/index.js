@@ -43,7 +43,7 @@ const defaultProps = {
 };
 
 function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying, small, style, showPopoverMenu, togglePlayCurrentVideo}) {
-    const {isFullscreen} = useFullScreenContext();
+    const {isFullscreenRef} = useFullScreenContext();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {updateCurrentlyPlayingURL} = usePlaybackContext();
@@ -55,10 +55,10 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying
     };
 
     const enterFullScreenMode = useCallback(() => {
-        isFullscreen.current = true;
+        isFullscreenRef.current = true;
         updateCurrentlyPlayingURL(url);
         videoPlayerRef.current.presentFullscreenPlayer();
-    }, [isFullscreen, updateCurrentlyPlayingURL, url, videoPlayerRef]);
+    }, [isFullscreenRef, updateCurrentlyPlayingURL, url, videoPlayerRef]);
 
     const seekPosition = useCallback(
         (newPosition) => {
