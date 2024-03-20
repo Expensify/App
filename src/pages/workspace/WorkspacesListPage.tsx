@@ -19,6 +19,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -119,6 +120,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
@@ -132,6 +134,12 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
 
         Policy.deleteWorkspace(policyIDToDelete, policyNameToDelete);
         setIsDeleteModalOpen(false);
+
+        // If the workspace being deleted is the active workspace, switch to the "All Workspaces" view
+        if (activeWorkspaceID === policyIDToDelete) {
+            setActiveWorkspaceID(undefined);
+            Navigation.navigateWithSwitchPolicyID({policyID: undefined});
+        }
     };
 
     /**
@@ -348,7 +356,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
             >
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
-                    shouldShowBackButton={isLessThanMediumScreen}
+                    shouldShowBackButton={isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack()}
                 >
                     <Button
@@ -387,7 +395,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
             <View style={styles.flex1}>
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
-                    shouldShowBackButton={isLessThanMediumScreen}
+                    shouldShowBackButton={isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack()}
                 >
                     <Button
