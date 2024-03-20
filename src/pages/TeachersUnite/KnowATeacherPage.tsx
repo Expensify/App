@@ -20,7 +20,6 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import TeachersUnite from '@userActions/TeachersUnite';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/IKnowTeacherForm';
 import type {LoginList} from '@src/types/onyx';
 
@@ -87,7 +86,7 @@ function KnowATeacherPage(props: KnowATeacherPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('teachersUnitePage.iKnowATeacher')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.TEACHERS_UNITE)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <FormProvider
                 enabledWhenOffline
