@@ -148,7 +148,7 @@ function ReportActionsView({
     }, [isSmallScreenWidth, reportActions, isReportFullyVisible]);
 
     useEffect(() => {
-        // Ensure the optimistic report is created successfully
+        // Ensures the optimistic report is created successfully
         if (reportID !== report.reportID) {
             return;
         }
