@@ -115,7 +115,7 @@ function Avatar({
                         src={avatarSource}
                         height={iconSize}
                         width={iconSize}
-                        fill={imageError ? theme.offline : null}
+                        fill={imageError ? theme.offline : fill}
                         additionalStyles={[
                             StyleUtils.getAvatarBorderStyle(size, type),
                             iconColors,

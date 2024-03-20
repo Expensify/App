@@ -34,6 +34,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import Timing from './actions/Timing';
 import * as CollectionUtils from './CollectionUtils';
 import * as ErrorUtils from './ErrorUtils';
@@ -1682,10 +1683,10 @@ function getOptions(
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         userToInvite.alternateText = userToInvite.alternateText || searchValue;
 
-        // If user doesn't exist, use a default avatar
+        // If user doesn't exist, always use the fallback avatar
         userToInvite.icons = [
             {
-                source: '',
+                source: FallbackAvatar,
                 name: searchValue,
                 type: CONST.ICON_TYPE_AVATAR,
             },
