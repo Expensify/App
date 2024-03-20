@@ -1869,9 +1869,9 @@ export default {
             errors: {
                 taxRateAlreadyExists: 'This tax name is already in use.',
                 valuePercentageRange: 'Please enter a valid percentage between 0 and 100.',
-                deleteFailureMessage: 'An error occurred while deleting the tax rate, please try again.',
-                updateFailureMessage: 'An error occurred while updating the tax rate, please try again.',
-                createFailureMessage: 'An error occurred while creating the tax rate, please try again.',
+                deleteFailureMessage: 'An error occurred while deleting the tax rate. Please try again or ask Concierge for help.',
+                updateFailureMessage: 'An error occurred while updating the tax rate. Please try again or ask Concierge for help.',
+                createFailureMessage: 'An error occurred while creating the tax rate. Please try again or ask Concierge for help.',
             },
             deleteTaxConfirmation: 'Are you sure you want to delete this tax?',
             deleteMultipleTaxConfirmation: ({taxAmount}) => `Are you sure you want to delete ${taxAmount} taxes?`,
