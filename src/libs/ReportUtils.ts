@@ -418,7 +418,6 @@ type Ancestor = {
     report: Report;
     reportAction: ReportAction;
     shouldDisplayNewMarker: boolean;
-    shouldHideThreadDividerLine: boolean;
 };
 
 type AncestorIDs = {
@@ -5233,8 +5232,6 @@ function getAllAncestorReportActions(report: Report | null | undefined, shouldHi
             report: currentReport,
             reportAction: parentReportAction,
             shouldDisplayNewMarker: isParentReportActionUnread,
-            // We should hide the thread divider line if the previous ancestor action is unread
-            shouldHideThreadDividerLine: currentUnread,
         });
         parentReportID = parentReport?.parentReportID;
         parentReportActionID = parentReport?.parentReportActionID;

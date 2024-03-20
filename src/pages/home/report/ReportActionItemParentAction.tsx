@@ -13,7 +13,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
+import RepliesDivider from './RepliesDivider';
 import ReportActionItem from './ReportActionItem';
+import ThreadDivider from './ThreadDivider';
 
 type ReportActionItemParentActionProps = {
     /** Flag to show, hide the thread divider line */
@@ -73,7 +75,7 @@ function ReportActionItemParentAction({report, parentReportAction, index = 0, sh
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
             <AnimatedEmptyStateBackground />
             <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]} />
-            {allAncestors.map((ancestor) => (
+            {allAncestors.map((ancestor, index) => (
                 <OfflineWithFeedback
                     key={ancestor.reportAction.reportActionID}
                     shouldDisableOpacity={Boolean(ancestor.reportAction?.pendingAction)}
@@ -82,8 +84,12 @@ function ReportActionItemParentAction({report, parentReportAction, index = 0, sh
                     errorRowStyles={[styles.ml10, styles.mr2]}
                     onClose={() => Report.navigateToConciergeChatAndDeleteReport(ancestor.report.reportID)}
                 >
+                    <ThreadDivider
+                        ancestor={ancestor}
+                        style={index === 0 ? [styles.mt2, styles.mb2] : undefined}
+                    />
                     <ReportActionItem
-                        onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID))}
+                        onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? ''))}
                         parentReportAction={parentReportAction}
                         report={ancestor.report}
                         action={ancestor.reportAction}
@@ -92,9 +98,9 @@ function ReportActionItemParentAction({report, parentReportAction, index = 0, sh
                         shouldDisplayNewMarker={ancestor.shouldDisplayNewMarker}
                         index={index}
                     />
-                    {!ancestor.shouldHideThreadDividerLine && <View style={[styles.threadDividerLine]} />}
                 </OfflineWithFeedback>
             ))}
+            <RepliesDivider shouldHideThreadDividerLine={shouldHideThreadDividerLine} />
         </View>
     );
 }

@@ -139,6 +139,7 @@ import Sync from '@assets/images/sync.svg';
 import Tag from '@assets/images/tag.svg';
 import Task from '@assets/images/task.svg';
 import Tax from '@assets/images/tax.svg';
+import Thread from '@assets/images/thread.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
 import Transfer from '@assets/images/transfer.svg';
@@ -228,6 +229,7 @@ export {
     Folder,
     Tag,
     Tax,
+    Thread,
     Gallery,
     Gear,
     Globe,

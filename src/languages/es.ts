@@ -2820,6 +2820,7 @@ export default {
         hiddenMessage: '[Mensaje oculto]',
     },
     threads: {
+        thread: 'Hilo',
         replies: 'Respuestas',
         reply: 'Respuesta',
         from: 'De',
