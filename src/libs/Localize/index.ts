@@ -152,7 +152,7 @@ function translate<TKey extends TranslationPaths>(desiredLanguage: 'en' | 'es' |
     const languageAbbreviation = desiredLanguage.substring(0, 2) as 'en' | 'es';
 
     const translatedPhrase = getTranslatedPhrase(language, phraseKey, languageAbbreviation, ...phraseParameters);
-    if (translatedPhrase) {
+    if (translatedPhrase !== null && translatedPhrase !== undefined) {
         return translatedPhrase;
     }
 
