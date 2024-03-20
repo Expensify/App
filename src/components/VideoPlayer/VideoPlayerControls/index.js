@@ -6,7 +6,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import refPropTypes from '@components/refPropTypes';
 import Text from '@components/Text';
 import IconButton from '@components/VideoPlayer/IconButton';
-import convertMillisecondsToTime from '@components/VideoPlayer/utils';
+import {convertMillisecondsToTime} from '@components/VideoPlayer/utils';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';

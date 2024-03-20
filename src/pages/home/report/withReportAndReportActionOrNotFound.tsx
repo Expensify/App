@@ -22,6 +22,9 @@ type OnyxProps = {
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
 
+    /** The parent report if the current report is a thread and it has a parent */
+    parentReport: OnyxEntry<OnyxTypes.Report>;
+
     /** The report metadata */
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
 
@@ -102,6 +105,9 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         withOnyx<TProps & RefAttributes<TRef>, OnyxProps>({
             report: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+            },
+            parentReport: {
+                key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
             },
             reportMetadata: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params.reportID}`,

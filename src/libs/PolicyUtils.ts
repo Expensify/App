@@ -31,6 +31,13 @@ function hasPolicyMemberError(policyMembers: OnyxEntry<PolicyMembers>): boolean 
 }
 
 /**
+ *  Check if the policy has any tax rate errors.
+ */
+function hasTaxRateError(policy: OnyxEntry<Policy>): boolean {
+    return Object.values(policy?.taxRates?.taxes ?? {}).some((taxRate) => Object.keys(taxRate?.errors ?? {}).length > 0);
+}
+
+/**
  * Check if the policy has any errors within the categories.
  */
 function hasPolicyCategoriesError(policyCategories: OnyxEntry<PolicyCategories>): boolean {
@@ -266,10 +273,7 @@ function getPolicyMembersByIdWithoutCurrentUser(policyMembers: OnyxCollection<Po
 }
 
 function goBackFromInvalidPolicy() {
-    Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
-
-    // Needed when workspace with given policyID does not exist
-    Navigation.navigateWithSwitchPolicyID({route: ROUTES.ALL_SETTINGS});
+    Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
 }
 
 export {
@@ -302,6 +306,7 @@ export {
     getPathWithoutPolicyID,
     getPolicyMembersByIdWithoutCurrentUser,
     goBackFromInvalidPolicy,
+    hasTaxRateError,
     hasPolicyCategoriesError,
 };
 

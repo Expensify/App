@@ -2,6 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import lodashThrottle from 'lodash/throttle';
 import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import {InteractionManager} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
@@ -90,7 +91,15 @@ function ReportActionsView({
     };
 
     useEffect(() => {
-        openReportIfNecessary();
+        const interactionTask = InteractionManager.runAfterInteractions(() => {
+            openReportIfNecessary();
+        });
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        if (interactionTask) {
+            return () => {
+                interactionTask.cancel();
+            };
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -145,8 +154,13 @@ function ReportActionsView({
         // Existing reports created will have empty fields for `pendingFields`.
         const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
         if (!didSubscribeToReportTypingEvents.current && didCreateReportSuccessfully) {
-            Report.subscribeToReportTypingEvents(reportID);
-            didSubscribeToReportTypingEvents.current = true;
+            const interactionTask = InteractionManager.runAfterInteractions(() => {
+                Report.subscribeToReportTypingEvents(reportID);
+                didSubscribeToReportTypingEvents.current = true;
+            });
+            return () => {
+                interactionTask.cancel();
+            };
         }
     }, [report.pendingFields, didSubscribeToReportTypingEvents, reportID]);
 

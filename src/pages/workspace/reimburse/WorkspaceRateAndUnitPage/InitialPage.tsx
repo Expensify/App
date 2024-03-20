@@ -1,4 +1,5 @@
-import React, {useEffect, useMemo} from 'react';
+import Str from 'expensify-common/lib/str';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -12,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
@@ -59,14 +61,6 @@ function WorkspaceRateAndUnitPage(props: WorkspaceRateAndUnitPageProps) {
         Policy.openWorkspaceReimburseView(props.policy?.id ?? '');
     }, [props]);
 
-    const unitItems = useMemo(
-        () => ({
-            [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: translate('workspace.reimburse.kilometers'),
-            [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: translate('workspace.reimburse.miles'),
-        }),
-        [translate],
-    );
-
     const saveUnitAndRate = (newUnit: Unit, newRate: string) => {
         const distanceCustomUnit = Object.values(props.policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         if (!distanceCustomUnit) {
@@ -93,6 +87,7 @@ function WorkspaceRateAndUnitPage(props: WorkspaceRateAndUnitPageProps) {
 
     const unitValue = props.workspaceRateAndUnit?.unit ?? distanceCustomUnit?.attributes.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
     const rateValue = props.workspaceRateAndUnit?.rate ?? distanceCustomRate?.rate?.toString() ?? '';
+    const unitTitle = Str.recapitalize(translate(getUnitTranslationKey(unitValue)));
 
     const submit = () => {
         saveUnitAndRate(unitValue, rateValue);
@@ -131,7 +126,7 @@ function WorkspaceRateAndUnitPage(props: WorkspaceRateAndUnitPageProps) {
                                 />
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.reimburse.trackDistanceUnit')}
-                                    title={unitItems[unitValue]}
+                                    title={unitTitle}
                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT_UNIT.getRoute(props.policy?.id ?? ''))}
                                     shouldShowRightIcon
                                 />

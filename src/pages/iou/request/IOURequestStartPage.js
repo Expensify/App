@@ -157,16 +157,20 @@ function IOURequestStartPage({
                                 title={tabTitles[iouType]}
                                 onBackButtonPress={navigateBack}
                             />
-                            <OnyxTabNavigator
-                                id={CONST.TAB.IOU_REQUEST_TYPE}
-                                selectedTab={selectedTab || CONST.IOU.REQUEST_TYPE.SCAN}
-                                onTabSelected={resetIOUTypeIfChanged}
-                                tabBar={TabSelector}
-                            >
-                                <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => <IOURequestStepAmount route={route} />}</TopTab.Screen>
-                                <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>{() => <IOURequestStepScan route={route} />}</TopTab.Screen>
-                                {shouldDisplayDistanceRequest && <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>{() => <IOURequestStepDistance route={route} />}</TopTab.Screen>}
-                            </OnyxTabNavigator>
+                            {iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.SPLIT ? (
+                                <OnyxTabNavigator
+                                    id={CONST.TAB.IOU_REQUEST_TYPE}
+                                    selectedTab={selectedTab || CONST.IOU.REQUEST_TYPE.SCAN}
+                                    onTabSelected={resetIOUTypeIfChanged}
+                                    tabBar={TabSelector}
+                                >
+                                    <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => <IOURequestStepAmount route={route} />}</TopTab.Screen>
+                                    <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>{() => <IOURequestStepScan route={route} />}</TopTab.Screen>
+                                    {shouldDisplayDistanceRequest && <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>{() => <IOURequestStepDistance route={route} />}</TopTab.Screen>}
+                                </OnyxTabNavigator>
+                            ) : (
+                                <IOURequestStepAmount route={route} />
+                            )}
                         </View>
                     </DragAndDropProvider>
                 </FullPageNotFoundView>

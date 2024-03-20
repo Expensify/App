@@ -49,9 +49,9 @@ describe('Middleware', () => {
             await waitForNetworkPromises();
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
-            expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api?command=AddComment', expect.anything());
+            expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/AddComment?', expect.anything());
             TestHelper.assertFormDataMatchesObject(global.fetch.mock.calls[1][1].body, {reportID: '1234', reportActionID: '5678', reportComment: 'foo'});
-            expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api?command=OpenReport', expect.anything());
+            expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api/OpenReport?', expect.anything());
             TestHelper.assertFormDataMatchesObject(global.fetch.mock.calls[0][1].body, {reportID: '1234'});
         });
 
@@ -93,9 +93,9 @@ describe('Middleware', () => {
             await waitForNetworkPromises();
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
-            expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api?command=AddComment', expect.anything());
+            expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/AddComment?', expect.anything());
             TestHelper.assertFormDataMatchesObject(global.fetch.mock.calls[1][1].body, {reportID: '5555', reportActionID: '5678', reportComment: 'foo'});
-            expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api?command=OpenReport', expect.anything());
+            expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api/OpenReport?', expect.anything());
             TestHelper.assertFormDataMatchesObject(global.fetch.mock.calls[0][1].body, {reportID: '1234'});
         });
     });

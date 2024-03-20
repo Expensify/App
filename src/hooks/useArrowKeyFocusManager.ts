@@ -12,6 +12,7 @@ type Config = {
     itemsPerRow?: number;
     disableCyclicTraversal?: boolean;
     disableHorizontalKeys?: boolean;
+    allowNegativeIndexes?: boolean;
 };
 
 type UseArrowKeyFocusManager = [number, (index: number) => void];
@@ -44,6 +45,7 @@ export default function useArrowKeyFocusManager({
     itemsPerRow,
     disableCyclicTraversal = false,
     disableHorizontalKeys = false,
+    allowNegativeIndexes = false,
 }: Config): UseArrowKeyFocusManager {
     const allowHorizontalArrowKeys = !!itemsPerRow;
     const [focusedIndex, setFocusedIndex] = useState(initialFocusedIndex);
@@ -84,7 +86,13 @@ export default function useArrowKeyFocusManager({
             while (disabledIndexes.includes(newFocusedIndex)) {
                 newFocusedIndex -= allowHorizontalArrowKeys ? itemsPerRow : 1;
                 if (newFocusedIndex < 0) {
-                    break;
+                    if (disableCyclicTraversal) {
+                        if (!allowNegativeIndexes) {
+                            return actualIndex;
+                        }
+                        break;
+                    }
+                    newFocusedIndex = maxIndex;
                 }
                 if (newFocusedIndex === currentFocusedIndex) {
                     // all indexes are disabled
@@ -93,7 +101,7 @@ export default function useArrowKeyFocusManager({
             }
             return newFocusedIndex;
         });
-    }, [allowHorizontalArrowKeys, disableCyclicTraversal, disabledIndexes, itemsPerRow, maxIndex]);
+    }, [allowHorizontalArrowKeys, disableCyclicTraversal, disabledIndexes, itemsPerRow, maxIndex, allowNegativeIndexes]);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_UP, arrowUpCallback, arrowConfig);
 
@@ -127,8 +135,11 @@ export default function useArrowKeyFocusManager({
                     newFocusedIndex += allowHorizontalArrowKeys ? itemsPerRow : 1;
                 }
 
-                if (newFocusedIndex < 0) {
-                    break;
+                if (newFocusedIndex > maxIndex) {
+                    if (disableCyclicTraversal) {
+                        return actualIndex;
+                    }
+                    newFocusedIndex = 0;
                 }
                 if (newFocusedIndex === currentFocusedIndex) {
                     // all indexes are disabled

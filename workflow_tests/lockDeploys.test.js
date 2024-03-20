@@ -3,7 +3,7 @@ const kieMockGithub = require('@kie/mock-github');
 const utils = require('./utils/utils');
 const assertions = require('./assertions/lockDeploysAssertions');
 const mocks = require('./mocks/lockDeploysMocks');
-const eAct = require('./utils/ExtendedAct');
+const ExtendedAct = require('./utils/ExtendedAct').default;
 
 jest.setTimeout(90 * 1000);
 let mockGithub;
@@ -45,7 +45,7 @@ describe('test workflow lockDeploys', () => {
                     it('job triggered, comment left in StagingDeployCash', async () => {
                         const repoPath = mockGithub.repo.getPath('testLockDeploysWorkflowRepo') || '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml');
-                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
                             act,
                             'issues',
@@ -87,7 +87,7 @@ describe('test workflow lockDeploys', () => {
                     it('one step fails, comment not left in StagingDeployCash, announced failure in Slack', async () => {
                         const repoPath = mockGithub.repo.getPath('testLockDeploysWorkflowRepo') || '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml');
-                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
                             act,
                             'issues',
@@ -141,7 +141,7 @@ describe('test workflow lockDeploys', () => {
                     it('job not triggered, comment not left in StagingDeployCash', async () => {
                         const repoPath = mockGithub.repo.getPath('testLockDeploysWorkflowRepo') || '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml');
-                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
                             act,
                             'issues',
@@ -187,7 +187,7 @@ describe('test workflow lockDeploys', () => {
                     it('job not triggered, comment not left in StagingDeployCash', async () => {
                         const repoPath = mockGithub.repo.getPath('testLockDeploysWorkflowRepo') || '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml');
-                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
                             act,
                             'issues',
@@ -231,7 +231,7 @@ describe('test workflow lockDeploys', () => {
                     it('job not triggered, comment not left in StagingDeployCash', async () => {
                         const repoPath = mockGithub.repo.getPath('testLockDeploysWorkflowRepo') || '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml');
-                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
                             act,
                             'issues',
@@ -279,7 +279,7 @@ describe('test workflow lockDeploys', () => {
                     it('job not triggered, comment not left in StagingDeployCash', async () => {
                         const repoPath = mockGithub.repo.getPath('testLockDeploysWorkflowRepo') || '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml');
-                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
                             act,
                             'issues',
@@ -323,7 +323,7 @@ describe('test workflow lockDeploys', () => {
                     it('job not triggered, comment not left in StagingDeployCash', async () => {
                         const repoPath = mockGithub.repo.getPath('testLockDeploysWorkflowRepo') || '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml');
-                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
                             act,
                             'issues',
@@ -369,7 +369,7 @@ describe('test workflow lockDeploys', () => {
                     it('job not triggered, comment not left in StagingDeployCash', async () => {
                         const repoPath = mockGithub.repo.getPath('testLockDeploysWorkflowRepo') || '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml');
-                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
                             act,
                             'issues',
@@ -413,7 +413,7 @@ describe('test workflow lockDeploys', () => {
                     it('job not triggered, comment not left in StagingDeployCash', async () => {
                         const repoPath = mockGithub.repo.getPath('testLockDeploysWorkflowRepo') || '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml');
-                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
                             act,
                             'issues',

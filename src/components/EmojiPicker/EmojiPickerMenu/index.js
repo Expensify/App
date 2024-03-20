@@ -112,6 +112,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected, activeEmoji}) {
         disableHorizontalKeys: isFocused,
         // We pass true without checking visibility of the component because if the popover is not visible this picker won't be mounted
         isActive: true,
+        allowNegativeIndexes: true,
     });
 
     const filterEmojis = _.throttle((searchTerm) => {

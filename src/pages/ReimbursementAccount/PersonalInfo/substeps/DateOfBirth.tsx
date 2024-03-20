@@ -58,7 +58,7 @@ function DateOfBirth({reimbursementAccount, reimbursementAccountDraft, onNext, i
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
-        isEditing,
+        shouldSaveDraft: isEditing,
     });
 
     return (

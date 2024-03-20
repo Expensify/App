@@ -3,7 +3,7 @@ const kieMockGithub = require('@kie/mock-github');
 const utils = require('./utils/utils');
 const assertions = require('./assertions/cherryPickAssertions');
 const mocks = require('./mocks/cherryPickMocks');
-const eAct = require('./utils/ExtendedAct');
+const ExtendedAct = require('./utils/ExtendedAct').default;
 
 jest.setTimeout(90 * 1000);
 let mockGithub;
@@ -45,7 +45,7 @@ describe('test workflow cherryPick', () => {
             it('workflow ends after validate job', async () => {
                 const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'cherryPick.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(
                     act,
                     event,
@@ -95,7 +95,7 @@ describe('test workflow cherryPick', () => {
             it('behaviour is the same as with actor being the deployer', async () => {
                 const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'cherryPick.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 const testMockSteps = {
                     validateActor: mocks.CHERRYPICK__VALIDATEACTOR__FALSE__STEP_MOCKS,
                     cherryPick: mocks.getCherryPickMockSteps(versionsMatch, mergeConflicts),
@@ -147,7 +147,7 @@ describe('test workflow cherryPick', () => {
                     it('workflow executes, PR approved and merged automatically', async () => {
                         const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') || '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'cherryPick.yml');
-                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        let act = new ExtendedAct(repoPath, workflowPath);
                         const testMockSteps = {
                             validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
                         };
@@ -195,7 +195,7 @@ describe('test workflow cherryPick', () => {
                     it('workflow executes, PR auto-assigned and commented, approved and merged automatically', async () => {
                         const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') || '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'cherryPick.yml');
-                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        let act = new ExtendedAct(repoPath, workflowPath);
                         const testMockSteps = {
                             validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
                         };
@@ -246,7 +246,7 @@ describe('test workflow cherryPick', () => {
                     it('workflow executes, PR auto-assigned and commented, not merged automatically', async () => {
                         const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') || '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'cherryPick.yml');
-                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        let act = new ExtendedAct(repoPath, workflowPath);
                         const testMockSteps = {
                             validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
                         };
@@ -294,7 +294,7 @@ describe('test workflow cherryPick', () => {
                     it('workflow executes, PR auto-assigned and commented, not merged automatically', async () => {
                         const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') || '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'cherryPick.yml');
-                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        let act = new ExtendedAct(repoPath, workflowPath);
                         const testMockSteps = {
                             validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
                         };
@@ -345,7 +345,7 @@ describe('test workflow cherryPick', () => {
         it('workflow does not execute', async () => {
             const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'cherryPick.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
+            let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 event,

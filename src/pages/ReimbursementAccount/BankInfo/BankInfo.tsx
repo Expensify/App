@@ -118,7 +118,7 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
                     [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: '',
                     [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: '',
                     [BANK_INFO_STEP_KEYS.PLAID_MASK]: '',
-                    [BANK_INFO_STEP_KEYS.IS_SAVINGS]: '',
+                    [BANK_INFO_STEP_KEYS.IS_SAVINGS]: false,
                     [BANK_INFO_STEP_KEYS.BANK_NAME]: '',
                     [BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]: '',
                     [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: '',

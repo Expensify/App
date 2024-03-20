@@ -54,7 +54,6 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
                             innerStyles={[styles.arrowIcon]}
                             icon={Expensicons.BackArrow}
                             iconFill={theme.text}
-                            iconStyles={[styles.mr0]}
                             onPress={onBack}
                             onPressIn={cancelAutoHideArrow}
                             onPressOut={autoHideArrow}
@@ -70,7 +69,6 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
                             innerStyles={[styles.arrowIcon]}
                             icon={Expensicons.ArrowRight}
                             iconFill={theme.text}
-                            iconStyles={[styles.mr0]}
                             onPress={onForward}
                             onPressIn={cancelAutoHideArrow}
                             onPressOut={autoHideArrow}

@@ -35,8 +35,8 @@ function IncorporationStateBusiness({reimbursementAccount, onNext, isEditing}: I
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
-        isEditing,
         onNext,
+        shouldSaveDraft: isEditing,
     });
 
     return (

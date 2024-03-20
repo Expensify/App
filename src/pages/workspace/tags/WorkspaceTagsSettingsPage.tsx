@@ -76,6 +76,7 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
                                     title={policyTagName}
                                     description={translate(`workspace.tags.customTagName`)}
                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID))}
+                                    shouldShowRightIcon
                                 />
                             </OfflineWithFeedback>
                         </View>

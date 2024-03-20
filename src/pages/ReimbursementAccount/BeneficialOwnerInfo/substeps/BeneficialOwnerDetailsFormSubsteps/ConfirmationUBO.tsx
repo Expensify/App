@@ -114,6 +114,7 @@ function ConfirmationUBO({reimbursementAccount, reimbursementAccountDraft, onNex
                         <Button
                             isDisabled={isOffline}
                             success
+                            large
                             style={[styles.w100, styles.mt2, styles.pb5]}
                             onPress={onNext}
                             text={translate('common.confirm')}

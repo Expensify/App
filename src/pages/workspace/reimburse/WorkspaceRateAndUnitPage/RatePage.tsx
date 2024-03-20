@@ -1,18 +1,15 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormOnyxValues} from '@components/Form/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
-import getPermittedDecimalSeparator from '@libs/getPermittedDecimalSeparator';
-import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as NumberUtils from '@libs/NumberUtils';
+import validateRateValue from '@libs/PolicyDistanceRatesUtils';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
@@ -34,6 +31,7 @@ type WorkspaceRatePageProps = WorkspaceRatePageBaseProps & WorkspaceRateAndUnitO
 function WorkspaceRatePage(props: WorkspaceRatePageProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
+    const outputCurrency = props.policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     useEffect(() => {
         if (props.workspaceRateAndUnit?.policyID === props.policy?.id) {
@@ -49,21 +47,10 @@ function WorkspaceRatePage(props: WorkspaceRatePageProps) {
         Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? ''));
     };
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM> => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM> = {};
-        const rate = values.rate;
-        const parsedRate = MoneyRequestUtils.replaceAllDigits(rate, toLocaleDigit);
-        const decimalSeparator = toLocaleDigit('.');
-        const outputCurrency = props.policy?.outputCurrency ?? CONST.CURRENCY.USD;
-        // Allow one more decimal place for accuracy
-        const rateValueRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{1,${CurrencyUtils.getCurrencyDecimals(outputCurrency) + 1}})?$`, 'i');
-        if (!rateValueRegex.test(parsedRate) || parsedRate === '') {
-            errors.rate = 'workspace.reimburse.invalidRateError';
-        } else if (NumberUtils.parseFloatAnyLocale(parsedRate) <= 0) {
-            errors.rate = 'workspace.reimburse.lowRateError';
-        }
-        return errors;
-    };
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => validateRateValue(values, outputCurrency, toLocaleDigit),
+        [outputCurrency, toLocaleDigit],
+    );
 
     const defaultValue = useMemo(() => {
         const defaultDistanceCustomUnit = Object.values(props.policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);

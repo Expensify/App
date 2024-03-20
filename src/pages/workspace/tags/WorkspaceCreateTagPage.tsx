@@ -23,7 +23,7 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import INPUT_IDS from '@src/types/form/WorkspaceTagCreateForm';
+import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
 import type {PolicyTagList} from '@src/types/onyx';
 
 type WorkspaceCreateTagPageOnyxProps = {
@@ -39,8 +39,8 @@ function CreateTagPage({route, policyTags}: CreateTagPageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
 
     const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_CREATE_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_CREATE_FORM> = {};
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
             const tagName = values.tagName.trim();
             const {tags} = PolicyUtils.getTagList(policyTags, 0);
 
@@ -59,7 +59,7 @@ function CreateTagPage({route, policyTags}: CreateTagPageProps) {
     );
 
     const createTag = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_CREATE_FORM>) => {
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             Policy.createPolicyTag(route.params.policyID, values.tagName.trim());
             Keyboard.dismiss();
             Navigation.goBack();
@@ -81,7 +81,7 @@ function CreateTagPage({route, policyTags}: CreateTagPageProps) {
                         onBackButtonPress={Navigation.goBack}
                     />
                     <FormProvider
-                        formID={ONYXKEYS.FORMS.WORKSPACE_TAG_CREATE_FORM}
+                        formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}
                         onSubmit={createTag}
                         submitButtonText={translate('common.save')}
                         validate={validate}

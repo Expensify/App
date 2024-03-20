@@ -121,6 +121,7 @@ function VerifyStep({account}: VerifyStepProps) {
                 </View>
                 <Button
                     success
+                    large
                     text={translate('common.next')}
                     isLoading={account?.isLoading}
                     onPress={() => {

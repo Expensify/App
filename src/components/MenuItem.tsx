@@ -224,7 +224,7 @@ type MenuItemBaseProps = {
     onSecondaryInteraction?: (event: GestureResponderEvent | MouseEvent) => void;
 
     /** Array of objects that map display names to their corresponding tooltip */
-    titleWithTooltips?: DisplayNameWithTooltip[];
+    titleWithTooltips?: DisplayNameWithTooltip[] | undefined;
 
     /** Icon should be displayed in its own color */
     displayInDefaultIconColor?: boolean;

@@ -5,6 +5,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import type {ValuePickerItem, ValuePickerProps} from './types';
 import ValueSelectorModal from './ValueSelectorModal';
@@ -55,6 +56,7 @@ function ValuePicker({value, label, items, placeholder = '', errorText = '', onI
                 onClose={hidePickerModal}
                 onItemSelected={updateInput}
                 shouldShowTooltips={shouldShowTooltips}
+                onBackdropPress={Navigation.dismissModal}
             />
         </View>
     );

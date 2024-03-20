@@ -96,6 +96,7 @@ function FormAlertWithSubmitButton({
                             style={style}
                             danger={isSubmitActionDangerous}
                             medium={useSmallerSubmitButtonSize}
+                            large={!useSmallerSubmitButtonSize}
                         />
                     ) : (
                         <Button
@@ -108,6 +109,7 @@ function FormAlertWithSubmitButton({
                             isLoading={isLoading}
                             danger={isSubmitActionDangerous}
                             medium={useSmallerSubmitButtonSize}
+                            large={!useSmallerSubmitButtonSize}
                         />
                     )}
                     {footerContent}

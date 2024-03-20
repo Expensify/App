@@ -665,6 +665,7 @@ class BaseOptionsSelector extends Component {
                         {shouldShowDefaultConfirmButton && (
                             <Button
                                 success
+                                large
                                 style={[this.props.themeStyles.w100]}
                                 text={defaultConfirmButtonText}
                                 onPress={this.props.onConfirmSelection}

@@ -49,7 +49,7 @@ function EditRequestTagPage({defaultTag, policyID, tagName, tagIndex, onSubmit})
                         title={tagName || translate('common.tag')}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: tagName || translate('common.tag')})}</Text>
+                    <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection')}</Text>
                     <TagPicker
                         selectedTag={defaultTag}
                         tag={tagName}

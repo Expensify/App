@@ -35,10 +35,11 @@ const run = () => {
             // Graphite doesn't accept metrics name with space, we replace spaces with "-"
             const formattedName = current.name.split(' ').join('-');
 
-            const renderDurationString = `${GRAPHITE_PATH}.PR-${prNumber}.${formattedName}.renderDuration ${current.meanDuration} ${timestamp}`;
-            const renderCountString = `${GRAPHITE_PATH}.PR-${prNumber}.${formattedName}.renderCount ${current.meanCount} ${timestamp}`;
+            const renderDurationString = `${GRAPHITE_PATH}.${formattedName}.renderDuration ${current.meanDuration} ${timestamp}`;
+            const renderCountString = `${GRAPHITE_PATH}.${formattedName}.renderCount ${current.meanCount} ${timestamp}`;
+            const renderPRNumberString = `${GRAPHITE_PATH}.${formattedName}.prNumber ${prNumber} ${timestamp}`;
 
-            return `${renderDurationString}\n${renderCountString}`;
+            return `${renderDurationString}\n${renderCountString}\n${renderPRNumberString}`;
         })
         .join('\n');
 

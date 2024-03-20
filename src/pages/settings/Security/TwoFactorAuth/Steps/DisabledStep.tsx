@@ -25,6 +25,7 @@ function DisabledStep() {
             <FixedFooter style={[styles.flexGrow0]}>
                 <Button
                     success
+                    large
                     text={translate('common.buttonConfirm')}
                     onPress={() => TwoFactorAuthActions.quitAndNavigateBack()}
                 />

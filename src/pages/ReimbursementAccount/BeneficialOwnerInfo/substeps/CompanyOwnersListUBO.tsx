@@ -141,6 +141,7 @@ function CompanyOwnersListUBO({
                     </View>
                     <Button
                         success
+                        large
                         isLoading={isLoading}
                         isDisabled={isOffline}
                         style={[styles.w100, styles.mt2, styles.pb5, styles.ph5]}

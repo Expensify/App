@@ -150,6 +150,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
                 style={styles.mt4}
                 isLoading={shouldShowLoadingIndicator}
                 pressOnEnter
+                large
             />
         </ScrollView>
     ) : (
