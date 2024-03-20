@@ -268,6 +268,11 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.TAG_SETTINGS]: () => require('../../../pages/workspace/tags/TagSettingsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAGS_EDIT]: () => require('../../../pages/workspace/tags/WorkspaceEditTagsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAG_CREATE]: () => require('../../../pages/workspace/tags/WorkspaceCreateTagPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.TAG_EDIT]: () => require('../../../pages/workspace/tags/EditTagPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.TAXES_SETTINGS]: () => require('../../../pages/workspace/taxes/WorkspaceTaxesSettingsPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.TAXES_SETTINGS_CUSTOM_TAX_NAME]: () => require('../../../pages/workspace/taxes/WorkspaceTaxesSettingsCustomTaxName').default as React.ComponentType,
+    [SCREENS.WORKSPACE.TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT]: () => require('../../../pages/workspace/taxes/WorkspaceTaxesSettingsForeignCurrency').default as React.ComponentType,
+    [SCREENS.WORKSPACE.TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT]: () => require('../../../pages/workspace/taxes/WorkspaceTaxesSettingsWorkspaceCurrency').default as React.ComponentType,
     [SCREENS.REIMBURSEMENT_ACCOUNT]: () => require('../../../pages/ReimbursementAccount/ReimbursementAccountPage').default as React.ComponentType,
     [SCREENS.GET_ASSISTANCE]: () => require('../../../pages/GetAssistancePage').default as React.ComponentType,
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: () => require('../../../pages/settings/Security/TwoFactorAuth/TwoFactorAuthPage').default as React.ComponentType,
@@ -278,6 +283,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: () => require('../../../pages/settings/ExitSurvey/ExitSurveyConfirmPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: () => require('../../../pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: () => require('../../../pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.TAX_CREATE]: () => require('../../../pages/workspace/taxes/WorkspaceCreateTaxPage').default as React.ComponentType,
 });
 
 const EnablePaymentsStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({

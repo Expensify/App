@@ -301,11 +301,29 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.TAG_CREATE]: {
                             path: ROUTES.WORKSPACE_TAG_CREATE.route,
                         },
+                        [SCREENS.WORKSPACE.TAG_EDIT]: {
+                            path: ROUTES.WORKSPACE_TAG_EDIT.route,
+                            parse: {
+                                tagName: (tagName: string) => decodeURIComponent(tagName),
+                            },
+                        },
                         [SCREENS.WORKSPACE.TAG_SETTINGS]: {
                             path: ROUTES.WORKSPACE_TAG_SETTINGS.route,
                             parse: {
                                 tagName: (tagName: string) => decodeURIComponent(tagName),
                             },
+                        },
+                        [SCREENS.WORKSPACE.TAXES_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_TAXES_SETTINGS.route,
+                        },
+                        [SCREENS.WORKSPACE.TAXES_SETTINGS_CUSTOM_TAX_NAME]: {
+                            path: ROUTES.WORKSPACE_TAXES_SETTINGS_CUSTOM_TAX_NAME.route,
+                        },
+                        [SCREENS.WORKSPACE.TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT]: {
+                            path: ROUTES.WORKSPACE_TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT.route,
+                        },
+                        [SCREENS.WORKSPACE.TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT]: {
+                            path: ROUTES.WORKSPACE_TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT.route,
                         },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
@@ -329,6 +347,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: {
                             path: ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route,
+                        },
+                        [SCREENS.WORKSPACE.TAX_CREATE]: {
+                            path: ROUTES.WORKSPACE_TAX_CREATE.route,
                         },
                     },
                 },
