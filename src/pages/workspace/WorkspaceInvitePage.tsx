@@ -1,6 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
-import Str from 'expensify-common/lib/str';
 import React, {useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {View} from 'react-native';
@@ -21,7 +20,7 @@ import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
-import {parsePhoneNumber} from '@libs/PhoneNumber';
+import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -176,8 +175,8 @@ function WorkspaceInvitePage({
             filterSelectedOptions = selectedOptions.filter((option) => {
                 const accountID = option.accountID;
                 const isOptionInPersonalDetails = Object.values(personalDetails).some((personalDetail) => personalDetail.accountID === accountID);
-                const parsedPhoneNumber = parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchTerm)));
-                const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchTerm.toLowerCase();
+
+                const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(searchTerm);
 
                 const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
                 return isPartOfSearchTerm || isOptionInPersonalDetails;
@@ -274,7 +273,9 @@ function WorkspaceInvitePage({
         if (
             usersToInvite.length === 0 &&
             excludedUsers.includes(
-                parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible ? OptionsListUtils.addSMSDomainIfPhoneNumber(LoginUtils.appendCountryCode(searchValue)) : searchValue,
+                PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible
+                    ? PhoneNumber.addSMSDomainIfPhoneNumber(LoginUtils.appendCountryCode(searchValue))
+                    : searchValue,
             )
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: policyName});
@@ -285,6 +286,7 @@ function WorkspaceInvitePage({
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
+            shouldUseCachedViewportHeight
             testID={WorkspaceInvitePage.displayName}
         >
             <FullPageNotFoundView
@@ -319,6 +321,7 @@ function WorkspaceInvitePage({
                     showScrollIndicator
                     showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetailsProp)}
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                    checkmarkPosition={CONST.DIRECTION.RIGHT}
                 />
                 <View style={[styles.flexShrink0]}>
                     <FormAlertWithSubmitButton

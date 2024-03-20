@@ -24,7 +24,6 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -145,7 +144,10 @@ function MoneyRequestView({
     const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true));
 
     const {getViolationsForField} = useViolations(transactionViolations ?? []);
-    const hasViolations = useCallback((field: ViolationField): boolean => !!canUseViolations && getViolationsForField(field).length > 0, [canUseViolations, getViolationsForField]);
+    const hasViolations = useCallback(
+        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data']): boolean => !!canUseViolations && getViolationsForField(field, data).length > 0,
+        [canUseViolations, getViolationsForField],
+    );
 
     let amountDescription = `${translate('iou.amount')}`;
 
@@ -198,7 +200,7 @@ function MoneyRequestView({
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => transaction?.pendingFields?.[fieldPath] ?? pendingAction;
 
     const getErrorForField = useCallback(
-        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], shouldShowViolations = true) => {
+        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data']) => {
             // Checks applied when creating a new money request
             // NOTE: receipt field can return multiple violations, so we need to handle it separately
             const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
@@ -224,9 +226,8 @@ function MoneyRequestView({
             }
 
             // Return violations if there are any
-            // At the moment, we only return violations for tags for workspaces with single-level tags
-            if (canUseViolations && shouldShowViolations && hasViolations(field)) {
-                const violations = getViolationsForField(field);
+            if (canUseViolations && hasViolations(field, data)) {
+                const violations = getViolationsForField(field, data);
                 return ViolationsUtils.getViolationTranslation(violations[0], translate);
             }
 
@@ -263,7 +264,6 @@ function MoneyRequestView({
                                     filename={receiptURIs?.filename}
                                     transaction={transaction}
                                     enablePreviewModal
-                                    canEditReceipt={canEditReceipt}
                                 />
                             )}
                         </View>
@@ -292,7 +292,7 @@ function MoneyRequestView({
                         shouldShowTitleIcon={isSettled}
                         titleIcon={Expensicons.Checkmark}
                         description={amountDescription}
-                        titleStyle={styles.newKansasLarge}
+                        titleStyle={styles.textHeadlineH2}
                         interactive={canEditAmount}
                         shouldShowRightIcon={canEditAmount}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
@@ -397,8 +397,8 @@ function MoneyRequestView({
                                         ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, index, transaction?.transactionID ?? '', report.reportID),
                                     )
                                 }
-                                brickRoadIndicator={getErrorForField('tag', {}, policyTagLists.length === 1) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                error={getErrorForField('tag', {}, policyTagLists.length === 1)}
+                                brickRoadIndicator={getErrorForField('tag', {tagListIndex: index, tagListName: name}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                error={getErrorForField('tag', {tagListIndex: index, tagListName: name})}
                             />
                         </OfflineWithFeedback>
                     ))}
@@ -470,8 +470,8 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
             },
         },
         transactionViolations: {
-            key: ({report}) => {
-                const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+            key: ({report, parentReportActions}) => {
+                const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''];
                 const originalMessage = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage : undefined;
                 const transactionID = originalMessage?.IOUTransactionID ?? 0;
                 return `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;

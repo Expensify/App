@@ -1,10 +1,11 @@
 import React, {memo, useMemo} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ReportUtils from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -45,7 +46,7 @@ type MultipleAvatarsProps = {
     /** Whether avatars are displayed within a reportAction */
     isInReportAction?: boolean;
 
-    /** Whether to show the toolip text */
+    /** Whether to show the tooltip text */
     shouldShowTooltip?: boolean;
 
     /** Whether avatars are displayed with the highlighted background color instead of the app background color. This is primarily the case for IOU previews. */
@@ -56,8 +57,8 @@ type MultipleAvatarsProps = {
 };
 
 type AvatarStyles = {
-    singleAvatarStyle: ViewStyle;
-    secondAvatarStyles: ViewStyle;
+    singleAvatarStyle: ViewStyle & ImageStyle;
+    secondAvatarStyles: ViewStyle & ImageStyle;
 };
 
 type AvatarSizeToStyles = typeof CONST.AVATAR_SIZE.SMALL | typeof CONST.AVATAR_SIZE.LARGE | typeof CONST.AVATAR_SIZE.DEFAULT;
@@ -106,7 +107,8 @@ function MultipleAvatars({
     let avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
     const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => avatarSizeToStylesMap[size as AvatarSizeToStyles] ?? avatarSizeToStylesMap.default, [size, avatarSizeToStylesMap]);
 
-    const tooltipTexts = useMemo(() => (shouldShowTooltip ? icons.map((icon) => icon.name) : ['']), [shouldShowTooltip, icons]);
+    const tooltipTexts = useMemo(() => (shouldShowTooltip ? icons.map((icon) => ReportUtils.getUserDetailTooltipText(Number(icon.id), icon.name)) : ['']), [shouldShowTooltip, icons]);
+
     const avatarSize = useMemo(() => {
         if (isFocusMode) {
             return CONST.AVATAR_SIZE.MID_SUBSCRIPT;

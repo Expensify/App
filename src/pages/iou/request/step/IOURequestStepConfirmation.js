@@ -96,7 +96,16 @@ function IOURequestStepConfirmation({
     const transactionTaxCode = transaction.taxRate && transaction.taxRate.keyForList;
     const transactionTaxAmount = transaction.taxAmount;
     const requestType = TransactionUtils.getRequestType(transaction);
-    const headerTitle = iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.split') : translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
+    const headerTitle = useMemo(() => {
+        if (iouType === CONST.IOU.TYPE.SPLIT) {
+            return translate('iou.split');
+        }
+        if (iouType === CONST.IOU.TYPE.SEND) {
+            return translate('common.send');
+        }
+        return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
+    }, [iouType, transaction, translate]);
+
     const participants = useMemo(
         () =>
             _.map(transaction.participants, (participant) => {
@@ -155,11 +164,6 @@ function IOURequestStepConfirmation({
         // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
         // back to the participants step
         if (!transaction.participantsAutoAssigned) {
-            // When going back to the participants step, if the iou is a "request" (not a split), then the participants need to be cleared from the
-            // transaction so that the participant can be selected again.
-            if (iouType === CONST.IOU.TYPE.REQUEST) {
-                IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, []);
-            }
             Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
             return;
         }
@@ -291,6 +295,7 @@ function IOURequestStepConfirmation({
                     transaction.tag,
                     report.reportID,
                     transaction.billable,
+                    transaction.iouRequestType,
                 );
                 return;
             }
@@ -309,6 +314,7 @@ function IOURequestStepConfirmation({
                     transaction.category,
                     transaction.tag,
                     transaction.billable,
+                    transaction.iouRequestType,
                 );
                 return;
             }
@@ -362,7 +368,9 @@ function IOURequestStepConfirmation({
     const sendMoney = useCallback(
         (paymentMethodType) => {
             const currency = transaction.currency;
-            const trimmedComment = transaction.comment.trim();
+
+            const trimmedComment = transaction.comment && transaction.comment.comment ? transaction.comment.comment.trim() : '';
+
             const participant = participants[0];
 
             if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
@@ -374,8 +382,9 @@ function IOURequestStepConfirmation({
                 IOU.sendMoneyWithWallet(report, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant);
             }
         },
-        [transaction.amount, transaction.comment, participants, transaction.currency, currentUserPersonalDetails.accountID, report],
+        [transaction.amount, transaction.comment, transaction.currency, participants, currentUserPersonalDetails.accountID, report],
     );
+
     const addNewParticipant = (option) => {
         const newParticipants = _.map(transaction.participants, (participant) => {
             if (participant.accountID === option.accountID) {

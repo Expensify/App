@@ -1,16 +1,19 @@
-import React, {useEffect, useMemo} from 'react';
-import {ScrollView, View} from 'react-native';
+import Str from 'expensify-common/lib/str';
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {withNetwork} from '@components/OnyxProvider';
+import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
@@ -58,14 +61,6 @@ function WorkspaceRateAndUnitPage(props: WorkspaceRateAndUnitPageProps) {
         Policy.openWorkspaceReimburseView(props.policy?.id ?? '');
     }, [props]);
 
-    const unitItems = useMemo(
-        () => ({
-            [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: translate('workspace.reimburse.kilometers'),
-            [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: translate('workspace.reimburse.miles'),
-        }),
-        [translate],
-    );
-
     const saveUnitAndRate = (newUnit: Unit, newRate: string) => {
         const distanceCustomUnit = Object.values(props.policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         if (!distanceCustomUnit) {
@@ -92,6 +87,7 @@ function WorkspaceRateAndUnitPage(props: WorkspaceRateAndUnitPageProps) {
 
     const unitValue = props.workspaceRateAndUnit?.unit ?? distanceCustomUnit?.attributes.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
     const rateValue = props.workspaceRateAndUnit?.rate ?? distanceCustomRate?.rate?.toString() ?? '';
+    const unitTitle = Str.recapitalize(translate(getUnitTranslationKey(unitValue)));
 
     const submit = () => {
         saveUnitAndRate(unitValue, rateValue);
@@ -110,14 +106,7 @@ function WorkspaceRateAndUnitPage(props: WorkspaceRateAndUnitPageProps) {
             shouldShowBackButton
         >
             {() => (
-                <ScrollView
-                    contentContainerStyle={styles.flexGrow1}
-                    // on iOS, navigation animation sometimes cause the scrollbar to appear
-                    // on middle/left side of scrollview. scrollIndicatorInsets with right
-                    // to closest value to 0 fixes this issue, 0 (default) doesn't work
-                    // See: https://github.com/Expensify/App/issues/31441
-                    scrollIndicatorInsets={{right: Number.MIN_VALUE}}
-                >
+                <ScrollView contentContainerStyle={styles.flexGrow1}>
                     <View style={[styles.flex1]}>
                         <View style={styles.mb5}>
                             <OfflineWithFeedback
@@ -137,7 +126,7 @@ function WorkspaceRateAndUnitPage(props: WorkspaceRateAndUnitPageProps) {
                                 />
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.reimburse.trackDistanceUnit')}
-                                    title={unitItems[unitValue]}
+                                    title={unitTitle}
                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT_UNIT.getRoute(props.policy?.id ?? ''))}
                                     shouldShowRightIcon
                                 />
