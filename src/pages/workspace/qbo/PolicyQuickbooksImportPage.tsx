@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -13,14 +13,6 @@ import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-const NAVIGATION_KEYS = {
-    ACCOUNTS: 'accounts',
-    CLASSES: 'classes',
-    CUSTOMERS: 'customers',
-    LOCATIONS: 'locations',
-    TAXES: 'taxes',
-};
-
 function PolicyQuickbooksImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -32,63 +24,38 @@ function PolicyQuickbooksImportPage({policy}: WithPolicyProps) {
         TAG: translate('workspace.qbo.importedAsTags'),
         REPORT_FIELD: translate('workspace.qbo.importedAsReportFields'),
     };
+    const policyID = policy?.id ?? '';
     const {syncClasses, syncCustomers, syncLocations, syncTaxes, syncAccounts} = policy?.connections?.quickbooksOnline?.config ?? {};
-
-    const onPressConfigOption = useCallback(
-        (option: string) => {
-            const policyID = policy?.id ?? '';
-            switch (option) {
-                case NAVIGATION_KEYS.ACCOUNTS:
-                    Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKSONLINE_CHART_OF_ACCOUNTS.getRoute(policyID));
-                    break;
-                case NAVIGATION_KEYS.CLASSES:
-                    Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKSONLINE_CLASSES.getRoute(policyID));
-                    break;
-                case NAVIGATION_KEYS.CUSTOMERS:
-                    Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKSONLINE_CUSTOMER.getRoute(policyID));
-                    break;
-                case NAVIGATION_KEYS.LOCATIONS:
-                    Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKSONLINE_LOCATIONS.getRoute(policyID));
-                    break;
-                case NAVIGATION_KEYS.TAXES:
-                    Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKSONLINE_TAXES.getRoute(policyID));
-                    break;
-                default:
-                    break;
-            }
-        },
-        [policy?.id],
-    );
 
     const sections = [
         {
             description: translate('workspace.qbo.accounts'),
-            navigationKey: NAVIGATION_KEYS.ACCOUNTS,
-            errorIndicator: !!policy?.errors?.syncAccounts,
+            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKSONLINE_CHART_OF_ACCOUNTS.getRoute(policyID)),
+            hasError: Boolean(policy?.errors?.syncAccounts),
             title: syncAccounts,
         },
         {
             description: translate('workspace.qbo.classes'),
-            navigationKey: NAVIGATION_KEYS.CLASSES,
-            errorIndicator: !!policy?.errors?.syncClasses,
+            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKSONLINE_CLASSES.getRoute(policyID)),
+            hasError: Boolean(policy?.errors?.syncClasses),
             title: syncClasses,
         },
         {
             description: translate('workspace.qbo.customers'),
-            navigationKey: NAVIGATION_KEYS.CUSTOMERS,
-            errorIndicator: !!policy?.errors?.syncCustomers,
+            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKSONLINE_CUSTOMER.getRoute(policyID)),
+            hasError: Boolean(policy?.errors?.syncCustomers),
             title: syncCustomers,
         },
         {
             description: translate('workspace.qbo.locations'),
-            navigationKey: NAVIGATION_KEYS.LOCATIONS,
-            errorIndicator: !!policy?.errors?.syncLocations,
+            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKSONLINE_LOCATIONS.getRoute(policyID)),
+            hasError: Boolean(policy?.errors?.syncLocations),
             title: syncLocations,
         },
         {
             description: translate('workspace.qbo.taxes'),
-            navigationKey: NAVIGATION_KEYS.TAXES,
-            errorIndicator: !!policy?.errors?.syncTaxes,
+            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKSONLINE_TAXES.getRoute(policyID)),
+            hasError: Boolean(policy?.errors?.syncTaxes),
             title: syncTaxes,
         },
     ];
@@ -108,11 +75,11 @@ function PolicyQuickbooksImportPage({policy}: WithPolicyProps) {
                 {sections.map((section) => (
                     <OfflineWithFeedback>
                         <MenuItemWithTopDescription
-                            title={quickbooksOnlineConfigTitles[`${section.title ?? 'NONE'}`]}
+                            title={quickbooksOnlineConfigTitles[`${section.title ?? false}`]}
                             description={section.description}
                             shouldShowRightIcon
-                            onPress={() => onPressConfigOption(section.navigationKey)}
-                            brickRoadIndicator={section.errorIndicator ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            onPress={section.action}
+                            brickRoadIndicator={section.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         />
                     </OfflineWithFeedback>
                 ))}
