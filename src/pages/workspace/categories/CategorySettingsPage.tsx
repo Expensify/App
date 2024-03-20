@@ -1,9 +1,11 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -11,6 +13,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {setWorkspaceCategoryEnabled} from '@libs/actions/Policy';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -34,6 +37,8 @@ type CategorySettingsPageProps = CategorySettingsPageOnyxProps & StackScreenProp
 function CategorySettingsPage({route, policyCategories}: CategorySettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {windowWidth} = useWindowDimensions();
+    const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
 
     const policyCategory = policyCategories?.[route.params.categoryName];
 
@@ -49,6 +54,20 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
         Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_EDIT.getRoute(route.params.policyID, policyCategory.name));
     };
 
+    const deleteCategory = () => {
+        Policy.deleteWorkspaceCategories(route.params.policyID, [route.params.categoryName]);
+        setDeleteCategoryConfirmModalVisible(false);
+        Navigation.dismissModal();
+    };
+
+    const threeDotsMenuItems = [
+        {
+            icon: Expensicons.Trashcan,
+            text: translate('workspace.categories.deleteCategory'),
+            onSelected: () => setDeleteCategoryConfirmModalVisible(true),
+        },
+    ];
+
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
@@ -57,7 +76,22 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
                     style={[styles.defaultModalContainer]}
                     testID={CategorySettingsPage.displayName}
                 >
-                    <HeaderWithBackButton title={route.params.categoryName} />
+                    <HeaderWithBackButton
+                        shouldShowThreeDotsButton
+                        title={route.params.categoryName}
+                        threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
+                        threeDotsMenuItems={threeDotsMenuItems}
+                    />
+                    <ConfirmModal
+                        isVisible={deleteCategoryConfirmModalVisible}
+                        onConfirm={deleteCategory}
+                        onCancel={() => setDeleteCategoryConfirmModalVisible(false)}
+                        title={translate('workspace.categories.deleteCategory')}
+                        prompt={translate('workspace.categories.deleteCategoryPrompt')}
+                        confirmText={translate('common.delete')}
+                        cancelText={translate('common.cancel')}
+                        danger
+                    />
                     <View style={styles.flexGrow1}>
                         <OfflineWithFeedback
                             errors={ErrorUtils.getLatestErrorMessageField(policyCategory)}
@@ -80,6 +114,7 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
                             title={policyCategory.name}
                             description={translate(`workspace.categories.categoryName`)}
                             onPress={navigateToEditCategory}
+                            shouldShowRightIcon
                         />
                     </View>
                 </ScreenWrapper>

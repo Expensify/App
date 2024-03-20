@@ -125,7 +125,7 @@ function ExpensifyCardPage({
                 <>
                     <HeaderWithBackButton
                         title={translate('cardPage.expensifyCard')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
+                        onBackButtonPress={() => Navigation.goBack()}
                     />
                     <ScrollView contentContainerStyle={safeAreaPaddingBottomStyle}>
                         <View style={[styles.flex1, styles.mb9, styles.mt9]}>
