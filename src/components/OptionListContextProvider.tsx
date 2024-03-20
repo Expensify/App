@@ -134,4 +134,4 @@ export default withOnyx<OptionsListProviderProps, OptionsListProviderOnyxProps>(
     },
 })(OptionsListContextProvider);
 
-export {useOptionsListContext, useOptionsList};
+export {useOptionsListContext, useOptionsList, OptionsListContext};

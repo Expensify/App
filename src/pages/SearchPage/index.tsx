@@ -150,7 +150,7 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
             shouldEnableMaxHeight
             navigation={navigation}
         >
-            {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
+            {({safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
                         title={translate('common.search')}
@@ -158,7 +158,7 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
                     />
                     <View style={[themeStyles.flex1, themeStyles.w100, safeAreaPaddingBottomStyle]}>
                         <SelectionList<OptionData>
-                            sections={(!areOptionsInitialized && didScreenTransitionEnd) || areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
+                            sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
                             ListItem={UserListItem}
                             textInputValue={searchValue}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
@@ -168,7 +168,7 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
                             onLayout={setPerformanceTimersEnd}
                             autoFocus
                             onSelectRow={selectReport}
-                            showLoadingPlaceholder={areOptionsInitialized && debouncedSearchValue.trim() === '' ? sections.length === 0 : !didScreenTransitionEnd}
+                            showLoadingPlaceholder={!areOptionsInitialized}
                             footerContent={SearchPageFooterInstance}
                             isLoadingNewOptions={isSearchingForReports ?? undefined}
                         />
