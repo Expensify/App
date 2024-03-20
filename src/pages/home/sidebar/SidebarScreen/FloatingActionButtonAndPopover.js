@@ -42,7 +42,7 @@ const getQuickActionIcon = (action) => {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
             return Expensicons.MoneyCircle;
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
-            return Expensicons.MoneyCircle;
+            return Expensicons.Receipt;
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
             return Expensicons.Car;
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
