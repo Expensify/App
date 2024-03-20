@@ -6,6 +6,7 @@ import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
+import {useSession} from '@components/OnyxProvider';
 import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
 import type QRShareWithDownloadHandle from '@components/QRShare/QRShareWithDownload/types';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -29,10 +30,11 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
     const {environmentURL} = useEnvironment();
     const qrCodeRef = useRef<QRShareWithDownloadHandle>(null);
     const {isSmallScreenWidth} = useWindowDimensions();
+    const session = useSession();
 
     const policyName = policy?.name ?? '';
     const id = policy?.id ?? '';
-    const adminEmail = policy?.owner ?? '';
+    const adminEmail = session?.email ?? '';
     const urlWithTrailingSlash = Url.addTrailingForwardSlash(environmentURL);
 
     const url = `${urlWithTrailingSlash}${ROUTES.WORKSPACE_JOIN_USER.getRoute(id, adminEmail)}`;
