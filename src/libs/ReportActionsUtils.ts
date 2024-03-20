@@ -106,7 +106,7 @@ function isDeletedAction(reportAction: OnyxEntry<ReportAction | OptimisticIOURep
     const message = reportAction?.message ?? [];
 
     // A legacy deleted comment has either an empty array or an object with html field with empty string as value
-    const isLegacyDeletedComment = !message.length || !message[0]?.html;
+    const isLegacyDeletedComment = message.length === 0 || message[0]?.html === '';
 
     return isLegacyDeletedComment || !!message[0]?.deleted;
 }
