@@ -215,7 +215,13 @@ const SCREENS = {
         TAGS: 'Workspace_Tags',
         TAGS_SETTINGS: 'Tags_Settings',
         TAGS_EDIT: 'Tags_Edit',
+        TAG_EDIT: 'Tag_Edit',
         TAXES: 'Workspace_Taxes',
+        TAXES_SETTINGS: 'Workspace_Taxes_Settings',
+        TAXES_SETTINGS_CUSTOM_TAX_NAME: 'Workspace_Taxes_Settings_CustomTaxName',
+        TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT: 'Workspace_Taxes_Settings_WorkspaceCurrency',
+        TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT: 'Workspace_Taxes_Settings_ForeignCurrency',
+        TAX_CREATE: 'Workspace_Tax_Create',
         TAG_CREATE: 'Tag_Create',
         TAG_SETTINGS: 'Tag_Settings',
         CURRENCY: 'Workspace_Profile_Currency',
@@ -236,6 +242,7 @@ const SCREENS = {
         MEMBER_DETAILS_ROLE_SELECTION: 'Workspace_Member_Details_Role_Selection',
         DISTANCE_RATES: 'Distance_Rates',
         CREATE_DISTANCE_RATE: 'Create_Distance_Rate',
+        DISTANCE_RATES_SETTINGS: 'Distance_Rates_Settings',
     },
 
     EDIT_REQUEST: {
