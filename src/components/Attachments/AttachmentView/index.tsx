@@ -34,11 +34,9 @@ type AttachmentViewOnyxProps = {
 };
 
 type AttachmentViewProps = AttachmentViewOnyxProps &
-    Omit<Attachment, 'isAuthTokenRequired'> & {
+    Attachment & {
         /** Whether this view is the active screen  */
         isFocused?: boolean;
-
-        isAuthTokenRequired?: boolean;
 
         /** Function for handle on press */
         onPress?: (e?: GestureResponderEvent | KeyboardEvent) => void;
@@ -58,7 +56,7 @@ type AttachmentViewProps = AttachmentViewOnyxProps &
         onToggleKeyboard?: (shouldFadeOut: boolean) => void;
 
         /** Extra styles to pass to View wrapper */
-        containerStyles?: Array<StyleProp<ViewStyle>>;
+        containerStyles?: StyleProp<ViewStyle>;
 
         /** Denotes whether it is a workspace avatar or not */
         isWorkspaceAvatar?: boolean;
@@ -66,14 +64,9 @@ type AttachmentViewProps = AttachmentViewOnyxProps &
         /** Denotes whether it is an icon (ex: SVG) */
         maybeIcon?: boolean;
 
-        /** The id of the transaction related to the attachment */
-        transactionID?: string;
-
         fallbackSource?: AttachmentSource;
 
         isHovered?: boolean;
-
-        optionalVideoDuration?: number;
     };
 
 function AttachmentView({
@@ -94,7 +87,7 @@ function AttachmentView({
     transaction,
     reportActionID,
     isHovered,
-    optionalVideoDuration,
+    duration,
 }: AttachmentViewProps) {
     const {translate} = useLocalize();
     const {updateCurrentlyPlayingURL} = usePlaybackContext();
@@ -215,13 +208,13 @@ function AttachmentView({
                 source={source}
                 shouldUseSharedVideoElement={isUsedInCarousel}
                 isHovered={isHovered}
-                duration={optionalVideoDuration}
+                duration={duration}
             />
         );
     }
 
     return (
-        <View style={[styles.defaultAttachmentView, ...(containerStyles ?? [])]}>
+        <View style={[styles.defaultAttachmentView, containerStyles]}>
             <View style={styles.mr2}>
                 <Icon
                     fill={theme.icon}

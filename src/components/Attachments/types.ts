@@ -10,7 +10,7 @@ type Attachment = {
     reportActionID?: string;
 
     /** Whether source url requires authentication */
-    isAuthTokenRequired: boolean;
+    isAuthTokenRequired?: boolean;
 
     /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
     source: AttachmentSource;

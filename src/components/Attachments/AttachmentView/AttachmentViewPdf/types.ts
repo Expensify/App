@@ -3,7 +3,6 @@ import type {AttachmentViewProps} from '..';
 
 type AttachmentViewPdfProps = Pick<AttachmentViewProps, 'file' | 'onPress' | 'isUsedInCarousel' | 'isFocused' | 'onToggleKeyboard'> & {
     encryptedSourceUrl: string;
-    onToggleKeyboard?: (shouldFadeOut: boolean) => void;
     onLoadComplete: (path: string) => void;
 
     /** Additional style props */

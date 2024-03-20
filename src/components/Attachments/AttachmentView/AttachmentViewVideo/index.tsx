@@ -4,12 +4,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {AttachmentViewProps} from '..';
 
-type AttachmentViewVideoProps = Pick<AttachmentViewProps, 'duration'> & {
+type AttachmentViewVideoProps = Pick<AttachmentViewProps, 'duration' | 'isHovered'> & {
     /** Video file source URL */
     source: string;
-
-    /** Whether the video is currently being hovered over */
-    isHovered?: boolean;
 
     shouldUseSharedVideoElement?: boolean;
 };
