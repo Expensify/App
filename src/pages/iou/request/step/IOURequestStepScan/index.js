@@ -1,6 +1,7 @@
 import lodashGet from 'lodash/get';
 import React, {useCallback, useContext, useEffect, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
+import _ from 'underscore';
 import Hand from '@assets/images/hand.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import Shutter from '@assets/images/shutter.svg';
@@ -15,6 +16,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
+import useTabNavigatorFocus from '@hooks/useTabNavigatorFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -75,21 +77,78 @@ function IOURequestStepScan({
     const [isTorchAvailable, setIsTorchAvailable] = useState(false);
     const cameraRef = useRef(null);
 
+    const [videoConstraints, setVideoConstraints] = useState(null);
+    const tabIndex = 1;
+    const isTabActive = useTabNavigatorFocus({tabIndex});
+
+    /**
+     * On phones that have ultra-wide lens, react-webcam uses ultra-wide by default.
+     * The last deviceId is of regular len camera.
+     */
+    const requestCameraPermission = useCallback(() => {
+        if (!_.isEmpty(videoConstraints) || !Browser.isMobile()) {
+            return;
+        }
+
+        navigator.mediaDevices
+            .getUserMedia({video: {facingMode: {exact: 'environment'}, zoom: {ideal: 1}}})
+            .then((stream) => {
+                setCameraPermissionState('granted');
+                _.forEach(stream.getTracks(), (track) => track.stop());
+                // Only Safari 17+ supports zoom constraint
+                if (Browser.isMobileSafari() && stream.getTracks().length > 0) {
+                    const deviceId = _.chain(stream.getTracks())
+                        .map((track) => track.getSettings())
+                        .find((setting) => setting.zoom === 1)
+                        .get('deviceId')
+                        .value();
+                    if (deviceId) {
+                        setVideoConstraints({deviceId});
+                        return;
+                    }
+                }
+                if (!navigator.mediaDevices.enumerateDevices) {
+                    setVideoConstraints({facingMode: {exact: 'environment'}});
+                    return;
+                }
+                navigator.mediaDevices.enumerateDevices().then((devices) => {
+                    const lastBackDeviceId = _.chain(devices)
+                        .filter((item) => item.kind === 'videoinput')
+                        .last()
+                        .get('deviceId', '')
+                        .value();
+
+                    if (!lastBackDeviceId) {
+                        setVideoConstraints({facingMode: {exact: 'environment'}});
+                        return;
+                    }
+                    setVideoConstraints({deviceId: lastBackDeviceId});
+                });
+            })
+            .catch(() => {
+                setCameraPermissionState('denied');
+            });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     useEffect(() => {
-        if (!Browser.isMobile()) {
+        if (!Browser.isMobile() || isTabActive) {
             return;
         }
         navigator.permissions
             .query({name: 'camera'})
             .then((permissionState) => {
                 setCameraPermissionState(permissionState.state);
+                if (permissionState.state === 'granted') {
+                    requestCameraPermission();
+                }
             })
             .catch(() => {
                 setCameraPermissionState('denied');
             });
         // We only want to get the camera permission status when the component is mounted
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [isTabActive]);
 
     const hideRecieptModal = () => {
         setIsAttachmentInvalid(false);
@@ -180,16 +239,7 @@ function IOURequestStepScan({
 
     const capturePhoto = useCallback(() => {
         if (!cameraRef.current || !cameraRef.current.getScreenshot) {
-            if (cameraPermissionState === 'prompt') {
-                navigator.mediaDevices
-                    .getUserMedia({video: {facingMode: {exact: 'environment'}}})
-                    .then(() => {
-                        setCameraPermissionState('granted');
-                    })
-                    .catch(() => {
-                        setCameraPermissionState('denied');
-                    });
-            }
+            requestCameraPermission();
             return;
         }
         const imageBase64 = cameraRef.current.getScreenshot();
@@ -204,7 +254,7 @@ function IOURequestStepScan({
         }
 
         navigateToConfirmationStep();
-    }, [cameraRef, action, transactionID, updateScanAndNavigate, navigateToConfirmationStep, cameraPermissionState]);
+    }, [cameraRef, action, transactionID, updateScanAndNavigate, navigateToConfirmationStep, requestCameraPermission]);
 
     const panResponder = useRef(
         PanResponder.create({
@@ -241,11 +291,11 @@ function IOURequestStepScan({
                         style={{...styles.videoContainer, display: cameraPermissionState !== 'granted' ? 'none' : 'block'}}
                         ref={cameraRef}
                         screenshotFormat="image/png"
-                        videoConstraints={{facingMode: {exact: 'environment'}}}
+                        videoConstraints={videoConstraints}
                         torchOn={isFlashLightOn}
                         onTorchAvailability={setIsTorchAvailable}
                         forceScreenshotSourceSize
-                        cameraTabIndex={1}
+                        cameraTabIndex={tabIndex}
                     />
                 )}
             </View>
